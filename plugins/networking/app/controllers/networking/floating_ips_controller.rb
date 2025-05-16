@@ -11,6 +11,8 @@ module Networking
 
     def index
       per_page = params[:per_page] || 20
+      @ptr_record_list = []
+      @ptr_record_list = services.networking.list_floating_ips_ptr_records
       @floating_ips =
         paginatable(per_page: per_page) do |pagination_options|
           services.networking.project_floating_ips(

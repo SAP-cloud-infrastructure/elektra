@@ -77,6 +77,13 @@ module ServiceLayer
         nil
       end
 
+      def list_floating_ips_ptr_records
+        elektron_networking.get("reverse/floatingips").map_to(
+          "body.floatingips",
+          &floatingip_map
+        )
+      end
+
       ################## Model Interface ##################
       def create_floating_ip(attributes)
         elektron_networking
