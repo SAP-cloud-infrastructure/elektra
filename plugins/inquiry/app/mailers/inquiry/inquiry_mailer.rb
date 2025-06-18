@@ -1,5 +1,6 @@
 module Inquiry
-  class InquiryMailer < ApplicationMailer
+  class InquiryMailer < ::CoreApplicationMailer
+    
     def notification_email_requester(
       user_email,
       user_full_name,
@@ -81,7 +82,17 @@ module Inquiry
           subject += "/#{@inquiry.tags["domain_name"]}"
         end
       end
-      mail(to: inform_dl, subject: subject, content_type: "text/html")
+      
+      # Render the email body content
+      email_body = render_to_string('inquiry/inquiry_mailer/notification_new_project', layout: false)
+
+      send_custom_email(
+        recipient: inform_dl,
+        subject: subject,
+        body_html: email_body
+      )
+      # mail(to: inform_dl, subject: subject, content_type: "text/html")
     end
+
   end
 end

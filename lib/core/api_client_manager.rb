@@ -46,13 +46,17 @@ module Core
       @service_user_api_clients[scope_domain]
     end
 
-    def self.cloud_admin_api_client
-      unless @cloud_admin_api_client
-        @cloud_admin_api_client_mutex.synchronize do
-          @cloud_admin_api_client = create_cloud_admin_api_client
+    def self.cloud_admin_api_client(auth_url = ::Core.keystone_auth_endpoint)
+      @cloud_admin_api_client_mutex.synchronize do
+        @cloud_admin_api_clients ||= {}
+    
+        # Ensure an API client is created per unique auth_url
+        unless @cloud_admin_api_clients[auth_url]
+          @cloud_admin_api_clients[auth_url] = create_cloud_admin_api_client(auth_url)
         end
       end
-      @cloud_admin_api_client
+      @cloud_admin_api_clients[auth_url]
+
     end
 
     def self.user_api_client(current_user)
@@ -168,9 +172,9 @@ module Core
       end
     end
 
-    def self.create_cloud_admin_api_client
+    def self.create_cloud_admin_api_client(auth_url)
       auth_params = {
-        url: ::Core.keystone_auth_endpoint,
+        url: auth_url,
         scope_project_name: Rails.configuration.cloud_admin_project,
         scope_project_domain_name: Rails.configuration.cloud_admin_domain
       }
