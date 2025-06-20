@@ -1,2 +1,3 @@
 - floating_ips.each do | floating_ip |
-  = render partial: 'item', locals: {floating_ip: floating_ip}
+  - fip_ptr_record = @fip_ptr_records.select { |record| record.address == floating_ip.floating_ip_address }
+  = render partial: 'item', locals: {floating_ip: floating_ip, fip_ptr_record: fip_ptr_record.first}

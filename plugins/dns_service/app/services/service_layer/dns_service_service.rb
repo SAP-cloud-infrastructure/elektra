@@ -39,6 +39,7 @@ module ServiceLayer
     include DnsServiceServices::Pool
     include DnsServiceServices::Recordset
     include DnsServiceServices::ZoneTransfer
+    include DnsServiceServices::Ptr
 
     def available?(_action_name_sym = nil)
       elektron.service?("dns")

@@ -11,6 +11,8 @@ module Networking
 
     def index
       per_page = params[:per_page] || 20
+      @fip_ptr_records = []
+      @fip_ptr_records = services.dns_service.list_floating_ips_ptr_records
       @floating_ips =
         paginatable(per_page: per_page) do |pagination_options|
           services.networking.project_floating_ips(
@@ -24,7 +26,7 @@ module Networking
       # this is relevant in case an ajax paginate call is made.
       # in this case we don't render the layout, only the list!
       if request.xhr?
-        render partial: "list", locals: { floating_ips: @floating_ips }
+        render partial: "list", locals: { floating_ips: @floating_ips, fip_ptr_records: @fip_ptr_records }
       else
         # comon case, render index page with layout
         render action: :index
