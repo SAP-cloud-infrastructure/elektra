@@ -33,7 +33,7 @@ module Identity
         begin
           URI.parse(user_id)
         rescue URI::InvalidURIError
-          render json: { errors: "Invalid user ID format do not use special characters" }
+          render json: { errors: "Invalid user Name/ID format do not use special characters" }
           return
         end
 
