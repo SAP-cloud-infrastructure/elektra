@@ -77,9 +77,15 @@
 
       - if plugin_available?('identity')
         %h5
-          %i.access_management-icon
-          Access Management
+          %i.api-icon
+          API Access
+        %ul.plain-list
+          %li
+            = link_to 'API Endpoints for Clients ', plugin('identity').domains_api_endpoints_path
 
+        %h5
+          %i.access_management-icon
+          Authorizations
         %ul.plain-list
           - if current_user.is_allowed?('identity:group_list', domain_id: @scoped_domain_id)
             %li

@@ -20,7 +20,7 @@ module Identity
 
     # check wizard state and redirect unless finished
     before_action :check_wizard_status, only: [:show]
-
+    before_action :api_endpoints, only: %i[download_openrc download_openrc_ps1]
     before_action { @scoped_project_fid = params[:project_id] || @project_id }
 
     authorization_required(
@@ -106,15 +106,10 @@ module Identity
 
     def api_endpoints
       @token = current_user.token
-      @webcli_endpoint = current_user.service_url('webcli')
       @identity_url = current_user.service_url('identity')
     end
 
     def download_openrc
-      @token = current_user.token
-      @webcli_endpoint = current_user.service_url('webcli')
-      @identity_url = current_user.service_url('identity')
-
       out_data =
         "export OS_AUTH_URL=#{@identity_url}\n" \
           "export OS_IDENTITY_API_VERSION=3\n" \
@@ -125,8 +120,7 @@ module Identity
           "echo \"Please enter your OpenStack Password: \"\n" \
           "read -sr OS_PASSWORD_INPUT\n" \
           "export OS_PASSWORD=$OS_PASSWORD_INPUT\n" \
-          "export OS_REGION_NAME=#{current_region}\n" \
-          "export OS_COMPUTE_API_VERSION=2.60\n"
+          "export OS_REGION_NAME=#{current_region}\n"
 
       send_data(
         out_data,
@@ -138,10 +132,6 @@ module Identity
     end
 
     def download_openrc_ps1
-      @token = current_user.token
-      @webcli_endpoint = current_user.service_url('webcli')
-      @identity_url = current_user.service_url('identity')
-
       out_data =
         "$env:OS_AUTH_URL=\"#{@identity_url}\"\r\n" \
           "$env:OS_IDENTITY_API_VERSION=\"3\"\r\n" \
@@ -151,8 +141,7 @@ module Identity
           "$env:OS_USER_DOMAIN_NAME=\"#{@scoped_domain_name}\"\r\n" \
           "$Password = Read-Host -Prompt \"Please enter your OpenStack Password\" -AsSecureString\r\n" \
           "$env:OS_PASSWORD = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($Password))\r\n" \
-          "$env:OS_REGION_NAME=\"#{current_region}\"\r\n" \
-          "$env:OS_COMPUTE_API_VERSION=\"2.60\"\r\n"
+          "$env:OS_REGION_NAME=\"#{current_region}\"\r\n" 
 
       send_data(
         out_data,

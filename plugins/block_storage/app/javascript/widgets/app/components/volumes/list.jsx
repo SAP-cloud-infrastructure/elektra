@@ -17,6 +17,7 @@ const VolumesList = ({
   forceDeleteVolume,
   detachVolume,
 }) => {
+  const [showAvailable, setShowAvailable] = React.useState(false)
   // Body
   useEffect(() => listenToVolumes(), [])
   useEffect(() => {
@@ -54,11 +55,11 @@ const VolumesList = ({
           <Form
             isLoading={volumes.isFetching}
             searchFor={["name", "description", "id", "status"]}
-            onSubmit={(searchType, searchTerm) =>
-              fetchVolumes({ searchType, searchTerm })
-            }
+            onSubmit={(searchType, searchTerm) => fetchVolumes({ searchType, searchTerm })}
             helpText="Search by name, ID or status will find exact or partial matches. ID and status have to be exact matches to be found."
           />
+          <input type="checkbox" checked={showAvailable} onChange={() => setShowAvailable(!showAvailable)} />
+          <span style={{ paddingLeft: "5px", paddingTop: "4px" }}>Show only available volumes</span>
           {canCreate && (
             <div className="main-buttons">
               <DefeatableLink to="/volumes/new" className="btn btn-primary">
@@ -77,7 +78,8 @@ const VolumesList = ({
             <th>Availability Zone</th>
             <th>Description</th>
             <th>Size(GB)</th>
-            <th>Attached to</th>
+            <th style={{ whiteSpace: "nowrap" }}>Attached To</th>
+            <th style={{ whiteSpace: "nowrap" }}>Updated At</th>
             <th>Status</th>
             <th className="snug"></th>
           </tr>
@@ -85,26 +87,22 @@ const VolumesList = ({
 
         <tbody>
           {volumes.items && volumes.items.length > 0 ? (
-            volumes.items.map((volume, index) => (
-              <Item
-                volume={volume}
-                key={index}
-                searchTerm={""}
-                reloadVolume={reloadVolume}
-                deleteVolume={deleteVolume}
-                detachVolume={detachVolume}
-                forceDeleteVolume={forceDeleteVolume}
-              />
-            ))
+            volumes.items
+              .filter((volume) => !showAvailable || volume.status === "available")
+              .map((volume, index) => (
+                <Item
+                  volume={volume}
+                  key={index}
+                  searchTerm={""}
+                  reloadVolume={reloadVolume}
+                  deleteVolume={deleteVolume}
+                  detachVolume={detachVolume}
+                  forceDeleteVolume={forceDeleteVolume}
+                />
+              ))
           ) : (
             <tr>
-              <td colSpan="7">
-                {volumes.isFetching ? (
-                  <span className="spinner" />
-                ) : (
-                  "No volumes found."
-                )}
-              </td>
+              <td colSpan="7">{volumes.isFetching ? <span className="spinner" /> : "No volumes found."}</td>
             </tr>
           )}
         </tbody>

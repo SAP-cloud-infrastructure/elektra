@@ -1,6 +1,24 @@
 # this config is used to control the visibility of plugins in the navigation,
 # to define floating ip networks.
 domains:
+  - name: any domain
+    regex: ".*"
+    floating_ip_networks:
+      - "FloatingIP-external-%DOMAIN_NAME%-10"
+      - "FloatingIP-external-%DOMAIN_NAME%-09"
+      - "FloatingIP-external-%DOMAIN_NAME%-08"
+      - "FloatingIP-external-%DOMAIN_NAME%-07"
+      - "FloatingIP-external-%DOMAIN_NAME%-06"
+      - "FloatingIP-external-%DOMAIN_NAME%-05"
+      - "FloatingIP-external-%DOMAIN_NAME%-04"
+      - "FloatingIP-external-%DOMAIN_NAME%-03"
+      - "FloatingIP-external-%DOMAIN_NAME%-02"
+      - "FloatingIP-external-%DOMAIN_NAME%-01"
+      - "FloatingIP-external-%DOMAIN_NAME%"
+      - "Converged Cloud External"
+    dns_c_subdomain: true
+    check_cidr_range: true
+    terms_of_use_name: "actual_terms"
   - name: test
     regex: "_test_"
     disabled_features:

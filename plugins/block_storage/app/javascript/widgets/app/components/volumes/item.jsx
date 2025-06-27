@@ -11,18 +11,8 @@ const MyHighlighter = ({ search, children }) => {
   return <Highlighter search={search}>{children + ""}</Highlighter>
 }
 
-const VolumeItem = ({
-  reloadVolume,
-  deleteVolume,
-  forceDeleteVolume,
-  detachVolume,
-  volume,
-  searchTerm,
-}) => {
-  const pending = React.useMemo(
-    () => constants.VOLUME_PENDING_STATUS.indexOf(volume.status) >= 0,
-    [volume.status]
-  )
+const VolumeItem = ({ reloadVolume, deleteVolume, forceDeleteVolume, detachVolume, volume, searchTerm }) => {
+  const pending = React.useMemo(() => constants.VOLUME_PENDING_STATUS.indexOf(volume.status) >= 0, [volume.status])
   React.useEffect(() => {
     let polling
     if (pending) {
@@ -71,9 +61,7 @@ const VolumeItem = ({
       <td>
         {policy.isAllowed("block_storage:volume_get", {}) ? (
           <Link to={`/volumes/${volume.id}/show`}>
-            <MyHighlighter search={searchTerm || ""}>
-              {volume.name || volume.id}
-            </MyHighlighter>
+            <MyHighlighter search={searchTerm || ""}>{volume.name || volume.id}</MyHighlighter>
           </Link>
         ) : (
           <MyHighlighter search={searchTerm}>{volume.name}</MyHighlighter>
@@ -96,10 +84,7 @@ const VolumeItem = ({
           volume.attachments.length > 0 &&
           volume.attachments.map((attachment, index) => (
             <div key={index}>
-              <a
-                href={`/${scope.domain}/${scope.project}/compute/instances/${attachment.server_id}`}
-                data-modal={true}
-              >
+              <a href={`/${scope.domain}/${scope.project}/compute/instances/${attachment.server_id}`} data-modal={true}>
                 {attachment.server_name || attachment.server_id}
               </a>
               &nbsp;on {attachment.device}
@@ -111,6 +96,15 @@ const VolumeItem = ({
               )}
             </div>
           ))}
+      </td>
+      <td style={{ whiteSpace: "nowrap" }}>
+        {new Date(volume.updated_at).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })}
       </td>
       <td>
         {pending && <span className="spinner" />}
@@ -144,9 +138,7 @@ const VolumeItem = ({
               )}
               {volume.status == "available" && (
                 <li>
-                  <Link to={`/volumes/${volume.id}/snapshots/new`}>
-                    Create Snapshot
-                  </Link>
+                  <Link to={`/volumes/${volume.id}/snapshots/new`}>Create Snapshot</Link>
                 </li>
               )}
               {policy.isAllowed("block_storage:volume_create", {
@@ -164,9 +156,7 @@ const VolumeItem = ({
                 <>
                   <li className="divider"></li>
                   <li>
-                    <Link to={`/volumes/${volume.id}/attachments/new`}>
-                      Attach
-                    </Link>
+                    <Link to={`/volumes/${volume.id}/attachments/new`}>Attach</Link>
                   </li>
                 </>
               ) : (
@@ -202,25 +192,19 @@ const VolumeItem = ({
                   <li className="divider"></li>
                   {policy.isAllowed("block_storage:volume_reset_status") && (
                     <li>
-                      <Link to={`/volumes/${volume.id}/reset-status`}>
-                        Reset Status
-                      </Link>
+                      <Link to={`/volumes/${volume.id}/reset-status`}>Reset Status</Link>
                     </li>
                   )}
                   {policy.isAllowed("block_storage:volume_extend_size") && (
                     <li>
-                      <Link to={`/volumes/${volume.id}/extend-size`}>
-                        Extend Size
-                      </Link>
+                      <Link to={`/volumes/${volume.id}/extend-size`}>Extend Size</Link>
                     </li>
                   )}
                 </>
               )}
               {policy.isAllowed("image:image_create") && (
                 <li>
-                  <Link to={`/volumes/${volume.id}/images/new`}>
-                    Upload To Image
-                  </Link>
+                  <Link to={`/volumes/${volume.id}/images/new`}>Upload To Image</Link>
                 </li>
               )}
               {policy.isAllowed("block_storage:volume_force_delete") && (

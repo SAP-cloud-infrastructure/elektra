@@ -1217,9 +1217,9 @@
   integrity sha512-PF8ySXlVyyLlSBPWaxAzVIDbTsgf+6FQTEyLNQ0YZ9nOahrzBt+YIy1SXu/wHT5DybN9TkgzEEqOltueJFANSw==
 
 "@cloudoperators/juno-url-state-provider@*":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@cloudoperators/juno-url-state-provider/-/juno-url-state-provider-3.0.0.tgz#e69d9741080d55075727be5d60ff0302702f4819"
-  integrity sha512-bFZ1Pz6bVXLpH2jHfp4ERrGMPNbNs066ANGqS+5NW74kKmX3Wk+xLrmraPXn/xLmp+seGVfa8U8+2MmAOgJUSQ==
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@cloudoperators/juno-url-state-provider/-/juno-url-state-provider-3.0.1.tgz#c2307d0fb979c733aa2725290d9a85725299c0d0"
+  integrity sha512-KCZ4KP8Sw/DVdpGqxUBKJNZcSzjGSdHmqBv8gTzq7d6wr16dz3SjHcJJhPyFhWrbBhAOcE45hZfMLCS+eiDuqQ==
   dependencies:
     history "^5.3.0"
     juri "^1.0.3"
@@ -2212,9 +2212,9 @@
     "@react-spring/types" "~9.7.3"
 
 "@sapcc/limes-ui@^1.3.9":
-  version "1.7.0"
-  resolved "https://npm.pkg.github.com/download/@sapcc/limes-ui/1.7.0/153096cc473258495b339e151c8960e1eee70cb1#153096cc473258495b339e151c8960e1eee70cb1"
-  integrity sha512-VvnIGkxd+FF0GjMdkTV5EhiMy3ta4w9wh/i/pSldP0AjQ5xmw754/2Sz3kYzthZom/QdWACJZx6lCTSJEUxU2w==
+  version "1.7.1"
+  resolved "https://npm.pkg.github.com/download/@sapcc/limes-ui/1.7.1/1340530a6e8a0b068a2efa44677b1e40d0891597#1340530a6e8a0b068a2efa44677b1e40d0891597"
+  integrity sha512-4ZZ59IdpHSVfXuHhVt4HQdSvHsxe6YxDqLZbtyxrpUIG1eeV2w7QeGc0Fc6yeZCTYdSSxENPEzdtzmqWmCF27g==
   dependencies:
     "@cloudoperators/juno-ui-components" "3.0.0"
     "@cloudoperators/juno-url-state-provider" "*"
@@ -2528,9 +2528,9 @@
     parse5 "^7.0.0"
 
 "@types/node@*":
-  version "22.15.18"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-22.15.18.tgz#2f8240f7e932f571c2d45f555ba0b6c3f7a75963"
-  integrity sha512-v1DKRfUdyW+jJhZNEI1PYy29S2YRxMV5AOO/x/SjKmW0acCIOqmbj6Haf9eHAhsPmrhlHSxEhv/1WszcLWV4cg==
+  version "22.15.21"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-22.15.21.tgz#196ef14fe20d87f7caf1e7b39832767f9a995b77"
+  integrity sha512-EV/37Td6c+MgKAbkcLG6vqZ2zEYHD7bvSrzqqs2RIhbA6w3x+Dqz8MZM3sP6kGTeLrdoOgKZe+Xja7tUB2DNkQ==
   dependencies:
     undici-types "~6.21.0"
 
@@ -3761,9 +3761,9 @@ cypress@9.0.0:
     yauzl "^2.10.0"
 
 cypress@^14.0.0:
-  version "14.3.3"
-  resolved "https://registry.yarnpkg.com/cypress/-/cypress-14.3.3.tgz#cbf7fbc79fd139ba55ea51a6d1ee3d9018a59ce2"
-  integrity sha512-1Rz7zc9iqLww6BysaESqUhtIuaFHS7nL3wREovAKYsNhLTfX3TbcBWHWgEz70YimH2NkSOsm4oIcJJ9HYHOlew==
+  version "14.4.0"
+  resolved "https://registry.yarnpkg.com/cypress/-/cypress-14.4.0.tgz#db7d108400c9481a161f047f1cc34b43b05c48f3"
+  integrity sha512-/I59Fqxo7fqdiDi3IM2QKA65gZ7+PVejXg404/I8ZSq+NOnrmw+2pnMUJzpoNyg7KABcEBmgpkfAqhV98p7wJA==
   dependencies:
     "@cypress/request" "^3.0.8"
     "@cypress/xvfb" "^1.2.4"

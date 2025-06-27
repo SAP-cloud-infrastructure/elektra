@@ -20,6 +20,9 @@ Identity::Engine.routes.draw do
     end
 
     get 'auth_projects'
+    get 'api-endpoints'
+    get 'download-openrc'
+    get 'download-openrc-ps1'
   end
 
   resources :projects, only: [:index] do

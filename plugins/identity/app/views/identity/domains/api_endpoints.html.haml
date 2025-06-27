@@ -1,27 +1,26 @@
 .well
   %h4
-    Here you can find the parameters needed to access the project with an openstack client.
+    Here you can find the parameters needed to access the domain with an openstack client.
   %h4
     To install the openstack (cli) client follow the officially provided instructions from the
     %a(title='OpenStack Clients' href='https://docs.openstack.org/newton/user-guide/common/cli-install-openstack-command-line-clients.html' target='blank') OpenStack Documentation
-    How to use the OpenStack CLI (Linux, MacOS)
   %p
-    The OpenStack RC file contains the necessary environment variables to authenticate for this project to interact with the OpenStack API.
+    The OpenStack RC file contains the necessary environment variables to authenticate for this domain to interact with the OpenStack API.
     <br>
     To source the OpenStack RC file, use the following command in your terminal:
     %code
-      source openrc-#{@scoped_domain_name}-#{@scoped_project_name}
+      source openrc-#{@scoped_domain_name}
     <br>
     After sourcing, the environment variables are set, you can run OpenStack CLI commands (e.g. 
     %code
-      openstack server list, openstack image list
+      openstack project list, openstack endpoint list
     )
 .openrc
-  =link_to plugin('identity').projects_download_openrc_path , class:'btn btn-outline' do
+  =link_to plugin('identity').domains_download_openrc_path , class:'btn btn-outline' do
     %span.fa.fa-cloud-download.fa-fw
     Download Openstack RC File
   &nbsp;
-  =link_to plugin('identity').projects_download_openrc_ps1_path , class:'btn btn-outline' do
+  =link_to plugin('identity').domains_download_openrc_ps1_path , class:'btn btn-outline' do
     %span.fa.fa-cloud-download.fa-fw
     Download Openstack RC File for Windows PowerShell
 
@@ -40,12 +39,6 @@
     %tr
       %th OS_USER_DOMAIN_ID | OS_USER_DOMAIN_NAME
       %td= "#{@scoped_domain_id} | #{@scoped_domain_name}"
-    %tr
-      %th OS_PROJECT_DOMAIN_ID | OS_PROJECT_DOMAIN_NAME
-      %td= "#{@scoped_domain_id} | #{@scoped_domain_name}"
-    %tr
-      %th OS_PROJECT_ID | OS_PROJECT_NAME
-      %td=  "#{@scoped_project_id} | #{@scoped_project_name}"
     %tr
       %th OS_USERNAME
       %td= '<Your username>'

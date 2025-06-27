@@ -34,7 +34,8 @@ const NewAppCredentials = ({ userId, refreshList, setOverlay }) => {
         setOverlay(true)
       })
       .catch((error) => {
-        setError(error.data.error.error.message)
+        setError(error?.data?.error?.error?.message || "An error occurred while creating the application credential.")
+        console.error("Error creating application credential:", error)
       })
       .finally(() => {
         setIsLoading(false)
