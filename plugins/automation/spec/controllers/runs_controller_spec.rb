@@ -5,6 +5,7 @@ require_relative "../factories/factories"
 
 describe Automation::RunsController, type: :controller do
   skip "Temporarily skipping all tests in this file"
+
   routes { Automation::Engine.routes }
 
   default_params = {
@@ -132,16 +133,15 @@ describe Automation::RunsController, type: :controller do
       end
     end
     context "other roles" do
-        before :each do
-          stub_authentication do |token|
-            token["roles"].delete_if { |h| h["id"] == "automation_role" }
-            token
-          end
+      before :each do
+        stub_authentication do |token|
+          token["roles"].delete_if { |h| h["id"] == "automation_role" }
+          token
         end
-        it "not allowed" do
-          get :show_log, params: default_params.merge(id: "run_id")
-          expect(response).to_not be_successful
-        end
+      end
+      it "not allowed" do
+        get :show_log, params: default_params.merge(id: "run_id")
+        expect(response).to_not be_successful
       end
     end
   end
