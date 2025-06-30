@@ -12,11 +12,12 @@ module Inquiry
       @user_full_name = user_full_name
       @inquiry_step = inquiry_step
       @inquiry = inquiry
-      mail(
-        to: @user_email,
-        subject:
-          "Converged Cloud: Your resource request is in state: #{@inquiry.aasm.human_state}",
-        content_type: "text/html",
+
+      email_body = render_to_string('inquiry/inquiry_mailer/notification_email_requester.html.html', layout: false)
+      send_custom_email(
+        recipient: @user_email,
+        subject: "Converged Cloud: Your resource request is in state: #{@inquiry.aasm.human_state}",
+        body_html: email_body
       )
     end
 
@@ -40,8 +41,14 @@ module Inquiry
           subject += "/#{@inquiry.tags["domain_name"]}"
         end
       end
+
       # this is called from the model, first try with all emails at once, if a error occurs, try to send each email separately
-      mail(to: processor_emails, subject: subject, content_type: "text/html")
+      email_body = render_to_string('inquiry/inquiry_mailer/notification_email_processors.html', layout: false)
+      send_custom_email(
+        recipient: processor_emails,
+        subject: subject,
+        body_html: email_body
+      )
     end
 
     def notification_email_additional_recipients(
@@ -65,8 +72,14 @@ module Inquiry
           subject += "/#{@inquiry.tags["domain_name"]}"
         end
       end
+
       # this is called from the model, first try with all emails at once, if a error occurs, try to send each email separately
-      mail(to: receiver_emails, subject: subject, content_type: "text/html")
+      email_body = render_to_string('inquiry/inquiry_mailer/notification_email_additional_recipients.html', layout: false)
+      send_custom_email(
+        recipient: receiver_emails,
+        subject: subject,
+        body_html: email_body
+      ) 
     end
 
     def notification_new_project(inform_dl, inquiry, user_full_name)
@@ -85,13 +98,11 @@ module Inquiry
       
       # Render the email body content
       email_body = render_to_string('inquiry/inquiry_mailer/notification_new_project', layout: false)
-
       send_custom_email(
         recipient: inform_dl,
         subject: subject,
         body_html: email_body
-      )
-      # mail(to: inform_dl, subject: subject, content_type: "text/html")
+      )      
     end
 
   end
