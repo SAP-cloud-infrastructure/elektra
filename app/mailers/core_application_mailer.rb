@@ -6,12 +6,18 @@ class CoreApplicationMailer < ActionMailer::Base
   layout "mailer"
 
   def send_custom_email(recipient:, subject:, body_html:)
-    # Get the token form the cloud_admin instance
-    token = cloud_admin.instance_variable_get(:@api_client).token   
+    if Rails.configuration.limes_mail_server_endpoint.blank?
+      Rails.logger.info "Skipping email: limes_mail_server_endpoint is not set."
+      return
+    end
 
+    # Ensure uri is properly formed
     uri = URI.parse(Rails.configuration.limes_mail_server_endpoint)
     uri.query = URI.encode_www_form({ from: 'elektra' })
-   
+
+    # Get the token form the mail_cloud_admin instance
+    token = mail_cloud_admin.instance_variable_get(:@api_client).token
+
     # Set up the body for the request
     body = {
       recipients: [recipient],
@@ -41,8 +47,8 @@ class CoreApplicationMailer < ActionMailer::Base
 
   private
 
-  def cloud_admin
-    @cloud_admin ||=
+  def mail_cloud_admin
+    @mail_cloud_admin ||=
       Core::ServiceLayer::ServicesManager.new(
         Core::ApiClientManager.cloud_admin_api_client,          
       )
