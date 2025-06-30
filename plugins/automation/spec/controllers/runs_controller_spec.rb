@@ -3,7 +3,8 @@
 require "spec_helper"
 require_relative "../factories/factories"
 
-describe Automation::RunsController, type: :controller, :skip do
+skip "Temporarily skipping controller spec" do
+describe Automation::RunsController, type: :controller do
   routes { Automation::Engine.routes }
 
   default_params = {
@@ -131,15 +132,16 @@ describe Automation::RunsController, type: :controller, :skip do
       end
     end
     context "other roles" do
-      before :each do
-        stub_authentication do |token|
-          token["roles"].delete_if { |h| h["id"] == "automation_role" }
-          token
+        before :each do
+          stub_authentication do |token|
+            token["roles"].delete_if { |h| h["id"] == "automation_role" }
+            token
+          end
         end
-      end
-      it "not allowed" do
-        get :show_log, params: default_params.merge(id: "run_id")
-        expect(response).to_not be_successful
+        it "not allowed" do
+          get :show_log, params: default_params.merge(id: "run_id")
+          expect(response).to_not be_successful
+        end
       end
     end
   end
