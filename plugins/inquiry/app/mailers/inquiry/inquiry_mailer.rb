@@ -13,7 +13,7 @@ module Inquiry
       @inquiry_step = inquiry_step
       @inquiry = inquiry
 
-      email_body = render_to_string('inquiry/inquiry_mailer/notification_email_requester.html.html', layout: false)
+      email_body = render_to_string('inquiry/inquiry_mailer/notification_email_requester', layout: false)
       send_custom_email(
         recipient: @user_email,
         subject: "Converged Cloud: Your resource request is in state: #{@inquiry.aasm.human_state}",
@@ -43,7 +43,7 @@ module Inquiry
       end
 
       # this is called from the model, first try with all emails at once, if a error occurs, try to send each email separately
-      email_body = render_to_string('inquiry/inquiry_mailer/notification_email_processors.html', layout: false)
+      email_body = render_to_string('inquiry/inquiry_mailer/notification_email_processors', layout: false)
       send_custom_email(
         recipient: processor_emails,
         subject: subject,
@@ -74,7 +74,7 @@ module Inquiry
       end
 
       # this is called from the model, first try with all emails at once, if a error occurs, try to send each email separately
-      email_body = render_to_string('inquiry/inquiry_mailer/notification_email_additional_recipients.html', layout: false)
+      email_body = render_to_string('inquiry/inquiry_mailer/notification_email_additional_recipients', layout: false)
       send_custom_email(
         recipient: receiver_emails,
         subject: subject,
