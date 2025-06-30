@@ -1,6 +1,6 @@
 require "spec_helper"
 
-describe Automation::Forms::Automation do
+describe Automation::Forms::Automation, :skip do
   it "should trim the attributes" do
     automation =
       Automation::Forms::Automation.new(

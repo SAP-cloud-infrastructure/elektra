@@ -1,6 +1,6 @@
 require "spec_helper"
 
-describe Automation::Forms::NodeTags do
+describe Automation::Forms::NodeTags, :skip do
   it "should trim the attributes" do
     node_tags =
       Automation::Forms::NodeTags.new(

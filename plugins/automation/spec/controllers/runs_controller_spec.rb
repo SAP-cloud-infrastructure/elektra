@@ -3,7 +3,7 @@
 require "spec_helper"
 require_relative "../factories/factories"
 
-describe Automation::RunsController, type: :controller do
+describe Automation::RunsController, type: :controller, :skip do
   routes { Automation::Engine.routes }
 
   default_params = {

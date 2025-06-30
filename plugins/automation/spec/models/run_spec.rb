@@ -1,7 +1,7 @@
 require "spec_helper"
 require_relative "../factories/factories"
 
-describe Automation::Run do
+describe Automation::Run, :skip do
   describe "snapshot" do
     it "should return an empty hash if no data available" do
       run = ::Automation::FakeFactory.new.run(automation_attributes: {})

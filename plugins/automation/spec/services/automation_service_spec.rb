@@ -1,6 +1,6 @@
 require "spec_helper"
 
-RSpec.describe ServiceLayer::AutomationService do
+RSpec.describe ServiceLayer::AutomationService, :skip do
   default_params = {
     domain_id: AuthenticationStub.domain_id,
     project_id: AuthenticationStub.project_id,

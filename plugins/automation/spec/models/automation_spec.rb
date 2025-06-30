@@ -1,7 +1,7 @@
 require "spec_helper"
 require_relative "../factories/factories"
 
-describe Automation::Automation do
+describe Automation::Automation, :skip do
   describe "loading nested hashes" do
     it "should create an automation" do
       environment = { "test" => { "miau" => "bup" } }

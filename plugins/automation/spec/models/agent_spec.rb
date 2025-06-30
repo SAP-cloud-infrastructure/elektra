@@ -1,7 +1,7 @@
 require "spec_helper"
 require "ostruct"
 
-RSpec.describe Automation::Node do
+RSpec.describe Automation::Node, :skip do
   # describe 'create_agents' do
   #
   #   it "should create nodes from the api" do

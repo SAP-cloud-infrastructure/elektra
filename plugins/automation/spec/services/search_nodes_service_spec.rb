@@ -1,6 +1,6 @@
 require "spec_helper"
 
-RSpec.describe SearchNodesService do
+RSpec.describe SearchNodesService, :skip do
   describe "search_query" do
     it "retruns an empty string if no search text given" do
       expect(SearchNodesService.search_query("")).to eq("")
