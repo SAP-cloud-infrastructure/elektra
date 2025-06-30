@@ -20,7 +20,7 @@ class CoreApplicationMailer < ActionMailer::Base
 
     # Set up the body for the request
     body = {
-      recipients: [recipient],
+      recipients: Array(recipient),
       subject: subject,
       mime_type: 'text/html',
       mail_text: body_html
