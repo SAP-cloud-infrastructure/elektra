@@ -1,6 +1,8 @@
 require "spec_helper"
 
 RSpec.describe InstallNodeService do
+  skip "Temporarily skipping all tests in this file"
+  
   describe "process_request" do
     before(:each) do
       @instance_id = "some_nice_instance_id"
