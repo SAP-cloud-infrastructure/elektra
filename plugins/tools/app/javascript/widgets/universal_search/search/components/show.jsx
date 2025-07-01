@@ -1,12 +1,7 @@
 /* eslint-disable no-undef */
 import { Modal, Button, Tabs, Tab } from "react-bootstrap"
-import { Link } from "react-router-dom"
-import { JsonViewer } from "@cloudoperators/juno-ui-components/build/JsonViewer"
-import {
-  projectUrl,
-  objectUrl,
-  vCenterUrl,
-} from "../../shared/object_link_helper"
+import { JsonViewer } from "@cloudoperators/juno-ui-components"
+import { projectUrl, objectUrl, vCenterUrl } from "../../shared/object_link_helper"
 import React from "react"
 
 import ProjectRoleAssignments from "plugins/identity/app/javascript/widgets/role_assignments/containers/project_role_assignments"
@@ -27,9 +22,7 @@ export default class ShowSearchObjectModal extends React.Component {
     // load object if it does not exist
     if (!this.props.item && this.props.match.params.id) {
       this.setState({ isFetching: true }, () =>
-        this.props
-          .load(this.props.match.params.id)
-          .catch((error) => this.setState({ isFetching: false, error }))
+        this.props.load(this.props.match.params.id).catch((error) => this.setState({ isFetching: false, error }))
       )
     }
   }
@@ -62,9 +55,7 @@ export default class ShowSearchObjectModal extends React.Component {
   render() {
     const { item, project, aggregates } = this.props
     const vcAggregates =
-      aggregates && aggregates.items
-        ? aggregates.items.filter((a) => a.name.indexOf("vc-") === 0)
-        : []
+      aggregates && aggregates.items ? aggregates.items.filter((a) => a.name.indexOf("vc-") === 0) : []
     const projectLink = projectUrl(item)
     const objectLink = objectUrl(item)
     const vCenterLink = vCenterUrl(item, vcAggregates)
@@ -103,52 +94,30 @@ export default class ShowSearchObjectModal extends React.Component {
           )}
           {this.state.error && <span>{this.state.error}</span>}
           {item && (
-            <Tabs
-              defaultActiveKey={activeTab || "data"}
-              id="item_payload"
-              mountOnEnter
-            >
+            <Tabs defaultActiveKey={activeTab || "data"} id="item_payload" mountOnEnter>
               <Tab eventKey="data" title="Data">
                 <JsonViewer data={item.payload} expanded={1} />
               </Tab>
-              {isProject &&
-                policy.isAllowed("tools:universal_search_role_assignments") && (
-                  <Tab eventKey="userRoles" title="User Role Assignments">
-                    <ProjectRoleAssignments
-                      projectId={item.id}
-                      projectDomainId={item.domain_id}
-                      type="user"
-                    />
-                  </Tab>
-                )}
-              {isProject &&
-                policy.isAllowed("tools:universal_search_role_assignments") && (
-                  <Tab eventKey="groupRoles" title="Group Role Assignments">
-                    <ProjectRoleAssignments
-                      projectId={item.id}
-                      projectDomainId={item.domain_id}
-                      type="group"
-                    />
-                  </Tab>
-                )}
-              {isUser &&
-                policy.isAllowed(
-                  "tools:universal_search_user_role_assignments",
-                  { user: item }
-                ) && (
-                  <Tab eventKey="userRoles" title="User Role Assignments">
-                    <UserRoleAssignments userId={item.id} />
-                  </Tab>
-                )}
-              {(isProject || isDomain) &&
-                policy.isAllowed("tools:universal_search_netstats") && (
-                  <Tab eventKey="networkStats" title="Network Statistics">
-                    <NetworkUsageStats
-                      scopeId={item.id}
-                      scopeType={isProject ? "project" : "domain"}
-                    />
-                  </Tab>
-                )}
+              {isProject && policy.isAllowed("tools:universal_search_role_assignments") && (
+                <Tab eventKey="userRoles" title="User Role Assignments">
+                  <ProjectRoleAssignments projectId={item.id} projectDomainId={item.domain_id} type="user" />
+                </Tab>
+              )}
+              {isProject && policy.isAllowed("tools:universal_search_role_assignments") && (
+                <Tab eventKey="groupRoles" title="Group Role Assignments">
+                  <ProjectRoleAssignments projectId={item.id} projectDomainId={item.domain_id} type="group" />
+                </Tab>
+              )}
+              {isUser && policy.isAllowed("tools:universal_search_user_role_assignments", { user: item }) && (
+                <Tab eventKey="userRoles" title="User Role Assignments">
+                  <UserRoleAssignments userId={item.id} />
+                </Tab>
+              )}
+              {(isProject || isDomain) && policy.isAllowed("tools:universal_search_netstats") && (
+                <Tab eventKey="networkStats" title="Network Statistics">
+                  <NetworkUsageStats scopeId={item.id} scopeType={isProject ? "project" : "domain"} />
+                </Tab>
+              )}
               {isRouter && policy.isAllowed("tools:universal_search_asr") && (
                 <Tab eventKey="asr" title="ASR Info">
                   <Asr routerId={item.id} />
@@ -165,38 +134,22 @@ export default class ShowSearchObjectModal extends React.Component {
         </Modal.Body>
         <Modal.Footer>
           {vCenterLink && (
-            <a
-              href={vCenterLink}
-              target="_blank"
-              className="btn btn-primary"
-              rel="noreferrer"
-            >
+            <a href={vCenterLink} target="_blank" className="btn btn-primary" rel="noreferrer">
               Switch to VCenter
             </a>
           )}
 
           {objectLink && (
-            <a
-              href={objectLink}
-              target="_blank"
-              className="btn btn-primary"
-              rel="noreferrer"
-            >
+            <a href={objectLink} target="_blank" className="btn btn-primary" rel="noreferrer">
               Show in Elektra
             </a>
           )}
 
-          {projectLink &&
-            policy.isAllowed("tools:switch_to_project", { project: item }) && (
-              <a
-                href={projectLink}
-                target="_blank"
-                className="btn btn-primary"
-                rel="noreferrer"
-              >
-                Switch to Project
-              </a>
-            )}
+          {projectLink && policy.isAllowed("tools:switch_to_project", { project: item }) && (
+            <a href={projectLink} target="_blank" className="btn btn-primary" rel="noreferrer">
+              Switch to Project
+            </a>
+          )}
           <Button onClick={this.hide}>Close</Button>
         </Modal.Footer>
       </Modal>
