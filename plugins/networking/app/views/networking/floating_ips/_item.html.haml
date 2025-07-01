@@ -10,7 +10,7 @@
         %span.info-text= " / #{floating_ip.subnet_object.name}"
         %br
         %small.info-text
-          - if fip_ptr_record.ptrdname
+          - if defined?(fip_ptr_record) && fip_ptr_record&.ptrdname.present?
             = fip_ptr_record.ptrdname
           - else
             - if floating_ip.dns_domain
