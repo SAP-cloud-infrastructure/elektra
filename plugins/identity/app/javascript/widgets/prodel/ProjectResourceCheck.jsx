@@ -1,21 +1,22 @@
 import React from "react"
 
-import { ContentAreaWrapper } from "@cloudoperators/juno-ui-components/build/ContentAreaWrapper"
-import { Panel } from "@cloudoperators/juno-ui-components/build/Panel"
-import { PanelBody } from "@cloudoperators/juno-ui-components/build/PanelBody"
-import { JsonViewer } from "@cloudoperators/juno-ui-components/build/JsonViewer"
-import { Tab } from "@cloudoperators/juno-ui-components/build/Tab"
-import { TabList } from "@cloudoperators/juno-ui-components/build/TabList"
-import { TabPanel } from "@cloudoperators/juno-ui-components/build/TabPanel"
-import { Tabs } from "@cloudoperators/juno-ui-components/build/Tabs"
-import { ContentAreaToolbar } from "@cloudoperators/juno-ui-components/build/ContentAreaToolbar"
-import { Button } from "@cloudoperators/juno-ui-components/build/Button"
-import { Spinner } from "@cloudoperators/juno-ui-components/build/Spinner"
-import { Icon } from "@cloudoperators/juno-ui-components"
-import { IntroBox } from "@cloudoperators/juno-ui-components/build/IntroBox"
-import { SearchInput } from "@cloudoperators/juno-ui-components/build/SearchInput"
+import {
+  Message,
+  SearchInput,
+  IntroBox,
+  Spinner,
+  Button,
+  Panel,
+  PanelBody,
+  JsonViewer,
+  Tab,
+  TabList,
+  TabPanel,
+  Tabs,
+  ContentAreaToolbar,
+  Icon,
+} from "@cloudoperators/juno-ui-components"
 import { apiClient } from "./lib/apiClient"
-import { Message } from "@cloudoperators/juno-ui-components/build/Message"
 
 import DeleteConfirm from "./DeleteConfirm"
 
@@ -56,12 +57,7 @@ export default function ProjectResourceCheck({ opened, onClose }) {
         setLoading(false)
         // after success
         var scopedDomainName = window.location.pathname.split("/")[1]
-        var url =
-          window.location.protocol +
-          "//" +
-          window.location.host +
-          "/" +
-          scopedDomainName
+        var url = window.location.protocol + "//" + window.location.host + "/" + scopedDomainName
         console.log("Redirecting to: " + url)
         window.location.href = url
       })
@@ -116,57 +112,34 @@ export default function ProjectResourceCheck({ opened, onClose }) {
     //console.log("R-Type:" + resourceType, "Type:" + serviceType)
     let typeHref = undefined
     if (
-      (resourceType === "default_security_group_rules" ||
-        resourceType === "security_groups") &&
+      (resourceType === "default_security_group_rules" || resourceType === "security_groups") &&
       serviceType === "network"
     ) {
       typeHref = "/networking/widget/security-groups/"
     } else if (resourceType === "floating_ips" && serviceType === "network") {
       typeHref = "/networking/floating_ips/"
-    } else if (
-      (resourceType === "servers" || resourceType === "server_groups") &&
-      serviceType === "compute"
-    ) {
+    } else if ((resourceType === "servers" || resourceType === "server_groups") && serviceType === "compute") {
       typeHref = "/compute/instances/"
     } else if (
-      (resourceType === "load_balancer_listeners" ||
-        resourceType === "load_balancer_pools") &&
+      (resourceType === "load_balancer_listeners" || resourceType === "load_balancer_pools") &&
       serviceType === "load-balancer"
     ) {
       typeHref = "/lbaas2/?r=/loadbalancers"
-    } else if (
-      (resourceType === "recordsets" || resourceType === "zones") &&
-      serviceType === "dns"
-    ) {
+    } else if ((resourceType === "recordsets" || resourceType === "zones") && serviceType === "dns") {
       typeHref = "/dns-service/zones"
-    } else if (
-      resourceType === "volume_snapshots" &&
-      serviceType === "block-storage"
-    ) {
+    } else if (resourceType === "volume_snapshots" && serviceType === "block-storage") {
       typeHref = "/block-storage/?r=/snapshots"
     } else if (resourceType === "volumes" && serviceType === "block-storage") {
       typeHref = "/image/ng?r=/os-images/volumes"
     } else if (resourceType === "keppel_accounts" && serviceType === "keppel") {
       typeHref = "/keppel/#/accounts"
-    } else if (
-      resourceType === "manila_shares" &&
-      serviceType === "shared-file-system"
-    ) {
+    } else if (resourceType === "manila_shares" && serviceType === "shared-file-system") {
       typeHref = "/shared-filesystem-storage/?r=/shares"
-    } else if (
-      resourceType === "manila_share_networks" &&
-      serviceType === "shared-file-system"
-    ) {
+    } else if (resourceType === "manila_share_networks" && serviceType === "shared-file-system") {
       typeHref = "/shared-filesystem-storage/?r=/share-networks"
-    } else if (
-      resourceType === "manila_security_services" &&
-      serviceType === "shared-file-system"
-    ) {
+    } else if (resourceType === "manila_security_services" && serviceType === "shared-file-system") {
       typeHref = "/shared-filesystem-storage/?r=/security-services"
-    } else if (
-      resourceType === "manila_snapshots" &&
-      serviceType === "shared-file-system"
-    ) {
+    } else if (resourceType === "manila_snapshots" && serviceType === "shared-file-system") {
       typeHref = "/shared-filesystem-storage/?r=/manila_snapshots"
     } else if (resourceType === "manila_replicas") {
       typeHref = "/shared-filesystem-storage/?r=/replicas"
@@ -180,34 +153,22 @@ export default function ProjectResourceCheck({ opened, onClose }) {
       serviceType === "network"
     ) {
       typeHref = "/networking/networks/external"
-    } else if (
-      resourceType === "object_store_containers" &&
-      serviceType === "object-store"
-    ) {
+    } else if (resourceType === "object_store_containers" && serviceType === "object-store") {
       typeHref = "/object-storage/containers"
     } else if (resourceType === "key_manager_containers") {
       typeHref = "/keymanagerng/containers"
     } else if (resourceType === "key_manager_secrets") {
       typeHref = "/keymanagerng/secrets"
-    } else if (
-      resourceType === "load_balancers" &&
-      serviceType === "load-balancer"
-    ) {
+    } else if (resourceType === "load_balancers" && serviceType === "load-balancer") {
       typeHref = "/lbaas2/?r=/loadbalancers"
-    } else if (
-      resourceType === "cronus_nebula_aws" ||
-      resourceType === "cronus_nebula_int"
-    ) {
+    } else if (resourceType === "cronus_nebula_aws" || resourceType === "cronus_nebula_int") {
       typeHref = "/email-service"
     } else if (
       (resourceType === "lyra_automations" && serviceType === "automation") ||
       (resourceType === "arc_agents" && serviceType === "arc")
     ) {
       typeHref = "/automation"
-    } else if (
-      resourceType === "kubernikus_clusters" &&
-      serviceType === "kubernikus"
-    ) {
+    } else if (resourceType === "kubernikus_clusters" && serviceType === "kubernikus") {
       typeHref = "/kubernetes"
     } else if (resourceType === "commitments" && serviceType === "resources") {
       typeHref = "/resources/v2/project"
@@ -216,13 +177,7 @@ export default function ProjectResourceCheck({ opened, onClose }) {
     if (!typeHref) return <div className="tw-text-gray-400">n/a</div>
     typeHref = `/_/${window.scopedProjectId}${typeHref}`
     return (
-      <Icon
-        color="jn-global-text"
-        icon="openInNew"
-        href={typeHref}
-        target="_blank"
-        title={`Jump to ${serviceType}`}
-      />
+      <Icon color="jn-global-text" icon="openInNew" href={typeHref} target="_blank" title={`Jump to ${serviceType}`} />
     )
   }
 
@@ -234,7 +189,7 @@ export default function ProjectResourceCheck({ opened, onClose }) {
   }
 
   return (
-    <ContentAreaWrapper>
+    <div>
       <Panel
         className="tw-z-[1050]"
         heading="Delete Project Resources Check"
@@ -309,12 +264,7 @@ export default function ProjectResourceCheck({ opened, onClose }) {
                               <td width="5%" title="Delete order">
                                 {entry?.delete_order}
                               </td>
-                              <td width="5%">
-                                {calculateResourceType(
-                                  entry?.type,
-                                  entry?.service_type
-                                )}
-                              </td>
+                              <td width="5%">{calculateResourceType(entry?.type, entry?.service_type)}</td>
                             </tr>
                           </tbody>
                         </table>
@@ -323,13 +273,7 @@ export default function ProjectResourceCheck({ opened, onClose }) {
                   </>
                 </TabPanel>
                 <TabPanel>
-                  <JsonViewer
-                    toolbar
-                    theme="light"
-                    data={{ data }}
-                    showRoot={false}
-                    expanded={10}
-                  />
+                  <JsonViewer toolbar theme="light" data={{ data }} showRoot={false} expanded={10} />
                 </TabPanel>
               </Tabs>
             </>
@@ -338,6 +282,6 @@ export default function ProjectResourceCheck({ opened, onClose }) {
           )}
         </PanelBody>
       </Panel>
-    </ContentAreaWrapper>
+    </div>
   )
 }

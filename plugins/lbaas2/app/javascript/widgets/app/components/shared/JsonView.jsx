@@ -2,16 +2,9 @@ import { useMemo, useEffect } from "react"
 import { Modal } from "react-bootstrap"
 import ErrorPage from "../ErrorPage"
 import React from "react"
-import { JsonViewer } from "@cloudoperators/juno-ui-components/build/JsonViewer"
+import { JsonViewer } from "@cloudoperators/juno-ui-components"
 
-const JsonView = ({
-  show,
-  close,
-  restoreUrl,
-  title,
-  jsonObject,
-  loadObject,
-}) => {
+const JsonView = ({ show, close, restoreUrl, title, jsonObject, loadObject }) => {
   return useMemo(() => {
     return (
       <Modal
@@ -29,11 +22,7 @@ const JsonView = ({
 
         {jsonObject.error ? (
           <Modal.Body>
-            <ErrorPage
-              headTitle={title}
-              error={jsonObject.error}
-              onReload={loadObject}
-            />
+            <ErrorPage headTitle={title} error={jsonObject.error} onReload={loadObject} />
           </Modal.Body>
         ) : (
           <Modal.Body>
@@ -42,15 +31,7 @@ const JsonView = ({
                 <span className="spinner" />
               </Modal.Body>
             ) : (
-              <>
-                {jsonObject.item && (
-                  <JsonViewer
-                    data={jsonObject.item}
-                    theme="light"
-                    expanded={2}
-                  />
-                )}
-              </>
+              <>{jsonObject.item && <JsonViewer data={jsonObject.item} theme="light" expanded={2} />}</>
             )}
           </Modal.Body>
         )}
