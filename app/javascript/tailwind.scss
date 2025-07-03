@@ -2,8 +2,3 @@
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
-
-/* Temporary debug - remove after testing */
-.debug-test {
-  background-color: rgb(var(--color-juno-grey-blue-1-raw));
-}
