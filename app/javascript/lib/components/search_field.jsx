@@ -1,4 +1,4 @@
-import { SearchInput } from "@cloudoperators/juno-ui-components/build/SearchInput"
+import { SearchInput } from "@cloudoperators/juno-ui-components"
 import React from "react"
 import { Popover } from "./Overlay"
 
@@ -35,11 +35,7 @@ export class SearchField extends React.Component {
     const variant = this.props.variant
     const empty = this.state.searchTerm.trim().length == 0
     const showSearchIcon = this.props.searchIcon != false
-    let iconClassName = empty
-      ? showSearchIcon
-        ? "fa fa-search"
-        : ""
-      : "fa fa-times-circle"
+    let iconClassName = empty ? (showSearchIcon ? "fa fa-search" : "") : "fa fa-times-circle"
     if (this.props.isFetching) iconClassName = "spinner"
 
     return (
@@ -66,26 +62,15 @@ export class SearchField extends React.Component {
               />
               <span
                 className={`form-control-feedback ${!empty && "not-empty"}`}
-                onClick={(e) =>
-                  iconClassName != "spinner" && !empty && this.reset(e)
-                }
+                onClick={(e) => iconClassName != "spinner" && !empty && this.reset(e)}
               >
                 <i className={iconClassName} />
               </span>
             </div>
             {this.props.text && (
               <div className="has-feedback-help">
-                <Popover
-                  trigger="click"
-                  placement="top"
-                  rootClose
-                  content={this.props.text}
-                >
-                  <a
-                    className="help-link"
-                    href="#"
-                    onClick={(e) => e.preventDefault()}
-                  >
+                <Popover trigger="click" placement="top" rootClose content={this.props.text}>
+                  <a className="help-link" href="#" onClick={(e) => e.preventDefault()}>
                     <i className="fa fa-question-circle"></i>
                   </a>
                 </Popover>

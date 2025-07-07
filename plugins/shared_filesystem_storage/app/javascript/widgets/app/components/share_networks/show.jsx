@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
 import { Link } from "react-router-dom"
 import { Modal, Button, Tabs, Tab } from "react-bootstrap"
-import { JsonViewer } from "@cloudoperators/juno-ui-components/build/JsonViewer"
+import { JsonViewer } from "@cloudoperators/juno-ui-components"
 import React from "react"
 
 const Row = ({ label, value, children }) => {
@@ -46,10 +46,7 @@ export default class ShowShareNetwork extends React.Component {
           <Row label="IP Version" value={shareNetwork.ip_version} />
           <Row label="Network Type" value={shareNetwork.network_type} />
           <Row label="Neutron Network ID" value={shareNetwork.neutron_net_id} />
-          <Row
-            label="Neutron Subnet ID"
-            value={shareNetwork.neutron_subnet_id}
-          />
+          <Row label="Neutron Subnet ID" value={shareNetwork.neutron_subnet_id} />
           <Row label="Project ID" value={shareNetwork.project_id} />
         </tbody>
       </table>
@@ -101,25 +98,11 @@ export default class ShowShareNetwork extends React.Component {
   }
 
   render() {
-    let {
-      isFetchingShareNetwork,
-      isFetchingSubnet,
-      isFetchingNetwork,
-      shareNetwork,
-      subnet,
-      network,
-    } = this.props
+    let { isFetchingShareNetwork, isFetchingSubnet, isFetchingNetwork, shareNetwork, subnet, network } = this.props
     return (
-      <Modal
-        show={this.state.show}
-        onHide={this.close}
-        bsSize="large"
-        aria-labelledby="contained-modal-title-lg"
-      >
+      <Modal show={this.state.show} onHide={this.close} bsSize="large" aria-labelledby="contained-modal-title-lg">
         <Modal.Header closeButton>
-          <Modal.Title id="contained-modal-title-lg">
-            Share Network {shareNetwork ? shareNetwork.name : ""}
-          </Modal.Title>
+          <Modal.Title id="contained-modal-title-lg">Share Network {shareNetwork ? shareNetwork.name : ""}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {isFetchingNetwork ? (
@@ -137,18 +120,10 @@ export default class ShowShareNetwork extends React.Component {
                 </Tab>
               )}
               <Tab eventKey={3} title="Network">
-                {isFetchingNetwork ? (
-                  <span className="spinner" />
-                ) : (
-                  this.renderNetwork(network)
-                )}
+                {isFetchingNetwork ? <span className="spinner" /> : this.renderNetwork(network)}
               </Tab>
               <Tab eventKey={4} title="Subnet">
-                {isFetchingSubnet ? (
-                  <span className="spinner" />
-                ) : (
-                  this.renderSubnet(subnet)
-                )}
+                {isFetchingSubnet ? <span className="spinner" /> : this.renderSubnet(subnet)}
               </Tab>
             </Tabs>
           )}
