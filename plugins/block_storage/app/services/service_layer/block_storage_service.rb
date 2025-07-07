@@ -10,11 +10,8 @@ module ServiceLayer
     end
 
     def elektron_volumes
-      @elektron_volumes ||= elektron.service("volumev2")
+      @elektron_volumes ||= elektron.service("volumev3")
     end
-
-    def elektron_volumesv3
-      @elektron_volumesv3 ||= elektron.service("volumev3")
-    end
+    
   end
 end
