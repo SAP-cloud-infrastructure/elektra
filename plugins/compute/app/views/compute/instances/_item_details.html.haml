@@ -169,6 +169,7 @@
             - root_disk_size = @instance.flavor['disk']
             - unless attached_volumes.empty?
               - attached_volumes.each do |vol|
+                - next if vol.nil?
                 - if vol.attachments&.first&.[]('device') == @instance.root_disk_device_name
                   - root_disk_size = vol.size
             %table.table.datatable
@@ -268,6 +269,7 @@
                     %td{colspan: 2} No volumes attached.
                 - else
                   - attached_volumes.each do |vol|
+                    - next if vol.nil?
                     %tr
                       %td
                         = vol.name
