@@ -1,3 +1,4 @@
+import { MoveOperation } from "../moveOperation"
 import { makeSelectBox } from "../utils"
 import { validatePolicy } from "./utils"
 import React from "react"
@@ -92,30 +93,7 @@ const GCPoliciesEditRow = ({
     <tr>
       {isEditable ? (
         <td key="order" className="policy-order-buttons">
-          {index > 0 ? (
-            <button
-              className="btn btn-xs btn-default"
-              onClick={(e) => movePolicy(index, -1)}
-            >
-              Move up
-            </button>
-          ) : (
-            <button className="btn btn-xs btn-default" disabled={true}>
-              Move up
-            </button>
-          )}
-          {index < policyCount - 1 ? (
-            <button
-              className="btn btn-xs btn-default"
-              onClick={(e) => movePolicy(index, +1)}
-            >
-              Move down
-            </button>
-          ) : (
-            <button className="btn btn-xs btn-default" disabled={true}>
-              Move down
-            </button>
-          )}
+          <MoveOperation index={index} itemCount={policyCount} onMove={movePolicy} />
         </td>
       ) : (
         <td key="order" className="policy-order-buttons"></td>
