@@ -1,7 +1,7 @@
 
 # Set thread count with reasonable min/max range
-# I/O-intensive Anwendung (APIs, File Operations): MAX_THREADS = 10, MIN_THREADS = 2
-# High-Traffic Applications: 16 threads: MAX_THREADS = 16, MIN_THREADS = 4
+# I/O-intensive Application (APIs, File Operations): MAX_THREADS = 10, MIN_THREADS = 2
+# High-Traffic Application: 16 threads: MAX_THREADS = 16, MIN_THREADS = 4
 
 threads_count = Integer(ENV["MAX_THREADS"] || 16) # maximum threads that can be used
 min_threads = Integer(ENV["MIN_THREADS"] || 4)  # minimum threads that are always available
