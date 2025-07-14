@@ -1,4 +1,4 @@
-import { MoveOperation } from "../moveOperation"
+import { MoveOperation } from "../modalHelpers/moveOperation"
 import { makeSelectBox } from "../utils"
 import { validatePolicy } from "./utils"
 import React from "react"
@@ -93,7 +93,11 @@ const GCPoliciesEditRow = ({
     <tr>
       {isEditable ? (
         <td key="order" className="policy-order-buttons">
-          <MoveOperation index={index} itemCount={policyCount} onMove={movePolicy} />
+          <MoveOperation
+            index={index}
+            itemCount={policyCount}
+            onMove={movePolicy}
+          />
         </td>
       ) : (
         <td key="order" className="policy-order-buttons"></td>

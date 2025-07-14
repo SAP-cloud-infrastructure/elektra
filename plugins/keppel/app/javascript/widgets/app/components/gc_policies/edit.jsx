@@ -7,7 +7,7 @@ import React from "react"
 import GCPoliciesEditRow from "./row"
 import { validatePolicy } from "./utils"
 import { apiStateIsDeleting } from "../utils"
-import { moveItems } from "../moveOperation"
+import { moveItems } from "../modalHelpers/moveOperation"
 
 export default class GCPoliciesEditModal extends React.Component {
   state = {
@@ -81,8 +81,8 @@ export default class GCPoliciesEditModal extends React.Component {
     const policies = this.state.policies.filter((p, index) => idx != index)
     this.setState({ ...this.state, policies })
   }
-  movePolicy = (idx, step) => {
-    const policies = moveItems(this.state.policies, idx, step)
+  movePolicy = ({ index: idx, step: step }) => {
+    const policies = moveItems(this.state.policies, { index: idx, step: step })
     this.setState({ ...this.state, policies })
   }
 
@@ -225,7 +225,7 @@ export default class GCPoliciesEditModal extends React.Component {
     }
 
     const hasLastPullPolicies = policies.some(
-      (policy) => ((policy.time_constraint || {}).on || "") == "last_pulled_at",
+      (policy) => ((policy.time_constraint || {}).on || "") == "last_pulled_at"
     )
 
     //NOTE: className='keppel' on Modal ensures that plugin-specific CSS rules get applied
