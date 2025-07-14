@@ -171,21 +171,24 @@ const useActions = () => {
       .then((response) => response.data)
   }, [])
 
+  // Function to delete one or multiple objects in a container
   const deleteObjects = React.useCallback(
-    (containerName, objects) => {
+    async (containerName, objects) => {
       const bulkDeleteOptions = capabilities?.data?.bulk_delete
       let promises = []
 
       // Deleting objects can be done in chunks if the API supports bulk delete options
       if (bulkDeleteOptions && bulkDeleteOptions.max_deletes_per_request) {
         // bulk delete!
+        // in swift backend it is currently limited to 10000 objects per request
         const chunkSize = bulkDeleteOptions.max_deletes_per_request
 
         for (let i = 0; i < objects.length; i += chunkSize) {
           const chunk = objects.slice(i, i + chunkSize)
           const body = chunk.map((o) => objectPath(containerName, o.name)).join("\n")
           // collect all delete promises
-          promises.push(
+          promises.push(() =>
+            // Wrapped in arrow function to create promise factory
             apiClient
               .osApi(serviceName)
               .post("", body, {
@@ -203,10 +206,37 @@ const useActions = () => {
       } else {
         // Delete each object individually
         // collect delete promises
-        promises = objects.map((object) => deleteObject(containerName, object.name))
+        promises = objects.map((object) => () => deleteObject(containerName, object.name)) // MODIFIED: Wrapped in arrow function
       }
-      // Promise.all allows us to delete objects or object chunks in parallel
-      return Promise.all(promises)
+
+      // Execute promises in batches of 50 to avoid overwhelming the server
+      // every promise function will be executed in parallel, but in batches of maxConcurrentRequests
+
+      // for example,
+      // if 1000000 objects to delete max_deletes_per_request is 10000,
+      // then it will create 100 promise functions,
+      // and execute them in 2 batches of 50 requests at once
+      // 2 x 50 x 10000 = 1000000 objects
+
+      // This is to prevent overwhelming the server with too many requests at once
+      const maxConcurrentRequests = 50
+      const results = []
+      console.log(`Deleting ${objects.length} objects in batches of ${maxConcurrentRequests}`)
+
+      // Iterate over the promises array in chunks of maxConcurrentRequests
+      for (let i = 0; i < promises.length; i += maxConcurrentRequests) {
+        console.log(`Processing batch ${Math.floor(i / maxConcurrentRequests) + 1}`)
+        // Slice the promises array to get the a batch of 50 promises
+        // Each promise function in the batch will be executed in parallel
+        // This allows us to control the number of concurrent requests
+        const batch = promises.slice(i, i + maxConcurrentRequests)
+        // Execute the promise functions in this batch
+        const batchPromises = batch.map((promiseFunc) => promiseFunc())
+        const batchResults = await Promise.all(batchPromises)
+        results.push(...batchResults)
+      }
+      console.log(`Deleted ${results.length} objects successfully.`)
+      return results
     },
     [capabilities, deleteObject]
   )
