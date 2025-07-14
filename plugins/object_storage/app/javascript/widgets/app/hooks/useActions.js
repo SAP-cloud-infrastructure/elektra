@@ -206,7 +206,7 @@ const useActions = () => {
       } else {
         // Delete each object individually
         // collect delete promises
-        promises = objects.map((object) => () => deleteObject(containerName, object.name)) // MODIFIED: Wrapped in arrow function
+        promises = objects.map((object) => () => deleteObject(containerName, object.name))
       }
 
       // Execute promises in batches of 50 to avoid overwhelming the server
