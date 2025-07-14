@@ -6,6 +6,7 @@ import AccountCreateModal from "../containers/accounts/create"
 import AccountSubleaseTokenModal from "../containers/accounts/sublease"
 import AccountUpstreamConfigModal from "../containers/accounts/upstream_config"
 import GCPoliciesEditModal from "../containers/gc_policies/edit"
+import TagPoliciesEditModal from "../containers/tag_policies/edit"
 import RBACPoliciesEditModal from "../containers/rbac_policies/edit"
 import ValidationRulesEditModal from "../containers/validation_rules/edit"
 import RepositoryList from "../containers/repositories/list"
@@ -57,6 +58,13 @@ const KeppelApp = (props) => {
             path="/accounts/:account/gc_policies"
             render={(props) => (
               <GCPoliciesEditModal {...props} {...rootProps} />
+            )}
+          />
+          <Route
+            exact
+            path="/accounts/:account/tag_policies"
+            render={(props) => (
+              <TagPoliciesEditModal {...props} {...rootProps} />
             )}
           />
           <Route
