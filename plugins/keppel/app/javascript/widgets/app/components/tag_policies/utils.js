@@ -1,6 +1,5 @@
 export const validatePolicy = (policy) => {
   const rx = (attr) => policy[attr] || '';
-  const tc = policy.time_constraint || {};
   if (rx('match_repository') === '' && rx('except_repository') === '' && rx('match_tag') === '' && rx('except_tag') === '') {
     return `need to configure at least one condition`;
   }

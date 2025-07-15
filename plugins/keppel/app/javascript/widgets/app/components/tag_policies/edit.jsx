@@ -173,18 +173,12 @@ export default class TagPoliciesEditModal extends React.Component {
       >
         <Modal.Header closeButton>
           <Modal.Title id="contained-modal-title-lg">
-            Garbage collection policies for account: {account.name}
+            Tag policies for account: {account.name}
           </Modal.Title>
         </Modal.Header>
 
         <Modal.Body>
           {this.state.apiErrors && <FormErrors errors={this.state.apiErrors} />}
-          <p>
-            If GC policies are maintained, they will be evaluated by Keppel
-            about once every hour, and matching images will be deleted
-            automatically. Deletions will be recorded in the projects audit log
-            with the initiator <code>policy-driven-gc</code>.
-          </p>
           <p className="bs-callout bs-callout-info bs-callout-emphasize">
             <strong>The order of policies is significant!</strong> Policies are
             evaluated starting from the top of the list. For each image, the

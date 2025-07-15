@@ -458,3 +458,65 @@ export const fetchVulnsIfNeeded =
     }
     return dispatch(fetchVulns(accountName, repoName, digest))
   }
+
+////////////////////////////////////////////////////////////////////////////////
+// get security scan policies
+
+const fetchSecurityScanPolicies = (accountName) => (dispatch) => {
+  dispatch({
+    type: constants.REQUEST_SECURITY_SCAN_POLICIES,
+    accountName: accountName,
+    requestedAt: Date.now(),
+  })
+
+  return ajaxHelper
+    .get(`/keppel/v1/accounts/${accountName}/security_scan_policies`)
+    .then((response) => {
+      dispatch({
+        type: constants.RECEIVE_SECURITY_SCAN_POLICIES,
+        data: response.data.policies,
+        accountName: accountName,
+        receivedAt: Date.now(),
+      })
+    })
+    .catch((error) => {
+      dispatch({ type: constants.REQUEST_SECURITY_SCAN_POLICIES_FAILURE })
+      showError(error)
+    })
+}
+
+export const fetchSecurityScanPoliciesIfNeeded =
+  (accountName) => (dispatch, getState) => {
+    const state = getState().keppel.securityPoliciesFor[accountName] || {} || {}
+    if (state.isFetching || state.requestedAt) {
+      return
+    }
+    return dispatch(fetchSecurityScanPolicies(accountName))
+  }
+
+export const putSecurityScanPolicies =
+  (accountName, policies, requestHeaders = {}) =>
+  (dispatch) => {
+    const requestBody = { policies: policies }
+
+    return new Promise((resolve, reject) =>
+      ajaxHelper
+        .put(
+          `/keppel/v1/accounts/${accountName}/security_scan_policies`,
+          requestBody,
+          {
+            headers: requestHeaders,
+          }
+        )
+        .then((response) => {
+          const newPolicies = response.data.policies
+          dispatch({
+            type: constants.UPDATE_SECURITY_SCAN_POLICIES,
+            accountName: accountName,
+            data: newPolicies,
+          })
+          resolve(newPolicies)
+        })
+        .catch((error) => reject({ errors: errorMessage(error) }))
+    )
+  }

@@ -124,6 +124,9 @@ export default class AccountRow extends React.Component {
               <li>
                 <Link to={`/accounts/${accountName}/tag_policies`}>Tag policies</Link>
               </li>
+              <li>
+                <Link to={`/accounts/${accountName}/security_scan_policies`}>Security Scan Policies</Link>
+              </li>
               {!replication && (
                 <li>
                   <Link to={`/accounts/${accountName}/validation_rules`}>Validation rules</Link>
