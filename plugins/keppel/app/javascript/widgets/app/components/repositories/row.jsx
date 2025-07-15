@@ -37,7 +37,6 @@ export default class RepositoryRow extends React.Component {
 
   render() {
     const { accountName, canEdit } = this.props
-    console.log("DELETING", this.state.isDeleting)
     const {
       name: repoName,
       manifest_count: manifestCount,
