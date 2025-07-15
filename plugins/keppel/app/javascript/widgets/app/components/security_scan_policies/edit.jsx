@@ -144,7 +144,7 @@ export default class SecurityScanPoliciesEditModal extends React.Component {
     const newPolicies = []
     for (const policy of this.state.policies) {
       const policyCloned = { ...policy }
-      if (policy.action.severity == "Ignore") {
+      if (policy.ui_hints.severity == "Ignore") {
         policy.action.ignore = true
         policy.action.severity = ""
       } else {
@@ -153,7 +153,7 @@ export default class SecurityScanPoliciesEditModal extends React.Component {
       delete policyCloned.ui_hints
       newPolicies.push(policyCloned)
     }
-
+    
     this.props
       .putPolicies(newPolicies)
       .then(() => this.close())
