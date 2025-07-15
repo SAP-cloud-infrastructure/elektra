@@ -28,13 +28,16 @@ export default class RepositoryRow extends React.Component {
     //This causes <RepositoryDeleter/> to be mounted to perform the actual deletion.
   }
 
-  handleDoneDeleting() {
+  handleDoneDeleting(isError = false) {
     this.setState({ ...this.state, isDeleting: false })
-    addSuccess(makeGCNotice("Repository"))
+    if (isError == false) {
+      addSuccess(makeGCNotice("Repository"))
+    }
   }
 
   render() {
     const { accountName, canEdit } = this.props
+    console.log("DELETING", this.state.isDeleting)
     const {
       name: repoName,
       manifest_count: manifestCount,
@@ -75,7 +78,9 @@ export default class RepositoryRow extends React.Component {
               <RepositoryDeleter
                 accountName={accountName}
                 repoName={repoName}
-                handleDoneDeleting={() => this.handleDoneDeleting()}
+                handleDoneDeleting={(isError = false) =>
+                  this.handleDoneDeleting(isError)
+                }
               />
             ) : (
               <div className="btn-group">
