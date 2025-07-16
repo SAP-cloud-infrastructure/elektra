@@ -22,42 +22,42 @@ actual_terms:
   terms: >
     ### Overview
 
-    In this document the terms "provider" and "platform" are used to represent the SAP Cloud Infrastructure platform and provided services. The term "user" is used to represent the SAP employees and contractors (including technical user accounts) using the SAP SAP Cloud Infrastructure platform.
-    SAP Cloud Infrastructure is intended for the use of employees of SAP SE along with all subsidiaries on behalf of any organizational unit with legitimate interest.
-    SAP Cloud Infrastructure aims to ensure the availability of all provided services with reasonable effort. The SAP SAP Cloud Infrastructure team will use all reasonable efforts to preserve and protect any stored confidential data within the platform.
-    In case of violation of these terms of use, SAP Cloud Infrastructure remains the right to implement adequate measures including disabling/deleting services or assets or even deactivating the users.
+    In this document the terms "provider" and "platform" are used to represent the Converged Cloud platform and provided services. The term "user" is used to represent the SAP employees and contractors (including technical user accounts) using the SAP Converged Cloud platform.
+    Converged Cloud is intended for the use of employees of SAP SE along with all subsidiaries on behalf of any organizational unit with legitimate interest.
+    Converged Cloud aims to ensure the availability of all provided services with reasonable effort. The SAP Converged Cloud team will use all reasonable efforts to preserve and protect any stored confidential data within the platform.
+    In case of violation of these terms of use, Converged Cloud remains the right to implement adequate measures including disabling/deleting services or assets or even deactivating the users.
 
     #### Service Charge
 
-    SAP Cloud Infrastructure systems are subject to reoccurring fees agreed upon requesting resource quotas and consuming burst capacity for specific services.
-    SAP Cloud Infrastructure publishes the service charges in the user documentation.
+    Converged Cloud systems are subject to reoccurring fees agreed upon requesting resource quotas and consuming burst capacity for specific services.
+    Converged Cloud publishes the service charges in the user documentation.
     These fees are transparently updated and accessible to the user and the user's designated cost object will be used for charging these fees for the duration of quota allocation. It is the user's responsibility to maintain a correct cost object per organization. If the cost object is not valid, the services will be charged against the personal Cost Center.
-    SAP Cloud Infrastructure reserves the right to reasonably adjust fees based on current conditions.
+    Converged Cloud reserves the right to reasonably adjust fees based on current conditions.
 
     #### Service Maintenance
 
     From time to time, the platform team may apply upgrades, patches, bug fixes or other maintenance to the service offerings, operating systems or software.
-    SAP Cloud Infrastructure will make reasonable efforts to avoid disruption during such maintenance.
+    Converged Cloud will make reasonable efforts to avoid disruption during such maintenance.
     The platform will inform users of any scheduled maintenance which may result in service disruption, except for emergency maintenance and users agree to use reasonable efforts to comply with any maintenance announced timely and/or without undue delay.
 
     #### User Data Processing
 
-    SAP Cloud Infrastructure will capture and process user data to ensure the operational stability and regulatory compliance of the platform.
+    Converged Cloud will capture and process user data to ensure the operational stability and regulatory compliance of the platform.
     The protection and retention of the user data is performed according to legal and regulatory requirements.
 
     ### User Obligations
 
-    The user may use SAP Cloud Infrastructure to store, retrieve, query, serve and execute the user’s content. The user is solely responsible for all content, development, and use of content.
-    The user’s content must follow the SAP Acceptable Use Policy. SAP Cloud Infrastructure reserves the right to remove any content that falls outside this policy.
-    The user is responsible for maintaining all installed software licenses that are not centrally provided by the SAP Cloud Infrastructure Service.
-    The user of SAP Cloud Infrastructure is responsible to report major incidents without undue delay.
+    The user may use Converged Cloud to store, retrieve, query, serve and execute the user’s content. The user is solely responsible for all content, development, and use of content.
+    The user’s content must follow the SAP Acceptable Use Policy. Converged Cloud reserves the right to remove any content that falls outside this policy.
+    The user is responsible for maintaining all installed software licenses that are not centrally provided by the Converged Cloud Service.
+    The user of Converged Cloud is responsible to report major incidents without undue delay.
     The user is also responsible for implementing SGS Security Policies and Procedures applicable to them.
 
     #### Shared Responsibility
 
-    SAP Cloud Infrastructure operates as an Infrastructure as a Service provider. As such, accountability and responsibility for aspects of cybersecurity and compliance are shared between the user of SAP Cloud Infrastructure and SAP Cloud Infrastructure, as well as other SAP parties. By using SAP Cloud Infrastructure, the user confirms that they are familiar with the Shared Responsibility Model for SAP Cloud Infrastructure and agree to it.
-    Furthermore, SAP Cloud Infrastructure complies with certain norms and standards within its scope of accountability and responsibility, which is detailed in the SAP Cloud Infrastructure documentation. The user must consult the documentation before using SAP Cloud Infrastructure for any prerequisites for certain norms and standards. Moreover, the user agrees to only use SAP Cloud Infrastructure services within the context and scope of norms and standards SAP Cloud Infrastructure complies with. Some of these norms and standards might have a dedicated Shared Responsibility Matrix. It is the users’ obligation to inform themselves and adhere to it.
-    SAP Cloud Infrastructure Infrastructure is provided in multiple global locations. The user has the authorization to select a location based on their specific needs.
+    Converged Cloud operates as an Infrastructure as a Service provider. As such, accountability and responsibility for aspects of cybersecurity and compliance are shared between the user of Converged Cloud and Converged Cloud, as well as other SAP parties. By using Converged Cloud, the user confirms that they are familiar with the Shared Responsibility Model for Converged Cloud and agree to it.
+    Furthermore, Converged Cloud complies with certain norms and standards within its scope of accountability and responsibility, which is detailed in the Converged Cloud documentation. The user must consult the documentation before using Converged Cloud for any prerequisites for certain norms and standards. Moreover, the user agrees to only use Converged Cloud services within the context and scope of norms and standards Converged Cloud complies with. Some of these norms and standards might have a dedicated Shared Responsibility Matrix. It is the users’ obligation to inform themselves and adhere to it.
+    Converged Cloud Infrastructure is provided in multiple global locations. The user has the authorization to select a location based on their specific needs.
     Once the system is in a specific region the data privacy, CI (confidential information), and legal terms follow the laws of that residing country.
     Users should consider this when determining a specific location for deployment.
 
@@ -67,7 +67,7 @@ actual_terms:
 
     #### Masterdata
 
-    The user of SAP Cloud Infrastructure is responsible to provide valid, complete, and correct master data for their projects, as well as regularly check and maintain the master data. 
+    The user of Converged Cloud is responsible to provide valid, complete, and correct master data for their projects, as well as regularly check and maintain the master data. 
 
     #### Capacity Management
 
@@ -77,7 +77,7 @@ actual_terms:
     #### Network Configuration
 
     The user is responsible for the network configuration within their projects. This includes but is not limited to the exposure of services, the maintenance of internal Security Groups and the integrity and confidentiality of network traffic. 
-    The user of SAP Cloud Infrastructure may not expose internal services or API endpoints to external parties or end users. 
+    The user of Converged Cloud may not expose internal services or API endpoints to external parties or end users. 
     The user must ensure the proper design and accurate implementation of network ACLs requested by them and ensure the timely removal of network ACLs after deactivating of related network services.  
     The user is required to create and maintain applicable Security Concepts according to the policies established within SAP. The submission and approval of the security concept is also the responsibility of the user.
 
@@ -94,7 +94,7 @@ actual_terms:
 
     #### Software Approval
 
-    In case software is not available either via SAP Cloud Infrastructure Standard OS.
+    In case software is not available either via Converged Cloud Standard OS.
     Note that all software installed on SAP hardware must be “SWAP” approved. That means that the software must pass the Software Approval Process and must be rated white or grey in the SWAP Catalog before it can be ordered via SRM.
 
     #### Security Patching
@@ -113,12 +113,12 @@ actual_terms:
 
     #### Litigation Hold
 
-    As content is decommissioned from SAP Cloud Infrastructure the end user must note if any relevant content is subject to Litigation Hold. Litigation Hold Reminder identifies the materials that must continue to be preserved.
+    As content is decommissioned from Converged Cloud the end user must note if any relevant content is subject to Litigation Hold. Litigation Hold Reminder identifies the materials that must continue to be preserved.
     As noted in that Litigation Hold Reminder, “this obligation shall continue for as long as the Lawsuit and any related appeals are ongoing and for as long thereafter as our counsel advises is appropriate.” Therefore, please continue to comply with the directive described in the corporate portal.
 
     #### Backup
 
-    SAP Cloud Infrastructure offers the standard File system (FS) and DB Backup / Restore service of the Global Backup Team.
+    Converged Cloud offers the standard File system (FS) and DB Backup / Restore service of the Global Backup Team.
     Users are responsible for requesting to enable backups on their systems. Backups are not enabled by default.
     The user is required to ensure that business critical data is properly protected against data loss caused by infrastructure failure.
     The platform cannot guarantee the recovery of data lost due to any reason including but not limited to hardware defects, deliberate sabotage, or human error.

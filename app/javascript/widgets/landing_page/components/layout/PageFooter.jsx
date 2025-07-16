@@ -41,8 +41,8 @@ const PageFooter = () => {
               Detailed information
             </h5>
             <p>
-              The documentation has detailed information about all the services that SAP Cloud Infrastructure offers
-              including how-tos and tutorials.
+              The documentation has detailed information about all the services that Converged Cloud offers including
+              how-tos and tutorials.
             </p>
             <div className="tw-mt-auto">
               <Button

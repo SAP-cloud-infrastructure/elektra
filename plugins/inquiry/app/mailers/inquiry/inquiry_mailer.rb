@@ -16,7 +16,7 @@ module Inquiry
       email_body = render_to_string('inquiry/inquiry_mailer/notification_email_requester', layout: false)
       send_custom_email(
         recipient: @user_email,
-        subject: "SAP Cloud Infrastructure: Your resource request is in state: #{@inquiry.aasm.human_state}",
+        subject: "Converged Cloud: Your resource request is in state: #{@inquiry.aasm.human_state}",
         body_html: email_body
       )
     end
@@ -32,7 +32,7 @@ module Inquiry
       @inquiry_step = inquiry_step
       @inquiry = inquiry
       @requester_name = "#{requester.full_name} (#{requester.name})"
-      subject = "SAP Cloud Infrastructure: Please process a resource request "
+      subject = "Converged Cloud: Please process a resource request "
       if @inquiry.tags
         if @inquiry.tags["region"]
           subject += " for region #{@inquiry.tags["region"]}"
@@ -63,7 +63,7 @@ module Inquiry
       @inquiry = inquiry
       @requester_name = "#{requester.full_name} (#{requester.name})"
       subject =
-        "SAP Cloud Infrastructure: Additional Review, A request needs your attention!"
+        "Converged Cloud: Additional Review, A request needs your attention!"
       if @inquiry.tags
         if @inquiry.tags["region"]
           subject += " for region #{@inquiry.tags["region"]}"
@@ -86,7 +86,7 @@ module Inquiry
       @inquiry = inquiry
       @requester_name = user_full_name
       subject =
-        "SAP Cloud Infrastructure: New project was created for LoB #{@inquiry.payload["lob"]}"
+        "Converged Cloud: New project was created for LoB #{@inquiry.payload["lob"]}"
       if @inquiry.tags
         if @inquiry.tags["region"]
           subject += " in region #{@inquiry.tags["region"]}"

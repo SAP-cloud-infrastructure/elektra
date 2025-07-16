@@ -19,8 +19,8 @@ describe("landing page", () => {
       cy.visit("/")
     })
 
-    it("contains SAP Cloud Infrastructure", () => {
-      cy.get('[id="root"]').get('[data-shadow-host="true"]').shadow().contains("SAP Cloud Infrastructure")
+    it("contains Converged Cloud", () => {
+      cy.get('[id="root"]').get('[data-shadow-host="true"]').shadow().contains("Converged Cloud")
     })
   })
 })

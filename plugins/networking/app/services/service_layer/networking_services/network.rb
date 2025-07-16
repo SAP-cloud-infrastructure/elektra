@@ -91,7 +91,7 @@ module ServiceLayer
         #   "FloatingIP-external-#{domain_name}-02",
         #   "FloatingIP-external-#{domain_name}-01",
         #   "FloatingIP-external-#{domain_name}",
-        #   "SAP Cloud Infrastructure External",
+        #   "Converged Cloud External",
         # ]
         name_candidates.each do |name|
           network =

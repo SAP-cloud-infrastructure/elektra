@@ -1,6 +1,6 @@
 #### What is Audit Log?
 
-The Audit Log feature offers a comprehensive audit trail and change log for SAP Cloud Infrastructure services.
+The Audit Log feature offers a comprehensive audit trail and change log for Converged Cloud services.
 
 It captures audit-relevant activities and stores them in a project-specific journal. Within this journal, each recorded activity is represented by an audit event. These events detail the performed action, its outcome, and the affected resources.
 

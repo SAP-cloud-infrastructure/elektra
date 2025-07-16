@@ -46,11 +46,15 @@ export default class AccountSubleaseTokenModal extends React.Component {
     if (!account) {
       return <p className="alert alert-error">No such account.</p>
     }
-    if (apiStateIsDeleting(account?.state)) {
+    if(apiStateIsDeleting(account?.state)) {
       return <p className="alert alert-error">Account is in deletion state.</p>
     }
     if (!isAdmin) {
-      return <p className="alert alert-error">You are not allowed to issue sublease tokens.</p>
+      return (
+        <p className="alert alert-error">
+          You are not allowed to issue sublease tokens.
+        </p>
+      )
     }
     const { token, error } = this.state
     if (error !== null) {
@@ -82,22 +86,28 @@ export default class AccountSubleaseTokenModal extends React.Component {
         aria-labelledby="contained-modal-title-lg"
       >
         <Modal.Header closeButton>
-          <Modal.Title id="contained-modal-title-lg">Sublease token for account: {this.props.account.name}</Modal.Title>
+          <Modal.Title id="contained-modal-title-lg">
+            Sublease token for account: {this.props.account.name}
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <p>
-            When creating a replica of this account in another SAP Cloud Infrastructure region, you need to present this
-            token to prove that you are the owner of this account.
+            When creating a replica of this account in another Converged Cloud
+            region, you need to present this token to prove that you are the
+            owner of this account.
           </p>
           {this.renderBody()}
           <p>
-            Copy this token and paste it into the "Create New Account" dialog in another region when instructed. Each
-            token can only be used exactly once. To create multiple replica accounts, you need to generate one token for
-            each replica account.
+            Copy this token and paste it into the "Create New Account" dialog in
+            another region when instructed. Each token can only be used exactly
+            once. To create multiple replica accounts, you need to generate one
+            token for each replica account.
           </p>
         </Modal.Body>
         <Modal.Footer>
-          {this.state.token !== null && <Button onClick={this.getToken}>Generate new token</Button>}
+          {this.state.token !== null && (
+            <Button onClick={this.getToken}>Generate new token</Button>
+          )}
           <Button onClick={this.close}>Close</Button>
         </Modal.Footer>
       </Modal>
