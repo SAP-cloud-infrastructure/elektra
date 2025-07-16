@@ -29,10 +29,6 @@ export default class TagPoliciesEditModal extends React.Component {
     if (this.state.policies == null) {
       const policies = [...(this.props.account.tag_policies || [])]
       for (const policy of policies) {
-        //We cannot derive the full state of the UI out of the policy itself.
-        //When adding new matches, the new match will initially be unfilled,
-        //which the UI would otherwise misinterpret as the absence of the
-        //filter, causing the edit UI for the filter to remain hidden.
         policy.ui_hints = {}
         policy.ui_hints.repo_filter =
           policy.match_repository !== ".*" ||
@@ -40,12 +36,9 @@ export default class TagPoliciesEditModal extends React.Component {
             ? "on"
             : "off"
         policy.ui_hints.tag_filter =
-          (policy.match_tag || "") !== "" || (policy.except_tag || "") !== ""
+          (policy.match_tag || "") !== ".*" || (policy.except_tag || "") !== ""
             ? "on"
             : "off"
-        //Also, we give a unique key to each policy that gets used as the "key"
-        //property in the list of table rows. This ensures that button focus
-        //behaves as expected when moving rows down or up.
         policy.ui_hints.key = uuidv4()
       }
       this.setState({ ...this.state, policies })
@@ -100,11 +93,7 @@ export default class TagPoliciesEditModal extends React.Component {
         break
       case "tag_filter":
         policies[idx].ui_hints.tag_filter = input
-        if (input == "on") {
-          policies[idx].match_tag = ".*"
-        } else {
-          delete policies[idx].match_tag
-        }
+        policies[idx].match_tag = ".*"
         delete policies[idx].except_tag
         break
     }

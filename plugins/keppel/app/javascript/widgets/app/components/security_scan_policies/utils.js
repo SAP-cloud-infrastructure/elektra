@@ -12,7 +12,7 @@ export const validatePolicy = (policy) => {
     return `vulnerability ID regex may not be empty`;
   }
   if(actionRx('severity') == '') {
-    return `need to configure the severity.`
+    return `need to configure severity level for handling matching vulnerabilities.`
   }
   if(actionRx('assessment') == '') {
     return `need to configure an assessment.`
