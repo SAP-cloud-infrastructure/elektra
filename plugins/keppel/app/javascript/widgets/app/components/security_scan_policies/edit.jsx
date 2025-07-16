@@ -153,7 +153,7 @@ export default class SecurityScanPoliciesEditModal extends React.Component {
       delete policyCloned.ui_hints
       newPolicies.push(policyCloned)
     }
-    
+
     this.props
       .putPolicies(newPolicies)
       .then(() => this.close())
@@ -216,7 +216,7 @@ export default class SecurityScanPoliciesEditModal extends React.Component {
             <thead>
               <tr>
                 <th className="col-md-1">{isAdmin ? "Order" : ""}</th>
-                <th className="col-md-3">Treat vulnerability status as</th>
+                <th className="col-md-3">Updated vulnerability severity</th>
                 <th className="col-md-7">Matching rules</th>
                 <th className="col-md-1">
                   {isAdmin && (
