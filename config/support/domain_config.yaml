@@ -15,7 +15,7 @@ domains:
       - "FloatingIP-external-%DOMAIN_NAME%-02"
       - "FloatingIP-external-%DOMAIN_NAME%-01"
       - "FloatingIP-external-%DOMAIN_NAME%"
-      - "Converged Cloud External"
+      - "SAP Cloud Infrastructure External"
     dns_c_subdomain: true
     check_cidr_range: true
     terms_of_use_name: "actual_terms"
