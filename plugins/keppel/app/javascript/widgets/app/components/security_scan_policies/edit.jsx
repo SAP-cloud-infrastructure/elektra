@@ -29,10 +29,6 @@ export default class SecurityScanPoliciesEditModal extends React.Component {
     if (this.state.policies == false) {
       const policies = this.props?.policies?.data || []
       for (const policy of policies) {
-        //We cannot derive the full state of the UI out of the policy itself.
-        //When adding new matches, the new match will initially be unfilled,
-        //which the UI would otherwise misinterpret as the absence of the
-        //filter, causing the edit UI for the filter to remain hidden.
         policy.ui_hints = {}
         policy.ui_hints.repo_filter =
           policy.match_repository !== ".*" ||
@@ -46,9 +42,6 @@ export default class SecurityScanPoliciesEditModal extends React.Component {
             : "off"
         policy.ui_hints.severity =
           policy.action.ignore == true ? "Ignore" : policy.action.severity
-        //Also, we give a unique key to each policy that gets used as the "key"
-        //property in the list of table rows. This ensures that button focus
-        //behaves as expected when moving rows down or up.
         policy.ui_hints.key = uuidv4()
       }
       this.setState({ ...this.state, policies })
@@ -119,11 +112,7 @@ export default class SecurityScanPoliciesEditModal extends React.Component {
         break
       case "vulnID_filter":
         policies[idx].ui_hints.vulnID_filter = input
-        if (input == "on") {
           policies[idx].match_vulnerability_id = ".*"
-        } else {
-          delete policies[idx].match_vulnerability_id
-        }
         delete policies[idx].except_vulnerability_id
         break
     }
@@ -216,8 +205,8 @@ export default class SecurityScanPoliciesEditModal extends React.Component {
             <thead>
               <tr>
                 <th className="col-md-1">{isAdmin ? "Order" : ""}</th>
-                <th className="col-md-3">Updated vulnerability severity</th>
-                <th className="col-md-7">Matching rules</th>
+                <th className="col-md-2">Update severity</th>
+                <th className="col-md-8">Matching rules</th>
                 <th className="col-md-1">
                   {isAdmin && (
                     <button

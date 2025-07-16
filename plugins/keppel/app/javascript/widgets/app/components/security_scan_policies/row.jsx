@@ -1,7 +1,7 @@
 import React from "react"
 import { MoveOperation } from "../modalHelpers/moveOperation"
 import { validatePolicy } from "./utils"
-import { makeSelectBox } from "../utils"
+import { makeSelectBox, makeTextInput } from "../utils"
 
 const repoFilterOptions = [
   { value: "off", label: "for all repositories" },
@@ -27,36 +27,13 @@ const SecurityScanPoliciesEditRow = ({
   setPolicyAttribute,
   removePolicy,
 }) => {
-  const makeTextInput = (attr, value) => {
-    value = value || ""
-    if (!isEditable) {
-      if (value === "") {
-        return <em>Any</em>
-      }
-      return <code>{value || ""}</code>
-    }
-    return (
-      <input
-        type="text"
-        value={value}
-        style={{ width: "120px" }}
-        className="form-control"
-        onChange={(e) => setPolicyAttribute(index, attr, e.target.value)}
-      />
-    )
-  }
-
   const validationError = validatePolicy(policy)
 
   return (
     <tr>
       {isEditable ? (
         <td key="order" className="policy-order-buttons">
-          <MoveOperation
-            index={index}
-            itemCount={policyCount}
-            onMove={movePolicy}
-          />
+          <MoveOperation index={index} itemCount={policyCount} onMove={movePolicy} />
         </td>
       ) : (
         <td key="order" className="policy-order-buttons"></td>
@@ -66,8 +43,7 @@ const SecurityScanPoliciesEditRow = ({
           isEditable,
           options: severityOptions,
           value: policy.ui_hints.severity,
-          onChange: (e) =>
-            setPolicyAttribute(index, "severity", e.target.value),
+          onChange: (e) => setPolicyAttribute(index, "severity", e.target.value),
         })}
       </td>
       <td className="form-inline">
@@ -76,17 +52,28 @@ const SecurityScanPoliciesEditRow = ({
             isEditable,
             options: repoFilterOptions,
             value: policy.ui_hints.repo_filter,
-            onChange: (e) =>
-              setPolicyAttribute(index, "repo_filter", e.target.value),
+            onChange: (e) => setPolicyAttribute(index, "repo_filter", e.target.value),
           })}
           {policy.ui_hints.repo_filter === "on" && (
             <>
               {" regex "}
-              {makeTextInput("match_repository", policy.match_repository)}
+              {makeTextInput({
+                value: policy.match_repository,
+                isEditable,
+                onChange: (e) => {
+                  setPolicyAttribute(index, "match_repository", e.target.value)
+                },
+              })}
               {(isEditable || policy.except_repository) && (
                 <>
                   {" but not regex "}
-                  {makeTextInput("except_repository", policy.except_repository)}
+                  {makeTextInput({
+                    value: policy.except_repository,
+                    isEditable,
+                    onChange: (e) => {
+                      setPolicyAttribute(index, "except_repository", e.target.value)
+                    },
+                  })}
                 </>
               )}
             </>
@@ -97,23 +84,28 @@ const SecurityScanPoliciesEditRow = ({
             isEditable,
             options: vulnIDFilterOptions,
             value: policy.ui_hints.vulnID_filter,
-            onChange: (e) =>
-              setPolicyAttribute(index, "vulnID_filter", e.target.value),
+            onChange: (e) => setPolicyAttribute(index, "vulnID_filter", e.target.value),
           })}
           {policy.ui_hints.vulnID_filter === "on" && (
             <>
               {" regex "}
-              {makeTextInput(
-                "match_vulnerability_id",
-                policy.match_vulnerability_id
-              )}
+              {makeTextInput({
+                value: policy.match_vulnerability_id,
+                isEditable,
+                onChange: (e) => {
+                  setPolicyAttribute(index, "match_vulnerability_id", e.target.value)
+                },
+              })}
               {(isEditable || policy.except_tag) && (
                 <>
                   {" but not regex "}
-                  {makeTextInput(
-                    "except_vulnerability_id",
-                    policy.except_vulnerability_id
-                  )}
+                  {makeTextInput({
+                    value: policy.except_vulnerability_id,
+                    isEditable,
+                    onChange: (e) => {
+                      setPolicyAttribute(index, "except_vulnerability_id", e.target.value)
+                    },
+                  })}
                 </>
               )}
             </>

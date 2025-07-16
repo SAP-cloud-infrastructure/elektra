@@ -1,7 +1,7 @@
 import React from "react"
 import { MoveOperation } from "../modalHelpers/moveOperation"
 import { validatePolicy } from "./utils"
-import { makeSelectBox } from "../utils"
+import { makeSelectBox, makeTextInput } from "../utils"
 
 const repoFilterOptions = [
   { value: "off", label: "of all repositories" },
@@ -29,35 +29,13 @@ const TagPoliciesEditRow = ({
   setPolicyAttribute,
   removePolicy,
 }) => {
-  const makeTextInput = (attr, value) => {
-    value = value || ""
-    if (!isEditable) {
-      if (value === "") {
-        return <em>Any</em>
-      }
-      return <code>{value || ""}</code>
-    }
-    return (
-      <input
-        type="text"
-        value={value}
-        className="form-control"
-        onChange={(e) => setPolicyAttribute(index, attr, e.target.value)}
-      />
-    )
-  }
-
   const validationError = validatePolicy(policy)
 
   return (
     <tr>
       {isEditable ? (
         <td key="order" className="policy-order-buttons">
-          <MoveOperation
-            index={index}
-            itemCount={policyCount}
-            onMove={movePolicy}
-          />
+          <MoveOperation index={index} itemCount={policyCount} onMove={movePolicy} />
         </td>
       ) : (
         <td key="order" className="policy-order-buttons"></td>
@@ -67,19 +45,13 @@ const TagPoliciesEditRow = ({
           isEditable,
           options: deleteOptions,
           value: policy.block_delete || false,
-          onChange: () =>
-            setPolicyAttribute(index, "block_delete", !policy.block_delete),
+          onChange: () => setPolicyAttribute(index, "block_delete", !policy.block_delete),
         })}
         {makeSelectBox({
           isEditable,
           options: overwriteOptions,
           value: policy.block_overwrite || false,
-          onChange: () =>
-            setPolicyAttribute(
-              index,
-              "block_overwrite",
-              !policy.block_overwrite
-            ),
+          onChange: () => setPolicyAttribute(index, "block_overwrite", !policy.block_overwrite),
         })}
       </td>
       <td className="form-inline">
@@ -88,17 +60,28 @@ const TagPoliciesEditRow = ({
             isEditable,
             options: repoFilterOptions,
             value: policy.ui_hints.repo_filter,
-            onChange: (e) =>
-              setPolicyAttribute(index, "repo_filter", e.target.value),
+            onChange: (e) => setPolicyAttribute(index, "repo_filter", e.target.value),
           })}
           {policy.ui_hints.repo_filter === "on" && (
             <>
               {" regex "}
-              {makeTextInput("match_repository", policy.match_repository)}
+              {makeTextInput({
+                value: policy.match_repository,
+                isEditable,
+                onChange: (e) => {
+                  setPolicyAttribute(index, "match_repository", e.target.value)
+                },
+              })}
               {(isEditable || policy.except_repository) && (
                 <>
                   {" but not regex "}
-                  {makeTextInput("except_repository", policy.except_repository)}
+                  {makeTextInput({
+                    value: policy.except_repository,
+                    isEditable,
+                    onChange: (e) => {
+                      setPolicyAttribute(index, "except_repository", e.target.value)
+                    },
+                  })}
                 </>
               )}
             </>
@@ -109,17 +92,28 @@ const TagPoliciesEditRow = ({
             isEditable,
             options: tagFilterOptions,
             value: policy.ui_hints.tag_filter,
-            onChange: (e) =>
-              setPolicyAttribute(index, "tag_filter", e.target.value),
+            onChange: (e) => setPolicyAttribute(index, "tag_filter", e.target.value),
           })}
           {policy.ui_hints.tag_filter === "on" && (
             <>
               {" regex "}
-              {makeTextInput("match_tag", policy.match_tag)}
+              {makeTextInput({
+                value: policy.match_tag,
+                isEditable,
+                onChange: (e) => {
+                  setPolicyAttribute(index, "match_tag", e.target.value)
+                },
+              })}
               {(isEditable || policy.except_tag) && (
                 <>
                   {" but not regex "}
-                  {makeTextInput("except_tag", policy.except_tag)}
+                  {makeTextInput({
+                    value: policy.except_tag,
+                    isEditable,
+                    onChange: (e) => {
+                      setPolicyAttribute(index, "except_tag", e.target.value)
+                    },
+                  })}
                 </>
               )}
             </>
