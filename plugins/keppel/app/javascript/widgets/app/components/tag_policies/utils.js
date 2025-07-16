@@ -7,7 +7,7 @@ export const validatePolicy = (policy) => {
   if (rx('match_repository') == '') {
     return `repository name regex may not be empty`;
   }
-  if (policy.ui_hints.tag_filter === 'on' && rx('match_tag') === '') {
+  if (rx('match_tag') === '') {
     return `tag name regex may not be empty`;
   }
   return null;

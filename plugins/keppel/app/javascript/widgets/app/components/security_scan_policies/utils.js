@@ -8,10 +8,10 @@ export const validatePolicy = (policy) => {
   if (rx('match_repository') == '') {
     return `repository name regex may not be empty`;
   }
-  if (policy.ui_hints.vulnID_filter === 'on' && rx('match_vulnerability_id') === '') {
+  if (rx('match_vulnerability_id') === '') {
     return `vulnerability ID regex may not be empty`;
   }
-  if(actionRx('severity') == '') {
+  if(actionRx('severity') == '' && actionRx('ignore') == false) {
     return `need to configure severity level for handling matching vulnerabilities.`
   }
   if(actionRx('assessment') == '') {
