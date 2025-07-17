@@ -155,14 +155,13 @@ const fetchRepositoryPage = (accountName, marker) => (dispatch) => {
     })
 }
 
-export const fetchRepositoriesIfNeeded =
-  (accountName) => (dispatch, getState) => {
-    const state = getState().keppel.repositoriesFor[accountName] || {}
-    if (state.isFetching || state.requestedAt) {
-      return
-    }
-    return dispatch(fetchRepositoryPage(accountName, null))
+export const fetchRepositoriesIfNeeded = (accountName) => (dispatch, getState) => {
+  const state = getState().keppel.repositoriesFor[accountName] || {}
+  if (state.isFetching || state.requestedAt) {
+    return
   }
+  return dispatch(fetchRepositoryPage(accountName, null))
+}
 
 export const deleteRepository = (accountName, repoName) => (dispatch) => {
   return new Promise((resolve, reject) =>
@@ -198,10 +197,7 @@ const fetchManifestPage = (accountName, repoName, marker) => (dispatch) => {
   }
 
   ajaxHelper
-    .get(
-      `/keppel/v1/accounts/${accountName}/repositories/${repoName}/_manifests`,
-      { params: { marker } }
-    )
+    .get(`/keppel/v1/accounts/${accountName}/repositories/${repoName}/_manifests`, { params: { marker } })
     .then((response) => {
       const manifests = response.data.manifests
       dispatch({
@@ -212,13 +208,7 @@ const fetchManifestPage = (accountName, repoName, marker) => (dispatch) => {
         receivedAt: Date.now(),
       })
       if (response.data.truncated) {
-        dispatch(
-          fetchManifestPage(
-            accountName,
-            repoName,
-            manifests[manifests.length - 1].digest
-          )
-        )
+        dispatch(fetchManifestPage(accountName, repoName, manifests[manifests.length - 1].digest))
       } else {
         dispatch({
           type: constants.REQUEST_MANIFESTS_FINISHED,
@@ -238,15 +228,13 @@ const fetchManifestPage = (accountName, repoName, marker) => (dispatch) => {
     })
 }
 
-export const fetchManifestsIfNeeded =
-  (accountName, repoName) => (dispatch, getState) => {
-    const state =
-      (getState().keppel.manifestsFor[accountName] || {})[repoName] || {}
-    if (state.isFetching || state.requestedAt) {
-      return
-    }
-    return dispatch(fetchManifestPage(accountName, repoName, null))
+export const fetchManifestsIfNeeded = (accountName, repoName) => (dispatch, getState) => {
+  const state = (getState().keppel.manifestsFor[accountName] || {})[repoName] || {}
+  if (state.isFetching || state.requestedAt) {
+    return
   }
+  return dispatch(fetchManifestPage(accountName, repoName, null))
+}
 
 const fetchManifest = (accountName, repoName, digest) => (dispatch) => {
   dispatch({
@@ -280,76 +268,65 @@ const fetchManifest = (accountName, repoName, digest) => (dispatch) => {
     })
 }
 
-export const fetchManifestIfNeeded =
-  (accountName, repoName, digest) => (dispatch, getState) => {
-    const state =
-      ((getState().keppel.manifestFor[accountName] || {})[repoName] || {})[
-        digest
-      ] || {}
-    if (state.isFetching || state.requestedAt) {
-      return
+export const fetchManifestIfNeeded = (accountName, repoName, digest) => (dispatch, getState) => {
+  const state = ((getState().keppel.manifestFor[accountName] || {})[repoName] || {})[digest] || {}
+  if (state.isFetching || state.requestedAt) {
+    return
+  }
+  return dispatch(fetchManifest(accountName, repoName, digest))
+}
+
+export const deleteManifest = (accountName, repoName, digest, tagName) => (dispatch, getState) => {
+  //when `tagName` is non-empty, the user has selected this tag for deletion,
+  //and we should ask for confirmation before deleting the manifest if it is
+  //also referenced by other tags
+  const otherTagNames = (() => {
+    if (!tagName) {
+      return []
     }
-    return dispatch(fetchManifest(accountName, repoName, digest))
-  }
+    const manifestsForAccount = getState().keppel.manifestsFor[accountName] || {}
+    const manifestsForRepo = manifestsForAccount[repoName] || {}
+    const manifestInfo = (manifestsForRepo.data || []).find((m) => m.digest === digest) || {}
+    const manifestTags = manifestInfo.tags || []
+    return manifestTags.map((t) => t.name).filter((n) => n != tagName)
+  })()
 
-export const deleteManifest =
-  (accountName, repoName, digest, tagName) => (dispatch, getState) => {
-    //when `tagName` is non-empty, the user has selected this tag for deletion,
-    //and we should ask for confirmation before deleting the manifest if it is
-    //also referenced by other tags
-    const otherTagNames = (() => {
-      if (!tagName) {
-        return []
-      }
-      const manifestsForAccount =
-        getState().keppel.manifestsFor[accountName] || {}
-      const manifestsForRepo = manifestsForAccount[repoName] || {}
-      const manifestInfo =
-        (manifestsForRepo.data || []).find((m) => m.digest === digest) || {}
-      const manifestTags = manifestInfo.tags || []
-      return manifestTags.map((t) => t.name).filter((n) => n != tagName)
-    })()
+  return new Promise((resolve, reject) => {
+    const precondition =
+      otherTagNames.length == 0
+        ? Promise.resolve(null)
+        : confirm(
+            `Really delete this image? It is also tagged as ${otherTagNames
+              .map((n) => `"${n}"`)
+              .join(", ")} and those tags will be deleted as well.`
+          )
 
-    return new Promise((resolve, reject) => {
-      const precondition =
-        otherTagNames.length == 0
-          ? Promise.resolve(null)
-          : confirm(
-              `Really delete this image? It is also tagged as ${otherTagNames
-                .map((n) => `"${n}"`)
-                .join(", ")} and those tags will be deleted as well.`
-            )
-
-      precondition
-        .then(() =>
-          ajaxHelper
-            .delete(
-              `/keppel/v1/accounts/${accountName}/repositories/${repoName}/_manifests/${digest}`
-            )
-            .then(() => {
-              dispatch({
-                type: constants.DELETE_MANIFEST,
-                accountName,
-                repoName,
-                digest,
-              })
-              resolve()
+    precondition
+      .then(() =>
+        ajaxHelper
+          .delete(`/keppel/v1/accounts/${accountName}/repositories/${repoName}/_manifests/${digest}`)
+          .then(() => {
+            dispatch({
+              type: constants.DELETE_MANIFEST,
+              accountName,
+              repoName,
+              digest,
             })
-            .catch((error) => {
-              showError(error)
-              reject()
-            })
-        )
-        .catch(() => reject())
-    })
-  }
+            resolve()
+          })
+          .catch((error) => {
+            showError(error)
+            reject()
+          })
+      )
+      .catch(() => reject())
+  })
+}
 
 export const deleteTag = (accountName, repoName, tagName) => (dispatch) => {
   return new Promise((resolve, reject) => {
     ajaxHelper
-      .delete(
-        `/keppel/v1/accounts/${accountName}/repositories/${repoName}/_tags/${tagName}`
-      )
+      .delete(`/keppel/v1/accounts/${accountName}/repositories/${repoName}/_tags/${tagName}`)
       .then(() => {
         dispatch({
           type: constants.DELETE_TAG,
@@ -401,14 +378,13 @@ const fetchBlob = (accountName, repoName, digest) => (dispatch) => {
     })
 }
 
-export const fetchBlobIfNeeded =
-  (accountName, repoName, digest) => (dispatch, getState) => {
-    const state = (getState().keppel.blobFor[accountName] || {})[digest] || {}
-    if (state.isFetching || state.requestedAt) {
-      return
-    }
-    return dispatch(fetchBlob(accountName, repoName, digest))
+export const fetchBlobIfNeeded = (accountName, repoName, digest) => (dispatch, getState) => {
+  const state = (getState().keppel.blobFor[accountName] || {})[digest] || {}
+  if (state.isFetching || state.requestedAt) {
+    return
   }
+  return dispatch(fetchBlob(accountName, repoName, digest))
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // get vulnerabilities
@@ -423,9 +399,7 @@ const fetchVulns = (accountName, repoName, digest) => (dispatch) => {
   })
 
   ajaxHelper
-    .get(
-      `/keppel/v1/accounts/${accountName}/repositories/${repoName}/_manifests/${digest}/trivy_report`
-    )
+    .get(`/keppel/v1/accounts/${accountName}/repositories/${repoName}/_manifests/${digest}/trivy_report`)
     .then((response) => {
       dispatch({
         type: constants.RECEIVE_VULNS,
@@ -447,17 +421,13 @@ const fetchVulns = (accountName, repoName, digest) => (dispatch) => {
     })
 }
 
-export const fetchVulnsIfNeeded =
-  (accountName, repoName, digest) => (dispatch, getState) => {
-    const state =
-      ((getState().keppel.vulnsFor[accountName] || {})[repoName] || {})[
-        digest
-      ] || {}
-    if (state.isFetching || state.requestedAt) {
-      return
-    }
-    return dispatch(fetchVulns(accountName, repoName, digest))
+export const fetchVulnsIfNeeded = (accountName, repoName, digest) => (dispatch, getState) => {
+  const state = ((getState().keppel.vulnsFor[accountName] || {})[repoName] || {})[digest] || {}
+  if (state.isFetching || state.requestedAt) {
+    return
   }
+  return dispatch(fetchVulns(accountName, repoName, digest))
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // get security scan policies
@@ -480,19 +450,18 @@ const fetchSecurityScanPolicies = (accountName) => (dispatch) => {
       })
     })
     .catch((error) => {
-      dispatch({ type: constants.REQUEST_SECURITY_SCAN_POLICIES_FAILURE })
+      dispatch({ type: constants.REQUEST_SECURITY_SCAN_POLICIES_FAILURE, accountName: accountName })
       showError(error)
     })
 }
 
-export const fetchSecurityScanPoliciesIfNeeded =
-  (accountName) => (dispatch, getState) => {
-    const state = getState().keppel.securityPoliciesFor[accountName] || {} || {}
-    if (state.isFetching || state.requestedAt) {
-      return
-    }
-    return dispatch(fetchSecurityScanPolicies(accountName))
+export const fetchSecurityScanPoliciesIfNeeded = (accountName) => (dispatch, getState) => {
+  const state = getState().keppel.securityPoliciesFor[accountName] || {} || {}
+  if (state.isFetching || state.requestedAt) {
+    return
   }
+  return dispatch(fetchSecurityScanPolicies(accountName))
+}
 
 export const putSecurityScanPolicies =
   (accountName, policies, requestHeaders = {}) =>
@@ -501,13 +470,9 @@ export const putSecurityScanPolicies =
 
     return new Promise((resolve, reject) =>
       ajaxHelper
-        .put(
-          `/keppel/v1/accounts/${accountName}/security_scan_policies`,
-          requestBody,
-          {
-            headers: requestHeaders,
-          }
-        )
+        .put(`/keppel/v1/accounts/${accountName}/security_scan_policies`, requestBody, {
+          headers: requestHeaders,
+        })
         .then((response) => {
           const newPolicies = response.data.policies
           dispatch({

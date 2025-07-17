@@ -364,7 +364,7 @@ const updateSecurityPoliciesFor = (state, accountName, update) => {
   return {
     ...state,
     securityPoliciesFor: {
-      ...securityPoliciesForAccount,
+      ...state.securityPoliciesFor,
       [accountName]: update(securityPoliciesForAccount[accountName] || {}),
     },
   }
