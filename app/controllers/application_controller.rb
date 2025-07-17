@@ -2,6 +2,11 @@ require 'core/audit_logger'
 # This class implements functionality to support modal views.
 # All subclasses which require modal views should inherit from this class.
 class ApplicationController < ActionController::Base
+
+  before_action do 
+    byebug
+  end
+  
   layout 'application'
   include ApplicationHelper
 
@@ -13,6 +18,7 @@ class ApplicationController < ActionController::Base
   include Core::Paginatable
 
   extend ErrorRenderer
+
 
   # Prevent CSRF attacks by raising an exception.
   # For APIs, you may want to use :null_session instead.

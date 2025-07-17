@@ -1221,22 +1221,27 @@
     "@types/tough-cookie" "^4.0.5"
     tough-cookie "^4.1.4"
 
-"@cloudoperators/juno-messages-provider@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@cloudoperators/juno-messages-provider/-/juno-messages-provider-0.2.0.tgz#21463ecf9aa541eec1533817ddd6b5d1df154473"
-  integrity sha512-ssu2W2pjsgpgD6wiOnrnxSqPMIkLE+SxBI9GmumMMCyoF44zZLyy1UdfpvHAYHizDqTG7HSKfqdtd3QRY77xEg==
+"@cloudoperators/juno-messages-provider@^0.2.11":
+  version "0.2.11"
+  resolved "https://registry.yarnpkg.com/@cloudoperators/juno-messages-provider/-/juno-messages-provider-0.2.11.tgz#71febded4c3a4e50bc1fb80aab9ffb32db947518"
+  integrity sha512-RmQa2YY7CACuX25uLRolfVgWDm8a5cOPqfIzbUwtrEu1dZxF4hx7Q2q1PCij3oqfnR1sI2+1zXuobcLdxwqRAQ==
   dependencies:
-    "@cloudoperators/juno-ui-components" "*"
-
-"@cloudoperators/juno-ui-components@*", "@cloudoperators/juno-ui-components@^2.30.0":
-  version "2.30.0"
-  resolved "https://registry.yarnpkg.com/@cloudoperators/juno-ui-components/-/juno-ui-components-2.30.0.tgz#f460175644badc3421e3bb171812e3ec9a3cdb88"
-  integrity sha512-HFarnw/SX1QEUH1vstC5bYWDyLgg/3e/zOa0uFzrdbxR/W5AVyX2h3OlNHYYkDpgWz2p68+UmSHjuFAzviYbhA==
+    "@cloudoperators/juno-ui-components" "5.1.0"
 
 "@cloudoperators/juno-ui-components@5.0.1":
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/@cloudoperators/juno-ui-components/-/juno-ui-components-5.0.1.tgz#6c86817a22fe17d72362f402735010b09a26d0a1"
   integrity sha512-bJPFRg/+KNHI5FuAvH1+YcfBFyb0AA6tHBIUANDxKjheofboPRAWyu1qpV9mcwv+Ep1xCekdLB2V/BbGXh2w4A==
+
+"@cloudoperators/juno-ui-components@5.1.0":
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/@cloudoperators/juno-ui-components/-/juno-ui-components-5.1.0.tgz#9d166068ee4d08d574ae682246b9dd42347feaa3"
+  integrity sha512-+HZbrA0o5KJo0AkuGKqVaVdvt/iYdPr7ApZQTfZcY/LdsuO1B97x0Z+j0xRrEjUs1w8WJhuWR8Uu+KkM+xgJeQ==
+
+"@cloudoperators/juno-ui-components@^2.30.0":
+  version "2.30.0"
+  resolved "https://registry.yarnpkg.com/@cloudoperators/juno-ui-components/-/juno-ui-components-2.30.0.tgz#f460175644badc3421e3bb171812e3ec9a3cdb88"
+  integrity sha512-HFarnw/SX1QEUH1vstC5bYWDyLgg/3e/zOa0uFzrdbxR/W5AVyX2h3OlNHYYkDpgWz2p68+UmSHjuFAzviYbhA==
 
 "@cloudoperators/juno-url-state-provider@*":
   version "3.0.4"
