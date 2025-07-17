@@ -36,7 +36,7 @@ export default class SecurityScanPoliciesEditModal extends React.Component {
           policy.match_repository !== ".*" || (policy.except_repository || "") !== "" ? "on" : "off"
         policy.ui_hints.vulnID_filter =
           policy.match_vulnerability_id !== ".*" || (policy.except_vulnerability_id || "") !== "" ? "on" : "off"
-        policy.ui_hints.severity = policy.action.ignore == true ? "Ignore" : policy.action.severity
+        policy.ui_hints.severity = policy.action?.ignore ? "Ignore" : policy.action.severity
         policy.ui_hints.key = uuidv4()
       }
       this.setState({ ...this.state, policies })
