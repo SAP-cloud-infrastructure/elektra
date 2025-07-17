@@ -64,6 +64,10 @@ class DomainConfig
     @domain_config.fetch('check_cidr_range', true)
   end
 
+  def idp?
+    @domain_config.fetch('idp', false)
+  end
+
   private
 
   def find_config(domains_config, scoped_domain_name)
