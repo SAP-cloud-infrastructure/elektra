@@ -10,38 +10,33 @@ import SecurityScanPoliciesEditRow from "./row"
 export default class SecurityScanPoliciesEditModal extends React.Component {
   state = {
     show: true,
-    policies: [],
+    policies: null,
     isSubmitting: false,
     apiErrors: null,
   }
 
   componentDidMount() {
     this.loadData()
-    this.initState()
   }
   componentDidUpdate() {
-    this.initState()
+    if (!this.props.policies.isFetching) {
+      this.initState()
+    }
   }
   initState() {
-    if (!this.props.policies.data) {
+    if (!this.props.account) {
+      this.close()
       return
     }
-    if (this.state.policies == false) {
+    if (this.state.policies == null) {
       const policies = this.props?.policies?.data || []
       for (const policy of policies) {
         policy.ui_hints = {}
         policy.ui_hints.repo_filter =
-          policy.match_repository !== ".*" ||
-          (policy.except_repository || "") !== ""
-            ? "on"
-            : "off"
+          policy.match_repository !== ".*" || (policy.except_repository || "") !== "" ? "on" : "off"
         policy.ui_hints.vulnID_filter =
-          policy.match_vulnerability_id !== ".*" ||
-          (policy.except_vulnerability_id || "") !== ""
-            ? "on"
-            : "off"
-        policy.ui_hints.severity =
-          policy.action.ignore == true ? "Ignore" : policy.action.severity
+          policy.match_vulnerability_id !== ".*" || (policy.except_vulnerability_id || "") !== "" ? "on" : "off"
+        policy.ui_hints.severity = policy.action.ignore == true ? "Ignore" : policy.action.severity
         policy.ui_hints.key = uuidv4()
       }
       this.setState({ ...this.state, policies })
@@ -112,7 +107,7 @@ export default class SecurityScanPoliciesEditModal extends React.Component {
         break
       case "vulnID_filter":
         policies[idx].ui_hints.vulnID_filter = input
-          policies[idx].match_vulnerability_id = ".*"
+        policies[idx].match_vulnerability_id = ".*"
         delete policies[idx].except_vulnerability_id
         break
     }
@@ -187,18 +182,15 @@ export default class SecurityScanPoliciesEditModal extends React.Component {
         aria-labelledby="contained-modal-title-lg"
       >
         <Modal.Header closeButton>
-          <Modal.Title id="contained-modal-title-lg">
-            Security Scan Policies for account: {account.name}
-          </Modal.Title>
+          <Modal.Title id="contained-modal-title-lg">Security Scan Policies for account: {account.name}</Modal.Title>
         </Modal.Header>
 
         <Modal.Body>
           {this.state.apiErrors && <FormErrors errors={this.state.apiErrors} />}
           <p className="bs-callout bs-callout-info bs-callout-emphasize">
-            <strong>The order of policies is significant!</strong> Policies are
-            evaluated starting from the top of the list. For each image, the
-            first policy that matches gets applied, and all subsequent policies
-            will be ignored.
+            <strong>The order of policies is significant!</strong> Policies are evaluated starting from the top of the
+            list. For each image, the first policy that matches gets applied, and all subsequent policies will be
+            ignored.
           </p>
 
           <table className="table">
@@ -209,10 +201,7 @@ export default class SecurityScanPoliciesEditModal extends React.Component {
                 <th className="col-md-8">Matching rules</th>
                 <th className="col-md-1">
                   {isAdmin && (
-                    <button
-                      className="btn btn-sm btn-default"
-                      onClick={this.addPolicy}
-                    >
+                    <button className="btn btn-sm btn-default" onClick={this.addPolicy}>
                       Add policy
                     </button>
                   )}
@@ -233,8 +222,7 @@ export default class SecurityScanPoliciesEditModal extends React.Component {
                   <td colSpan="4" className="text-muted text-center">
                     {isFetchingPolicies ? (
                       <div>
-                        <span className="spinner" /> Loading security scan
-                        policy list...
+                        <span className="spinner" /> Loading security scan policy list...
                       </div>
                     ) : (
                       "No entries"
@@ -247,11 +235,8 @@ export default class SecurityScanPoliciesEditModal extends React.Component {
           {policies.length > 0 && (
             <p>
               Matches on repository names and tag names use the{" "}
-              <a href="https://golang.org/pkg/regexp/syntax/">
-                Go regex syntax
-              </a>
-              . Leading <code>^</code> and trailing <code>$</code> anchors are
-              always added automatically.
+              <a href="https://golang.org/pkg/regexp/syntax/">Go regex syntax</a>. Leading <code>^</code> and trailing{" "}
+              <code>$</code> anchors are always added automatically.
             </p>
           )}
         </Modal.Body>

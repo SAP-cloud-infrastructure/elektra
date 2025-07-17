@@ -31,14 +31,9 @@ export default class TagPoliciesEditModal extends React.Component {
       for (const policy of policies) {
         policy.ui_hints = {}
         policy.ui_hints.repo_filter =
-          policy.match_repository !== ".*" ||
-          (policy.except_repository || "") !== ""
-            ? "on"
-            : "off"
+          policy.match_repository !== ".*" || (policy.except_repository || "") !== "" ? "on" : "off"
         policy.ui_hints.tag_filter =
-          (policy.match_tag || "") !== ".*" || (policy.except_tag || "") !== ""
-            ? "on"
-            : "off"
+          (policy.match_tag || "") !== ".*" || (policy.except_tag || "") !== "" ? "on" : "off"
         policy.ui_hints.key = uuidv4()
       }
       this.setState({ ...this.state, policies })
@@ -161,18 +156,15 @@ export default class TagPoliciesEditModal extends React.Component {
         aria-labelledby="contained-modal-title-lg"
       >
         <Modal.Header closeButton>
-          <Modal.Title id="contained-modal-title-lg">
-            Tag policies for account: {account.name}
-          </Modal.Title>
+          <Modal.Title id="contained-modal-title-lg">Tag policies for account: {account.name}</Modal.Title>
         </Modal.Header>
 
         <Modal.Body>
           {this.state.apiErrors && <FormErrors errors={this.state.apiErrors} />}
           <p className="bs-callout bs-callout-info bs-callout-emphasize">
-            <strong>The order of policies is significant!</strong> Policies are
-            evaluated starting from the top of the list. For each image, the
-            first policy that matches gets applied, and all subsequent policies
-            will be ignored.
+            <strong>The order of policies is significant!</strong> Policies are evaluated starting from the top of the
+            list. For each image, the first policy that matches gets applied, and all subsequent policies will be
+            ignored.
           </p>
           <table className="table">
             <thead>
@@ -182,10 +174,7 @@ export default class TagPoliciesEditModal extends React.Component {
                 <th className="col-md-8">Matching rules</th>
                 <th className="col-md-1">
                   {isAdmin && (
-                    <button
-                      className="btn btn-sm btn-default"
-                      onClick={this.addPolicy}
-                    >
+                    <button className="btn btn-sm btn-default" onClick={this.addPolicy}>
                       Add policy
                     </button>
                   )}
@@ -194,12 +183,7 @@ export default class TagPoliciesEditModal extends React.Component {
             </thead>
             <tbody>
               {policies.map((policy, idx) => (
-                <TagPoliciesEditRow
-                  {...commonPropsForRow}
-                  key={policy.ui_hints.key}
-                  index={idx}
-                  policy={policy}
-                />
+                <TagPoliciesEditRow {...commonPropsForRow} key={policy.ui_hints.key} index={idx} policy={policy} />
               ))}
               {policies.length == 0 && (
                 <tr>
@@ -213,11 +197,8 @@ export default class TagPoliciesEditModal extends React.Component {
           {policies.length > 0 && (
             <p>
               Matches on repository names and tag names use the{" "}
-              <a href="https://golang.org/pkg/regexp/syntax/">
-                Go regex syntax
-              </a>
-              . Leading <code>^</code> and trailing <code>$</code> anchors are
-              always added automatically.
+              <a href="https://golang.org/pkg/regexp/syntax/">Go regex syntax</a>. Leading <code>^</code> and trailing{" "}
+              <code>$</code> anchors are always added automatically.
             </p>
           )}
         </Modal.Body>
@@ -225,11 +206,7 @@ export default class TagPoliciesEditModal extends React.Component {
         <Modal.Footer>
           {isAdmin ? (
             <>
-              <Button
-                onClick={this.handleSubmit}
-                bsStyle="primary"
-                disabled={!isValid || isSubmitting}
-              >
+              <Button onClick={this.handleSubmit} bsStyle="primary" disabled={!isValid || isSubmitting}>
                 {isSubmitting ? "Saving..." : "Save"}
               </Button>
               <Button onClick={this.close}>Cancel</Button>
