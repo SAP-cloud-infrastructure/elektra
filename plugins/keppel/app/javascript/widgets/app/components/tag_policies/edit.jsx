@@ -51,6 +51,7 @@ export default class TagPoliciesEditModal extends React.Component {
   addPolicy = (e) => {
     const newPolicy = {
       match_repository: ".*",
+      match_tag: ".*",
       block_delete: false,
       block_overwrite: false,
       ui_hints: { key: uuidv4(), repo_filter: "off", tag_filter: "off" },
@@ -156,7 +157,7 @@ export default class TagPoliciesEditModal extends React.Component {
         aria-labelledby="contained-modal-title-lg"
       >
         <Modal.Header closeButton>
-          <Modal.Title id="contained-modal-title-lg">Tag policies for account: {account.name}</Modal.Title>
+          <Modal.Title id="contained-modal-title-lg">Tag Policies for account: {account.name}</Modal.Title>
         </Modal.Header>
 
         <Modal.Body>

@@ -32,7 +32,7 @@ const TagPoliciesEditRow = ({
   const validationError = validatePolicy(policy)
 
   return (
-    <tr>
+    <tr data-testid={`policy:${index + 1}`}>
       {isEditable ? (
         <td key="order" className="policy-order-buttons">
           <MoveOperation index={index} itemCount={policyCount} onMove={movePolicy} />
@@ -42,12 +42,14 @@ const TagPoliciesEditRow = ({
       )}
       <td>
         {makeSelectBox({
+          testID: "deleteBox",
           isEditable,
           options: deleteOptions,
           value: policy.block_delete || false,
           onChange: () => setPolicyAttribute(index, "block_delete", !policy.block_delete),
         })}
         {makeSelectBox({
+          testID: "overwriteBox",
           isEditable,
           options: overwriteOptions,
           value: policy.block_overwrite || false,
@@ -119,7 +121,11 @@ const TagPoliciesEditRow = ({
             </>
           )}
         </div>
-        {validationError && <p className="text-danger">{validationError}</p>}
+        {validationError && (
+          <p data-testid={"validationText"} className="text-danger">
+            {validationError}
+          </p>
+        )}
       </td>
       <td>
         {isEditable && (

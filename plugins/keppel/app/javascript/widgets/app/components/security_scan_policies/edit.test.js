@@ -14,10 +14,6 @@ const defaultProps = {
 }
 
 describe("SecurityScanPoliciesEditModal", () => {
-  afterEach(() => {
-    jest.clearAllMocks()
-  })
-
   it("renders the modal with initial data", () => {
     render(<SecurityScanPoliciesEditModal {...defaultProps} />)
     expect(screen.getByText("Security Scan Policies for account: Test Account")).not.toBeNull()
@@ -50,8 +46,10 @@ describe("SecurityScanPoliciesEditModal", () => {
     fireEvent.change(textArea, { target: { value: "example2" } })
     expect(screen.queryByTestId("validationText")).toBeNull()
 
-    fireEvent.click(screen.getByText('Save'));
-    expect(defaultProps.putPolicies).toHaveBeenCalled();
+    fireEvent.click(screen.getByText("Save"))
+    await waitFor(() => {
+      expect(defaultProps.putPolicies).toHaveBeenCalled()
+    })
   })
 
   it("displays loading state when policies are fetching", () => {
