@@ -38,7 +38,7 @@ module MonsoonDashboard
       module_parent_name
     end
 
-    config.action_controller.raise_on_missing_callback_actions = true
+    config.action_controller.raise_on_missing_callback_actions = false
 
     # commented out due to error seen in prod:
     # Cannot render console from 10.XX.XX.XX! Allowed networks: XX.XX.XX.XX, ...
