@@ -30,7 +30,7 @@ const SecurityScanPoliciesEditRow = ({
   const validationError = validatePolicy(policy)
 
   return (
-    <tr>
+    <tr data-testid={`policy:${index + 1}`}>
       {isEditable ? (
         <td key="order" className="policy-order-buttons">
           <MoveOperation index={index} itemCount={policyCount} onMove={movePolicy} />
@@ -40,6 +40,7 @@ const SecurityScanPoliciesEditRow = ({
       )}
       <td>
         {makeSelectBox({
+          testID: "severityBox",
           isEditable,
           options: severityOptions,
           value: policy.ui_hints.severity,
@@ -112,6 +113,7 @@ const SecurityScanPoliciesEditRow = ({
           )}
           <div>
             <textarea
+              data-testid="textArea"
               className="tw-w-full tw-mt-2"
               placeholder="Assessment"
               value={policy.action.assessment}
@@ -121,7 +123,11 @@ const SecurityScanPoliciesEditRow = ({
             ></textarea>
           </div>
         </div>
-        {validationError && <p className="text-danger">{validationError}</p>}
+        {validationError && (
+          <p data-testid={"validationText"} className="text-danger">
+            {validationError}
+          </p>
+        )}
       </td>
       <td>
         {isEditable && (
