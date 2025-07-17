@@ -234,7 +234,7 @@ export default class SecurityScanPoliciesEditModal extends React.Component {
           </table>
           {policies.length > 0 && (
             <p>
-              Matches on repository names and tag names use the{" "}
+              Matches on repository names and vulnerability IDs use the{" "}
               <a href="https://golang.org/pkg/regexp/syntax/">Go regex syntax</a>. Leading <code>^</code> and trailing{" "}
               <code>$</code> anchors are always added automatically.
             </p>
