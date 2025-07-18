@@ -38,7 +38,7 @@ module ApplicationHelper
   end
 
   def page_title
-    "CCloud #{@scoped_domain_name if @scoped_domain_name} #{current_region if respond_to?(:current_region) and current_region}"
+    "SAP Cloud Infrastructure #{@scoped_domain_name if @scoped_domain_name} #{current_region if respond_to?(:current_region) and current_region}"
   end
 
   def render_paginatable(items, filter = {}, options = {})
