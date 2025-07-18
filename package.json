@@ -73,7 +73,7 @@
     "@svgr/core": "^8.1.0",
     "@svgr/plugin-jsx": "^8.1.0",
     "@testing-library/react": "^14.0.0",
-    "autoprefixer": "^10.4.12",
+    "autoprefixer": "^10.4.19",
     "axios-mock-adapter": "1.18.2",
     "babel-plugin-transform-import-meta": "^2.2.0",
     "chokidar": "^3.5.3",
