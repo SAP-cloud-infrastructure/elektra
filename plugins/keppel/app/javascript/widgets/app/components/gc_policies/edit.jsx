@@ -7,7 +7,7 @@ import React from "react"
 import GCPoliciesEditRow from "./row"
 import { validatePolicy } from "./utils"
 import { apiStateIsDeleting } from "../utils"
-import { moveItems } from "../modalHelpers/moveOperation"
+import { moveItems } from "../componentHelpers/MoveOperation"
 
 export default class GCPoliciesEditModal extends React.Component {
   state = {

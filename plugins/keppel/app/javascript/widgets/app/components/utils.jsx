@@ -36,38 +36,4 @@ export const makeHowtoOpener = (show) => (
 export const makeGCNotice = (objectType) =>
   `${objectType} deleted. It may take a few hours for the image contents to be garbage-collected from the backing Swift container.`
 
-export const makeSelectBox = ({ testID = "", options, value, isEditable, onChange }) => {
-  const current = options.find((o) => o.value == value)
-  if (!isEditable) {
-    return current ? trimEllipsis(current.label) : ""
-  }
-  return (
-    <select data-testid={testID} value={value} className="form-control select" onChange={onChange}>
-      {!current && (
-        <option key="unknown" value={value}>
-          -- Please select --
-        </option>
-      )}
-      {options.map((o) => (
-        <option key={o.value} value={o.value}>
-          {o.label}
-        </option>
-      ))}
-    </select>
-  )
-}
-
-export const makeTextInput = ({ value, isEditable, onChange }) => {
-  value = value || ""
-  if (!isEditable) {
-    if (value === "") {
-      return <em>Any</em>
-    }
-    return <code>{value || ""}</code>
-  }
-  return <input type="text" value={value} className="form-control" onChange={(e) => onChange(e)} />
-}
-
-const trimEllipsis = (str) => (str.substr(-3) === "..." ? str.substr(0, str.length - 3) : str)
-
 export const apiStateIsDeleting = (state) => state === "deleting"
