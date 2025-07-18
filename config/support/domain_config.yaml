@@ -1,6 +1,7 @@
 # this config is used to control the visibility of plugins in the navigation,
 # to define floating ip networks.
 domains:
+  # Most general pattern last
   - name: any domain
     regex: ".*"
     floating_ip_networks:
@@ -19,8 +20,10 @@ domains:
     dns_c_subdomain: true
     check_cidr_range: true
     terms_of_use_name: "actual_terms"
+
+  # More specific pattern for test domains
   - name: test
-    regex: "_test_"
+    regex: "^test-.*$"
     disabled_features:
       - documentation
       - support
@@ -41,3 +44,14 @@ domains:
     dns_c_subdomain: false
     # set this to use the federation feature in keystone
     federation: false
+
+  # more specific for test-1234 domain will override the previous more general test domain
+  - name:
+    regex: "^test-1234.*$"
+    disabled_plugins:
+      - automation
+      - reports
+    # set this to use the federation feature in keystone
+    federation: true
+    # idp provider name for this domain, this is related to the federation feature
+    idp: "bla"
