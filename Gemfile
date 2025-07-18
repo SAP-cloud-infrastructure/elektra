@@ -12,7 +12,10 @@ source 'https://rubygems.org'
 gem 'unf', '>= 0.2.0beta2'
 
 gem 'jsbundling-rails'
-gem 'rails', '7.0.8.1'
+gem 'rails', '7.1.3.2'
+gem 'benchmark', require: false  # Ruby 3.4 compatibility
+gem 'ostruct'
+gem 'csv'
 
 gem 'bootstrap-sass'
 gem 'haml-rails'
