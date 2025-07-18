@@ -149,9 +149,7 @@ const NewListener = (props) => {
     if (!show) {
       const params = matchParams(props)
       const lbID = params.loadbalancerID
-      props.history.replace(
-        `/loadbalancers/${lbID}/show?${searchParamsToString(props)}`
-      )
+      props.history.replace(`/loadbalancers/${lbID}/show?${searchParamsToString(props)}`)
     }
   }
 
@@ -162,8 +160,7 @@ const NewListener = (props) => {
   const [initialValues, setInitialValues] = useState({ connection_limit: -1 })
 
   const [insetHeaderSelectItems, setInsertHeaderSelectItems] = useState([])
-  const [clientAuthenticationSelectItems, setClientAuthenticationSelectItems] =
-    useState([])
+  const [clientAuthenticationSelectItems, setClientAuthenticationSelectItems] = useState([])
 
   const [insertHeaders, setInsertHeaders] = useState(null)
   const [clientAuthentication, setClientAuthentication] = useState(null)
@@ -171,17 +168,13 @@ const NewListener = (props) => {
   const [SNIContainers, setSNIContainers] = useState(null)
   const [CATLSContainer, setCATLSContainer] = useState(null)
   const [defaultPool, setDefaultPool] = useState(null)
-  const [predefinedPoliciesSelectItems, setPredefinedPoliciesSelectItems] =
-    useState(null)
-  const [helpBlockItemsPredPolicies, setHelpBlockItemsPredPolicies] =
-    useState(null)
+  const [predefinedPoliciesSelectItems, setPredefinedPoliciesSelectItems] = useState(null)
+  const [helpBlockItemsPredPolicies, setHelpBlockItemsPredPolicies] = useState(null)
   const [tlsCiphers, setTlsCiphers] = useState(null)
 
   const [showInsertHeaders, setShowInsertHeaders] = useState(false)
-  const [showClientAuthentication, setShowClientAuthentication] =
-    useState(false)
-  const [showCertificateContainer, setShowCertificateContainer] =
-    useState(false)
+  const [showClientAuthentication, setShowClientAuthentication] = useState(false)
+  const [showCertificateContainer, setShowCertificateContainer] = useState(false)
   const [showSNIContainers, setShowSNIContainers] = useState(false)
   const [showCATLSContainer, setShowCATLSContainer] = useState(false)
   const [showPredefinedPolicies, setShowPredefinedPolicies] = useState(false)
@@ -208,9 +201,7 @@ const NewListener = (props) => {
       newValues.default_tls_container_ref = certificateContainer.value
     }
     if (showSNIContainers && SNIContainers) {
-      newValues.sni_container_refs = SNIContainers.map(
-        (item, index) => item.value
-      )
+      newValues.sni_container_refs = SNIContainers.map((item, index) => item.value)
     }
     if (showCATLSContainer && CATLSContainer) {
       newValues.client_ca_tls_container_ref = CATLSContainer.value
@@ -266,18 +257,12 @@ const NewListener = (props) => {
       resetOptionalAttributes()
       // load new select options
       setInsertHeaderSelectItems(protocolHeaderInsertionRelation(props.value))
-      setClientAuthenticationSelectItems(
-        clientAuthenticationRelation(props.value)
-      )
+      setClientAuthenticationSelectItems(clientAuthenticationRelation(props.value))
       setPredefinedPoliciesSelectItems(predefinedPolicies(props.value))
       setHelpBlockItemsPredPolicies(helpBlockItems(props.value))
       // set options for display
-      setShowInsertHeaders(
-        (protocolHeaderInsertionRelation(props.value) || []).length > 0
-      )
-      setShowClientAuthentication(
-        (clientAuthenticationRelation(props.value) || []).length > 0
-      )
+      setShowInsertHeaders((protocolHeaderInsertionRelation(props.value) || []).length > 0)
+      setShowClientAuthentication((clientAuthenticationRelation(props.value) || []).length > 0)
       setShowCertificateContainer(certificateContainerRelation(props.value))
       setShowSNIContainers(SNIContainerRelation(props.value))
       setShowCATLSContainer(CATLSContainerRelation(props.value))
@@ -360,18 +345,13 @@ const NewListener = (props) => {
       >
         <Modal.Body>
           <div className="bs-callout bs-callout-warning bs-callout-emphasize">
-            <h4>
-              Switched to using PKCS12 for TLS Term certs (New in API version
-              2.8)
-            </h4>
+            <h4>Switched to using PKCS12 for TLS Term certs (New in API version 2.8)</h4>
             <p>
-              For the TERMINATED_HTTPS protocol listeners now use the URI of the
-              Key Manager service secret containing a PKCS12 format
-              certificate/key bundle.
+              For the TERMINATED_HTTPS protocol listeners now use the URI of the Key Manager service secret containing a
+              PKCS12 format certificate/key bundle.
             </p>
             <p>
-              Please see following examples for creating certs with PKCS12
-              format:{" "}
+              Please see following examples for creating certs with PKCS12 format:{" "}
               <a
                 href="https://github.com/openstack/octavia/blob/master/doc/source/user/guides/basic-cookbook.rst"
                 target="_blank"
@@ -381,10 +361,7 @@ const NewListener = (props) => {
               </a>
             </p>
           </div>
-          <p>
-            A Listener defines a protocol/port combination under which the load
-            balancer can be called.
-          </p>
+          <p>A Listener defines a protocol/port combination under which the load balancer can be called.</p>
           <Form.Errors errors={formErrors} />
 
           <Form.ElementHorizontal label="Name" name="name" required>
@@ -393,30 +370,15 @@ const NewListener = (props) => {
           <Form.ElementHorizontal label="Description" name="description">
             <Form.Input elementType="input" type="text" name="description" />
           </Form.ElementHorizontal>
-          <Form.ElementHorizontal
-            label="Protocol Port"
-            name="protocol_port"
-            required
-          >
-            <Form.Input
-              elementType="input"
-              type="number"
-              min="1"
-              max="65535"
-              name="protocol_port"
-            />
+          <Form.ElementHorizontal label="Protocol Port" name="protocol_port" required>
+            <Form.Input elementType="input" type="number" min="1" max="65535" name="protocol_port" />
             <span className="help-block">
               <i className="fa fa-info-circle"></i>
-              The port under which the load balancer can be called. A port
-              number between 1 and 65535.
+              The port under which the load balancer can be called. A port number between 1 and 65535.
             </span>
           </Form.ElementHorizontal>
           <Form.ElementHorizontal label="Protocol" name="protocol" required>
-            <SelectInput
-              name="protocol"
-              items={protocolTypesFiltered()}
-              onChange={onSelectProtocolType}
-            />
+            <SelectInput name="protocol" items={protocolTypesFiltered()} onChange={onSelectProtocolType} />
             <span className="help-block">
               <i className="fa fa-info-circle"></i>
               The protocol which can be used to access the load balancer port.
@@ -429,11 +391,7 @@ const NewListener = (props) => {
                 {showCertificateContainer && (
                   <>
                     <div>
-                      <Form.ElementHorizontal
-                        label="Certificate Secret"
-                        name="default_tls_container_ref"
-                        required
-                      >
+                      <Form.ElementHorizontal label="Certificate Secret" name="default_tls_container_ref" required>
                         <SelectInputCreatable
                           name="default_tls_container_ref"
                           isLoading={secrets.isLoading}
@@ -444,16 +402,10 @@ const NewListener = (props) => {
                         />
                         <span className="help-block">
                           <i className="fa fa-info-circle"></i>
-                          The secret containing a PKCS12 format certificate/key
-                          bundles.
+                          The secret containing a PKCS12 format certificate/key bundles.
                         </span>
-                        {toManySecretsWarning(
-                          secrets.total,
-                          secrets.items?.length
-                        )}
-                        {secrets.error && (
-                          <span className="text-danger">{secrets.error}</span>
-                        )}
+                        {toManySecretsWarning(secrets.total, secrets.items?.length)}
+                        {secrets.error && <span className="text-danger">{secrets.error}</span>}
                       </Form.ElementHorizontal>
                     </div>
                   </>
@@ -461,10 +413,7 @@ const NewListener = (props) => {
 
                 {showPredefinedPolicies && (
                   <div>
-                    <Form.ElementHorizontal
-                      label="Extended Policy"
-                      name="extended_policies"
-                    >
+                    <Form.ElementHorizontal label="Extended Policy" name="extended_policies">
                       <SelectInput
                         name="extended_policies"
                         items={predefinedPoliciesSelectItems}
@@ -475,17 +424,11 @@ const NewListener = (props) => {
                       <span className="help-block">
                         <i className="fa fa-info-circle"></i>
                         <span className="help-block-text">
-                          Policies predefined by CCloud for special purpose. The
-                          policy will apply specific settings on the load
-                          balancer objects. L7Rules are not applicable and the
-                          Policy will be applied always. After creation these
-                          will be shown as a tag.
+                          Policies predefined by SAP Cloud Infrastructure for special purpose. The policy will apply
+                          specific settings on the load balancer objects. L7Rules are not applicable and the Policy will
+                          be applied always. After creation these will be shown as a tag.
                         </span>
-                        <HelpPopover
-                          text={helpBlockTextForSelect(
-                            helpBlockItemsPredPolicies
-                          )}
-                        />
+                        <HelpPopover text={helpBlockTextForSelect(helpBlockItemsPredPolicies)} />
                       </span>
                     </Form.ElementHorizontal>
                   </div>
@@ -493,10 +436,7 @@ const NewListener = (props) => {
 
                 {showInsertHeaders && (
                   <div>
-                    <Form.ElementHorizontal
-                      label="Insert Headers"
-                      name="insert_headers"
-                    >
+                    <Form.ElementHorizontal label="Insert Headers" name="insert_headers">
                       <SelectInput
                         name="insert_headers"
                         items={insetHeaderSelectItems}
@@ -508,14 +448,9 @@ const NewListener = (props) => {
                       <span className="help-block">
                         <i className="fa fa-info-circle"></i>
                         <span className="help-block-text">
-                          Headers to insert into the request before it is sent
-                          to the backend member.
+                          Headers to insert into the request before it is sent to the backend member.
                         </span>
-                        <HelpPopover
-                          text={helpBlockTextForSelect(
-                            httpHeaderInsertions("ALL")
-                          )}
-                        />
+                        <HelpPopover text={helpBlockTextForSelect(httpHeaderInsertions("ALL"))} />
                       </span>
                     </Form.ElementHorizontal>
                   </div>
@@ -529,9 +464,8 @@ const NewListener = (props) => {
                         <div className="bs-callout bs-callout-info bs-callout-emphasize">
                           <p>
                             {" "}
-                            Use <b>SNI</b> when having multiple TLS certificates
-                            that you would like to use on the same listener.
-                            Please also visit{" "}
+                            Use <b>SNI</b> when having multiple TLS certificates that you would like to use on the same
+                            listener. Please also visit{" "}
                             <a
                               href="https://docs.openstack.org/octavia/latest/user/guides/basic-cookbook.html#deploy-a-tls-terminated-https-load-balancer-with-sni"
                               target="_blank"
@@ -545,10 +479,7 @@ const NewListener = (props) => {
                       </div>
                     </div>
 
-                    <Form.ElementHorizontal
-                      label="SNI Secrets"
-                      name="sni_container_refs"
-                    >
+                    <Form.ElementHorizontal label="SNI Secrets" name="sni_container_refs">
                       <SelectInputCreatable
                         name="sni_container_refs"
                         isLoading={secrets.isLoading}
@@ -559,17 +490,11 @@ const NewListener = (props) => {
                         useFormContext={false}
                       />
                       <span className="help-block">
-                        <i className="fa fa-info-circle"></i>A list of secrets
-                        containing PKCS12 format certificate/key bundles used
-                        for Server Name Indication (SNI).
+                        <i className="fa fa-info-circle"></i>A list of secrets containing PKCS12 format certificate/key
+                        bundles used for Server Name Indication (SNI).
                       </span>
-                      {toManySecretsWarning(
-                        secrets.total,
-                        secrets.items?.length
-                      )}
-                      {secrets.error && (
-                        <span className="text-danger">{secrets.error}</span>
-                      )}
+                      {toManySecretsWarning(secrets.total, secrets.items?.length)}
+                      {secrets.error && <span className="text-danger">{secrets.error}</span>}
                     </Form.ElementHorizontal>
                   </>
                 )}
@@ -581,10 +506,8 @@ const NewListener = (props) => {
                       <div className="col-sm-12">
                         <div className="bs-callout bs-callout-info bs-callout-emphasize">
                           <p>
-                            <b>Client authentication</b> allows users to
-                            authenticate themselves to the VIP using
-                            certificates. This is also known as two-way TLS
-                            authentication. Please also visit{" "}
+                            <b>Client authentication</b> allows users to authenticate themselves to the VIP using
+                            certificates. This is also known as two-way TLS authentication. Please also visit{" "}
                             <a
                               href="https://docs.openstack.org/octavia/latest/user/guides/basic-cookbook.html#deploy-a-tls-terminated-https-load-balancer-with-client-authentication"
                               target="_blank"
@@ -602,10 +525,7 @@ const NewListener = (props) => {
 
                 {showClientAuthentication && (
                   <>
-                    <Form.ElementHorizontal
-                      label="Client Authentication Mode"
-                      name="client_authentication"
-                    >
+                    <Form.ElementHorizontal label="Client Authentication Mode" name="client_authentication">
                       <SelectInput
                         name="client_authentication"
                         items={clientAuthenticationSelectItems}
@@ -624,10 +544,7 @@ const NewListener = (props) => {
 
                 {showCATLSContainer && (
                   <>
-                    <Form.ElementHorizontal
-                      label="Client Authentication Secret"
-                      name="client_ca_tls_container_ref"
-                    >
+                    <Form.ElementHorizontal label="Client Authentication Secret" name="client_ca_tls_container_ref">
                       <SelectInputCreatable
                         name="client_ca_tls_container_ref"
                         isLoading={secrets.isLoading}
@@ -639,16 +556,10 @@ const NewListener = (props) => {
                       />
                       <span className="help-block">
                         <i className="fa fa-info-circle"></i>
-                        The secret containing a PEM format client CA certificate
-                        bundle.
+                        The secret containing a PEM format client CA certificate bundle.
                       </span>
-                      {toManySecretsWarning(
-                        secrets.total,
-                        secrets.items?.length
-                      )}
-                      {secrets.error && (
-                        <span className="text-danger">{secrets.error}</span>
-                      )}
+                      {toManySecretsWarning(secrets.total, secrets.items?.length)}
+                      {secrets.error && <span className="text-danger">{secrets.error}</span>}
                     </Form.ElementHorizontal>
                   </>
                 )}
@@ -660,22 +571,16 @@ const NewListener = (props) => {
                       <div className="col-sm-12">
                         <div className="bs-callout bs-callout-warning bs-callout-emphasize">
                           <p>
-                            This setting is for advanced use cases that require
-                            more control over the network configuration of the
-                            listener. <br />
-                            The following lists the default cipher suites
-                            attached to a listener. This should only be changed
-                            by expert users who know why they need to make a
-                            change. For the majority of scenarios no change is
-                            necessary.
+                            This setting is for advanced use cases that require more control over the network
+                            configuration of the listener. <br />
+                            The following lists the default cipher suites attached to a listener. This should only be
+                            changed by expert users who know why they need to make a change. For the majority of
+                            scenarios no change is necessary.
                           </p>
                         </div>
                       </div>
                     </div>
-                    <Form.ElementHorizontal
-                      label="TLS Ciphers Suites"
-                      name="tls_ciphers"
-                    >
+                    <Form.ElementHorizontal label="TLS Ciphers Suites" name="tls_ciphers">
                       <SelectInput
                         name="tls_ciphers"
                         isLoading={ciphers.isLoading}
@@ -689,11 +594,7 @@ const NewListener = (props) => {
                         <i className="fa fa-info-circle"></i>
                         The TLS cipher suites.
                       </span>
-                      {ciphers.isError && (
-                        <span className="text-danger">
-                          {ciphers.error.message}
-                        </span>
-                      )}
+                      {ciphers.isError && <span className="text-danger">{ciphers.error.message}</span>}
                     </Form.ElementHorizontal>
                   </>
                 )}
@@ -706,12 +607,9 @@ const NewListener = (props) => {
               <div className="col-sm-8 col-sm-push-4">
                 <div className="bs-callout bs-callout-warning bs-callout-emphasize">
                   <p>
-                    TLS-enabled pool can only be attached to a{" "}
-                    <b>TERMINATED_HTTPS</b> type listener!
+                    TLS-enabled pool can only be attached to a <b>TERMINATED_HTTPS</b> type listener!
                   </p>
-                  <p>
-                    Switch to TERMINATED_HTTPS protocol to see TLS-enalbed pools
-                  </p>
+                  <p>Switch to TERMINATED_HTTPS protocol to see TLS-enalbed pools</p>
                 </div>
               </div>
             </div>
@@ -727,40 +625,23 @@ const NewListener = (props) => {
               useFormContext={false}
               isClearable
             />
-            {pools.error ? (
-              <span className="text-danger">{pools.error}</span>
-            ) : (
-              ""
-            )}
+            {pools.error ? <span className="text-danger">{pools.error}</span> : ""}
             <span className="help-block">
               <i className="fa fa-info-circle"></i>
-              The pool to which all traffic will be routed if no L7 Policy
-              defines a different pool.
+              The pool to which all traffic will be routed if no L7 Policy defines a different pool.
             </span>
           </Form.ElementHorizontal>
-          <Form.ElementHorizontal
-            label="Connection Limit"
-            name="connection_limit"
-          >
-            <Form.Input
-              elementType="input"
-              type="number"
-              min="-1"
-              name="connection_limit"
-            />
+          <Form.ElementHorizontal label="Connection Limit" name="connection_limit">
+            <Form.Input elementType="input" type="number" min="-1" name="connection_limit" />
             <span className="help-block">
               <i className="fa fa-info-circle"></i>
-              The number of parallel connections allowed to access the load
-              balancer. Value -1 means infinite connections are allowed.
+              The number of parallel connections allowed to access the load balancer. Value -1 means infinite
+              connections are allowed.
             </span>
           </Form.ElementHorizontal>
 
           <Form.ElementHorizontal label="Tags" name="tags">
-            <TagsInput
-              name="tags"
-              useFormContext={false}
-              onChange={onTagsChange}
-            />
+            <TagsInput name="tags" useFormContext={false} onChange={onTagsChange} />
             <span className="help-block">
               <i className="fa fa-info-circle"></i>
               Start a new tag typing a string and hitting the Enter or Tab key.
