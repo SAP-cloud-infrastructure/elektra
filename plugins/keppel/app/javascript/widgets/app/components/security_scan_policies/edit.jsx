@@ -4,7 +4,7 @@ import { FormErrors } from "lib/elektra-form/components/form_errors"
 import { v4 as uuidv4 } from "uuid"
 import { validatePolicy } from "./utils"
 import { apiStateIsDeleting } from "../utils"
-import { moveItems } from "../modalHelpers/moveOperation"
+import { moveItems } from "../componentHelpers/MoveOperation"
 import SecurityScanPoliciesEditRow from "./row"
 
 export default class SecurityScanPoliciesEditModal extends React.Component {

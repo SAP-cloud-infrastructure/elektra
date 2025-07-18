@@ -1,7 +1,8 @@
 import React from "react"
-import { MoveOperation } from "../modalHelpers/moveOperation"
+import { MoveOperation } from "../componentHelpers/MoveOperation"
+import { SelectBox } from "../componentHelpers/SelectBox"
+import { TextInput } from "../componentHelpers/TextInput"
 import { validatePolicy } from "./utils"
-import { makeSelectBox, makeTextInput } from "../utils"
 
 const repoFilterOptions = [
   { value: "off", label: "for all repositories" },
@@ -39,74 +40,88 @@ const SecurityScanPoliciesEditRow = ({
         <td key="order" className="policy-order-buttons"></td>
       )}
       <td>
-        {makeSelectBox({
-          testID: "severityBox",
-          isEditable,
-          options: severityOptions,
-          value: policy.ui_hints.severity,
-          onChange: (e) => setPolicyAttribute(index, "severity", e.target.value),
-        })}
+        {
+          <SelectBox
+            testID="severityBox"
+            isEditable={isEditable}
+            options={severityOptions}
+            value={policy.ui_hints.severity}
+            onChange={(e) => setPolicyAttribute(index, "severity", e.target.value)}
+          />
+        }
       </td>
       <td className="form-inline">
         <div className="policy-matching-rule-line">
-          {makeSelectBox({
-            isEditable,
-            options: repoFilterOptions,
-            value: policy.ui_hints.repo_filter,
-            onChange: (e) => setPolicyAttribute(index, "repo_filter", e.target.value),
-          })}
+          {
+            <SelectBox
+              isEditable={isEditable}
+              options={repoFilterOptions}
+              value={policy.ui_hints.repo_filter}
+              onChange={(e) => setPolicyAttribute(index, "repo_filter", e.target.value)}
+            />
+          }
           {policy.ui_hints.repo_filter === "on" && (
             <>
               {" regex "}
-              {makeTextInput({
-                value: policy.match_repository,
-                isEditable,
-                onChange: (e) => {
-                  setPolicyAttribute(index, "match_repository", e.target.value)
-                },
-              })}
+              {
+                <TextInput
+                  value={policy.match_repository}
+                  isEditable={isEditable}
+                  onChange={(e) => {
+                    setPolicyAttribute(index, "match_repository", e.target.value)
+                  }}
+                />
+              }
               {(isEditable || policy.except_repository) && (
                 <>
                   {" but not regex "}
-                  {makeTextInput({
-                    value: policy.except_repository,
-                    isEditable,
-                    onChange: (e) => {
-                      setPolicyAttribute(index, "except_repository", e.target.value)
-                    },
-                  })}
+                  {
+                    <TextInput
+                      value={policy.except_repository}
+                      isEditable={isEditable}
+                      onChange={(e) => {
+                        setPolicyAttribute(index, "except_repository", e.target.value)
+                      }}
+                    />
+                  }
                 </>
               )}
             </>
           )}
         </div>
         <div className="policy-matching-rule-line">
-          {makeSelectBox({
-            isEditable,
-            options: vulnIDFilterOptions,
-            value: policy.ui_hints.vulnID_filter,
-            onChange: (e) => setPolicyAttribute(index, "vulnID_filter", e.target.value),
-          })}
+          {
+            <SelectBox
+              isEditable={isEditable}
+              options={vulnIDFilterOptions}
+              value={policy.ui_hints.vulnID_filter}
+              onChange={(e) => setPolicyAttribute(index, "vulnID_filter", e.target.value)}
+            />
+          }
           {policy.ui_hints.vulnID_filter === "on" && (
             <>
               {" regex "}
-              {makeTextInput({
-                value: policy.match_vulnerability_id,
-                isEditable,
-                onChange: (e) => {
-                  setPolicyAttribute(index, "match_vulnerability_id", e.target.value)
-                },
-              })}
+              {
+                <TextInput
+                  value={policy.match_vulnerability_id}
+                  isEditable={isEditable}
+                  onChange={(e) => {
+                    setPolicyAttribute(index, "match_vulnerability_id", e.target.value)
+                  }}
+                />
+              }
               {(isEditable || policy.except_tag) && (
                 <>
                   {" but not regex "}
-                  {makeTextInput({
-                    value: policy.except_vulnerability_id,
-                    isEditable,
-                    onChange: (e) => {
-                      setPolicyAttribute(index, "except_vulnerability_id", e.target.value)
-                    },
-                  })}
+                  {
+                    <TextInput
+                      value={policy.except_vulnerability_id}
+                      isEditable={isEditable}
+                      onChange={(e) => {
+                        setPolicyAttribute(index, "except_vulnerability_id", e.target.value)
+                      }}
+                    />
+                  }
                 </>
               )}
             </>
@@ -115,6 +130,7 @@ const SecurityScanPoliciesEditRow = ({
             <textarea
               data-testid="textArea"
               className="tw-w-full tw-mt-2"
+              disabled={!isEditable}
               placeholder="Assessment"
               value={policy.action.assessment}
               onChange={(e) => {

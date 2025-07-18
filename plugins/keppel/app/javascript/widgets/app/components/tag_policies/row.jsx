@@ -1,7 +1,8 @@
 import React from "react"
-import { MoveOperation } from "../modalHelpers/moveOperation"
+import { MoveOperation } from "../componentHelpers/MoveOperation"
+import { SelectBox } from "../componentHelpers/SelectBox"
+import { TextInput } from "../componentHelpers/TextInput"
 import { validatePolicy } from "./utils"
-import { makeSelectBox, makeTextInput } from "../utils"
 
 const repoFilterOptions = [
   { value: "off", label: "of all repositories" },
@@ -41,81 +42,97 @@ const TagPoliciesEditRow = ({
         <td key="order" className="policy-order-buttons"></td>
       )}
       <td>
-        {makeSelectBox({
-          testID: "deleteBox",
-          isEditable,
-          options: deleteOptions,
-          value: policy.block_delete || false,
-          onChange: () => setPolicyAttribute(index, "block_delete", !policy.block_delete),
-        })}
-        {makeSelectBox({
-          testID: "overwriteBox",
-          isEditable,
-          options: overwriteOptions,
-          value: policy.block_overwrite || false,
-          onChange: () => setPolicyAttribute(index, "block_overwrite", !policy.block_overwrite),
-        })}
+        {
+          <SelectBox
+            testID="deleteBox"
+            isEditable={isEditable}
+            options={deleteOptions}
+            value={policy.block_delete || false}
+            onChange={() => setPolicyAttribute(index, "block_delete", !policy.block_delete)}
+          />
+        }
+        {
+          <SelectBox
+            testID="overwriteBox"
+            isEditable={isEditable}
+            options={overwriteOptions}
+            value={policy.block_overwrite || false}
+            onChange={() => setPolicyAttribute(index, "block_overwrite", !policy.block_overwrite)}
+          />
+        }
       </td>
       <td className="form-inline">
         <div className="policy-matching-rule-line">
-          {makeSelectBox({
-            isEditable,
-            options: repoFilterOptions,
-            value: policy.ui_hints.repo_filter,
-            onChange: (e) => setPolicyAttribute(index, "repo_filter", e.target.value),
-          })}
+          {
+            <SelectBox
+              isEditable={isEditable}
+              options={repoFilterOptions}
+              value={policy.ui_hints.repo_filter}
+              onChange={(e) => setPolicyAttribute(index, "repo_filter", e.target.value)}
+            />
+          }
           {policy.ui_hints.repo_filter === "on" && (
             <>
               {" regex "}
-              {makeTextInput({
-                value: policy.match_repository,
-                isEditable,
-                onChange: (e) => {
-                  setPolicyAttribute(index, "match_repository", e.target.value)
-                },
-              })}
+              {
+                <TextInput
+                  value={policy.match_repository}
+                  isEditable={isEditable}
+                  onChange={(e) => {
+                    setPolicyAttribute(index, "match_repository", e.target.value)
+                  }}
+                />
+              }
               {(isEditable || policy.except_repository) && (
                 <>
                   {" but not regex "}
-                  {makeTextInput({
-                    value: policy.except_repository,
-                    isEditable,
-                    onChange: (e) => {
-                      setPolicyAttribute(index, "except_repository", e.target.value)
-                    },
-                  })}
+                  {
+                    <TextInput
+                      value={policy.except_repository}
+                      isEditable={isEditable}
+                      onChange={(e) => {
+                        setPolicyAttribute(index, "except_repository", e.target.value)
+                      }}
+                    />
+                  }
                 </>
               )}
             </>
           )}
         </div>
         <div className="policy-matching-rule-line">
-          {makeSelectBox({
-            isEditable,
-            options: tagFilterOptions,
-            value: policy.ui_hints.tag_filter,
-            onChange: (e) => setPolicyAttribute(index, "tag_filter", e.target.value),
-          })}
+          {
+            <SelectBox
+              isEditable={isEditable}
+              options={tagFilterOptions}
+              value={policy.ui_hints.tag_filter}
+              onChange={(e) => setPolicyAttribute(index, "tag_filter", e.target.value)}
+            />
+          }
           {policy.ui_hints.tag_filter === "on" && (
             <>
               {" regex "}
-              {makeTextInput({
-                value: policy.match_tag,
-                isEditable,
-                onChange: (e) => {
-                  setPolicyAttribute(index, "match_tag", e.target.value)
-                },
-              })}
+              {
+                <TextInput
+                  value={policy.match_tag}
+                  isEditable={isEditable}
+                  onChange={(e) => {
+                    setPolicyAttribute(index, "match_tag", e.target.value)
+                  }}
+                />
+              }
               {(isEditable || policy.except_tag) && (
                 <>
                   {" but not regex "}
-                  {makeTextInput({
-                    value: policy.except_tag,
-                    isEditable,
-                    onChange: (e) => {
-                      setPolicyAttribute(index, "except_tag", e.target.value)
-                    },
-                  })}
+                  {
+                    <TextInput
+                      value={policy.except_tag}
+                      isEditable={isEditable}
+                      onChange={(e) => {
+                        setPolicyAttribute(index, "except_tag", e.target.value)
+                      }}
+                    />
+                  }
                 </>
               )}
             </>

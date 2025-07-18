@@ -1,7 +1,7 @@
 import React from "react"
 import { render, fireEvent } from "@testing-library/react"
 import { screen } from "@testing-library/dom"
-import { MoveOperation } from "./moveOperation"
+import { MoveOperation } from "./MoveOperation"
 
 describe("MoveOperation", () => {
   const onMove = jest.fn()
