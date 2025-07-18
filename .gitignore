@@ -1,6 +1,7 @@
 *.rbc
 *.sassc
 .sass-cache
+.devcontainer
 .rspec
 /.bundle
 /vendor/bundle
