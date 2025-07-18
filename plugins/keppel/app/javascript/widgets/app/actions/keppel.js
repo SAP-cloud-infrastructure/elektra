@@ -456,7 +456,7 @@ const fetchSecurityScanPolicies = (accountName) => (dispatch) => {
 }
 
 export const fetchSecurityScanPoliciesIfNeeded = (accountName) => (dispatch, getState) => {
-  const state = getState().keppel.securityPoliciesFor[accountName] || {} || {}
+  const state = getState().keppel.securityPoliciesFor[accountName] || {}
   if (state.isFetching || state.requestedAt) {
     return
   }
