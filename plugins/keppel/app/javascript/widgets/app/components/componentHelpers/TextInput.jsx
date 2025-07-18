@@ -1,12 +1,12 @@
 import React from "react"
 
 export const TextInput = ({ testid = "", value, isEditable, onChange }) => {
-  value = value || ""
+  const inputValue = value || ""
   if (!isEditable) {
-    if (value === "") {
+    if (inputValue === "") {
       return <em>Any</em>
     }
-    return <code>{value || ""}</code>
+    return <code>{inputValue || ""}</code>
   }
-  return <input data-testid={testid} type="text" className="form-control" onChange={(e) => onChange(e)} />
+  return <input data-testid={testid} type="text" value={inputValue} className="form-control" onChange={(e) => onChange(e)} />
 }
