@@ -29,8 +29,7 @@ actual_terms:
 
     #### Service Charge
 
-    Converged Cloud systems are subject to reoccurring fees agreed upon requesting resource quotas and consuming burst capacity for specific services.
-    Converged Cloud publishes the service charges in the user documentation.
+    Converged Cloud systems are subject to recurring fees based on Committed Resources (CRs) as well as Pay-as-you-go (PAYG) capacity. Service charges for the Converged Cloud are published in the user documentation.
     These fees are transparently updated and accessible to the user and the user's designated cost object will be used for charging these fees for the duration of quota allocation. It is the user's responsibility to maintain a correct cost object per organization. If the cost object is not valid, the services will be charged against the personal Cost Center.
     Converged Cloud reserves the right to reasonably adjust fees based on current conditions.
 
