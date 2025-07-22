@@ -5,9 +5,6 @@ domains:
   - name: any domain
     regex: ".*"
     floating_ip_networks:
-      - "FloatingIP-external-%DOMAIN_NAME%-10"
-      - "FloatingIP-external-%DOMAIN_NAME%-09"
-      - "FloatingIP-external-%DOMAIN_NAME%-08"
       - "FloatingIP-external-%DOMAIN_NAME%-07"
       - "FloatingIP-external-%DOMAIN_NAME%-06"
       - "FloatingIP-external-%DOMAIN_NAME%-05"
@@ -21,9 +18,16 @@ domains:
     check_cidr_range: true
     terms_of_use_name: "actual_terms"
 
-  # More specific pattern for test domains
-  - name: test
-    regex: "^test-.*$"
+  # More general inheritance pattern
+  - name: inheritance
+    regex: "^inheritance-.*$"
+    disabled_plugins:
+      - automation
+      - reports
+      - masterdata_cockpit
+      - webconsole
+      - dns_service
+      - email_service
     disabled_features:
       - documentation
       - support
@@ -31,27 +35,15 @@ domains:
       - internal_help_links
       - terms_of_use
       - networking_backup
-    terms_of_use_name: "test_domain_terms" # this term needs to be added to config/settings.yaml
-    disabled_plugins:
-      # following plugins name should be the same as the plugin name in the plugins directory
-      - test-plugin
+    terms_of_use_name: "inheritance_terms"
     floating_ip_networks:
-      - "test_05"
-      - "test_04"
-      - "test_03"
-      - "test_02"
-      - "test_01"
+      - FloatingIP-external-inheritance-01
     dns_c_subdomain: false
-    # set this to use the federation feature in keystone
-    federation: false
-
-  # more specific for test-1234 domain will override the previous more general test domain
-  - name:
-    regex: "^test-1234.*$"
-    disabled_plugins:
-      - automation
-      - reports
-    # set this to use the federation feature in keystone
+    check_cidr_range: false
     federation: true
-    # idp provider name for this domain, this is related to the federation feature
-    idp: "bla"
+    idp: "mario@foo.corp"
+
+  # Most specific first
+  - name: inheritance-child
+    regex: "^inheritance-child.*$"
+    idp: "luigi@foo.corp"
