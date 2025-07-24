@@ -1,12 +1,14 @@
 - current_region=ENV["MONSOON_DASHBOARD_REGION"]
 - auth_url=ENV["FEDERATION_CUSTOM_AUTH_URL"]
 
-- idp=""
+- idp_param=""
 - if domain_config.idp?
-    - idp=domain_config.idp?
-    - auth_url="#{auth_url}?idp=#{idp}"
+    - idp_param="?idp=#{domain_config.idp?}"
+
 - if auth_url.nil?
-    - auth_url="https://identity-3.#{current_region}.cloud.sap/v3/auth/OS-FEDERATION/identity_providers/sap-ias/protocols/openid/websso?origin=https://dashboard.#{current_region}.cloud.sap/verify-auth-token?idp=#{idp}"
+    - auth_url="https://identity-3.#{current_region}.cloud.sap/v3/auth/OS-FEDERATION/identity_providers/sap-ias/protocols/openid/websso?origin=https://dashboard.#{current_region}.cloud.sap/verify-auth-token#{idp_param}"
+- else
+    - auth_url="#{auth_url}#{idp_param}"
 
 .form-signin
     .bs-callout.bs-callout-info.bs-callout-emphasize
