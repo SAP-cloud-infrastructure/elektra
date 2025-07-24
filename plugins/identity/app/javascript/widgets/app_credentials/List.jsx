@@ -15,7 +15,7 @@ import {
 import { Link } from "react-router-dom"
 import Loading from "./Loading"
 import Item from "./Item"
-import { IntroBox } from "@cloudoperators/juno-ui-components/build/IntroBox"
+import { IntroBox } from "@cloudoperators/juno-ui-components"
 
 const AppCredentialsList = ({ userId, refreshRequestedAt, projectId, overlay }) => {
   const [items, setItems] = React.useState([])

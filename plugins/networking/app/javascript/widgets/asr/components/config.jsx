@@ -1,5 +1,5 @@
 import React from "react"
-import { JsonViewer } from "@cloudoperators/juno-ui-components/build/JsonViewer"
+import { JsonViewer } from "@cloudoperators/juno-ui-components"
 
 const Config = ({ isFetching, data, error }) => {
   if (isFetching) return <span className="spinner" />
