@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "@cloudoperators/juno-messages-provider": "^0.2.11",
-    "@cloudoperators/juno-ui-components": "^2.30.0",
+    "@cloudoperators/juno-ui-components": "3.1.1",
     "@nivo/bar": "0.85.1",
     "@popperjs/core": "^2.11.6",
     "@rails/actioncable": "^7",

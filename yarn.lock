@@ -1228,15 +1228,15 @@
   dependencies:
     "@cloudoperators/juno-ui-components" "5.1.0"
 
+"@cloudoperators/juno-ui-components@3.1.1":
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/@cloudoperators/juno-ui-components/-/juno-ui-components-3.1.1.tgz#08181be84226994ca02601006bf5804874d14768"
+  integrity sha512-xJnVNWq0qgRk6yw+EBAXZj8rTnIXiHk20auehktH2EwEEO0IrZo0C6BCMTNcg+NPWMvOVbXBrBgYFdIXXFwR/A==
+
 "@cloudoperators/juno-ui-components@5.1.0":
   version "5.1.0"
   resolved "https://registry.yarnpkg.com/@cloudoperators/juno-ui-components/-/juno-ui-components-5.1.0.tgz#9d166068ee4d08d574ae682246b9dd42347feaa3"
   integrity sha512-+HZbrA0o5KJo0AkuGKqVaVdvt/iYdPr7ApZQTfZcY/LdsuO1B97x0Z+j0xRrEjUs1w8WJhuWR8Uu+KkM+xgJeQ==
-
-"@cloudoperators/juno-ui-components@^2.30.0":
-  version "2.30.0"
-  resolved "https://registry.yarnpkg.com/@cloudoperators/juno-ui-components/-/juno-ui-components-2.30.0.tgz#f460175644badc3421e3bb171812e3ec9a3cdb88"
-  integrity sha512-HFarnw/SX1QEUH1vstC5bYWDyLgg/3e/zOa0uFzrdbxR/W5AVyX2h3OlNHYYkDpgWz2p68+UmSHjuFAzviYbhA==
 
 "@cloudoperators/juno-url-state-provider@*":
   version "3.0.5"
