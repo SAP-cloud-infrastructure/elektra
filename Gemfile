@@ -54,6 +54,7 @@ gem 'prometheus-client'
 # Sentry client
 gem 'httpclient' # The only faraday backend that handled no_proxy :|
 gem 'sentry-raven'
+gem 'faraday-httpclient', '~> 2.0'
 
 # Automation
 gem 'arc-client', git: 'https://github.com/sapcc/arc-client.git'
@@ -145,4 +146,4 @@ group :test do
   gem 'rails-controller-testing'
 end
 
-gem 'faraday-httpclient', '~> 2.0'
+
