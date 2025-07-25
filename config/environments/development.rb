@@ -16,6 +16,8 @@ Rails.application.configure do
 
   # Show full error reports.
   config.consider_all_requests_local = true
+  # Do not render the standard error page in development.
+  config.action_dispatch.show_exceptions = false
 
   # Enable server timing
   config.server_timing = true
@@ -76,14 +78,9 @@ Rails.application.configure do
 
   # Raise error when a before_action's only/except options reference missing actions
   config.action_controller.raise_on_missing_callback_actions = true
-# web_console is only working when you accessing from localhost
-  # if you running the development server on a remote machine use TRUSTED_IP
-  # for that take a look to the .env.bak and set the variable or run "TRUSTED_IP=192.168.1.1 forman start"
-  if ENV['TRUSTED_IP']
-    # use web_console not only on localhost
-    config.web_console.whitelisted_ips = ENV['TRUSTED_IP']
-    puts "=> Trusted IP #{ENV['TRUSTED_IP']}"
-  end
+
+  # Allow web console access from any IP this is ok in development 🙃
+  config.web_console.whitelisted_ips = '0.0.0.0/0'
 
   # Mailer configuration for inquiries/requests
   config.action_mailer.perform_deliveries = false
@@ -107,10 +104,12 @@ Rails.application.configure do
 
   # Uncomment if you wish to allow Action Cable access from any origin.
   # config.action_cable.disable_request_forgery_protection = true
-
   
   # Uncomment this line when testing email service
   # When generating URLs (like admin_inquiries_url) from a background job or a mailer, you need to tell Rails what host to use from rails c.
   # config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }
+
+  # Enable stdout logger
+  config.logger = Logger.new(STDOUT)
 
 end
