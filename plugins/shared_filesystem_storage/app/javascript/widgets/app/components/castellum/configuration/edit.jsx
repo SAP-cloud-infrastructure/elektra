@@ -9,8 +9,15 @@ const FormBody = ({ close, errors }) => {
   const values = useContext(Form.Context).formValues
 
   let validationError = ""
-  if (values.low_enabled == "false" && values.high_enabled == "false" && values.critical_enabled == "false") {
-    validationError = "To use autoscaling, at least one threshold must be enabled."
+  switch (true) {
+    case values.low_enabled == "false" && values.high_enabled == "false" && values.critical_enabled == "false":
+      validationError = "To use autoscaling, at least one threshold must be enabled."
+      break
+    case values.size_maximum == "":
+      validationError = "Please set the maximum size for extensions."
+      break
+    default:
+      break
   }
 
   return (
@@ -137,7 +144,7 @@ const FormBody = ({ close, errors }) => {
           labelWidth={5}
           labelClass="control-label secondary-label"
         >
-          <Form.Input elementType="input" type="number" min="0" />
+          <Form.Input elementType="input" type="number" required={true} min="0" />
         </Form.ElementHorizontal>
         <Form.ElementHorizontal
           label="Ensure this much free space (GiB):"
@@ -178,6 +185,7 @@ export default class CastellumConfigurationEditModal extends React.Component {
   }
 
   getInitialValues() {
+    console.log("PROPS", this.props)
     const { data, isFetching, receivedAt } = this.props.config
     if (isFetching || receivedAt == null) {
       //wait until config was loaded
@@ -216,7 +224,8 @@ export default class CastellumConfigurationEditModal extends React.Component {
   validate(values) {
     return (
       (values.low_enabled == "true" || values.high_enabled == "true" || values.critical_enabled == "true") &&
-      (values.size_step_single == "true" || values.size_step_percent != "")
+      (values.size_step_single == "true" || values.size_step_percent != "") &&
+      values.size_maximum != ""
     )
   }
 
