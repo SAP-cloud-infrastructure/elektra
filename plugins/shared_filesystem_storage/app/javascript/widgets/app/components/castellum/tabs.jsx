@@ -31,8 +31,8 @@ export default class CastellumTabs extends React.Component {
   }
 
   render() {
-    const { errorMessage, isFetching, data: config } = this.props.config
-    if (isFetching) {
+    const { errorMessage, isFetching, data: config, receivedAt } = this.props.config
+    if (isFetching || !receivedAt) {
       return (
         <p>
           <span className="spinner" /> Loading...
@@ -40,15 +40,12 @@ export default class CastellumTabs extends React.Component {
       )
     }
     if (errorMessage) {
-      return (
-        <p className="alert alert-danger">
-          Cannot load autoscaling configuration: {errorMessage}
-        </p>
-      )
+      return <p className="alert alert-danger">Cannot load autoscaling configuration: {errorMessage}</p>
     }
 
     const forwardProps = { projectID: this.props.projectId }
     //when autoscaling is disabled, just show the configuration dialog
+    console.log("CONFIGTABS", config)
     if (config == null) {
       return <CastellumConfigurationView {...forwardProps} />
     }
@@ -60,11 +57,7 @@ export default class CastellumTabs extends React.Component {
         <div className="col-sm-2">
           <ul className="nav nav-pills nav-stacked">
             {pages.map((conf, idx) => (
-              <li
-                key={idx}
-                role="presentation"
-                className={idx == this.state.active ? "active" : ""}
-              >
+              <li key={idx} role="presentation" className={idx == this.state.active ? "active" : ""}>
                 <a href="#" onClick={(e) => this.handleSelect(idx, e)}>
                   {conf.label}
                 </a>

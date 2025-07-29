@@ -4,10 +4,9 @@ import CastellumConfigurationEditModal from '../../../components/castellum/confi
 
 export default connect(
   state => ({
-    config: (state.castellum || {})['resources/nfs-shares'],
+    config: (state.castellum || {})['resources'],
   }),
   dispatch => ({
-    configureAutoscaling: (projectID, cfg) => dispatch(configureAutoscaling(projectID, cfg)),
+    configureAutoscaling: (projectID, shareType, cfg) => dispatch(configureAutoscaling(projectID, shareType, cfg)),
   }),
 )(CastellumConfigurationEditModal);
-
