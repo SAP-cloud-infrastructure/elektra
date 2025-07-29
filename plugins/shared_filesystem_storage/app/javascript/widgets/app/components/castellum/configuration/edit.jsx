@@ -185,12 +185,15 @@ export default class CastellumConfigurationEditModal extends React.Component {
   }
 
   getInitialValues() {
-    console.log("PROPS", this.props)
-    const { data, isFetching, receivedAt } = this.props.config
+    const { shareType } = this.props.match.params
+    console.log("PROPSEDIT", this.props, shareType)
+    const { data: config, isFetching, receivedAt } = this.props.config
+    
     if (isFetching || receivedAt == null) {
       //wait until config was loaded
       return null
     }
+    const data = config[shareType]
 
     const cfg = data || {}
     const sec2min = (seconds) => Math.round(seconds / 60)
@@ -271,8 +274,9 @@ export default class CastellumConfigurationEditModal extends React.Component {
       config.size_constraints.minimum_free_is_critical = true
     }
 
+    const { shareType } = this.props.match.params
     this.props
-      .configureAutoscaling(this.props.projectID, config)
+      .configureAutoscaling(this.props.projectID, shareType, config)
       .then(this.close)
       .catch((e) => this.setState({ ...this.state, apiErrors: e }))
   }

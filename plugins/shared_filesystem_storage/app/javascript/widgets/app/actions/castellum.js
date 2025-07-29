@@ -17,36 +17,38 @@ const fetchCastellumData =
   (dispatch, getState) => {
     dispatch({
       type: constants.REQUEST_CASTELLUM_DATA,
-      path,
+      key: jsonKey,
       requestedAt: Date.now(),
     })
 
+    const endpoint = path || `/v1/projects/${projectID}`
     return ajaxHelper
-      .get(`/v1/projects/${projectID}/${path}`)
+      .get(endpoint)
       .then((response) => {
-        const data = jsonKey ? response.data[jsonKey] : response.data
+        const responseData = jsonKey ? response.data[jsonKey] : response.data
+        const { data, allShares } = filterShareTypeData(responseData)
+        console.log("DATA", data, jsonKey, allShares)
         if (Array.isArray(data)) {
-          const shareIDs = data
-            .map((elem) => elem.asset_id)
-            .filter((elem) => (elem ? true : false))
+          const shareIDs = data.map((elem) => elem.asset_id).filter((elem) => (elem ? true : false))
           if (shareIDs.length > 0) {
             dispatch(searchShareIDs(shareIDs))
           }
         }
         dispatch({
           type: constants.RECEIVE_CASTELLUM_DATA,
-          path,
-          data,
+          key: jsonKey,
+          data: data,
+          allShares,
           receivedAt: Date.now(),
         })
       })
       .catch((error) => {
         //for the resource config, a 404 response is not an error; it just shows
         //that autoscaling is disabled on this project resource
-        if (path == "resources/nfs-shares" && error.status === 404) {
+        if (jsonKey == "resources" && error.status === 404) {
           dispatch({
             type: constants.RECEIVE_CASTELLUM_DATA,
-            path,
+            key: jsonKey,
             data: null,
             receivedAt: Date.now(),
           })
@@ -57,50 +59,64 @@ const fetchCastellumData =
           }
           dispatch({
             type: constants.REQUEST_CASTELLUM_DATA_FAILURE,
-            path,
+            jsonKey,
             message: msg,
+            receivedAt: Date.now(),
           })
         }
       })
   }
 
+function filterShareTypeData(data = {}) {
+  const matchingData = {}
+  let allShares = false
+  Object.keys(data).forEach((key) => {
+    if (key === "nfs-shares") {
+      allShares = true
+      matchingData[key] = data[key]
+    } else if (key.startsWith("nfs-shares-type")) {
+      allShares = false
+      matchingData[key] = data[key]
+    }
+  })
+  return { data: matchingData, allShares }
+}
+
 export const fetchCastellumDataIfNeeded =
   (projectID, path, jsonKey = null) =>
   (dispatch, getState) => {
     const castellumState = getState().castellum || {}
-    const { isFetching, requestedAt } = castellumState[path] || {}
+    const { isFetching, requestedAt } = castellumState[jsonKey] || {}
     if (!isFetching && !requestedAt) {
       return dispatch(fetchCastellumData(projectID, path, jsonKey))
     }
   }
 
-export const configureAutoscaling =
-  (projectID, config) => (dispatch, getState) => {
-    return new Promise((resolve, reject) =>
-      ajaxHelper
-        .put(`/v1/projects/${projectID}/resources/nfs-shares`, config)
-        .catch((error) => {
-          reject(castellumErrorMessage(error))
-        })
-        .then((response) => {
-          if (response) {
-            dispatch(fetchCastellumData(projectID, "resources/nfs-shares"))
-            resolve()
-          }
-        })
-    )
-  }
+export const configureAutoscaling = (projectID, shareType, config) => (dispatch, getState) => {
+  return new Promise((resolve, reject) =>
+    ajaxHelper
+      .put(`/v1/projects/${projectID}/resources/${shareType}`, config)
+      .catch((error) => {
+        reject(castellumErrorMessage(error))
+      })
+      .then((response) => {
+        if (response) {
+          dispatch(fetchCastellumData(projectID, null, "resources"))
+          resolve()
+        }
+      })
+  )
+}
 
-export const disableAutoscaling = (projectID) => (dispatch, getState) => {
-  confirm("Do you really want to disable autoscaling on this project?").then(
-    () =>
-      ajaxHelper
-        .delete(`/v1/projects/${projectID}/resources/nfs-shares`)
-        .catch((error) => addError(castellumErrorMessage(error)))
-        .then((response) => {
-          if (response) {
-            dispatch(fetchCastellumData(projectID, "resources/nfs-shares"))
-          }
-        })
+export const disableAutoscaling = (projectID, shareType) => (dispatch, getState) => {
+  confirm("Do you really want to disable autoscaling on this project?").then(() =>
+    ajaxHelper
+      .delete(`/v1/projects/${projectID}/resources/${shareType}`)
+      .catch((error) => addError(castellumErrorMessage(error)))
+      .then((response) => {
+        if (response) {
+          dispatch(fetchCastellumData(projectID, null, "resources"))
+        }
+      })
   )
 }
