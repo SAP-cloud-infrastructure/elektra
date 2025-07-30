@@ -40,7 +40,7 @@ export function NewForm({ onSubmit, onCancel, setError }) {
         <Checkbox
           label="Unrestricted"
           name="unrestricted"
-          helptext="Optional flag to restrict whether the application credential may be used for the creation or destruction of other application credentials or trusts."
+          helptext="Unrestricted application credentials may be used for the creation or destruction of other application credentials or trusts"
           onChange={(oEvent) => {
             setFormData({ ...formData, unrestricted: oEvent.target.checked })
           }}
