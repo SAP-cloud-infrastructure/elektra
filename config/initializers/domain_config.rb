@@ -65,7 +65,8 @@ class DomainConfig
   end
 
   def idp?
-    @domain_config.fetch('idp', false)
+    idp_value = @domain_config.fetch('idp', false)
+    idp_value ? URI.encode_www_form_component(idp_value.to_s) : false
   end
 
   private

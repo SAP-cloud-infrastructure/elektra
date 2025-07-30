@@ -18,9 +18,9 @@ domains:
     check_cidr_range: true
     terms_of_use_name: "actual_terms"
 
-  # More general inheritance pattern
-  - name: inheritance
-    regex: "^inheritance-.*$"
+  # More general pattern
+  - name: marioworld
+    regex: "^marioworld-.*$"
     disabled_plugins:
       - automation
       - reports
@@ -35,15 +35,15 @@ domains:
       - internal_help_links
       - terms_of_use
       - networking_backup
-    terms_of_use_name: "inheritance_terms"
+    terms_of_use_name: "marioworld_terms"
     floating_ip_networks:
-      - FloatingIP-external-inheritance-01
+      - FloatingIP-external-marioworld-01
     dns_c_subdomain: false
     check_cidr_range: false
     federation: true
-    idp: "mario@foo.corp"
+    idp: "https://mario.world.corp"
 
   # Most specific first
-  - name: inheritance-child
-    regex: "^inheritance-child.*$"
-    idp: "luigi@foo.corp"
+  - name: marioworld-and-luigi
+    regex: "^marioworld-and-luigi.*$"
+    idp: "https://marioworld-and-luigi.world.corp"

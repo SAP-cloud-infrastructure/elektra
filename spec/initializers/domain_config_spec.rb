@@ -21,8 +21,8 @@ test_config = {
       'terms_of_use_name' => 'actual_terms'
     },
     {
-      'name' => 'inheritance',
-      'regex' => '^inheritance-.*$',
+      'name' => 'marioworld',
+      'regex' => '^marioworld-.*$',
       'disabled_plugins' => [
         'automation',
         'reports',
@@ -39,17 +39,17 @@ test_config = {
         'terms_of_use',
         'networking_backup'
       ],
-      'terms_of_use_name' => 'inheritance_terms',
-      'floating_ip_networks' => ['FloatingIP-external-inheritance-01'],
+      'terms_of_use_name' => 'marioworld_terms',
+      'floating_ip_networks' => ['FloatingIP-external-marioworld-01'],
       'dns_c_subdomain' => false,
       'check_cidr_range' => false,
       'federation' => true,
-      'idp' => 'mario@foo.corp'
+      'idp' => 'https://mario.world.corp'
     },
     {
-      'name' => 'inheritance-child',
-      'regex' => '^inheritance-child.*$',
-      'idp' => 'luigi@foo.corp'
+      'name' => 'marioworld-and-luigi',
+      'regex' => '^marioworld-and-luigi.*$',
+      'idp' => 'https://marioworld-and-luigi.world.corp'
     }
   ]
 }
@@ -67,7 +67,7 @@ describe DomainConfig do
     expect(DomainConfig.class_variable_get(:@@domain_config_file)).to be_a(Hash)
   end
 
-  describe 'test config with inheritance' do
+  describe 'test config with marioworld' do
     before :each do
       DomainConfig.class_variable_set(:@@domain_config_file, test_config)
     end
@@ -83,27 +83,27 @@ describe DomainConfig do
         expect(domain_config['federation']).to be_nil # not set in any domain config
       end
 
-      it 'merges configs for inheritance domain (matches "any domain" and "inheritance")' do
-        config = DomainConfig.new('inheritance-domain')
+      it 'merges configs for marioworld domain (matches "any domain" and "marioworld")' do
+        config = DomainConfig.new('marioworld-domain')
         domain_config = config.instance_variable_get(:@domain_config)
         
-        # Should have properties from both configs, with inheritance overriding any domain config
-        expect(domain_config['dns_c_subdomain']).to be false # overridden by inheritance domain config
-        expect(domain_config['check_cidr_range']).to be false # overridden by inheritance domain config
-        expect(domain_config['terms_of_use_name']).to eq('inheritance_terms') # overridden by inheritance domain config
-        expect(domain_config['federation']).to be true # from inheritance domain config
-        expect(domain_config['idp']).to eq('mario@foo.corp') # from inheritance domain config
+        # Should have properties from both configs, with marioworld overriding any domain config
+        expect(domain_config['dns_c_subdomain']).to be false # overridden by marioworld domain config
+        expect(domain_config['check_cidr_range']).to be false # overridden by marioworld domain config
+        expect(domain_config['terms_of_use_name']).to eq('marioworld_terms') # overridden by marioworld domain config
+        expect(domain_config['federation']).to be true # from marioworld domain config
+        expect(domain_config['idp']).to eq('https://mario.world.corp') # from marioworld domain config
       end
 
-      it 'merges configs for specific inheritance domain (matches all three)' do
-        config = DomainConfig.new('inheritance-child-test')
+      it 'merges configs for specific marioworld domain (matches all three)' do
+        config = DomainConfig.new('marioworld-and-luigi-test')
         domain_config = config.instance_variable_get(:@domain_config)
         
         # Should have properties from all configs, with most specific overriding
-        expect(domain_config['dns_c_subdomain']).to be false # from inheritance domain config
-        expect(domain_config['federation']).to be true # from inheritance domain config
-        expect(domain_config['idp']).to eq('luigi@foo.corp') # overridden by specific child config
-        expect(domain_config['terms_of_use_name']).to eq('inheritance_terms') # from inheritance domain config
+        expect(domain_config['dns_c_subdomain']).to be false # from marioworld domain config
+        expect(domain_config['federation']).to be true # from marioworld domain config
+        expect(domain_config['idp']).to eq('https://marioworld-and-luigi.world.corp') # overridden by specific child config
+        expect(domain_config['terms_of_use_name']).to eq('marioworld_terms') # from marioworld domain config
       end
     end
 
@@ -113,22 +113,22 @@ describe DomainConfig do
         expect(config.plugin_hidden?('automation')).to be false # not set in any domain config
       end
 
-      it 'returns true if the plugin is disabled in inheritance domain' do
-        config = DomainConfig.new('inheritance-domain')
-        expect(config.plugin_hidden?('automation')).to be true # from inheritance domain config
-        expect(config.plugin_hidden?('reports')).to be true # from inheritance domain config
-        expect(config.plugin_hidden?('masterdata_cockpit')).to be true # from inheritance domain config
+      it 'returns true if the plugin is disabled in marioworld domain' do
+        config = DomainConfig.new('marioworld-domain')
+        expect(config.plugin_hidden?('automation')).to be true # from marioworld domain config
+        expect(config.plugin_hidden?('reports')).to be true # from marioworld domain config
+        expect(config.plugin_hidden?('masterdata_cockpit')).to be true # from marioworld domain config
       end
 
-      it 'returns false if the plugin is not disabled in inheritance domain' do
-        config = DomainConfig.new('inheritance-domain')
-        expect(config.plugin_hidden?('some_other_plugin')).to be false # not set in inheritance domain config
+      it 'returns false if the plugin is not disabled in marioworld domain' do
+        config = DomainConfig.new('marioworld-domain')
+        expect(config.plugin_hidden?('some_other_plugin')).to be false # not set in marioworld domain config
       end
 
-      it 'works with specific inheritance domain (inherits disabled plugins)' do
-        config = DomainConfig.new('inheritance-child-test')
-        expect(config.plugin_hidden?('automation')).to be true # from inheritance domain config
-        expect(config.plugin_hidden?('reports')).to be true # from inheritance domain config
+      it 'works with specific marioworld domain (inherits disabled plugins)' do
+        config = DomainConfig.new('marioworld-and-luigi-test')
+        expect(config.plugin_hidden?('automation')).to be true # from marioworld domain config
+        expect(config.plugin_hidden?('reports')).to be true # from marioworld domain config
       end
     end
 
@@ -143,12 +143,12 @@ describe DomainConfig do
         expect(networks.length).to eq(9)
       end
 
-      it 'returns inheritance-specific networks for inheritance domain' do
-        config = DomainConfig.new('inheritance-domain')
+      it 'returns marioworld-specific networks for marioworld domain' do
+        config = DomainConfig.new('marioworld-domain')
         networks = config.floating_ip_networks
         
-        # Should use inheritance config networks, not the general ones
-        expect(networks).to eq(['FloatingIP-external-inheritance-01']) # from inheritance domain config
+        # Should use marioworld config networks, not the general ones
+        expect(networks).to eq(['FloatingIP-external-marioworld-01']) # from marioworld domain config
       end
 
       it 'replaces %DOMAIN_NAME% with the scoped domain name' do
@@ -158,12 +158,12 @@ describe DomainConfig do
         expect(networks.first).to eq('FloatingIP-external-test-domain-07') # from any domain config
       end
 
-      it 'inherits inheritance networks for specific inheritance domain' do
-        config = DomainConfig.new('inheritance-child-test')
+      it 'inherits marioworld networks for specific marioworld domain' do
+        config = DomainConfig.new('marioworld-and-luigi-test')
         networks = config.floating_ip_networks
         
-        # Should inherit from inheritance config since specific config doesn't override
-        expect(networks).to eq(['FloatingIP-external-inheritance-01'])# from inheritance domain config
+        # Should inherit from marioworld config since specific config doesn't override
+        expect(networks).to eq(['FloatingIP-external-marioworld-01'])# from marioworld domain config
       end
     end
 
@@ -173,14 +173,14 @@ describe DomainConfig do
         expect(config.dns_c_subdomain?).to be true # from any domain config
       end
 
-      it 'returns false for inheritance domain (overridden by inheritance config)' do
-        config = DomainConfig.new('inheritance-domain')
-        expect(config.dns_c_subdomain?).to be false # from inheritance domain config
+      it 'returns false for marioworld domain (overridden by marioworld config)' do
+        config = DomainConfig.new('marioworld-domain')
+        expect(config.dns_c_subdomain?).to be false # from marioworld domain config
       end
 
-      it 'returns false for specific inheritance domain (inherited from inheritance config)' do
-        config = DomainConfig.new('inheritance-child-test')
-        expect(config.dns_c_subdomain?).to be false # from inheritance domain config
+      it 'returns false for specific marioworld domain (inherited from marioworld config)' do
+        config = DomainConfig.new('marioworld-and-luigi-test')
+        expect(config.dns_c_subdomain?).to be false # from marioworld domain config
       end
     end
 
@@ -190,14 +190,14 @@ describe DomainConfig do
         expect(config.check_cidr_range?).to be true # from any domain config
       end
 
-      it 'returns false for inheritance domain (overridden by inheritance config)' do
-        config = DomainConfig.new('inheritance-domain')
-        expect(config.check_cidr_range?).to be false # from inheritance domain config
+      it 'returns false for marioworld domain (overridden by marioworld config)' do
+        config = DomainConfig.new('marioworld-domain')
+        expect(config.check_cidr_range?).to be false # from marioworld domain config
       end
 
-      it 'returns false for specific inheritance domain (inherited from inheritance config)' do
-        config = DomainConfig.new('inheritance-child-test')
-        expect(config.check_cidr_range?).to be false # from inheritance domain config
+      it 'returns false for specific marioworld domain (inherited from marioworld config)' do
+        config = DomainConfig.new('marioworld-and-luigi-test')
+        expect(config.check_cidr_range?).to be false # from marioworld domain config
       end
     end
 
@@ -207,22 +207,22 @@ describe DomainConfig do
         expect(config.feature_hidden?('documentation')).to be false # not set in any domain config
       end
 
-      it 'returns true if the feature is disabled in inheritance domain' do
-        config = DomainConfig.new('inheritance-domain')
-        expect(config.feature_hidden?('documentation')).to be true # from inheritance domain config
-        expect(config.feature_hidden?('support')).to be true # from inheritance domain config
-        expect(config.feature_hidden?('domain_switcher')).to be true # from inheritance domain config
+      it 'returns true if the feature is disabled in marioworld domain' do
+        config = DomainConfig.new('marioworld-domain')
+        expect(config.feature_hidden?('documentation')).to be true # from marioworld domain config
+        expect(config.feature_hidden?('support')).to be true # from marioworld domain config
+        expect(config.feature_hidden?('domain_switcher')).to be true # from marioworld domain config
       end
 
       it 'returns false if the feature is not disabled' do
-        config = DomainConfig.new('inheritance-domain')
-        expect(config.feature_hidden?('some_other_feature')).to be false # not set in inheritance domain config
+        config = DomainConfig.new('marioworld-domain')
+        expect(config.feature_hidden?('some_other_feature')).to be false # not set in marioworld domain config
       end
 
-      it 'inherits disabled features for specific inheritance domain' do
-        config = DomainConfig.new('inheritance-child-test')
-        expect(config.feature_hidden?('documentation')).to be true # from inheritance domain config
-        expect(config.feature_hidden?('support')).to be true # from inheritance domain config
+      it 'inherits disabled features for specific marioworld domain' do
+        config = DomainConfig.new('marioworld-and-luigi-test')
+        expect(config.feature_hidden?('documentation')).to be true # from marioworld domain config
+        expect(config.feature_hidden?('support')).to be true # from marioworld domain config
       end
     end
 
@@ -232,14 +232,14 @@ describe DomainConfig do
         expect(config.federation?).to be false # not set in any domain config
       end
 
-      it 'returns true for inheritance domain' do
-        config = DomainConfig.new('inheritance-domain')
-        expect(config.federation?).to be true # from inheritance domain config
+      it 'returns true for marioworld domain' do
+        config = DomainConfig.new('marioworld-domain')
+        expect(config.federation?).to be true # from marioworld domain config
       end
 
-      it 'inherits federation setting for specific inheritance domain' do
-        config = DomainConfig.new('inheritance-child-test')
-        expect(config.federation?).to be true # from inheritance domain config
+      it 'inherits federation setting for specific marioworld domain' do
+        config = DomainConfig.new('marioworld-and-luigi-test')
+        expect(config.federation?).to be true # from marioworld domain config
       end
     end
 
@@ -249,14 +249,14 @@ describe DomainConfig do
         expect(config.terms_of_use_name).to eq('actual_terms') # from any domain config
       end
 
-      it 'returns inheritance_terms for inheritance domain' do
-        config = DomainConfig.new('inheritance-domain')
-        expect(config.terms_of_use_name).to eq('inheritance_terms') # from inheritance domain config
+      it 'returns marioworld_terms for marioworld domain' do
+        config = DomainConfig.new('marioworld-domain')
+        expect(config.terms_of_use_name).to eq('marioworld_terms') # from marioworld domain config
       end
 
-      it 'inherits inheritance terms for specific inheritance domain' do
-        config = DomainConfig.new('inheritance-child-test')
-        expect(config.terms_of_use_name).to eq('inheritance_terms') # from inheritance domain config
+      it 'inherits marioworld terms for specific marioworld domain' do
+        config = DomainConfig.new('marioworld-and-luigi-test')
+        expect(config.terms_of_use_name).to eq('marioworld_terms') # from marioworld domain config
       end
     end
 
@@ -266,51 +266,51 @@ describe DomainConfig do
         expect(config.idp?).to be false
       end
 
-      it 'returns inheritance idp for general inheritance domain' do
-        config = DomainConfig.new('inheritance-domain')
-        expect(config.idp?).to eq('mario@foo.corp') # from inheritance domain config
+      it 'returns marioworld idp for general marioworld domain' do
+        config = DomainConfig.new('marioworld-domain')
+        expect(config.idp?).to eq(URI.encode_www_form_component('https://mario.world.corp')) # from marioworld domain config
       end
 
-      it 'returns overridden idp for specific inheritance domain' do
-        config = DomainConfig.new('inheritance-child-test')
-        expect(config.idp?).to eq('luigi@foo.corp') # from inheritance child config
+      it 'returns overridden idp for specific marioworld domain' do
+        config = DomainConfig.new('marioworld-and-luigi-test')
+        expect(config.idp?).to eq(URI.encode_www_form_component('https://marioworld-and-luigi.world.corp')) # from marioworld child config
       end
     end
 
-    describe 'inheritance behavior' do
-      it 'demonstrates complete inheritance chain' do
-        config = DomainConfig.new('inheritance-child-test')
+    describe 'marioworld behavior' do
+      it 'demonstrates complete marioworld chain' do
+        config = DomainConfig.new('marioworld-and-luigi-test')
         
         # From "any domain" (base layer)
         expect(config.floating_ip_networks).not_to include('Converged Cloud External')
         
-        # From "inheritance" (middle layer) - overrides base
+        # From "marioworld" (middle layer) - overrides base
         expect(config.federation?).to be true
         expect(config.dns_c_subdomain?).to be false
         expect(config.plugin_hidden?('automation')).to be true
         
-        # From "inheritance-child" (top layer) - overrides middle
-        expect(config.idp?).to eq('luigi@foo.corp')
+        # From "marioworld-and-luigi" (top layer) - overrides middle
+        expect(config.idp?).to eq(URI.encode_www_form_component('https://marioworld-and-luigi.world.corp'))
       end
 
-      it 'shows different inheritance for different domains' do
+      it 'shows different marioworld for different domains' do
         regular_config = DomainConfig.new('some-regular-domain')
-        inheritance_config = DomainConfig.new('inheritance-something')
-        specific_config = DomainConfig.new('inheritance-child-something')
+        marioworld_config = DomainConfig.new('marioworld-something')
+        specific_config = DomainConfig.new('marioworld-and-luigi-something')
         
         # Regular domain - only inherits from "any domain"
         expect(regular_config.dns_c_subdomain?).to be true
         expect(regular_config.federation?).to be false
         
-        # General inheritance domain - inherits from "any domain" + "inheritance"
-        expect(inheritance_config.dns_c_subdomain?).to be false
-        expect(inheritance_config.federation?).to be true
-        expect(inheritance_config.idp?).to eq('mario@foo.corp')
-        
-        # Specific inheritance domain - inherits from all three
+        # General marioworld domain - inherits from "any domain" + "marioworld"
+        expect(marioworld_config.dns_c_subdomain?).to be false
+        expect(marioworld_config.federation?).to be true
+        expect(marioworld_config.idp?).to eq(URI.encode_www_form_component('https://mario.world.corp'))
+
+        # Specific marioworld (marioworld-and-luigi) domain - inherits from all three
         expect(specific_config.dns_c_subdomain?).to be false
         expect(specific_config.federation?).to be true
-        expect(specific_config.idp?).to eq('luigi@foo.corp')
+        expect(specific_config.idp?).to eq(URI.encode_www_form_component('https://marioworld-and-luigi.world.corp'))
       end
     end
   end
