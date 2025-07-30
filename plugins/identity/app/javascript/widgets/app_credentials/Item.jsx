@@ -19,6 +19,9 @@ const Item = ({ item, index, handleDelete }) => {
           {!item.description ? "-" : item.description}
         </DataGridCell>
         <DataGridCell>
+          {!item.unrestricted ? "No" : item.unrestricted ? "Yes" : "No"}
+        </DataGridCell>
+        <DataGridCell>
           <ExpireDate item={item} setExpired={setExpired} expired={expired} />
         </DataGridCell>
         <DataGridCell>
