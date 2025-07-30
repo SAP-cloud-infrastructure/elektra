@@ -7,6 +7,7 @@ import {
   ButtonRow,
   Textarea,
   DateTimePicker,
+  Checkbox,
 } from "@cloudoperators/juno-ui-components"
 
 export function NewForm({ onSubmit, onCancel, setError }) {
@@ -32,6 +33,16 @@ export function NewForm({ onSubmit, onCancel, setError }) {
           helptext="Provide a brief description of the credential."
           onChange={(oEvent) => {
             setFormData({ ...formData, description: oEvent.target.value })
+          }}
+        />
+      </FormRow>
+      <FormRow>
+        <Checkbox
+          label="Unrestricted"
+          name="unrestricted"
+          helptext="Optional flag to restrict whether the application credential may be used for the creation or destruction of other application credentials or trusts."
+          onChange={(oEvent) => {
+            setFormData({ ...formData, unrestricted: oEvent.target.checked })
           }}
         />
       </FormRow>
