@@ -19,8 +19,8 @@ domains:
     terms_of_use_name: "actual_terms"
 
   # More general inheritance pattern
-  - name: inheritance
-    regex: "^inheritance-.*$"
+  - name: marioworld
+    regex: "^marioworld-.*$"
     disabled_plugins:
       - automation
       - reports
@@ -41,9 +41,9 @@ domains:
     dns_c_subdomain: false
     check_cidr_range: false
     federation: true
-    idp: "mario@foo.corp"
+    idp: "https://mario.world.corp"
 
   # Most specific first
-  - name: inheritance-child
-    regex: "^inheritance-child.*$"
-    idp: "luigi@foo.corp"
+  - name: marioworld-and-luigi
+    regex: "^marioworld-and-luigi.*$"
+    idp: "https://luigi.world.corp"
