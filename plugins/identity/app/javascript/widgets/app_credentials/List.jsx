@@ -95,14 +95,15 @@ const AppCredentialsList = ({ userId, refreshRequestedAt, projectId, overlay }) 
         <div>
           {!appCredentialsFoundForProject ? (
             <DataGridRow>
-              <DataGridCell colSpan={4}>No application credentials found. Create a new one 🚀</DataGridCell>
+              <DataGridCell colSpan={5}>No application credentials found. Create a new one 🚀</DataGridCell>
             </DataGridRow>
           ) : (
-            <DataGrid columns={5} minContentColumns={[5]}>
+            <DataGrid columns={6} minContentColumns={[6]}>
               <DataGridRow>
                 <DataGridHeadCell>Name</DataGridHeadCell>
                 <DataGridHeadCell>ID</DataGridHeadCell>
                 <DataGridHeadCell>Description</DataGridHeadCell>
+                <DataGridHeadCell>Unrestricted</DataGridHeadCell>
                 <DataGridHeadCell>Expiration</DataGridHeadCell>
                 <DataGridHeadCell></DataGridHeadCell>
               </DataGridRow>
@@ -115,7 +116,7 @@ const AppCredentialsList = ({ userId, refreshRequestedAt, projectId, overlay }) 
                 )
               ) : (
                 <DataGridRow>
-                  <DataGridCell colSpan={4}>No application credentials found.</DataGridCell>
+                  <DataGridCell colSpan={5}>No application credentials found.</DataGridCell>
                 </DataGridRow>
               )}
             </DataGrid>

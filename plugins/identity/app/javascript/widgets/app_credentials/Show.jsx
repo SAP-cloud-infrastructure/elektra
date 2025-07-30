@@ -76,6 +76,12 @@ const Show = ({ userId }) => {
                     </DataGridCell>
                   </DataGridRow>
                   <DataGridRow>
+                    <DataGridHeadCell>Unresticted</DataGridHeadCell>
+                    <DataGridCell className="tw-break-all">
+                      {!item.unrestricted ? "No" : item.unrestricted ? "Yes" : "No"}
+                    </DataGridCell>
+                  </DataGridRow>
+                  <DataGridRow>
                     <DataGridHeadCell>Expires at</DataGridHeadCell>
                     <DataGridCell className="tw-break-all">
                       <ExpireDate item={item} setExpired={setExpired} expired={expired}></ExpireDate>
