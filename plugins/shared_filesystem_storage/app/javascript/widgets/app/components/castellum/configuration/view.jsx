@@ -28,42 +28,56 @@ const selectOptions = [
 export default class CastellumConfigurationView extends React.Component {
   constructor(props) {
     super(props)
-    this.state = { fetchShareTypes: false }
+    const { allShares } = this.props.config
+    const defaultSelected = selectOptions.find((option) => option.value === allShares)
+    this.state = {
+      selected: defaultSelected ? defaultSelected.label : selectOptions[0].label,
+    }
   }
 
   componentDidMount() {
-    this.fetchShareTypes()
-  }
-  fetchShareTypes() {
     const { allShares } = this.props.config
-    console.log("---FETCHING SHARE TYPES---")
-    if (!allShares) {
+    if (allShares == false) {
       this.props.loadShareTypesOnce()
     }
   }
 
+  handleSelectChange = (event, configMap) => {
+    const selectedLabel = event.target.value
+    const selectedOption = selectOptions.find((option) => option.label === selectedLabel)
+    const hasAnyConfigs = Object.values(configMap).some((value) => !!value);
+
+    if (hasAnyConfigs) {
+      const shareTypes = Object.keys(configMap)
+      this.props.disableAutoscaling(this.props.projectID, shareTypes, selectedOption.value)
+    } else {
+      this.props.loadShareTypesOnce()
+      this.setState({ selected: selectedLabel })
+    }
+  }
+
   render() {
-    const { data: config, allShares } = this.props.config
-    const { items: shareTypeItems, isFetching, receivedAt } = this.props.shareTypes
-    if (isFetching || !receivedAt) {
+    const props = this.props
+    const { data: configMap, allShares } = this.props.config
+    const { items: shareTypeItems, isFetching } = this.props.shareTypes
+
+    if (isFetching) {
       return (
         <p>
           <span className="spinner" /> Loading...
         </p>
       )
     }
-    console.log("SHARETYPES", this.props.shareTypes)
 
-    const preselectedOption = selectOptions.find((option) => allShares === option.value)
     const autoScalingOptions = (
       <div className="tw-flex tw-items-center tw-space-x-2">
         <span>Create autoscaling config for</span>
         <select
           id="scalingOptions"
           className="select form-control tw-w-48"
-          value={preselectedOption.label}
-          onChange={() => {
-            this.fetchShareTypes()
+          value={this.state.selected}
+          onChange={(e) => {
+            this.handleSelectChange(e, configMap)
           }}
         >
           {selectOptions.map((option) => (
@@ -74,19 +88,29 @@ export default class CastellumConfigurationView extends React.Component {
       </div>
     )
 
+    function renderConfigForAll() {
+      const config = configMap["nfs-shares"]
+      console.log("CFG", config)
+      return <CastellumConfigurationViewDetails {...props} config={config} shareType={"nfs-shares"} />
+    }
+
+    function renderIndividualConfig() {
+      return shareTypeItems.map((shareType) => {
+        const key = `nfs-shares-type:${shareType.name}`
+        const shareConfig = configMap[key]
+        return (
+          <div key={shareType.name} className="tw-mt-4">
+            <h5>{shareType.name}</h5>
+            <CastellumConfigurationViewDetails {...props} config={shareConfig} shareType={key} />
+          </div>
+        )
+      })
+    }
+
     return (
       <div>
         <div>{autoScalingOptions}</div>
-        {shareTypeItems.map((shareType) => {
-          const key = `nfs-shares-type:${shareType.name}`
-          const shareConfig = config[key]
-          return (
-            <div key={shareType.name} className="tw-mt-4">
-              <h5>{shareType.name}</h5>
-              <CastellumConfigurationViewDetails {...this.props} config={shareConfig} shareType={key} />
-            </div>
-          )
-        })}
+        {this.state.selected == "Individual" ? renderIndividualConfig() : renderConfigForAll()}
       </div>
     )
   }
@@ -195,7 +219,10 @@ class CastellumConfigurationViewDetails extends React.Component {
           <Link to={`/autoscaling/configure/${this.props.shareType}`} className="btn btn-primary">
             Configure
           </Link>{" "}
-          <button className="btn btn-danger" onClick={() => this.props.disableAutoscaling(this.props.projectID, this.props.shareType)}>
+          <button
+            className="btn btn-danger"
+            onClick={() => this.props.disableAutoscaling(this.props.projectID, [this.props.shareType])}
+          >
             Disable autoscaling
           </button>
         </p>
