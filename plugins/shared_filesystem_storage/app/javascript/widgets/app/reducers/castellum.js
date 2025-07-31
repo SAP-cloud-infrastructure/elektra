@@ -8,9 +8,10 @@ const initialStateForPath = {
   allShares: true,
   receivedAt: null,
 }
+
 const initialCastellumState = {
   "assets/nfs-shares": initialStateForPath,
-  resources: { "nfs-shares": initialStateForPath },
+  resources: initialStateForPath ,
   "resources/nfs-shares/operations/pending": initialStateForPath,
   "resources/nfs-shares/operations/recently-succeeded": initialStateForPath,
   "resources/nfs-shares/operations/recently-failed": initialStateForPath,

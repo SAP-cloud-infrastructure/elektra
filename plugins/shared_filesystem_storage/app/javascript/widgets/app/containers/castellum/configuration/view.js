@@ -9,7 +9,7 @@ export default connect(
     shareTypes: state.shareTypes,
   }),
   (dispatch) => ({
-    disableAutoscaling: (projectID, shareType) => dispatch(disableAutoscaling(projectID, shareType)),
+    disableAutoscaling: (projectID, shareTypes, isAllShares) => dispatch(disableAutoscaling(projectID, shareTypes, isAllShares)),
     loadShareTypesOnce: () => dispatch(fetchShareTypesIfNeeded()),
   })
 )(CastellumConfigurationView)
