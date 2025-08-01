@@ -53,7 +53,7 @@ RUN apk --no-cache add postgresql16-dev ruby-sassc \
     byebug:11.1.3 \
     ffi:1.15.5 \
     nio4r:2.7.1 \
-    nokogiri:1.18.7 \
+    nokogiri:1.18.9 \
     pg:1.3.4 \
     puma:6.4.2  \
     redcarpet:3.6.0 \
