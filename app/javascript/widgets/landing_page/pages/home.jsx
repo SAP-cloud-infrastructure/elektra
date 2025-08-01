@@ -106,8 +106,17 @@ const Home = () => {
       </div>
       <div
         className="tw-bg-top tw-bg-no-repeat tw-mt-8 tw-pb-12 tw-grow"
+        // this is a data url, all png are loaded as data urls
+        // this is configured in the esbuild config
+        // see: elektra/config/esbuild/build.js
+        style={{ backgroundImage: `url('${backgroundTop}')` }}
+      >
+        <WorldMapQASelect />
+      </div>
+      <div
+        className="tw-bg-cover tw-bg-no-repeat tw-h-[300px] tw-relative"
         style={{
-          backgroundImage: `url('${new URL(backgroundTop, import.meta.url).href}')`,
+          backgroundImage: `url('${backgroundTop}')`,
         }}
       >
         <div className="tw-max-w-[1280px] tw-w-full tw-mx-auto tw-relative">

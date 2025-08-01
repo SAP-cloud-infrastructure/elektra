@@ -10,13 +10,14 @@ const pathsResolver = (paths = {}) => ({
   setup(build) {
     for (let name in paths) {
       const path = paths[name]
-      const regex = new RegExp(`^${name}\/`)
+      const regex = new RegExp(`^${name}/`)
 
       build.onResolve({ filter: regex }, async (args) => {
         const result = await build.resolve(
           "./" + args.path.replace(name, path),
           {
             resolveDir: globalAppPath,
+            kind: args.kind, 
           }
         )
 
