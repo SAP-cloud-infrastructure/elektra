@@ -29,9 +29,11 @@ export default class CastellumConfigurationView extends React.Component {
   constructor(props) {
     super(props)
     const { allShares } = this.props.config
-    const defaultSelected = selectOptions.find((option) => option.value === allShares)
+    const selected = selectOptions.find((option) => option.value === allShares)
+    const defaultSelection = selectOptions[0].label
     this.state = {
-      selected: defaultSelected ? defaultSelected.label : selectOptions[0].label,
+      defaultSelection,
+      selected: selected ? selected.label : defaultSelection,
     }
   }
 
@@ -45,7 +47,7 @@ export default class CastellumConfigurationView extends React.Component {
   handleSelectChange = (event, configMap) => {
     const selectedLabel = event.target.value
     const selectedOption = selectOptions.find((option) => option.label === selectedLabel)
-    const hasAnyConfigs = Object.values(configMap).some((value) => !!value);
+    const hasAnyConfigs = Object.values(configMap).some((value) => !!value)
 
     if (hasAnyConfigs) {
       const shareTypes = Object.keys(configMap)
@@ -58,7 +60,7 @@ export default class CastellumConfigurationView extends React.Component {
 
   render() {
     const props = this.props
-    const { data: configMap, allShares } = this.props.config
+    const { data: configMap } = this.props.config
     const { items: shareTypeItems, isFetching } = this.props.shareTypes
 
     if (isFetching) {
@@ -90,7 +92,6 @@ export default class CastellumConfigurationView extends React.Component {
 
     function renderConfigForAll() {
       const config = configMap["nfs-shares"]
-      console.log("CFG", config)
       return <CastellumConfigurationViewDetails {...props} config={config} shareType={"nfs-shares"} />
     }
 
@@ -110,7 +111,7 @@ export default class CastellumConfigurationView extends React.Component {
     return (
       <div>
         <div>{autoScalingOptions}</div>
-        {this.state.selected == "Individual" ? renderIndividualConfig() : renderConfigForAll()}
+        {this.state.selected == this.state.defaultSelection ? renderConfigForAll() : renderIndividualConfig()}
       </div>
     )
   }
@@ -119,8 +120,6 @@ export default class CastellumConfigurationView extends React.Component {
 class CastellumConfigurationViewDetails extends React.Component {
   render() {
     const config = this.props.config
-
-    console.log("CONFIG2", config)
 
     if (config == null) {
       return (

@@ -28,7 +28,6 @@ const fetchCastellumData =
       .then((response) => {
         const responseData = jsonKey ? response.data[jsonKey] : response.data
         const { data, allShares } = filterShareTypeData(responseData, isAllShares)
-        console.log("DATA", data ? data : "Hi", jsonKey, allShares)
         if (Array.isArray(data)) {
           const shareIDs = data.map((elem) => elem.asset_id).filter((elem) => (elem ? true : false))
           if (shareIDs.length > 0) {
@@ -112,7 +111,7 @@ export const configureAutoscaling = (projectID, shareType, config) => (dispatch,
   )
 }
 
-export const disableAutoscaling = (projectID, shareTypes, isAllShares) => (dispatch, getState) => {
+export const disableAutoscaling = (projectID, shareTypes, allShares) => (dispatch, getState) => {
   confirm("Do you really want to disable the autoscaling configuration on this project?").then(async () => {
     const deletePromises = shareTypes.map((shareType) =>
       ajaxHelper
@@ -122,7 +121,7 @@ export const disableAutoscaling = (projectID, shareTypes, isAllShares) => (dispa
 
     try {
       await Promise.all(deletePromises)
-      dispatch(fetchCastellumData(projectID, null, "resources", isAllShares))
+      dispatch(fetchCastellumData(projectID, null, "resources", allShares))
     } catch (error) {
       addError(castellumErrorMessage(error))
     }
