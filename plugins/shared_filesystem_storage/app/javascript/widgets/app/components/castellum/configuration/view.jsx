@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom"
 import React from "react"
+import {CASTELLUM_SCOPES} from "../../../constants"
 
 const percent = (val) => {
   return `${val}\u{00A0}%`
@@ -91,15 +92,15 @@ export default class CastellumConfigurationView extends React.Component {
     )
 
     function renderConfigForAll(allShares) {
-      const config = configMap["nfs-shares"]
+      const config = configMap[CASTELLUM_SCOPES.combined]
       return (
-        <CastellumConfigurationViewDetails {...props} config={config} shareType={"nfs-shares"} allShares={allShares} />
+        <CastellumConfigurationViewDetails {...props} config={config} shareType={CASTELLUM_SCOPES.combined} allShares={allShares} />
       )
     }
 
     function renderIndividualConfig(allShares) {
       return shareTypeItems.map((shareType) => {
-        const key = `nfs-shares-type:${shareType.name}`
+        const key = `${CASTELLUM_SCOPES.separate}:${shareType.name}`
         const shareConfig = configMap[key]
         return (
           <div key={shareType.name} className="tw-mt-4">

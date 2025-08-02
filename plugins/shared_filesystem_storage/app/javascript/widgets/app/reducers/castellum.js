@@ -10,11 +10,10 @@ const initialStateForPath = {
 }
 
 const initialCastellumState = {
-  "assets/nfs-shares": initialStateForPath,
-  resources: initialStateForPath ,
-  "resources/nfs-shares/operations/pending": initialStateForPath,
-  "resources/nfs-shares/operations/recently-succeeded": initialStateForPath,
-  "resources/nfs-shares/operations/recently-failed": initialStateForPath,
+  [constants.CASTELLUM_AUTOSCALING.key]: initialStateForPath,
+  [constants.CASTELLUM_PENDING.key]: initialStateForPath,
+  [constants.CASTELLUM_RECENTLY_SUCCEEDED.key]: initialStateForPath,
+  [constants.CASTELLUM_RECENTLY_FAILED.key]: initialStateForPath,
 }
 
 const requestData = (state, { key, requestedAt }) => ({
@@ -33,7 +32,7 @@ const requestDataFailure = (state, { key, message, receivedAt }) => ({
     data: null,
     errorMessage: message,
     isFetching: false,
-    receivedAt
+    receivedAt,
   },
 })
 
