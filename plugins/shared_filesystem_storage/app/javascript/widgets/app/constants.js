@@ -125,7 +125,7 @@ export const RECEIVE_CASTELLUM_DATA = "shared_filesystem_storage/castellum/RECEI
 export const REQUEST_CASTELLUM_DATA_FAILURE = "shared_filesystem_storage/castellum/REQUEST_CASTELLUM_DATA_FAILURE"
 // Keys and endpoints
 export const CASTELLUM_SCOPES = { combined: "nfs-shares", separate: "nfs-shares-type" }
-export const CASTELLUM_AUTOSCALING = { key: "resources", endpoint: "/projects" } // includes scrape errors
+export const CASTELLUM_AUTOSCALING = { key: "resources", endpoint: "/projects/" } // includes scrape errors
 export const CASTELLUM_PENDING = { key: "pending_operations", endpoint: "/operations/pending" }
 export const CASTELLUM_RECENTLY_FAILED = { key: "recently_failed_operations", endpoint: "/operations/recently-failed" }
 export const CASTELLUM_RECENTLY_SUCCEEDED = { key: "recently_succeeded_operations", endpoint: "/operations/recently-succeeded" }
