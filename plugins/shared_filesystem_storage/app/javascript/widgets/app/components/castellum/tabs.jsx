@@ -31,7 +31,7 @@ export default class CastellumTabs extends React.Component {
   }
 
   render() {
-    const { errorMessage, isFetching, data: config, receivedAt } = this.props.config
+    const { data: config, errorMessage, isFetching, receivedAt } = this.props.config
     if (isFetching || !receivedAt) {
       return (
         <p>
@@ -45,8 +45,7 @@ export default class CastellumTabs extends React.Component {
 
     const forwardProps = { projectID: this.props.projectId }
     //when autoscaling is disabled, just show the configuration dialog
-    console.log("CONFIGTABS", config)
-    if (config == null) {
+    if (Object.values(config).every((value) => !value)) {
       return <CastellumConfigurationView {...forwardProps} />
     }
 
