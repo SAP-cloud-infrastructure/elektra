@@ -72,19 +72,19 @@ function filterShareTypeData(data = {}, isAllShares) {
   let allShares = isAllShares
 
   Object.keys(data).forEach((key) => {
-    if (key === "nfs-shares") {
+    if (key === constants.CASTELLUM_SCOPES.combined) {
       allShares = true
       matchingData[key] = data[key]
-    } else if (key.startsWith("nfs-shares-type")) {
+    } else if (key.startsWith(constants.CASTELLUM_SCOPES.separate)) {
       allShares = false
       matchingData[key] = data[key]
     }
   })
 
   if (isEmptyObject(matchingData)) {
-    return { data: { "nfs-shares": null }, allShares }
+    return { data: { [constants.CASTELLUM_SCOPES.combined]: null }, allShares }
   }
-  
+
   return { data: matchingData, allShares }
 }
 
