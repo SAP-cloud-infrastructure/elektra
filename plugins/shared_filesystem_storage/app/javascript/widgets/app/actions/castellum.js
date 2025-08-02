@@ -1,4 +1,3 @@
-import { isEmptyObject } from "jquery"
 import * as constants from "../constants"
 import { searchShareIDs } from "./shares"
 import { createAjaxHelper } from "lib/ajax_helper"
@@ -22,7 +21,9 @@ const fetchCastellumData =
       requestedAt: Date.now(),
     })
 
-    const endpoint = path || `/v1/projects/${projectID}`
+    const endpointPrefix = "/v1"
+    const defaultEndpoint = constants.CASTELLUM_AUTOSCALING.endpoint.concat(projectID)
+    const endpoint = path ? endpointPrefix.concat(path) : endpointPrefix.concat(defaultEndpoint)
     return ajaxHelper
       .get(endpoint)
       .then((response) => {
@@ -68,24 +69,26 @@ const fetchCastellumData =
   }
 
 function filterShareTypeData(data = {}, isAllShares) {
-  const matchingData = {}
+  let matchingData = {}
   let allShares = isAllShares
 
-  Object.keys(data).forEach((key) => {
-    if (key === constants.CASTELLUM_SCOPES.combined) {
-      allShares = true
-      matchingData[key] = data[key]
-    } else if (key.startsWith(constants.CASTELLUM_SCOPES.separate)) {
-      allShares = false
-      matchingData[key] = data[key]
-    }
-  })
-
-  if (isEmptyObject(matchingData)) {
-    return { data: { [constants.CASTELLUM_SCOPES.combined]: null }, allShares }
+  const combinedConfigKey = Object.keys(data).filter((key) => key == constants.CASTELLUM_SCOPES.combined)
+  if (combinedConfigKey.length == 1) {
+    allShares = true
+    matchingData = data
+    return { data: matchingData, allShares }
   }
 
-  return { data: matchingData, allShares }
+  const separateConfigKeys = Object.keys(data).filter((key) => key.startsWith(constants.CASTELLUM_SCOPES.separate))
+  if (separateConfigKeys.length > 0) {
+    allShares = false
+    separateConfigKeys.forEach((key) => {
+      matchingData[key] = data[key]
+    })
+    return { data: matchingData, allShares }
+  }
+
+  return { data: { [constants.CASTELLUM_SCOPES.combined]: null }, allShares }
 }
 
 export const fetchCastellumDataIfNeeded =
