@@ -45,7 +45,7 @@ const fetchCastellumData =
       .catch((error) => {
         //for the resource config, a 404 response is not an error; it just shows
         //that autoscaling is disabled on this project resource
-        if (jsonKey == "resources" && error.status === 404) {
+        if (jsonKey == constants.CASTELLUM_AUTOSCALING.key && error.status === 404) {
           dispatch({
             type: constants.RECEIVE_CASTELLUM_DATA,
             key: jsonKey,
@@ -107,7 +107,7 @@ export const configureAutoscaling = (projectID, shareType, config) => (dispatch,
       })
       .then((response) => {
         if (response) {
-          dispatch(fetchCastellumData(projectID, null, "resources"))
+          dispatch(fetchCastellumData(projectID, null, constants.CASTELLUM_AUTOSCALING.key))
           resolve()
         }
       })
@@ -124,7 +124,7 @@ export const disableAutoscaling = (projectID, shareTypes, allShares) => (dispatc
 
     try {
       await Promise.all(deletePromises)
-      dispatch(fetchCastellumData(projectID, null, "resources", allShares))
+      dispatch(fetchCastellumData(projectID, null, constants.CASTELLUM_AUTOSCALING.key, allShares))
     } catch (error) {
       addError(castellumErrorMessage(error))
     }
