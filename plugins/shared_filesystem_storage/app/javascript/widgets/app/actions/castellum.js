@@ -70,9 +70,7 @@ const fetchCastellumData =
 function filterShareTypeData(data = {}, isAllShares) {
   const matchingData = {}
   let allShares = isAllShares
-  if (isEmptyObject(data)) {
-    return { data: { "nfs-shares": null }, allShares }
-  }
+
   Object.keys(data).forEach((key) => {
     if (key === "nfs-shares") {
       allShares = true
@@ -82,6 +80,11 @@ function filterShareTypeData(data = {}, isAllShares) {
       matchingData[key] = data[key]
     }
   })
+
+  if (isEmptyObject(matchingData)) {
+    return { data: { "nfs-shares": null }, allShares }
+  }
+  
   return { data: matchingData, allShares }
 }
 

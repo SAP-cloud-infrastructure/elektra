@@ -30,10 +30,10 @@ export default class CastellumConfigurationView extends React.Component {
     super(props)
     const { allShares } = this.props.config
     const selected = selectOptions.find((option) => option.value === allShares)
-    const defaultSelection = selectOptions[0].label
+    const defaultSelection = selectOptions[0]
     this.state = {
       defaultSelection,
-      selected: selected ? selected.label : defaultSelection,
+      selected: selected,
     }
   }
 
@@ -44,8 +44,8 @@ export default class CastellumConfigurationView extends React.Component {
     }
   }
 
-  handleSelectChange = (event, configMap) => {
-    const selectedLabel = event.target.value
+  handleSelectChange = (e, configMap) => {
+    const selectedLabel = e.target.value
     const selectedOption = selectOptions.find((option) => option.label === selectedLabel)
     const hasAnyConfigs = Object.values(configMap).some((value) => !!value)
 
@@ -53,8 +53,8 @@ export default class CastellumConfigurationView extends React.Component {
       const shareTypes = Object.keys(configMap)
       this.props.disableAutoscaling(this.props.projectID, shareTypes, selectedOption.value)
     } else {
-      this.props.loadShareTypesOnce()
-      this.setState({ selected: selectedLabel })
+      !selectedOption.value && this.props.loadShareTypesOnce()
+      this.setState({ selected: selectedOption })
     }
   }
 
@@ -77,7 +77,7 @@ export default class CastellumConfigurationView extends React.Component {
         <select
           id="scalingOptions"
           className="select form-control tw-w-48"
-          value={this.state.selected}
+          value={this.state.selected.label}
           onChange={(e) => {
             this.handleSelectChange(e, configMap)
           }}
@@ -90,19 +90,21 @@ export default class CastellumConfigurationView extends React.Component {
       </div>
     )
 
-    function renderConfigForAll() {
+    function renderConfigForAll(allShares) {
       const config = configMap["nfs-shares"]
-      return <CastellumConfigurationViewDetails {...props} config={config} shareType={"nfs-shares"} />
+      return (
+        <CastellumConfigurationViewDetails {...props} config={config} shareType={"nfs-shares"} allShares={allShares} />
+      )
     }
 
-    function renderIndividualConfig() {
+    function renderIndividualConfig(allShares) {
       return shareTypeItems.map((shareType) => {
         const key = `nfs-shares-type:${shareType.name}`
         const shareConfig = configMap[key]
         return (
           <div key={shareType.name} className="tw-mt-4">
             <h5>{shareType.name}</h5>
-            <CastellumConfigurationViewDetails {...props} config={shareConfig} shareType={key} />
+            <CastellumConfigurationViewDetails {...props} config={shareConfig} shareType={key} allShares={allShares} />
           </div>
         )
       })
@@ -111,7 +113,9 @@ export default class CastellumConfigurationView extends React.Component {
     return (
       <div>
         <div>{autoScalingOptions}</div>
-        {this.state.selected == this.state.defaultSelection ? renderConfigForAll() : renderIndividualConfig()}
+        {this.state.selected == this.state.defaultSelection
+          ? renderConfigForAll(this.state.selected.value)
+          : renderIndividualConfig(this.state.selected.value)}
       </div>
     )
   }
@@ -119,7 +123,7 @@ export default class CastellumConfigurationView extends React.Component {
 
 class CastellumConfigurationViewDetails extends React.Component {
   render() {
-    const config = this.props.config
+    const { config, allShares } = this.props
 
     if (config == null) {
       return (
@@ -220,7 +224,7 @@ class CastellumConfigurationViewDetails extends React.Component {
           </Link>{" "}
           <button
             className="btn btn-danger"
-            onClick={() => this.props.disableAutoscaling(this.props.projectID, [this.props.shareType])}
+            onClick={() => this.props.disableAutoscaling(this.props.projectID, [this.props.shareType], allShares)}
           >
             Disable autoscaling
           </button>
