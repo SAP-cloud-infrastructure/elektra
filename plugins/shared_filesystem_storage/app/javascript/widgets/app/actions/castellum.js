@@ -75,14 +75,15 @@ const fetchCastellumData =
       })
   }
 
-function filterShareTypeData(data = {}, isAllShares) {
+export function filterShareTypeData(data = {}, isAllShares) {
   let matchingData = {}
   let allShares = isAllShares
 
   const combinedConfigKey = Object.keys(data).filter((key) => key == constants.CASTELLUM_SCOPES.combined)
   if (combinedConfigKey.length == 1) {
+    const key = constants.CASTELLUM_SCOPES.combined
     allShares = true
-    matchingData = data
+    matchingData = { [key]: data[key] }
     return { data: matchingData, allShares }
   }
 
@@ -98,7 +99,7 @@ function filterShareTypeData(data = {}, isAllShares) {
   return { data: { [constants.CASTELLUM_SCOPES.combined]: null }, allShares }
 }
 
-function filterOperations(data = []) {
+export function filterOperations(data = []) {
   let matchingData = []
   let allShares = true
   const key = "asset_type"
