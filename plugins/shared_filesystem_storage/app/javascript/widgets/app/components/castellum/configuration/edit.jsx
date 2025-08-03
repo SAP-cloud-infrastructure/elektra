@@ -186,7 +186,6 @@ export default class CastellumConfigurationEditModal extends React.Component {
 
   getInitialValues() {
     const { shareType } = this.props.match.params
-    console.log("PROPSEDIT", this.props, shareType)
     const { data: config, isFetching, receivedAt } = this.props.config
     
     if (isFetching || receivedAt == null) {

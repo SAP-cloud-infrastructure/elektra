@@ -14,6 +14,7 @@ const initialCastellumState = {
   [constants.CASTELLUM_PENDING.key]: initialStateForPath,
   [constants.CASTELLUM_RECENTLY_SUCCEEDED.key]: initialStateForPath,
   [constants.CASTELLUM_RECENTLY_FAILED.key]: initialStateForPath,
+  [constants.CASTELLUM_ASSET_SCRAPE.key]: initialStateForPath,
 }
 
 const requestData = (state, { key, requestedAt }) => ({

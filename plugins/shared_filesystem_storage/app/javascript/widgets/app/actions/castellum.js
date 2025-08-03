@@ -162,3 +162,45 @@ export const disableAutoscaling = (projectID, shareTypes, allShares) => (dispatc
     }
   })
 }
+
+export const fetchAssets =
+  (projectID, shareTypes = []) =>
+  async (dispatch, getState) => {
+    const path = constants.CASTELLUM_ASSET_SCRAPE.endpoint
+    const assetPromises = shareTypes.map((shareType) => {
+      const endpoint = path.replace(":id", projectID).concat(shareType)
+      return ajaxHelper.get(`/v1/${endpoint}`).catch((error) => addError(castellumErrorMessage(error)))
+    })
+
+    try {
+      const results = await Promise.all(assetPromises)
+      const data = results.map((result) => result.data[constants.CASTELLUM_ASSET_SCRAPE.key])
+      dispatch({
+        type: constants.RECEIVE_CASTELLUM_DATA,
+        key: constants.CASTELLUM_ASSET_SCRAPE.key,
+        data,
+        receivedAt: Date.now(),
+      })
+    } catch (error) {
+      let msg = error.message
+      if (error.data) {
+        msg = `${msg}: ${error.data}`
+      }
+      dispatch({
+        type: constants.REQUEST_CASTELLUM_DATA_FAILURE,
+        key: constants.CASTELLUM_ASSET_SCRAPE.key,
+        message: msg,
+        receivedAt: Date.now(),
+      })
+    }
+  }
+
+export const fetchAssetsIfNeeded =
+  (projectID, shareTypes = []) =>
+  (dispatch, getState) => {
+    const castellumState = getState().castellum || {}
+    const { isFetching, requestedAt } = castellumState[constants.CASTELLUM_ASSET_SCRAPE.key] || {}
+    if (!isFetching && !requestedAt) {
+      return dispatch(fetchAssets(projectID, shareTypes))
+    }
+  }
