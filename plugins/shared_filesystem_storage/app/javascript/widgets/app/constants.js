@@ -129,7 +129,7 @@ export const CASTELLUM_AUTOSCALING = { key: "resources", endpoint: "/projects/" 
 export const CASTELLUM_PENDING = { key: "pending_operations", endpoint: "/operations/pending" }
 export const CASTELLUM_RECENTLY_FAILED = { key: "recently_failed_operations", endpoint: "/operations/recently-failed" }
 export const CASTELLUM_RECENTLY_SUCCEEDED = { key: "recently_succeeded_operations", endpoint: "/operations/recently-succeeded" }
-export const CASTELLUM_ASSET_SCRAPE_ERRORS = { key: "assets", endpoint: "/projects/:id/assets/"}
+export const CASTELLUM_ASSET_SCRAPE = { key: "assets", endpoint: "/projects/:id/assets/"}
 
 //####################### SHARE STATES ########################
 export const SHARE_STATE_CREATING = "creating" //The share is being created.

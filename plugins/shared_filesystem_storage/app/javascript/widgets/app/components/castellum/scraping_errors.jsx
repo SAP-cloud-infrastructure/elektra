@@ -34,28 +34,15 @@ export const columns = [
   { key: "actions", label: "" },
 ]
 
-const AssetWithScrapingError = ({
-  asset,
-  share,
-  handleDelete,
-  handleForceDelete,
-}) => {
-  const {
-    id: shareID,
-    size,
-    usage_percent: usagePercent,
-    scraped_at: scrapedAt,
-    checked,
-  } = asset
+const AssetWithScrapingError = ({ asset, share, handleDelete, handleForceDelete }) => {
+  const { id: shareID, size, usage_percent: usagePercent, scraped_at: scrapedAt, checked } = asset
 
   return (
     <>
       <tr>
         <td className="col-md-4">
           {share ? (
-            <Link to={`/autoscaling/${share.id}/show`}>
-              {share.name || shareID}
-            </Link>
+            <Link to={`/autoscaling/${share.id}/show`}>{share.name || shareID}</Link>
           ) : (
             <div>
               <span className="spinner" /> Loading share data...
@@ -64,11 +51,7 @@ const AssetWithScrapingError = ({
           <div className="small text-muted">{shareID}</div>
         </td>
         <td className="col-md-4">
-          {scrapedAt ? (
-            <PrettyDate date={scrapedAt} />
-          ) : (
-            <span className="text-muted">Never</span>
-          )}
+          {scrapedAt ? <PrettyDate date={scrapedAt} /> : <span className="text-muted">Never</span>}
           {scrapedAt && (
             <div className="small text-muted">
               Reported {usagePercent}&nbsp;% usage of {size}&nbsp;GiB
@@ -101,7 +84,16 @@ const AssetWithScrapingError = ({
 
 export default class CastellumScrapingErrors extends React.Component {
   componentDidMount() {
-    this.props.loadAssetsOnce(this.props.projectID)
+    this.props.loadShareTypesOnce(this.props.projectID)
+    const { data } = this.props.config
+    if (data != null) {
+      const shareTypes = Object.keys(data).filter((key) => data[key] != null)
+      this.loadAssets(shareTypes)
+    }
+  }
+
+  loadAssets(shareTypes) {
+    this.props.loadAssetsOnce(this.props.projectID, shareTypes)
   }
 
   render() {
@@ -114,15 +106,11 @@ export default class CastellumScrapingErrors extends React.Component {
       )
     }
     if (errorMessage) {
-      return (
-        <p className="alert alert-danger">Cannot load assets: {errorMessage}</p>
-      )
+      return <p className="alert alert-danger">Cannot load assets: {errorMessage}</p>
     }
 
     //we are only interested in assets with scraping errors
-    const assets = (data.assets || []).filter(
-      (asset) => asset.checked && asset.checked.error
-    )
+    const assets = (data.assets || []).filter((asset) => asset.checked && asset.checked.error)
     const shares = this.props.shares || []
 
     const forwardProps = {
