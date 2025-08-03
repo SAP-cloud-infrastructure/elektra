@@ -75,6 +75,7 @@ describe("filterOperations", () => {
 
     const result = filterOperations(testData)
 
+    // The API returns events either for combined or separate configs.
     expect(result.data).toEqual([{ asset_type: CASTELLUM_SCOPES.combined }])
     expect(result.allShares).toEqual(true)
   })
