@@ -76,6 +76,7 @@ export default class CastellumConfigurationView extends React.Component {
       <div className="tw-flex tw-items-center tw-space-x-2">
         <span>Create autoscaling config for</span>
         <select
+          data-testid="autoscalingSelect"
           id="scalingOptions"
           className="select form-control tw-w-48"
           value={this.state.selected.label}
