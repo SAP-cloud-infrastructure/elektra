@@ -12,7 +12,7 @@ export default connect(
   }),
   (dispatch) => ({
     loadOpsOnce: (projectID) =>
-      dispatch(fetchCastellumDataIfNeeded(projectID, path.concat(`?project=${projectID}`), "pending_operations")),
+      dispatch(fetchCastellumDataIfNeeded(projectID, path.concat(`?project=${projectID}`), CASTELLUM_PENDING.key)),
     handleDelete: (shareID) => dispatch(deleteShare(shareID)),
     handleForceDelete: (shareID) => dispatch(forceDeleteShare(shareID)),
   })

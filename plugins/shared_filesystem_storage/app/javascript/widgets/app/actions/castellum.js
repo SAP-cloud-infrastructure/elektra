@@ -27,13 +27,20 @@ const fetchCastellumData =
     return ajaxHelper
       .get(endpoint)
       .then((response) => {
-        const responseData = jsonKey ? response.data[jsonKey] : response.data
-        const { data, allShares } = filterShareTypeData(responseData, isAllShares)
+        let data = jsonKey ? response.data[jsonKey] : response.data
+        let allShares = isAllShares
         if (Array.isArray(data)) {
+          const { data: filteredData, allShares: scope } = filterOperations(data)
+          data = filteredData
+          allShares = scope
           const shareIDs = data.map((elem) => elem.asset_id).filter((elem) => (elem ? true : false))
           if (shareIDs.length > 0) {
             dispatch(searchShareIDs(shareIDs))
           }
+        } else {
+          const { data: filteredData, allShares: scope } = filterShareTypeData(data, isAllShares)
+          data = filteredData
+          allShares = scope
         }
         dispatch({
           type: constants.RECEIVE_CASTELLUM_DATA,
@@ -89,6 +96,28 @@ function filterShareTypeData(data = {}, isAllShares) {
   }
 
   return { data: { [constants.CASTELLUM_SCOPES.combined]: null }, allShares }
+}
+
+function filterOperations(data = []) {
+  let matchingData = []
+  let allShares = true
+  const key = "asset_type"
+
+  const combinedResult = data.filter((entry) => entry[key] == constants.CASTELLUM_SCOPES.combined)
+  if (combinedResult.length > 0) {
+    allShares = true
+    matchingData = combinedResult
+    return { data: matchingData, allShares }
+  }
+
+  const separateResult = data.filter((entry) => entry[key].startsWith(constants.CASTELLUM_SCOPES.separate))
+  if (separateResult.length > 0) {
+    allShares = false
+    matchingData = separateResult
+    return { data: matchingData, allShares }
+  }
+
+  return { data: [], allShares }
 }
 
 export const fetchCastellumDataIfNeeded =
