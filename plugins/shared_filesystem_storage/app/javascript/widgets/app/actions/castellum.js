@@ -175,7 +175,7 @@ export const fetchAssets =
 
     try {
       const results = await Promise.all(assetPromises)
-      const data = results.map((result) => result.data[constants.CASTELLUM_ASSET_SCRAPE.key])
+      const data = results.flatMap((result) => result.data[constants.CASTELLUM_ASSET_SCRAPE.key])
       dispatch({
         type: constants.RECEIVE_CASTELLUM_DATA,
         key: constants.CASTELLUM_ASSET_SCRAPE.key,
