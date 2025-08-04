@@ -5,7 +5,6 @@ import { deleteShare, forceDeleteShare } from "../../actions/shares"
 import { CASTELLUM_AUTOSCALING } from "../../constants"
 import { CASTELLUM_ASSET_SCRAPE } from "../../constants"
 
-const path = CASTELLUM_ASSET_SCRAPE.endpoint
 export default connect(
   (state) => ({
     config: (state.castellum || {})[CASTELLUM_AUTOSCALING.key],

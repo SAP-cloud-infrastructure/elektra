@@ -109,8 +109,12 @@ export default class CastellumScrapingErrors extends React.Component {
       return <p className="alert alert-danger">Cannot load assets: {errorMessage}</p>
     }
 
+    // flatten assets of all share types.
+    const parsedAssetData = Object.values(data).flatMap((assets) => assets)
+    
     //we are only interested in assets with scraping errors
-    const assets = (data.assets || []).filter((asset) => asset.checked && asset.checked.error)
+    const assets = (parsedAssetData || []).filter((asset) => asset.checked && asset.checked.error)
+
     const shares = this.props.shares || []
 
     const forwardProps = {
