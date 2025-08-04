@@ -61,7 +61,7 @@ const Home = () => {
   return (
     <div className="tw-flex tw-flex-col tw-grow">
       <LoginOverlay />
-      <div className="tw-max-w-[1280px] tw-w-full tw-mx-auto tw-pt-8">
+      <div className="tw-max-w-[1280px] tw-w-full tw-mx-auto tw-pt-12">
         <Stack alignment="center">
           <div className="tw-text-xl tw-w-3/5 tw-mr-auto">
             {"SAP's "} strategic Infrastructure-as-a-Service (IaaS) stack, optimized for SAP solutions, running purely
