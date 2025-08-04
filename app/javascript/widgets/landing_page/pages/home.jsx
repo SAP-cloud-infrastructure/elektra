@@ -111,14 +111,6 @@ const Home = () => {
         // see: elektra/config/esbuild/build.js
         style={{ backgroundImage: `url('${backgroundTop}')` }}
       >
-        <WorldMapQASelect />
-      </div>
-      <div
-        className="tw-bg-cover tw-bg-no-repeat tw-h-[300px] tw-relative"
-        style={{
-          backgroundImage: `url('${backgroundTop}')`,
-        }}
-      >
         <div className="tw-max-w-[1280px] tw-w-full tw-mx-auto tw-relative">
           {!hideDomainSwitcher && <WorldMapQASelect />}
           <WorldMap
