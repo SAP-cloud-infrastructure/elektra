@@ -175,11 +175,20 @@ export const fetchAssets =
 
     try {
       const results = await Promise.all(assetPromises)
-      const data = results.flatMap((result) => result.data[constants.CASTELLUM_ASSET_SCRAPE.key])
+      const structuredData = {}
+      let shareIDs = []
+      results.forEach((result, index) => {
+        const assets = result.data[constants.CASTELLUM_ASSET_SCRAPE.key]
+        structuredData[shareTypes[index]] = assets
+        shareIDs.push(...assets.map((asset) => asset.id))
+      })
+      if (shareIDs.length > 0) {
+        dispatch(searchShareIDs(shareIDs))
+      }
       dispatch({
         type: constants.RECEIVE_CASTELLUM_DATA,
         key: constants.CASTELLUM_ASSET_SCRAPE.key,
-        data,
+        data: structuredData,
         receivedAt: Date.now(),
       })
     } catch (error) {
@@ -196,12 +205,37 @@ export const fetchAssets =
     }
   }
 
+const arrayDiff = (arr1, arr2) => {
+  return arr1.filter((item) => !arr2.includes(item))
+}
 export const fetchAssetsIfNeeded =
   (projectID, shareTypes = []) =>
   (dispatch, getState) => {
     const castellumState = getState().castellum || {}
-    const { isFetching, requestedAt } = castellumState[constants.CASTELLUM_ASSET_SCRAPE.key] || {}
-    if (!isFetching && !requestedAt) {
+    const { data } = castellumState[constants.CASTELLUM_ASSET_SCRAPE.key] || {}
+    const currentShareTypes = Object.keys(data || {})
+    const newShareTypes = arrayDiff(shareTypes, currentShareTypes)
+    const removedShareTypes = arrayDiff(currentShareTypes, shareTypes)
+
+    // Fetch assets for shareTypes that have received an autoscaling config and were not present before.
+    if (newShareTypes.length > 0) {
       return dispatch(fetchAssets(projectID, shareTypes))
     }
+
+    // Remove cached data for shareTypes where the configuration was deleted.
+    if (removedShareTypes.length > 0) {
+      const filteredData = { ...data }
+      removedShareTypes.forEach((shareType) => delete filteredData[shareType])
+
+      dispatch({
+        type: constants.RECEIVE_CASTELLUM_DATA,
+        key: constants.CASTELLUM_ASSET_SCRAPE.key,
+        data: filteredData,
+        receivedAt: Date.now(),
+      })
+      return
+    }
+
+    // A request for the same shareTypes does not trigger an asset fetch.
+    return data
   }
