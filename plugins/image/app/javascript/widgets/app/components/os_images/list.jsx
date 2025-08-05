@@ -31,12 +31,12 @@ const List = ({
   const availableVisibilityFilters = useMemo(() => {
     if (!visibilityCounts) return []
     // Disable public filters if the flag is set
-    // this comes from the domain config
+    // disablePublicFilters comes from the domain config
     if (otherProps.disablePublicFilters) {
-      setActiveVisibilityFilter("private")
+      if (activeVisibilityFilter === "public") setActiveVisibilityFilter("private")
+      // filter out public images
       return Object.keys(visibilityCounts).filter((k) => k !== "public")
     }
-
     return Object.keys(visibilityCounts)
   }, [visibilityCounts])
 
