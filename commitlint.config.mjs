@@ -25,6 +25,7 @@ export const scopes = [
   "keppel",
   "key-manager",
   "kubernetes",
+  "landing-page",
   "lbaas",
   "lookup",
   "masterdata-cockpit",
