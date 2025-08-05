@@ -5,7 +5,7 @@
     project_parent_id: @active_project.parent_id,
     scoped_domain_name: @scoped_domain_name,
     launch_instance_url: plugin('compute').new_instance_path,
-    disable_public_filters: @domain_config.feature_hidden?('public_images') }
+    disable_public_images: @domain_config.feature_hidden?('public_images') }
 
 
 %div.buttons{class: modal? ? 'modal-footer' : ''}
