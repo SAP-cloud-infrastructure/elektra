@@ -1,18 +1,20 @@
-import { connect } from  'react-redux';
-import CastellumScrapingErrors from '../../components/castellum/scraping_errors';
-import { fetchCastellumDataIfNeeded } from '../../actions/castellum';
-import { deleteShare, forceDeleteShare } from '../../actions/shares';
+import { connect } from "react-redux"
+import CastellumScrapingErrors from "../../components/castellum/scraping_errors"
+import { fetchCastellumDataIfNeeded, fetchAssetsIfNeeded } from "../../actions/castellum"
+import { deleteShare, forceDeleteShare } from "../../actions/shares"
+import { CASTELLUM_AUTOSCALING } from "../../constants"
+import { CASTELLUM_ASSET_SCRAPE } from "../../constants"
 
-const path = 'assets/nfs-shares';
 export default connect(
-  state => ({
-    assets: (state.castellum || {})[path],
+  (state) => ({
+    config: (state.castellum || {})[CASTELLUM_AUTOSCALING.key],
+    assets: (state.castellum || {})[CASTELLUM_ASSET_SCRAPE.key],
     shares: (state.shares || {}).items,
   }),
-  dispatch => ({
-    loadAssetsOnce: (projectID) =>
-      dispatch(fetchCastellumDataIfNeeded(projectID, path)),
-    handleDelete:      (shareID) => dispatch(deleteShare(shareID)),
-    handleForceDelete: (shareID) => dispatch(forceDeleteShare(shareID))
-  }),
-)(CastellumScrapingErrors);
+  (dispatch) => ({
+    loadShareTypesOnce: (projectID) => dispatch(fetchCastellumDataIfNeeded(projectID, null, CASTELLUM_AUTOSCALING.key)),
+    loadAssetsOnce: (projectID, shareTypes) => dispatch(fetchAssetsIfNeeded(projectID, shareTypes)),
+    handleDelete: (shareID) => dispatch(deleteShare(shareID)),
+    handleForceDelete: (shareID) => dispatch(forceDeleteShare(shareID)),
+  })
+)(CastellumScrapingErrors)
