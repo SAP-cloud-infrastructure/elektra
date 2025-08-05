@@ -1,5 +1,4 @@
 %div{class: modal? ? 'modal-body' : ''}
-  %h1 Images
   = javascript_include_tag "image_app_widget",
     data: { url: plugin('image').root_path,
     project_parent_id: @active_project.parent_id,
