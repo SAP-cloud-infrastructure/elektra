@@ -35,6 +35,7 @@ domains:
       - internal_help_links
       - terms_of_use
       - networking_backup
+      - public_images
     terms_of_use_name: "marioworld_terms"
     floating_ip_networks:
       - FloatingIP-external-marioworld-01
