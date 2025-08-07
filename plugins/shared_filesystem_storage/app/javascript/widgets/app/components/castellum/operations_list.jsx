@@ -9,7 +9,7 @@ export default class CastellumOperationsList extends React.Component {
 
   render() {
     const { errorMessage, isFetching, data } = this.props.operations
-    if (isFetching || data == null) {
+    if (isFetching) {
       return (
         <p>
           <span className="spinner" /> Loading...

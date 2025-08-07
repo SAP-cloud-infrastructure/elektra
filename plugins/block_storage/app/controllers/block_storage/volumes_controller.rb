@@ -254,7 +254,7 @@ module BlockStorage
     end
 
     def types
-      render json: { images: cloud_admin.block_storage.volume_types }
+      render json: { images: services.block_storage.volume_types }
     rescue Elektron::Errors::ApiResponse => e
       render json: { errors: e.message }, status: e.cod
     end

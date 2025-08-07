@@ -8,7 +8,7 @@ en:
     projects_can_inherit_help: "Projects in this domain can use this cost object."
     solution_help: "Choose a solution here if the project is used for one of the strategic solutions of SAP."
     revenue_relevances_help: "Indicates if the project is directly or indirectly creating revenue."
-    responsible_operator_help: "Who is responsible for the uptime of the systems in this project, and who can decide, for example, when an instance may be restarted. Used as emergency engineering contact by CCloud operations."
+    responsible_operator_help: "Who is responsible for the uptime of the systems in this project, and who can decide, for example, when an instance may be restarted. Used as emergency engineering contact by SAP Cloud Infrastructure operations."
     project_responsible_primary_contact_help: "The primary person in charge to help the support team in case of technical questions and incidents"
     domain_responsible_primary_contact_help: "The primary person in charge to help the support team in case of technical questions and incidents. Note: at least please provide the UserID or a Email/Distribution list."
     responsible_inventory_role_help: "The person/entity responsible to correctly maintain assets in SAP's Global DC HW asset inventory SISM/CCIR."

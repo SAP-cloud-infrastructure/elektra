@@ -1,14 +1,12 @@
+// important: we need to import here the tailwind config from juno-ui-components instead of using require("@cloudoperators/juno-ui-components/tailwind.config.js")
+// because juno-ui-components is a esm module and we cannot use require in this file.
+import uiComponentsConfig from "@cloudoperators/juno-ui-components/tailwind.config.js"
+
 module.exports = {
   // use juno tailwindcss as default
-  presets: [
-    require("@cloudoperators/juno-ui-components/build/lib/tailwind.config"),
-  ],
+  presets: [uiComponentsConfig],
   prefix: "tw-", // important, do not change
-  content: [
-    "./plugins/**/*.{js,jsx,html,haml}",
-    "./app/javascript/**/*.{js,jsx,haml}",
-    "./app/views/**/*.{haml,html}",
-  ],
+  content: ["./plugins/**/*.{js,jsx,html,haml}", "./app/javascript/**/*.{js,jsx,haml}", "./app/views/**/*.{haml,html}"],
 
   theme: {
     extend: {},

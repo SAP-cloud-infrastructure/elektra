@@ -34,6 +34,12 @@ module Identity
         render json: { roles: [] } && return if scope_project_id.blank?
 
         if user_id.present?
+          begin
+            URI.parse(user_id)
+          rescue URI::InvalidURIError
+            render json: { errors: "Invalid user Name/ID format, do not use special characters" }
+            return
+          end
           # try to load user.
           # render an error if user could not be found
           # Cloud admin is important for the user lookup!
@@ -56,6 +62,12 @@ module Identity
               new_roles,
             )
         elsif group_id.present?
+          begin
+            URI.parse(group_id)
+          rescue URI::InvalidURIError
+            render json: { errors: "Invalid group Name/ID format, do not use special characters" }
+            return
+          end
           # try to load group.
           # render an error if group could not be found
           group =

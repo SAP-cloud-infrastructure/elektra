@@ -220,7 +220,7 @@ const SharedFilesystemApp = (props) => {
           policy.isAllowed("shared_filesystem_storage:share_update") && (
             <Route
               exact
-              path="/autoscaling/configure"
+              path="/autoscaling/configure/:shareType"
               render={(routeProps) => (
                 <CastellumConfigurationEditModal
                   {...routeProps}

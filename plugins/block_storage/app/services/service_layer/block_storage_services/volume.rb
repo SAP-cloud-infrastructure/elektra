@@ -15,7 +15,7 @@ module ServiceLayer
       end
 
       def volumes_detail(filter = {})      
-        elektron_volumesv3.get('volumes/detail', filter, {headers: { 'OpenStack-API-Version' => "volume 3.34" }}).map_to(
+        elektron_volumes.get('volumes/detail', filter, {headers: { 'OpenStack-API-Version' => "volume 3.34" }}).map_to(
           'body.volumes', &volume_map
         )
       end
@@ -72,7 +72,7 @@ module ServiceLayer
       end
 
       def extend_volume_size(id, size)
-        elektron_volumesv3.post("volumes/#{id}/action",{headers: {"OpenStack-API-Version": "volume 3.42"}}) do
+        elektron_volumes.post("volumes/#{id}/action",{headers: {"OpenStack-API-Version": "volume 3.42"}}) do
           {
             'os-extend': {
               'new_size': size
@@ -89,7 +89,7 @@ module ServiceLayer
 
       def upload_volume_to_image(id, options = {})
         # set version to 3.1 to support protected and force 
-        elektron_volumesv3.post("volumes/#{id}/action", {headers: {"OpenStack-API-Version"=> "volume 3.1"}}) do
+        elektron_volumes.post("volumes/#{id}/action", {headers: {"OpenStack-API-Version"=> "volume 3.1"}}) do
           {
             'os-volume_upload_image'=> {
               'image_name' => options['image_name'],

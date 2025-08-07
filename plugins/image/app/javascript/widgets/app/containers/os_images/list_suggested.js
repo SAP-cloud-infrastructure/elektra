@@ -9,7 +9,7 @@ import {
 } from "../../actions/image_members"
 
 export default connect(
-  (state, ownProps) => ({
+  (state) => ({
     activeTab: "suggested",
     visibilityCounts: state.suggested.visibilityCounts,
     activeVisibilityFilter: state.suggested.activeVisibilityFilter,

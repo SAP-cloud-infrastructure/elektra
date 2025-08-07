@@ -1,7 +1,7 @@
 !!!
 %html
   %head
-    %title= "CCloud #{@domain_name if @domain_name}"
+    %title= "SAP Cloud Infrastructure #{@domain_name if @domain_name}"
     = stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track' => true
     
     = render "layouts/favicon" 
@@ -17,7 +17,7 @@
       .navbar-header
         = link_to "/#{@domain_name}", class: "navbar-brand" do
           .logo
-          Converged Cloud
+          Cloud Infrastructure
 
     = yield
 
