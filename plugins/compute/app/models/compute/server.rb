@@ -436,7 +436,7 @@ module Compute
           errors.delete(:api)
           errors.add(
             :api,
-            'Instance resize not possible at this time: there is not enough free capacity for an automatic resize. please open an ITSM ticket for Service Offering "GCS-CCloud API Services"',
+            'Instance resize not possible at this time: there is not enough free capacity for an automatic resize. please open an ITSM ticket for Service Offering "GCS-SAP Cloud Infrastructure API Services"',
           )
         end
         return false
