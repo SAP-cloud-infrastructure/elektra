@@ -64,15 +64,35 @@ class DomainConfig
     @domain_config.fetch('check_cidr_range', true)
   end
 
+  def idp?
+    idp_value = @domain_config.fetch('idp', false)
+    idp_value ? URI.encode_www_form_component(idp_value.to_s) : false
+  end
+
   private
 
   def find_config(domains_config, scoped_domain_name)
-    # to allow to match the last matching domain config, we reverse the list
-    # it allows us to define a config matching all domains at the top and then
-    # override it with a more specific config.
-    domains_config.fetch('domains', []).reverse.find do |domain_config|
+    # Find all domain configs that match the scoped_domain_name using regex
+    # This allows for more flexible matching, e.g., subdomains or specific patterns
+    # Find ALL domain configurations that match a given domain name (not just the first one).
+    matching_configs = domains_config.fetch('domains', []).select do |domain_config|
       regex_pattern = Regexp.new(domain_config.fetch('regex', ''))
       scoped_domain_name =~ regex_pattern
-    end || {}
+    end
+    
+    # Merge all matching configs, with more specific ones overriding general ones
+    merged_config = {}
+    matching_configs.each do |config|
+      merged_config = merged_config.merge(config)
+    end 
+    
+    Rails.logger.info "DomainConfig: Merging configs for #{scoped_domain_name} with #{matching_configs.size} matching domains"
+    # better logging for debugging in development
+    output = StringIO.new # use StringIO to capture output
+    PP.pp(merged_config, output) # pretty print the merged config to the StringIO object
+    Rails.logger.info "DomainConfig: Merged config:\n#{output.string}"
+
+    return merged_config if merged_config.is_a?(Hash)
+    raise "DomainConfig: Invalid domain config for #{scoped_domain_name}, expected a Hash, got #{merged_config.class}"
   end
 end

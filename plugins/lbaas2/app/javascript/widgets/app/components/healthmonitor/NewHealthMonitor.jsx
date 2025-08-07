@@ -8,11 +8,7 @@ import SelectInput from "../shared/SelectInput"
 import FormInput from "../shared/FormInput"
 import { addNotice } from "lib/flashes"
 import TagsInput from "../shared/TagsInput"
-import {
-  formErrorMessage,
-  matchParams,
-  searchParamsToString,
-} from "../../helpers/commonHelpers"
+import { formErrorMessage, matchParams, searchParamsToString } from "../../helpers/commonHelpers"
 import {
   healthMonitorTypes,
   httpMethodRelation,
@@ -39,9 +35,7 @@ const NewHealthMonitor = (props) => {
     if (!show) {
       const params = matchParams(props)
       const lbID = params.loadbalancerID
-      props.history.replace(
-        `/loadbalancers/${lbID}/show?${searchParamsToString(props)}`
-      )
+      props.history.replace(`/loadbalancers/${lbID}/show?${searchParamsToString(props)}`)
     }
   }
 
@@ -104,9 +98,7 @@ const NewHealthMonitor = (props) => {
       bsClass="lbaas2 modal"
     >
       <Modal.Header closeButton>
-        <Modal.Title id="contained-modal-title-lg">
-          New Health Monitor
-        </Modal.Title>
+        <Modal.Title id="contained-modal-title-lg">New Health Monitor</Modal.Title>
       </Modal.Header>
 
       <Form
@@ -118,9 +110,8 @@ const NewHealthMonitor = (props) => {
       >
         <Modal.Body>
           <p>
-            Checks the health of the pool members. Unhealthy members will be
-            taken out of traffic schedule. Sets a load balancer to OFFLINE when
-            all members are unhealthy.
+            Checks the health of the pool members. Unhealthy members will be taken out of traffic schedule. Sets a load
+            balancer to OFFLINE when all members are unhealthy.
           </p>
           <Form.Errors errors={formErrors} />
 
@@ -129,49 +120,28 @@ const NewHealthMonitor = (props) => {
           </Form.ElementHorizontal>
 
           <Form.ElementHorizontal label="Type" name="type" required>
-            <SelectInput
-              name="type"
-              items={healthMonitorTypes()}
-              onChange={onHealthMonitorTypeChanged}
-            />
+            <SelectInput name="type" items={healthMonitorTypes()} onChange={onHealthMonitorTypeChanged} />
             <span className="help-block">
               <i className="fa fa-info-circle"></i>
-              The type of probe sent by the load balancer to verify the member
-              state.
+              The type of probe sent by the load balancer to verify the member state.
             </span>
           </Form.ElementHorizontal>
 
-          <Form.ElementHorizontal
-            label="Max Retries Down"
-            name="max_retries_down"
-          >
-            <Form.Input
-              elementType="input"
-              type="number"
-              min="1"
-              max="10"
-              name="max_retries_down"
-            />
+          <Form.ElementHorizontal label="Max Retries Down" name="max_retries_down">
+            <Form.Input elementType="input" type="number" min="1" max="10" name="max_retries_down" />
             <span className="help-block">
               <i className="fa fa-info-circle"></i>
-              The number of allowed check failures before marking the member as
-              OFFLINE. A valid value is from 1 to 10. The default is 3.{" "}
-              <b>Note</b>: This parameter differs from the Octavia "Max
-              Retries", which is not supported in CCloud environment.
+              The number of allowed check failures before marking the member as OFFLINE. A valid value is from 1 to 10.
+              The default is 3. <b>Note</b>: This parameter differs from the Octavia "Max Retries", which is not
+              supported in SAP Cloud Infrastructure environment.
             </span>
           </Form.ElementHorizontal>
 
           <Form.ElementHorizontal label="Interval" name="delay" required>
-            <Form.Input
-              elementType="input"
-              type="number"
-              min="1"
-              name="delay"
-            />
+            <Form.Input elementType="input" type="number" min="1" name="delay" />
             <span className="help-block">
               <i className="fa fa-info-circle"></i>
-              The time, in seconds, between sending health check probes to pool
-              members.
+              The time, in seconds, between sending health check probes to pool members.
             </span>
           </Form.ElementHorizontal>
 
@@ -185,24 +155,19 @@ const NewHealthMonitor = (props) => {
               />
               <span className="help-block">
                 <i className="fa fa-info-circle"></i>
-                The HTTP method that the health monitor uses for requests. The
-                default is GET.
+                The HTTP method that the health monitor uses for requests. The default is GET.
               </span>
             </Form.ElementHorizontal>
           )}
 
           {showExpectedCodes && (
-            <Form.ElementHorizontal
-              label="Expected codes"
-              name="expected_codes"
-            >
+            <Form.ElementHorizontal label="Expected codes" name="expected_codes">
               {/* We need here the shared FormInput because of need to set a default value */}
               <FormInput type="text" name="expected_codes" defaultValue="200" />
               <span className="help-block">
                 <i className="fa fa-info-circle"></i>
-                The list of HTTP status codes expected in response from the
-                member to declare it healthy. Specify one of the following
-                values:
+                The list of HTTP status codes expected in response from the member to declare it healthy. Specify one of
+                the following values:
                 <ul>
                   <li>A single value, such as 200</li>
                   <li>A list, such as 200, 202</li>
@@ -219,9 +184,8 @@ const NewHealthMonitor = (props) => {
               <FormInput type="text" name="url_path" defaultValue="/" />
               <span className="help-block">
                 <i className="fa fa-info-circle"></i>
-                The HTTP URL path of the request sent by the monitor to test the
-                health of a backend member. Must be a string that begins with a
-                forward slash (/). The default URL path is /.
+                The HTTP URL path of the request sent by the monitor to test the health of a backend member. Must be a
+                string that begins with a forward slash (/). The default URL path is /.
               </span>
             </Form.ElementHorizontal>
           )}

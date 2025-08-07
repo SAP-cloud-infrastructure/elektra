@@ -6,7 +6,6 @@
 import React from "react"
 
 import useStore from "../store"
-import CCLogo from "../assets/images/CCloud_Logo_light.svg"
 import WorldMap from "../assets/images/map.svg"
 import backgroundTop from "../assets/images/background_header.png"
 
@@ -62,9 +61,7 @@ const Home = () => {
   return (
     <div className="tw-flex tw-flex-col tw-grow">
       <LoginOverlay />
-      <div className="tw-max-w-[1280px] tw-w-full tw-mx-auto tw-pt-8">
-        <CCLogo className="tw-mb-4 tw-w-[240px] tw-h-auto" alt="Converged Cloud" />
-
+      <div className="tw-max-w-[1280px] tw-w-full tw-mx-auto tw-pt-12">
         <Stack alignment="center">
           <div className="tw-text-xl tw-w-3/5 tw-mr-auto">
             {"SAP's "} strategic Infrastructure-as-a-Service (IaaS) stack, optimized for SAP solutions, running purely
@@ -109,9 +106,10 @@ const Home = () => {
       </div>
       <div
         className="tw-bg-top tw-bg-no-repeat tw-mt-8 tw-pb-12 tw-grow"
-        style={{
-          backgroundImage: `url('${new URL(backgroundTop, import.meta.url).href}')`,
-        }}
+        // this is a data url, all png are loaded as data urls
+        // this is configured in the esbuild config
+        // see: elektra/config/esbuild/build.js
+        style={{ backgroundImage: `url('${backgroundTop}')` }}
       >
         <div className="tw-max-w-[1280px] tw-w-full tw-mx-auto tw-relative">
           {!hideDomainSwitcher && <WorldMapQASelect />}

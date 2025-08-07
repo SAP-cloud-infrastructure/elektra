@@ -209,14 +209,8 @@ export class DataTable extends React.Component {
       <th key={column.key} {...extraProps}>
         {column.label}
         {isSortable && " "}
-        {isSorted && (
-          <i
-            className={`fa fa-sort-${sortIconType}-${this.state.sortDirection}`}
-          />
-        )}
-        {!isSorted && isSortable && (
-          <i className={`fa fa-sort-${sortIconType}-asc sortable-hint`} />
-        )}
+        {isSorted && <i className={`fa fa-sort-${sortIconType}-${this.state.sortDirection}`} />}
+        {!isSorted && isSortable && <i className={`fa fa-sort-${sortIconType}-asc sortable-hint`} />}
       </th>
     )
   }
@@ -227,15 +221,17 @@ export class DataTable extends React.Component {
     if (!searchText) {
       return rows
     }
-    const pattern = searchText.toLowerCase()
+
+    let pattern
+    try {
+      pattern = new RegExp(searchText, "i")
+    } catch (e) {
+      return rows
+    }
+
     return rows.filter((row) =>
       this.props.columns.some(
-        (column) =>
-          column.searchKey &&
-          (column.searchKey(row.props) || "")
-            .toString()
-            .toLowerCase()
-            .includes(pattern)
+        (column) => column.searchKey && pattern.test((column.searchKey(row.props) || "").toString())
       )
     )
   }
@@ -270,10 +266,7 @@ export class DataTable extends React.Component {
     if (isEmpty) {
       rows = [
         <tr key="no-entries">
-          <td
-            colSpan={this.props.columns.length}
-            className="text-muted text-center"
-          >
+          <td colSpan={this.props.columns.length} className="text-muted text-center">
             No entries
           </td>
         </tr>,
@@ -282,15 +275,9 @@ export class DataTable extends React.Component {
 
     return (
       <>
-        <table
-          className={`table elektraDataTable ${this.props.className || ""}`}
-        >
+        <table className={`table elektraDataTable ${this.props.className || ""}`}>
           <thead>
-            <tr>
-              {this.props.columns.map((column, idx) =>
-                this.renderColumnHeader(column, idx, isEmpty)
-              )}
-            </tr>
+            <tr>{this.props.columns.map((column, idx) => this.renderColumnHeader(column, idx, isEmpty))}</tr>
           </thead>
           <tbody>
             {rows}

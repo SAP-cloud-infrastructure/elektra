@@ -50,7 +50,9 @@ export default class RepositoryDeleter extends React.Component {
       }
       this.setState({ ...this.state, currentDeleteTarget: digest })
 
-      this.props.deleteManifest(digest).catch(this.props.handleDoneDeleting)
+      this.props.deleteManifest(digest).catch(() => {
+        this.props.handleDoneDeleting(true)
+      })
       return
     }
 
@@ -60,7 +62,7 @@ export default class RepositoryDeleter extends React.Component {
       return
     }
     this.setState({ ...this.state, currentDeleteTarget: "repo" })
-    this.props.deleteRepository().finally(this.props.handleDoneDeleting)
+    this.props.deleteRepository().finally(this.props.handleDoneDeleting())
   }
 
   render() {
