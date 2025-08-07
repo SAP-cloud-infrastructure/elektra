@@ -1,6 +1,6 @@
-require_relative 'boot'
+require_relative "boot"
 
-require 'rails/all'
+require "rails/all"
 require 'uri'
 
 # Require core functionalities
@@ -17,8 +17,19 @@ Bundler.require(*Rails.groups)
 module MonsoonDashboard
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 7.0
+    config.load_defaults 7.1
+    # Please, add to the `ignore` list any other `lib` subdirectories that do
+    # not contain `.rb` files, or that should not be reloaded or eager loaded.
+    # Common ones are `templates`, `generators`, or `middleware`, for example.
+    config.autoload_lib(ignore: %w(assets tasks))
 
+    # Configuration for the application, engines, and railties goes here.
+    #
+    # These settings can be overridden in specific environments using the files
+    # in config/environments, which are processed later.
+    #
+    # config.time_zone = "Central Time (US & Canada)"
+    # config.eager_load_paths << Rails.root.join("extras")
     def self.module_parent_name
       super
     end
@@ -26,6 +37,8 @@ module MonsoonDashboard
     def self.parent_name
       module_parent_name
     end
+
+    config.action_controller.raise_on_missing_callback_actions = false
 
     # commented out due to error seen in prod:
     # Cannot render console from 10.XX.XX.XX! Allowed networks: XX.XX.XX.XX, ...
@@ -134,6 +147,7 @@ module MonsoonDashboard
     end
 
     # Mailer configuration for inquiries/requests
+    config.limes_mail_server_endpoint = ENV["LIMES_MAIL_SERVER_API_ENDPOINT"]
     config.action_mailer.raise_delivery_errors = true
     config.action_mailer.delivery_method = :smtp
     config.action_mailer.smtp_settings = {

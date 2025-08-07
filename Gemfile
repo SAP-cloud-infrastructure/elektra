@@ -12,7 +12,10 @@ source 'https://rubygems.org'
 gem 'unf', '>= 0.2.0beta2'
 
 gem 'jsbundling-rails'
-gem 'rails', '7.0.8.1'
+gem 'rails', '7.1.3.2'
+gem 'benchmark', require: false  # Ruby 3.4 compatibility
+gem 'ostruct'
+gem 'csv'
 
 gem 'bootstrap-sass'
 gem 'haml-rails'
@@ -26,6 +29,7 @@ gem 'friendly_id'
 gem 'high_voltage'
 gem 'kaminari'
 gem 'simple-navigation' # Navigation menu builder
+gem 'nokogiri', '>= 1.18.9'
 
 gem 'responders'
 
@@ -51,6 +55,7 @@ gem 'prometheus-client'
 # Sentry client
 gem 'httpclient' # The only faraday backend that handled no_proxy :|
 gem 'sentry-raven'
+gem 'faraday-httpclient', '~> 2.0'
 
 # Automation
 gem 'arc-client', git: 'https://github.com/sapcc/arc-client.git'
@@ -142,4 +147,4 @@ group :test do
   gem 'rails-controller-testing'
 end
 
-gem 'faraday-httpclient', '~> 2.0'
+

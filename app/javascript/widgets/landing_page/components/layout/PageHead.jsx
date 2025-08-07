@@ -27,7 +27,7 @@ const PageHead = () => {
   }
 
   return (
-    <PageHeader logo={<SapLogo alt="SAP" />}>
+    <PageHeader logo={<SapLogo alt="SAP" />} heading="Cloud Infrastructure">
       <Stack className="tw-ml-auto" gap="4" alignment="center">
         <>
           {selectedDomain === "CC3TEST" && (

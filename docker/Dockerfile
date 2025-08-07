@@ -15,7 +15,7 @@
 # You can also pull the image manually: docker pull keppel.eu-de-1.cloud.sap/ccloud-dockerhub-mirror/library/ruby:3.2.5-alpine3.20
 
 # check for latest version https://hub.docker.com/_/ruby/tags
-FROM keppel.eu-de-1.cloud.sap/ccloud-dockerhub-mirror/library/ruby:3.2.7-alpine3.21 AS base 
+FROM keppel.eu-de-1.cloud.sap/ccloud-dockerhub-mirror/library/ruby:3.4.5-alpine3.22 AS base 
 LABEL source_repository="https://github.com/sapcc/elektra"
 
 ENV APP_PATH=/home/app
@@ -53,7 +53,7 @@ RUN apk --no-cache add postgresql16-dev ruby-sassc \
     byebug:11.1.3 \
     ffi:1.15.5 \
     nio4r:2.7.1 \
-    nokogiri:1.18.7 \
+    nokogiri:1.18.9 \
     pg:1.3.4 \
     puma:6.4.2  \
     redcarpet:3.6.0 \

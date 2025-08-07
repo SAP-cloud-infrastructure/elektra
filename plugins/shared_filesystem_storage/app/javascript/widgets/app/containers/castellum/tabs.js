@@ -1,15 +1,14 @@
-import { connect } from  'react-redux';
-import CastellumTabs from '../../components/castellum/tabs';
-import {
-  fetchCastellumDataIfNeeded,
-} from '../../actions/castellum';
+import { connect } from "react-redux"
+import CastellumTabs from "../../components/castellum/tabs"
+import { fetchCastellumDataIfNeeded } from "../../actions/castellum"
+import { CASTELLUM_AUTOSCALING } from "../../constants"
 
 export default connect(
-  state => ({
-    config: (state.castellum || {})['resources/nfs-shares'],
+  (state) => ({
+    config: (state.castellum || {})[CASTELLUM_AUTOSCALING.key],
   }),
-  dispatch => ({
+  (dispatch) => ({
     loadResourceConfigOnce: (projectID) =>
-      dispatch(fetchCastellumDataIfNeeded(projectID, 'resources/nfs-shares')),
-  }),
-)(CastellumTabs);
+      dispatch(fetchCastellumDataIfNeeded(projectID, null, CASTELLUM_AUTOSCALING.key)),
+  })
+)(CastellumTabs)

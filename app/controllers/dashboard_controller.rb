@@ -238,13 +238,14 @@ class DashboardController < ::ScopeController
     return unless @scoped_project_id
 
     # load active project. Try first from ObjectCache and then from API
+
     cached_active_project = ObjectCache.where(id: @scoped_project_id).first
     @active_project = if cached_active_project
-                        Identity::Project.new(services.identity, cached_active_project.payload)
-                      else
-                        service_user.identity.find_project(@scoped_project_id)
-                      end
-
+      Identity::Project.new(services.identity, cached_active_project.payload)
+    else
+      service_user.identity.find_project(@scoped_project_id)
+    end
+    
     return if @active_project && @active_project.name == @scoped_project_name
 
     @active_project =
@@ -293,6 +294,7 @@ class DashboardController < ::ScopeController
   end
 
   def project_id_required
+    
     return unless params[:project_id].blank?
 
     raise Core::Error::ProjectNotFound,

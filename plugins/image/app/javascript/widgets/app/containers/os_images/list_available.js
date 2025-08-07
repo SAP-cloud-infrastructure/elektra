@@ -5,7 +5,7 @@ import imageActions from "../../actions/os_images"
 const actions = imageActions("available")
 
 export default connect(
-  (state, ownProps) => ({
+  (state) => ({
     activeTab: "available",
     visibilityCounts: state.available.visibilityCounts,
     activeVisibilityFilter: state.available.activeVisibilityFilter,

@@ -6,11 +6,13 @@ import AccountCreateModal from "../containers/accounts/create"
 import AccountSubleaseTokenModal from "../containers/accounts/sublease"
 import AccountUpstreamConfigModal from "../containers/accounts/upstream_config"
 import GCPoliciesEditModal from "../containers/gc_policies/edit"
+import TagPoliciesEditModal from "../containers/tag_policies/edit"
 import RBACPoliciesEditModal from "../containers/rbac_policies/edit"
 import ValidationRulesEditModal from "../containers/validation_rules/edit"
 import RepositoryList from "../containers/repositories/list"
 import ImageList from "../containers/images/list"
 import ImageDetailsModal from "../containers/images/details"
+import SecurityScanPoliciesEditModal from "../containers/security_scan_policies/edit"
 
 const KeppelApp = (props) => {
   const { projectId, canEdit, isAdmin, hasExperimentalFeatures, dockerInfo } =
@@ -57,6 +59,20 @@ const KeppelApp = (props) => {
             path="/accounts/:account/gc_policies"
             render={(props) => (
               <GCPoliciesEditModal {...props} {...rootProps} />
+            )}
+          />
+          <Route
+            exact
+            path="/accounts/:account/tag_policies"
+            render={(props) => (
+              <TagPoliciesEditModal {...props} {...rootProps} />
+            )}
+          />
+          <Route
+            exact
+            path="/accounts/:account/security_scan_policies"
+            render={(props) => (
+              <SecurityScanPoliciesEditModal {...props} {...rootProps} />
             )}
           />
           <Route

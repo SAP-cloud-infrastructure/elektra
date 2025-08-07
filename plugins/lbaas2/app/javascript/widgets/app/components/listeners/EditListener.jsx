@@ -41,8 +41,7 @@ import { queryTlsCiphers } from "../../queries/listener"
 
 const SECRETS_ARE_CONTAINERS_WARNING = (
   <div className="alert alert-warning">
-    It looks like one or more of your secrets are containers. Please consider
-    the warning shown above
+    It looks like one or more of your secrets are containers. Please consider the warning shown above
   </div>
 )
 
@@ -55,15 +54,13 @@ const EditListener = (props) => {
   const [protocolType, setProtocolType] = useState(null)
   const [insetHeaders, setInsertHeaders] = useState(null)
   const [certificateContainer, setCertificateContainer] = useState(null)
-  const [CertificateContainerDeprecated, setCertificateContainerDeprecated] =
-    useState(false)
+  const [CertificateContainerDeprecated, setCertificateContainerDeprecated] = useState(false)
   const [SNIContainers, setSNIContainers] = useState(null)
   const [SNIContainersDeprecated, setSNIContainersDeprecated] = useState(false)
   const [clientAuthType, setClientAuthType] = useState(null)
   const [defaultPool, setDefaultPool] = useState(null)
   const [clientCATLScontainer, setClientCATLScontainer] = useState(null)
-  const [clientCATLScontainerDeprecated, setClientCATLScontainerDeprecated] =
-    useState(false)
+  const [clientCATLScontainerDeprecated, setClientCATLScontainerDeprecated] = useState(false)
   const [predPolicies, setPredPolicies] = useState([])
   const [tags, setTags] = useState([])
   const [nonSelectableTlsPools, setNonSelectableTlsPools] = useState([])
@@ -159,9 +156,7 @@ const EditListener = (props) => {
       setAdvancedSection()
       setSelectedTlsCiphers()
       // show already fields that depend on secrets (but with loading state), It just looks better.
-      setShowCertificateContainer(
-        certificateContainerRelation(listener.item.protocol)
-      )
+      setShowCertificateContainer(certificateContainerRelation(listener.item.protocol))
       setShowSNIContainer(SNIContainerRelation(listener.item.protocol))
       setShowCATLSContainer(CATLSContainerRelation(listener.item.protocol))
       setShowTLSCiphers(tlsCiphersRelation(listener.item.protocol))
@@ -186,28 +181,20 @@ const EditListener = (props) => {
   }
 
   const setSelectedProtocolType = () => {
-    const selectedOption = listenerProtocolTypes().find(
-      (i) => i.value == (listener.item.protocol || "").trim()
-    )
+    const selectedOption = listenerProtocolTypes().find((i) => i.value == (listener.item.protocol || "").trim())
     setProtocolType(selectedOption)
   }
 
   const setSelectedInsertHeaders = () => {
-    const availableInsertHeaders = protocolHeaderInsertionRelation(
-      listener.item.protocol
-    )
+    const availableInsertHeaders = protocolHeaderInsertionRelation(listener.item.protocol)
     setInsertHeaderSelectItems(availableInsertHeaders)
     setShowInsertHeaders((availableInsertHeaders || []).length > 0)
-    const selectedOptions = availableInsertHeaders.filter((i) =>
-      listener.item.insert_headers.includes(i.value)
-    )
+    const selectedOptions = availableInsertHeaders.filter((i) => listener.item.insert_headers.includes(i.value))
     setInsertHeaders(selectedOptions)
   }
 
   const setSelectedClientAuthenticationType = () => {
-    const availableClientAuthTypes = clientAuthenticationRelation(
-      listener.item.protocol
-    )
+    const availableClientAuthTypes = clientAuthenticationRelation(listener.item.protocol)
     setClientAuthenticationSelectItems(availableClientAuthTypes)
     setShowClientAuthentication((availableClientAuthTypes || []).length > 0)
     const selectedOption = availableClientAuthTypes.find(
@@ -218,16 +205,10 @@ const EditListener = (props) => {
 
   const setSelectedDefaultPool = () => {
     const selectedDefaultPoolID = listener.item.default_pool_id
-    const selectedOption = pools.items.find(
-      (i) => i.value == (selectedDefaultPoolID || "").trim()
-    )
+    const selectedOption = pools.items.find((i) => i.value == (selectedDefaultPoolID || "").trim())
     // if pool is not tls reset option
     setShowTLSPoolWarning(false)
-    if (
-      listener.item.protocol != "TERMINATED_HTTPS" &&
-      selectedOption &&
-      selectedOption.tls_enabled
-    ) {
+    if (listener.item.protocol != "TERMINATED_HTTPS" && selectedOption && selectedOption.tls_enabled) {
       setShowTLSPoolWarning(true)
     }
     setDefaultPool(selectedOption)
@@ -239,8 +220,7 @@ const EditListener = (props) => {
     // selected secrets directly on the field. We just check if the given secret ref
     // is deprecated
     if (selectedCertificateContainer) {
-      if (isSecretAContainer(selectedCertificateContainer))
-        setCertificateContainerDeprecated(true)
+      if (isSecretAContainer(selectedCertificateContainer)) setCertificateContainerDeprecated(true)
       setCertificateContainer({
         label: secretRefLabel(selectedCertificateContainer),
         value: selectedCertificateContainer,
@@ -269,8 +249,7 @@ const EditListener = (props) => {
     // selected secrets directly on the field. We just check if the given secret ref
     // is deprecated
     if (selectedCATLSContainer) {
-      if (isSecretAContainer(selectedCATLSContainer))
-        setClientCATLScontainerDeprecated(true)
+      if (isSecretAContainer(selectedCATLSContainer)) setClientCATLScontainerDeprecated(true)
       setClientCATLScontainer({
         label: secretRefLabel(selectedCATLSContainer),
         value: selectedCATLSContainer,
@@ -283,9 +262,7 @@ const EditListener = (props) => {
     const selectedTlsCiphers = listener.item?.tls_ciphers
     // split string colon separated to select options
     if (selectedTlsCiphers && typeof selectedTlsCiphers == "string") {
-      const options = selectedTlsCiphers
-        .split(":")
-        .map((item) => ({ value: item, label: item }))
+      const options = selectedTlsCiphers.split(":").map((item) => ({ value: item, label: item }))
       setTlsCiphers(options)
     }
   }
@@ -295,9 +272,7 @@ const EditListener = (props) => {
     // set available pred policies depending on the protocol
     setPredefinedPoliciesSelectItems(predPolicies)
     // find the selected pred policies from the tags
-    const selectedPredPoliciesOptions = predPolicies.filter((i) =>
-      listener.item.tags.includes(i.value)
-    )
+    const selectedPredPoliciesOptions = predPolicies.filter((i) => listener.item.tags.includes(i.value))
     // add fixed attribute
     const newOptions = selectedPredPoliciesOptions.map((item) => {
       item.isFixed = true
@@ -310,9 +285,7 @@ const EditListener = (props) => {
     )
     setTags(selectedTagsOptions)
 
-    setShowPredefinedPolicies(
-      predefinedPolicies(listener.item.protocol).length > 0
-    )
+    setShowPredefinedPolicies(predefinedPolicies(listener.item.protocol).length > 0)
     setHelpBlockItemsPredPolicies(helpBlockItems(listener.item.protocol))
   }
 
@@ -380,9 +353,7 @@ const EditListener = (props) => {
       // get the lb
       const params = matchParams(props)
       const lbID = params.loadbalancerID
-      props.history.replace(
-        `/loadbalancers/${lbID}/show?${searchParamsToString(props)}`
-      )
+      props.history.replace(`/loadbalancers/${lbID}/show?${searchParamsToString(props)}`)
     }
   }
 
@@ -391,19 +362,14 @@ const EditListener = (props) => {
    */
   const [formErrors, setFormErrors] = useState(null)
   const [insetHeaderSelectItems, setInsertHeaderSelectItems] = useState([])
-  const [clientAuthenticationSelectItems, setClientAuthenticationSelectItems] =
-    useState([])
-  const [predefinedPoliciesSelectItems, setPredefinedPoliciesSelectItems] =
-    useState(null)
-  const [helpBlockItemsPredPolicies, setHelpBlockItemsPredPolicies] =
-    useState(null)
+  const [clientAuthenticationSelectItems, setClientAuthenticationSelectItems] = useState([])
+  const [predefinedPoliciesSelectItems, setPredefinedPoliciesSelectItems] = useState(null)
+  const [helpBlockItemsPredPolicies, setHelpBlockItemsPredPolicies] = useState(null)
   const [tlsCiphers, setTlsCiphers] = useState(null)
 
   const [showInsertHeaders, setShowInsertHeaders] = useState(false)
-  const [showClientAuthentication, setShowClientAuthentication] =
-    useState(false)
-  const [showCertificateContainer, setShowCertificateContainer] =
-    useState(false)
+  const [showClientAuthentication, setShowClientAuthentication] = useState(false)
+  const [showCertificateContainer, setShowCertificateContainer] = useState(false)
   const [showSNIContainer, setShowSNIContainer] = useState(false)
   const [showCATLSContainer, setShowCATLSContainer] = useState(false)
   const [showPredefinedPolicies, setShowPredefinedPolicies] = useState(false)
@@ -498,11 +464,7 @@ const EditListener = (props) => {
 
       {listener.error ? (
         <Modal.Body>
-          <ErrorPage
-            headTitle="Edit Listener"
-            error={listener.error}
-            onReload={loadListener}
-          />
+          <ErrorPage headTitle="Edit Listener" error={listener.error} onReload={loadListener} />
         </Modal.Body>
       ) : (
         <>
@@ -520,28 +482,21 @@ const EditListener = (props) => {
             >
               <Modal.Body>
                 <div className="bs-callout bs-callout-warning bs-callout-emphasize">
-                  <h4>
-                    Switched to using PKCS12 for TLS Term certs (New in API
-                    version 2.8)
-                  </h4>
+                  <h4>Switched to using PKCS12 for TLS Term certs (New in API version 2.8)</h4>
                   <p>
-                    For the TERMINATED_HTTPS protocol listeners now use the URI
-                    of the Key Manager service secret containing a PKCS12 format
-                    certificate/key bundle.
+                    For the TERMINATED_HTTPS protocol listeners now use the URI of the Key Manager service secret
+                    containing a PKCS12 format certificate/key bundle.
                   </p>
                   <p>
                     <b>
-                      Listeners using secret containers of type "certificate"
-                      containing the certificate and key for TERMINATED_HTTPS
-                      protocol are deprecated and will no longer work in the
-                      near future. Please consider exchanging the secret
-                      containers for secrets and use PKCS12 format
-                      certificate/key bundles as soon as possible!
+                      Listeners using secret containers of type "certificate" containing the certificate and key for
+                      TERMINATED_HTTPS protocol are deprecated and will no longer work in the near future. Please
+                      consider exchanging the secret containers for secrets and use PKCS12 format certificate/key
+                      bundles as soon as possible!
                     </b>
                   </p>
                   <p>
-                    Please see following examples for creating certs with PKCS12
-                    format:{" "}
+                    Please see following examples for creating certs with PKCS12 format:{" "}
                     <a
                       href="https://github.com/openstack/octavia/blob/master/doc/source/user/guides/basic-cookbook.rst"
                       target="_blank"
@@ -551,26 +506,15 @@ const EditListener = (props) => {
                     </a>
                   </p>
                 </div>
-                <p>
-                  A Listener defines a protocol/port combination under which the
-                  load balancer can be called.
-                </p>
+                <p>A Listener defines a protocol/port combination under which the load balancer can be called.</p>
                 <Form.Errors errors={formErrors} />
                 <Form.ElementHorizontal label="Name" name="name" required>
                   <Form.Input elementType="input" type="text" name="name" />
                 </Form.ElementHorizontal>
                 <Form.ElementHorizontal label="Description" name="description">
-                  <Form.Input
-                    elementType="input"
-                    type="text"
-                    name="description"
-                  />
+                  <Form.Input elementType="input" type="text" name="description" />
                 </Form.ElementHorizontal>
-                <Form.ElementHorizontal
-                  label="Protocol Port"
-                  name="protocol_port"
-                  required
-                >
+                <Form.ElementHorizontal label="Protocol Port" name="protocol_port" required>
                   <Form.Input
                     elementType="input"
                     type="number"
@@ -581,25 +525,14 @@ const EditListener = (props) => {
                   />
                   <span className="help-block">
                     <i className="fa fa-info-circle"></i>
-                    The port under which the load balancer can be called. A port
-                    number between 1 and 65535.
+                    The port under which the load balancer can be called. A port number between 1 and 65535.
                   </span>
                 </Form.ElementHorizontal>
-                <Form.ElementHorizontal
-                  label="Protocol"
-                  name="protocol"
-                  required
-                >
-                  <SelectInput
-                    name="protocol"
-                    items={listenerProtocolTypes()}
-                    value={protocolType}
-                    isDisabled={true}
-                  />
+                <Form.ElementHorizontal label="Protocol" name="protocol" required>
+                  <SelectInput name="protocol" items={listenerProtocolTypes()} value={protocolType} isDisabled={true} />
                   <span className="help-block">
                     <i className="fa fa-info-circle"></i>
-                    The protocol which can be used to access the load balancer
-                    port.
+                    The protocol which can be used to access the load balancer port.
                   </span>
                 </Form.ElementHorizontal>
 
@@ -624,20 +557,11 @@ const EditListener = (props) => {
                               />
                               <span className="help-block">
                                 <i className="fa fa-info-circle"></i>
-                                The secret containing a PKCS12 format
-                                certificate/key bundles.
+                                The secret containing a PKCS12 format certificate/key bundles.
                               </span>
-                              {toManySecretsWarning(
-                                secrets.total,
-                                secrets.items?.length
-                              )}
-                              {secrets.error && (
-                                <span className="text-danger">
-                                  {secrets.error}
-                                </span>
-                              )}
-                              {CertificateContainerDeprecated &&
-                                SECRETS_ARE_CONTAINERS_WARNING}
+                              {toManySecretsWarning(secrets.total, secrets.items?.length)}
+                              {secrets.error && <span className="text-danger">{secrets.error}</span>}
+                              {CertificateContainerDeprecated && SECRETS_ARE_CONTAINERS_WARNING}
                             </Form.ElementHorizontal>
                           </div>
                         </>
@@ -645,10 +569,7 @@ const EditListener = (props) => {
 
                       {showPredefinedPolicies && (
                         <div>
-                          <Form.ElementHorizontal
-                            label="Extended Policy"
-                            name="extended_policies"
-                          >
+                          <Form.ElementHorizontal label="Extended Policy" name="extended_policies">
                             <SelectInput
                               name="extended_policies"
                               items={predefinedPoliciesSelectItems}
@@ -660,18 +581,11 @@ const EditListener = (props) => {
                             <span className="help-block">
                               <i className="fa fa-info-circle"></i>
                               <span className="help-block-text">
-                                Policies predefined by CCloud for special
-                                purpose. The policy will apply specific settings
-                                on the load balancer objects. L7Rules are not
-                                applicable and the Policy will be applied
-                                always. After creation these will be shown as a
-                                tag.
+                                Policies predefined by SAP Cloud Infrastructure for special purpose. The policy will
+                                apply specific settings on the load balancer objects. L7Rules are not applicable and the
+                                Policy will be applied always. After creation these will be shown as a tag.
                               </span>
-                              <HelpPopover
-                                text={helpBlockTextForSelect(
-                                  helpBlockItemsPredPolicies
-                                )}
-                              />
+                              <HelpPopover text={helpBlockTextForSelect(helpBlockItemsPredPolicies)} />
                             </span>
                           </Form.ElementHorizontal>
                         </div>
@@ -679,10 +593,7 @@ const EditListener = (props) => {
 
                       {showInsertHeaders && (
                         <div>
-                          <Form.ElementHorizontal
-                            label="Insert Headers"
-                            name="insert_headers"
-                          >
+                          <Form.ElementHorizontal label="Insert Headers" name="insert_headers">
                             <SelectInput
                               name="insert_headers"
                               items={insetHeaderSelectItems}
@@ -693,14 +604,9 @@ const EditListener = (props) => {
                             <span className="help-block">
                               <i className="fa fa-info-circle"></i>
                               <span className="help-block-text">
-                                Headers to insert into the request before it is
-                                sent to the backend member.
+                                Headers to insert into the request before it is sent to the backend member.
                               </span>
-                              <HelpPopover
-                                text={helpBlockTextForSelect(
-                                  httpHeaderInsertions("ALL")
-                                )}
-                              />
+                              <HelpPopover text={helpBlockTextForSelect(httpHeaderInsertions("ALL"))} />
                             </span>
                           </Form.ElementHorizontal>
                         </div>
@@ -714,8 +620,7 @@ const EditListener = (props) => {
                               <div className="bs-callout bs-callout-info bs-callout-emphasize">
                                 <p>
                                   {" "}
-                                  Use <b>SNI</b> when having multiple TLS
-                                  certificates that you would like to use on the
+                                  Use <b>SNI</b> when having multiple TLS certificates that you would like to use on the
                                   same listener. Please also visit{" "}
                                   <a
                                     href="https://docs.openstack.org/octavia/latest/user/guides/basic-cookbook.html#deploy-a-tls-terminated-https-load-balancer-with-sni"
@@ -730,10 +635,7 @@ const EditListener = (props) => {
                             </div>
                           </div>
 
-                          <Form.ElementHorizontal
-                            label="SNI Secrets"
-                            name="sni_container_refs"
-                          >
+                          <Form.ElementHorizontal label="SNI Secrets" name="sni_container_refs">
                             <SelectInputCreatable
                               name="sni_container_refs"
                               isLoading={secrets.isLoading}
@@ -743,21 +645,12 @@ const EditListener = (props) => {
                               value={SNIContainers}
                             />
                             <span className="help-block">
-                              <i className="fa fa-info-circle"></i>A list of
-                              secrets containing PKCS12 format certificate/key
-                              bundles used for Server Name Indication (SNI).
+                              <i className="fa fa-info-circle"></i>A list of secrets containing PKCS12 format
+                              certificate/key bundles used for Server Name Indication (SNI).
                             </span>
-                            {toManySecretsWarning(
-                              secrets.total,
-                              secrets.items?.length
-                            )}
-                            {secrets.error && (
-                              <span className="text-danger">
-                                {secrets.error}
-                              </span>
-                            )}
-                            {SNIContainersDeprecated &&
-                              SECRETS_ARE_CONTAINERS_WARNING}
+                            {toManySecretsWarning(secrets.total, secrets.items?.length)}
+                            {secrets.error && <span className="text-danger">{secrets.error}</span>}
+                            {SNIContainersDeprecated && SECRETS_ARE_CONTAINERS_WARNING}
                           </Form.ElementHorizontal>
                         </>
                       )}
@@ -769,10 +662,8 @@ const EditListener = (props) => {
                             <div className="col-sm-12">
                               <div className="bs-callout bs-callout-info bs-callout-emphasize">
                                 <p>
-                                  <b>Client authentication</b> allows users to
-                                  authenticate themselves to the VIP using
-                                  certificates. This is also known as two-way
-                                  TLS authentication. Please also visit{" "}
+                                  <b>Client authentication</b> allows users to authenticate themselves to the VIP using
+                                  certificates. This is also known as two-way TLS authentication. Please also visit{" "}
                                   <a
                                     href="https://docs.openstack.org/octavia/latest/user/guides/basic-cookbook.html#deploy-a-tls-terminated-https-load-balancer-with-client-authentication"
                                     target="_blank"
@@ -790,10 +681,7 @@ const EditListener = (props) => {
 
                       {showClientAuthentication && (
                         <>
-                          <Form.ElementHorizontal
-                            label="Client Authentication Mode"
-                            name="client_authentication"
-                          >
+                          <Form.ElementHorizontal label="Client Authentication Mode" name="client_authentication">
                             <SelectInput
                               name="client_authentication"
                               items={clientAuthenticationSelectItems}
@@ -825,20 +713,11 @@ const EditListener = (props) => {
                             />
                             <span className="help-block">
                               <i className="fa fa-info-circle"></i>
-                              The secret containing a PEM format client CA
-                              certificate bundle.
+                              The secret containing a PEM format client CA certificate bundle.
                             </span>
-                            {toManySecretsWarning(
-                              secrets.total,
-                              secrets.items?.length
-                            )}
-                            {secrets.error && (
-                              <span className="text-danger">
-                                {secrets.error}
-                              </span>
-                            )}
-                            {clientCATLScontainerDeprecated &&
-                              SECRETS_ARE_CONTAINERS_WARNING}
+                            {toManySecretsWarning(secrets.total, secrets.items?.length)}
+                            {secrets.error && <span className="text-danger">{secrets.error}</span>}
+                            {clientCATLScontainerDeprecated && SECRETS_ARE_CONTAINERS_WARNING}
                           </Form.ElementHorizontal>
                         </>
                       )}
@@ -849,22 +728,16 @@ const EditListener = (props) => {
                             <div className="col-sm-12">
                               <div className="bs-callout bs-callout-warning bs-callout-emphasize">
                                 <p>
-                                  This setting is for advanced use cases that
-                                  require more control over the network
+                                  This setting is for advanced use cases that require more control over the network
                                   configuration of the listener. <br />
-                                  The following lists the default cipher suites
-                                  attached to a listener. This should only be
-                                  changed by expert users who know why they need
-                                  to make a change. For the majority of
-                                  scenarios no change is necessary.
+                                  The following lists the default cipher suites attached to a listener. This should only
+                                  be changed by expert users who know why they need to make a change. For the majority
+                                  of scenarios no change is necessary.
                                 </p>
                               </div>
                             </div>
                           </div>
-                          <Form.ElementHorizontal
-                            label="TLS Ciphers Suites"
-                            name="tls_ciphers"
-                          >
+                          <Form.ElementHorizontal label="TLS Ciphers Suites" name="tls_ciphers">
                             <SelectInput
                               name="tls_ciphers"
                               isLoading={ciphers.isLoading}
@@ -878,11 +751,7 @@ const EditListener = (props) => {
                               <i className="fa fa-info-circle"></i>
                               The TLS cipher suites.
                             </span>
-                            {ciphers.isError && (
-                              <span className="text-danger">
-                                {ciphers.error.message}
-                              </span>
-                            )}
+                            {ciphers.isError && <span className="text-danger">{ciphers.error.message}</span>}
                           </Form.ElementHorizontal>
                         </>
                       )}
@@ -895,8 +764,7 @@ const EditListener = (props) => {
                     <div className="col-sm-8 col-sm-push-4">
                       <div className="bs-callout bs-callout-warning bs-callout-emphasize">
                         <p>
-                          TLS-enabled pool can only be attached to a{" "}
-                          <b>TERMINATED_HTTPS</b> type listener!
+                          TLS-enabled pool can only be attached to a <b>TERMINATED_HTTPS</b> type listener!
                         </p>
                         <p>Please change default pool!</p>
                       </div>
@@ -904,10 +772,7 @@ const EditListener = (props) => {
                   </div>
                 </Collapse>
 
-                <Form.ElementHorizontal
-                  label="Default Pool"
-                  name="default_pool_id"
-                >
+                <Form.ElementHorizontal label="Default Pool" name="default_pool_id">
                   <SelectInput
                     name="default_pool_id"
                     isLoading={pools.isLoading}
@@ -916,44 +781,26 @@ const EditListener = (props) => {
                     value={defaultPool}
                     isClearable
                   />
-                  {pools.error && (
-                    <span className="text-danger">{pools.error}</span>
-                  )}
+                  {pools.error && <span className="text-danger">{pools.error}</span>}
                   <span className="help-block">
                     <i className="fa fa-info-circle"></i>
-                    The pool to which all traffic will be routed if no L7 Policy
-                    defines a different pool.
+                    The pool to which all traffic will be routed if no L7 Policy defines a different pool.
                   </span>
                 </Form.ElementHorizontal>
-                <Form.ElementHorizontal
-                  label="Connection Limit"
-                  name="connection_limit"
-                >
-                  <Form.Input
-                    elementType="input"
-                    type="number"
-                    min="-1"
-                    name="connection_limit"
-                  />
+                <Form.ElementHorizontal label="Connection Limit" name="connection_limit">
+                  <Form.Input elementType="input" type="number" min="-1" name="connection_limit" />
                   <span className="help-block">
                     <i className="fa fa-info-circle"></i>
-                    The number of parallel connections allowed to access the
-                    load balancer. Value -1 means infinite connections are
-                    allowed.
+                    The number of parallel connections allowed to access the load balancer. Value -1 means infinite
+                    connections are allowed.
                   </span>
                 </Form.ElementHorizontal>
 
                 <Form.ElementHorizontal label="Tags" name="tags">
-                  <TagsInput
-                    name="tags"
-                    initValue={tags}
-                    useFormContext={false}
-                    onChange={onTagsChange}
-                  />
+                  <TagsInput name="tags" initValue={tags} useFormContext={false} onChange={onTagsChange} />
                   <span className="help-block">
                     <i className="fa fa-info-circle"></i>
-                    Start a new tag typing a string and hitting the Enter or Tab
-                    key.
+                    Start a new tag typing a string and hitting the Enter or Tab key.
                   </span>
                 </Form.ElementHorizontal>
               </Modal.Body>
