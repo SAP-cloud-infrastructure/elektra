@@ -38,6 +38,16 @@ To that end Elektra provides web UIs that turn operator actions into user self-s
 
 ![Elektra Project Screen](https://github.com/sapcc/documents/raw/master/screenshots/sapcc_elektra_project_screen.png)
 
+## Disclaimer
+
+Unfortunately, out of the box Elektra is not compatible with vanilla OpenStack deployments. It relies on several custom implementations specifically developed for SAP Cloud Infrastructure, including:
+
+- Project onboarding wizard
+- Resource management systems
+- Additional specialized services
+
+These components are tailored to SAP's specific infrastructure requirements and use cases. As a result, Elektra can only run on OpenStack installations that have been customized for SAP Cloud Infrastructure environments.
+
 ## Where does the name come from?
 
 In Greek mythology Elektra, the bright or brilliant one, is the Goddess of Clouds with a silver lining.
@@ -108,11 +118,11 @@ To use packages like `@sapcc/limes-ui`, a **GITHUB_TOKEN** is required. The foll
     (1 Zeile)
     ```
 
-2.  Install **ruby** version 3.2.7
+2.  Install **ruby** version 3.4.5
 
     ```bash
     brew install ruby-install
-    ruby-install ruby 3.2.7
+    ruby-install ruby 3.4.5
     ```
 
 3.  Install **chruby** to change the current ruby version (optional). This is helpful when having projects with different ruby versions.

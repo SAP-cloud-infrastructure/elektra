@@ -1,4 +1,4 @@
-@import "@cloudoperators/juno-ui-components/build/lib/variables";
+@import "./variables"; // this is a workaround to import variables, these variables where shipped with juno-ui-components until v2.34.0 and lost in v2.35.0
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";

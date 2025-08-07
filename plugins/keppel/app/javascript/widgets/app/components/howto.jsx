@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 import { Link } from "react-router-dom"
 import React from "react"
-import { makeSelectBox } from "./utils"
+import { SelectBox } from "./componentHelpers/SelectBox"
 
 const apiStyleOptions = [
   { value: "regular", label: "Default style (account name in path)" },
@@ -25,12 +25,8 @@ export default class Howto extends React.Component {
     const { registryDomain, userName } = dockerInfo
 
     const isDomainRemapped = this.state.apiStyle == "domainremap"
-    const fullRegistryDomain = isDomainRemapped
-      ? `${accountName}.${registryDomain}`
-      : registryDomain
-    const fullRepoName = isDomainRemapped
-      ? repoName
-      : `${accountName}/${repoName}`
+    const fullRegistryDomain = isDomainRemapped ? `${accountName}.${registryDomain}` : registryDomain
+    const fullRepoName = isDomainRemapped ? repoName : `${accountName}/${repoName}`
 
     return (
       <div className="plugin-help visible">
@@ -45,20 +41,19 @@ export default class Howto extends React.Component {
           >
             x
           </a>
-          <h4>
-            How to use this {repoName == "<repo>" ? "account" : "repository"}{" "}
-            with Docker
-          </h4>
+          <h4>How to use this {repoName == "<repo>" ? "account" : "repository"} with Docker</h4>
           <p>
-            {makeSelectBox({
-              options: apiStyleOptions,
-              value: this.state.apiStyle,
-              isEditable: true,
-              onChange: (e) => {
-                e.preventDefault()
-                this.setAPIStyle(e.target.value)
-              },
-            })}
+            {
+              <SelectBox
+                options={apiStyleOptions}
+                value={this.state.apiStyle}
+                isEditable={true}
+                onChange={(e) => {
+                  e.preventDefault()
+                  this.setAPIStyle(e.target.value)
+                }}
+              />
+            }
           </p>
           <ol className="howto">
             <li>
@@ -83,12 +78,8 @@ export default class Howto extends React.Component {
               <pre>
                 <code>{`$ docker pull ${fullRegistryDomain}/${fullRepoName}:<tag>`}</code>
               </pre>
-              When the repository permits anonymous pulling, logging in is not
-              required. Check{" "}
-              <Link to={`/accounts/${accountName}/access_policies`}>
-                the account's access policies
-              </Link>{" "}
-              for details.
+              When the repository permits anonymous pulling, logging in is not required. Check{" "}
+              <Link to={`/accounts/${accountName}/access_policies`}>the account's access policies</Link> for details.
             </li>
           </ol>
         </div>

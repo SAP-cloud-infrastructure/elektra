@@ -8,15 +8,19 @@
       = floating_ip.floating_ip_address
       - if floating_ip.subnet_object
         %span.info-text= " / #{floating_ip.subnet_object.name}"
-      - if floating_ip.dns_domain
         %br
-        %small.info-text= "#{floating_ip.dns_name}.#{floating_ip.dns_domain}"
+        %small.info-text
+          - if defined?(fip_ptr_record) && fip_ptr_record&.ptrdname.present?
+            = fip_ptr_record.ptrdname
+          - else
+            - if floating_ip.dns_domain
+              = "#{floating_ip.dns_name}.#{floating_ip.dns_domain}"
   %td
     - if floating_ip.fixed_ip_address.present?
       = link_to plugin('networking').floating_ip_path(floating_ip.id), data: {modal: true} do
         %i.fa.fa-desktop.fa-fw
         = floating_ip.fixed_ip_address
-  %td= floating_ip.description
+  %td{width: "40%"}= floating_ip.description
   %td= floating_ip.status
 
   %td.snug

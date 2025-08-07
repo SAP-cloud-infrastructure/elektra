@@ -1,5 +1,6 @@
 module Inquiry
-  class InquiryMailer < ApplicationMailer
+  class InquiryMailer < ::CoreApplicationMailer
+    
     def notification_email_requester(
       user_email,
       user_full_name,
@@ -11,11 +12,12 @@ module Inquiry
       @user_full_name = user_full_name
       @inquiry_step = inquiry_step
       @inquiry = inquiry
-      mail(
-        to: @user_email,
-        subject:
-          "Converged Cloud: Your resource request is in state: #{@inquiry.aasm.human_state}",
-        content_type: "text/html",
+
+      email_body = render_to_string('inquiry/inquiry_mailer/notification_email_requester', layout: false)
+      send_custom_email(
+        recipient: @user_email,
+        subject: "SAP Cloud Infrastructure: Your resource request is in state: #{@inquiry.aasm.human_state}",
+        body_html: email_body
       )
     end
 
@@ -30,7 +32,7 @@ module Inquiry
       @inquiry_step = inquiry_step
       @inquiry = inquiry
       @requester_name = "#{requester.full_name} (#{requester.name})"
-      subject = "Converged Cloud: Please process a resource request "
+      subject = "SAP Cloud Infrastructure: Please process a resource request "
       if @inquiry.tags
         if @inquiry.tags["region"]
           subject += " for region #{@inquiry.tags["region"]}"
@@ -39,8 +41,14 @@ module Inquiry
           subject += "/#{@inquiry.tags["domain_name"]}"
         end
       end
+
       # this is called from the model, first try with all emails at once, if a error occurs, try to send each email separately
-      mail(to: processor_emails, subject: subject, content_type: "text/html")
+      email_body = render_to_string('inquiry/inquiry_mailer/notification_email_processors', layout: false)
+      send_custom_email(
+        recipient: processor_emails,
+        subject: subject,
+        body_html: email_body
+      )
     end
 
     def notification_email_additional_recipients(
@@ -55,7 +63,7 @@ module Inquiry
       @inquiry = inquiry
       @requester_name = "#{requester.full_name} (#{requester.name})"
       subject =
-        "Converged Cloud: Additional Review, A request needs your attention!"
+        "SAP Cloud Infrastructure: Additional Review, A request needs your attention!"
       if @inquiry.tags
         if @inquiry.tags["region"]
           subject += " for region #{@inquiry.tags["region"]}"
@@ -64,15 +72,21 @@ module Inquiry
           subject += "/#{@inquiry.tags["domain_name"]}"
         end
       end
+
       # this is called from the model, first try with all emails at once, if a error occurs, try to send each email separately
-      mail(to: receiver_emails, subject: subject, content_type: "text/html")
+      email_body = render_to_string('inquiry/inquiry_mailer/notification_email_additional_recipients', layout: false)
+      send_custom_email(
+        recipient: receiver_emails,
+        subject: subject,
+        body_html: email_body
+      ) 
     end
 
     def notification_new_project(inform_dl, inquiry, user_full_name)
       @inquiry = inquiry
       @requester_name = user_full_name
       subject =
-        "Converged Cloud: New project was created for LoB #{@inquiry.payload["lob"]}"
+        "SAP Cloud Infrastructure: New project was created for LoB #{@inquiry.payload["lob"]}"
       if @inquiry.tags
         if @inquiry.tags["region"]
           subject += " in region #{@inquiry.tags["region"]}"
@@ -81,7 +95,15 @@ module Inquiry
           subject += "/#{@inquiry.tags["domain_name"]}"
         end
       end
-      mail(to: inform_dl, subject: subject, content_type: "text/html")
+      
+      # Render the email body content
+      email_body = render_to_string('inquiry/inquiry_mailer/notification_new_project', layout: false)
+      send_custom_email(
+        recipient: inform_dl,
+        subject: subject,
+        body_html: email_body
+      )      
     end
+
   end
 end

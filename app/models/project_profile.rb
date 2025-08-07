@@ -1,5 +1,5 @@
 class ProjectProfile < ApplicationRecord
-  serialize :wizard_payload
+  serialize :wizard_payload, coder: YAML
   before_save :write_wizard_status
 
   STATUS_DONE = "done"

@@ -7,6 +7,7 @@ import React from "react"
 import GCPoliciesEditRow from "./row"
 import { validatePolicy } from "./utils"
 import { apiStateIsDeleting } from "../utils"
+import { moveItems } from "../componentHelpers/MoveOperation"
 
 export default class GCPoliciesEditModal extends React.Component {
   state = {
@@ -80,14 +81,8 @@ export default class GCPoliciesEditModal extends React.Component {
     const policies = this.state.policies.filter((p, index) => idx != index)
     this.setState({ ...this.state, policies })
   }
-  movePolicy = (idx, step) => {
-    const policies = [...this.state.policies]
-    const p1 = policies[idx],
-      p2 = policies[idx + step]
-    if (p1 !== null && p2 !== null) {
-      policies[idx] = p2
-      policies[idx + step] = p1
-    }
+  movePolicy = ({ index: idx, step: step }) => {
+    const policies = moveItems(this.state.policies, { index: idx, step: step })
     this.setState({ ...this.state, policies })
   }
 
