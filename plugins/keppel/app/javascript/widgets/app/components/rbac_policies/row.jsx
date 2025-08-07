@@ -1,4 +1,4 @@
-import { makeSelectBox } from "../utils"
+import { SelectBox } from "../componentHelpers/SelectBox"
 import React from "react"
 
 const permsOptions = [
@@ -43,11 +43,7 @@ const RBACPoliciesEditRow = ({
   setForbiddenPermissions,
   removePolicy,
 }) => {
-  const {
-    match_repository: repoRegex,
-    match_username: userRegex,
-    match_cidr: sourceCIDR,
-  } = policy
+  const { match_repository: repoRegex, match_username: userRegex, match_cidr: sourceCIDR } = policy
   const currentPerms = policy.permissions.sort().join(",") || ""
   const currentPermsOptions = isExternalReplica
     ? permsOptions
@@ -79,10 +75,7 @@ const RBACPoliciesEditRow = ({
             value={userRegex || ""}
             className="form-control"
             onChange={(e) => setUserRegex(index, e.target.value)}
-            disabled={
-              currentPerms == "anonymous_pull" ||
-              currentPerms == "anonymous_first_pull"
-            }
+            disabled={currentPerms == "anonymous_pull" || currentPerms == "anonymous_first_pull"}
           />
         ) : userRegex ? (
           <code>{userRegex}</code>
@@ -107,20 +100,22 @@ const RBACPoliciesEditRow = ({
       <td>
         {/* These <div> are required for having a proper line break between the two lines of text if `isEditable = false`. */}
         <div>
-          {makeSelectBox({
-            isEditable,
-            options: currentPermsOptions,
-            value: currentPerms,
-            onChange: (e) => setPermissions(index, e.target.value),
-          })}
+          <SelectBox
+            isEditable={isEditable}
+            options={currentPermsOptions}
+            value={currentPerms}
+            onChange={(e) => setPermissions(index, e.target.value)}
+          />
         </div>
         <div>
-          {makeSelectBox({
-            isEditable,
-            options: currentForbiddenPermsOptions,
-            value: currentForbiddenPerms,
-            onChange: (e) => setForbiddenPermissions(index, e.target.value),
-          })}
+          {
+            <SelectBox
+              isEditable={isEditable}
+              options={currentForbiddenPermsOptions}
+              value={currentForbiddenPerms}
+              onChange={(e) => setForbiddenPermissions(index, e.target.value)}
+            />
+          }
         </div>
       </td>
       <td>

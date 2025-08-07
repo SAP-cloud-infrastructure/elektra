@@ -2,6 +2,7 @@ require 'core/audit_logger'
 # This class implements functionality to support modal views.
 # All subclasses which require modal views should inherit from this class.
 class ApplicationController < ActionController::Base
+
   layout 'application'
   include ApplicationHelper
 
@@ -13,6 +14,7 @@ class ApplicationController < ActionController::Base
   include Core::Paginatable
 
   extend ErrorRenderer
+
 
   # Prevent CSRF attacks by raising an exception.
   # For APIs, you may want to use :null_session instead.
@@ -72,7 +74,7 @@ class ApplicationController < ActionController::Base
 
   def redirect_to(options = {}, response_options = {})
     if request.format == Mime[:json] || modal? || params[:polling_service] ||
-       params[:do_not_redirect]
+      params[:do_not_redirect]
       head :ok, location: url_for(options)
     else
       # NOTE: please do not use "allow_other_host: true" here just pass it as an option from the controller where redirect_to is called
