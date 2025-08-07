@@ -4,9 +4,7 @@ module Reports
   class CostController < DashboardController
     authorization_context "reports"
     authorization_required
-
-    before_action :role_assigments, only: %i[users groups]
-
+    
     def project
       if request.format.json?
         data = services.masterdata_cockpit.get_project_costing

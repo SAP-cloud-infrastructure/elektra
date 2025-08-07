@@ -25,7 +25,7 @@
       %tr{data:{empty:true}}
         %td{colspa: 5} No Floating IP available
     - else
-      = render partial: 'list', locals: { floating_ips: @floating_ips}
+      = render partial: 'list', locals: { floating_ips: @floating_ips, fip_ptr_records: @fip_ptr_records }
 
 - if @pagination_has_next
   .ajax-paginate{ data: { ajax_paginate: true, list_selector: 'table#floating_ips tbody', search_input_selector: '#search_ips_input'} }

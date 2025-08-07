@@ -1,6 +1,8 @@
-import { makeSelectBox } from "../utils"
-import { validatePolicy } from "./utils"
 import React from "react"
+import { MoveOperation } from "../componentHelpers/MoveOperation"
+import { SelectBox } from "../componentHelpers/SelectBox"
+import { TextInput } from "../componentHelpers/TextInput"
+import { validatePolicy } from "./utils"
 
 const actionOptions = [
   { value: "protect", label: "Protect image" },
@@ -44,24 +46,6 @@ const GCPoliciesEditRow = ({
   setPolicyAttribute,
   removePolicy,
 }) => {
-  const makeTextInput = (attr, value) => {
-    value = value || ""
-    if (!isEditable) {
-      if (value === "") {
-        return <em>Any</em>
-      }
-      return <code>{value || ""}</code>
-    }
-    return (
-      <input
-        type="text"
-        value={value}
-        className="form-control"
-        onChange={(e) => setPolicyAttribute(index, attr, e.target.value)}
-      />
-    )
-  }
-
   const makeNumberInput = (attr, value) => {
     value = value || 0
     if (!isEditable) {
@@ -73,18 +57,14 @@ const GCPoliciesEditRow = ({
         value={value.toString()}
         className="form-control"
         min="1"
-        onChange={(e) =>
-          setPolicyAttribute(index, attr, parseInt(e.target.value, 10))
-        }
+        onChange={(e) => setPolicyAttribute(index, attr, parseInt(e.target.value, 10))}
       />
     )
   }
 
   const timeConstraint = policy.time_constraint || {}
   const currentTimestampOption = timeConstraint.on || "off"
-  const currentTimeConstraintOption = timeConstraintOptions
-    .map((o) => o.value)
-    .find((key) => key in timeConstraint)
+  const currentTimeConstraintOption = timeConstraintOptions.map((o) => o.value).find((key) => key in timeConstraint)
 
   const validationError = validatePolicy(policy)
 
@@ -92,130 +72,132 @@ const GCPoliciesEditRow = ({
     <tr>
       {isEditable ? (
         <td key="order" className="policy-order-buttons">
-          {index > 0 ? (
-            <button
-              className="btn btn-xs btn-default"
-              onClick={(e) => movePolicy(index, -1)}
-            >
-              Move up
-            </button>
-          ) : (
-            <button className="btn btn-xs btn-default" disabled={true}>
-              Move up
-            </button>
-          )}
-          {index < policyCount - 1 ? (
-            <button
-              className="btn btn-xs btn-default"
-              onClick={(e) => movePolicy(index, +1)}
-            >
-              Move down
-            </button>
-          ) : (
-            <button className="btn btn-xs btn-default" disabled={true}>
-              Move down
-            </button>
-          )}
+          <MoveOperation index={index} itemCount={policyCount} onMove={movePolicy} />
         </td>
       ) : (
         <td key="order" className="policy-order-buttons"></td>
       )}
       <td>
-        {makeSelectBox({
-          isEditable,
-          options: actionOptions,
-          value: policy.action,
-          onChange: (e) => setPolicyAttribute(index, "action", e.target.value),
-        })}
+        {
+          <SelectBox
+            isEditable={isEditable}
+            options={actionOptions}
+            value={policy.action}
+            onChange={(e) => setPolicyAttribute(index, "action", e.target.value)}
+          />
+        }
       </td>
       <td className="form-inline">
         <div className="policy-matching-rule-line">
-          {makeSelectBox({
-            isEditable,
-            options: repoFilterOptions,
-            value: policy.ui_hints.repo_filter,
-            onChange: (e) =>
-              setPolicyAttribute(index, "repo_filter", e.target.value),
-          })}
+          {
+            <SelectBox
+              isEditable={isEditable}
+              options={repoFilterOptions}
+              value={policy.ui_hints.repo_filter}
+              onChange={(e) => setPolicyAttribute(index, "repo_filter", e.target.value)}
+            />
+          }
           {policy.ui_hints.repo_filter === "on" && (
             <>
               {" regex "}
-              {makeTextInput("match_repository", policy.match_repository)}
+              <TextInput
+                value={policy.match_repository}
+                isEditable={isEditable}
+                onChange={(e) => {
+                  setPolicyAttribute(index, "match_repository", e.target.value)
+                }}
+              />
               {(isEditable || policy.except_repository) && (
                 <>
                   {" but not regex "}
-                  {makeTextInput("except_repository", policy.except_repository)}
+                  <TextInput
+                    value={policy.except_repository}
+                    isEditable={isEditable}
+                    onChange={(e) => {
+                      setPolicyAttribute(index, "except_repository", e.target.value)
+                    }}
+                  />
                 </>
               )}
             </>
           )}
         </div>
         <div className="policy-matching-rule-line">
-          {makeSelectBox({
-            isEditable,
-            options: tagFilterOptions,
-            value: policy.ui_hints.tag_filter,
-            onChange: (e) =>
-              setPolicyAttribute(index, "tag_filter", e.target.value),
-          })}
+          {
+            <SelectBox
+              isEditable={isEditable}
+              options={tagFilterOptions}
+              value={policy.ui_hints.tag_filter}
+              onChange={(e) => setPolicyAttribute(index, "tag_filter", e.target.value)}
+            />
+          }
           {policy.ui_hints.tag_filter === "on" && (
             <>
               {" regex "}
-              {makeTextInput("match_tag", policy.match_tag)}
+              <TextInput
+                value={policy.match_tag}
+                isEditable={isEditable}
+                onChange={(e) => {
+                  setPolicyAttribute(index, "match_tag", e.target.value)
+                }}
+              />
               {(isEditable || policy.except_tag) && (
                 <>
                   {" but not regex "}
-                  {makeTextInput("except_tag", policy.except_tag)}
+                  <TextInput
+                    value={policy.match_tag}
+                    isEditable={isEditable}
+                    onChange={(e) => {
+                      setPolicyAttribute(index, "except_tag", e.target.value)
+                    }}
+                  />
                 </>
               )}
             </>
           )}
         </div>
         <div className="policy-matching-rule-line">
-          {makeSelectBox({
-            isEditable,
-            options: timestampOptions,
-            value: currentTimestampOption,
-            onChange: (e) =>
-              setPolicyAttribute(index, "timestamp", e.target.value),
-          })}
+          {
+            <SelectBox
+              isEditable={isEditable}
+              options={timestampOptions}
+              value={currentTimestampOption}
+              onChange={(e) => setPolicyAttribute(index, "timestamp", e.target.value)}
+            />
+          }
           {currentTimestampOption !== "off" && (
             <>
               {" "}
-              {makeSelectBox({
-                isEditable,
-                options: timeConstraintOptions,
-                value: currentTimeConstraintOption,
-                onChange: (e) =>
-                  setPolicyAttribute(index, "time_constraint", e.target.value),
-              })}
-              {(currentTimeConstraintOption === "oldest" ||
-                currentTimeConstraintOption == "newest") && (
+              {
+                <SelectBox
+                  isEditable={isEditable}
+                  options={timeConstraintOptions}
+                  value={currentTimeConstraintOption}
+                  onChange={(e) => setPolicyAttribute(index, "time_constraint", e.target.value)}
+                />
+              }
+              {(currentTimeConstraintOption === "oldest" || currentTimeConstraintOption == "newest") && (
                 <>
                   {" "}
-                  {makeNumberInput(
-                    currentTimeConstraintOption,
-                    policy.time_constraint[currentTimeConstraintOption]
-                  )}
+                  {makeNumberInput(currentTimeConstraintOption, policy.time_constraint[currentTimeConstraintOption])}
                   {" in this repository"}
                 </>
               )}
-              {(currentTimeConstraintOption === "older_than" ||
-                currentTimeConstraintOption == "newer_than") && (
+              {(currentTimeConstraintOption === "older_than" || currentTimeConstraintOption == "newer_than") && (
                 <>
                   {" "}
                   {makeNumberInput(
                     currentTimeConstraintOption,
                     policy.time_constraint[currentTimeConstraintOption].value
                   )}{" "}
-                  {makeSelectBox({
-                    isEditable,
-                    options: timeUnitOptions,
-                    value:
-                      policy.time_constraint[currentTimeConstraintOption].unit,
-                    onChange: (e) =>
-                      setPolicyAttribute(index, "time_unit", e.target.value),
-                  })}
+                  {
+                    <SelectBox
+                      isEditable={isEditable}
+                      options={timeUnitOptions}
+                      value={policy.time_constraint[currentTimeConstraintOption].unit}
+                      onChange={(e) => setPolicyAttribute(index, "time_unit", e.target.value)}
+                    />
+                  }
                 </>
               )}
             </>

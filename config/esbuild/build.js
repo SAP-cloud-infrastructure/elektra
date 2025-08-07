@@ -12,6 +12,7 @@ const envFilePlugin = require("./esbuild-plugin-env")
 const entryPoints = require("./entrypoints")
 
 const esbuild = require("esbuild")
+const { format } = require("path")
 const args = process.argv.slice(2)
 const watch = args.indexOf("--watch") >= 0
 const production = args.indexOf("--production") >= 0 || process.env.RAILS_ENV === "production"

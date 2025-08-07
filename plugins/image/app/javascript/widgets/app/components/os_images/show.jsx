@@ -1,7 +1,7 @@
 import { Modal, Button, Tabs, Tab } from "react-bootstrap"
 import { PrettyDate } from "lib/components/pretty_date"
 import { PrettySize } from "lib/components/pretty_size"
-import { JsonViewer } from "@cloudoperators/juno-ui-components/build/JsonViewer"
+import { JsonViewer } from "@cloudoperators/juno-ui-components"
 import { ImageIcon } from "./icon"
 import React from "react"
 
@@ -43,9 +43,7 @@ const ShowModal = ({ activeTab, image, loadImage, ...props }) => {
       aria-labelledby="contained-modal-title-lg"
     >
       <Modal.Header closeButton={true}>
-        <Modal.Title id="contained-modal-title-lg">
-          Image {image ? image.name : ""}
-        </Modal.Title>
+        <Modal.Title id="contained-modal-title-lg">Image {image ? image.name : ""}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         {image && (
@@ -68,87 +66,38 @@ const ShowModal = ({ activeTab, image, loadImage, ...props }) => {
                       </span>
                     )}
                   </Row>
-                  <Row
-                    label="Container Format"
-                    value={image.container_format}
-                  />
+                  <Row label="Container Format" value={image.container_format} />
                   <Row label="Disk Format" value={image.disk_format} />
                   <Row label="Visibility" value={image.visibility} />
                   <Row label="Status" value={image.status} />
-                  <Row label="Tags">
-                    {image.tags &&
-                      image.tags.map((tag, index) => (
-                        <div key={index}>{tag}</div>
-                      ))}
-                  </Row>
-                  <Row
-                    label="Min Disk"
-                    value={image.min_disk && `${image.min_disk} GB`}
-                  />
+                  <Row label="Tags">{image.tags && image.tags.map((tag, index) => <div key={index}>{tag}</div>)}</Row>
+                  <Row label="Min Disk" value={image.min_disk && `${image.min_disk} GB`} />
                   <Row label="Protected" value={image.protected} />
                   <Row label="File" value={image.file} />
                   <Row label="Checksum" value={image.checksum} />
                   <Row label="Size">
                     <PrettySize size={image.size} />
                   </Row>
-                  <Row
-                    label="Min Ram"
-                    value={image.min_ram && `${image.min_ram} MB`}
-                  />
+                  <Row label="Min Ram" value={image.min_ram && `${image.min_ram} MB`} />
                   <Row label="Schema" value={image.schema} />
-                  {image.hypervisor_type && (
-                    <Row
-                      label="Hypervisor Type"
-                      value={image.hypervisor_type}
-                    />
-                  )}
-                  {image.vmware_ostype && (
-                    <Row label="Vmware OS Type" value={image.vmware_ostype} />
-                  )}
+                  {image.hypervisor_type && <Row label="Hypervisor Type" value={image.hypervisor_type} />}
+                  {image.vmware_ostype && <Row label="Vmware OS Type" value={image.vmware_ostype} />}
                   {image.virtual_size && (
                     <Row label="Virtual Size">
                       <PrettySize size={image.virtual_size} />
                     </Row>
                   )}
-                  {image.vmware_disktype && (
-                    <Row
-                      label="Vmware Disktype"
-                      value={image.vmware_disktype}
-                    />
-                  )}
-                  {image.vmware_adaptertype && (
-                    <Row
-                      label="Vmware Adaptertype"
-                      value={image.vmware_adaptertype}
-                    />
-                  )}
-                  {image.base_image_ref && (
-                    <Row label="Base Image Ref" value={image.base_image_ref} />
-                  )}
-                  {image.user_id && (
-                    <Row label="User ID" value={image.user_id} />
-                  )}
-                  {image.image_type && (
-                    <Row label="Image Type" value={image.image_type} />
-                  )}
-                  {image.instance_uuid && (
-                    <Row label="Instance UUID" value={image.instance_uuid} />
-                  )}
-                  {image.hw_video_ram && (
-                    <Row label="HW Video RAM" value={image.hw_video_ram} />
-                  )}
-                  {image.hw_vif_model && (
-                    <Row label="HW VIF Model" value={image.hw_vif_model} />
-                  )}
-                  {image.hw_disk_bus && (
-                    <Row label="HW Disk BUS" value={image.hw_disk_bus} />
-                  )}
-                  {image.buildnumber && (
-                    <Row label="Buildnumber" value={image.buildnumber} />
-                  )}
-                  {image.architecture && (
-                    <Row label="Architecture" value={image.architecture} />
-                  )}
+                  {image.vmware_disktype && <Row label="Vmware Disktype" value={image.vmware_disktype} />}
+                  {image.vmware_adaptertype && <Row label="Vmware Adaptertype" value={image.vmware_adaptertype} />}
+                  {image.base_image_ref && <Row label="Base Image Ref" value={image.base_image_ref} />}
+                  {image.user_id && <Row label="User ID" value={image.user_id} />}
+                  {image.image_type && <Row label="Image Type" value={image.image_type} />}
+                  {image.instance_uuid && <Row label="Instance UUID" value={image.instance_uuid} />}
+                  {image.hw_video_ram && <Row label="HW Video RAM" value={image.hw_video_ram} />}
+                  {image.hw_vif_model && <Row label="HW VIF Model" value={image.hw_vif_model} />}
+                  {image.hw_disk_bus && <Row label="HW Disk BUS" value={image.hw_disk_bus} />}
+                  {image.buildnumber && <Row label="Buildnumber" value={image.buildnumber} />}
+                  {image.architecture && <Row label="Architecture" value={image.architecture} />}
 
                   <Row label="Created At">
                     <PrettyDate date={image.created_at} />

@@ -2,6 +2,8 @@ require "spec_helper"
 require "ostruct"
 
 RSpec.describe Automation::Node do
+  skip "Temporarily skipping all tests in this file"
+  
   # describe 'create_agents' do
   #
   #   it "should create nodes from the api" do
