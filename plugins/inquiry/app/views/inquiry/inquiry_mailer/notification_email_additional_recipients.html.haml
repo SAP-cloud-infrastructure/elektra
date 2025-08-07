@@ -10,11 +10,11 @@
     %p
       - if @inquiry.tags && @inquiry.tags['region']
         %br
-        %b Converged Cloud Region:
+        %b SAP Cloud Infrastructure Region:
         = @inquiry.tags['region']
 
       %br
-      %b Converged Cloud Domain:
+      %b SAP Cloud Infrastructure Domain:
       - if (@inquiry.tags && @inquiry.tags['domain_name'])
         = "#{@inquiry.tags['domain_name']} (#{@inquiry.domain_id})"
       - else
@@ -60,4 +60,4 @@
     %p
       Kind regards,
       %br
-      The SAP Converged Cloud Team
+      The SAP SAP Cloud Infrastructure Team

@@ -1,12 +1,10 @@
 # this config is used to control the visibility of plugins in the navigation,
 # to define floating ip networks.
 domains:
+  # Most general pattern last
   - name: any domain
     regex: ".*"
     floating_ip_networks:
-      - "FloatingIP-external-%DOMAIN_NAME%-10"
-      - "FloatingIP-external-%DOMAIN_NAME%-09"
-      - "FloatingIP-external-%DOMAIN_NAME%-08"
       - "FloatingIP-external-%DOMAIN_NAME%-07"
       - "FloatingIP-external-%DOMAIN_NAME%-06"
       - "FloatingIP-external-%DOMAIN_NAME%-05"
@@ -19,8 +17,17 @@ domains:
     dns_c_subdomain: true
     check_cidr_range: true
     terms_of_use_name: "actual_terms"
-  - name: test
-    regex: "_test_"
+
+  # More general pattern
+  - name: marioworld
+    regex: "^marioworld-.*$"
+    disabled_plugins:
+      - automation
+      - reports
+      - masterdata_cockpit
+      - webconsole
+      - dns_service
+      - email_service
     disabled_features:
       - documentation
       - support
@@ -28,16 +35,16 @@ domains:
       - internal_help_links
       - terms_of_use
       - networking_backup
-    terms_of_use_name: "test_domain_terms" # this term needs to be added to config/settings.yaml
-    disabled_plugins:
-      # following plugins name should be the same as the plugin name in the plugins directory
-      - test-plugin
+      - public_images
+    terms_of_use_name: "marioworld_terms"
     floating_ip_networks:
-      - "test_05"
-      - "test_04"
-      - "test_03"
-      - "test_02"
-      - "test_01"
+      - FloatingIP-external-marioworld-01
     dns_c_subdomain: false
-    # set this to use the federation feature in keystone
-    federation: false
+    check_cidr_range: false
+    federation: true
+    idp: "https://mario.world.corp"
+
+  # Most specific first
+  - name: marioworld-and-luigi
+    regex: "^marioworld-and-luigi.*$"
+    idp: "https://marioworld-and-luigi.world.corp"

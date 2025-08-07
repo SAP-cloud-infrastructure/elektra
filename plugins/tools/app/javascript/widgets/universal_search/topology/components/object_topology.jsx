@@ -1,6 +1,5 @@
 import { Graph } from "./graph"
-import { JsonViewer } from "@cloudoperators/juno-ui-components/build/JsonViewer"
-import { Popover, Modal, Button } from "react-bootstrap"
+import { JsonViewer } from "@cloudoperators/juno-ui-components"
 import React from "react"
 
 export default class App extends React.Component {
@@ -26,10 +25,7 @@ export default class App extends React.Component {
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
-    if (
-      Object.keys(this.state.selectedTypes).length == 0 &&
-      nextProps.objects
-    ) {
+    if (Object.keys(this.state.selectedTypes).length == 0 && nextProps.objects) {
       this.setInitialSelectedTypes(nextProps.objects)
     }
   }
@@ -107,18 +103,11 @@ export default class App extends React.Component {
             tabIndex="0"
             onBlur={() => console.log("filter onBlur")}
           >
-            <button
-              className="btn btn-default"
-              type="button"
-              onClick={this.toggleFilter}
-            >
+            <button className="btn btn-default" type="button" onClick={this.toggleFilter}>
               Select ...
               <span className="caret"></span>
             </button>
-            <ul
-              className="dropdown-menu"
-              style={{ maxHeight: 300, overflow: "auto" }}
-            >
+            <ul className="dropdown-menu" style={{ maxHeight: 300, overflow: "auto" }}>
               {options.map((option, index) => (
                 <li key={index}>
                   <a
@@ -128,11 +117,7 @@ export default class App extends React.Component {
                       this.updateSelectedTypes(option)
                     }}
                   >
-                    <i
-                      className={`fa fa-fw fa-${
-                        this.state.selectedTypes[option] ? "check-" : ""
-                      }square-o`}
-                    ></i>
+                    <i className={`fa fa-fw fa-${this.state.selectedTypes[option] ? "check-" : ""}square-o`}></i>
                     <span>{option}</span>
                   </a>
                 </li>

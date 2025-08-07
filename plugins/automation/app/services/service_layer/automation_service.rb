@@ -6,7 +6,9 @@ module ServiceLayer
     attr_reader :client
 
     def available?(_action_name_sym = nil)
-      elektron.service?("arc") || elektron.service?("automation")
+      # disabling the service since it is in sunset mode
+      # and will be removed in the future
+      false
     end
 
     def install_node_available?
