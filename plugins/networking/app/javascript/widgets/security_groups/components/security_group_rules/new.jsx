@@ -146,10 +146,11 @@ const FormBody = ({ values, securityGroups }) => {
                     This should only be used if you operate within the
                     documented boundaries. Please review the&nbsp;
                     <a
-                      href="/docs/network/secgroup-design.html"
+                      href="https://documentation.global.cloud.sap/docs/customer/networking/security-groups/network-secgroup-design/"
                       target="_blank"
+                      rel="noopener noreferrer"
                     >
-                      recommendations for security group design
+                      best practice for security group design
                     </a>
                   </p>
                 </>
