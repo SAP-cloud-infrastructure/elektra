@@ -103,7 +103,8 @@ const SecretDetails = () => {
       }
       if (payloadRequested) {
         //Downloading the payload content as a file
-        const fileData = JSON.stringify(data)
+        const fileData =
+        typeof data === "string" ? data : String(data) // Use raw string
         const blob = new Blob([fileData], {
           type: secret?.data?.content_types?.default,
         })
