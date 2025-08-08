@@ -107,7 +107,7 @@ const LoginOverlay = () => {
               <Button
                 variant="primary"
                 title="Go to documentation"
-                href="https://documentation.global.cloud.sap/docs/start-userreg"
+                href="https://documentation.global.cloud.sap/docs/customer/getting-started/"
                 target="_blank"
               >
                 <Icon icon="openInNew" color="tw-text-theme-high" className=" tw-mr-2" />
