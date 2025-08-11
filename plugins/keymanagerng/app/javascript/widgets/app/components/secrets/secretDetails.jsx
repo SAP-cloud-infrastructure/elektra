@@ -102,10 +102,8 @@ const SecretDetails = () => {
         setPayloadString(data)
       }
       if (payloadRequested) {
-        //Downloading the payload content as a file
-        const fileData =
-        typeof data === "string" ? data : String(data) // Use raw string
-        const blob = new Blob([fileData], {
+        //Downloading the payload content as a file, put the raw data into a blob
+        const blob = new Blob([data], {
           type: secret?.data?.content_types?.default,
         })
         const url = URL.createObjectURL(blob)
