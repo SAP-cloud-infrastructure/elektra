@@ -138,7 +138,7 @@ const Objects = () => {
 
     // this is the function which deletes all objects inside a folder
     const action = (name, options = {}) => {
-      confirm("This folder will be irrevocably deleted", {
+      confirm(`This folder will be irrevocably deleted. If the folder contains more than 10,000 objects, for performance reasons and safety considerations, please delete it using the WebShell or your CLI with "swift delete ${options.containerName || containerName} --recursive ${name}"`, {
         confirmLabel: "Confirm",
         abortLabel: "Cancel",
       })

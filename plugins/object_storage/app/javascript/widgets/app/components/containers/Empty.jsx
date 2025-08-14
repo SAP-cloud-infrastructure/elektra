@@ -46,6 +46,8 @@ const EmptyContainer = () => {
         let deletedCount = 0
         let processing = true
         // We load objects, delete them and repeat this process until there are no more objects
+        // This is done to avoid loading too many objects at once and hitting API limits
+        // Only one request is made at a time
         while (active && processing) {
           await loadContainerObjects(container.name, {
             marker,
