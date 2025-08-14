@@ -171,7 +171,6 @@ const EmptyContainer = () => {
                       openstack container delete --recursive {container.name}
                     </code>
                   </small>
-
                 </div>
 
                 <div className="row">
