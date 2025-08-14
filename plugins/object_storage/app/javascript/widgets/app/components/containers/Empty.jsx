@@ -166,9 +166,9 @@ const EmptyContainer = () => {
                    </small>
                   <br />
                   <small style={{ marginLeft: 15 }}>
-                    please delete it using the WebShell or your CLI with 
+                    please empty and delete it in one step using the WebShell or your CLI with
                     <code>
-                      swift delete {container.name}
+                      openstack container delete --recursive {container.name}
                     </code>
                   </small>
 
