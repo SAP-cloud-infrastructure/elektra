@@ -52,11 +52,11 @@
     = f.input :flavor_id, { label: "Flavor",
       as:                 :grouped_select,
       required:           true,
-      collection:         grouped_flavors(@flavors),
+      collection:         grouped_flavors(@flavors, @available_volume_types),
       group_method:       :last,
       include_blank:      "Choose flavor",
       label_method:       -> (flavor) { flavor_label_for_select(flavor) }}
-    
+
     #custom_root_disk_wrapper{class: 'hidden'}
       = f.input :custom_root_disk, 
         as: :boolean,

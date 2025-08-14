@@ -131,6 +131,7 @@ module Compute
     end
 
     def new
+      @available_volume_types = services.block_storage.volume_types
       @instance = services.compute.new_server
       @flavors = services.compute.flavors
       @images = services.image.all_images
@@ -225,6 +226,7 @@ module Compute
       params[:server].delete(:baremetal_image_id)
       params[:server].delete(:vmware_image_id)
 
+      volume_types = services.block_storage.volume_types()
       @instance = services.compute.new_server
 
       # remove empty security groups from params
