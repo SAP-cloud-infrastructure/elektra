@@ -215,11 +215,11 @@ const useActions = () => {
       // for example,
       // if 1000000 objects to delete max_deletes_per_request is 10000,
       // then it will create 100 promise functions,
-      // and execute them in 2 batches of 50 requests at once
-      // 2 x 50 x 10000 = 1000000 objects
+      // and execute them in 20 batches of 5 requests at once
+      // 20 x 5 x 10000 = 1000000 objects
 
       // This is to prevent overwhelming the server with too many requests at once
-      const maxConcurrentRequests = 50
+      const maxConcurrentRequests = 5
       const results = []
       console.log(`Deleting ${objects.length} objects in batches of ${maxConcurrentRequests}`)
 
