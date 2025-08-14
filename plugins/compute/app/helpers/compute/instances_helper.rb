@@ -189,17 +189,28 @@ module Compute
     # handle flavor data
     def grouped_flavors(flavors)
       public_flavors_vmware = []
+      public_flavors_kvm = []
       public_flavors_baremetal = []
-      private_flavors = []
+      private_flavors_vmware = []
+      private_flavors_kvm = []
+      private_flavors_baremetal = []
       flavors.each do |flavor|
         if flavor.public?
           if flavor.extra_specs["capabilities:hypervisor_type"] == "ironic"
             public_flavors_baremetal << flavor
-          else
+          elsif flavor.extra_specs["capabilities:hypervisor_type"] == "VMware vCenter Server"
             public_flavors_vmware << flavor
+          elsif flavor.extra_specs["capabilities:hypervisor_type"] == "CH" || flavor.extra_specs["capabilities:hypervisor_type"] == "QEMU"
+            public_flavors_kvm << flavor
           end
         else
-          private_flavors << flavor
+          if flavor.extra_specs["capabilities:hypervisor_type"] == "ironic"
+            private_flavors_baremetal << flavor
+          elsif flavor.extra_specs["capabilities:hypervisor_type"] == "VMware vCenter Server"
+            private_flavors_vmware << flavor
+          elsif flavor.extra_specs["capabilities:hypervisor_type"] == "CH" || flavor.extra_specs["capabilities:hypervisor_type"] == "QEMU"
+            private_flavors_kvm << flavor
+          end
         end
       end
 
@@ -211,14 +222,30 @@ module Compute
           public_flavors_baremetal.sort_by { |a| [a.ram, a.vcpus] },
         ]
       end
+      unless public_flavors_kvm.empty?
+        result << [
+          "--kvm",
+          public_flavors_kvm.sort_by { |a| [a.ram, a.vcpus] },
+        ]
+      end
       unless public_flavors_vmware.empty?
         result << [
           "--vmware",
           public_flavors_vmware.sort_by { |a| [a.ram, a.vcpus] },
         ]
       end
-      unless private_flavors.empty?
-        result << ["private", private_flavors.sort_by { |a| [a.ram, a.vcpus] }]
+      result << ["private", []]
+      unless private_flavors_baremetal.empty?
+        result << [
+          "--bare metal",
+          private_flavors_baremetal.sort_by { |a| [a.ram, a.vcpus] },
+        ]
+      end
+      unless private_flavors_kvm.empty?
+        result << ["--kvm", private_flavors_kvm.sort_by { |a| [a.ram, a.vcpus] }]
+      end
+      unless private_flavors_vmware.empty?
+        result << ["--vmware", private_flavors_vmware.sort_by { |a| [a.ram, a.vcpus] }]
       end
       result
     end
