@@ -39,8 +39,11 @@ const EmptyContainer = () => {
       if (!container || container.name !== confirmation) return
 
       // This function deletes all objects of the container.
-      // Since the number of objects to be loaded and deleted is limited,
-      // we delete the objects in chunks.
+      // Since the number of objects to be loaded and deleted is limited, we delete the objects in chunks.
+      
+      // But the deleteObjects function has also a limit of how many objects can be deleted at once.
+      // Please check the deleteObjects function ../../hooks/useActions, the bulk delete is also limited to a 
+      // certain number of requests at a time.
       const deleteAllObjects = async () => {
         let marker
         let deletedCount = 0
@@ -156,6 +159,19 @@ const EmptyContainer = () => {
                     <strong> static large objects </strong>only the manifests
                     are deleted. The related segments are not deleted.
                   </small>
+                  <br />
+                  <br />
+                  <small style={{ marginLeft: 15 }}>
+                    If the container contains more than <strong>100,000 objects</strong>, for performance reasons and safety considerations,
+                   </small>
+                  <br />
+                  <small style={{ marginLeft: 15 }}>
+                    please delete it using the WebShell or your CLI with 
+                    <code>
+                      swift delete {container.name}
+                    </code>
+                  </small>
+
                 </div>
 
                 <div className="row">
