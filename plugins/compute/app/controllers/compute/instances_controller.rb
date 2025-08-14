@@ -226,8 +226,9 @@ module Compute
       params[:server].delete(:baremetal_image_id)
       params[:server].delete(:vmware_image_id)
 
-      volume_types = services.block_storage.volume_types()
       @instance = services.compute.new_server
+      # TODO: this needs to be used in case the instance is type KVM
+      volume_mapping = @domain_config.compute_volume_mapping
 
       # remove empty security groups from params
       if params[:server] && !params[:server][:security_groups].blank?
