@@ -132,11 +132,11 @@ module Compute
 
     def new
       @available_volume_types = services.block_storage.volume_types
-      @instance = services.compute.new_server
-      @flavors = services.compute.flavors
-      @images = services.image.all_images
-      @fixed_ip_ports = services.networking.fixed_ip_ports
-      @subnets = services.networking.subnets
+      @instance               = services.compute.new_server
+      @flavors                = services.compute.flavors
+      @images                 = services.image.all_images
+      @fixed_ip_ports         = services.networking.fixed_ip_ports
+      @subnets                = services.networking.subnets
       @bootable_volumes =
         services
           .block_storage
@@ -217,18 +217,25 @@ module Compute
     end
 
     def create
-      # set image_id
-      params[:server][:image_id] = if params[:server][:baremetal_image_id] != ""
+      volume_type = ""
+      # TODO: check that we need the mapping here and what volume type to use! 😵‍💫
+      volume_mapping = @domain_config.compute_volume_mapping
+      # set image_id if baremetal_image_id or vmware_image_id or kvm_image_id is set
+      if params[:server][:baremetal_image_id] != ""
         params[:server][:baremetal_image_id]
-      else
-        params[:server][:vmware_image_id]
+        volume_type = volume_mapping["baremetal"] || "baremetal"
+      elsif params[:server][:vmware_image_id] != ""
+        params[:server][:image_id] = params[:server][:vmware_image_id]
+        volume_type = volume_mapping["vmware"] || "vmware"  
+      elsif params[:server][:kvm_image_id] != ""
+        params[:server][:image_id] = params[:server][:kvm_image_id]
+        volume_type = volume_mapping["kvm"] || "kvm"
       end
       params[:server].delete(:baremetal_image_id)
       params[:server].delete(:vmware_image_id)
-
+      params[:server].delete(:kvm_image_id)
+      
       @instance = services.compute.new_server
-      # TODO: this needs to be used in case the instance is type KVM
-      volume_mapping = @domain_config.compute_volume_mapping
 
       # remove empty security groups from params
       if params[:server] && !params[:server][:security_groups].blank?
@@ -262,6 +269,7 @@ module Compute
               uuid: volume.id,
               source_type: "volume",
               destination_type: "volume",
+              volume_type: volume_type,
               delete_on_termination: false,
             },
           ]
@@ -275,7 +283,7 @@ module Compute
               image_buildnumber: (image.buildnumber || "").truncate(255),
             }
 
-            # Custom root disk -> let nova create a bootable volume on the fly
+            # use custom root disk size if selected
             if params[:server][:custom_root_disk] == "1"
               @instance.block_device_mapping_v2 = [
                 {
@@ -349,12 +357,12 @@ module Compute
              params[:server][:network_ids].first["port"].blank?
           @port.destroy
         end
-        @flavors = services.compute.flavors
-        # @images = services.image.images
-        @availability_zones = services.compute.availability_zones
-        @security_groups ||= services.networking.security_groups
-        @fixed_ip_ports = services.networking.fixed_ip_ports
-        @subnets = services.networking.subnets
+        @available_volume_types = services.block_storage.volume_types
+        @flavors                = services.compute.flavors
+        @availability_zones     = services.compute.availability_zones
+        @security_groups       ||= services.networking.security_groups
+        @fixed_ip_ports         = services.networking.fixed_ip_ports
+        @subnets                = services.networking.subnets
 
         @private_networks =
           services
@@ -459,7 +467,7 @@ module Compute
             "OS-EXT-IPS-MAC:mac_addr" => port.mac_address,
           }
         end
-        # byebug
+
         load_security_groups(@instance) if @action_from_show
         respond_to do |format|
           format.html { redirect_to instances_url }
@@ -860,9 +868,8 @@ module Compute
             map[sg.id] = services.networking.find_security_group(sg.id)
           end
           .values
-
-      # byebug
     end
+
     # This method finds the availability zone with the most avalilable RAM.
     # It use the elektra object cache.
     def prefered_availability_zone

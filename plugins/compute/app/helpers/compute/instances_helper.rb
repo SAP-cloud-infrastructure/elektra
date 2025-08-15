@@ -208,9 +208,10 @@ module Compute
       private_flavors_kvm = []
       private_flavors_baremetal = []
 
-      # TODO: remove this when we have a better way to detect kvm flavors
-      kvm_volume_type_is_available = true
-      #= available_volume_types.any? { |volume| volume["name"].start_with?("kvm") }
+      # check if kvm volume type is available in the list of available volume types
+      kvm_volume_type_is_available = available_volume_types.any? { |volume| volume["name"].start_with?("kvm") }
+      # Note: the whole logic below is based on the hypervisor_type in the extra_specs of the flavor.
+      #       that means this logic only works if the hypervisor_type is set correctly in the extra_specs of the flavor 🤔
       flavors.each do |flavor|
         if flavor.public?
           if flavor.extra_specs["capabilities:hypervisor_type"] == "ironic"
