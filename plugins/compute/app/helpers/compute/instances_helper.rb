@@ -49,18 +49,31 @@ module Compute
               visibility = image.visibility
               visibility = "snapshot" if image.image_type == "snapshot"
               map[visibility] ||= {}
-              
-              # some years ago we decided to treat images without hypervisor_type as baremetal. 
-              # From now on we will treat them as both baremetal and vmware because 
-              # thus images run on both hypervisors.
-              
-              # images that have no hypervisor_type are treated as both baremetal and vmware
-              if image.hypervisor_type.nil? 
+
+              # * hypervisor_type='vmware'
+              # * img_hv_type='kvm'
+              # * img_hv_type='baremetal'
+
+              # hypervisor_type is the legacy property replaced since "liberty" by img_hv_type, but we still have them in use.
+
+              if image.hypervisor_type.nil? && image.img_hv_type != "kvm"
+                # some years ago we decided to treat images without hypervisor_type as baremetal. 
+                # From now on we will treat them as both baremetal and vmware because 
+                # thus images run on both hypervisors.
+
+                # images that have no hypervisor_type are treated as both baremetal and vmware
                 map[visibility]["baremetal"] ||= []
                 map[visibility]["vmware"] ||= []
                 map[visibility]["baremetal"] << image
                 map[visibility]["vmware"] << image
+              elsif image.img_hv_type == "kvm"
+                map[visibility]["kvm"] ||= []
+                map[visibility]["kvm"] << image
+              elsif image.img_hv_type == "baremetal"
+                map[visibility]["baremetal"] ||= []
+                map[visibility]["baremetal"] << image
               else
+                # take care of the legacy rest that has hypervisor_type set
                 map[visibility][image.hypervisor_type] ||= []
                 map[visibility][image.hypervisor_type] << image
               end
@@ -195,7 +208,9 @@ module Compute
       private_flavors_kvm = []
       private_flavors_baremetal = []
 
-      kvm_volume_type_is_available = available_volume_types.any? { |volume| volume["name"].start_with?("kvm") }
+      # TODO: remove this when we have a better way to detect kvm flavors
+      kvm_volume_type_is_available = true
+      #= available_volume_types.any? { |volume| volume["name"].start_with?("kvm") }
       flavors.each do |flavor|
         if flavor.public?
           if flavor.extra_specs["capabilities:hypervisor_type"] == "ironic"
@@ -313,10 +328,14 @@ module Compute
     # flavor label in dropdown
     def flavor_label_for_select(flavor)
 
+      # default label for vmware flavors
       label = "#{flavor.name}  (RAM: #{Core::DataType.new(:bytes, :mega).format(flavor.ram)}, VCPUs: #{flavor.vcpus}, Disk: #{Core::DataType.new(:bytes, :giga).format(flavor.disk)} )"
-
+      # this is needed to distinguish between kvm and baremetal flavors on javascript side
       if flavor.extra_specs["capabilities:hypervisor_type"] == "ironic"
         label = "#{flavor.name} ironic  (RAM: #{Core::DataType.new(:bytes, :mega).format(flavor.ram)}, VCPUs: #{flavor.vcpus}, Disk: #{Core::DataType.new(:bytes, :giga).format(flavor.disk)} )"
+      end
+      if flavor.extra_specs["capabilities:hypervisor_type"] == "QEMU" || flavor.extra_specs["capabilities:hypervisor_type"] == "CH"
+        label = "#{flavor.name} kvm  (RAM: #{Core::DataType.new(:bytes, :mega).format(flavor.ram)}, VCPUs: #{flavor.vcpus}, Disk: #{Core::DataType.new(:bytes, :giga).format(flavor.disk)} )"
       end
 
       return label
