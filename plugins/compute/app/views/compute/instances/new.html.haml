@@ -52,7 +52,7 @@
     = f.input :flavor_id, { label: "Flavor",
       as:                 :grouped_select,
       required:           true,
-      collection:         grouped_flavors(@flavors, @available_volume_types),
+      collection:         grouped_flavors(@flavors),
       group_method:       :last,
       include_blank:      "Choose flavor",
       label_method:       -> (flavor) { flavor_label_for_select(flavor) }}
@@ -70,7 +70,7 @@
       = f.input :baremetal_image_id, label: 'BM Image',
         selected:      @instance.image_id, 
         as:            :grouped_select,
-        collection:    grouped_images(@images,@bootable_volumes,'baremetal'),
+        collection:    grouped_images(@images, 'baremetal', @bootable_volumes, @available_volume_types),
         group_method:  :last,
         include_blank: "Choose image",
         required:      true
@@ -79,7 +79,7 @@
       = f.input :vmware_image_id, label: 'VM Image',
         selected:      @instance.image_id, 
         as:            :grouped_select,
-        collection:    grouped_images(@images,@bootable_volumes,'vmware'),
+        collection:    grouped_images(@images, 'vmware', @bootable_volumes, @available_volume_types),
         group_method:  :last,
         include_blank: "Choose image",
         required:      true,
@@ -89,7 +89,7 @@
       = f.input :kvm_image_id, label: 'KVM Image',
         selected:      @instance.image_id, 
         as:            :grouped_select,
-        collection:    grouped_images(@images,@bootable_volumes,'kvm'),
+        collection:    grouped_images(@images, 'kvm', @bootable_volumes, @available_volume_types),
         group_method:  :last,
         include_blank: "Choose image",
         required:      true

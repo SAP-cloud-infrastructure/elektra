@@ -36,7 +36,7 @@ module Compute
     #  'id' => 'cd116ba4-3d20-4011-adb9-f86d821b5e8f'
     # }
 
-    def grouped_images(images, bootable_volumes = nil, hv_type)
+    def grouped_images(images, hv_type, bootable_volumes = nil, available_volume_types = [])
       if images.blank?
         [["Couldn't retrieve images. Please try again", []]]
       else
@@ -120,7 +120,9 @@ module Compute
         #  ]
         # ]
 
-        if hv_type == "vmware"
+        # check if kvm volume type is available in the list of available volume types
+        kvm_volume_type_is_available = available_volume_types.any? { |volume| volume["name"].start_with?("kvm") }
+        if hv_type == "vmware" || ( hv_type == "kvm" && kvm_volume_type_is_available )
           if bootable_volumes && !bootable_volumes.empty?
             volume_items =
               @bootable_volumes.collect do |v|
@@ -200,7 +202,7 @@ module Compute
     #  "id"=>"140"
     # }
     # handle flavor data
-    def grouped_flavors(flavors, available_volume_types = [])
+    def grouped_flavors(flavors)
       public_flavors_vmware = []
       public_flavors_kvm = []
       public_flavors_baremetal = []
@@ -208,8 +210,6 @@ module Compute
       private_flavors_kvm = []
       private_flavors_baremetal = []
 
-      # check if kvm volume type is available in the list of available volume types
-      kvm_volume_type_is_available = available_volume_types.any? { |volume| volume["name"].start_with?("kvm") }
       # Note: the whole logic below is based on the hypervisor_type in the extra_specs of the flavor.
       #       that means this logic only works if the hypervisor_type is set correctly in the extra_specs of the flavor 🤔
       flavors.each do |flavor|
@@ -218,7 +218,7 @@ module Compute
             public_flavors_baremetal << flavor
           elsif flavor.extra_specs["capabilities:hypervisor_type"] == "VMware vCenter Server"
             public_flavors_vmware << flavor
-          elsif kvm_volume_type_is_available && (flavor.extra_specs["capabilities:hypervisor_type"] == "CH" || flavor.extra_specs["capabilities:hypervisor_type"] == "QEMU")
+          elsif (flavor.extra_specs["capabilities:hypervisor_type"] == "CH" || flavor.extra_specs["capabilities:hypervisor_type"] == "QEMU")
             public_flavors_kvm << flavor
           end
         else
@@ -226,7 +226,7 @@ module Compute
             private_flavors_baremetal << flavor
           elsif flavor.extra_specs["capabilities:hypervisor_type"] == "VMware vCenter Server"
             private_flavors_vmware << flavor
-          elsif kvm_volume_type_is_available && (flavor.extra_specs["capabilities:hypervisor_type"] == "CH" || flavor.extra_specs["capabilities:hypervisor_type"] == "QEMU")
+          elsif (flavor.extra_specs["capabilities:hypervisor_type"] == "CH" || flavor.extra_specs["capabilities:hypervisor_type"] == "QEMU")
             private_flavors_kvm << flavor
           end
         end

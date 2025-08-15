@@ -185,10 +185,7 @@ module Compute
       end
       @instance.errors.add :image, "not available" if @images.blank?
 
-      # @instance.flavor_id             = @flavors.first.try(:id)
-      # @instance.image_id              = params[:image_id] || @images.first.try(:id)
       @instance.availability_zone_id = @availability_zones.first.try(:id)
-      #@instance.network_ids            = [{ id: @private_networks.first.try(:id) }]
       @instance.security_groups = [
         @security_groups.find { |sg| sg.name == "default" }.try(:id),
       ] if @instance.security_groups.blank? # if no security group has been selected force select the default group
