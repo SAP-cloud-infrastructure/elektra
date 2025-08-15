@@ -95,33 +95,7 @@
         required:      true
 
     :javascript
-      // Root Disk Toggle
-      var server_custom_root_disk_size = ''
-      var toggleRootDisk = function(show) {
-        if(show) {
-          $('#vmware_image_id_wrapper').val('')
-          $('#vmware_image_id_wrapper').find('optgroup[label="--bootable volumes"]').addClass('hidden')
-          $('#custom_root_disk_size_wrapper').removeClass('hidden')
-          if (server_custom_root_disk_size != '' && server_custom_root_disk_size != '0') {
-            $('#server_custom_root_disk_size').val(server_custom_root_disk_size)
-          }
-        } else {
-          $('#vmware_image_id_wrapper').find('optgroup[label="--bootable volumes"]').removeClass('hidden')
-          $('#custom_root_disk_size_wrapper').addClass('hidden')
-          server_custom_root_disk_size = $('#server_custom_root_disk_size').val()
-          $('#server_custom_root_disk_size').val('')
-        }
-      }
-      var showRootDisk = #{params[:server] && params[:server][:custom_root_disk]}
-      toggleRootDisk(showRootDisk)
-      $('#server_custom_root_disk').change(function(t) {
-        toggleRootDisk($('#server_custom_root_disk').is(':checked'))
-      })
-
-      var flavors = #{js_flavor_data(@flavors)};
-      //flavors = JSON.parse(flavors.replace(/&quot;/g,'"'));
-      $('#server_flavor_id').change(function(){
-        //console.log($( this ).val())
+      function renderImages() {
         if ($('#server_flavor_id option:selected').text().match(/ironic/)) {
           // baremetal
           console.debug("baremetal flavor selected");
@@ -171,6 +145,40 @@
           $('#server_baremetal_image_id').val("");
           $('#custom_root_disk_wrapper').removeClass('hidden');
         }
+      }
+
+      $(document).ready(function(){
+        // Initial render of images based on the selected flavor
+        // this is needed to set the correct visibility if we re-render in case of error
+        renderImages()
+      })
+
+      // Root Disk Toggle
+      var server_custom_root_disk_size = ''
+      var toggleRootDisk = function(show) {
+        if(show) {
+          $('#vmware_image_id_wrapper').val('')
+          $('#vmware_image_id_wrapper').find('optgroup[label="--bootable volumes"]').addClass('hidden')
+          $('#custom_root_disk_size_wrapper').removeClass('hidden')
+          if (server_custom_root_disk_size != '' && server_custom_root_disk_size != '0') {
+            $('#server_custom_root_disk_size').val(server_custom_root_disk_size)
+          }
+        } else {
+          $('#vmware_image_id_wrapper').find('optgroup[label="--bootable volumes"]').removeClass('hidden')
+          $('#custom_root_disk_size_wrapper').addClass('hidden')
+          server_custom_root_disk_size = $('#server_custom_root_disk_size').val()
+          $('#server_custom_root_disk_size').val('')
+        }
+      }
+      var showRootDisk = #{params[:server] && params[:server][:custom_root_disk]}
+      toggleRootDisk(showRootDisk)
+      $('#server_custom_root_disk').change(function(t) {
+        toggleRootDisk($('#server_custom_root_disk').is(':checked'))
+      })
+
+      // show images based on the selected flavor
+      $('#server_flavor_id').change(function(){
+        renderImages()
       })
 
     = f.input :network_ids, { label: "Private Network",
