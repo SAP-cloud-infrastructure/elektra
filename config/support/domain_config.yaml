@@ -19,8 +19,9 @@ domains:
     terms_of_use_name: "actual_terms"
     compute:
       volume_mappping:
-        "QEMU": "kvm-pilot"
-        "CH": "kvm-pilot"
+        "kvm": "kvm-pilot"
+        "vmware": "vmware"
+        "baremetal": "baremetal"
 
   # More general pattern
   - name: marioworld
