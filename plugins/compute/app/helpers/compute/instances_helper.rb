@@ -122,6 +122,7 @@ module Compute
 
         # check if kvm volume type is available in the list of available volume types,
         # otherwise there it is not possible to boot the image with KVM because the default type is not compatible
+        # TODO kvm: is it correct to hide the bootable volumes for kvm if no kvm volume type is available?
         kvm_volume_type_is_available = available_volume_types.any? { |volume| volume["name"].start_with?("kvm") && volume["is_public"] }
         if hv_type == "vmware" || ( hv_type == "kvm" && kvm_volume_type_is_available )
           if bootable_volumes && !bootable_volumes.empty?
@@ -230,7 +231,7 @@ module Compute
       # capabilities:hypervisor_type='VMware vCenter Server'
       # capabilities:hypervisor_type='QEMU'
       # capabilities:hypervisor_type='ironic'
-      
+
       flavors.each do |flavor|
         if flavor.public?
           if flavor.extra_specs["capabilities:hypervisor_type"] == "ironic"

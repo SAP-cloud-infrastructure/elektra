@@ -81,6 +81,10 @@ module Compute
       begin
         if hypervisor.to_s.include?("nova-compute-ironic")
           @console = services.compute.remote_console(params[:id], "serial", "shellinabox")
+        # TODO kvm: ask that this is correct?
+        # check for "node[numbers]-bb[numbers]"
+        elsif hypervisor.to_s.match?(/node\d+-bb\d+/)
+          @console = services.compute.remote_console(params[:id], "vnc", "novnc")
         else
           @console = services.compute.remote_console(params[:id])
         end
@@ -215,7 +219,7 @@ module Compute
 
     def create
       volume_type = ""
-      # TODO: check that we need the mapping here and what volume type to use! 😵‍💫
+      # TODO kvm: check that we need the mapping here and what volume type to use! 😵‍💫
       #       this is only working if we have a 1:1 relation
       # volume_mapping = @domain_config.compute_volume_mapping
       # set image_id if baremetal_image_id or vmware_image_id or kvm_image_id is set
