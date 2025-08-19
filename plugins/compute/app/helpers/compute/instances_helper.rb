@@ -226,6 +226,11 @@ module Compute
 
       # Note: the whole logic below is based on the hypervisor_type in the extra_specs of the flavor.
       #       that means this logic only works if the hypervisor_type is set correctly in the extra_specs of the flavor 🤔
+      
+      # capabilities:hypervisor_type='VMware vCenter Server'
+      # capabilities:hypervisor_type='QEMU'
+      # capabilities:hypervisor_type='ironic'
+      
       flavors.each do |flavor|
         if flavor.public?
           if flavor.extra_specs["capabilities:hypervisor_type"] == "ironic"
