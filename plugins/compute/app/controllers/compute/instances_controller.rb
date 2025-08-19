@@ -131,7 +131,7 @@ module Compute
     end
 
     def new
-      @available_volume_types = services.block_storage.volume_types
+      @available_volume_types = services.block_storage.volume_types()
       @instance               = services.compute.new_server
       @flavors                = services.compute.flavors
       @images                 = services.image.all_images
@@ -216,22 +216,25 @@ module Compute
     def create
       volume_type = ""
       # TODO: check that we need the mapping here and what volume type to use! 😵‍💫
-      volume_mapping = @domain_config.compute_volume_mapping
+      #       this is only working if we have a 1:1 relation
+      # volume_mapping = @domain_config.compute_volume_mapping
       # set image_id if baremetal_image_id or vmware_image_id or kvm_image_id is set
       if params[:server][:baremetal_image_id] != ""
         params[:server][:baremetal_image_id]
-        volume_type = volume_mapping["baremetal"] || "baremetal"
+        #volume_type = volume_mapping["baremetal"] || "baremetal"
       elsif params[:server][:vmware_image_id] != ""
         params[:server][:image_id] = params[:server][:vmware_image_id]
-        volume_type = volume_mapping["vmware"] || "vmware"  
+        #volume_type = volume_mapping["vmware"] || "vmware"  
       elsif params[:server][:kvm_image_id] != ""
         params[:server][:image_id] = params[:server][:kvm_image_id]
-        volume_type = volume_mapping["kvm"] || "kvm"
+        #volume_type = volume_mapping["kvm"] || "kvm"
+        volume_type = params[:server][:kvm_volume_type]
       end
       params[:server].delete(:baremetal_image_id)
       params[:server].delete(:vmware_image_id)
       params[:server].delete(:kvm_image_id)
-      
+      params[:server].delete(:kvm_volume_type)
+
       @instance = services.compute.new_server
 
       # remove empty security groups from params

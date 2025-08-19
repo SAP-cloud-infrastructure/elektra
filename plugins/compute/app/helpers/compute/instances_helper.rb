@@ -120,14 +120,16 @@ module Compute
         #  ]
         # ]
 
-        # check if kvm volume type is available in the list of available volume types
-        kvm_volume_type_is_available = available_volume_types.any? { |volume| volume["name"].start_with?("kvm") }
+        # check if kvm volume type is available in the list of available volume types,
+        # otherwise there it is not possible to boot the image with KVM because the default type is not compatible
+        kvm_volume_type_is_available = available_volume_types.any? { |volume| volume["name"].start_with?("kvm") && volume["is_public"] }
         if hv_type == "vmware" || ( hv_type == "kvm" && kvm_volume_type_is_available )
           if bootable_volumes && !bootable_volumes.empty?
             volume_items =
               @bootable_volumes.collect do |v|
                 infos = []
                 infos << "Size: #{v.size}GB" if v.size
+                infos << "(bootable)" # this is needed to identify bootable volumes on JS side
 
                 format =
                   (v.volume_image_metadata || {}).fetch("disk_format", nil)
@@ -140,6 +142,18 @@ module Compute
         end
         groups
       end
+    end
+
+    def render_available_volume_types(volume_types, name)
+      available_volume_types =
+        volume_types.filter_map do |volume_type|
+          if volume_type["is_public"] && volume_type["name"].start_with?(name)
+            [
+              volume_type["name"],
+              volume_type["id"],
+            ]
+          end
+        end
     end
 
     def js_images_data(images)

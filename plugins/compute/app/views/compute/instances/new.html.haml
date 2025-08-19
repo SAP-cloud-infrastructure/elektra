@@ -70,7 +70,7 @@
       = f.input :baremetal_image_id, label: 'BM Image',
         selected:      @instance.image_id, 
         as:            :grouped_select,
-        collection:    grouped_images(@images, 'baremetal', @bootable_volumes, @available_volume_types),
+        collection:    grouped_images(@images, 'baremetal', @bootable_volumes),
         group_method:  :last,
         include_blank: "Choose image",
         required:      true
@@ -79,7 +79,7 @@
       = f.input :vmware_image_id, label: 'VM Image',
         selected:      @instance.image_id, 
         as:            :grouped_select,
-        collection:    grouped_images(@images, 'vmware', @bootable_volumes, @available_volume_types),
+        collection:    grouped_images(@images, 'vmware', @bootable_volumes),
         group_method:  :last,
         include_blank: "Choose image",
         required:      true,
@@ -93,6 +93,13 @@
         group_method:  :last,
         include_blank: "Choose image",
         required:      true
+
+    #kvm_volume_type{class:'hidden'}
+      = f.input :volume_type, label: 'Volume Type',
+        as: :select,
+        collection: render_available_volume_types(@available_volume_types, 'kvm'),
+        include_blank: "Choose volume type",
+        required: false
 
     :javascript
       function renderImages() {
@@ -179,6 +186,14 @@
       // show images based on the selected flavor
       $('#server_flavor_id').change(function(){
         renderImages()
+      })
+      // show available volume types for bootable volumes in kvm
+      $('#kvm_image_id_wrapper').on('change', function() {
+        if ($('#kvm_image_id_wrapper option:selected').text().match(/bootable/)) {
+          $('#kvm_volume_type').removeClass('hidden');
+        } else {
+          $('#kvm_volume_type').addClass('hidden');
+        }
       })
 
     = f.input :network_ids, { label: "Private Network",
