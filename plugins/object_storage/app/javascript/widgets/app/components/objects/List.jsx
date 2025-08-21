@@ -150,6 +150,10 @@ const Objects = () => {
           // This function deletes all objects of a folder.
           // Since the number of objects to be loaded and deleted is limited,
           // we delete the objects in chunks.
+          
+          // But the deleteObjects function has also a limit of how many objects can be deleted at once.
+          // Please check the deleteObjects function ../../hooks/useActions, the bulk delete is also limited to a 
+          // certain number of requests at a time.
           const deleteAllObjects = async () => {
             let marker
             let deletedCount = 0

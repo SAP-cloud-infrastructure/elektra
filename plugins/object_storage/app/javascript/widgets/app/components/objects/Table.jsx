@@ -54,17 +54,12 @@ const Table = ({
           {(item.isProcessing || item.isDeleting) && (
             <>
               <span className="spinner" />{" "}
-              {item.progress &&
-                `${parseFloat((item.progress / data.length) * 100).toFixed(
-                  2
-                )}%`}
+              {item.progress && `${parseFloat((item.progress / data.length) * 100).toFixed(2)}%`}
             </>
           )}
           <FileIcon item={item} />
 
-          {/(^text\/.*|^video\/.*|^image\/.*|application\/(json|javascript|pdf))$/.test(
-            item.content_type
-          ) ? (
+          {/(^text\/.*|^video\/.*|^image\/.*|application\/(json|javascript|pdf))$/.test(item.content_type) ? (
             <a href={rawUrl(item)} target="_blank" rel="noreferrer">
               {item.display_name}
             </a>
@@ -87,43 +82,27 @@ const Table = ({
             </>
           )}
         </Row.Column>
-        <Row.Column>
-          {!item.subdir && <TimeAgo date={item.last_modified} originDate />}
-        </Row.Column>
+        <Row.Column>{!item.subdir && <TimeAgo date={item.last_modified} originDate />}</Row.Column>
         <Row.Column>{!item.subdir && unit.format(item.bytes)}</Row.Column>
         <Row.Column>
           {item.subdir ? (
             <ContextMenu>
-              <ContextMenu.Item onClick={() => deleteFolder(item)}>
+              <ContextMenu.Item onClick={() => deleteFolder(item)} disabled={item.isDeleting}>
                 Delete recursively
               </ContextMenu.Item>
             </ContextMenu>
           ) : (
             <ContextMenu>
-              <ContextMenu.Item
-                onClick={() => downloadFile(item, { keepSegments: false })}
-              >
-                Download
-              </ContextMenu.Item>
+              <ContextMenu.Item onClick={() => downloadFile(item, { keepSegments: false })}>Download</ContextMenu.Item>
 
               <ContextMenu.Divider />
-              <ContextMenu.Item onClick={() => showProperties(item)}>
-                Properties
-              </ContextMenu.Item>
+              <ContextMenu.Item onClick={() => showProperties(item)}>Properties</ContextMenu.Item>
               <ContextMenu.Item divider />
 
-              <ContextMenu.Item onClick={() => copyFile(item)}>
-                Copy
-              </ContextMenu.Item>
-              <ContextMenu.Item onClick={() => moveFile(item)}>
-                Move/Rename
-              </ContextMenu.Item>
-              <ContextMenu.Item onClick={() => deleteFile(item)}>
-                Delete
-              </ContextMenu.Item>
-              <ContextMenu.Item
-                onClick={() => deleteFile(item, { keepSegments: true })}
-              >
+              <ContextMenu.Item onClick={() => copyFile(item)}>Copy</ContextMenu.Item>
+              <ContextMenu.Item onClick={() => moveFile(item)}>Move/Rename</ContextMenu.Item>
+              <ContextMenu.Item onClick={() => deleteFile(item)}>Delete</ContextMenu.Item>
+              <ContextMenu.Item onClick={() => deleteFile(item, { keepSegments: true })}>
                 Delete (keep segments)
               </ContextMenu.Item>
             </ContextMenu>
