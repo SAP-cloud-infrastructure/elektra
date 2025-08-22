@@ -199,9 +199,7 @@ const EmptyContainer = () => {
         )}
       </Modal.Body>
       <Modal.Footer>
-        {container.count === 0 ? (
-          <Button onClick={close}>Got it!</Button>
-        ) : container.count > 50000 ? (
+        {container.count === 0 || container.count > 50000 ? (
           <Button onClick={close}>Got it!</Button>
         ) : (
           <>
