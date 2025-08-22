@@ -210,7 +210,7 @@ const EmptyContainer = () => {
               onClick={empty}
               disabled={!container || container.name !== confirmation || beingEmptied}
             >
-              {beingEmptied ? "Empting..." : "Empty"}
+              {beingEmptied ? "Emptying..." : "Empty"}
             </Button>
           </>
         )}
