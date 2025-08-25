@@ -8,7 +8,6 @@ module Compute
         @metadata = services.compute.find_flavor_metadata!(params[:flavor_id])
       end
 
-      # TODO: after creating the metadate the list in the modal window is wrong
       def create
         @metadata = services.compute.new_flavor_metadata(params[:flavor_id])
         @metadata.add(params[:spec])
