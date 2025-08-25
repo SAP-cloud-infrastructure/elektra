@@ -39,13 +39,18 @@ const EmptyContainer = () => {
       if (!container || container.name !== confirmation) return
 
       // This function deletes all objects of the container.
-      // Since the number of objects to be loaded and deleted is limited,
-      // we delete the objects in chunks.
+      // Since the number of objects to be loaded and deleted is limited, we delete the objects in chunks.
+
+      // But the deleteObjects function has also a limit of how many objects can be deleted at once.
+      // Please check the deleteObjects function ../../hooks/useActions, the bulk delete is also limited to a
+      // certain number of requests at a time.
       const deleteAllObjects = async () => {
         let marker
         let deletedCount = 0
         let processing = true
         // We load objects, delete them and repeat this process until there are no more objects
+        // This is done to avoid loading too many objects at once and hitting API limits
+        // Only one request is made at a time
         while (active && processing) {
           await loadContainerObjects(container.name, {
             marker,
@@ -75,15 +80,7 @@ const EmptyContainer = () => {
 
     // return the actual action and a cancel function to cancel the delete process for large containers
     return [action, () => (active = false)]
-  }, [
-    confirmation,
-    setProgress,
-    setError,
-    setBeingEmptied,
-    loadContainerObjects,
-    deleteObjects,
-    capabilities,
-  ])
+  }, [confirmation, setProgress, setError, setBeingEmptied, loadContainerObjects, deleteObjects, capabilities])
 
   React.useEffect(() => {
     return () => {
@@ -92,13 +89,7 @@ const EmptyContainer = () => {
   }, [cancelEmpty])
 
   return (
-    <Modal
-      show={show}
-      onHide={close}
-      onExit={back}
-      bsSize="lg"
-      aria-labelledby="contained-modal-title-lg"
-    >
+    <Modal show={show} onHide={close} onExit={back} bsSize="lg" aria-labelledby="contained-modal-title-lg">
       <Modal.Header closeButton>
         <Modal.Title id="contained-modal-title-lg">
           Empty container: <span ref={headerRef}>{container?.name}</span>{" "}
@@ -138,70 +129,77 @@ const EmptyContainer = () => {
             )}
             {container.count <= 0 ? (
               <div className="bs-callout bs-callout-info">
-                <span className="fa fa-exclamation-circle"></span> Nothing to
-                do. Container is already empty.
+                <span className="fa fa-exclamation-circle"></span> Nothing to do. Container is already empty.
               </div>
             ) : (
               <>
                 <div className="bs-callout bs-callout-danger">
                   <span className="fa fa-exclamation-circle" />
-                  <strong> Are you sure?</strong> All objects in the container
-                  will be deleted. This cannot be undone.
+                  <strong> Are you sure?</strong> All objects in the container will be deleted. This cannot be undone.
                   <br />
                   <small style={{ marginLeft: 15 }}>
                     Please note: for
                     <strong> dynamic </strong> and
-                    <strong> static large objects </strong>only the manifests
-                    are deleted. The related segments are not deleted.
+                    <strong> static large objects </strong>only the manifests are deleted. The related segments are not
+                    deleted.
                   </small>
+                  {container.count > 50000 && (
+                    <>
+                      <br />
+                      <br />
+                      <small style={{ marginLeft: 15 }}>
+                        The container contains <strong>{container.count}</strong> objects, for performance reasons and
+                        safety considerations,
+                      </small>
+                      <br />
+                      <small style={{ marginLeft: 15 }}>
+                        please empty and delete it in one step using the WebShell or your CLI with
+                        <code>openstack container delete --recursive {container.name}</code>
+                      </small>
+                    </>
+                  )}
                 </div>
 
-                <div className="row">
-                  <div className="col-md-6">
-                    <fieldset>
-                      <div className="form-group string required forms_confirm_container_action_name">
-                        <label
-                          className="control-label string required"
-                          htmlFor="confirmation"
-                        >
-                          <abbr title="required">*</abbr> Type container name to
-                          confirm
-                        </label>
-                        <input
-                          ref={confirmationRef}
-                          className="form-control string required"
-                          autoFocus
-                          type="text"
-                          value={confirmation}
-                          name="confirmation"
-                          onChange={(e) => setConfirmation(e.target.value)}
-                        />
-                      </div>
-                    </fieldset>
-                    {beingEmptied && progress >= 0 && container && (
-                      <>
-                        <span>
-                          Deleted:{" "}
-                          {parseFloat(
-                            (progress / container.count) * 100
-                          ).toFixed(2)}
-                          %{" "}
-                          <small className="info-text">
-                            ( {progress} / {container.count} )
-                          </small>{" "}
-                          <span className="spinner" />
-                        </span>
-                      </>
-                    )}
+                {container.count < 50000 ? (
+                  <div className="row">
+                    <div className="col-md-6">
+                      <fieldset>
+                        <div className="form-group string required forms_confirm_container_action_name">
+                          <label className="control-label string required" htmlFor="confirmation">
+                            <abbr title="required">*</abbr> Type container name to confirm
+                          </label>
+                          <input
+                            ref={confirmationRef}
+                            className="form-control string required"
+                            autoFocus
+                            type="text"
+                            value={confirmation}
+                            name="confirmation"
+                            onChange={(e) => setConfirmation(e.target.value)}
+                          />
+                        </div>
+                      </fieldset>
+                      {beingEmptied && progress >= 0 && container && (
+                        <>
+                          <span>
+                            Deleted: {parseFloat((progress / container.count) * 100).toFixed(2)}%{" "}
+                            <small className="info-text">
+                              ( {progress} / {container.count} )
+                            </small>{" "}
+                            <span className="spinner" />
+                          </span>
+                        </>
+                      )}
+                    </div>
                   </div>
-                </div>
+                ) : null}
               </>
             )}
           </>
         )}
       </Modal.Body>
       <Modal.Footer>
-        {container.count === 0 ? (
+        {container.count === 0 || container.count > 50000 ? (
           <Button onClick={close}>Got it!</Button>
         ) : (
           <>
@@ -210,11 +208,9 @@ const EmptyContainer = () => {
             <Button
               bsStyle="primary"
               onClick={empty}
-              disabled={
-                !container || container.name !== confirmation || beingEmptied
-              }
+              disabled={!container || container.name !== confirmation || beingEmptied}
             >
-              {beingEmptied ? "Empting..." : "Empty"}
+              {beingEmptied ? "Emptying..." : "Empty"}
             </Button>
           </>
         )}

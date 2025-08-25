@@ -1,11 +1,5 @@
 import React from "react"
-import {
-  useParams,
-  Link,
-  useRouteMatch,
-  useHistory,
-  Route,
-} from "react-router-dom"
+import { useParams, Link, useRouteMatch, useHistory, Route } from "react-router-dom"
 import Breadcrumb from "../shared/Breadcrumb"
 import useUrlParamEncoder from "../../hooks/useUrlParamEncoder"
 import { Alert } from "react-bootstrap"
@@ -29,11 +23,7 @@ const Objects = () => {
   let objectsRoot = url.replace(/([^/])\/objects.*/, "$1/objects")
   let history = useHistory()
   let { name: containerName, objectPath } = useParams()
-  const {
-    value: currentPath,
-    encode,
-    getFileName,
-  } = useUrlParamEncoder(objectPath)
+  const { value: currentPath, encode, getFileName } = useUrlParamEncoder(objectPath)
   const [searchTerm, setSearchTerm] = React.useState(null)
 
   const {
@@ -80,13 +70,10 @@ const Objects = () => {
 
       // find index of the first object which name starts with a slash
       let regex = new RegExp(`^${prefix}/+$`)
-      const startingWithSlashIndex = objects.findIndex(
-        (o) => o.subdir && o.subdir.match(regex)
-      )
+      const startingWithSlashIndex = objects.findIndex((o) => o.subdir && o.subdir.match(regex))
 
       // index not found -> end of recursion
-      if (startingWithSlashIndex < 0)
-        return objects.filter((o) => o.name !== prefix)
+      if (startingWithSlashIndex < 0) return objects.filter((o) => o.name !== prefix)
 
       // get the new prefix based on the found object
       const newPrefix = objects[startingWithSlashIndex].subdir
@@ -98,9 +85,7 @@ const Objects = () => {
       let newObjects = objects.concat(objectsStartingWithSlash)
 
       // remove duplicates
-      return newObjects.filter(
-        (item, index) => newObjects.indexOf(item) === index
-      )
+      return newObjects.filter((item, index) => newObjects.indexOf(item) === index)
     }
 
     dispatch({ type: "REQUEST_ITEMS" })
@@ -113,18 +98,10 @@ const Objects = () => {
           if (dn[dn.length - 1] === "/") dn = dn.slice(0, -1)
           i.display_name = dn
         })
-        items = items.sort((a, b) =>
-          a.display_name > b.display_name
-            ? 1
-            : a.display_name < b.display_name
-            ? -1
-            : 0
-        )
+        items = items.sort((a, b) => (a.display_name > b.display_name ? 1 : a.display_name < b.display_name ? -1 : 0))
         dispatch({ type: "RECEIVE_ITEMS", items })
       })
-      .catch((error) =>
-        dispatch({ type: "RECEIVE_ERROR", error: stripHtml(error.message) })
-      )
+      .catch((error) => dispatch({ type: "RECEIVE_ERROR", error: stripHtml(error.message) }))
   }, [containerName, currentPath, dispatch, loadContainerObjects])
 
   React.useEffect(() => {
@@ -138,10 +115,13 @@ const Objects = () => {
 
     // this is the function which deletes all objects inside a folder
     const action = (name, options = {}) => {
-      confirm("This folder will be irrevocably deleted", {
-        confirmLabel: "Confirm",
-        abortLabel: "Cancel",
-      })
+      confirm(
+        `This folder will be irrevocably deleted. - IMPORTANT! - If the folder contains more than 50,000 objects, for performance reasons and safety considerations, please delete it using the WebShell or your CLI with "swift delete ${options.containerName || containerName} --recursive ${name}"`,
+        {
+          confirmLabel: "Confirm",
+          abortLabel: "Cancel",
+        }
+      )
         .then(() => {
           const currentContainerName = options.containerName || containerName
           if (!currentContainerName || !name) return
@@ -150,6 +130,10 @@ const Objects = () => {
           // This function deletes all objects of a folder.
           // Since the number of objects to be loaded and deleted is limited,
           // we delete the objects in chunks.
+
+          // But the deleteObjects function has also a limit of how many objects can be deleted at once.
+          // Please check the deleteObjects function ../../hooks/useActions, the bulk delete is also limited to a
+          // certain number of requests at a time.
           const deleteAllObjects = async () => {
             let marker
             let deletedCount = 0
@@ -197,13 +181,7 @@ const Objects = () => {
 
     // return the actual action and a cancel function to cancel the delete process for large containers
     return [action, () => (active = false)]
-  }, [
-    containerName,
-    loadContainerObjects,
-    deleteObjects,
-    deleteObjects,
-    dispatch,
-  ])
+  }, [containerName, loadContainerObjects, deleteObjects, deleteObjects, dispatch])
 
   // Delete a single file
   const deleteFile = React.useCallback(
@@ -226,8 +204,7 @@ const Objects = () => {
               } else if (metadata["x-object-manifest"]) {
                 // DLO
                 // delete dlo manifest
-                const [segmentContainer, segmentObject] =
-                  metadata["x-object-manifest"].split("/")
+                const [segmentContainer, segmentObject] = metadata["x-object-manifest"].split("/")
                 return deleteObject(containerName, name).then(() =>
                   deleteFolder(segmentObject, {
                     containerName: segmentContainer,
@@ -264,9 +241,7 @@ const Objects = () => {
         let fileName = getFileName(name)
         dispatch({ type: "UPDATE_ITEM", name, isProcessing: true })
         downloadObject(containerName, name, { fileName })
-          .then(() =>
-            dispatch({ type: "UPDATE_ITEM", name, isProcessing: false })
-          )
+          .then(() => dispatch({ type: "UPDATE_ITEM", name, isProcessing: false }))
           .catch((error) =>
             dispatch({
               type: "UPDATE_ITEM",
@@ -276,22 +251,10 @@ const Objects = () => {
             })
           )
       } else {
-        history.replace(
-          `${url}/${objectPath ? "" : encode("") + "/"}${encodeURIComponent(
-            name
-          )}/download-instructions`
-        )
+        history.replace(`${url}/${objectPath ? "" : encode("") + "/"}${encodeURIComponent(name)}/download-instructions`)
       }
     },
-    [
-      containerName,
-      objectPath,
-      loadAccountMetadataOnce,
-      downloadObject,
-      getFileName,
-      dispatch,
-      history,
-    ]
+    [containerName, objectPath, loadAccountMetadataOnce, downloadObject, getFileName, dispatch, history]
   )
 
   // cancel current deletion process
@@ -306,33 +269,21 @@ const Objects = () => {
 
   const showProperties = React.useCallback(
     (name) => {
-      history.push(
-        `${url}/${objectPath ? "" : encode("") + "/"}${encodeURIComponent(
-          name
-        )}/show`
-      )
+      history.push(`${url}/${objectPath ? "" : encode("") + "/"}${encodeURIComponent(name)}/show`)
     },
     [history, objectPath, url]
   )
 
   const moveFile = React.useCallback(
     (name) => {
-      history.push(
-        `${url}/${objectPath ? "" : encode("") + "/"}${encodeURIComponent(
-          name
-        )}/move`
-      )
+      history.push(`${url}/${objectPath ? "" : encode("") + "/"}${encodeURIComponent(name)}/move`)
     },
     [history, objectPath, url]
   )
 
   const copyFile = React.useCallback(
     (name) => {
-      history.push(
-        `${url}/${objectPath ? "" : encode("") + "/"}${encodeURIComponent(
-          name
-        )}/copy`
-      )
+      history.push(`${url}/${objectPath ? "" : encode("") + "/"}${encodeURIComponent(name)}/copy`)
     },
     [history, objectPath, url]
   )
@@ -348,9 +299,7 @@ const Objects = () => {
     let items = objects.items
 
     if (searchTerm && searchTerm.length > 0) {
-      items = objects.items.filter(
-        (i) => i.display_name.indexOf(searchTerm) >= 0
-      )
+      items = objects.items.filter((i) => i.display_name.indexOf(searchTerm) >= 0)
     }
     return items.sort((a, b) => {
       if (a.subdir && !b.subdir) return -1
@@ -378,19 +327,12 @@ const Objects = () => {
       <Route exact path="/containers/:name/objects/:objectPath?/:object/show">
         <ShowProperties />
       </Route>
-      <Route
-        exact
-        path="/containers/:name/objects/:objectPath?/:object/download-instructions"
-      >
+      <Route exact path="/containers/:name/objects/:objectPath?/:object/download-instructions">
         <DownloadInstructions />
       </Route>
 
       <div className="toolbar">
-        <SearchField
-          onChange={setSearchTerm}
-          placeholder="name"
-          text="Filters by name"
-        />
+        <SearchField onChange={setSearchTerm} placeholder="name" text="Filters by name" />
 
         <div className="main-buttons">
           <Link className="btn btn-default" to={`${url}/new`}>
