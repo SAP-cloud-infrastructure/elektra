@@ -1,5 +1,7 @@
 import init_json_editor from "lib/jsoneditor"
+import styles from "../styles.scss?inline"
 import React from "react"
+import { AppShellProvider, CodeBlock } from "@cloudoperators/juno-ui-components"
 
 class JsonEditor extends React.Component {
   componentDidMount() {
@@ -9,14 +11,10 @@ class JsonEditor extends React.Component {
 
   render() {
     return (
-      <div className="objectinfo_json_editor">
-        <b>{this.props.title}</b>
-        <div
-          id="jsoneditor"
-          data-mode="view"
-          data-content={JSON.stringify(this.props.details, null, 2)}
-        />
-      </div>
+      <AppShellProvider theme="theme-light">
+        <style>{styles}</style>
+        <CodeBlock heading="Metadata" content={this?.props?.details || null} lang="json" className="tw-mt-6" />
+      </AppShellProvider>
     )
   }
 }
