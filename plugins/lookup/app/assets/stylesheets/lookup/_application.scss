@@ -37,5 +37,5 @@
 .loading-spinner-button {
   margin-left: 5px;
   margin-right: 5px;
-  @include spinner(background rgba(0,0,0,0.2));
+  @include spinner(background rgba(0, 0, 0, 0.2));
 }
