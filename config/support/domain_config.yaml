@@ -14,7 +14,7 @@ domains:
       - "FloatingIP-external-%DOMAIN_NAME%-01"
       - "FloatingIP-external-%DOMAIN_NAME%"
       - "Converged Cloud External"
-    disabled_dns_provider:
+    disabled_dns_providers:
       - "Internal SOV Hosted Zone"
     dns_c_subdomain: true
     check_cidr_range: true

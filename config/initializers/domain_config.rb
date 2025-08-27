@@ -57,7 +57,7 @@ class DomainConfig
   end
 
   def disabled_dns_providers?
-    @domain_config.fetch('disabled_dns_provider', false)
+    @domain_config.fetch('disabled_dns_providers', false)
   end
 
   def dns_c_subdomain?
