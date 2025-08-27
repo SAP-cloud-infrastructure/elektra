@@ -3,11 +3,6 @@ import React from "react"
 import { AppShellProvider, CodeBlock } from "@cloudoperators/juno-ui-components"
 
 class JsonEditor extends React.Component {
-  componentDidMount() {
-    // eslint-disable-next-line no-undef
-    init_json_editor()
-  }
-
   render() {
     return (
       <AppShellProvider theme="theme-light">
