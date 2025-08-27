@@ -1,4 +1,2 @@
 en:
   compute:
-    icon_hints:
-      user_attributes: "The Automation option bootstraps the required node agent on the instance."

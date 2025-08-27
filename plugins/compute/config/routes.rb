@@ -35,7 +35,6 @@ Compute::Engine.routes.draw do
       get "confirm_hard_reset"
       post "pre_hard_reset"
     end
-    post "automation_script", on: :collection
   end
 
   resources :keypairs
