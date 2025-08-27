@@ -137,17 +137,23 @@ To use packages like `@sapcc/limes-ui`, a **GITHUB_TOKEN** is required. The foll
     https://formulae.brew.sh/formula/chruby
     ```
 
-4.  [Install](https://nodejs.org/en/download/package-manager/) **nodejs** if not installed. (current working version 20.15.1 but higher versions works also fine)
+4.  [Install](https://nodejs.org/en/download/package-manager/) **nodejs** if not installed. (current working version 22.16.0)
 
     ```bash
-    brew install nodejs@20
-    brew link nodejs@20
+    brew install nodejs@22
+    brew link nodejs@22
     ```
 
     Check the node version running:
 
     ```bash
     node --version
+    ```
+
+Alternatively, we use NVM to manage Node versions — please ensure you’re using the version specified in .nvmrc.
+
+    ```bash
+    nvm use
     ```
 
 5.  [Install](https://yarnpkg.com/en/docs/install) **yarn** (actual version is 1.22.22 but higher works also fine)
