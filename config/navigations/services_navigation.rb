@@ -138,7 +138,7 @@ SimpleNavigation::Configuration.run do |navigation|
                           -> { plugin('kubernetes_ng').root_path },
                           if:
                             lambda {
-                              plugin_available?(:kubernetes_ng) && current_region == "qa-de-1" },
+                              plugin_available?(:kubernetes_ng) && current_region == "qa-de-1" && services.available?(:kubernetes_ng) },
                           highlights_on:
                             proc { params[:controller][%r{kubernetes_ng/.*}] }
     end
