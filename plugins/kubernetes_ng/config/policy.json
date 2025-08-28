@@ -1,0 +1,7 @@
+{
+  "kubernetes_ng:entry_list": "@",
+  "kubernetes_ng:entry_get": "@",
+  "kubernetes_ng:entry_create": "@",
+  "kubernetes_ng:entry_delete": "@",
+  "kubernetes_ng:entry_update": "@"
+}
