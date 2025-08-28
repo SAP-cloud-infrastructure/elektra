@@ -163,11 +163,6 @@ export default function ProjectResourceCheck({ opened, onClose }) {
       typeHref = "/lbaas2/?r=/loadbalancers"
     } else if (resourceType === "cronus_nebula_aws" || resourceType === "cronus_nebula_int") {
       typeHref = "/email-service"
-    } else if (
-      (resourceType === "lyra_automations" && serviceType === "automation") ||
-      (resourceType === "arc_agents" && serviceType === "arc")
-    ) {
-      typeHref = "/automation"
     } else if (resourceType === "kubernikus_clusters" && serviceType === "kubernikus") {
       typeHref = "/kubernetes"
     } else if (resourceType === "commitments" && serviceType === "resources") {

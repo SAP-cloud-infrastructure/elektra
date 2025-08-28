@@ -27,35 +27,6 @@ ActiveSupport::Notifications.subscribe(
   end
 end
 
-#reopen RestClient::Request and inject breadcrumb wrapper
-module RestClient
-  class Request
-    alias_method :original_execute, :execute
-    def execute(&block)
-      original_execute(&block).tap do |response|
-        add_crumb(url, method, response)
-      end
-    rescue StandardError
-      add_crumb(url, method)
-      raise
-    end
-
-    private
-
-    def add_crumb(url, method, response = nil)
-      #puts "add_crumb(#{url}, #{method}, #{response.try(:code)})"
-      #return
-      Raven.breadcrumbs.record do |crumb|
-        crumb.type = "http"
-        crumb.category = "rest-client"
-        data = { url: url, method: method.to_s.upcase }
-        data[:status_code] = response.code if response
-        crumb.data = data
-      end
-    end
-  end
-end
-
 module Excon
   module Sentry
     class Middleware < Excon::Middleware::Base

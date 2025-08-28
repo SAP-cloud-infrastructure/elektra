@@ -13,7 +13,6 @@ export const scopes = [
   "version",
   "plugins",
   "audit",
-  "automation",
   "block-storage",
   "cloudops",
   "compute",
