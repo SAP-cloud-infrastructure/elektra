@@ -38,11 +38,6 @@ MONSOON_DASHBOARD_AVATAR_URL='https://www.gravatar.com/avatar/#{Digest::MD5.hexd
 # should be changed if you accessing the dashboard not from localhost
 # TRUSTED_IP=localhost
 
-# SAP Arc Automation settings
-# ARC_UPDATES_URL=<your-arc-update-server-url>
-# ARC_PKI_URL=<your-arc-pki-server-url>
-# ARC_BROKER_URL=<your-arc-broker-server-url>
-
 # defaults to true, should not be disabled in production
 # disable SSL if you use dev-proxy!
 # ELEKTRA_SSL_VERIFY_PEER=false

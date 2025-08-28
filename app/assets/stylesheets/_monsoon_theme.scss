@@ -560,12 +560,6 @@ section {
   @extend .fa-cube;
 }
 
-.automation-icon {
-  @extend .fa;
-  @extend .fa-fw;
-  @extend .fa-gears;
-}
-
 .hana-icon {
   @extend .fa;
   @extend .fa-fw;
@@ -1060,7 +1054,8 @@ section {
   background-size: contain;
   margin-right: 3px;
 
-  &, img {
+  &,
+  img {
     border-radius: 3px;
     height: 24px;
     width: 24px;
@@ -1068,7 +1063,8 @@ section {
 }
 
 .avatar_profile {
-  &, img {
+  &,
+  img {
     height: 140px;
     width: 140px;
   }

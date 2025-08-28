@@ -30,7 +30,6 @@ To that end Elektra provides web UIs that turn operator actions into user self-s
 
 **Extended services:**
 
-- SAP Automation as a Service
 - SAP Hana as a Service
 - SAP Kubernetes as a Service
 

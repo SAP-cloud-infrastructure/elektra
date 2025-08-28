@@ -120,22 +120,6 @@ module ApiLookup
     { method_name: 'security_group_rules', params: [{ direction: ":term" }] },
     { method_name: 'security_group_rules', params: [{ remote_group_id: ":term" }] }
   ],
-  "node" => [
-    "automation",
-    { method_name: 'node', params: [":term"] }
-  ],
-  "automation_job" => [
-    "automation",
-    { method_name: 'job', params: [":term"] }
-  ],
-  "automation" => [
-    "automation",
-    { method_name: 'automation', params: [":term"] }
-  ],
-  "automation_run" => [
-    "automation",
-    { method_name: 'automation_run', params: [":term"] }
-  ],
   "zone" => [
     "dns_service",
     { method_name: 'find_zone', params: [":term"] },

@@ -24,7 +24,6 @@ domains:
   - name: marioworld
     regex: "^marioworld-.*$"
     disabled_plugins:
-      - automation
       - reports
       - masterdata_cockpit
       - webconsole

@@ -87,7 +87,6 @@ describe KeyManager::SecretsController, type: :controller do
       allow_any_instance_of(ServiceLayer::KeyManagerService).to receive(
         :find_secret
       ).with(@secret.uuid).and_return(@secret)
-      allow_any_instance_of(RestClient::Request).to receive(:execute).and_return('test')
     end
 
     it 'returns http success' do
