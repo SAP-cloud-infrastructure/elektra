@@ -14,7 +14,8 @@ module DnsService
       # filter disabled DNS providers
       @pools.reject! do |pool|
         pool_label = pool.attributes["attributes"]["label"]
-        is_disabled = disabled_providers.include?(pool_label)
+        is_disabled = false
+        is_disabled = disabled_providers.include?(pool_label) if disabled_providers
         
         if is_disabled
           Rails.logger.debug("Rejecting pool: #{pool_label} (disabled DNS provider)")
