@@ -1,5 +1,5 @@
 module KubernetesNg
-  class CloudProfilesController < ApplicationController
+  class ApiController < ApplicationController
     def index
       render json: services.kubernetes_ng.list_cloud_profiles
     end
