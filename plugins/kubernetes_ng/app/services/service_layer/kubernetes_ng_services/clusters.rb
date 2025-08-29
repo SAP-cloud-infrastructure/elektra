@@ -61,7 +61,19 @@ module ServiceLayer
         }.compact
       end
 
+      # Convert cluster format back to shoot API format
+      def convert_cluster_to_shoot(cluster)
+        return nil unless cluster.is_a?(Hash)
+        
+        {
+          'metadata' => build_shoot_metadata(cluster),
+          'spec' => build_shoot_spec(cluster)
+        }.compact
+      end
+
       private
+
+      # convert_shoot_to_cluster -> Helper functions
 
       # Helper function to determine cluster status from last operation
       def get_cluster_status(shoot)
@@ -185,6 +197,144 @@ module ServiceLayer
         {
           os: auto_update['machineImageVersion'] || false,
           kubernetes: auto_update['kubernetesVersion'] || false
+        }
+      end
+
+      # convert_cluster_to_shoot -> helper funtions
+
+      # Build metadata section for shoot
+      def build_shoot_metadata(cluster)
+        metadata = {}
+        metadata['uid'] = cluster[:uid] if cluster[:uid]
+        metadata['name'] = cluster[:name] if cluster[:name]
+        metadata.empty? ? nil : metadata
+      end
+
+      # Build spec section for shoot
+      def build_shoot_spec(cluster)
+        spec = {}
+        
+        # Basic fields
+        spec['region'] = cluster[:region] if cluster[:region]
+        spec['purpose'] = cluster[:purpose] if cluster[:purpose]
+        
+        # Provider configuration
+        if cluster[:infrastructure] || cluster[:workers]&.any?
+          spec['provider'] = build_provider_spec(cluster)
+        end
+        
+        # Kubernetes version
+        if cluster[:version]
+          spec['kubernetes'] = { 'version' => cluster[:version] }
+        end
+        
+        # Maintenance configuration
+        if cluster[:maintenance] || cluster[:auto_update]
+          spec['maintenance'] = build_maintenance_spec(cluster)
+        end
+        
+        # Hibernation configuration
+        if cluster.dig(:maintenance, :timezone)
+          spec['hibernation'] = build_hibernation_spec(cluster)
+        end
+        
+        spec.empty? ? nil : spec
+      end
+
+      # Build provider specification
+      def build_provider_spec(cluster)
+        provider = {}
+        
+        provider['type'] = cluster[:infrastructure] if cluster[:infrastructure]
+        
+        if cluster[:workers]&.any?
+          provider['workers'] = cluster[:workers].map do |worker|
+            build_worker_spec(worker)
+          end.compact
+        end
+        
+        provider
+      end
+
+      # Build individual worker specification
+      def build_worker_spec(worker)
+        return nil unless worker.is_a?(Hash)
+        
+        worker_spec = {}
+        worker_spec['name'] = worker[:name] if worker[:name]
+        worker_spec['minimum'] = worker[:min] if worker[:min]
+        worker_spec['maximum'] = worker[:max] if worker[:max]
+        worker_spec['maxSurge'] = worker[:max_surge] if worker[:max_surge]
+        worker_spec['zones'] = worker[:zones] if worker[:zones]
+        
+        # Machine configuration
+        if worker[:machine_type] || worker[:architecture] || worker[:machine_image]
+          worker_spec['machine'] = build_machine_spec(worker)
+        end
+        
+        # Container runtime
+        if worker[:container_runtime]
+          worker_spec['cri'] = { 'name' => worker[:container_runtime] }
+        end
+        
+        worker_spec.empty? ? nil : worker_spec
+      end
+
+      # Build machine specification for worker
+      def build_machine_spec(worker)
+        machine = {}
+        machine['type'] = worker[:machine_type] if worker[:machine_type]
+        machine['architecture'] = worker[:architecture] if worker[:architecture]
+        
+        if worker[:machine_image]
+          image = worker[:machine_image]
+          if image[:name] || image[:version]
+            machine['image'] = {
+              'name' => image[:name],
+              'version' => image[:version]
+            }.compact
+          end
+        end
+        
+        machine
+      end
+
+      # Build maintenance specification
+      def build_maintenance_spec(cluster)
+        maintenance = {}
+        
+        # Time window
+        if cluster[:maintenance]
+          maint = cluster[:maintenance]
+          if maint[:start_time] || maint[:window_time]
+            maintenance['timeWindow'] = {
+              'begin' => maint[:start_time],
+              'end' => maint[:window_time]
+            }.compact
+          end
+        end
+        
+        # Auto update settings
+        if cluster[:auto_update]
+          auto_update = cluster[:auto_update]
+          maintenance['autoUpdate'] = {
+            'machineImageVersion' => auto_update[:os] || false,
+            'kubernetesVersion' => auto_update[:kubernetes] || false
+          }
+        end
+        
+        maintenance
+      end
+
+      # Build hibernation specification
+      def build_hibernation_spec(cluster)
+        timezone = cluster.dig(:maintenance, :timezone)
+        return nil unless timezone
+        
+        {
+          'schedules' => [
+            { 'location' => timezone }
+          ]
         }
       end
 
