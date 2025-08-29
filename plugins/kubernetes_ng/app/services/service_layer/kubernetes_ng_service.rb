@@ -6,6 +6,7 @@ module ServiceLayer
 
     include KubernetesNgServices::CloudProfile
     include KubernetesNgServices::Clusters
+    include KubernetesNgServices::Permissions
 
     def available?(_action_name_sym = nil)
       elektron.service?("gardener")
