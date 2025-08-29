@@ -24,14 +24,5 @@ module ServiceLayer
         )
     end
 
-
-
-    # elektron.service("gardener", headers:{"Authorization":"Bearer #{elektron.token}"}).get("apis/core.gardener.cloud/v1beta1/cloudprofiles")
-
-    # Note: for patch 
-    # headers: {
-    #          "Content-Type": "application/json-patch+json",
-    #        },
-
   end
 end
