@@ -126,7 +126,7 @@ const SecurityScanPoliciesEditRow = ({
               )}
             </>
           )}
-          <>
+          <div>
             <textarea
               data-testid="textArea"
               type="text"
@@ -139,7 +139,7 @@ const SecurityScanPoliciesEditRow = ({
                 setPolicyAttribute(index, "assessment", e.target.value)
               }}
             />
-          </>
+          </div>
         </div>
         {validationError && (
           <p data-testid={"validationText"} className="text-danger">
