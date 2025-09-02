@@ -129,14 +129,16 @@ const SecurityScanPoliciesEditRow = ({
           <div>
             <textarea
               data-testid="textArea"
-              className="tw-w-full tw-mt-2"
+              type="text"
+              className="form-control tw-mt-2"
+              style={{ width: "100%", resize: "vertical" }}
               disabled={!isEditable}
               placeholder="Assessment"
               value={policy.action.assessment}
               onChange={(e) => {
                 setPolicyAttribute(index, "assessment", e.target.value)
               }}
-            ></textarea>
+            />
           </div>
         </div>
         {validationError && (
