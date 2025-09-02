@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 module ServiceLayer
   module KubernetesNgServices
     # This module implements Openstack Domain API
@@ -20,17 +18,17 @@ module ServiceLayer
             uid: metadata['uid'],
             name: metadata['name'],
             provider: spec['type'],
-            kubernetes_versions: safe_map_versions(kubernetes['versions']),
-            machine_types: safe_map_machine_types(spec['machineTypes']),
-            machine_images: safe_map_machine_images(spec['machineImages']),
+            kubernetesVersions: safe_map_versions(kubernetes['versions']), # Changed from kubernetes_versions
+            machineTypes: safe_map_machine_types(spec['machineTypes']), # Changed from machine_types
+            machineImages: safe_map_machine_images(spec['machineImages']), # Changed from machine_images
             regions: safe_map_regions(spec['regions']),
-            volume_types: safe_map_volume_types(spec['volumeTypes'])
+            volumeTypes: safe_map_volume_types(spec['volumeTypes']) # Changed from volume_types
           }
         end.compact
       end
-
+      
       private
-
+      
       def safe_map_versions(versions)
         return [] unless versions.is_a?(Array)
         
@@ -38,7 +36,7 @@ module ServiceLayer
           v['version'] if v.is_a?(Hash) && v['version']
         end
       end
-
+      
       def safe_map_machine_types(machine_types)
         return [] unless machine_types.is_a?(Array)
         
@@ -53,7 +51,7 @@ module ServiceLayer
           }.compact
         end
       end
-
+      
       def safe_map_machine_images(machine_images)
         return [] unless machine_images.is_a?(Array)
         
@@ -68,7 +66,7 @@ module ServiceLayer
           }
         end
       end
-
+      
       def safe_map_regions(regions)
         return [] unless regions.is_a?(Array)
         
@@ -83,7 +81,7 @@ module ServiceLayer
           }.compact
         end
       end
-
+      
       def safe_map_volume_types(volume_types)
         return [] unless volume_types.is_a?(Array)
         
