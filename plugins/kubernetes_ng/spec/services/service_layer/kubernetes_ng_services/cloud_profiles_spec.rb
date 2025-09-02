@@ -1,6 +1,6 @@
 require "spec_helper"
-RSpec.describe ServiceLayer::KubernetesNgServices::CloudProfile do
-  include ServiceLayer::KubernetesNgServices::CloudProfile
+RSpec.describe ServiceLayer::KubernetesNgServices::CloudProfiles do
+  include ServiceLayer::KubernetesNgServices::CloudProfiles
   
   describe "#list_cloud_profiles" do
     let(:mock_response) do

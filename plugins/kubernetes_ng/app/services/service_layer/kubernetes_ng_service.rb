@@ -4,7 +4,7 @@ module ServiceLayer
   # kubernetesNG implements the bff for the gardener API
   class KubernetesNgService < Core::ServiceLayer::Service
 
-    include KubernetesNgServices::CloudProfile
+    include KubernetesNgServices::CloudProfiles
     include KubernetesNgServices::Clusters
     include KubernetesNgServices::Permissions
 

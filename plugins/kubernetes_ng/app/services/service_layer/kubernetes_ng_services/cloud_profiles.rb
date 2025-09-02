@@ -1,7 +1,7 @@
 module ServiceLayer
   module KubernetesNgServices
     # This module implements Openstack Domain API
-    module CloudProfile
+    module CloudProfiles
       
       def list_cloud_profiles
         response = elektron_gardener.get("apis/core.gardener.cloud/v1beta1/cloudprofiles")
