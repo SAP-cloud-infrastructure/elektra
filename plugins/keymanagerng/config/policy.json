@@ -20,6 +20,12 @@
   "keymanagerng:container_delete": "rule:context_is_keymanager_editor",
   "keymanagerng:container_update": "rule:context_is_keymanager_editor",
 
+  "keymanagerng:order_list": "rule:context_is_keymanager_viewer",
+  "keymanagerng:order_get": "rule:context_is_keymanager_viewer",
+  "keymanagerng:order_create": "rule:context_is_keymanager_editor",
+  "keymanagerng:order_delete": "rule:context_is_keymanager_editor",
+  "keymanagerng:order_update": "rule:context_is_keymanager_editor",
+
   "keymanagerng:entry_list": "@",
   "keymanagerng:entry_get": "@",
   "keymanagerng:entry_create": "@",

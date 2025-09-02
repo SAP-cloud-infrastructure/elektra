@@ -9,3 +9,37 @@
 h4 {
   font-size: 2rem;
 }
+
+// Orders specific styles - using Tailwind classes instead of Card components
+.orders-container {
+  .order-item {
+    transition: box-shadow 0.2s ease-in-out;
+    
+    &:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+  }
+}
+
+.order-details-container {
+  .pre {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+}
+
+.new-order-container {
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+  
+  .alert {
+    margin-bottom: 1rem;
+  }
+}

@@ -9,6 +9,9 @@ import NewSecret from "./secrets/newSecret"
 import Containers from "./containers/containers"
 import ContainerDetails from "./containers/containerDetails"
 import NewContainer from "./containers/newContainer"
+import Orders from "./orders/orders.jsx"
+import OrderDetails from "./orders/orderDetails.jsx"
+import NewOrder from "./orders/newOrder.jsx"
 import { widgetBasePath } from "lib/widget"
 import { Messages } from "@cloudoperators/juno-messages-provider"
 import useStore from "../store"
@@ -20,7 +23,8 @@ const AppRouter = () => {
     useCallback((state) => state.showNewContainer)
   )
   const showNewSecret = useStore(useCallback((state) => state.showNewSecret))
-  const tabsDisabled = showNewSecret || showNewContainer ? true : false
+  const showNewOrder = useStore(useCallback((state) => state.showNewOrder))
+  const tabsDisabled = showNewSecret || showNewContainer || showNewOrder ? true : false
 
   const tabsConfig = [
     {
@@ -35,7 +39,16 @@ const AppRouter = () => {
       component: Containers,
       disabled: tabsDisabled,
     },
+    {
+      to: "/orders",
+      label: "Orders",
+      component: Orders,
+      disabled: tabsDisabled,
+    },
   ]
+  
+  console.log("AppRouter tabsConfig:", tabsConfig) // Debug log
+  
   return (
     <>
       <Messages />
@@ -48,6 +61,8 @@ const AppRouter = () => {
         <Route exact path="/secrets/:id/show" component={SecretDetails} />
         <Route exact path="/containers/newContainer" component={NewContainer} />
         <Route exact path="/containers/:id/show" component={ContainerDetails} />
+        <Route exact path="/orders/newOrder" component={NewOrder} />
+        <Route exact path="/orders/:id/show" component={OrderDetails} />
       </BrowserRouter>
     </>
   )
