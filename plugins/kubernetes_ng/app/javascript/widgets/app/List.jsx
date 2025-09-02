@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react"
 import apiClient from "./apiClient"
-import { DataGrid, DataGridRow, DataGridCell, DataGridHeadCell } from "@cloudoperators/juno-ui-components"
+import { DataGrid, DataGridRow, DataGridCell, DataGridHeadCell, Message } from "@cloudoperators/juno-ui-components"
 import Loading from "./Loading"
 import { IntroBox } from "@cloudoperators/juno-ui-components"
 
 const AppCredentialsList = () => {
   const [clusters, setClusters] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = React.useState(null)
 
   // fetch the clusters from the api
   useEffect(() => {
@@ -17,7 +18,8 @@ const AppCredentialsList = () => {
         setClusters(response.data)
       })
       .catch((error) => {
-        console.error("Error fetching application credentials:", error)
+        console.error("Error fetching clusters:", error)
+        setError(error?.data?.error?.error?.message || "An error occurred while fetching the clusters.")
       })
       .finally(() => {
         setIsLoading(false)
@@ -44,6 +46,7 @@ const AppCredentialsList = () => {
   return (
     <div>
       <IntroBox text="This is a list of all clusters." />
+      {error && <Message variant="error" text={error} />}
       {isLoading || !clusters ? (
         <Loading />
       ) : (
