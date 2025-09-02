@@ -379,6 +379,7 @@ GEM
     faraday-net_http (3.4.1)
       net-http (>= 0.5.0)
     ffi (1.17.2)
+    ffi (1.17.2-x86_64-linux-gnu)
     ffi (1.17.2-x86_64-linux-musl)
     filewatcher (2.1.0)
       module_methods (~> 0.1.0)
@@ -447,6 +448,7 @@ GEM
       mime-types-data (~> 3.2025, >= 3.2025.0507)
     mime-types-data (3.2025.0708)
     mini_mime (1.1.5)
+    mini_portile2 (2.8.9)
     minitest (5.25.5)
     module_methods (0.1.0)
     mutex_m (0.3.0)
@@ -465,6 +467,11 @@ GEM
     netaddr (2.0.4)
     netrc (0.11.0)
     nio4r (2.7.4)
+    nokogiri (1.18.9)
+      mini_portile2 (~> 2.8.2)
+      racc (~> 1.4)
+    nokogiri (1.18.9-x86_64-linux-gnu)
+      racc (~> 1.4)
     nokogiri (1.18.9-x86_64-linux-musl)
       racc (~> 1.4)
     ostruct (0.6.2)
@@ -642,6 +649,8 @@ GEM
     zeitwerk (2.7.3)
 
 PLATFORMS
+  ruby
+  x86_64-linux
   x86_64-linux-musl
 
 DEPENDENCIES
