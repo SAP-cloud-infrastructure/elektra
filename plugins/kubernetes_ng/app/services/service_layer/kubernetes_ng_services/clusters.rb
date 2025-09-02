@@ -19,10 +19,30 @@ module ServiceLayer
       end
 
       def create_cluster(project_id, cluster_spec)
-        # elektron_gardener("gardener", headers:{"Content-Type": "application/json-patch+json"}).post("apis/authorization.k8s.io/v1/selfsubjectaccessreviews")
+        namespace = "garden-#{project_id}"
+        response = elektron_gardener.post("apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots", 
+            headers:{"Content-Type": "application/json"
+          }) do
+          convert_cluster_to_shoot(cluster_spec)
+        end
+        return response&.body
       end
 
-      def delete_cluster(project_id, cluster_name)
+      def destroy_cluster(project_id, cluster_name)
+        namespace = "garden-#{project_id}"
+        response = elektron_gardener.patch("apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots/#{cluster_name}", headers: {
+              "Content-Type": "application/json-patch+json",
+            }) do
+          [
+            {
+              op: "add",
+              path: "/metadata/annotations/confirmation.gardener.cloud~1deletion",
+              value: "true",
+            },
+          ]
+        end
+        shoot_body = response&.body
+        return convert_shoot_to_cluster(shoot_body)
       end
 
       def update_cluster(project_id, cluster_name, cluster_spec)
@@ -217,7 +237,10 @@ module ServiceLayer
         # Basic fields
         spec['region'] = cluster[:region] if cluster[:region]
         spec['purpose'] = cluster[:purpose] if cluster[:purpose]
-        
+        spec['cloudProfileName'] = cluster[:cloud_profile_name] if cluster[:cloud_profile_name]
+        spec['networking'] = cluster[:networking] if cluster[:networking]
+        spec['secretBindingName'] = cluster[:secret_binding_name] if cluster[:secret_binding_name]
+
         # Provider configuration
         if cluster[:infrastructure] || cluster[:workers]&.any?
           spec['provider'] = build_provider_spec(cluster)

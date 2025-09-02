@@ -590,6 +590,7 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
         name: 'test-cluster',
         region: 'eu-de',
         infrastructure: 'openstack',
+        cloud_profile_name: 'openstack',
         version: '1.25.4',
         purpose: 'production',
         workers: [
@@ -629,6 +630,7 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
         'spec' => {
           'region' => 'eu-de',
           'purpose' => 'production',
+          'cloudProfileName' => 'openstack',
           'provider' => {
             'type' => 'openstack',
             'workers' => [
