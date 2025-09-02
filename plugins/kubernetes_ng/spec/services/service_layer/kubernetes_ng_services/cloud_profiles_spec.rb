@@ -79,11 +79,10 @@ RSpec.describe ServiceLayer::KubernetesNgServices::CloudProfiles do
         provider: "openstack"
       )
       
-      # Test that camelCase keys are used (not snake_case)
-      expect(cloud_profile).to have_key(:kubernetesVersions)  # not kubernetes_versions
-      expect(cloud_profile).to have_key(:machineTypes)       # not machine_types
-      expect(cloud_profile).to have_key(:machineImages)      # not machine_images
-      expect(cloud_profile).to have_key(:volumeTypes)        # not volume_types
+      expect(cloud_profile).to have_key(:kubernetesVersions)
+      expect(cloud_profile).to have_key(:machineTypes)
+      expect(cloud_profile).to have_key(:machineImages)
+      expect(cloud_profile).to have_key(:volumeTypes)
       expect(cloud_profile).to have_key(:regions)
     end
 

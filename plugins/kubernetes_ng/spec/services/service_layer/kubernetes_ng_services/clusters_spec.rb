@@ -105,24 +105,24 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
         readiness: {
           conditions: [
             {
-              displayValue: 'API', # Changed from display_value to displayValue
+              displayValue: 'API',
               status: 'True',
               type: 'APIServerAvailable'
             },
             {
-              displayValue: 'CP', # Changed from display_value to displayValue
+              displayValue: 'CP',
               status: 'True',
               type: 'ControlPlaneHealthy'
             }
           ],
           status: '2/2'
         },
-        stateDetails: { # Changed from state_details to stateDetails
+        stateDetails: {
           progress: 100,
           type: 'Reconcile',
           state: 'Succeeded',
           description: 'Cluster is running',
-          lastTransitionTime: '2023-05-01T10:00:00Z' # Changed from last_transition_time to lastTransitionTime
+          lastTransitionTime: '2023-05-01T10:00:00Z'
         }
       )
     end
@@ -574,31 +574,31 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
         name: 'test-cluster',
         region: 'eu-de',
         infrastructure: 'openstack',
-        cloudProfileName: 'openstack', # Changed from cloud_profile_name to cloudProfileName
+        cloudProfileName: 'openstack',
         version: '1.25.4',
         purpose: 'production',
         workers: [
           {
             name: 'worker-pool-1',
-            machineType: 'm1.large', # Changed from machine_type to machineType
+            machineType: 'm1.large',
             architecture: 'amd64',
-            machineImage: { # Changed from machine_image to machineImage
+            machineImage: {
               name: 'ubuntu',
               version: '20.04'
             },
-            containerRuntime: 'containerd', # Changed from container_runtime to containerRuntime
+            containerRuntime: 'containerd',
             min: 2,
             max: 5,
-            maxSurge: 1, # Changed from max_surge to maxSurge
+            maxSurge: 1,
             zones: ['eu-de-1', 'eu-de-2']
           }
         ],
         maintenance: {
-          startTime: '220000+0100', # Changed from start_time to startTime
-          windowTime: '230000+0100', # Changed from window_time to windowTime
+          startTime: '220000+0100',
+          windowTime: '230000+0100',
           timezone: 'Europe/Berlin'
         },
-        autoUpdate: { # Changed from auto_update to autoUpdate
+        autoUpdate: {
           os: true,
           kubernetes: true
         }

@@ -73,17 +73,17 @@ module ServiceLayer
           version: spec.dig('kubernetes', 'version'),
           readiness: get_cluster_readiness(shoot),
           purpose: spec['purpose'],
-          secretBindingName: spec['secretBindingName'], # camelCase
+          secretBindingName: spec['secretBindingName'],
           # State details for operations tracking
-          stateDetails: get_state_details(shoot), # camelCase
+          stateDetails: get_state_details(shoot),
           # Worker nodes configuration
           workers: safe_map_workers(spec.dig('provider', 'workers')),
           # Maintenance configuration
           maintenance: get_maintenance_info(spec),
           # Last maintenance state
-          lastMaintenance: get_last_maintenance_info(status), # camelCase
+          lastMaintenance: get_last_maintenance_info(status),
           # Auto update settings
-          autoUpdate: get_auto_update_settings(spec) # camelCase
+          autoUpdate: get_auto_update_settings(spec)
         }.compact
       end
       
@@ -140,7 +140,7 @@ module ServiceLayer
           status: "#{healthy_count}/#{conditions.length}",
           conditions: conditions.map do |condition|
             {
-              displayValue: condition_display_names[condition['type']] || condition['type'], # camelCase
+              displayValue: condition_display_names[condition['type']] || condition['type'],
               type: condition['type'],
               status: condition['status']
             }
@@ -158,7 +158,7 @@ module ServiceLayer
           progress: last_operation['progress'].is_a?(Numeric) ? last_operation['progress'] : nil,
           type: last_operation['type'],
           description: last_operation['description'],
-          lastTransitionTime: last_operation['lastUpdateTime'] # camelCase
+          lastTransitionTime: last_operation['lastUpdateTime']
         }.compact
       end
       
@@ -176,16 +176,16 @@ module ServiceLayer
           {
             name: worker['name'],
             architecture: machine['architecture'],
-            machineType: machine['type'], # camelCase
-            machineImage: { # camelCase
+            machineType: machine['type'],
+            machineImage: {
               name: image['name'],
               version: image['version']
             }.compact,
-            containerRuntime: cri['name'], # camelCase
+            containerRuntime: cri['name'],
             min: worker['minimum'],
             max: worker['maximum'],
             actual: nil, # Would need separate API call
-            maxSurge: worker['maxSurge'], # camelCase
+            maxSurge: worker['maxSurge'],
             zones: worker['zones']
           }.compact
         end
@@ -198,9 +198,9 @@ module ServiceLayer
         time_window = maintenance&.dig('timeWindow') || {}
         
         {
-          startTime: time_window['begin'] || '', # camelCase
+          startTime: time_window['begin'] || '',
           timezone: hibernation&.dig('schedules', 0, 'location') || '',
-          windowTime: time_window['end'] || '' # camelCase
+          windowTime: time_window['end'] || ''
         }
       end
       
