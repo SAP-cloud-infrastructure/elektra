@@ -1,8 +1,8 @@
-import { ajaxHelper } from "lib/ajax_helper"
+import apiClient from "./apiClient"
 
 export const fetchAvailabilityZones = () => {
   return new Promise((handleSuccess, handleErrors) => {
-    ajaxHelper
+    apiClient
       .get(`/loadbalancers/availability-zones`)
       .then((response) => {
         handleSuccess(response.data)
@@ -15,7 +15,7 @@ export const fetchAvailabilityZones = () => {
 
 export const fetchLoadbalancers = (options) => {
   return new Promise((handleSuccess, handleError) => {
-    ajaxHelper
+    apiClient
       .get(`/loadbalancers`, { params: options })
       .then((response) => {
         handleSuccess(response.data)
@@ -28,7 +28,7 @@ export const fetchLoadbalancers = (options) => {
 
 export const fetchLoadbalancer = (id) => {
   return new Promise((handleSuccess, handleError) => {
-    ajaxHelper
+    apiClient
       .get(`/loadbalancers/${id}`)
       .then((response) => {
         handleSuccess(response.data)
@@ -41,7 +41,7 @@ export const fetchLoadbalancer = (id) => {
 
 export const postLoadbalancer = (values) => {
   return new Promise((handleSuccess, handleErrors) => {
-    ajaxHelper
+    apiClient
       .post("/loadbalancers/", { loadbalancer: values })
       .then((response) => {
         handleSuccess(response.data)
@@ -54,7 +54,7 @@ export const postLoadbalancer = (values) => {
 
 export const putLoadbalancer = (lbID, values) => {
   return new Promise((handleSuccess, handleErrors) => {
-    ajaxHelper
+    apiClient
       .put(`/loadbalancers/${lbID}`, { loadbalancer: values })
       .then((response) => {
         handleSuccess(response.data)
@@ -67,7 +67,7 @@ export const putLoadbalancer = (lbID, values) => {
 
 export const deleteLoadbalancer = (id) => {
   return new Promise((handleSuccess, handleErrors) => {
-    return ajaxHelper
+    return apiClient
       .delete(`/loadbalancers/${id}`)
       .then((response) => {
         handleSuccess(response.data)
@@ -80,7 +80,7 @@ export const deleteLoadbalancer = (id) => {
 
 export const fetchPrivateNetworks = () => {
   return new Promise((handleSuccess, handleErrors) => {
-    ajaxHelper
+    apiClient
       .get(`/loadbalancers/private-networks`)
       .then((response) => {
         handleSuccess(response.data)
@@ -93,7 +93,7 @@ export const fetchPrivateNetworks = () => {
 
 export const fetchSubnets = (id) => {
   return new Promise((handleSuccess, handleErrors) => {
-    ajaxHelper
+    apiClient
       .get(`/loadbalancers/private-networks/${id}/subnets`)
       .then((response) => {
         handleSuccess(response.data)
@@ -106,7 +106,7 @@ export const fetchSubnets = (id) => {
 
 export const fetchFloatingIPs = () => {
   return new Promise((handleSuccess, handleErrors) => {
-    ajaxHelper
+    apiClient
       .get(`/loadbalancers/fips`)
       .then((response) => {
         handleSuccess(response.data)
@@ -119,7 +119,7 @@ export const fetchFloatingIPs = () => {
 
 export const fetchLoadbalancerDevice = (id) => {
   return new Promise((handleSuccess, handleError) => {
-    ajaxHelper
+    apiClient
       .get(`/loadbalancers/${id}/device`)
       .then((response) => {
         handleSuccess(response.data)
@@ -132,7 +132,7 @@ export const fetchLoadbalancerDevice = (id) => {
 
 export const putAttachFIP = (lbID, values) => {
   return new Promise((handleSuccess, handleErrors) => {
-    ajaxHelper
+    apiClient
       .put(`/loadbalancers/${lbID}/attach_fip`, values)
       .then((response) => {
         handleSuccess(response.data)
@@ -145,7 +145,7 @@ export const putAttachFIP = (lbID, values) => {
 
 export const putDetachFIP = (lbID, values) => {
   return new Promise((handleSuccess, handleErrors) => {
-    ajaxHelper
+    apiClient
       .put(`/loadbalancers/${lbID}/detach_fip`, values)
       .then((response) => {
         handleSuccess(response.data)

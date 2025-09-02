@@ -1,8 +1,8 @@
-import { ajaxHelper } from "lib/ajax_helper"
+import apiClient from "./apiClient"
 
 export const fetchListeners = (lbID, options) => {
   return new Promise((handleSuccess, handleError) => {
-    ajaxHelper
+    apiClient
       .get(`/loadbalancers/${lbID}/listeners`, { params: options })
       .then((response) => {
         handleSuccess(response.data)
@@ -15,7 +15,7 @@ export const fetchListeners = (lbID, options) => {
 
 export const fetchListener = (lbID, id) => {
   return new Promise((handleSuccess, handleError) => {
-    ajaxHelper
+    apiClient
       .get(`/loadbalancers/${lbID}/listeners/${id}`)
       .then((response) => {
         handleSuccess(response.data)
@@ -28,7 +28,7 @@ export const fetchListener = (lbID, id) => {
 
 export const postListener = (lbID, values) => {
   return new Promise((handleSuccess, handleErrors) => {
-    ajaxHelper
+    apiClient
       .post(`/loadbalancers/${lbID}/listeners`, { listener: values })
       .then((response) => {
         handleSuccess(response.data)
@@ -41,7 +41,7 @@ export const postListener = (lbID, values) => {
 
 export const putListener = (lbID, listenerID, values) => {
   return new Promise((handleSuccess, handleErrors) => {
-    ajaxHelper
+    apiClient
       .put(`/loadbalancers/${lbID}/listeners/${listenerID}`, {
         listener: values,
       })
@@ -56,7 +56,7 @@ export const putListener = (lbID, listenerID, values) => {
 
 export const deleteListener = (lbID, listenerID) => {
   return new Promise((handleSuccess, handleErrors) => {
-    ajaxHelper
+    apiClient
       .delete(`/loadbalancers/${lbID}/listeners/${listenerID}`)
       .then((response) => {
         handleSuccess(response.data)
@@ -69,7 +69,7 @@ export const deleteListener = (lbID, listenerID) => {
 
 export const fetchListnersNoDefaultPoolForSelect = (lbID) => {
   return new Promise((handleSuccess, handleError) => {
-    ajaxHelper
+    apiClient
       .get(`/loadbalancers/${lbID}/listeners/items_no_def_pool_for_select`)
       .then((response) => {
         handleSuccess(response.data)
@@ -82,7 +82,7 @@ export const fetchListnersNoDefaultPoolForSelect = (lbID) => {
 
 export const fetchListnersForSelect = (lbID) => {
   return new Promise((handleSuccess, handleError) => {
-    ajaxHelper
+    apiClient
       .get(`/loadbalancers/${lbID}/listeners/items_for_select`)
       .then((response) => {
         handleSuccess(response.data)
@@ -93,22 +93,48 @@ export const fetchListnersForSelect = (lbID) => {
   })
 }
 
-export const fetchSecretsForSelect = (lbID) => {
-  return new Promise((handleSuccess, handleError) => {
-    ajaxHelper
-      .get(`/loadbalancers/${lbID}/listeners/secrets`)
-      .then((response) => {
-        handleSuccess(response.data)
-      })
-      .catch((error) => {
-        handleError(error)
-      })
-  })
+export const fetchSecretsForSelect = async (options = {}) => {
+  // collect secrets by type
+  const [certResponse, opaqueResponse] = await Promise.all([
+    apiClient.osApi("key-manager").get("/v1/secrets", {
+      params: {
+        ...options,
+        sort: "created:desc",
+        secret_type: "CERTIFICATE",
+        limit: 50,
+      },
+    }),
+    apiClient.osApi("key-manager").get("/v1/secrets", {
+      params: {
+        ...options,
+        sort: "created:desc",
+        secret_type: "OPAQUE",
+        limit: 50,
+      },
+    }),
+  ])
+
+  const certData = certResponse?.data ?? {}
+  const opaqueData = opaqueResponse?.data ?? {}
+
+  // Merge totals
+  const total = (certData.total || 0) + (opaqueData.total || 0)
+
+  // Merge items
+  const allSecrets = [...(certData?.secrets || []), ...(opaqueData?.secrets || [])]
+
+  // Transform into select options
+  const selectSecrets = allSecrets.map((c) => ({
+    label: `${c.name} (${c.secret_ref})`,
+    value: c.secret_ref,
+  }))
+
+  return { secrets: selectSecrets, total }
 }
 
 export const fetchCiphers = () => {
   return new Promise((handleSuccess, handleErrors) => {
-    ajaxHelper
+    apiClient
       .get(`/loadbalancers/ciphers`)
       .then((response) => {
         handleSuccess(response.data)

@@ -847,9 +847,6 @@ describe Lbaas2::Loadbalancers::Pools::MembersController, type: :controller do
         :elektron,
       ).and_return(lbs)
 
-      allow_any_instance_of(ServiceLayer::KeyManagerService).to receive(
-        :containers,
-      ).and_return([])
       allow_any_instance_of(ServiceLayer::NetworkingService).to receive(
         :ports,
       ).and_return([])
