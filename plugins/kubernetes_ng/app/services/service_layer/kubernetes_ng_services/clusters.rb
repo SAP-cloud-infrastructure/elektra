@@ -28,7 +28,7 @@ module ServiceLayer
         return response&.body
       end
 
-      def destroy_cluster(project_id, cluster_name)
+      def mark_cluster_for_deletion(project_id, cluster_name)
         namespace = "garden-#{project_id}"
         response = elektron_gardener.patch("apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots/#{cluster_name}", headers: {
               "Content-Type": "application/json-patch+json",
@@ -41,6 +41,13 @@ module ServiceLayer
             },
           ]
         end
+        shoot_body = response&.body
+        return convert_shoot_to_cluster(shoot_body)
+      end 
+
+      def destroy_cluster(project_id, cluster_name)
+        namespace = "garden-#{project_id}"
+        response = elektron_gardener.delete("apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots/#{cluster_name}")
         shoot_body = response&.body
         return convert_shoot_to_cluster(shoot_body)
       end
