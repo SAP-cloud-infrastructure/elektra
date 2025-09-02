@@ -1,10 +1,7 @@
 require "spec_helper"
-
 RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
   include ServiceLayer::KubernetesNgServices::Clusters
-
   describe "convert_shoot_to_cluster" do
-
     it "converts a full blown valid shoot to cluster format" do
       shoot_mock = {
         'metadata' => {
@@ -97,7 +94,6 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           ]
         }
       }
-
       cluster = convert_shoot_to_cluster(shoot_mock)
       expect(cluster).to include(
         uid: shoot_mock['metadata']['uid'],
@@ -109,29 +105,27 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
         readiness: {
           conditions: [
             {
-              display_value: 'API',
+              displayValue: 'API', # Changed from display_value to displayValue
               status: 'True',
               type: 'APIServerAvailable'
             },
             {
-              display_value: 'CP',
+              displayValue: 'CP', # Changed from display_value to displayValue
               status: 'True',
               type: 'ControlPlaneHealthy'
             }
           ],
           status: '2/2'
         },
-        state_details: {
+        stateDetails: { # Changed from state_details to stateDetails
           progress: 100,
           type: 'Reconcile',
           state: 'Succeeded',
           description: 'Cluster is running',
-          last_transition_time: '2023-05-01T10:00:00Z'
+          lastTransitionTime: '2023-05-01T10:00:00Z' # Changed from last_transition_time to lastTransitionTime
         }
       )
     end
-
-
 
     it "handles shoot with minimal required fields only" do
       minimal_shoot = {
@@ -164,13 +158,12 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           'region' => 'eu-de'
         }
       }
-
       cluster = convert_shoot_to_cluster(minimal_shoot)
       expect(cluster[:name]).to eq('minimal-cluster')
       expect(cluster[:region]).to eq('eu-de')
       expect(cluster[:infrastructure]).to eq('openstack')
     end
-
+    
     it "handles shoot with optional addons" do
       shoot_with_addons = {
         'metadata' => {
@@ -212,12 +205,11 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           'region' => 'eu-de'
         }
       }
-
       cluster = convert_shoot_to_cluster(shoot_with_addons)
       expect(cluster[:name]).to eq('addon-cluster')
       # Add expectations for how addons are handled in your conversion logic
     end
-
+    
     it "handles shoot with DNS configuration" do
       shoot_with_dns = {
         'metadata' => {
@@ -252,12 +244,11 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           'region' => 'eu-de'
         }
       }
-
       cluster = convert_shoot_to_cluster(shoot_with_dns)
       expect(cluster[:name]).to eq('dns-cluster')
       # Add expectations for DNS handling
     end
-
+    
     it "handles shoot with hibernation schedules" do
       shoot_with_hibernation = {
         'metadata' => {
@@ -301,12 +292,11 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           'region' => 'eu-de'
         }
       }
-
       cluster = convert_shoot_to_cluster(shoot_with_hibernation)
       expect(cluster[:name]).to eq('hibernation-cluster')
       # Add expectations for hibernation handling
     end
-
+    
     it "handles shoot with extended kubernetes configuration" do
       shoot_with_k8s_config = {
         'metadata' => {
@@ -378,12 +368,11 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           'region' => 'eu-de'
         }
       }
-
       cluster = convert_shoot_to_cluster(shoot_with_k8s_config)
       expect(cluster[:name]).to eq('k8s-config-cluster')
       # Add expectations for kubernetes config handling
     end
-
+    
     it "handles shoot with system components configuration" do
       shoot_with_system_components = {
         'metadata' => {
@@ -426,12 +415,11 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           'region' => 'eu-de'
         }
       }
-
       cluster = convert_shoot_to_cluster(shoot_with_system_components)
       expect(cluster[:name]).to eq('system-components-cluster')
       # Add expectations for system components handling
     end
-
+    
     it "handles shoot with optional provider settings" do
       shoot_with_provider_settings = {
         'metadata' => {
@@ -472,12 +460,11 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           'schedulerName' => 'custom-scheduler'
         }
       }
-
       cluster = convert_shoot_to_cluster(shoot_with_provider_settings)
       expect(cluster[:name]).to eq('provider-settings-cluster')
       # Add expectations for provider settings handling
     end
-
+    
     it "handles shoot with complete status information" do
       shoot_with_full_status = {
         'metadata' => {
@@ -533,12 +520,11 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           ]
         }
       }
-
       cluster = convert_shoot_to_cluster(shoot_with_full_status)
       expect(cluster[:name]).to eq('full-status-cluster')
       # Add expectations for status handling
     end
-
+    
     it "handles shoot with IPv6 networking" do
       shoot_with_ipv6 = {
         'metadata' => {
@@ -575,53 +561,49 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           'region' => 'eu-de'
         }
       }
-
       cluster = convert_shoot_to_cluster(shoot_with_ipv6)
       expect(cluster[:name]).to eq('ipv6-cluster')
       # Add expectations for IPv6 handling
     end
   end
-
+  
   describe "convert_cluster_to_shoot" do
-
     it "converts a valid full blown cluster to shoot format" do
       cluster_mock = {
         uid: '12345678-1234-1234-1234-123456789012',
         name: 'test-cluster',
         region: 'eu-de',
         infrastructure: 'openstack',
-        cloud_profile_name: 'openstack',
+        cloudProfileName: 'openstack', # Changed from cloud_profile_name to cloudProfileName
         version: '1.25.4',
         purpose: 'production',
         workers: [
           {
             name: 'worker-pool-1',
-            machine_type: 'm1.large',
+            machineType: 'm1.large', # Changed from machine_type to machineType
             architecture: 'amd64',
-            machine_image: {
+            machineImage: { # Changed from machine_image to machineImage
               name: 'ubuntu',
               version: '20.04'
             },
-            container_runtime: 'containerd',
+            containerRuntime: 'containerd', # Changed from container_runtime to containerRuntime
             min: 2,
             max: 5,
-            max_surge: 1,
+            maxSurge: 1, # Changed from max_surge to maxSurge
             zones: ['eu-de-1', 'eu-de-2']
           }
         ],
         maintenance: {
-          start_time: '220000+0100',
-          window_time: '230000+0100',
+          startTime: '220000+0100', # Changed from start_time to startTime
+          windowTime: '230000+0100', # Changed from window_time to windowTime
           timezone: 'Europe/Berlin'
         },
-        auto_update: {
+        autoUpdate: { # Changed from auto_update to autoUpdate
           os: true,
           kubernetes: true
         }
       }
-
       shoot = convert_cluster_to_shoot(cluster_mock)
-
       expect(shoot).to eq({
         'metadata' => {
           'uid' => '12345678-1234-1234-1234-123456789012',
@@ -677,7 +659,7 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
         }
       })
     end
-
+    
     it "handles cluster with minimal fields" do
       minimal_cluster = {
         uid: '12345678-1234-1234-1234-123456789012',
@@ -686,14 +668,13 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
         infrastructure: 'openstack',
         version: '1.25.4'
       }
-
       shoot = convert_cluster_to_shoot(minimal_cluster)
       expect(shoot['metadata']['name']).to eq('minimal-cluster')
       expect(shoot['spec']['region']).to eq('eu-de')
       expect(shoot['spec']['provider']['type']).to eq('openstack')
       expect(shoot['spec']['kubernetes']['version']).to eq('1.25.4')
     end
-
+    
     it "handles cluster without optional maintenance settings" do
       cluster_without_maintenance = {
         uid: '12345678-1234-1234-1234-123456789012',
@@ -703,11 +684,10 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
         version: '1.25.4',
         workers: []
       }
-
       shoot = convert_cluster_to_shoot(cluster_without_maintenance)
       expect(shoot['spec']['maintenance']).to be_nil
     end
-
+    
     it "handles cluster without hibernation settings" do
       cluster_without_hibernation = {
         uid: '12345678-1234-1234-1234-123456789012',
@@ -717,7 +697,6 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
         version: '1.25.4',
         workers: []
       }
-
       shoot = convert_cluster_to_shoot(cluster_without_hibernation)
       expect(shoot['spec']['hibernation']).to be_nil
     end

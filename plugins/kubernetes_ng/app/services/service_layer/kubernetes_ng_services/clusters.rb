@@ -2,14 +2,13 @@ module ServiceLayer
   module KubernetesNgServices
     # This module implements Openstack Domain API
     module Clusters
-
       def list_clusters(project_id)
         namespace = "garden-#{project_id}"
         response = elektron_gardener.get("apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots")
         shoot_items = response&.body&.dig("items") || []
         return shoot_items.map { |shoot| convert_shoot_to_cluster(shoot) }.compact
       end
-
+      
       def show_cluster_by_name(project_id, cluster_name)
         return nil unless cluster_name
         namespace = "garden-#{project_id}"
@@ -17,7 +16,7 @@ module ServiceLayer
         shoot_body = response&.body
         return convert_shoot_to_cluster(shoot_body)
       end
-
+      
       def create_cluster(project_id, cluster_spec)
         namespace = "garden-#{project_id}"
         response = elektron_gardener.post("apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots", 
@@ -27,7 +26,7 @@ module ServiceLayer
         end
         return response&.body
       end
-
+      
       def mark_cluster_for_deletion(project_id, cluster_name)
         namespace = "garden-#{project_id}"
         response = elektron_gardener.patch("apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots/#{cluster_name}", headers: {
@@ -44,19 +43,18 @@ module ServiceLayer
         shoot_body = response&.body
         return convert_shoot_to_cluster(shoot_body)
       end 
-
+      
       def destroy_cluster(project_id, cluster_name)
         namespace = "garden-#{project_id}"
         response = elektron_gardener.delete("apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots/#{cluster_name}")
         shoot_body = response&.body
         return convert_shoot_to_cluster(shoot_body)
       end
-
+      
       def update_cluster(project_id, cluster_name, cluster_spec)
       end
-
+      
       ## Helper Methods
-
       # Convert a single shoot API response to cluster format
       def convert_shoot_to_cluster(shoot)
         return nil unless shoot.is_a?(Hash)
@@ -75,20 +73,20 @@ module ServiceLayer
           version: spec.dig('kubernetes', 'version'),
           readiness: get_cluster_readiness(shoot),
           purpose: spec['purpose'],
-          secret_binding_name: spec['secretBindingName'],
+          secretBindingName: spec['secretBindingName'], # camelCase
           # State details for operations tracking
-          state_details: get_state_details(shoot),
+          stateDetails: get_state_details(shoot), # camelCase
           # Worker nodes configuration
           workers: safe_map_workers(spec.dig('provider', 'workers')),
           # Maintenance configuration
           maintenance: get_maintenance_info(spec),
           # Last maintenance state
-          last_maintenance: get_last_maintenance_info(status),
+          lastMaintenance: get_last_maintenance_info(status), # camelCase
           # Auto update settings
-          auto_update: get_auto_update_settings(spec)
+          autoUpdate: get_auto_update_settings(spec) # camelCase
         }.compact
       end
-
+      
       # Convert cluster format back to shoot API format
       def convert_cluster_to_shoot(cluster)
         return nil unless cluster.is_a?(Hash)
@@ -98,11 +96,10 @@ module ServiceLayer
           'spec' => build_shoot_spec(cluster)
         }.compact
       end
-
+      
       private
-
+      
       # convert_shoot_to_cluster -> Helper functions
-
       # Helper function to determine cluster status from last operation
       def get_cluster_status(shoot)
         last_operation = shoot.dig('status', 'lastOperation')
@@ -121,7 +118,7 @@ module ServiceLayer
           state || "Unknown"
         end
       end
-
+      
       # Helper function to calculate readiness based on conditions
       def get_cluster_readiness(shoot)
         conditions = shoot.dig('status', 'conditions')
@@ -143,14 +140,14 @@ module ServiceLayer
           status: "#{healthy_count}/#{conditions.length}",
           conditions: conditions.map do |condition|
             {
-              display_value: condition_display_names[condition['type']] || condition['type'],
+              displayValue: condition_display_names[condition['type']] || condition['type'], # camelCase
               type: condition['type'],
               status: condition['status']
             }
           end
         }
       end
-
+      
       # Extract detailed state information from last operation
       def get_state_details(shoot)
         last_operation = shoot.dig('status', 'lastOperation')
@@ -161,10 +158,10 @@ module ServiceLayer
           progress: last_operation['progress'].is_a?(Numeric) ? last_operation['progress'] : nil,
           type: last_operation['type'],
           description: last_operation['description'],
-          last_transition_time: last_operation['lastUpdateTime']
+          lastTransitionTime: last_operation['lastUpdateTime'] # camelCase
         }.compact
       end
-
+      
       # Safely map worker nodes configuration
       def safe_map_workers(workers)
         return [] unless workers.is_a?(Array)
@@ -179,21 +176,21 @@ module ServiceLayer
           {
             name: worker['name'],
             architecture: machine['architecture'],
-            machine_type: machine['type'],
-            machine_image: {
+            machineType: machine['type'], # camelCase
+            machineImage: { # camelCase
               name: image['name'],
               version: image['version']
             }.compact,
-            container_runtime: cri['name'],
+            containerRuntime: cri['name'], # camelCase
             min: worker['minimum'],
             max: worker['maximum'],
             actual: nil, # Would need separate API call
-            max_surge: worker['maxSurge'],
+            maxSurge: worker['maxSurge'], # camelCase
             zones: worker['zones']
           }.compact
         end
       end
-
+      
       # Extract maintenance window information
       def get_maintenance_info(spec)
         maintenance = spec.dig('maintenance')
@@ -201,12 +198,12 @@ module ServiceLayer
         time_window = maintenance&.dig('timeWindow') || {}
         
         {
-          start_time: time_window['begin'] || '',
+          startTime: time_window['begin'] || '', # camelCase
           timezone: hibernation&.dig('schedules', 0, 'location') || '',
-          window_time: time_window['end'] || ''
+          windowTime: time_window['end'] || '' # camelCase
         }
       end
-
+      
       # Extract last maintenance operation info
       def get_last_maintenance_info(status)
         last_maintenance = status.dig('lastMaintenance')
@@ -217,7 +214,7 @@ module ServiceLayer
           state: last_maintenance['state']
         }.compact
       end
-
+      
       # Extract auto-update settings
       def get_auto_update_settings(spec)
         auto_update = spec.dig('maintenance', 'autoUpdate') || {}
@@ -227,9 +224,8 @@ module ServiceLayer
           kubernetes: auto_update['kubernetesVersion'] || false
         }
       end
-
-      # convert_cluster_to_shoot -> helper funtions
-
+      
+      # convert_cluster_to_shoot -> helper functions
       # Build metadata section for shoot
       def build_shoot_metadata(cluster)
         metadata = {}
@@ -237,7 +233,7 @@ module ServiceLayer
         metadata['name'] = cluster[:name] if cluster[:name]
         metadata.empty? ? nil : metadata
       end
-
+      
       # Build spec section for shoot
       def build_shoot_spec(cluster)
         spec = {}
@@ -245,10 +241,10 @@ module ServiceLayer
         # Basic fields
         spec['region'] = cluster[:region] if cluster[:region]
         spec['purpose'] = cluster[:purpose] if cluster[:purpose]
-        spec['cloudProfileName'] = cluster[:cloud_profile_name] if cluster[:cloud_profile_name]
+        spec['cloudProfileName'] = cluster[:cloudProfileName] || cluster[:cloud_profile_name] if cluster[:cloudProfileName] || cluster[:cloud_profile_name] # Handle both camelCase and snake_case
         spec['networking'] = cluster[:networking] if cluster[:networking]
-        spec['secretBindingName'] = cluster[:secret_binding_name] if cluster[:secret_binding_name]
-
+        spec['secretBindingName'] = cluster[:secretBindingName] || cluster[:secret_binding_name] if cluster[:secretBindingName] || cluster[:secret_binding_name] # Handle both camelCase and snake_case
+        
         # Provider configuration
         if cluster[:infrastructure] || cluster[:workers]&.any?
           spec['provider'] = build_provider_spec(cluster)
@@ -260,7 +256,7 @@ module ServiceLayer
         end
         
         # Maintenance configuration
-        if cluster[:maintenance] || cluster[:auto_update]
+        if cluster[:maintenance] || cluster[:autoUpdate] || cluster[:auto_update] # Handle both camelCase and snake_case
           spec['maintenance'] = build_maintenance_spec(cluster)
         end
         
@@ -271,7 +267,7 @@ module ServiceLayer
         
         spec.empty? ? nil : spec
       end
-
+      
       # Build provider specification
       def build_provider_spec(cluster)
         provider = {}
@@ -286,7 +282,7 @@ module ServiceLayer
         
         provider
       end
-
+      
       # Build individual worker specification
       def build_worker_spec(worker)
         return nil unless worker.is_a?(Hash)
@@ -295,41 +291,41 @@ module ServiceLayer
         worker_spec['name'] = worker[:name] if worker[:name]
         worker_spec['minimum'] = worker[:min] if worker[:min]
         worker_spec['maximum'] = worker[:max] if worker[:max]
-        worker_spec['maxSurge'] = worker[:max_surge] if worker[:max_surge]
+        worker_spec['maxSurge'] = worker[:maxSurge] || worker[:max_surge] if worker[:maxSurge] || worker[:max_surge] # Handle both camelCase and snake_case
         worker_spec['zones'] = worker[:zones] if worker[:zones]
         
         # Machine configuration
-        if worker[:machine_type] || worker[:architecture] || worker[:machine_image]
+        if worker[:machineType] || worker[:machine_type] || worker[:architecture] || worker[:machineImage] || worker[:machine_image] # Handle both camelCase and snake_case
           worker_spec['machine'] = build_machine_spec(worker)
         end
         
         # Container runtime
-        if worker[:container_runtime]
-          worker_spec['cri'] = { 'name' => worker[:container_runtime] }
+        if worker[:containerRuntime] || worker[:container_runtime] # Handle both camelCase and snake_case
+          worker_spec['cri'] = { 'name' => worker[:containerRuntime] || worker[:container_runtime] }
         end
         
         worker_spec.empty? ? nil : worker_spec
       end
-
+      
       # Build machine specification for worker
       def build_machine_spec(worker)
         machine = {}
-        machine['type'] = worker[:machine_type] if worker[:machine_type]
+        machine['type'] = worker[:machineType] || worker[:machine_type] if worker[:machineType] || worker[:machine_type] # Handle both camelCase and snake_case
         machine['architecture'] = worker[:architecture] if worker[:architecture]
         
-        if worker[:machine_image]
-          image = worker[:machine_image]
-          if image[:name] || image[:version]
+        machine_image = worker[:machineImage] || worker[:machine_image] # Handle both camelCase and snake_case
+        if machine_image
+          if machine_image[:name] || machine_image[:version]
             machine['image'] = {
-              'name' => image[:name],
-              'version' => image[:version]
+              'name' => machine_image[:name],
+              'version' => machine_image[:version]
             }.compact
           end
         end
         
         machine
       end
-
+      
       # Build maintenance specification
       def build_maintenance_spec(cluster)
         maintenance = {}
@@ -337,17 +333,17 @@ module ServiceLayer
         # Time window
         if cluster[:maintenance]
           maint = cluster[:maintenance]
-          if maint[:start_time] || maint[:window_time]
+          if maint[:startTime] || maint[:start_time] || maint[:windowTime] || maint[:window_time] # Handle both camelCase and snake_case
             maintenance['timeWindow'] = {
-              'begin' => maint[:start_time],
-              'end' => maint[:window_time]
+              'begin' => maint[:startTime] || maint[:start_time],
+              'end' => maint[:windowTime] || maint[:window_time]
             }.compact
           end
         end
         
         # Auto update settings
-        if cluster[:auto_update]
-          auto_update = cluster[:auto_update]
+        auto_update = cluster[:autoUpdate] || cluster[:auto_update] # Handle both camelCase and snake_case
+        if auto_update
           maintenance['autoUpdate'] = {
             'machineImageVersion' => auto_update[:os] || false,
             'kubernetesVersion' => auto_update[:kubernetes] || false
@@ -356,7 +352,7 @@ module ServiceLayer
         
         maintenance
       end
-
+      
       # Build hibernation specification
       def build_hibernation_spec(cluster)
         timezone = cluster.dig(:maintenance, :timezone)
@@ -368,7 +364,6 @@ module ServiceLayer
           ]
         }
       end
-
     end
   end
 end

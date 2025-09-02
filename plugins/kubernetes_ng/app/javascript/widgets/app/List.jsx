@@ -63,7 +63,7 @@ const AppCredentialsList = () => {
                 <DataGridHeadCell>Description</DataGridHeadCell>
               </DataGridRow>
               {clusters.map((cluster) => {
-                const description = cluster.state_details?.description || ""
+                const description = cluster.stateDetails?.description || ""
                 const isExpanded = expandedRows.has(cluster.uid)
                 const shouldTruncate = description.length > 30
 
@@ -73,7 +73,7 @@ const AppCredentialsList = () => {
                     <DataGridCell>{cluster.status || "-"}</DataGridCell>
                     <DataGridCell>{cluster.infrastructure || "-"}</DataGridCell>
                     <DataGridCell>{cluster.version || "-"}</DataGridCell>
-                    <DataGridCell>{cluster.secret_binding_name || "-"}</DataGridCell>
+                    <DataGridCell>{cluster.secretBindingName || "-"}</DataGridCell>
                     <DataGridCell>
                       <div>
                         {isExpanded ? description || "-" : truncateText(description) || "-"}
