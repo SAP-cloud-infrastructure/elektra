@@ -50,15 +50,16 @@ const AppCredentialsList = () => {
         <div>
           {!clusters ? (
             <DataGridRow>
-              <DataGridCell colSpan={5}>No Clusters found. Create a new one 🚀</DataGridCell>
+              <DataGridCell colSpan={6}>No Clusters found. Create a new one 🚀</DataGridCell>
             </DataGridRow>
           ) : (
-            <DataGrid columns={5} minContentColumns={[5]}>
+            <DataGrid columns={6} minContentColumns={[6]}>
               <DataGridRow>
                 <DataGridHeadCell>Name</DataGridHeadCell>
                 <DataGridHeadCell>Status</DataGridHeadCell>
                 <DataGridHeadCell>Infrastructure</DataGridHeadCell>
                 <DataGridHeadCell>Version</DataGridHeadCell>
+                <DataGridHeadCell>Secret Binding Name</DataGridHeadCell>
                 <DataGridHeadCell>Description</DataGridHeadCell>
               </DataGridRow>
               {clusters.map((cluster) => {
@@ -72,6 +73,7 @@ const AppCredentialsList = () => {
                     <DataGridCell>{cluster.status || "-"}</DataGridCell>
                     <DataGridCell>{cluster.infrastructure || "-"}</DataGridCell>
                     <DataGridCell>{cluster.version || "-"}</DataGridCell>
+                    <DataGridCell>{cluster.secret_binding_name || "-"}</DataGridCell>
                     <DataGridCell>
                       <div>
                         {isExpanded ? description || "-" : truncateText(description) || "-"}

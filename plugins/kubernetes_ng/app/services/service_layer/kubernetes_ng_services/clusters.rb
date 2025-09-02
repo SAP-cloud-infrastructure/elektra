@@ -75,6 +75,7 @@ module ServiceLayer
           version: spec.dig('kubernetes', 'version'),
           readiness: get_cluster_readiness(shoot),
           purpose: spec['purpose'],
+          secret_binding_name: spec['secretBindingName'],
           # State details for operations tracking
           state_details: get_state_details(shoot),
           # Worker nodes configuration
