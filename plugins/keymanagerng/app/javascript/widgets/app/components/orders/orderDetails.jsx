@@ -56,17 +56,7 @@ const OrderDetails = () => {
     setShow(!!params.id)
   }, [params.id])
 
-  const getStatusBadge = (status) => {
-    const statusConfig = {
-      PENDING: { variant: "warning", text: "Pending" },
-      ACTIVE: { variant: "success", text: "Active" },
-      ERROR: { variant: "danger", text: "Error" },
-      COMPLETED: { variant: "success", text: "Completed" },
-    }
-    
-    const config = statusConfig[status] || { variant: "secondary", text: status }
-    return <Badge variant={config.variant}>{config.text}</Badge>
-  }
+
 
   const handleViewSecret = useCallback(() => {
     if (order?.data?.secret_ref) {
@@ -133,7 +123,7 @@ const OrderDetails = () => {
                   )}
                 </DataGridCell>
               </DataGridRow>
-              <Row label="Status" value={getStatusBadge(order?.data?.status)} />
+              <Row label="Status" value={order?.data?.status} />
               {order?.data?.updated && order?.data?.updated !== order?.data?.created && (
                 <Row
                   label="Updated at"
