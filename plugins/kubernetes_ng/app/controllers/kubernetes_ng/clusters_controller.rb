@@ -16,13 +16,13 @@ module KubernetesNg
       # todo here we need to translate or copy the data over from the request parameters
       # example data, this needs to be commented out!
       cluster_params = {
-        name: 'hgws-test',
+        name: params[:name],
         region: 'qa-de-1',
         infrastructure: 'openstack',
         version: '1.25.4',
         cloud_profile_name: 'openstack',                          # this should be set from the API?
         networking: {type: 'calico'},                             # this should be set from the API?
-        secret_binding_name: "XXX",                               # this should be set from the API?
+        secret_binding_name: "xxx",                               # this should be set from the API?
         purpose: 'testing',
         workers: [
           {
@@ -51,9 +51,9 @@ module KubernetesNg
       end
     end
 
-    def mark_and_delete
+    def confirm_deletion_and_destroy
       handle_api_call(auto_render: false) do
-        services.kubernetes_ng.mark_cluster_for_deletion(@scoped_project_id, params[:name])
+        services.kubernetes_ng.confirm_cluster_deletion(@scoped_project_id, params[:name])
         render json: services.kubernetes_ng.destroy_cluster(@scoped_project_id, params[:name])
       end
     end
@@ -64,14 +64,32 @@ module KubernetesNg
       end
     end
 
-    def mark_for_deletion
+    def confirm_deletion
       handle_api_call do
-        services.kubernetes_ng.mark_cluster_for_deletion(@scoped_project_id, params[:name])
+        services.kubernetes_ng.confirm_cluster_deletion(@scoped_project_id, params[:name])
       end
     end
 
     def update
-      # TODO: Implement update action if UI is ready
+      # todo here we need to translate or copy the data over from the request parameters
+      # example data, this needs to be commented out!
+      cluster_params = {
+        purpose: 'testing-2'
+      }
+      # Note: this is not working
+      #{
+      #    "apiVersion": "v1",
+      #    "code": 400,
+      #    "kind": "Status",
+      #    "message": "error decoding patch: json: cannot unmarshal object into Go value of type []handlers.jsonPatchOp",
+      #    "metadata": {},
+      #    "reason": "BadRequest",
+      #    "status": "Failure"
+      #}
+
+      handle_api_call do
+        services.kubernetes_ng.update_cluster(@scoped_project_id, params[:name], cluster_params)
+      end
     end
 
   end

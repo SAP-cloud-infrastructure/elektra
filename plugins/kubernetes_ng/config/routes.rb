@@ -4,13 +4,14 @@ KubernetesNg::Engine.routes.draw do
   scope "/api" do
     resources :clusters, only: [:index, :show, :create, :destroy, :update], param: :name do
       collection do
+        patch 'confirm-deletion(/:name)', to: 'clusters#confirm_for_deletion'
+        delete 'confirm-deletion-and-destroy(/:name)', to: 'clusters#confirm_deletion_and_destroy'
         # for testing only, to access the functions from the browser, to be removed or comment out later
-        # get 'create', to: 'clusters#create'
-        # get 'destroy(/:name)', to: 'clusters#destroy'
-        # get 'update(/:name)', to: 'clusters#update'
-        get 'mark-and-delete(/:name)', to: 'clusters#mark_and_delete'
-        delete 'mark-and-delete(/:name)', to: 'clusters#mark_and_delete'
-        get 'mark-for-deletion(/:name)', to: 'clusters#mark_for_deletion'
+        get 'create(/:name)', to: 'clusters#create'
+        get 'destroy(/:name)', to: 'clusters#destroy'
+        get 'update(/:name)', to: 'clusters#update'
+        get 'confirm-deletion-and-destroy(/:name)', to: 'clusters#confirm_deletion_and_destroy'
+        get 'confirm-deletion(/:name)', to: 'clusters#confirm_deletion'
 
       end
     end

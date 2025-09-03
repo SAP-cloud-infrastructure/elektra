@@ -60,7 +60,7 @@ const AppCredentialsList = () => {
               <DataGridRow>
                 <DataGridHeadCell>Name</DataGridHeadCell>
                 <DataGridHeadCell>Status</DataGridHeadCell>
-                <DataGridHeadCell>Infrastructure</DataGridHeadCell>
+                <DataGridHeadCell>Purpose</DataGridHeadCell>
                 <DataGridHeadCell>Version</DataGridHeadCell>
                 <DataGridHeadCell>Secret Binding Name</DataGridHeadCell>
                 <DataGridHeadCell>Description</DataGridHeadCell>
@@ -74,7 +74,7 @@ const AppCredentialsList = () => {
                   <DataGridRow key={cluster.uid}>
                     <DataGridCell>{cluster.name || "-"}</DataGridCell>
                     <DataGridCell>{cluster.status || "-"}</DataGridCell>
-                    <DataGridCell>{cluster.infrastructure || "-"}</DataGridCell>
+                    <DataGridCell>{cluster.purpose || "-"}</DataGridCell>
                     <DataGridCell>{cluster.version || "-"}</DataGridCell>
                     <DataGridCell>{cluster.secretBindingName || "-"}</DataGridCell>
                     <DataGridCell>
