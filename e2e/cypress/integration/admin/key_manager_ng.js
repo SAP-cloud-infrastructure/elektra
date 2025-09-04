@@ -89,11 +89,6 @@ describe("keymanagerng", () => {
     cy.contains("Key Manager").should("have.lengthOf", 1)
     cy.contains("Secrets").should("have.lengthOf", 1)
 
-    //navigate to old key manager
-    cy.get("[data-target='nav-to-old-key-manager']").click()
-    //navigate back to the new key manager
-    cy.get("[data-target='nav-to-new-key-manager']").click()
-
     //Trying to create a new secret without filling name or payload inputs
     cy.contains("New Secret").click()
     cy.contains("New Secret").should("have.lengthOf", 1)
