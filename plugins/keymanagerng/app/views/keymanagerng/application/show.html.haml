@@ -1,9 +1,4 @@
 = content_for :main_toolbar do
   Key Manager
 
-.bs-callout.bs-callout-info.bs-callout-emphasize
-  %p
-    This is the new version of Key Manager. If you prefer to use the previous version, click 
-    =link_to "here", plugin('key_manager').secrets_path, data: { target: 'nav-to-old-key-manager' }
-
 = javascript_include_tag "keymanagerng_app_widget", data: { url: plugin("keymanagerng").root_path }

@@ -22,18 +22,12 @@ describe("keymanagerng", () => {
       cy.get("[data-target='name-text-input']").type(sSecretName)
       //Select Secret Type
       cy.get("[data-target='secret-type-select']").click()
-      cy.get(
-        "[data-target='secret-type-select-option-" + sSecretType + "']"
-      ).click({
+      cy.get("[data-target='secret-type-select-option-" + sSecretType + "']").click({
         force: true,
       })
       cy.get("[data-target='payload-text-area']").type(sSecretPayload)
       cy.get("[data-target='payload-content-type-select']").click()
-      cy.get(
-        "[data-target='payload-content-type-select-option-" +
-          sPayloadContentType +
-          "']"
-      ).click({
+      cy.get("[data-target='payload-content-type-select-option-" + sPayloadContentType + "']").click({
         force: true,
       })
       //Save the new secret
@@ -51,13 +45,9 @@ describe("keymanagerng", () => {
           cy.get("[data-target=" + sSecretUuid + "]").click()
           cy.contains("Remove").should("have.lengthOf", 1)
           cy.contains("Cancel").should("have.lengthOf", 1)
-          cy.contains(
-            "Are you sure you want to delete the secret " + sSecretName + "?"
-          ).click()
+          cy.contains("Are you sure you want to delete the secret " + sSecretName + "?").click()
           cy.contains("Remove").click()
-          cy.contains(
-            "The secret " + sSecretUuid + " is successfully deleted."
-          ).should("have.lengthOf", 1)
+          cy.contains("The secret " + sSecretUuid + " is successfully deleted.").should("have.lengthOf", 1)
         })
     }
     deleteContainer = (sContainerName) => {
@@ -68,25 +58,15 @@ describe("keymanagerng", () => {
           cy.get("[data-target=" + sContainerUuid + "]").click()
           cy.contains("Remove").should("have.lengthOf", 1)
           cy.contains("Cancel").should("have.lengthOf", 1)
-          cy.contains(
-            "Are you sure you want to delete the container " +
-              sContainerName +
-              "?"
-          ).click()
+          cy.contains("Are you sure you want to delete the container " + sContainerName + "?").click()
           cy.contains("Remove").click()
-          cy.contains(
-            "The container " + sContainerUuid + " is successfully deleted."
-          ).should("have.lengthOf", 1)
+          cy.contains("The container " + sContainerUuid + " is successfully deleted.").should("have.lengthOf", 1)
         })
     }
   })
 
   beforeEach(() => {
-    cy.elektraLogin(
-      Cypress.env("TEST_DOMAIN"),
-      Cypress.env("TEST_USER"),
-      Cypress.env("TEST_PASSWORD")
-    )
+    cy.elektraLogin(Cypress.env("TEST_DOMAIN"), Cypress.env("TEST_USER"), Cypress.env("TEST_PASSWORD"))
     randomNumber = () => Cypress._.random(0, 1e6)
     iRandomNum = randomNumber()
     sPassPhraseSecretName = `test-pass-phrase-secret-${iRandomNum}`
@@ -108,21 +88,6 @@ describe("keymanagerng", () => {
     cy.contains("admin").should("have.lengthOf", 1)
     cy.contains("Key Manager").should("have.lengthOf", 1)
     cy.contains("Secrets").should("have.lengthOf", 1)
-    cy.contains(
-      "This is the new version of Key Manager. If you prefer to use the previous version, click here"
-    ).should("have.lengthOf", 1)
-
-    //navigate to old key manager
-    cy.get("[data-target='nav-to-old-key-manager']").click()
-    cy.contains("There is a new version of Key Manager. Try it out").should(
-      "have.lengthOf",
-      1
-    )
-    //navigate back to the new key manager
-    cy.get("[data-target='nav-to-new-key-manager']").click()
-    cy.contains(
-      "This is the new version of Key Manager. If you prefer to use the previous version, click here"
-    ).should("have.lengthOf", 1)
 
     //Trying to create a new secret without filling name or payload inputs
     cy.contains("New Secret").click()
@@ -142,18 +107,13 @@ describe("keymanagerng", () => {
     })
     cy.get("[data-target='payload-text-area']").type(sSecretPayload)
     cy.get("[data-target='payload-content-type-select']").click()
-    cy.get(
-      "[data-target='payload-content-type-select-option-text/plain']"
-    ).click({
+    cy.get("[data-target='payload-content-type-select-option-text/plain']").click({
       force: true,
     })
     cy.contains("Save").click()
 
     //Find the newly created secret in secrets table
-    cy.get("[data-target=" + sPassPhraseSecretName + "]").should(
-      "have.lengthOf",
-      1
-    )
+    cy.get("[data-target=" + sPassPhraseSecretName + "]").should("have.lengthOf", 1)
 
     //Delete the newly created secret
     deleteSecret(sPassPhraseSecretName)
@@ -189,17 +149,12 @@ describe("keymanagerng", () => {
     cy.contains("Secrets can't be empty!")
 
     //Fill out name of the new container
-    cy.get("[data-target='container-name-text-input']").type(
-      sGenericContainerName
-    )
+    cy.get("[data-target='container-name-text-input']").type(sGenericContainerName)
 
     //Select a secret to add it to the new container
     cy.contains("Select...").click({ force: true })
     cy.contains("Select...").click({ force: true })
-    cy.contains(sPassPhraseSecretName + " (passphrase)").should(
-      "have.lengthOf",
-      1
-    )
+    cy.contains(sPassPhraseSecretName + " (passphrase)").should("have.lengthOf", 1)
 
     cy.get(".select__control") // find react-select component
       .get(".select__menu") // find opened dropdown
@@ -210,10 +165,7 @@ describe("keymanagerng", () => {
 
     // Create the new container
     cy.contains("Save").click()
-    cy.get("[data-target=" + sGenericContainerName + "]").should(
-      "have.lengthOf",
-      1
-    )
+    cy.get("[data-target=" + sGenericContainerName + "]").should("have.lengthOf", 1)
     //Find the newly created container to delete it
     deleteContainer(sGenericContainerName)
 
@@ -229,9 +181,7 @@ describe("keymanagerng", () => {
     cy.contains("New Container").should("have.lengthOf", 1)
 
     //Fill out name of the new container
-    cy.get("[data-target='container-name-text-input']").type(
-      sCertificateContainerName
-    )
+    cy.get("[data-target='container-name-text-input']").type(sCertificateContainerName)
     //Select 'Certificate' as the container type
     cy.get("[data-target='container-type-select']").click()
     cy.get("[data-target='container-type-select-option-certificate']").click({
@@ -241,18 +191,12 @@ describe("keymanagerng", () => {
     //Select a certificate secret to add it to the new container
     cy.get("[data-target='certificate-container-select'").click()
 
-    cy.contains(sCertificateSecretName + " (certificate)").should(
-      "have.lengthOf",
-      1
-    )
+    cy.contains(sCertificateSecretName + " (certificate)").should("have.lengthOf", 1)
     cy.contains(sCertificateSecretName + " (certificate)").click()
 
     // Create the new container
     cy.contains("Save").click()
-    cy.get("[data-target=" + sCertificateContainerName + "]").should(
-      "have.lengthOf",
-      1
-    )
+    cy.get("[data-target=" + sCertificateContainerName + "]").should("have.lengthOf", 1)
     //Find the newly created container to delete it
     deleteContainer(sCertificateContainerName)
 
@@ -310,14 +254,9 @@ describe("keymanagerng", () => {
     cy.contains("Public keys can't be empty!")
 
     //Select a private key passphrase secret to add it to the new container
-    cy.get(
-      "[data-target='rsa-container-private-key-passphrase-select']"
-    ).click()
+    cy.get("[data-target='rsa-container-private-key-passphrase-select']").click()
 
-    cy.contains(sPassPhraseSecretName + " (passphrase)").should(
-      "have.lengthOf",
-      1
-    )
+    cy.contains(sPassPhraseSecretName + " (passphrase)").should("have.lengthOf", 1)
     cy.contains(sPassPhraseSecretName + " (passphrase)").click()
 
     // Create the new container
