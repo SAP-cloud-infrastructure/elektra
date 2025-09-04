@@ -1,12 +1,9 @@
-import { ajaxHelper } from "lib/ajax_helper"
+import apiClient from "./apiClient"
 
 export const fetchHealthmonitor = (lbID, poolID, healthmonitorID, options) => {
   return new Promise((handleSuccess, handleError) => {
-    ajaxHelper
-      .get(
-        `/loadbalancers/${lbID}/pools/${poolID}/healthmonitors/${healthmonitorID}`,
-        { params: options }
-      )
+    apiClient
+      .get(`/loadbalancers/${lbID}/pools/${poolID}/healthmonitors/${healthmonitorID}`, { params: options })
       .then((response) => {
         handleSuccess(response.data)
       })
@@ -18,7 +15,7 @@ export const fetchHealthmonitor = (lbID, poolID, healthmonitorID, options) => {
 
 export const postHealthMonitor = (lbID, poolID, values) => {
   return new Promise((handleSuccess, handleErrors) => {
-    ajaxHelper
+    apiClient
       .post(`/loadbalancers/${lbID}/pools/${poolID}/healthmonitors`, {
         healthmonitor: values,
       })
@@ -33,11 +30,8 @@ export const postHealthMonitor = (lbID, poolID, values) => {
 
 export const putHealthmonitor = (lbID, poolID, healthmonitorID, values) => {
   return new Promise((handleSuccess, handleErrors) => {
-    ajaxHelper
-      .put(
-        `/loadbalancers/${lbID}/pools/${poolID}/healthmonitors/${healthmonitorID}`,
-        { healthmonitor: values }
-      )
+    apiClient
+      .put(`/loadbalancers/${lbID}/pools/${poolID}/healthmonitors/${healthmonitorID}`, { healthmonitor: values })
       .then((response) => {
         handleSuccess(response.data)
       })
@@ -49,10 +43,8 @@ export const putHealthmonitor = (lbID, poolID, healthmonitorID, values) => {
 
 export const deleteHealthmonitor = (lbID, poolID, healthmonitorID) => {
   return new Promise((handleSuccess, handleErrors) => {
-    ajaxHelper
-      .delete(
-        `/loadbalancers/${lbID}/pools/${poolID}/healthmonitors/${healthmonitorID}`
-      )
+    apiClient
+      .delete(`/loadbalancers/${lbID}/pools/${poolID}/healthmonitors/${healthmonitorID}`)
       .then((response) => {
         handleSuccess(response.data)
       })
