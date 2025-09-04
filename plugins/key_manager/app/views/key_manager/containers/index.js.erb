@@ -1,9 +1,0 @@
-$(".flashes").html("<%= escape_javascript( render partial: "application/flashes" ) %>");
-initAutoDismissibleFlash();
-
-<% unless @containers.nil? %>
-$(".js-table-container").html("<%= escape_javascript(render partial: 'table_containers', locals: {containers: @containers}) %>");
-<% end %>
-
-// reload the pagination spinner
-$('[data-toggle="paginationSpinner"]').initPaginationSpinner()
