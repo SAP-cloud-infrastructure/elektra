@@ -1,24 +1,13 @@
-import { connect } from  'react-redux';
-import RepositoryDeleter from '../../components/repositories/deleter';
-import {
-  deleteManifest,
-  deleteRepository,
-  fetchManifestsIfNeeded,
-} from '../../actions/keppel';
+import { connect } from "react-redux"
+import RepositoryDeleter from "../../components/repositories/deleter"
+import { deleteRepository } from "../../actions/keppel"
 
 export default connect(
-  (state, props) => {
-    const { accountName, repoName } = props;
-    return {
-      manifests: (state.keppel.manifestsFor[accountName] || {})[repoName] || {},
-    };
-  },
+  null,
   (dispatch, props) => {
-    const { accountName, repoName } = props;
-    dispatch(fetchManifestsIfNeeded(accountName, repoName));
+    const { accountName, repoName } = props
     return {
-      deleteManifest: (digest) => dispatch(deleteManifest(accountName, repoName, digest, null)),
-      deleteRepository:     () => dispatch(deleteRepository(accountName, repoName)),
-    };
-  },
-)(RepositoryDeleter);
+      deleteRepository: () => dispatch(deleteRepository(accountName, repoName)),
+    }
+  }
+)(RepositoryDeleter)
