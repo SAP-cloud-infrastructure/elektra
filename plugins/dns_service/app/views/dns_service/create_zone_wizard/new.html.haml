@@ -39,7 +39,6 @@
       - else
         = f.input :name, required: true, input_wrapper_html: { style: "width: 70%" }
 
-
       = f.input :email, required: true, input_wrapper_html: { style: "width: 70%" }
       = f.input :ttl,   required: false, as: :integer, input_html: {value: @zone_request.ttl || 7200}, input_wrapper_html: { style: "width: 30%" }
       = f.input :description, required: false, as: :text

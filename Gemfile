@@ -57,9 +57,6 @@ gem 'httpclient' # The only faraday backend that handled no_proxy :|
 gem 'sentry-raven'
 gem 'faraday-httpclient', '~> 2.0'
 
-# Automation
-gem 'arc-client', git: 'https://github.com/sapcc/arc-client.git'
-gem 'lyra-client', git: 'https://github.com/sapcc/lyra-client.git'
 # auth
 # gem 'monsoon-openstack-auth', path: '../monsoon-openstack-auth'
 gem 'monsoon-openstack-auth', git: 'https://github.com/sapcc/monsoon-openstack-auth.git'

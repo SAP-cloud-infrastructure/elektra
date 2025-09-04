@@ -143,28 +143,6 @@ SimpleNavigation::Configuration.run do |navigation|
                             proc { params[:controller][%r{kubernetes_ng/.*}] }
     end
 
-    primary.item :automation,
-                 'Monsoon Automation',
-                 nil,
-                 html: {
-                   class: 'fancy-nav-header',
-                   "data-icon": 'automation-icon'
-                 },
-                 if: lambda {
-                   services.available?(:automation, :nodes) &&
-                     plugin_available?(:automation)
-                 } do |automation_nav|
-      automation_nav.item :automation,
-                          'Automation',
-                          -> { plugin('automation').nodes_path },
-                          if: lambda {
-                            services.available?(:automation, :nodes) &&
-                              plugin_available?(:automation)
-                          },
-                          highlights_on:
-                            proc { params[:controller][%r{automation/.*}] }
-    end
-
     primary.item :hana,
                  'Bare Metal Data Processing & HANA',
                  nil,

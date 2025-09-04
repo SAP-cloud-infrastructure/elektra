@@ -1,8 +1,6 @@
 ALLOWED_ROLES = %w[
   admin
   audit_viewer
-  automation_admin
-  automation_viewer
   compute_admin
   compute_admin_wsg
   compute_viewer
