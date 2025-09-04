@@ -218,5 +218,4 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Permissions do
       end
     end
   end
-  
 end

@@ -22,7 +22,7 @@ module KubernetesNg
         version: '1.25.4',
         cloud_profile_name: 'openstack',                          # this should be set from the API?
         networking: {type: 'calico'},                             # this should be set from the API?
-        secret_binding_name: "xxx",                               # this should be set from the API?
+        secret_binding_name: "e9141fb24eee4b3e9f25ae69cda31132",                               # this should be set from the API?
         purpose: 'testing',
         workers: [
           {
