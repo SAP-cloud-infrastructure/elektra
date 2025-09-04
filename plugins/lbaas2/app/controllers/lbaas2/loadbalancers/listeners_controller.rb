@@ -104,50 +104,6 @@ module Lbaas2
         render json: { errors: e.message }, status: "500"
       end
 
-      def containers
-        containers =
-          services.key_manager.containers(sort: "created:desc", limit: 3000)
-        containers = { items: [] } if containers.blank?
-        selectContainers =
-          containers[:items].map do |c|
-            { label: "#{c.name} (#{c.id})", value: c.container_ref }
-          end
-
-        render json: { containers: selectContainers }
-      rescue Exception => e
-        render json: { errors: e.message }, status: "500"
-      end
-
-      def secrets
-        # collect secrets by type
-        secretsCertificate =
-          services.key_manager.secrets(
-            sort: "created:desc",
-            secret_type: ::KeyManager::Secret::Type::CERTIFICATE,
-            limit: 50,
-          )
-        secretsOpaque =
-          services.key_manager.secrets(
-            sort: "created:desc",
-            secret_type: ::KeyManager::Secret::Type::OPAQUE,
-            limit: 50,
-          )
-
-        total =
-          secretsCertificate.fetch(:total, 0).to_i +
-            secretsOpaque.fetch(:total, 0).to_i
-        secrets =
-          secretsCertificate.fetch(:items, []) + secretsOpaque.fetch(:items, [])
-        selectSecrets =
-          secrets.map do |c|
-            { label: "#{c.name} (#{c.secret_ref})", value: c.secret_ref }
-          end
-
-        render json: { secrets: selectSecrets, total: total }
-      rescue Exception => e
-        render json: { errors: e.message }, status: "500"
-      end
-
       def itemsWithoutDefaultPoolForSelect
         listeners =
           services
