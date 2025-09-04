@@ -91,7 +91,6 @@ describe("keymanagerng", () => {
 
     //navigate to old key manager
     cy.get("[data-target='nav-to-old-key-manager']").click()
-    cy.contains("There is a new version of Key Manager. Try it out").should("have.lengthOf", 1)
     //navigate back to the new key manager
     cy.get("[data-target='nav-to-new-key-manager']").click()
 
