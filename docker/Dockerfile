@@ -115,6 +115,11 @@ RUN apk --no-cache add curl libsass-dev ca-certificates
 RUN curl -fL http://aia.pki.co.sap.com/aia/SAP%20Global%20Root%20CA.crt -o /usr/local/share/ca-certificates/SAP_Global_Root_CA.crt && \
     update-ca-certificates
 
+# to upgrade the image to the latest
+# this is used to ensure all packages are up to date and 
+# vulnerable packages are fixed
+RUN apk update && apk upgrade
+
 # Note: in our k8s this will be overwriten from deployment
 ENTRYPOINT ["dumb-init", "-c", "--" ]
 CMD ["script/start.sh"]
