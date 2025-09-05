@@ -12,7 +12,8 @@ source 'https://rubygems.org'
 gem 'unf', '>= 0.2.0beta2'
 
 gem 'jsbundling-rails'
-gem 'rails', '7.1.3.2'
+# https://rubygems.org/gems/rails/versions
+gem 'rails', '7.1.5.2'
 gem 'benchmark', require: false  # Ruby 3.4 compatibility
 gem 'ostruct'
 gem 'csv'
