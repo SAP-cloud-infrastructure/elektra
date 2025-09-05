@@ -48,9 +48,7 @@ const Table = ({ data, onMenuAction }) => {
       canDelete: policy.isAllowed("object_storage:container_delete"),
       canEmpty: policy.isAllowed("object_storage:container_empty"),
       canShow: policy.isAllowed("object_storage:container_get"),
-      canShowAccessControl: policy.isAllowed(
-        "object_storage:container_show_access_control"
-      ),
+      canShowAccessControl: policy.isAllowed("object_storage:container_show_access_control"),
     }
   }, [policy])
 
@@ -72,31 +70,17 @@ const Table = ({ data, onMenuAction }) => {
         <Row.Column>
           <ContextMenu>
             {permissions.canShow && (
-              <ContextMenu.Item
-                onClick={() => onMenuAction("properties", item)}
-              >
-                Properties
-              </ContextMenu.Item>
+              <ContextMenu.Item onClick={() => onMenuAction("properties", item)}>Properties</ContextMenu.Item>
             )}
             {permissions.canShowAccessControl && (
-              <ContextMenu.Item
-                onClick={() => onMenuAction("accessControl", item)}
-              >
-                Access Control
-              </ContextMenu.Item>
+              <ContextMenu.Item onClick={() => onMenuAction("accessControl", item)}>Access Control</ContextMenu.Item>
             )}
-            {(permissions.canShow || permissions.canShowAccessControl) && (
-              <ContextMenu.Item divider />
-            )}
+            {(permissions.canShow || permissions.canShowAccessControl) && <ContextMenu.Item divider />}
             {permissions.canEmpty && (
-              <ContextMenu.Item onClick={() => onMenuAction("empty", item)}>
-                Empty
-              </ContextMenu.Item>
+              <ContextMenu.Item onClick={() => onMenuAction("empty", item)}>Empty</ContextMenu.Item>
             )}
             {permissions.canDelete && (
-              <ContextMenu.Item onClick={() => onMenuAction("delete", item)}>
-                Delete
-              </ContextMenu.Item>
+              <ContextMenu.Item onClick={() => onMenuAction("delete", item)}>Delete</ContextMenu.Item>
             )}
           </ContextMenu>
         </Row.Column>
@@ -149,30 +133,20 @@ const List = () => {
   )
 
   const items = React.useMemo(
-    () =>
-      containers.items.filter(
-        (i) => !searchTerm || (i.name && i.name.indexOf(searchTerm) >= 0)
-      ),
+    () => containers.items.filter((i) => !searchTerm || (i.name && i.name.indexOf(searchTerm) >= 0)),
     [searchTerm, containers.items]
   )
 
   return (
     <>
       <div className="toolbar">
-        <SearchField
-          onChange={(term) => updateSearchTerm(term)}
-          placeholder="name"
-          text="Filters by name"
-        />
+        <SearchField onChange={(term) => updateSearchTerm(term)} placeholder="name" text="Filters by name" />
 
         <div className="main-buttons">
           {policy.isAllowed("object_storage:container_create") && (
             <>
               <CapabilitiesPopover />
-              <button
-                className="btn btn-link"
-                onClick={() => loadContainersOnce({ reload: true })}
-              >
+              <button className="btn btn-link" onClick={() => loadContainersOnce({ reload: true })}>
                 <i className="fa fa-refresh" />
               </button>
               <Link to="/containers/new" className="btn btn-primary">

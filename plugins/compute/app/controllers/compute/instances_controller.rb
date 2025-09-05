@@ -4,7 +4,6 @@ module Compute
   # Implements Server actions
   class InstancesController < Compute::ApplicationController
     before_action :all_projects
-    before_action :automation_data, only: %i[new create]
 
     authorization_context "compute"
     authorization_required except: %i[
@@ -20,7 +19,6 @@ module Compute
                             new_snapshot
                             update_item
                             new_size
-                            automation_script
                             new_status
                           ]
 
@@ -740,31 +738,6 @@ module Compute
 
     def hard_reset
       execute_instance_action("reboot", "HARD")
-    end
-
-    def automation_script
-      accept_header =
-        begin
-          body = JSON.parse(request.body.read)
-          os_type = body.fetch("vmwareOstype", "")
-          if os_type.include? "windows"
-            "text/x-powershellscript"
-          else
-            "text/cloud-config"
-          end
-        rescue => exception
-          Rails.logger.error "Compute-plugin: automation_script: error getting os_type: #{exception.message}"
-        end
-      script =
-        services.automation.node_install_script(
-          "",
-          { "headers" => { "Accept" => accept_header } },
-        )
-      render json: { script: script }
-    end
-
-    def automation_data
-      @automation_script_action = automation_script_instances_path
     end
 
     def two_factor_required?

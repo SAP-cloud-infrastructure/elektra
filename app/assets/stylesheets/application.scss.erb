@@ -44,17 +44,10 @@
 
 @import "topology";
 
-@import "jsoneditor";
-
 @import "rules_for_resources_plugin";
 
 @import "generals";
 
-<% if Object.const_defined?('ElektraExtension') %>
-  @import "elektra-extension/fonts";
-<%end%>
-
-// If you add a new plugin make a change to this file (e.g. add a new line) so that it gets recompiled. Otherwise your plugin's stylesheet won't get picked up
-<% Core::PluginsManager.plugins_with_application_css.each do |plugin| %>
-  <%=".#{plugin.name} {  @import \"#{plugin.name}/application\"; }"%>
-<% end %>
+<% if Object.const_defined?('ElektraExtension') %>@import "elektra-extension/fonts";
+<%end%> // If you add a new plugin make a change to this file (e.g. add a new line) so that it gets recompiled. Otherwise your plugin's stylesheet won't get picked up
+<% Core::PluginsManager.plugins_with_application_css.each do |plugin| %><%=".#{plugin.name} {  @import \"#{plugin.name}/application\"; }"%><% end %>

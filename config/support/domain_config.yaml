@@ -14,6 +14,8 @@ domains:
       - "FloatingIP-external-%DOMAIN_NAME%-01"
       - "FloatingIP-external-%DOMAIN_NAME%"
       - "Converged Cloud External"
+    disabled_dns_providers:
+      - "Internal Hosted Zone"
     dns_c_subdomain: true
     check_cidr_range: true
     terms_of_use_name: "actual_terms"
@@ -27,7 +29,6 @@ domains:
   - name: marioworld
     regex: "^marioworld-.*$"
     disabled_plugins:
-      - automation
       - reports
       - masterdata_cockpit
       - webconsole

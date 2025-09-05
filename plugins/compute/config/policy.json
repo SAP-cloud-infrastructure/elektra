@@ -29,8 +29,6 @@
   "compute:instance_revert_resize": "rule:instance_actions",
   "compute:instance_lock": "rule:context_is_compute_admin",
   "compute:instance_unlock": "rule:context_is_compute_admin",
-  "compute:instance_automation_script": "role:automation_admin",
-  "compute:instance_automation_data": "role:automation_admin",
   "compute:instance_update": "rule:instance_actions",
   "compute:instance_reset_status": "rule:context_is_compute_admin",
   "compute:instance_edit_securitygroups": "rule:context_is_compute_admin or rule:context_is_network_admin or role:securitygroup_admin",
