@@ -18,6 +18,8 @@ const watch = args.indexOf("--watch") >= 0
 const production = args.indexOf("--production") >= 0 || process.env.RAILS_ENV === "production"
 const log = console.log.bind(console)
 
+const createTanstackRouterPlugin = require("./esbuild-tanstack-router-plugin")
+
 const config = {
   entryPoints: entryPoints(
     [
@@ -51,7 +53,11 @@ const config = {
       config: "config",
     }),
     globImportPlugin(),
-
+    createTanstackRouterPlugin({
+      routesDirectory: "./plugins/kubernetes_ng/app/javascript/widgets/app/routes",
+      generatedRouteTree: "./plugins/kubernetes_ng/app/javascript/widgets/app/routeTree.gen.ts",
+      autoCodeSplitting: true,
+    }),
     {
       name: "svg-loader",
       setup(build) {

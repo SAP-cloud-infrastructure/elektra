@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx", // React JSX support
+    "allowJs": true, // If you mix JS + TS files
+    "checkJs": false, // Optional: disable type-checking JS files
+    "noEmit": true
+  },
+  "include": ["./app/javascript/widgets", "../../types/**/*"]
+}
