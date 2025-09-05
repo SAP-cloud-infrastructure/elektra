@@ -1,8 +1,7 @@
-import init_json_editor from "lib/jsoneditor"
 import React from "react"
 import { AppShellProvider, CodeBlock } from "@cloudoperators/juno-ui-components"
 
-class JsonEditor extends React.Component {
+class JsonViewer extends React.Component {
   render() {
     return (
       <AppShellProvider theme="theme-light">
@@ -18,4 +17,4 @@ class JsonEditor extends React.Component {
   }
 }
 
-export default JsonEditor
+export default JsonViewer
