@@ -114,3 +114,11 @@ jobs:
         run: |
           yarn install
           yarn test
+
+      # - name: Run typecheck
+      #   # this runs only in PRs from the same repo because of the missing npm token to download the packages
+      #   if: |
+      #     github.event.pull_request.head.repo.full_name == github.repository
+      #   id: typecheck
+      #   run: |
+      #     yarn typecheck

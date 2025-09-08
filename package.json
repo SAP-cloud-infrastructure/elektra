@@ -103,7 +103,8 @@
     "build": "node ./config/esbuild/build.js",
     "format": "prettier --log-level warn --write \"**/*.{js,jsx,ts,tsx,md}\"",
     "check-format": "prettier --config ./.prettierrc --check \"**/*.{js,jsx,ts,tsx,md}\" ",
-    "prepare": "husky"
+    "prepare": "husky",
+    "typecheck": "tsc --project plugins/kubernetes_ng --noEmit"
   },
   "name": "elektra-cc-dashboard",
   "license": "SEE LICENSE IN LICENSE",
