@@ -1,5 +1,6 @@
 import { createRouter } from "@tanstack/react-router"
 import { routeTree } from "./routeTree.gen"
+import { apiClient } from "./apiClient"
 
 // Register the router instance for type safety
 declare module "@tanstack/react-router" {
@@ -11,9 +12,7 @@ declare module "@tanstack/react-router" {
 export const router = createRouter({
   routeTree,
   context: {
-    trpcClient: undefined!,
-    auth: undefined!,
-    basePath: undefined!,
+    apiClient: apiClient,
   },
   defaultPreload: "intent",
   scrollRestoration: true,

@@ -13,11 +13,9 @@ export default function App() {
     <>
       <AppShellProvider theme="theme-light">
         <style>{styles}</style>
-        <AppShell embedded={true}>
-          <StrictMode>
-            <RouterProvider basepath={basePath} context={{}} router={router} />
-          </StrictMode>
-        </AppShell>
+        <StrictMode>
+          <RouterProvider basepath={basePath} context={{}} router={router} />
+        </StrictMode>
       </AppShellProvider>
     </>
   )
