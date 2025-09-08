@@ -10,8 +10,8 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "typeRoots": ["./types", "./node_modules/@types"]
+    "typeRoots": ["./config/esbuild/types", "./node_modules/@types"]
   },
   "exclude": ["node_modules"],
-  "include": ["types/**/*"]
+  "include": ["config/esbuild/types/**/*"]
 }
