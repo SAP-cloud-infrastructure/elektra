@@ -199,8 +199,8 @@ if (watch) {
     // Initialize watcher.
     const watcher = chokidar.watch(
       Object.values([
-        "app/javascript/**/*.{js,jsx}",
-        "plugins/*/app/javascript/**/*.{js,jsx}",
+        "app/javascript/**/*.{js,jsx,ts,tsx}",
+        "plugins/*/app/javascript/**/*.{js,jsx,ts,tsx}",
         "app/**/*.{scss,sass,css,haml,html}",
         "plugins/**/*.{scss,sass,css,haml,html}",
       ]),
