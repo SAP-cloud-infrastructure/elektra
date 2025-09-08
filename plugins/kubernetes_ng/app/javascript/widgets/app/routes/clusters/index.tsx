@@ -7,7 +7,7 @@ export const Route = createFileRoute("/clusters/")({
 function Index() {
   return (
     <div className="p-2">
-      <h3>Welcome to Clusters!</h3>
+      <h3>Welcome to Clusters Overview!</h3>
     </div>
   )
 }

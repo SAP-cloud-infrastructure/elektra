@@ -1,17 +1,14 @@
-import { createRootRoute, Link, Outlet } from "@tanstack/react-router"
-import { TanStackRouterDevtools } from "@tanstack/react-router-devtools"
+import { createRootRoute, Outlet } from "@tanstack/react-router"
+import { AppShell, Container } from "@cloudoperators/juno-ui-components"
 
-const RootLayout = () => (
-  <>
-    <div className="p-2 flex gap-2">
-      <Link to="/" className="[&.active]:font-bold">
-        Home
-      </Link>{" "}
-    </div>
-    <hr />
-    <Outlet />
-    {/* <TanStackRouterDevtools /> */}
-  </>
-)
+export const Route = createRootRoute({ component: Root })
 
-export const Route = createRootRoute({ component: RootLayout })
+const Root = () => {
+  return (
+    <AppShell>
+      <Container py px>
+        <Outlet />
+      </Container>
+    </AppShell>
+  )
+}
