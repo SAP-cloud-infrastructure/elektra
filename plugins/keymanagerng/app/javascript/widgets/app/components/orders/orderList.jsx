@@ -11,6 +11,7 @@ import {
 } from "@cloudoperators/juno-ui-components"
 
 const OrderList = ({ orders, isLoading }) => {
+  console.log("--------orders--------", orders)
   return (
     <>
       {!policy.isAllowed("keymanagerng:order_list") ? (

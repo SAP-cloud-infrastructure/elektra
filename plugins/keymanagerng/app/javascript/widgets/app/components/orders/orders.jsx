@@ -23,7 +23,6 @@ import { useActions } from "@cloudoperators/juno-messages-provider"
 import { parseError } from "../../helpers"
 import useOrdersSearch from "../../hooks/useOrdersSearch"
 import { useLocation } from "react-router-dom"
-import { Link } from "react-router-dom"
 
 const ITEMS_PER_PAGE = 20
 
@@ -133,13 +132,13 @@ const Orders = () => {
         <ButtonRow>
           {policy.isAllowed("keymanagerng:order_create") ? (
             <Button onClick={handleCreateOrder}>
-              Create Order
+              New Order
             </Button>
           ) : (
             <Tooltip triggerEvent="hover">
               <TooltipTrigger asChild>
                 <span>
-                  <Button disabled>Create Order</Button>
+                  <Button disabled>New Order</Button>
                 </span>
               </TooltipTrigger>
               <TooltipContent>

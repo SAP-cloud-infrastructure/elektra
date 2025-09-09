@@ -20,30 +20,32 @@ const SecretList = ({ secrets, isLoading }) => {
           {isLoading && !secrets ? (
             <HintLoading className="tw-mt-4" />
           ) : (
-            <DataGrid
-              columns={5}
-              minContentColumns={[4]}
-              data-target="secret-list-data-grid"
-            >
-              <DataGridRow>
-                <DataGridHeadCell>Name/ID</DataGridHeadCell>
-                <DataGridHeadCell>Type</DataGridHeadCell>
-                <DataGridHeadCell>Content Types</DataGridHeadCell>
-                <DataGridHeadCell>Status</DataGridHeadCell>
-                <DataGridHeadCell></DataGridHeadCell>
-              </DataGridRow>
-              {secrets && secrets.length > 0 ? (
-                secrets.map((secret, index) => (
-                  <SecretListItem key={index} secret={secret} />
-                ))
-              ) : (
+            <div className="datagrid-hover">
+              <DataGrid
+                columns={5}
+                minContentColumns={[4]}
+                data-target="secret-list-data-grid"
+              >
                 <DataGridRow>
-                  <DataGridCell colSpan={5}>
-                    <HintNotFound text="No Secrets found." />
-                  </DataGridCell>
+                  <DataGridHeadCell>Name/ID</DataGridHeadCell>
+                  <DataGridHeadCell>Type</DataGridHeadCell>
+                  <DataGridHeadCell>Content Types</DataGridHeadCell>
+                  <DataGridHeadCell>Status</DataGridHeadCell>
+                  <DataGridHeadCell></DataGridHeadCell>
                 </DataGridRow>
-              )}
-            </DataGrid>
+                {secrets && secrets.length > 0 ? (
+                  secrets.map((secret, index) => (
+                    <SecretListItem key={index} secret={secret} />
+                  ))
+                ) : (
+                  <DataGridRow>
+                    <DataGridCell colSpan={5}>
+                      <HintNotFound text="No Secrets found." />
+                    </DataGridCell>
+                  </DataGridRow>
+                )}
+              </DataGrid>
+            </div>
           )}
         </>
       )}

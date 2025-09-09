@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react"
-import { useHistory, useLocation, useParams } from "react-router-dom"
+import { useHistory, useLocation, useParams, Link } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
 import {
   Panel,
@@ -17,6 +17,7 @@ import { getOrder } from "../../orderActions"
 import { getUsername } from "../../helperActions"
 import HintLoading from "../HintLoading"
 import { getOrderUuid, getOrderName } from "../../../lib/orderHelper"
+import { getSecretUuid } from "../../../lib/secretHelper"
 
 const Row = ({ label, value, children }) => {
   return (
@@ -55,15 +56,6 @@ const OrderDetails = () => {
   useEffect(() => {
     setShow(!!params.id)
   }, [params.id])
-
-
-
-  const handleViewSecret = useCallback(() => {
-    if (order?.data?.secret_ref) {
-      const secretId = order.data.secret_ref.split('/').pop()
-      history.push(`/secrets/${secretId}/show`)
-    }
-  }, [order?.data?.secret_ref, history])
 
   const restoreURL = useCallback(() => {
     history.replace(
@@ -154,13 +146,18 @@ const OrderDetails = () => {
                   <DataGridCell>
                     <div>
                       <div className="tw-mb-2">
-                        <strong>Secret ID:</strong> {order?.data?.secret_ref ? order.data.secret_ref.split('/').pop() : 'N/A'}
+                        <strong>Secret ID:</strong>{" "}
+                        {order?.data?.secret_ref ? (
+                          <Link
+                            className="tw-text-blue-600 hover:tw-text-blue-800 tw-underline tw-cursor-pointer"
+                            to={`/secrets/${getSecretUuid({ secret_ref: order.data.secret_ref })}/show`}
+                          >
+                            {getSecretUuid({ secret_ref: order.data.secret_ref })}
+                          </Link>
+                        ) : (
+                          'N/A'
+                        )}
                       </div>
-                      <Button
-                        icon="external-link"
-                        label="View Secret"
-                        onClick={handleViewSecret}
-                      />
                     </div>
                   </DataGridCell>
                 </DataGridRow>

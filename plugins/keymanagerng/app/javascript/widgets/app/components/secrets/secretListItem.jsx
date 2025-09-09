@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from "react"
 import { deleteSecret } from "../../secretActions"
-import { Link } from "react-router-dom"
+import { Link, useParams } from "react-router-dom"
 import { policy } from "lib/policy"
 import {
   Badge,
@@ -21,6 +21,9 @@ const SecretListItem = ({ secret }) => {
   // once we run on react-router-dom v6 this should be replaced with the useNavigate hook, and the push function with a navigate function
   // like this: const navigate = useNavigate(), the use navigate('this/is/the/path') in the onClick handler of the edit button below
   const secretUuid = getSecretUuid(secret)
+  const params = useParams()
+  const isSelected = params.id === secretUuid
+  
   const queryClient = useQueryClient()
   const { addMessage } = useActions()
   const [show, setShow] = useState(false)
@@ -77,7 +80,10 @@ const SecretListItem = ({ secret }) => {
     </DataGridRow>
   ) : (
     <>
-      <DataGridRow data-target={secret.name}>
+      <DataGridRow 
+        data-target={secret.name}
+        className={`cursor-pointer ${isSelected ? "active" : ""}`} 
+      >
         <DataGridCell>
           <Link
             className="tw-break-all"

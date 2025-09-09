@@ -8,12 +8,11 @@ import {
   Select,
   SelectOption,
   Message,
-  Stack,
-  Label,
   PanelBody,
   PanelFooter,
+  DateTimePicker,
 } from "@cloudoperators/juno-ui-components"
-import { addOrder } from "../../orderActions"
+import { createOrder } from "../../orderActions"
 import { parseError } from "../../helpers"
 
 const NewOrderForm = ({ onSuccessfullyCloseForm, onClose }) => {
@@ -32,11 +31,39 @@ const NewOrderForm = ({ onSuccessfullyCloseForm, onClose }) => {
   const [errors, setErrors] = useState({})
 
   const createOrderMutation = useMutation({
-    mutationFn: addOrder,
+    mutationFn: createOrder,
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["orders"] })
-      const orderUuid = data.order_ref.split('/').pop()
-      onSuccessfullyCloseForm(orderUuid)
+      try {
+        // Extract order UUID from the response
+        const orderUuid = data.order_ref ? data.order_ref.split('/').pop() : 'Unknown'
+        
+        // Close the form first to prevent UI issues
+        onSuccessfullyCloseForm(orderUuid)
+        
+        // Delay query invalidation to prevent race conditions
+        setTimeout(() => {
+          try {
+            // Temporarily disable query invalidation to test if it's causing the error
+            // queryClient.invalidateQueries({
+            //   queryKey: ["orders"],
+            //   exact: true
+            // })
+            console.log("Query invalidation temporarily disabled to test error source")
+          } catch (invalidationError) {
+            console.warn("Warning: Error during query invalidation:", invalidationError)
+          }
+        }, 100)
+        
+      } catch (error) {
+        console.warn("Warning: Error during order creation success handler:", error)
+        // Still close the form even if there's an error
+        try {
+          const orderUuid = data.order_ref ? data.order_ref.split('/').pop() : 'Unknown'
+          onSuccessfullyCloseForm(orderUuid)
+        } catch (closeError) {
+          console.error("Error closing form:", closeError)
+        }
+      }
     },
     onError: (error) => {
       console.error("Error creating order:", error)
@@ -45,10 +72,11 @@ const NewOrderForm = ({ onSuccessfullyCloseForm, onClose }) => {
   })
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+    console.log("handleInputChange", field, value)
+    setFormData(prev => ({ ...prev, field: value }))
     // Clear field-specific error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: null }))
+      setErrors(prev => ({ ...prev, field: null }))
     }
   }
 
@@ -98,7 +126,27 @@ const NewOrderForm = ({ onSuccessfullyCloseForm, onClose }) => {
         algorithm: formData.algorithm,
         bit_length: parseInt(formData.bit_length),
         mode: formData.mode,
-        payload_content_type: formData.payload_content_type,
+        payload_content_type: formData.payload_content_type || undefined,
+        expiration: formData.expiration || undefined,
+      }
+    }
+
+    createOrderMutation.mutate(orderData)
+  }
+
+  const onConfirm = () => {
+    if (!validateForm()) {
+      return
+    }
+
+    const orderData = {
+      type: formData.type,
+      meta: {
+        name: formData.name || undefined,
+        algorithm: formData.algorithm,
+        bit_length: parseInt(formData.bit_length),
+        mode: formData.mode,
+        payload_content_type: formData.payload_content_type || undefined,
         expiration: formData.expiration || undefined,
       }
     }
@@ -146,119 +194,119 @@ const NewOrderForm = ({ onSuccessfullyCloseForm, onClose }) => {
   }
 
   return (
-    <>
-      <PanelBody>
-        <Form onSubmit={handleSubmit}>
-          {errors.submit && (
-            <Message variant="error" className="tw-mb-3">
-              {errors.submit}
-            </Message>
-          )}
+    <PanelBody
+      footer={
+        <PanelFooter>
+          <Button label="Save" onClick={onConfirm} variant="primary" />
+          <Button label="Cancel" onClick={onClose} />
+        </PanelFooter>
+      }
+    >
+      <Form>
+        {errors.submit && (
+          <Message variant="error" className="tw-mb-3">
+            {errors.submit}
+          </Message>
+        )}
 
-          <FormRow>
-            <Label htmlFor="name">Name (Optional)</Label>
-            <TextInput
-              id="name"
-              value={formData.name}
-              onChange={(e) => handleInputChange("name", e.target.value)}
-              placeholder="Enter order name"
-            />
-          </FormRow>
+        <FormRow>
+          <TextInput
+            label="Name (Optional)"
+            name="name"
+            value={formData.name}
+            onChange={(e) => handleInputChange("name", e.target.value)}
+            placeholder="Enter order name"
+          />
+        </FormRow>
 
-          <FormRow>
-            <Label htmlFor="algorithm">Algorithm *</Label>
-            <Select
-              id="algorithm"
-              value={formData.algorithm}
-              onChange={(e) => handleInputChange("algorithm", e.target.value)}
-              error={errors.algorithm}
-            >
-              {getAlgorithmOptions().map(option => (
-                <SelectOption key={option.value} value={option.value}>
-                  {option.label}
-                </SelectOption>
-              ))}
-            </Select>
-            {errors.algorithm && (
-              <div className="tw-text-red-500 tw-text-sm tw-mt-1">{errors.algorithm}</div>
-            )}
-          </FormRow>
-
-          <FormRow>
-            <Label htmlFor="bit_length">Bit Length *</Label>
-            <Select
-              id="bit_length"
-              value={formData.bit_length}
-              onChange={(e) => handleInputChange("bit_length", parseInt(e.target.value))}
-              error={errors.bit_length}
-            >
-              {getBitLengthOptions().map(option => (
-                <SelectOption key={option.value} value={option.value}>
-                  {option.label}
-                </SelectOption>
-              ))}
-            </Select>
-            {errors.bit_length && (
-              <div className="tw-text-red-500 tw-text-sm tw-mt-1">{errors.bit_length}</div>
-            )}
-          </FormRow>
-
-          {formData.algorithm === "aes" && (
-            <FormRow>
-              <Label htmlFor="mode">Mode</Label>
-              <Select
-                id="mode"
-                value={formData.mode}
-                onChange={(e) => handleInputChange("mode", e.target.value)}
-              >
-                {getModeOptions().map(option => (
-                  <SelectOption key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectOption>
-                ))}
-              </Select>
-            </FormRow>
-          )}
-
-          <FormRow>
-            <Label htmlFor="payload_content_type">Payload Content Type</Label>
-            <TextInput
-              id="payload_content_type"
-              value={formData.payload_content_type}
-              onChange={(e) => handleInputChange("payload_content_type", e.target.value)}
-              placeholder="application/octet-stream"
-            />
-          </FormRow>
-
-          <FormRow>
-            <Label htmlFor="expiration">Expiration Date (Optional)</Label>
-            <TextInput
-              id="expiration"
-              type="datetime-local"
-              value={formData.expiration}
-              onChange={(e) => handleInputChange("expiration", e.target.value)}
-            />
-            {errors.expiration && (
-              <div className="tw-text-red-500 tw-text-sm tw-mt-1">{errors.expiration}</div>
-            )}
-          </FormRow>
-        </Form>
-      </PanelBody>
-      <PanelFooter>
-        <Stack direction="row" gap="2" className="tw-justify-end">
-          <Button variant="outline-secondary" onClick={onClose} disabled={createOrderMutation.isPending}>
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleSubmit}
-            variant="primary" 
-            disabled={createOrderMutation.isPending}
+        <FormRow>
+          <Select
+            label="Type"
+            name="type"
+            value={formData.type}
+            onChange={(value) => handleInputChange("type", value)}
+            required
           >
-            {createOrderMutation.isPending ? "Creating Order..." : "Create Order"}
-          </Button>
-        </Stack>
-      </PanelFooter>
-    </>
+            <SelectOption value="key">Key</SelectOption>
+            <SelectOption value="asymmetric">Asymmetric</SelectOption>
+          </Select>
+        </FormRow>
+
+        <FormRow>
+          <Select
+            label="Algorithm"
+            name="algorithm"
+            value={formData.algorithm}
+            onChange={(value) => handleInputChange("algorithm", value)}
+            invalid={errors.algorithm ? true : false}
+            errortext={errors.algorithm}
+            required
+          >
+            {getAlgorithmOptions().map(option => (
+              <SelectOption key={option.value} value={option.value}>
+                {option.label}
+              </SelectOption>
+            ))}
+          </Select>
+        </FormRow>
+
+        <FormRow>
+          <Select
+            label="Bit Length"
+            name="bit_length"
+            value={formData.bit_length}
+            onChange={(value) => handleInputChange("bit_length", parseInt(value))}
+            invalid={errors.bit_length ? true : false}
+            errortext={errors.bit_length}
+            required
+          >
+            {getBitLengthOptions().map(option => (
+              <SelectOption key={option.value} value={option.value}>
+                {option.label}
+              </SelectOption>
+            ))}
+          </Select>
+        </FormRow>
+
+        {formData.algorithm === "aes" && (
+          <FormRow>
+            <Select
+              label="Mode"
+              name="mode"
+              value={formData.mode}
+              onChange={(value) => handleInputChange("mode", value)}
+            >
+              {getModeOptions().map(option => (
+                <SelectOption key={option.value} value={option.value}>
+                  {option.label}
+                </SelectOption>
+              ))}
+            </Select>
+          </FormRow>
+        )}
+
+        <FormRow>
+          <TextInput
+            label="Payload Content Type"
+            name="payload_content_type"
+            value={formData.payload_content_type}
+            onChange={(e) => handleInputChange("payload_content_type", e.target.value)}
+            placeholder="application/octet-stream"
+          />
+        </FormRow>
+
+        <FormRow>
+          <DateTimePicker
+            label="Expiration Date (Optional)"
+            name="expiration"
+            value={formData.expiration}
+            onChange={(value) => handleInputChange("expiration", value)}
+            invalid={errors.expiration ? true : false}
+            errortext={errors.expiration}
+          />
+        </FormRow>
+      </Form>
+    </PanelBody>
   )
 }
 
