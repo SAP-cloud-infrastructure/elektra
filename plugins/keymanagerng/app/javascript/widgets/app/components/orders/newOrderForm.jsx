@@ -72,11 +72,10 @@ const NewOrderForm = ({ onSuccessfullyCloseForm, onClose }) => {
   })
 
   const handleInputChange = (field, value) => {
-    console.log("handleInputChange", field, value)
-    setFormData(prev => ({ ...prev, field: value }))
+    setFormData(prev => ({ ...prev, [field]: value }))
     // Clear field-specific error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, field: null }))
+      setErrors(prev => ({ ...prev, [field]: null }))
     }
   }
 
@@ -300,7 +299,11 @@ const NewOrderForm = ({ onSuccessfullyCloseForm, onClose }) => {
             label="Expiration Date (Optional)"
             name="expiration"
             value={formData.expiration}
-            onChange={(value) => handleInputChange("expiration", value)}
+            onChange={(value) => {
+              // Handle case where DateTimePicker returns an array instead of a single value
+              const dateValue = Array.isArray(value) ? value[0] : value;
+              handleInputChange("expiration", dateValue);
+            }}
             invalid={errors.expiration ? true : false}
             errortext={errors.expiration}
           />
