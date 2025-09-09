@@ -10,6 +10,8 @@ Rails.application.configure do
     # if the dev enviornemnt not running localy this config is needed e.g. workspaces 
   config.hosts << /.*\.cloud\.sap/
 
+  config.debug_exception_response_format = nil
+
   # Do not eager load code on boot.
   config.eager_load = false
 

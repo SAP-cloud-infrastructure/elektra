@@ -73,9 +73,9 @@ Rails.application.configure do
   config.log_tags = [ :request_id ]
 
   # "info" includes generic and useful information about system operation, but avoids logging too much
-  # information to avoid inadvertent exposure of personally identifiable information (PII). If you
-  # want to log everything, set the level to "debug".
-  config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
+  config.log_level = ENV.fetch("info")
+  config.action_dispatch.show_exceptions = true
+  config.action_dispatch.show_detailed_exceptions = false
 
     # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
   # config.force_ssl = true
