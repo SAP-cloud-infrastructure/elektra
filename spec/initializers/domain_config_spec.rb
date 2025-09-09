@@ -24,7 +24,6 @@ test_config = {
       'name' => 'marioworld',
       'regex' => '^marioworld-.*$',
       'disabled_plugins' => [
-        'automation',
         'reports',
         'masterdata_cockpit',
         'webconsole',
@@ -110,12 +109,11 @@ describe DomainConfig do
     describe '#plugin_hidden?' do
       it 'returns false for regular domain (no disabled plugins)' do
         config = DomainConfig.new('regular-domain')
-        expect(config.plugin_hidden?('automation')).to be false # not set in any domain config
+        expect(config.plugin_hidden?('reports')).to be false # not set in any domain config
       end
 
       it 'returns true if the plugin is disabled in marioworld domain' do
         config = DomainConfig.new('marioworld-domain')
-        expect(config.plugin_hidden?('automation')).to be true # from marioworld domain config
         expect(config.plugin_hidden?('reports')).to be true # from marioworld domain config
         expect(config.plugin_hidden?('masterdata_cockpit')).to be true # from marioworld domain config
       end
@@ -127,7 +125,6 @@ describe DomainConfig do
 
       it 'works with specific marioworld domain (inherits disabled plugins)' do
         config = DomainConfig.new('marioworld-and-luigi-test')
-        expect(config.plugin_hidden?('automation')).to be true # from marioworld domain config
         expect(config.plugin_hidden?('reports')).to be true # from marioworld domain config
       end
     end
@@ -287,7 +284,7 @@ describe DomainConfig do
         # From "marioworld" (middle layer) - overrides base
         expect(config.federation?).to be true
         expect(config.dns_c_subdomain?).to be false
-        expect(config.plugin_hidden?('automation')).to be true
+        expect(config.plugin_hidden?('reports')).to be true
         
         # From "marioworld-and-luigi" (top layer) - overrides middle
         expect(config.idp?).to eq(URI.encode_www_form_component('https://marioworld-and-luigi.world.corp'))

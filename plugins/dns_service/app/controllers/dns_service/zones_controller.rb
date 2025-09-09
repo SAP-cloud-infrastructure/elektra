@@ -141,9 +141,19 @@ module DnsService
 
     def new
       @zone = services.dns_service.new_zone
-      # this needs to be removed when migration is done
+      domain_config = DomainConfig.new(@scoped_domain_name)
+      disabled_providers = domain_config.disabled_dns_providers?
+
+      # filter disabled DNS providers
       @pools.reject! do |pool|
-        pool.attributes["attributes"]["label"] == "New External SAP Hosted Zone"
+        pool_label = pool.attributes["attributes"]["label"]
+        is_disabled = Array(disabled_providers).include?(pool_label)
+        
+        if is_disabled
+          Rails.logger.debug("Rejecting pool: #{pool_label} (disabled DNS provider)")
+        end
+        
+        is_disabled
       end
     end
 

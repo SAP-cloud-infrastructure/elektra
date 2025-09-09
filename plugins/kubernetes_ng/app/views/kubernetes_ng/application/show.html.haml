@@ -1,0 +1,6 @@
+= content_for :main_toolbar do
+  Gardener
+
+
+#kubernetes_ng_app_widget{ data: { basepath: plugin("kubernetes_ng").root_path } }
+  = javascript_include_tag "kubernetes_ng_app_widget", data: { url: plugin("kubernetes_ng").root_path }

@@ -1,8 +1,8 @@
-import { ajaxHelper } from "lib/ajax_helper"
+import apiClient from "./apiClient"
 
 export const fetchPools = (lbID, options) => {
   return new Promise((handleSuccess, handleError) => {
-    ajaxHelper
+    apiClient
       .get(`/loadbalancers/${lbID}/pools`, { params: options })
       .then((response) => {
         handleSuccess(response.data)
@@ -15,7 +15,7 @@ export const fetchPools = (lbID, options) => {
 
 export const fetchPool = (lbID, poolID) => {
   return new Promise((handleSuccess, handleError) => {
-    ajaxHelper
+    apiClient
       .get(`/loadbalancers/${lbID}/pools/${poolID}`)
       .then((response) => {
         handleSuccess(response.data)
@@ -28,7 +28,7 @@ export const fetchPool = (lbID, poolID) => {
 
 export const postPool = (lbID, values) => {
   return new Promise((handleSuccess, handleErrors) => {
-    ajaxHelper
+    apiClient
       .post(`/loadbalancers/${lbID}/pools`, { pool: values })
       .then((response) => {
         handleSuccess(response.data)
@@ -41,7 +41,7 @@ export const postPool = (lbID, values) => {
 
 export const putPool = (lbID, poolID, values) => {
   return new Promise((handleSuccess, handleErrors) => {
-    ajaxHelper
+    apiClient
       .put(`/loadbalancers/${lbID}/pools/${poolID}`, { pool: values })
       .then((response) => {
         handleSuccess(response.data)
@@ -54,7 +54,7 @@ export const putPool = (lbID, poolID, values) => {
 
 export const deletePool = (lbID, poolID) => {
   return new Promise((handleSuccess, handleErrors) => {
-    return ajaxHelper
+    return apiClient
       .delete(`/loadbalancers/${lbID}/pools/${poolID}`)
       .then((response) => {
         handleSuccess(response.data)
@@ -67,7 +67,7 @@ export const deletePool = (lbID, poolID) => {
 
 export const fetchPoolsForSelect = (lbID) => {
   return new Promise((handleSuccess, handleError) => {
-    ajaxHelper
+    apiClient
       .get(`/loadbalancers/${lbID}/pools/items_for_select`)
       .then((response) => {
         handleSuccess(response.data)

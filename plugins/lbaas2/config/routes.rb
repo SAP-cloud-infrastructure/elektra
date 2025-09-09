@@ -17,8 +17,6 @@ Lbaas2::Engine.routes.draw do
               module: :loadbalancers,
               only: %i[index show create update destroy] do
       collection do
-        get "containers" => "listeners#containers"
-        get "secrets" => "listeners#secrets"
         get "items_for_select" => "listeners#itemsForSelect"
         get "items_no_def_pool_for_select" =>
               "listeners#itemsWithoutDefaultPoolForSelect"

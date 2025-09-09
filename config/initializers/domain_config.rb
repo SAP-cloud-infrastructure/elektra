@@ -56,6 +56,10 @@ class DomainConfig
     end
   end
 
+  def disabled_dns_providers?
+    @domain_config.fetch('disabled_dns_providers', false)
+  end
+
   def dns_c_subdomain?
     @domain_config.fetch('dns_c_subdomain', false)
   end
@@ -86,11 +90,11 @@ class DomainConfig
       merged_config = merged_config.merge(config)
     end 
     
-    Rails.logger.info "DomainConfig: Merging configs for #{scoped_domain_name} with #{matching_configs.size} matching domains"
+    Rails.logger.debug "DomainConfig: Merging configs for #{scoped_domain_name} with #{matching_configs.size} matching domains"
     # better logging for debugging in development
     output = StringIO.new # use StringIO to capture output
     PP.pp(merged_config, output) # pretty print the merged config to the StringIO object
-    Rails.logger.info "DomainConfig: Merged config:\n#{output.string}"
+    Rails.logger.debug "DomainConfig: Merged config:\n#{output.string}"
 
     return merged_config if merged_config.is_a?(Hash)
     raise "DomainConfig: Invalid domain config for #{scoped_domain_name}, expected a Hash, got #{merged_config.class}"

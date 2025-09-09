@@ -2,14 +2,11 @@ import moment from "moment"
 import { Link } from "react-router-dom"
 import React from "react"
 import { confirm } from "lib/dialogs"
-import { addSuccess } from "lib/flashes"
 import { byteToHuman } from "lib/tools/size_formatter"
-
 import RepositoryDeleter from "../../containers/repositories/deleter"
-import { makeGCNotice } from "../utils"
 
-const numberOfThings = (number, word) =>
-  number == 1 ? `${number} ${word}` : `${number} ${word}s`
+
+const numberOfThings = (number, word) => (number == 1 ? `${number} ${word}` : `${number} ${word}s`)
 
 export default class RepositoryRow extends React.Component {
   state = {
@@ -22,17 +19,14 @@ export default class RepositoryRow extends React.Component {
       return
     }
     const { name: repoName, manifest_count: manifestCount } = this.props.repo
-    confirm(
-      `Really delete the repository "${repoName}" and all ${manifestCount} images in it?`
-    ).then(() => this.setState({ ...this.state, isDeleting: true }))
+    confirm(`Really delete the repository "${repoName}" and all ${manifestCount} images in it?`).then(() =>
+      this.setState({ ...this.state, isDeleting: true })
+    )
     //This causes <RepositoryDeleter/> to be mounted to perform the actual deletion.
   }
 
-  handleDoneDeleting(isError = false) {
+  handleDoneDeleting() {
     this.setState({ ...this.state, isDeleting: false })
-    if (isError == false) {
-      addSuccess(makeGCNotice("Repository"))
-    }
   }
 
   render() {
@@ -52,21 +46,14 @@ export default class RepositoryRow extends React.Component {
           <Link to={`/repo/${accountName}/${repoName}`}>{repoName}</Link>
         </td>
         <td className="col-md-3">
-          {numberOfThings(manifestCount, "image")} with{" "}
-          {numberOfThings(tagCount, "tag")}
+          {numberOfThings(manifestCount, "image")} with {numberOfThings(tagCount, "tag")}
         </td>
         <td className="col-md-3">
-          {sizeBytes !== undefined ? (
-            byteToHuman(sizeBytes)
-          ) : (
-            <span className="text-muted">Empty</span>
-          )}
+          {sizeBytes !== undefined ? byteToHuman(sizeBytes) : <span className="text-muted">Empty</span>}
         </td>
         <td className="col-md-2">
           {pushedAtUnix !== undefined ? (
-            <span title={pushedAt.format("LLLL")}>
-              {pushedAt.fromNow(true)} ago
-            </span>
+            <span title={pushedAt.format("LLLL")}>{pushedAt.fromNow(true)} ago</span>
           ) : (
             <span className="text-muted">Empty</span>
           )}
@@ -77,9 +64,7 @@ export default class RepositoryRow extends React.Component {
               <RepositoryDeleter
                 accountName={accountName}
                 repoName={repoName}
-                handleDoneDeleting={(isError = false) =>
-                  this.handleDoneDeleting(isError)
-                }
+                handleDoneDeleting={() => this.handleDoneDeleting()}
               />
             ) : (
               <div className="btn-group">

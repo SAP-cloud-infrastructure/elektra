@@ -156,4 +156,8 @@ RUN curl -fL http://aia.pki.co.sap.com/aia/SAP%20Global%20Root%20CA.crt -o /usr/
 # this is needed because some juno packages have unnecessary node checks
 RUN yarn config set ignore-engines true
 
+# to upgrade the image to the latest
+# this is used to ensure all packages are up to date and 
+RUN apk update && apk upgrade
+
 ENTRYPOINT [ "/usr/local/bin/prepare-elektra" ]  

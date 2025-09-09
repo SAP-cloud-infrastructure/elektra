@@ -12,7 +12,8 @@ source 'https://rubygems.org'
 gem 'unf', '>= 0.2.0beta2'
 
 gem 'jsbundling-rails'
-gem 'rails', '7.1.3.2'
+# https://rubygems.org/gems/rails/versions
+gem 'rails', '7.1.5.2'
 gem 'benchmark', require: false  # Ruby 3.4 compatibility
 gem 'ostruct'
 gem 'csv'
@@ -57,9 +58,6 @@ gem 'httpclient' # The only faraday backend that handled no_proxy :|
 gem 'sentry-raven'
 gem 'faraday-httpclient', '~> 2.0'
 
-# Automation
-gem 'arc-client', git: 'https://github.com/sapcc/arc-client.git'
-gem 'lyra-client', git: 'https://github.com/sapcc/lyra-client.git'
 # auth
 # gem 'monsoon-openstack-auth', path: '../monsoon-openstack-auth'
 gem 'monsoon-openstack-auth', git: 'https://github.com/sapcc/monsoon-openstack-auth.git'

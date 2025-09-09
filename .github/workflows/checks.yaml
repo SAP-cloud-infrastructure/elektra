@@ -114,3 +114,19 @@ jobs:
         run: |
           yarn install
           yarn test
+
+      - name: Run typecheck
+        # this runs only in PRs from the same repo because of the missing npm token to download the packages
+        if: |
+          github.event.pull_request.head.repo.full_name == github.repository
+        id: typecheck
+        run: |
+          yarn typecheck
+
+      - name: Run lint in plugins (see script/lint-plugins.js)
+        # this runs only in PRs from the same repo because of the missing npm token to
+        if: |
+          github.event.pull_request.head.repo.full_name == github.repository
+        id: lint
+        run: |
+          yarn lint:plugins
