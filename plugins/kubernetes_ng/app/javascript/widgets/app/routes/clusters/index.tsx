@@ -5,10 +5,10 @@ import { Cluster } from "../../types/clusters"
 export const Route = createFileRoute("/clusters/")({
   component: Index,
   loader: async ({ context }) => {
-    const clusters = await context.apiClient
-      ?.get("/kubernetes-ng/api/clusters/")
-      .then((response: { data: Cluster[] }) => response.data)
-
+    const client = context.apiClient
+    const clusters = await client
+      ?.get<{ data: Cluster[] }>("/kubernetes-ng/api/clusters/")
+      .then((response) => response.data)
     return {
       clusters,
     }
@@ -18,5 +18,5 @@ export const Route = createFileRoute("/clusters/")({
 function Index() {
   const { clusters } = useLoaderData({ from: Route.id })
 
-  return <JsonViewer data={clusters} />
+  return <JsonViewer data={clusters || []} />
 }

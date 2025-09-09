@@ -4,4 +4,4 @@ import { widgetBasePath } from "lib/widget"
 const baseURL = widgetBasePath("kubernetes_ng")
 export const apiClient = createAjaxHelper({ baseURL })
 
-export type ApiClient = typeof createAjaxHelper
+export type ApiClient = ReturnType<typeof createAjaxHelper>

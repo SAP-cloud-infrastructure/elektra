@@ -1,6 +1,6 @@
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router"
 import { AppShell, Container } from "@cloudoperators/juno-ui-components"
-import { type ApiClient } from "../apiClient"
+import { ApiClient } from "../apiClient"
 
 interface RouterContext {
   apiClient?: ApiClient
