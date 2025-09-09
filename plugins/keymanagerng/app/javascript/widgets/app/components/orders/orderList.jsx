@@ -10,7 +10,8 @@ import {
   DataGridHeadCell,
 } from "@cloudoperators/juno-ui-components"
 
-const OrderList = ({ orders, isLoading, resetSearch }) => {
+const OrderList = ({ orders, isLoading, resetSearch, refreshSearch }) => {
+
   return (
     <>
       {!policy.isAllowed("keymanagerng:order_list") ? (
@@ -29,7 +30,7 @@ const OrderList = ({ orders, isLoading, resetSearch }) => {
               </DataGridRow>
               {orders && orders.length > 0 ? (
                 orders.map((order, index) => (
-                  <OrderListItem key={index} order={order} resetSearch={resetSearch} />
+                  <OrderListItem key={index} order={order} resetSearch={resetSearch} refreshSearch={refreshSearch} />
                 ))
               ) : (
                 <DataGridRow>

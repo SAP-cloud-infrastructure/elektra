@@ -44,8 +44,9 @@ const Orders = () => {
 
   const search = useOrdersSearch({ text: searchTerm })
 
-  // Pass the reset function to child components
+  // Pass the reset and refresh functions to child components
   const resetSearch = search.reset
+  const refreshSearch = search.refresh
 
   const { data: ordersData, isLoading, isFetching, error } = useQuery({
     queryKey: ["orders", paginationOptions],
@@ -159,7 +160,8 @@ const Orders = () => {
           search.isFiltering ? search.displayResults : ordersData?.orders
         }
         isLoading={isLoading}
-        resetSearch={resetSearch} // Pass reset function
+        resetSearch={resetSearch}
+        refreshSearch={refreshSearch} // Pass refresh function
       />
       {!search.isFiltering && ordersData?.orders && ordersData.orders.length > 0 && (
         <Pagination

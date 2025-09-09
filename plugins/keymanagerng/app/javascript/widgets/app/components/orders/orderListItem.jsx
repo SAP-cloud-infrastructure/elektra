@@ -16,7 +16,7 @@ import useStore from "../../store"
 import ConfirmationModal from "../ConfirmationModal"
 import { getOrderUuid, getOrderName } from "../../../lib/orderHelper"
 
-const OrderListItem = ({ order, resetSearch }) => {
+const OrderListItem = ({ order, resetSearch, refreshSearch }) => {
   const orderUuid = getOrderUuid(order)
   const orderName = getOrderName(order)
   
@@ -45,8 +45,12 @@ const OrderListItem = ({ order, resetSearch }) => {
       {
         onSuccess: () => {
           setShow(false)
-          // Reset search state and invalidate queries
-          resetSearch()
+          // Refresh search results if currently searching, otherwise just invalidate main queries
+          if (refreshSearch) {
+            refreshSearch()
+          } else {
+            resetSearch()
+          }
           queryClient.invalidateQueries("orders")
           addMessage({
             variant: "success",

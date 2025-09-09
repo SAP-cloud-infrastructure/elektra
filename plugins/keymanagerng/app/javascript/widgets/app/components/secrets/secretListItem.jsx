@@ -16,7 +16,7 @@ import ConfirmationModal from "../ConfirmationModal"
 import { useActions } from "@cloudoperators/juno-messages-provider"
 import useStore from "../../store"
 
-const SecretListItem = ({ secret, resetSearch }) => {
+const SecretListItem = ({ secret, resetSearch, refreshSearch }) => {
   // manually push a path onto the react router history
   // once we run on react-router-dom v6 this should be replaced with the useNavigate hook, and the push function with a navigate function
   // like this: const navigate = useNavigate(), the use navigate('this/is/the/path') in the onClick handler of the edit button below
@@ -47,8 +47,12 @@ const SecretListItem = ({ secret, resetSearch }) => {
       {
         onSuccess: () => {
           setShow(false)
-          // Reset search state and invalidate queries
-          resetSearch()
+          // Refresh search results if currently searching, otherwise just invalidate main queries
+          if (refreshSearch) {
+            refreshSearch()
+          } else {
+            resetSearch()
+          }
           queryClient.invalidateQueries("secrets")
           addMessage({
             variant: "success",

@@ -41,8 +41,9 @@ const Containers = () => {
 
   const search = useContainersSearch({ text: searchTerm })
   
-  // Pass the reset function to child components
+  // Pass the reset and refresh functions to child components
   const resetSearch = search.reset
+  const refreshSearch = search.refresh
   
   const { isLoading, isFetching, data, error } = useQuery({
     queryKey: ["containers", paginationOptions],
@@ -141,7 +142,8 @@ const Containers = () => {
           search.isFiltering ? search.displayResults : data?.containers
         }
         isLoading={isLoading}
-        resetSearch={resetSearch} // Add this line
+        resetSearch={resetSearch}
+        refreshSearch={refreshSearch} // Pass refresh function
       />
       {!search.isFiltering && data?.containers?.length > 0 && (
         <Pagination

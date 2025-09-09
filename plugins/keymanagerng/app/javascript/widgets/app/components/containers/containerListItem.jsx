@@ -16,7 +16,7 @@ import { useActions } from "@cloudoperators/juno-messages-provider"
 import useStore from "../../store"
 import ConfirmationModal from "../ConfirmationModal"
 
-const ContainerListItem = ({ container, resetSearch }) => {
+const ContainerListItem = ({ container, resetSearch, refreshSearch }) => {
   const containerUuid = getContainerUuid(container)
 
   const queryClient = useQueryClient()
@@ -44,8 +44,12 @@ const ContainerListItem = ({ container, resetSearch }) => {
       {
         onSuccess: () => {
           setShow(false)
-          // Reset search state and invalidate queries
-          resetSearch()
+          // Refresh search results if currently searching, otherwise just invalidate main queries
+          if (refreshSearch) {
+            refreshSearch()
+          } else {
+            resetSearch()
+          }
           queryClient.invalidateQueries("containers")
           addMessage({
             variant: "success",

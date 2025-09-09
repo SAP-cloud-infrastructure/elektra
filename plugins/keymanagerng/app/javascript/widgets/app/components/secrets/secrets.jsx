@@ -45,8 +45,9 @@ const Secrets = () => {
 
   const search = useSecretsSearch({ text: searchTerm })
 
-  // Pass the reset function to child components
+  // Pass the reset and refresh functions to child components
   const resetSearch = search.reset
+  const refreshSearch = search.refresh
 
   // dispatch error with useEffect because error variable will first set once all retries did not succeed
   useEffect(() => {
@@ -138,7 +139,8 @@ const Secrets = () => {
           search.isFiltering ? search.displayResults : data?.secrets
         }
         isLoading={isLoading}
-        resetSearch={resetSearch} // Pass reset function
+        resetSearch={resetSearch}
+        refreshSearch={refreshSearch} // Pass refresh function
       />
       {!search.isFiltering && data?.secrets?.length > 0 && (
         <Pagination
