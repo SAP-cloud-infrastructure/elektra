@@ -10,7 +10,7 @@ import {
   DataGridHeadCell,
 } from "@cloudoperators/juno-ui-components"
 
-const ContainerList = ({ containers, isLoading }) => {
+const ContainerList = ({ containers, isLoading, resetSearch }) => {
   return (
     <>
       {!policy.isAllowed("keymanagerng:container_list") ? (
@@ -29,7 +29,7 @@ const ContainerList = ({ containers, isLoading }) => {
               </DataGridRow>
               {containers && containers.length > 0 ? (
                 containers.map((container, index) => (
-                  <ContainerListItem key={index} container={container} />
+                  <ContainerListItem key={index} container={container} resetSearch={resetSearch} />
                 ))
               ) : (
                 <DataGridRow>

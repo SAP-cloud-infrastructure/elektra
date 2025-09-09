@@ -37,22 +37,11 @@ const NewOrderForm = ({ onSuccessfullyCloseForm, onClose }) => {
         // Extract order UUID from the response
         const orderUuid = data.order_ref ? data.order_ref.split('/').pop() : 'Unknown'
         
-        // Close the form first to prevent UI issues
-        onSuccessfullyCloseForm(orderUuid)
+        // Invalidate queries to refresh the orders list (same pattern as secrets and containers)
+        queryClient.invalidateQueries("orders")
         
-        // Delay query invalidation to prevent race conditions
-        setTimeout(() => {
-          try {
-            // Temporarily disable query invalidation to test if it's causing the error
-            // queryClient.invalidateQueries({
-            //   queryKey: ["orders"],
-            //   exact: true
-            // })
-            console.log("Query invalidation temporarily disabled to test error source")
-          } catch (invalidationError) {
-            console.warn("Warning: Error during query invalidation:", invalidationError)
-          }
-        }, 100)
+        // Close the form
+        onSuccessfullyCloseForm(orderUuid)
         
       } catch (error) {
         console.warn("Warning: Error during order creation success handler:", error)

@@ -116,6 +116,27 @@ const OrderDetails = () => {
                 </DataGridCell>
               </DataGridRow>
               <Row label="Status" value={order?.data?.status} />
+              
+              {/* Show error details when order status indicates an error */}
+              {order?.data?.status === "ERROR" && (
+                <>
+                  {order?.data?.sub_status && (
+                    <Row label="Error Type" value={order?.data?.sub_status} />
+                  )}
+                  {order?.data?.sub_status_message && (
+                    <Row label="Error Message" value={order?.data?.sub_status_message} />
+                  )}
+                </>
+              )}
+              
+              {/* Show sub_status and sub_status_message for other statuses too, if they exist */}
+              {order?.data?.sub_status && order?.data?.status !== "ERROR" && (
+                <Row label="Sub Status" value={order?.data?.sub_status} />
+              )}
+              {order?.data?.sub_status_message && order?.data?.status !== "ERROR" && (
+                <Row label="Sub Status Message" value={order?.data?.sub_status_message} />
+              )}
+              
               {order?.data?.updated && order?.data?.updated !== order?.data?.created && (
                 <Row
                   label="Updated at"

@@ -1221,12 +1221,17 @@
     "@types/tough-cookie" "^4.0.5"
     tough-cookie "^4.1.4"
 
-"@cloudoperators/juno-messages-provider@^0.2.11":
-  version "0.2.11"
-  resolved "https://registry.yarnpkg.com/@cloudoperators/juno-messages-provider/-/juno-messages-provider-0.2.11.tgz#71febded4c3a4e50bc1fb80aab9ffb32db947518"
-  integrity sha512-RmQa2YY7CACuX25uLRolfVgWDm8a5cOPqfIzbUwtrEu1dZxF4hx7Q2q1PCij3oqfnR1sI2+1zXuobcLdxwqRAQ==
+"@cloudoperators/juno-messages-provider@0.2.5":
+  version "0.2.5"
+  resolved "https://registry.yarnpkg.com/@cloudoperators/juno-messages-provider/-/juno-messages-provider-0.2.5.tgz#825d63d820e9643d00993bedad950b67be7ba627"
+  integrity sha512-KQaFZ8aFQP9CH5uaD49z3IYYQPFTNDHLYnUkhUw6MIqYlsWI6wSEjGBHTLAjawUWMRNJxYxGg9Dor/T8I+obCg==
   dependencies:
-    "@cloudoperators/juno-ui-components" "5.1.0"
+    "@cloudoperators/juno-ui-components" "*"
+
+"@cloudoperators/juno-ui-components@*":
+  version "5.4.0"
+  resolved "https://registry.yarnpkg.com/@cloudoperators/juno-ui-components/-/juno-ui-components-5.4.0.tgz#ba7107943e2092ee1ee5d4f9413feb93ffd2110b"
+  integrity sha512-8c5G3AERGnI5MG26q+Zgz+Fb96xIRyrj3IXt8pNjMaIFfri76ceFQIIlDB+n4RtiKD4cmjVIt4wBvIlpzt0EKQ==
 
 "@cloudoperators/juno-ui-components@3.1.1":
   version "3.1.1"

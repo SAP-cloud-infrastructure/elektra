@@ -10,7 +10,7 @@ import {
   DataGridHeadCell,
 } from "@cloudoperators/juno-ui-components"
 
-const SecretList = ({ secrets, isLoading }) => {
+const SecretList = ({ secrets, isLoading, resetSearch }) => {
   return (
     <>
       {!policy.isAllowed("keymanagerng:secret_list") ? (
@@ -35,7 +35,7 @@ const SecretList = ({ secrets, isLoading }) => {
                 </DataGridRow>
                 {secrets && secrets.length > 0 ? (
                   secrets.map((secret, index) => (
-                    <SecretListItem key={index} secret={secret} />
+                    <SecretListItem key={index} secret={secret} resetSearch={resetSearch} />
                   ))
                 ) : (
                   <DataGridRow>

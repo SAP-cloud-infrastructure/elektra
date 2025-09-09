@@ -16,7 +16,7 @@ import { useActions } from "@cloudoperators/juno-messages-provider"
 import useStore from "../../store"
 import ConfirmationModal from "../ConfirmationModal"
 
-const ContainerListItem = ({ container }) => {
+const ContainerListItem = ({ container, resetSearch }) => {
   const containerUuid = getContainerUuid(container)
 
   const queryClient = useQueryClient()
@@ -44,11 +44,13 @@ const ContainerListItem = ({ container }) => {
       {
         onSuccess: () => {
           setShow(false)
+          // Reset search state and invalidate queries
+          resetSearch()
+          queryClient.invalidateQueries("containers")
           addMessage({
             variant: "success",
             text: `The container ${containerUuid} is successfully deleted.`,
           })
-          queryClient.invalidateQueries("containers")
         },
         onError: (error) => {
           setShow(false)

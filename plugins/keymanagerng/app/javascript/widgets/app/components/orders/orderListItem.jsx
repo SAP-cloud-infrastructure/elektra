@@ -16,7 +16,7 @@ import useStore from "../../store"
 import ConfirmationModal from "../ConfirmationModal"
 import { getOrderUuid, getOrderName } from "../../../lib/orderHelper"
 
-const OrderListItem = ({ order }) => {
+const OrderListItem = ({ order, resetSearch }) => {
   const orderUuid = getOrderUuid(order)
   const orderName = getOrderName(order)
   
@@ -45,11 +45,13 @@ const OrderListItem = ({ order }) => {
       {
         onSuccess: () => {
           setShow(false)
+          // Reset search state and invalidate queries
+          resetSearch()
+          queryClient.invalidateQueries("orders")
           addMessage({
             variant: "success",
             text: `The order ${orderUuid} is successfully deleted.`,
           })
-          queryClient.invalidateQueries("orders")
         },
         onError: (error) => {
           setShow(false)
