@@ -46,9 +46,7 @@ const AppRouter = () => {
       disabled: tabsDisabled,
     },
   ]
-  
-  console.log("AppRouter tabsConfig:", tabsConfig) // Debug log
-  
+    
   return (
     <>
       <Messages />

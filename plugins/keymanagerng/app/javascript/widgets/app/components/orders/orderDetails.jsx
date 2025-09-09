@@ -10,7 +10,6 @@ import {
   DataGridHeadCell,
   CodeBlock,
   Badge,
-  Button,
   Message,
 } from "@cloudoperators/juno-ui-components"
 import { getOrder } from "../../orderActions"
@@ -120,11 +119,12 @@ const OrderDetails = () => {
               {/* Show error details when order status indicates an error */}
               {order?.data?.status === "ERROR" && (
                 <>
-                  {order?.data?.sub_status && (
-                    <Row label="Error Type" value={order?.data?.sub_status} />
+                  {order?.data?.error_status_code && (
+                    <Row label="Error Type" value={order?.data?.error_status_code
+                      } />
                   )}
-                  {order?.data?.sub_status_message && (
-                    <Row label="Error Message" value={order?.data?.sub_status_message} />
+                  {order?.data?.error_reason && (
+                    <Row label="Error Message" value={order?.data?.error_reason} />
                   )}
                 </>
               )}
@@ -187,7 +187,7 @@ const OrderDetails = () => {
             {order?.data?.meta && Object.keys(order?.data?.meta).length > 0 && (
               <CodeBlock
                 heading="All Metadata"
-                content={order?.data?.meta}
+                content={order?.data}
                 lang="json"
                 className="tw-mt-6"
               />
