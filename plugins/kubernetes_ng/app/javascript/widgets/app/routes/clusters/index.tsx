@@ -1,3 +1,4 @@
+import React from "react"
 import { createFileRoute, useLoaderData } from "@tanstack/react-router"
 import { JsonViewer } from "@cloudoperators/juno-ui-components"
 import { Cluster } from "../../types/clusters"

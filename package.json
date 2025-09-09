@@ -74,6 +74,8 @@
     "@svgr/plugin-jsx": "^8.1.0",
     "@tanstack/router-plugin": "1.131.25",
     "@testing-library/react": "^14.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.43.0",
+    "@typescript-eslint/parser": "^8.43.0",
     "autoprefixer": "^10.4.12",
     "babel-plugin-transform-import-meta": "^2.2.0",
     "chokidar": "^3.5.3",

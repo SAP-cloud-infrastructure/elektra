@@ -1,2 +1,1 @@
-// This is always executed on page load.
-$(document).ready(function () {})
+// This javascript file is loaded together with the main application javascript pack

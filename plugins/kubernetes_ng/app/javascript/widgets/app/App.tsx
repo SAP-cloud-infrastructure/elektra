@@ -1,6 +1,6 @@
 import React, { StrictMode } from "react"
-import { AppShellProvider, AppShell } from "@cloudoperators/juno-ui-components"
-import { RouterProvider, createHashHistory, createBrowserHistory } from "@tanstack/react-router"
+import { AppShellProvider } from "@cloudoperators/juno-ui-components"
+import { RouterProvider } from "@tanstack/react-router"
 import { router } from "./router"
 import styles from "./styles.scss?inline"
 
