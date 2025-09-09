@@ -25,10 +25,9 @@ function collectPluginConfigsSync() {
 
   console.log("🔍 Found plugin configs in:", pluginDirs)
 
-  // `require` is fine here since configs are plain ESM/CJS exports
   return pluginDirs.flatMap((d) => {
     const pluginPath = join(rootDir, d, "esbuild.plugin.js")
-    const pluginModule = require(pluginPath) // or dynamic import if you prefer
+    const pluginModule = require(pluginPath)
     return pluginModule.default || pluginModule || []
   })
 }
