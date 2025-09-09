@@ -12,13 +12,26 @@ const envFilePlugin = require("./esbuild-plugin-env")
 const entryPoints = require("./entrypoints")
 
 const esbuild = require("esbuild")
-const { format } = require("path")
+const { format, join, resolve } = require("path")
 const args = process.argv.slice(2)
 const watch = args.indexOf("--watch") >= 0
 const production = args.indexOf("--production") >= 0 || process.env.RAILS_ENV === "production"
 const log = console.log.bind(console)
 
-const createTanstackRouterPlugin = require("./esbuild-tanstack-router-plugin")
+// Collect plugin configs synchronously
+const rootDir = resolve("./plugins")
+function collectPluginConfigsSync() {
+  const pluginDirs = fs.readdirSync(rootDir).filter((d) => fs.existsSync(join(rootDir, d, "esbuild.plugin.js")))
+
+  console.log("🔍 Found plugin configs in:", pluginDirs)
+
+  // `require` is fine here since configs are plain ESM/CJS exports
+  return pluginDirs.flatMap((d) => {
+    const pluginPath = join(rootDir, d, "esbuild.plugin.js")
+    const pluginModule = require(pluginPath) // or dynamic import if you prefer
+    return pluginModule.default || pluginModule || []
+  })
+}
 
 const config = {
   entryPoints: entryPoints(
@@ -53,11 +66,7 @@ const config = {
       config: "config",
     }),
     globImportPlugin(),
-    createTanstackRouterPlugin({
-      routesDirectory: "./plugins/kubernetes_ng/app/javascript/widgets/app/routes",
-      generatedRouteTree: "./plugins/kubernetes_ng/app/javascript/widgets/app/routeTree.gen.ts",
-      autoCodeSplitting: true,
-    }),
+    ...collectPluginConfigsSync(), // all TanStack + other plugin configs merged here
     {
       name: "svg-loader",
       setup(build) {

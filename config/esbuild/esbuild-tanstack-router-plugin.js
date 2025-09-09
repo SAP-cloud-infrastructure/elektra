@@ -1,4 +1,4 @@
-const { tanstackRouter } = require("@tanstack/router-plugin/esbuild")
+import { tanstackRouter } from "@tanstack/router-plugin/esbuild"
 
 /**
  * Creates an esbuild plugin for TanStack Router file-based routing.
@@ -8,7 +8,7 @@ const { tanstackRouter } = require("@tanstack/router-plugin/esbuild")
  * @param {string} options.generatedRouteTree - Path to generate the route tree file
  * @param {boolean} [options.autoCodeSplitting=true] - Whether to enable automatic code splitting
  */
-function createTanstackRouterPlugin({ routesDirectory, generatedRouteTree, autoCodeSplitting = true }) {
+export function createTanstackRouterPlugin({ routesDirectory, generatedRouteTree, autoCodeSplitting = true }) {
   return tanstackRouter({
     routesDirectory,
     generatedRouteTree,
@@ -16,5 +16,3 @@ function createTanstackRouterPlugin({ routesDirectory, generatedRouteTree, autoC
     autoCodeSplitting,
   })
 }
-
-module.exports = createTanstackRouterPlugin
