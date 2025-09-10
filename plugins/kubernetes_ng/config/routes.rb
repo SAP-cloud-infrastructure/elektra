@@ -18,4 +18,10 @@ KubernetesNg::Engine.routes.draw do
     resources :cloud_profiles, only: [:index], path: "cloud-profiles"
     get 'permissions(/:resource(/:verb))', to: 'permissions#index'
   end
+
+  # Catch-all for frontend routes → let React handle routing
+  # Example: <domain>/<project>/kubernetes-ng/clusters --> should be handled by React and not Rails
+  get '*path', to: 'application#show', constraints: ->(req) do
+    !req.xhr? && req.format.html?
+  end
 end
