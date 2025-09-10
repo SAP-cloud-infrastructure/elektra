@@ -134,8 +134,8 @@ module Compute
       
       # images
       all_images = services.image.all_images # all images
-      project_images = services.image.all_images({"owner" => @scoped_project_id}) # to be sure to load all images
-      # Merge und entferne Duplikate basierend auf ID
+      project_images = services.image.all_images({"owner" => @scoped_project_id}) # to be sure to load also all images that are related to the project
+      # Merge and remove duplicates based on ID
       @images = (all_images + project_images).uniq { |image| image.id }
 
       @fixed_ip_ports = services.networking.fixed_ip_ports
