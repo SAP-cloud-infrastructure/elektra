@@ -36,6 +36,37 @@ export const fetchOrder = (uuid) => {
     })
 }
 
+// Function to find the order that generated a specific secret
+export const findOrderBySecretRef = ({ queryKey }) => {
+  const [_key, secretRef] = queryKey
+  return fetchOrderBySecretRef(secretRef)
+}
+
+export const fetchOrderBySecretRef = (secretRef) => {
+  return apiClient
+    .osApi("key-manager")
+    .get("/v1/orders", {
+      params: {
+        limit: 1000, // Large limit to get all orders
+        sort: "created:desc",
+      },
+    })
+    .then((response) => {
+      const orders = response?.data?.orders || []
+      
+      // Find the order with matching secret_ref
+      const matchingOrder = orders.find(order => 
+        order.secret_ref && order.secret_ref.includes(secretRef)
+      )
+      
+      return matchingOrder || null
+    })
+    .catch((error) => {
+      console.error("Error finding order by secret ref:", error)
+      return null
+    })
+}
+
 export const delOrder = ({ queryKey }) => {
   const [_key, uuid] = queryKey
   return deleteOrder(uuid)

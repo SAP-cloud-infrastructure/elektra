@@ -44,7 +44,7 @@ const Secrets = () => {
   })
 
   const search = useSecretsSearch({ text: searchTerm })
-
+  
   // Pass the reset and refresh functions to child components
   const resetSearch = search.reset
   const refreshSearch = search.refresh

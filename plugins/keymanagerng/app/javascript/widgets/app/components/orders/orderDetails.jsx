@@ -13,6 +13,7 @@ import {
   Message,
 } from "@cloudoperators/juno-ui-components"
 import { getOrder } from "../../orderActions"
+import { getSecret } from "../../secretActions"
 import { getUsername } from "../../helperActions"
 import HintLoading from "../HintLoading"
 import { getOrderUuid, getOrderName } from "../../../lib/orderHelper"
@@ -69,6 +70,12 @@ const OrderDetails = () => {
 
   const isOrderCompleted = order?.data?.status === "ACTIVE" || order?.data?.status === "COMPLETED"
   const hasSecret = order?.data?.secret_ref && isOrderCompleted
+  const secretUuid = hasSecret ? getSecretUuid({ secret_ref: order.data.secret_ref }) : null
+
+  // Query to fetch secret data when there's a secret_ref
+  const secret = useQuery(["secret", secretUuid], getSecret, {
+    enabled: !!secretUuid,
+  })
 
   return (
     <Panel
@@ -108,7 +115,7 @@ const OrderDetails = () => {
                       <br />
                     </>
                   ) : (
-                    <Badge className="tw-display-inline">
+                    <Badge className="tw-text-xs">
                       {order?.data?.creator_id}
                     </Badge>
                   )}
@@ -166,19 +173,16 @@ const OrderDetails = () => {
                   <DataGridHeadCell>Generated Secret</DataGridHeadCell>
                   <DataGridCell>
                     <div>
-                      <div className="tw-mb-2">
-                        <strong>Secret ID:</strong>{" "}
-                        {order?.data?.secret_ref ? (
-                          <Link
-                            className="tw-text-blue-600 hover:tw-text-blue-800 tw-underline tw-cursor-pointer"
-                            to={`/secrets/${getSecretUuid({ secret_ref: order.data.secret_ref })}/show`}
-                          >
-                            {getSecretUuid({ secret_ref: order.data.secret_ref })}
-                          </Link>
-                        ) : (
-                          'N/A'
-                        )}
-                      </div>
+                      <Link
+                        className="tw-break-all"
+                        to={`/secrets/${secretUuid}/show`}
+                      >
+                        {secret?.data?.name || secretUuid}
+                      </Link>
+                      <br />
+                      <Badge className="tw-text-xs">
+                        {secretUuid}
+                      </Badge>
                     </div>
                   </DataGridCell>
                 </DataGridRow>

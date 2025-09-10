@@ -88,16 +88,6 @@ const Orders = () => {
     setSearchTerm("")
   }
 
-  if (error) {
-    return (
-      <Container py px={false}>
-        <div className="alert alert-danger" role="alert">
-          Error loading orders: {error.message}
-        </div>
-      </Container>
-    )
-  }
-
   return (
     <Container py px={false}>
       <IntroBox>
