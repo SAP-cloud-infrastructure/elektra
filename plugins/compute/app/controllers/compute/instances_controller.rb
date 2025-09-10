@@ -131,7 +131,13 @@ module Compute
     def new
       @instance = services.compute.new_server
       @flavors = services.compute.flavors
-      @images = services.image.all_images
+      
+      # images
+      all_images = services.image.all_images # all images
+      project_images = services.image.all_images({"owner" => @scoped_project_id}) # to be sure to load all images
+      # Merge und entferne Duplikate basierend auf ID
+      @images = (all_images + project_images).uniq { |image| image.id }
+
       @fixed_ip_ports = services.networking.fixed_ip_ports
       @subnets = services.networking.subnets
       @bootable_volumes =
