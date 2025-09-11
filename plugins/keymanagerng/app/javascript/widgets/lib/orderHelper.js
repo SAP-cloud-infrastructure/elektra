@@ -17,4 +17,4 @@ export const getOrderName = (order) => {
   
   // Return the name from meta.name, or empty string if null/undefined
   return order.meta.name || ""
-} 
+}
