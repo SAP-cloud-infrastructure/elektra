@@ -45,4 +45,4 @@ const OrderList = ({ orders, isLoading, resetSearch, refreshSearch }) => {
   )
 }
 
-export default OrderList 
+export default OrderList

@@ -302,4 +302,4 @@ const NewOrderForm = ({ onSuccessfullyCloseForm, onClose }) => {
   )
 }
 
-export default NewOrderForm 
+export default NewOrderForm
