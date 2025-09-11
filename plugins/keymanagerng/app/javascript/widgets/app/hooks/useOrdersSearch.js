@@ -144,4 +144,4 @@ const useOrdersSearch = ({ text }) => {
   }
 }
 
-export default useOrdersSearch 
+export default useOrdersSearch

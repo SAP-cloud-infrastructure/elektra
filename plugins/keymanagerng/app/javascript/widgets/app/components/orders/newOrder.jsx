@@ -50,4 +50,4 @@ const NewOrder = () => {
     </Panel>
   )
 }
-export default NewOrder 
+export default NewOrder

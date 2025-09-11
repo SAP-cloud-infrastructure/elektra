@@ -125,4 +125,4 @@ const OrderListItem = ({ order, resetSearch, refreshSearch }) => {
   )
 }
 
-export default OrderListItem 
+export default OrderListItem
