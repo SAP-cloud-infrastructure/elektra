@@ -3,6 +3,8 @@ describe("keymanagerng", () => {
   let createSecret
   let deleteSecret
   let deleteContainer
+  let createOrder
+  let deleteOrder
   let iRandomNum
   let sPassPhraseSecretName
   let sPrivateSecretName
@@ -15,6 +17,8 @@ describe("keymanagerng", () => {
   let sGenericContainerName
   let sCertificateContainerName
   let sRsaContainerName
+  let sOrderName
+  let sOrderUuid
 
   before(() => {
     createSecret = (sSecretName, sSecretType, sPayloadContentType) => {
@@ -37,6 +41,48 @@ describe("keymanagerng", () => {
       cy.get("[data-target=" + sSecretName + "]").should("have.lengthOf", 1)
     }
 
+    createOrder = (sOrderName, sOrderType, sAlgorithm, sBitLength, sMode) => {
+      cy.contains("New Order").click()
+      cy.contains("New Order").should("have.lengthOf", 1)
+      
+      // Fill order name if provided
+      if (sOrderName) {
+        cy.get("[data-target='order-name-text-input']").type(sOrderName)
+      }
+      
+      // Select order type
+      cy.get("[data-target='order-type-select']").click()
+      cy.get("[data-target='order-type-select-option-" + sOrderType + "']").click({
+        force: true,
+      })
+      
+      // Select algorithm
+      cy.get("[data-target='order-algorithm-select']").click()
+      cy.get("[data-target='order-algorithm-select-option-" + sAlgorithm + "']").click({
+        force: true,
+      })
+      
+      // Select bit length
+      cy.get("[data-target='order-bit-length-select']").click()
+      cy.get("[data-target='order-bit-length-select-option-" + sBitLength + "']").click({
+        force: true,
+      })
+      
+      // Select mode if provided (for AES)
+      if (sMode) {
+        cy.get("[data-target='order-mode-select']").click()
+        cy.get("[data-target='order-mode-select-option-" + sMode + "']").click({
+          force: true,
+        })
+      }
+      
+      // Save the new order
+      cy.contains("Save").click({ force: true })
+      
+      // Find the newly created order in orders table
+      cy.get("[data-target=" + sOrderName + "]").should("have.lengthOf", 1)
+    }
+
     deleteSecret = (sSecretName) => {
       cy.get("[data-target=" + sSecretName + "]")
         .find("[data-target='secret-uuid']")
@@ -50,6 +96,7 @@ describe("keymanagerng", () => {
           cy.contains("The secret " + sSecretUuid + " is successfully deleted.").should("have.lengthOf", 1)
         })
     }
+
     deleteContainer = (sContainerName) => {
       cy.get("[data-target=" + sContainerName + "]")
         .find("[data-target='container-uuid']")
@@ -61,6 +108,20 @@ describe("keymanagerng", () => {
           cy.contains("Are you sure you want to delete the container " + sContainerName + "?").click()
           cy.contains("Remove").click()
           cy.contains("The container " + sContainerUuid + " is successfully deleted.").should("have.lengthOf", 1)
+        })
+    }
+
+    deleteOrder = (sOrderName) => {
+      cy.get("[data-target=" + sOrderName + "]")
+        .find("[data-target='order-uuid']")
+        .then(($identifier) => {
+          sOrderUuid = $identifier[0].innerText
+          cy.get("[data-target=" + sOrderUuid + "]").click()
+          cy.contains("Remove").should("have.lengthOf", 1)
+          cy.contains("Cancel").should("have.lengthOf", 1)
+          cy.contains("Are you sure you want to delete the order " + sOrderName + "?").click()
+          cy.contains("Remove").click()
+          cy.contains("The order " + sOrderUuid + " is successfully deleted.").should("have.lengthOf", 1)
         })
     }
   })
@@ -78,6 +139,7 @@ describe("keymanagerng", () => {
     sGenericContainerName = `test-generic-container-${iRandomNum}`
     sCertificateContainerName = `test-certificate-container-${iRandomNum}`
     sRsaContainerName = `test-rsa-container-${iRandomNum}`
+    sOrderName = `test-order-${iRandomNum}`
   })
 
   it("open key manager and create a new 'Passphrase' secret and delete it", () => {
@@ -117,6 +179,195 @@ describe("keymanagerng", () => {
 
     //Delete the newly created secret
     deleteSecret(sPassPhraseSecretName)
+  })
+
+  it("Create a new 'AES Key' order and delete it", () => {
+    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/keymanagerng/secrets`)
+
+    // Check that Orders tab exists
+    cy.contains("Orders").should("have.lengthOf", 1)
+    cy.contains("Orders").click()
+
+    // Check domain and project names and titles
+    cy.contains("cc3test").should("have.lengthOf", 1)
+    cy.contains("admin").should("have.lengthOf", 1)
+    cy.contains("Key Manager").should("have.lengthOf", 1)
+    cy.contains("Orders").should("have.lengthOf", 1)
+
+    // Trying to create a new order without filling required fields
+    cy.contains("New Order").click()
+    cy.contains("New Order").should("have.lengthOf", 1)
+    cy.contains("Save").click()
+    cy.contains("Algorithm is required!")
+    cy.contains("Valid bit length is required!")
+
+    // Fill necessary fields to create a new AES key order
+    cy.get("[data-target='order-name-text-input']").type(sOrderName)
+    cy.get("[data-target='order-type-select']").click()
+    cy.get("[data-target='order-type-select-option-key']").click({
+      force: true,
+    })
+    cy.get("[data-target='order-algorithm-select']").click()
+    cy.get("[data-target='order-algorithm-select-option-aes']").click({
+      force: true,
+    })
+    cy.get("[data-target='order-bit-length-select']").click()
+    cy.get("[data-target='order-bit-length-select-option-256']").click({
+      force: true,
+    })
+    cy.get("[data-target='order-mode-select']").click()
+    cy.get("[data-target='order-mode-select-option-cbc']").click({
+      force: true,
+    })
+    cy.contains("Save").click()
+
+    // Find the newly created order in orders table
+    cy.get("[data-target=" + sOrderName + "]").should("have.lengthOf", 1)
+
+    // Delete the newly created order
+    deleteOrder(sOrderName)
+  })
+
+  it("Create a new 'RSA Asymmetric' order and delete it", () => {
+    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/keymanagerng/secrets`)
+
+    // Navigate to Orders tab
+    cy.contains("Orders").click()
+
+    // Create a new RSA asymmetric order
+    cy.contains("New Order").click()
+    cy.contains("New Order").should("have.lengthOf", 1)
+
+    // Fill necessary fields to create a new RSA asymmetric order
+    cy.get("[data-target='order-name-text-input']").type(sOrderName)
+    cy.get("[data-target='order-type-select']").click()
+    cy.get("[data-target='order-type-select-option-asymmetric']").click({
+      force: true,
+    })
+    cy.get("[data-target='order-algorithm-select']").click()
+    cy.get("[data-target='order-algorithm-select-option-rsa']").click({
+      force: true,
+    })
+    cy.get("[data-target='order-bit-length-select']").click()
+    cy.get("[data-target='order-bit-length-select-option-2048']").click({
+      force: true,
+    })
+    cy.contains("Save").click()
+
+    // Find the newly created order in orders table
+    cy.get("[data-target=" + sOrderName + "]").should("have.lengthOf", 1)
+
+    // Delete the newly created order
+    deleteOrder(sOrderName)
+  })
+
+  it("Test order validation with invalid bit length for AES", () => {
+    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/keymanagerng/secrets`)
+
+    // Navigate to Orders tab
+    cy.contains("Orders").click()
+
+    // Create a new order with invalid bit length for AES
+    cy.contains("New Order").click()
+    cy.contains("New Order").should("have.lengthOf", 1)
+
+    cy.get("[data-target='order-name-text-input']").type(sOrderName)
+    cy.get("[data-target='order-type-select']").click()
+    cy.get("[data-target='order-type-select-option-key']").click({
+      force: true,
+    })
+    cy.get("[data-target='order-algorithm-select']").click()
+    cy.get("[data-target='order-algorithm-select-option-aes']").click({
+      force: true,
+    })
+    cy.get("[data-target='order-bit-length-select']").click()
+    cy.get("[data-target='order-bit-length-select-option-512']").click({
+      force: true,
+    })
+    cy.contains("Save").click()
+
+    // Should show validation error for invalid bit length
+    cy.contains("AES supports 128, 192, or 256 bits").should("have.lengthOf", 1)
+
+    // Cancel the form
+    cy.contains("Cancel").click()
+  })
+
+  it("Test order with expiration date", () => {
+    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/keymanagerng/secrets`)
+
+    // Navigate to Orders tab
+    cy.contains("Orders").click()
+
+    // Create a new order with expiration date
+    cy.contains("New Order").click()
+    cy.contains("New Order").should("have.lengthOf", 1)
+
+    // Fill necessary fields
+    cy.get("[data-target='order-name-text-input']").type(sOrderName)
+    cy.get("[data-target='order-type-select']").click()
+    cy.get("[data-target='order-type-select-option-key']").click({
+      force: true,
+    })
+    cy.get("[data-target='order-algorithm-select']").click()
+    cy.get("[data-target='order-algorithm-select-option-aes']").click({
+      force: true,
+    })
+    cy.get("[data-target='order-bit-length-select']").click()
+    cy.get("[data-target='order-bit-length-select-option-128']").click({
+      force: true,
+    })
+    cy.get("[data-target='order-mode-select']").click()
+    cy.get("[data-target='order-mode-select-option-gcm']").click({
+      force: true,
+    })
+
+    // Set expiration date (future date)
+    const futureDate = new Date()
+    futureDate.setDate(futureDate.getDate() + 30)
+    const futureDateString = futureDate.toISOString().split('T')[0]
+    
+    cy.get("[data-target='order-expiration-date-picker']").click()
+    cy.get("[data-target='order-expiration-date-picker']").type(futureDateString)
+
+    cy.contains("Save").click()
+
+    // Find the newly created order in orders table
+    cy.get("[data-target=" + sOrderName + "]").should("have.lengthOf", 1)
+
+    // Delete the newly created order
+    deleteOrder(sOrderName)
+  })
+
+  it("Test order details panel and secret generation", () => {
+    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/keymanagerng/secrets`)
+
+    // Navigate to Orders tab
+    cy.contains("Orders").click()
+
+    // Create a new order
+    createOrder(sOrderName, "key", "aes", "256", "cbc")
+
+    // Click on the order to view details
+    cy.get("[data-target=" + sOrderName + "]").click()
+    
+    // Check that order details panel opens
+    cy.contains("Order " + sOrderName).should("have.lengthOf", 1)
+    
+    // Check order details are displayed
+    cy.contains("Name").should("have.lengthOf", 1)
+    cy.contains("Order Ref").should("have.lengthOf", 1)
+    cy.contains("Type").should("have.lengthOf", 1)
+    cy.contains("Algorithm").should("have.lengthOf", 1)
+    cy.contains("Bit Length").should("have.lengthOf", 1)
+    cy.contains("Mode").should("have.lengthOf", 1)
+    cy.contains("Status").should("have.lengthOf", 1)
+
+    // Close the order details panel
+    cy.get("[data-target='order-details-close']").click()
+
+    // Delete the order
+    deleteOrder(sOrderName)
   })
 
   /*it("Create a new 'Symmetric' secret, check 'Payload Content Encoding' is available, then delete the newly created secret", () => {
@@ -300,7 +551,9 @@ describe("keymanagerng", () => {
   after(() => {
     deleteSecret = null
     deleteContainer = null
+    deleteOrder = null
     createSecret = null
+    createOrder = null
   })
 
   afterEach(() => {
@@ -317,5 +570,7 @@ describe("keymanagerng", () => {
     sCertificateContainerName = null
     sRsaContainerName = null
     sSymmetricSecretName = null
+    sOrderName = null
+    sOrderUuid = null
   })
 })
