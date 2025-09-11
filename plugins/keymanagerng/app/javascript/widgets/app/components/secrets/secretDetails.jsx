@@ -10,6 +10,7 @@ import {
   DataGridCell,
   DataGridHeadCell,
   CodeBlock,
+  SecretText,
   Badge,
   Button,
 } from "@cloudoperators/juno-ui-components"
@@ -106,9 +107,13 @@ const SecretDetails = () => {
     queryKey: [
       "secretPlayload",
       secretId,
+      secret?.data?.content_types?.default,
     ],
     queryFn: getSecretPayload,
-    enabled: !!secretId,
+    enabled:
+      payloadRequested || // Enable when download requested
+      (!!secretId &&
+        isPayloadContentTypeTextPlain(secret?.data?.content_types?.default)), // Enable for text/plain content types when panel is shown,
     onSuccess: (data) => {
       if (isPayloadContentTypeTextPlain(secret?.data?.content_types?.default)) {
         setPayloadString(data)
@@ -234,13 +239,32 @@ const SecretDetails = () => {
                 </DataGridCell>
               </DataGridRow>
             </DataGrid>
-            {secretMetadata && (
+            {isPayloadContentTypeTextPlain(
+              secret?.data?.content_types?.default
+            ) && (
+              <>
+                {payloadString && (
+                  <>
+                    <SecretText
+                      label="Payload"
+                      value={payloadString}
+
+                    />
+                  </>
+                )}
+              </>
+            )}
+            {metadata?.isLoading && !metadata?.data ? (
+              <HintLoading />
+            ) : metadata?.data ? (
               <CodeBlock
-                heading="Secret Metadata"
+                heading="Metadata"
                 content={secretMetadata}
                 lang="json"
                 className="tw-mt-6"
               />
+            ) : (
+              <span>Metadata is not found</span>
             )}
           </>
         ) : (
