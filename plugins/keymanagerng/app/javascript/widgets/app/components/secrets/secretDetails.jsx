@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react"
-import { useHistory, useLocation, useParams } from "react-router-dom"
+import { useHistory, useLocation, useParams, Link } from "react-router-dom"
 import { getSecretUuid } from "../../../lib/secretHelper"
+import { getOrderUuid, getOrderName } from "../../../lib/orderHelper"
 import {
   Panel,
   PanelBody,
@@ -9,6 +10,7 @@ import {
   DataGridCell,
   DataGridHeadCell,
   CodeBlock,
+  SecretText,
   Badge,
   Button,
 } from "@cloudoperators/juno-ui-components"
@@ -17,6 +19,7 @@ import {
   getSecretMetadata,
   getSecretPayload,
 } from "../../secretActions"
+import { findOrderBySecretRef } from "../../orderActions"
 import { getUsername } from "../../helperActions"
 import { useQuery } from "@tanstack/react-query"
 import HintLoading from "../HintLoading"
@@ -40,11 +43,11 @@ const SecretDetails = () => {
   const [creatorName, setCreatorName] = useState(null)
   const [secretMetadata, setSecretMetadata] = useState(null)
   const [payloadRequested, setPayloadRequested] = useState(false)
+  const [generatingOrder, setGeneratingOrder] = useState(null)
 
   const secret = useQuery(["secret", params.id], getSecret, {
     enabled: !!params.id,
   })
-  //Todo: find how to can rename data directly there as secret
 
   const [show, setShow] = useState(!!secret?.data)
 
@@ -54,6 +57,20 @@ const SecretDetails = () => {
       setSecretId(newSecretId)
     }
   }, [secret?.data?.secret_ref])
+
+  // Query to find the order that generated this secret
+  const orderQuery = useQuery({
+    queryKey: ["orderBySecretRef", secretId],
+    queryFn: () => findOrderBySecretRef(secretId),
+    enabled: !!secretId,
+    onSuccess: (data) => {
+      setGeneratingOrder(data)
+    },
+    onError: (error) => {
+      console.error("Error finding generating order:", error)
+      setGeneratingOrder(null)
+    },
+  })
 
   const secretCreator = useQuery(
     ["secretCreator", secret?.data?.creator_id],
@@ -96,7 +113,7 @@ const SecretDetails = () => {
     enabled:
       payloadRequested || // Enable when download requested
       (!!secretId &&
-        isPayloadContentTypeTextPlain(secret?.data?.content_types?.default)), // Enable for text/plain content types when panel is shown
+        isPayloadContentTypeTextPlain(secret?.data?.content_types?.default)), // Enable for text/plain content types when panel is shown,
     onSuccess: (data) => {
       if (isPayloadContentTypeTextPlain(secret?.data?.content_types?.default)) {
         setPayloadString(data)
@@ -169,7 +186,7 @@ const SecretDetails = () => {
                       <br />
                     </>
                   ) : (
-                    <Badge className="tw-display-inline">
+                    <Badge className="tw-text-xs">
                       {secret?.data?.creator_id}
                     </Badge>
                   )}
@@ -187,6 +204,28 @@ const SecretDetails = () => {
                 label="Expiration"
                 value={new Date(secret?.data?.expiration).toUTCString()}
               />
+              
+              {/* Show link to generating order if found */}
+              {generatingOrder && (
+                <DataGridRow>
+                  <DataGridHeadCell>Generated from Order</DataGridHeadCell>
+                  <DataGridCell>
+                    <div>
+                      <Link
+                        className="tw-break-all"
+                        to={`/orders/${getOrderUuid(generatingOrder)}/show`}
+                      >
+                        {getOrderName(generatingOrder) || getOrderUuid(generatingOrder)}
+                      </Link>
+                      <br />
+                      <Badge className="tw-text-xs">
+                        {getOrderUuid(generatingOrder)}
+                      </Badge>
+                    </div>
+                  </DataGridCell>
+                </DataGridRow>
+              )}
+              
               <DataGridRow>
                 <DataGridHeadCell>{"Payload"}</DataGridHeadCell>
                 <DataGridCell>
@@ -206,16 +245,10 @@ const SecretDetails = () => {
               <>
                 {payloadString && (
                   <>
-                    <CodeBlock
-                      heading="Payload"
-                      content={
-                        payloadString.length > 500
-                          ? payloadString.slice(0, 500) +
-                            "... (To access the complete payload, click on the Download button above)"
-                          : payloadString
-                      }
-                      size="large"
-                      className="tw-mt-6"
+                    <SecretText
+                      label="Payload"
+                      value={payloadString}
+
                     />
                   </>
                 )}
@@ -226,7 +259,7 @@ const SecretDetails = () => {
             ) : metadata?.data ? (
               <CodeBlock
                 heading="Metadata"
-                content={secretMetadata || {}}
+                content={secretMetadata}
                 lang="json"
                 className="tw-mt-6"
               />
