@@ -24,7 +24,8 @@
 #   # config.content_security_policy_report_only = true
 # end
 
-domains = ["dashboard.#{ENV["MONSOON_DASHBOARD_REGION"] || "*"}.cloud.sap"]
+region = ENV["MONSOON_DASHBOARD_REGION"] || "eu-de-1"
+domains = ["dashboard.#{region}.cloud.sap"]
 
 Rails.application.config.content_security_policy do |policy|
   # =============================================================================
@@ -83,10 +84,10 @@ Rails.application.config.content_security_policy do |policy|
   #            <iframe src="https://ccloudshell-qa.eu-de-1.cloud.sap"> QA case
   #            <iframe src="https://ccloudshell.eu-de-2.cloud.sap"> Prod case
   # ❌ Blocked: <iframe src="https://external-malicious-site.com">
-  if ENV["MONSOON_DASHBOARD_REGION"].start_with?("qa")
+  if region.start_with?("qa")
       policy.frame_src :self, "*.eu-de-1.cloud.sap" 
   else
-    policy.frame_src :self, "*.#{ENV["MONSOON_DASHBOARD_REGION"]}.cloud.sap"
+    policy.frame_src :self, "*.#{region}.cloud.sap"
   end
 
   # FORM ACTIONS - Controls where forms can submit data
