@@ -132,4 +132,5 @@ Rails.application.config.content_security_policy do |policy|
   # MORE SECURE (will break functionality!!!):
   # policy.script_src :self  # No inline JS - requires code refactoring
   # policy.connect_src :self, *domains  # Only your domains - blocks external APIs
+  # policy.frame_src :self  # No iframes from other domains will break cloudshell feature
 end
