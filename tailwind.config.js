@@ -6,7 +6,11 @@ module.exports = {
   // use juno tailwindcss as default
   presets: [uiComponentsConfig],
   prefix: "tw-", // important, do not change
-  content: ["./plugins/**/*.{js,jsx,html,haml}", "./app/javascript/**/*.{js,jsx,haml}", "./app/views/**/*.{haml,html}"],
+  content: [
+    "./plugins/**/*.{js,jsx,ts,tsx,html,haml}",
+    "./app/javascript/**/*.{js,jsx,ts,tsx,haml}",
+    "./app/views/**/*.{haml,html}",
+  ],
 
   theme: {
     extend: {},
