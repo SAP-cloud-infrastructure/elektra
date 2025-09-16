@@ -17,7 +17,7 @@ import ClusterCard from "./-components/ClusterCard"
 import { Cluster } from "../../types/clusters"
 import { LoaderWithCrumb } from "../-types"
 
-// TODO check hack styles with design colleagues
+// TODO temporary styles for popup menu button, to be replaced with juno class when available
 const popupMenuStyles = `
     juno-button
     juno-button-default
