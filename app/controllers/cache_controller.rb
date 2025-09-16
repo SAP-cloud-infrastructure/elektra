@@ -227,8 +227,6 @@ class CacheController < ::ScopeController
   end
 
   def users
-    retries ||= 0
-
     items =
       ObjectCache.find_objects(
         type: 'user',
@@ -236,19 +234,11 @@ class CacheController < ::ScopeController
         include_scope: false,
         paginate: false
       ) do |scope|
-        # allow all users from scoped domain.
-        # this action is called by autocomplete widget.
-        # if current_user.is_allowed?('cloud_admin')
         scope.where(domain_id: params[:domain]).order(:name)
-        # else
-        #  where_current_token_scope(scope).order(:name)
-        # end
       end
-
-    raise NotFound if (items.nil? || items.empty?) && retries < 1
-
-    items =
-      items.to_a.map do |u|
+    
+    unless items.empty?
+      items = items.to_a.map do |u|
         {
           id: u.payload['description'],
           name: u.name,
@@ -258,13 +248,25 @@ class CacheController < ::ScopeController
           email: u.payload['email']
         }
       end
-
+    else   
+      # search live against API and then retry
+      filter = {domain_id: params[:domain]}
+      if params[:term]
+        filter[:name__contains] = params[:term]
+      end
+      items = service_user.identity.users(filter, format: :raw)
+      items = items.map do |u|
+        {
+          id: u['description'],
+          name: u['name'],
+          key: u['name'],
+          uid: u['id'],
+          full_name: u['description'],
+          email: u['email']
+        }
+      end
+    end  
     render json: items
-  rescue NotFound
-    retries += 1
-    # search live against API and then retry
-    service_user.identity.users(domain_id: params[:domain])
-    retry
   end
 
   def groups
@@ -281,8 +283,16 @@ class CacheController < ::ScopeController
           where_current_token_scope(scope).order(:name)
         end
       end
-
-    items = items.to_a.map { |g| { id: g.id, name: g.name } }
+      
+    unless items.nil? || items.empty?
+      items = items.to_a.map { |g| { id: g.id, name: g.name } }
+    else 
+      filter = {domain_id: params[:domain]}
+      if params[:term]
+        filter[:name__contains] = params[:term]
+      end
+      items = service_user.identity.groups(filter)
+    end
 
     render json: items
   end

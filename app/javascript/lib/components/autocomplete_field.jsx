@@ -1,24 +1,14 @@
 import React from "react"
 
-import {
-  AsyncTypeahead,
-  Highlighter,
-  Menu,
-  MenuItem,
-} from "react-bootstrap-typeahead"
+import { AsyncTypeahead, Highlighter } from "react-bootstrap-typeahead"
 import { pluginAjaxHelper } from "lib/ajax_helper"
 
-const liveSearchEndpoints = {
-  users: "/identity/domains/users.json",
-  groups: "/identity/groups.json",
-}
 const ajaxHelper = pluginAjaxHelper("/")
 
 export class AutocompleteField extends React.Component {
   state = {
     isLoading: false,
     options: [],
-    liveSearchResults: null,
   }
 
   // handleSearch calls first the elektra cache and if no results are returned it calls
@@ -43,47 +33,9 @@ export class AutocompleteField extends React.Component {
     this.setState({ isLoading: true, options: [] })
     ajaxHelper
       .get(`/cache/${path}`, { params })
-      .then((response) => {
-        // return response data unless empty
-        if (response.data && response.data.length > 0) return response.data
-
-        // return empty array if live search is deactivated or type is not equal to groups or users
-        if (
-          !this.props.liveSearch ||
-          Object.keys(liveSearchEndpoints).indexOf(this.props.type) < 0
-        )
-          return []
-
-        // return results from last live search (live search cache)
-        if (
-          this.state.liveSearchResults &&
-          this.state.liveSearchResults[this.props.type]
-        )
-          return this.state.liveSearchResults[this.props.type]
-
-        return ajaxHelper
-          .get(liveSearchEndpoints[this.props.type])
-          .then((response) => {
-            if (!response.data) return []
-
-            const result = response.data.map((d) => ({
-              id: d.id,
-              name: d.name,
-              full_name: d.description,
-            }))
-
-            const newLiveSearchResults = {
-              ...this.state.liveSearchResults,
-              [this.props.type]: result,
-            }
-            this.setState({
-              ...this.state,
-              liveSearchResults: newLiveSearchResults,
-            })
-            return result
-          })
-      })
+      .then((response) => response.data)
       .then((data) => {
+        this.setState({ isLoading: false })
         if (!data) return []
 
         // convert results to options
@@ -93,7 +45,7 @@ export class AutocompleteField extends React.Component {
           full_name: i.full_name || "",
         }))
 
-        this.setState({ isLoading: false, options: options })
+        this.setState({ options: options })
       })
 
       .catch((error) => console.info("ERROR:", error))
@@ -120,12 +72,10 @@ export class AutocompleteField extends React.Component {
         labelKey="name"
         filterBy={["id", "name", "full_name"]}
         placeholder={placeholder}
-        renderMenuItemChildren={(option, props, index) => {
+        renderMenuItemChildren={(option, props) => {
           return [
             <Highlighter key="name" search={props.text}>
-              {option.full_name
-                ? `${option.full_name} (${option.name})`
-                : option.name}
+              {option.full_name ? `${option.full_name} (${option.name})` : option.name}
             </Highlighter>,
             <div className="info-text" key="id">
               <small>ID: {option.id}</small>
