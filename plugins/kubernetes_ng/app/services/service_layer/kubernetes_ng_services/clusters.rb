@@ -94,7 +94,7 @@ module ServiceLayer
           lastMaintenance: get_last_maintenance_info(status),
           # Auto update settings
           autoUpdate: get_auto_update_settings(spec),
-          raw: shoot # For debugging purposes
+          raw: shoot
         }.compact
       end
       
