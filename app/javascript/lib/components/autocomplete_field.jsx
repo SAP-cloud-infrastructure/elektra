@@ -35,9 +35,7 @@ export class AutocompleteField extends React.Component {
       .get(`/cache/${path}`, { params })
       .then((response) => response.data)
       .then((data) => {
-        this.setState({ isLoading: false })
         if (!data) return []
-
         // convert results to options
         const options = data.map((i) => ({
           name: i.name,
@@ -49,6 +47,7 @@ export class AutocompleteField extends React.Component {
       })
 
       .catch((error) => console.info("ERROR:", error))
+      .finally(() => this.setState({ isLoading: false }))
   }
 
   render() {
