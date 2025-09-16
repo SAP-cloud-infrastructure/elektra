@@ -11,7 +11,7 @@
     "skipLibCheck": true,
     "noEmit": true,
     "typeRoots": ["./config/esbuild/types", "./node_modules/@types"],
-    "types": ["jest", "@testing-library/jest-dom"]
+    "types": ["jest"]
   },
   "exclude": ["node_modules"],
   "include": ["config/esbuild/types/**/*"]
