@@ -237,7 +237,7 @@ class CacheController < ::ScopeController
         scope.where(domain_id: params[:domain]).order(:name)
       end
     
-    unless items.empty?
+    unless items.nil? || items.empty?
       items = items.to_a.map do |u|
         {
           id: u.payload['description'],
@@ -255,6 +255,12 @@ class CacheController < ::ScopeController
         filter[:name__contains] = params[:term]
       end
       items = service_user.identity.users(filter, format: :raw)
+      if params[:term]
+        # find by id, for the case the term is an id instead of name
+        user = service_user.identity.find_user(params[:term], format: :raw)
+        items << user if user
+      end
+
       items = items.map do |u|
         {
           id: u['description'],
@@ -291,7 +297,13 @@ class CacheController < ::ScopeController
       if params[:term]
         filter[:name__contains] = params[:term]
       end
-      items = service_user.identity.groups(filter)
+      
+      items = service_user.identity.groups(filter, format: :raw)
+      if params[:term]
+        group = service_user.identity.find_group(params[:term], format: :raw)
+        items << group if group
+      end
+      items = items.map { |g| {id: g['id'], name: g['name']}}
     end
 
     render json: items

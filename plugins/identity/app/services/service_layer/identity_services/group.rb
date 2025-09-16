@@ -19,23 +19,40 @@ module ServiceLayer
         )
       end
 
-      def groups(filter = {})
-        elektron_identity.get("groups", filter).map_to(
-          "body.groups",
-          &group_map
-        )
+      def groups(filter = {}, **args)
+        format = args[:format] 
+        response = elektron_identity.get("groups", filter)
+
+        case format
+        when :json
+          response.body["groups"].to_json
+        when :raw
+          response.body["groups"]
+        else
+          response.map_to("body.groups", &group_map)
+        end
       end
 
       def new_group(attributes = {})
         group_map.call(attributes)
       end
 
-      def find_group!(id)
-        elektron_identity.get("groups/#{id}").map_to("body.group", &group_map)
+      def find_group!(id, **args)
+        format = args[:format] 
+        response = elektron_identity.get("groups/#{id}")
+
+        case format
+        when :json
+          response.body["group"].to_json
+        when :raw
+          response.body["group"]
+        else
+          response.map_to("body.group", &group_map)
+        end
       end
 
-      def find_group(id)
-        find_group!(id)
+      def find_group(id, **args)
+        find_group!(id, **args)
       rescue Elektron::Errors::ApiResponse
         nil
       end
