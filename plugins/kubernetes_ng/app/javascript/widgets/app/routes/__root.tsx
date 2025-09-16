@@ -8,10 +8,10 @@ interface RouterContext {
   apiClient?: ApiClient
 }
 
-const Root = () => {
+export const Root = () => {
   return (
     <AppShell embedded={true}>
-      <Breadcrumb />
+      <Breadcrumb data-breadcrumb="main" />
       <Outlet />
     </AppShell>
   )

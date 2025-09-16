@@ -93,7 +93,8 @@ module ServiceLayer
           # Last maintenance state
           lastMaintenance: get_last_maintenance_info(status),
           # Auto update settings
-          autoUpdate: get_auto_update_settings(spec)
+          autoUpdate: get_auto_update_settings(spec),
+          raw: shoot # For debugging purposes
         }.compact
       end
       
@@ -132,8 +133,8 @@ module ServiceLayer
       # Helper function to calculate readiness based on conditions
       def get_cluster_readiness(shoot)
         conditions = shoot.dig('status', 'conditions')
-        return { status: "Unknown", conditions: [] } unless conditions.is_a?(Array)
-        
+        return { status: "Unknown", conditions: [] } unless conditions.is_a?(Array)        
+
         # Mapping of condition types to display abbreviations
         condition_display_names = {
           'APIServerAvailable' => 'API',

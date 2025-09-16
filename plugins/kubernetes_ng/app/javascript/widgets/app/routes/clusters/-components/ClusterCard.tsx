@@ -44,6 +44,7 @@ const getStatusStyles = (status: string) => {
 }
 
 const getReadinessConditionStyles = (status: string) => {
+  // TODO add intermediate conditions as Processing, Degraded etc.
   switch (status) {
     case "True":
       return {
@@ -75,14 +76,21 @@ const ClusterCard: React.FC<{
 
   return (
     <>
-      <Card className="tw-w-full" padding>
+      <Card className="tw-w-full" padding data-card="cluster-card">
         {/* card header */}
         <div>
           <Stack direction="vertical" gap="2">
             <Stack>
               {/* Status + name*/}
               <Stack alignment="center" gap="2" className="tw-w-full">
-                <Icon data-testid="status-icon" color={statusStyles.color} size={18} icon={statusStyles.icon} />
+                <Icon
+                  color={statusStyles.color}
+                  size={18}
+                  icon={statusStyles.icon}
+                  data-status-icon="status-icon"
+                  data-icon={statusStyles.icon}
+                  data-color={statusStyles.color}
+                />
                 <div className="tw-font-bold tw-text-lg">{cluster.name}</div>
               </Stack>
               <Stack gap="2" direction="horizontal" className="tw-whitespace-nowrap">

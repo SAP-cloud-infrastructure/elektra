@@ -27,4 +27,5 @@ module.exports = {
   testEnvironment: "jsdom",
   // include juno-ui-components into the transform process
   transformIgnorePatterns: ["node_modules/(?!@cloudoperators/juno-ui-components)"],
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
 }
