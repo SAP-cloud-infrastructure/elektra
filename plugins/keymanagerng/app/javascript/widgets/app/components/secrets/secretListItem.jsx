@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from "react"
 import { deleteSecret } from "../../secretActions"
-import { Link } from "react-router-dom"
+import { Link, useParams, useLocation } from "react-router-dom"
 import { policy } from "lib/policy"
 import {
   Badge,
@@ -16,11 +16,17 @@ import ConfirmationModal from "../ConfirmationModal"
 import { useActions } from "@cloudoperators/juno-messages-provider"
 import useStore from "../../store"
 
-const SecretListItem = ({ secret }) => {
+const SecretListItem = ({ secret, resetSearch, refreshSearch }) => {
   // manually push a path onto the react router history
   // once we run on react-router-dom v6 this should be replaced with the useNavigate hook, and the push function with a navigate function
   // like this: const navigate = useNavigate(), the use navigate('this/is/the/path') in the onClick handler of the edit button below
   const secretUuid = getSecretUuid(secret)
+  const params = useParams()
+  const location = useLocation()
+  
+  // Check if this secret is currently being viewed by checking the URL path
+  const isSelected = location.pathname.includes(secretUuid)
+
   const queryClient = useQueryClient()
   const { addMessage } = useActions()
   const [show, setShow] = useState(false)
@@ -44,6 +50,12 @@ const SecretListItem = ({ secret }) => {
       {
         onSuccess: () => {
           setShow(false)
+          // Refresh search results if currently searching, otherwise just invalidate main queries
+          if (refreshSearch) {
+            refreshSearch()
+          } else {
+            resetSearch()
+          }
           queryClient.invalidateQueries("secrets")
           addMessage({
             variant: "success",
@@ -66,7 +78,7 @@ const SecretListItem = ({ secret }) => {
   }
 
   return isLoading && !data ? (
-    <DataGridRow>
+    <DataGridRow className={`cursor-pointer ${isSelected ? "active" : ""}`}>
       <DataGridCell>
         <HintLoading />
       </DataGridCell>
@@ -77,7 +89,10 @@ const SecretListItem = ({ secret }) => {
     </DataGridRow>
   ) : (
     <>
-      <DataGridRow data-target={secret.name}>
+      <DataGridRow 
+        data-target={secret.name}
+        className={`cursor-pointer ${isSelected ? "active" : ""}`} 
+      >
         <DataGridCell>
           <Link
             className="tw-break-all"

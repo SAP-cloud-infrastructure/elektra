@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { policy } from "lib/policy"
-import ContainerListItem from "./containerListItem"
+import OrderListItem from "./orderListItem"
 import HintLoading from "../HintLoading"
 
 import {
@@ -10,14 +10,15 @@ import {
   DataGridHeadCell,
 } from "@cloudoperators/juno-ui-components"
 
-const ContainerList = ({ containers, isLoading, resetSearch, refreshSearch }) => {
+const OrderList = ({ orders, isLoading, resetSearch, refreshSearch }) => {
+
   return (
     <>
-      {!policy.isAllowed("keymanagerng:container_list") ? (
+      {!policy.isAllowed("keymanagerng:order_list") ? (
         <span>You are not allowed to see this page</span>
       ) : (
         <>
-          {isLoading && !containers ? (
+          {isLoading && !orders ? (
             <HintLoading className="tw-mt-4" />
           ) : (
             <DataGrid columns={4} minContentColumns={[3]}>
@@ -27,13 +28,13 @@ const ContainerList = ({ containers, isLoading, resetSearch, refreshSearch }) =>
                 <DataGridHeadCell>Status</DataGridHeadCell>
                 <DataGridHeadCell></DataGridHeadCell>
               </DataGridRow>
-              {containers && containers.length > 0 ? (
-                containers.map((container, index) => (
-                  <ContainerListItem key={index} container={container} resetSearch={resetSearch} refreshSearch={refreshSearch} />
+              {orders && orders.length > 0 ? (
+                orders.map((order, index) => (
+                  <OrderListItem key={index} order={order} resetSearch={resetSearch} refreshSearch={refreshSearch} />
                 ))
               ) : (
                 <DataGridRow>
-                  <DataGridCell colSpan={4}>No Containers found.</DataGridCell>
+                  <DataGridCell colSpan={4}>No Orders found.</DataGridCell>
                 </DataGridRow>
               )}
             </DataGrid>
@@ -44,4 +45,4 @@ const ContainerList = ({ containers, isLoading, resetSearch, refreshSearch }) =>
   )
 }
 
-export default ContainerList
+export default OrderList

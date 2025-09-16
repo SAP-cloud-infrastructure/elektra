@@ -7,9 +7,14 @@ const useStore = create((set) => ({
   setShowNewSecret: (show) => set((state) => ({ showNewSecret: show })),
   showNewContainer: false,
   setShowNewContainer: (show) => set((state) => ({ showNewContainer: show })),
+  showNewOrder: false,
+  setShowNewOrder: (show) => set((state) => ({ showNewOrder: show })),
   showLoadingOnSecretItem: false,
   setShowLoadingOnSecretItem: (show) =>
     set((state) => ({ showLoadingOnSecretItem: show })),
+  showLoadingOnOrderItem: false,
+  setShowLoadingOnOrderItem: (show) =>
+    set((state) => ({ showLoadingOnOrderItem: show })),
 }))
 
 export default useStore

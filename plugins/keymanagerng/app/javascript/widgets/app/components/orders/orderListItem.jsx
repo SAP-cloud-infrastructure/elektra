@@ -8,27 +8,28 @@ import {
   DataGridRow,
   DataGridCell,
 } from "@cloudoperators/juno-ui-components"
-import { getContainerUuid } from "../../../lib/containerHelper"
-import { deleteContainer } from "../../containerActions"
+import { deleteOrder } from "../../orderActions"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import HintLoading from "../HintLoading"
 import { useActions } from "@cloudoperators/juno-messages-provider"
 import useStore from "../../store"
 import ConfirmationModal from "../ConfirmationModal"
+import { getOrderUuid, getOrderName } from "../../../lib/orderHelper"
 
-const ContainerListItem = ({ container, resetSearch, refreshSearch }) => {
-  const containerUuid = getContainerUuid(container)
-
+const OrderListItem = ({ order, resetSearch, refreshSearch }) => {
+  const orderUuid = getOrderUuid(order)
+  const orderName = getOrderName(order)
+  
   const queryClient = useQueryClient()
 
   const { isLoading, data, mutate } = useMutation({
-    mutationFn: deleteContainer,
+    mutationFn: deleteOrder,
     cacheTime: 100,
-    mutationKey: containerUuid,
+    mutationKey: orderUuid,
   })
   const { addMessage } = useActions()
-  const showNewContainer = useStore(
-    useCallback((state) => state.showNewContainer)
+  const showNewOrder = useStore(
+    useCallback((state) => state.showNewOrder)
   )
   const [show, setShow] = useState(false)
 
@@ -39,7 +40,7 @@ const ContainerListItem = ({ container, resetSearch, refreshSearch }) => {
   const onConfirm = () => {
     return mutate(
       {
-        id: containerUuid,
+        id: orderUuid,
       },
       {
         onSuccess: () => {
@@ -50,10 +51,10 @@ const ContainerListItem = ({ container, resetSearch, refreshSearch }) => {
           } else {
             resetSearch()
           }
-          queryClient.invalidateQueries("containers")
+          queryClient.invalidateQueries("orders")
           addMessage({
             variant: "success",
-            text: `The container ${containerUuid} is successfully deleted.`,
+            text: `The order ${orderUuid} is successfully deleted.`,
           })
         },
         onError: (error) => {
@@ -70,6 +71,7 @@ const ContainerListItem = ({ container, resetSearch, refreshSearch }) => {
   const close = () => {
     setShow(false)
   }
+
   return isLoading && !data ? (
     <DataGridRow>
       <DataGridCell>
@@ -81,39 +83,39 @@ const ContainerListItem = ({ container, resetSearch, refreshSearch }) => {
     </DataGridRow>
   ) : (
     <>
-      <DataGridRow data-target={container.name}>
+      <DataGridRow data-target={orderName || orderUuid}>
         <DataGridCell>
           <div>
             <Link
               className="tw-break-all"
-              to={`/containers/${containerUuid}/show`}
-              onClick={(event) => showNewContainer && event.preventDefault()}
+              to={`/orders/${orderUuid}/show`}
+              onClick={(event) => showNewOrder && event.preventDefault()}
             >
-              {container.name || containerUuid}
+              {orderName || orderUuid}
             </Link>
             <br />
-            <Badge className="tw-text-xs" data-target="container-uuid">
-              {containerUuid}
+            <Badge className="tw-text-xs" data-target="order-uuid">
+              {orderUuid}
             </Badge>
           </div>
         </DataGridCell>
-        <DataGridCell>{container.type}</DataGridCell>
-        <DataGridCell>{container.status}</DataGridCell>
+        <DataGridCell>{order.type || "N/A"}</DataGridCell>
+        <DataGridCell>{order.status}</DataGridCell>
         <DataGridCell nowrap>
           <ButtonRow>
-            {policy.isAllowed("keymanagerng:container_delete") && (
+            {policy.isAllowed("keymanagerng:order_delete") && (
               <Icon
                 icon="deleteForever"
-                onClick={() => handleDelete(containerUuid)}
-                data-target={containerUuid}
+                onClick={handleDelete}
+                data-target={orderUuid}
               />
             )}
           </ButtonRow>
         </DataGridCell>
       </DataGridRow>
       <ConfirmationModal
-        text={`Are you sure you want to delete the container ${
-          container.name || containerUuid
+        text={`Are you sure you want to delete the order ${
+          orderName || orderUuid
         }?`}
         show={show}
         close={close}
@@ -123,4 +125,4 @@ const ContainerListItem = ({ container, resetSearch, refreshSearch }) => {
   )
 }
 
-export default ContainerListItem
+export default OrderListItem

@@ -1,31 +1,33 @@
 import React, { useState, useEffect } from "react"
-import { policy } from "lib/policy"
-import ContainerList from "./containerList"
-import Pagination from "../Pagination"
-import { getContainers } from "../../containerActions"
 import { useQuery } from "@tanstack/react-query"
-import {
-  Container,
-  IntroBox,
-  SearchInput,
-  DataGridToolbar,
+import { useHistory } from "react-router-dom"
+import { 
+  Button, 
+  Container, 
+  IntroBox, 
+  DataGridToolbar, 
   ButtonRow,
-  Button,
+  SearchInput,
   Stack,
   Spinner,
   Tooltip,
   TooltipTrigger,
   TooltipContent,
 } from "@cloudoperators/juno-ui-components"
-import { Link } from "react-router-dom"
+import { getOrders } from "../../orderActions"
+import OrderList from "./orderList"
+import Pagination from "../Pagination"
+import useStore from "../../store"
+import { policy } from "lib/policy"
 import { useActions } from "@cloudoperators/juno-messages-provider"
 import { parseError } from "../../helpers"
-import useContainersSearch from "../../hooks/useContainersSearch"
+import useOrdersSearch from "../../hooks/useOrdersSearch"
 import { useLocation } from "react-router-dom"
 
 const ITEMS_PER_PAGE = 20
 
-const Containers = () => {
+const Orders = () => {
+  const history = useHistory()
   const { addMessage } = useActions()
   const [currentPage, setCurrentPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState("")
@@ -38,16 +40,17 @@ const Containers = () => {
     limit: ITEMS_PER_PAGE,
     offset: 0 || offset,
   })
+  const setShowNewOrder = useStore((state) => state.setShowNewOrder)
 
-  const search = useContainersSearch({ text: searchTerm })
-  
+  const search = useOrdersSearch({ text: searchTerm })
+
   // Pass the reset and refresh functions to child components
   const resetSearch = search.reset
   const refreshSearch = search.refresh
-  
-  const { isLoading, isFetching, data, error } = useQuery({
-    queryKey: ["containers", paginationOptions],
-    queryFn: getContainers,
+
+  const { data: ordersData, isLoading, isFetching, error } = useQuery({
+    queryKey: ["orders", paginationOptions],
+    queryFn: getOrders,
   })
 
   // dispatch error with useEffect because error variable will first set once all retries did not succeed
@@ -59,6 +62,11 @@ const Containers = () => {
       })
     }
   }, [error])
+
+  const handleCreateOrder = () => {
+    setShowNewOrder(true)
+    history.push("/orders/newOrder")
+  }
 
   const onPaginationChanged = (page) => {
     // todo check if page < 0
@@ -84,16 +92,15 @@ const Containers = () => {
     <Container py px={false}>
       <IntroBox>
         <p>
-          The containers resource is the organizational center piece of
-          barbican. It creates a logical object that can be used to hold secret
-          references. This is helpful when having to deal with tracking and
-          having access to hundreds of secrets. For more information visit
-          the&nbsp;
-          <a href="http://developer.openstack.org/api-guide/key-manager/containers.html">
+        The orders resource allows the user to request barbican to generate a secret.
+        This is also very helpful for requesting the creation of public/private key pairs. For
+          more information, visit the&nbsp;
+          <a href="http://developer.openstack.org/api-guide/key-manager/orders.html">
             Barbican OpenStack documentation.
           </a>
         </p>
       </IntroBox>
+
       <DataGridToolbar
         search={
           <Stack alignment="center">
@@ -118,39 +125,40 @@ const Containers = () => {
         }
       >
         <ButtonRow>
-          {policy.isAllowed("keymanagerng:container_create") ? (
-            <Link to="/containers/newContainer">
-              <Button>New Container</Button>
-            </Link>
+          {policy.isAllowed("keymanagerng:order_create") ? (
+            <Button onClick={handleCreateOrder}>
+              New Order
+            </Button>
           ) : (
             <Tooltip triggerEvent="hover">
               <TooltipTrigger asChild>
                 <span>
-                  <Button disabled>New Container</Button>
+                  <Button disabled>New Order</Button>
                 </span>
               </TooltipTrigger>
               <TooltipContent>
-                You do not have permission to create containers. Your user
+                You do not have permission to create orders. Your user
                 account requires the keymanager_admin role.
               </TooltipContent>
             </Tooltip>
           )}
         </ButtonRow>
       </DataGridToolbar>
-      <ContainerList
-        containers={
-          search.isFiltering ? search.displayResults : data?.containers
+
+      <OrderList 
+        orders={
+          search.isFiltering ? search.displayResults : ordersData?.orders
         }
         isLoading={isLoading}
         resetSearch={resetSearch}
         refreshSearch={refreshSearch} // Pass refresh function
       />
-      {!search.isFiltering && data?.containers?.length > 0 && (
+      {!search.isFiltering && ordersData?.orders && ordersData.orders.length > 0 && (
         <Pagination
-          count={data?.total}
+          count={ordersData.total}
           limit={ITEMS_PER_PAGE}
           onChanged={onPaginationChanged}
-          isFetching={isFetching || data?.containers?.length === 0}
+          isFetching={isFetching || ordersData.orders.length === 0}
           disabled={error}
           currentPage={currentPage}
         />
@@ -159,4 +167,4 @@ const Containers = () => {
   )
 }
 
-export default Containers
+export default Orders
