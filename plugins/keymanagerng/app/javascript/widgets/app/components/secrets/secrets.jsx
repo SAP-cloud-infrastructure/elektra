@@ -44,6 +44,10 @@ const Secrets = () => {
   })
 
   const search = useSecretsSearch({ text: searchTerm })
+  
+  // Pass the reset and refresh functions to child components
+  const resetSearch = search.reset
+  const refreshSearch = search.refresh
 
   // dispatch error with useEffect because error variable will first set once all retries did not succeed
   useEffect(() => {
@@ -131,8 +135,12 @@ const Secrets = () => {
       </DataGridToolbar>
 
       <SecretList
-        secrets={search.isFiltering ? search.displayResults : data?.secrets}
+        secrets={
+          search.isFiltering ? search.displayResults : data?.secrets
+        }
         isLoading={isLoading}
+        resetSearch={resetSearch}
+        refreshSearch={refreshSearch} // Pass refresh function
       />
       {!search.isFiltering && data?.secrets?.length > 0 && (
         <Pagination

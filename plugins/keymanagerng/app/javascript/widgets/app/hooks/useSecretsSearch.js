@@ -15,6 +15,29 @@ const useSecretsSearch = ({ text }) => {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedOptions, setSelectedOptions] = useState([])
 
+  // Reset function to clear all local state
+  const reset = () => {
+    setFetchedData([])
+    setDisplayResults([])
+    setFetchStatus({})
+    setSelectedOptions([])
+    setIsFetching(false)
+    setIsFiltering(false)
+  }
+
+  // Refresh function to re-run search with current search term
+  const refresh = () => {
+    if (searchTerm && searchTerm.length > 3) {
+      // Re-trigger the search with current search term
+      setIsFetching(true)
+      setFetchedData([])
+      setDisplayResults([])
+      setFetchStatus({})
+      setSelectedOptions([])
+      setFetchParams({ offset: 0, limit: 1 })
+    }
+  }
+
   // create the query action with the promise used by useQuery. Needed to get access to the fetchParams
   const fetchAction = ({ queryKey }) => {
     const [_key, fetchParams] = queryKey
@@ -106,6 +129,8 @@ const useSecretsSearch = ({ text }) => {
     fetchStatus,
     updateSelectedOptions,
     cancel,
+    reset, // Add reset function to return
+    refresh, // Add refresh function
   }
 }
 

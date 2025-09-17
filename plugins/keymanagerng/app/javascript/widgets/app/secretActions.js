@@ -31,9 +31,6 @@ export const fetchSecret = (uuid) => {
     .then((response) => {
       return response?.data
     })
-    .catch((error) => {
-      return error
-    })
 }
 
 export const getSecretMetadata = ({ queryKey }) => {

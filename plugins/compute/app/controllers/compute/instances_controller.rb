@@ -134,11 +134,18 @@ module Compute
 
     def new
       @available_volume_types = services.block_storage.volume_types()
-      @instance               = services.compute.new_server
-      @flavors                = services.compute.flavors
-      @images                 = services.image.all_images
-      @fixed_ip_ports         = services.networking.fixed_ip_ports
-      @subnets                = services.networking.subnets
+      @instance = services.compute.new_server
+      @flavors = services.compute.flavors
+      
+      # images
+      all_images = services.image.all_images # all images
+      project_images = services.image.all_images({"owner" => @scoped_project_id}) # to be sure to load also all images that are related to the project
+      # Merge and remove duplicates based on ID
+      @images = (all_images + project_images).uniq { |image| image.id }
+
+      @fixed_ip_ports = services.networking.fixed_ip_ports
+      @subnets = services.networking.subnets
+
       @bootable_volumes =
         services
           .block_storage

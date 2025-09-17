@@ -2,7 +2,7 @@ module.exports = {
   automock: false,
   setupFiles: ["./setupJestMock.js"],
   verbose: true,
-  testRegex: "\\.test\\.jsx?$",
+  testRegex: "\\.test\\.(ts|tsx|js|jsx)$",
   modulePathIgnorePatterns: ["vendor"],
   transform: { "\\.[jt]sx?$": "babel-jest" },
   // transform: {
@@ -26,5 +26,6 @@ module.exports = {
   },
   testEnvironment: "jsdom",
   // include juno-ui-components into the transform process
-  transformIgnorePatterns: ["node_modules/(?!juno-ui-components)"],
+  transformIgnorePatterns: ["node_modules/(?!@cloudoperators/juno-ui-components)"],
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
 }

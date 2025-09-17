@@ -79,7 +79,7 @@ class ErrorsController < ActionController::Base
         h[:name] = @exception.class.name
         h[:message] = @exception.message
         h[:token] = token
-        h[:backtrace] = @exception_wrapper.application_trace.join("\n")
+        h[:backtrace] = Rails.env.production? ? "" : (@exception_wrapper&.application_trace&.join("\n") || "") # do not render the backtrace in production
         h[:source] = (
           if @exception.respond_to?(:annoted_source_code)
             @exception.annoted_source_code

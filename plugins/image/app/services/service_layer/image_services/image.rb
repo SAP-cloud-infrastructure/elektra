@@ -9,6 +9,7 @@ module ServiceLayer
 
       # use this with pagination options, otherwise you will get a
       # maxium of 25 images (glance default limit)
+      # https://docs.openstack.org/api-ref/image/v2/index.html#list-images
       def images(filter = {})
         elektron_images.get('images', filter).map_to('body.images', &image_map)
       end
