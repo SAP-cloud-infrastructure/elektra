@@ -101,7 +101,6 @@
     "sass": "^1.77.6",
     "shadow-dom-testing-library": "^1.11.3",
     "tailwindcss": "3.4.15",
-    "ts-jest": "^29.4.1",
     "typescript": "^5.9.2"
   },
   "scripts": {

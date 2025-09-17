@@ -56,10 +56,9 @@ function Index() {
       <Container py px={false}>
         <Stack>
           <ContentHeading className="tw-w-full">Kubernetes Clusters</ContentHeading>
-          {/* global actions */}
+          {/* overview actions  */}
           <Stack gap="2" className="tw-whitespace-nowrap" distribution="center">
             <Button size="small" label="Add Cluster" />
-            {/* <Button size="small"> */}
             <PopupMenu className={popupMenuStyles}>
               <PopupMenuOptions>
                 <div onClick={() => setDisplayJson(true)}>
@@ -67,7 +66,6 @@ function Index() {
                 </div>
               </PopupMenuOptions>
             </PopupMenu>
-            {/* </Button> */}
           </Stack>
         </Stack>
         <p>Manage your VM-based Kubernetes deployments</p>

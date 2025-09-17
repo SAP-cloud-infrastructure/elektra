@@ -2,7 +2,12 @@ import React from "react"
 import { Breadcrumb as BreadcrumbContainer, BreadcrumbItem } from "@cloudoperators/juno-ui-components"
 import { isMatch, useMatches, useNavigate } from "@tanstack/react-router"
 
-export const Breadcrumb = ({ className = "", ...props }) => {
+type BreadcrumbProps = {
+  className?: string
+  [key: string]: any
+}
+
+export const Breadcrumb = ({ className = "", ...props }: BreadcrumbProps) => {
   const navigate = useNavigate()
   const matches = useMatches()
   const matchesWithCrumbs = matches.filter((match) => isMatch(match, "loaderData.crumb"))
