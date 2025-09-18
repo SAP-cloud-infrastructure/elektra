@@ -19,7 +19,6 @@ class PluginSkeletonGenerator
   end
 
   def run
-    pp options.public_methods.sort
     plugin_options =
       "--skip-gemfile --skip-bundle --skip-git --skip-test --skip-puma --skip-javascript --skip-gemfile-entry"
     plugin_options += " --mountable" if options.mountable?
