@@ -15,7 +15,6 @@ import {
 } from "@cloudoperators/juno-ui-components"
 import ClusterCard from "./-components/ClusterCard"
 import { Cluster } from "../../types/clusters"
-import { LoaderWithCrumb } from "../-types"
 
 // TODO temporary styles for popup menu button, to be replaced with juno class when available
 const popupMenuStyles = `
@@ -32,16 +31,12 @@ const popupMenuStyles = `
 
 export const Route = createFileRoute("/clusters/")({
   component: Index,
-  loader: async ({ context }): Promise<LoaderWithCrumb & { clusters: Cluster[] }> => {
+  loader: async ({ context }) => {
     const client = context.apiClient
     const clusters = await client
       ?.get<{ data: Cluster[] }>("/kubernetes-ng/api/clusters/")
       .then((response) => response.data)
     return {
-      crumb: {
-        label: "Clusters",
-        icon: "home",
-      },
       clusters: clusters || [],
     }
   },
@@ -82,7 +77,7 @@ function Index() {
         </Container>
       )}
       <Modal size="large" onCancel={() => setDisplayJson(false)} open={displayJson}>
-        <JsonViewer expanded={true} data={clusters || []} />
+        <JsonViewer expanded={2} data={clusters || []} />
       </Modal>
     </>
   )

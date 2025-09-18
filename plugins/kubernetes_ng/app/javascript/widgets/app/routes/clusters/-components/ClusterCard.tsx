@@ -13,6 +13,7 @@ import {
 import Card from "../../../components/Card"
 import { Cluster } from "../../../types/clusters"
 import ClipboardText from "../../../components/ClipboardText"
+import { Link } from "@tanstack/react-router"
 
 const getStatusStyles = (status: string) => {
   switch (status.toLowerCase()) {
@@ -95,7 +96,9 @@ const ClusterCard: React.FC<{
               </Stack>
               <Stack gap="2" direction="horizontal" className="tw-whitespace-nowrap">
                 {/* Actions */}
-                <Button size="small" label="View Details" variant="primary" />
+                <Link to="/clusters/$clusterName" params={{ clusterName: cluster.name }}>
+                  <Button label="View Details" variant="primary" size="small" />
+                </Link>
               </Stack>
             </Stack>
             {/* Readiness conditions */}
