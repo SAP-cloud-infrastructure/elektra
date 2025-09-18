@@ -123,7 +123,8 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           state: 'Succeeded',
           description: 'Cluster is running',
           lastTransitionTime: '2023-05-01T10:00:00Z'
-        }
+        },
+        raw: shoot_mock
       )
     end
 

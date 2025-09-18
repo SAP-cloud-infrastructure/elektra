@@ -8,16 +8,35 @@ module ServiceLayer
         @puser_map ||= class_map_proc(Identity::User)
       end
 
-      def users(filter = {})
-        elektron_identity.get("users", filter).map_to("body.users", &user_map)
+      def users(filter = {}, **args)
+        format = args[:format] 
+        response = elektron_identity.get("users", filter)
+        
+        case format
+        when :json
+          response.body["users"].to_json
+        when :raw
+          response.body["users"]
+        else
+          response.map_to("body.users", &user_map)
+        end
       end
 
-      def find_user!(id)
-        elektron_identity.get("users/#{id}").map_to("body.user", &user_map)
+      def find_user!(id, **args )
+        format = args[:format] 
+        response = elektron_identity.get("users/#{id}")
+        case format
+        when :json
+          response.body["user"].to_json
+        when :raw
+          response.body["user"]
+        else
+          response.map_to("body.user", &user_map)
+        end    
       end
 
-      def find_user(id)
-        find_user!(id)
+      def find_user(id, **args)
+        find_user!(id,**args)
       rescue Elektron::Errors::ApiResponse
         nil
       end
