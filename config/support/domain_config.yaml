@@ -19,6 +19,7 @@ domains:
     dns_c_subdomain: true
     check_cidr_range: true
     terms_of_use_name: "actual_terms"
+    oauth2_proxy: true
 
   # More general pattern
   - name: marioworld
@@ -43,6 +44,7 @@ domains:
     dns_c_subdomain: false
     check_cidr_range: false
     federation: true
+    oauth2_proxy: false
     idp: "https://mario.world.corp"
 
   # Most specific first

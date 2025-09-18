@@ -18,6 +18,7 @@ test_config = {
       ],
       'dns_c_subdomain' => true,
       'check_cidr_range' => true,
+      'oauth2_proxy' => true,
       'terms_of_use_name' => 'actual_terms'
     },
     {
@@ -43,6 +44,7 @@ test_config = {
       'dns_c_subdomain' => false,
       'check_cidr_range' => false,
       'federation' => true,
+      'oauth2_proxy' => false,
       'idp' => 'https://mario.world.corp'
     },
     {
@@ -274,6 +276,23 @@ describe DomainConfig do
       end
     end
 
+    describe '#oauth2_proxy?' do
+      it 'returns true for regular domain (from any domain config)' do
+        config = DomainConfig.new('regular-domain')
+        expect(config.oauth2_proxy?).to be true # from any domain config
+      end
+
+      it 'returns false for marioworld domain (overridden by marioworld config)' do
+        config = DomainConfig.new('marioworld-domain')
+        expect(config.oauth2_proxy?).to be false # from marioworld domain config
+      end
+
+      it 'returns false for specific marioworld domain (inherited from marioworld config)' do
+        config = DomainConfig.new('marioworld-and-luigi-test')
+        expect(config.oauth2_proxy?).to be false # from marioworld domain config
+      end
+    end
+
     describe 'marioworld behavior' do
       it 'demonstrates complete marioworld chain' do
         config = DomainConfig.new('marioworld-and-luigi-test')
@@ -285,6 +304,7 @@ describe DomainConfig do
         expect(config.federation?).to be true
         expect(config.dns_c_subdomain?).to be false
         expect(config.plugin_hidden?('reports')).to be true
+        expect(config.oauth2_proxy?).to be false 
         
         # From "marioworld-and-luigi" (top layer) - overrides middle
         expect(config.idp?).to eq(URI.encode_www_form_component('https://marioworld-and-luigi.world.corp'))
@@ -298,15 +318,18 @@ describe DomainConfig do
         # Regular domain - only inherits from "any domain"
         expect(regular_config.dns_c_subdomain?).to be true
         expect(regular_config.federation?).to be false
+        expect(regular_config.oauth2_proxy?).to be true
         
         # General marioworld domain - inherits from "any domain" + "marioworld"
         expect(marioworld_config.dns_c_subdomain?).to be false
         expect(marioworld_config.federation?).to be true
+        expect(marioworld_config.oauth2_proxy?).to be false
         expect(marioworld_config.idp?).to eq(URI.encode_www_form_component('https://mario.world.corp'))
-
+        
         # Specific marioworld (marioworld-and-luigi) domain - inherits from all three
         expect(specific_config.dns_c_subdomain?).to be false
         expect(specific_config.federation?).to be true
+        expect(specific_config.oauth2_proxy?).to be false
         expect(specific_config.idp?).to eq(URI.encode_www_form_component('https://marioworld-and-luigi.world.corp'))
       end
     end
