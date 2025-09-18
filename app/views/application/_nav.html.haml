@@ -44,9 +44,8 @@
                 %li.divider
               %li
                 - # https://oauth2-proxy.github.io/oauth2-proxy/features/endpoints/#sign-out
-                - redirect_url = Rails.env.production? ? "https://auth.#{region}.cloud.sap/oauth2/sign_out?rd=#{main_app.landing_page_url}" : main_app.landing_page_url
-                = link_to 'Log out', monsoon_openstack_auth.logout_path(domain_fid: @scoped_domain_fid || params[:domain_id],
-                  domain_name: @scoped_domain_name, redirect_to: redirect_url)
+                - redirect_url = @domain_config.oauth2_proxy? ? "https://auth.#{current_region}.cloud.sap/oauth2/sign_out?rd=#{main_app.landing_page_url}" : main_app.landing_page_url
+                = link_to 'Log out', monsoon_openstack_auth.logout_path(domain_fid: @scoped_domain_fid || params[:domain_id], domain_name: @scoped_domain_name, redirect_to: redirect_url)
 
         %li.dropdown
           %a.nav-highlight.dropdown-toggle{"aria-expanded" => "false", "data-toggle" => "dropdown", :href => "#", :role => "button"}
