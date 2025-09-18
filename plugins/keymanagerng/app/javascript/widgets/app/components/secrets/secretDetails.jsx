@@ -61,7 +61,7 @@ const SecretDetails = () => {
   // Query to find the order that generated this secret
   const orderQuery = useQuery({
     queryKey: ["orderBySecretRef", secretId],
-    queryFn: () => findOrderBySecretRef(secretId),
+    queryFn: findOrderBySecretRef,
     enabled: !!secretId,
     onSuccess: (data) => {
       setGeneratingOrder(data)
@@ -164,9 +164,15 @@ const SecretDetails = () => {
         {secret?.isLoading && !secret?.data ? (
           <HintLoading />
         ) : secret?.isError ? (
-          <Message variant="danger">
-            {`${secret?.error?.statusCode}, ${secret?.error?.message}`}
-          </Message>
+          (!secret?.error?.statusCode && secret?.error?.message === '[object Object]') ? (
+            <Message variant="danger">
+              404: Secret not found
+            </Message>
+          ) : (
+            <Message variant="danger">
+              {`${secret?.error?.statusCode}, ${secret?.error?.message}`}
+            </Message>
+          )
         ) : secret?.data ? (
           <>
             <DataGrid columns={2}>
@@ -243,15 +249,14 @@ const SecretDetails = () => {
               secret?.data?.content_types?.default
             ) && (
               <>
-                {payloadString && (
-                  <>
-                    <SecretText
-                      label="Payload"
-                      value={payloadString}
-
-                    />
-                  </>
-                )}
+               {payloadString && (
+                <SecretText
+                  label="Payload"
+                  disableClear
+                  disablePaste
+                  value={payloadString}
+                />
+               )}
               </>
             )}
             {metadata?.isLoading && !metadata?.data ? (
