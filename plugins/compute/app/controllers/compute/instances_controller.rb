@@ -223,20 +223,16 @@ module Compute
     end
 
     def create
-      volume_type = ""
-      # TODO kvm: check that we need the mapping here and what volume type to use! 😵‍💫
-      #       this is only working if we have a 1:1 relation
-      # volume_mapping = @domain_config.compute_volume_mapping
+      volume_type = "vmware"
       # set image_id if baremetal_image_id or vmware_image_id or kvm_image_id is set
+      # also set volume_type for bootable image if vmware_image_id or kvm_image_id is set
       if params[:server][:baremetal_image_id] != ""
-        params[:server][:baremetal_image_id]
-        #volume_type = volume_mapping["baremetal"] || "baremetal"
+        params[:server][:image_id] = params[:server][:baremetal_image_id]
       elsif params[:server][:vmware_image_id] != ""
         params[:server][:image_id] = params[:server][:vmware_image_id]
-        #volume_type = volume_mapping["vmware"] || "vmware"  
       elsif params[:server][:kvm_image_id] != ""
         params[:server][:image_id] = params[:server][:kvm_image_id]
-        #volume_type = volume_mapping["kvm"] || "kvm"
+        # there is a dropdown to select the kvm volume type
         volume_type = params[:server][:kvm_volume_type]
       end
       params[:server].delete(:baremetal_image_id)
