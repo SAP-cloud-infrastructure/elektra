@@ -9,7 +9,7 @@ module MonsoonOpenstackAuth
 
     def new
       unless MonsoonOpenstackAuth.configuration.form_auth_allowed?
-        redirect_to main_app.root_path, alert: 'Not allowed!'
+        redirect_to root_path, alert: 'Not allowed!'
         return
       end
 
@@ -21,9 +21,8 @@ module MonsoonOpenstackAuth
     def consume_auth_token
       domain_id = params[:domain_id]
       # Determine the URL to redirect the user after login
-      after_login_url = params[:after_login] || main_app.root_url(
-        domain_id: domain_id
-      )
+      after_login_url = safe_redirect_url(params[:after_login]) || root_url(domain_id: domain_id)
+  
 
       auth_token = params[:auth_token]
       auth_token = decode_auth_token(auth_token) if request.get?
@@ -39,7 +38,7 @@ module MonsoonOpenstackAuth
 
     def create
       unless MonsoonOpenstackAuth.configuration.form_auth_allowed?
-        redirect_to main_app.root_path, alert: 'Not allowed!'
+        redirect_to root_path, alert: 'Not allowed!'
         return
       end
 
@@ -65,7 +64,7 @@ module MonsoonOpenstackAuth
         end
       end
       # Determine the URL to redirect the user after login
-      after_login_url = params[:after_login] || main_app.root_url(
+      after_login_url = params[:after_login] || root_url(
         domain_id: @domain_id || @domain_name
       )
 
@@ -101,7 +100,7 @@ module MonsoonOpenstackAuth
     end
 
     def check_passcode
-      after_login_url = params[:after_login] || main_app.root_url(
+      after_login_url = params[:after_login] || root_url(
         domain_id: @domain_id || @domain_name
       )
 
@@ -133,7 +132,7 @@ module MonsoonOpenstackAuth
       MonsoonOpenstackAuth::Authentication::AuthSession.logout(
         self, params[:domain_name]
       )
-      logout_url = params[:redirect_to] || main_app.root_url
+      logout_url = safe_redirect_url(params[:redirect_to]) || root_url
       redirect_to logout_url
     end
 
@@ -153,6 +152,36 @@ module MonsoonOpenstackAuth
       @verifier.verify(encoded_token)
     rescue ActiveSupport::MessageVerifier::InvalidSignature
       nil # Return nil if the token is invalid
+    end
+
+    def safe_redirect_url(url)
+      return nil if url.blank?
+      
+      begin
+        uri = URI.parse(url)
+        
+        # Only allow relative URLs or URLs from the same host
+        if uri.relative? || (uri.host == request.host)
+          # Additional validation: ensure it's a valid path
+          return url if valid_internal_path?(url)
+        end
+      rescue URI::InvalidURIError
+        Rails.logger.warn "Invalid redirect URL attempted: #{url}"
+      end
+      
+      nil
+    end
+
+    def valid_internal_path?(url)
+      # Add your application-specific path validation
+      # For example, ensure it starts with a valid route prefix
+      return false unless url.start_with?('/')
+      
+      # Reject URLs with suspicious patterns
+      return false if url.include?('..')
+      return false if url.include?('//')
+      
+      true
     end
   end
 end
