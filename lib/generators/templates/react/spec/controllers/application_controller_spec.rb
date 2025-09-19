@@ -2,8 +2,8 @@
 
 require "spec_helper"
 
-describe "PLUGIN_NAME_CAMELIZE"::ApplicationController, type: :controller do
-  routes { "PLUGIN_NAME_CAMELIZE"::Engine.routes }
+describe %{PLUGIN_NAME_CAMELIZE}::ApplicationController, type: :controller do
+  routes { %{PLUGIN_NAME_CAMELIZE}::Engine.routes }
 
   default_params = {
     domain_id: AuthenticationStub.domain_id,
