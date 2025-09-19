@@ -8,7 +8,7 @@ ENV["RAILS_ENV"] ||= "test"
 require File.expand_path("../config/environment", __dir__)
 require "rspec/rails"
 
-require_relative 'monsoon-openstack-auth/authentication_stub'
+require_relative 'monsoon_openstack_auth/authentication_stub'
         
 
 # Requires supporting ruby files with custom matchers and macros, etc, in
