@@ -203,7 +203,7 @@ module MonsoonOpenstackAuth
             ############# end #############
 
             # replace params["param1.param2.param3"] with (params["param1"].param2.param3 rescue false)
-            parsed_rule.gsub!(/params\["(?<param>[^\.|\]]+)(?<attributes>(\.[^\]]+)+)"\]/, 'params["\k<param>"]\k<attributes>')
+            parsed_rule.gsub!(/params\["(?<param>[^\.|\]]+)(?<attributes>(?>\.[^\]]+)+)"\]/, 'params["\k<param>"]\k<attributes>')
             # replace params["param"] with params["param".to_sym]
             parsed_rule.gsub!(/params\["(?<param>[^\]]+)"\]/, 'params["\k<param>".to_sym]')
             # replace "True" and "@" and empty rule with "true"
