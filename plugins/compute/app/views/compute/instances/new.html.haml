@@ -200,6 +200,7 @@
             $('#kvm_image_id_wrapper').val('')
             $('#kvm_image_id_wrapper').find('optgroup[label="--bootable volumes"]').addClass('hidden')
             $('#custom_root_disk_size_wrapper').removeClass('hidden')
+            $('button:contains("Create")').prop('disabled', true);
             if (server_custom_root_disk_size != '' && server_custom_root_disk_size != '0') {
               $('#server_custom_root_disk_size').val(server_custom_root_disk_size)
             }
@@ -210,6 +211,7 @@
             $('#custom_root_disk_size_wrapper').addClass('hidden')
             server_custom_root_disk_size = $('#server_custom_root_disk_size').val()
             $('#server_custom_root_disk_size').val('')
+            $('button:contains("Create")').prop('disabled', false);
           }
         }
         var showRootDisk = #{params[:server] && params[:server][:custom_root_disk]}
