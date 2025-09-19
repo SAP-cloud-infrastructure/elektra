@@ -36,17 +36,17 @@ const config = {
   entryPoints: entryPoints(
     [
       // all "*" are replaced with the path tokens and joined by "_"
-      { path: "app/javascript/*.{js,jsx}" }, // all js and jsx files in app/javascript folder
+      { path: "app/javascript/*.{js,jsx,ts,tsx}" }, // all js and jsx files in app/javascript folder
       {
-        path: "plugins/*/app/javascript/plugin.{js,jsx}",
+        path: "plugins/*/app/javascript/plugin.{js,jsx,ts,tsx}",
         suffix: "plugin",
       }, // all plugin.js files in all plugins
       {
-        path: "plugins/*/app/javascript/widgets/*/init.{js,jsx}",
+        path: "plugins/*/app/javascript/widgets/*/init.{js,jsx,ts,tsx}",
         suffix: "widget",
       },
       {
-        path: "app/javascript/widgets/*/init.{js,jsx}",
+        path: "app/javascript/widgets/*/init.{js,jsx,ts,tsx}",
         suffix: "widget",
       },
     ],
