@@ -5,13 +5,11 @@ require File.join(Gem.loaded_specs["sassc"].full_gem_path, "lib/sassc")
 
 # This file is copied to spec/ when you run 'rails generate rspec:install'
 ENV["RAILS_ENV"] ||= "test"
+require_relative 'monsoon_openstack_auth/authentication_stub'
 require File.expand_path("../config/environment", __dir__)
 require "rspec/rails"
 
-require File.join(
-          Gem.loaded_specs["monsoon-openstack-auth"].full_gem_path,
-          "spec/support/authentication_stub",
-        )
+        
 
 # Requires supporting ruby files with custom matchers and macros, etc, in
 # spec/support/ and its subdirectories. Files matching `spec/**/*_spec.rb` are

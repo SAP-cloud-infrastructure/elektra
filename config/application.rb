@@ -54,9 +54,12 @@ module MonsoonDashboard
     # -- all .rb files in that directory are automatically loaded.
 
     # config.autoload_paths += %W(#{config.root}/plugins)
-
     # config.autoload_paths << Rails.root.join('lib')
-    config.eager_load_paths << "#{Rails.root}/lib"
+    # config.eager_load_paths << "#{Rails.root}/lib"
+
+    config.after_initialize do 
+      Rails.autoloaders.main.push_dir(Rails.root.join('lib'))
+    end
 
     # Use memory for caching, file cache needs some work for working with docker
     # Not sure if this really makes sense becasue every passenger thread will have it's own cache

@@ -59,8 +59,11 @@ gem 'sentry-raven'
 gem 'faraday-httpclient', '~> 2.0'
 
 # auth
-# gem 'monsoon-openstack-auth', path: '../monsoon-openstack-auth'
-gem 'monsoon-openstack-auth', git: 'https://github.com/sapcc/monsoon-openstack-auth.git'
+gem 'hashie'
+# this version is the last version that works with mitmproxy
+# if you use the versions above you will get "Excon::Error::ProxyConnectionError" if you use http_proxy env with Excon
+gem 'excon', '0.112.0'
+
 
 # See https://github.com/sstephenson/execjs#readme for more supported runtimes
 # gem 'therubyracer', platforms: :ruby
@@ -113,9 +116,6 @@ end
 group :development do
   # Access an IRB console on exception pages or by using <%= console %> in views
   gem 'web-console'
-  # this version is the last version that works with mitmproxy
-  # if you use the versions above you will get "Excon::Error::ProxyConnectionError" if you use http_proxy env with Excon
-  gem 'excon', '0.112.0'
 end
 
 group :development, :test do

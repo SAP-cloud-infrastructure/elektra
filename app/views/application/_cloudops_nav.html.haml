@@ -19,7 +19,7 @@
 
         - unless logged_in?
           %li
-            = link_to "Log in", monsoon_openstack_auth.login_path(domain_fid: @scoped_domain_fid || params[:domain_id],
+            = link_to "Log in", login_path(domain_fid: @scoped_domain_fid || params[:domain_id],
               domain_name: @scoped_domain_name,
               after_login: main_app.domain_home_path(domain_id: @scoped_domain_fid)), id: "navbar-login-btn"
         - else
@@ -41,7 +41,7 @@
 
               %li.divider
               %li
-                = link_to 'Log out', monsoon_openstack_auth.logout_path(domain_fid: @scoped_domain_fid || params[:domain_id],
+                = link_to 'Log out', logout_path(domain_fid: @scoped_domain_fid || params[:domain_id],
                   domain_name: @scoped_domain_name, redirect_to: main_app.landing_page_url)
 
 
