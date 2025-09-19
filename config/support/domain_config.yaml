@@ -19,11 +19,6 @@ domains:
     dns_c_subdomain: true
     check_cidr_range: true
     terms_of_use_name: "actual_terms"
-    compute:
-      volume_mappping:
-        "kvm": "kvm-pilot"
-        "vmware": "vmware"
-        "baremetal": "baremetal"
 
   # More general pattern
   - name: marioworld

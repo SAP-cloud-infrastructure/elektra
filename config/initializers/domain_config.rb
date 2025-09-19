@@ -73,11 +73,6 @@ class DomainConfig
     idp_value ? URI.encode_www_form_component(idp_value.to_s) : false
   end
 
-  def compute_volume_mapping
-    # fetch compute volume mapping from config
-    mapping = @domain_config.fetch('compute', {}).fetch('volume_mappping', {})
-  end
-
   private
 
   def find_config(domains_config, scoped_domain_name)
