@@ -1,11 +1,11 @@
 # frozen_string_literal: true
-require_relative 'monsoon_openstack_auth/authentication_stub'
 
 # rspec does not load sassc gem. I don't why, but this hack helps!
 require File.join(Gem.loaded_specs["sassc"].full_gem_path, "lib/sassc")
 
 # This file is copied to spec/ when you run 'rails generate rspec:install'
 ENV["RAILS_ENV"] ||= "test"
+require_relative 'monsoon_openstack_auth/authentication_stub'
 require File.expand_path("../config/environment", __dir__)
 require "rspec/rails"
 
