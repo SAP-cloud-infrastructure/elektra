@@ -1,53 +1,53 @@
 - domain_config = DomainConfig.new(@domain_name)
-= inside_layout 'login' do
-  .container
 
-    - if domain_config.federation?
-      = render partial: 'monsoon_openstack_auth/sessions/federation', locals: { params: params, domain_config: domain_config }
-    - else
-      = form_tag(sessions_path(after_login: params[:after_login]), class: "form-signin") do
-        = hidden_field_tag :domain_id, @domain_id
-        = hidden_field_tag :domain_name, @domain_name
-        = hidden_field_tag :two_factor, @two_factor
+.container
 
-        %h2.form-signin-heading
-          = params[:password_sync] ? 'Sync Password' : 'Please sign in'
+  - if domain_config.federation?
+    = render partial: 'monsoon_openstack_auth/sessions/federation', locals: { params: params, domain_config: domain_config }
+  - else
+    = form_tag(sessions_path(after_login: params[:after_login]), class: "form-signin") do
+      = hidden_field_tag :domain_id, @domain_id
+      = hidden_field_tag :domain_name, @domain_name
+      = hidden_field_tag :two_factor, @two_factor
 
-        .flashes
-          - flash.each do |name, msg|
-            .alert{class: "alert-#{name}"}= msg
+      %h2.form-signin-heading
+        = params[:password_sync] ? 'Sync Password' : 'Please sign in'
 
-        %label.sr-only{:for => "domain"} Domain
-        - if @domain_name
-          = text_field_tag :domain, @domain_name, placeholder: "Domain", class: "form-control top-input", disabled: "true"
+      .flashes
+        - flash.each do |name, msg|
+          .alert{class: "alert-#{name}"}= msg
 
-        %label.sr-only{:for => "username"} User ID
-        = text_field_tag :username, @username, autofocus: "", placeholder: "User ID", required: "", class: "form-control"
+      %label.sr-only{:for => "domain"} Domain
+      - if @domain_name
+        = text_field_tag :domain, @domain_name, placeholder: "Domain", class: "form-control top-input", disabled: "true"
 
-        %label.sr-only{:for => "password"} Password
-        = password_field_tag :password, nil, placeholder: "Password", required: "", class: "form-control bottom-input"
+      %label.sr-only{:for => "username"} User ID
+      = text_field_tag :username, @username, autofocus: "", placeholder: "User ID", required: "", class: "form-control"
 
-        %button.btn.btn-lg.btn-primary.btn-block{:type => "submit"} Sign in
+      %label.sr-only{:for => "password"} Password
+      = password_field_tag :password, nil, placeholder: "Password", required: "", class: "form-control bottom-input"
+
+      %button.btn.btn-lg.btn-primary.btn-block{:type => "submit"} Sign in
 
 
-        %section
-          - if params[:password_sync]
+      %section
+        - if params[:password_sync]
+          .bs-callout.bs-callout-info.bs-callout-emphasize
+            Log in with your new global SAP Password
+        - else
+          - unless domain_config.feature_hidden?('internal_help_links')
             .bs-callout.bs-callout-info.bs-callout-emphasize
-              Log in with your new global SAP Password
-          - else
-            - unless domain_config.feature_hidden?('internal_help_links')
-              .bs-callout.bs-callout-info.bs-callout-emphasize
-                %h4 Don't have access yet?
-                %p
-                  Request the profile
-                  %i= "\"CC #{@domain_name.blank? ? "<domain-name>" : @domain_name.upcase} Openstack Domain Access\""
-                  in Cloud Access Manager (CAM)
-                %p
-                  - if @domain_name.blank?
-                    = link_to "#{ENV['MONSOON_DASHBOARD_CAM_URL']}?item=request", target: '_blank' do
-                      %i.fa.fa-external-link.fa-fw
-                      Request access in CAM
-                  - else
-                    = link_to "#{ENV['MONSOON_DASHBOARD_CAM_URL']}?item=request&profile=CC%20#{@domain_name.upcase}%20Openstack%20Domain%20Access", target: '_blank' do
-                      %i.fa.fa-external-link.fa-fw
-                      Request access in CAM
+              %h4 Don't have access yet?
+              %p
+                Request the profile
+                %i= "\"CC #{@domain_name.blank? ? "<domain-name>" : @domain_name.upcase} Openstack Domain Access\""
+                in Cloud Access Manager (CAM)
+              %p
+                - if @domain_name.blank?
+                  = link_to "#{ENV['MONSOON_DASHBOARD_CAM_URL']}?item=request", target: '_blank' do
+                    %i.fa.fa-external-link.fa-fw
+                    Request access in CAM
+                - else
+                  = link_to "#{ENV['MONSOON_DASHBOARD_CAM_URL']}?item=request&profile=CC%20#{@domain_name.upcase}%20Openstack%20Domain%20Access", target: '_blank' do
+                    %i.fa.fa-external-link.fa-fw
+                    Request access in CAM

@@ -1,4 +1,6 @@
 module ApplicationHelper
+  include Rails.application.routes.url_helpers
+  
   def qa?
     current_region.start_with?("qa-")
   end

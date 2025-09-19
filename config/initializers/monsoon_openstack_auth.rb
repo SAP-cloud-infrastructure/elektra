@@ -7,6 +7,9 @@ def policy_paths
   paths
 end
 
+# Make sure the gem's main file is loaded
+require 'monsoon_openstack_auth' # This should load from lib/monsoon_openstack_auth.rb
+
 MonsoonOpenstackAuth.configure do |auth|
   # connection driver, default MonsoonOpenstackAuth::Driver::Default (Fog)
   # auth.connection_driver = DriverClass

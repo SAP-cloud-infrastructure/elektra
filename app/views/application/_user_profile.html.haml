@@ -41,7 +41,7 @@
                         Mostly this is needed if you access your machines via jump server.
                         Please click on the button below and enter the new password.
                       %p
-                        = link_to "Sync password", monsoon_openstack_auth.login_path(domain_fid: @scoped_domain_fid || params[:domain_id],
+                        = link_to "Sync password", login_path(domain_fid: @scoped_domain_fid || params[:domain_id],
                           domain_name: @scoped_domain_name,
                           after_login: (request.base_url + request.original_fullpath),
                           password_sync: true), class: 'btn btn-primary'

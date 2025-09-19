@@ -56,7 +56,7 @@
 
           .col-sm-3
             %ul.list-unstyled
-              %li= link_to "Log in with password", monsoon_openstack_auth.login_path(domain_fid: @scoped_domain_fid || params[:domain_id],
+              %li= link_to "Log in with password", login_path(domain_fid: @scoped_domain_fid || params[:domain_id],
                     domain_name: (params[:domain_id] || Rails.configuration.default_domain),
                     after_login: main_app.domain_home_path(domain_id:params[:domain_id]))
 

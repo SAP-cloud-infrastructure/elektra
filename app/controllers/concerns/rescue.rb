@@ -33,7 +33,7 @@ module Rescue
       # handle Token issues
       rescue_from "Elektron::Errors::TokenExpired",
                   "ActionController::InvalidAuthenticityToken" do |exception|
-        redirect_to monsoon_openstack_auth.login_path(
+        redirect_to login_path(
                       domain_fid: @scoped_domain_fid,
                       domain_name: @scoped_domain_name,
                       after_login: params[:after_login],
@@ -49,7 +49,7 @@ module Rescue
         if exception.message =~ /has no access to project/
           render(template: "application/exceptions/unauthorized")
         else
-          redirect_to monsoon_openstack_auth.login_path(
+          redirect_to login_path(
                         domain_fid: @scoped_domain_fid,
                         domain_name: @scoped_domain_name,
                         after_login: params[:after_login],
@@ -73,7 +73,7 @@ module Rescue
         #   # Most likely this is the cause of double render error!
         #   return
         when 401 # unauthorized
-          redirect_to monsoon_openstack_auth.login_path(
+          redirect_to login_path(
                         domain_fid: @scoped_domain_fid,
                         domain_name: @scoped_domain_name,
                         after_login: params[:after_login],

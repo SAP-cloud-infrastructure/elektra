@@ -3,8 +3,20 @@
 Rails.application.routes.draw do
   post '/verify-auth-token', to: 'auth_token#verify'
 
-  mount MonsoonOpenstackAuth::Engine => '/:domain_fid/auth'
-
+  # INTEGRATED GEM ROUTES (previously MonsoonOpenstackAuth::Engine)
+  # Mount the auth routes under the same path pattern as before
+  scope '/:domain_fid/auth' do
+    resources :sessions, only: [:create], controller: 'monsoon_openstack_auth/sessions'
+    get 'sessions(/:domain_id)/new' => 'monsoon_openstack_auth/sessions#new', as: :new_session
+    get 'login(/:domain_name)' => 'monsoon_openstack_auth/sessions#new', as: :login
+    get 'logout', to: 'monsoon_openstack_auth/sessions#destroy'
+    match 'consume-auth-token' => 'monsoon_openstack_auth/sessions#consume_auth_token',
+          via: %i[get post],
+          as: :consume_auth_token
+    get 'passcode' => 'monsoon_openstack_auth/sessions#two_factor', as: :two_factor
+    post 'passcode' => 'monsoon_openstack_auth/sessions#check_passcode', as: :check_passcode
+  end
+  
   get '/error-404', to: 'errors#error_404'
 
   # "jump to" routes
