@@ -51,7 +51,7 @@ module MonsoonOpenstackAuth
           else
             # not authenticated!
             # raise error if options contains the flag
-            raise MonsoonOpenstackAuth::Authentication::NotAuthorized if raise_error
+            raise MonsoonOpenstackAuth::Authentication::Errors::NotAuthorized if raise_error
 
             # try to redirect to login form
             login_url = session.redirect_to_login_form_url
@@ -229,7 +229,7 @@ module MonsoonOpenstackAuth
           save_in_token_store(token)
         rescue StandardError => e
           unless scope == 'unscoped'
-            raise MonsoonOpenstackAuth::Authentication::NotAuthorized.new("User has no access to the requested scope: #{e}")
+            raise MonsoonOpenstackAuth::Authentication::Errors::NotAuthorized.new("User has no access to the requested scope: #{e}")
           end
 
           scope = nil

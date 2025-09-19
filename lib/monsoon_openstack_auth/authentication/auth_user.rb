@@ -4,8 +4,8 @@ module MonsoonOpenstackAuth
       attr_reader :context
 
       def initialize(token_hash)
-        raise MonsoonOpenstackAuth::Authentication::MalformedToken.new("Token is nil.") if token_hash.nil?
-        raise MonsoonOpenstackAuth::Authentication::MalformedToken.new("Token should be a hash.") unless token_hash.is_a?(Hash)
+        raise MonsoonOpenstackAuth::Authentication::Errors::MalformedToken.new("Token is nil.") if token_hash.nil?
+        raise MonsoonOpenstackAuth::Authentication::Errors::MalformedToken.new("Token should be a hash.") unless token_hash.is_a?(Hash)
         @context = token_hash
       end
 
