@@ -122,8 +122,7 @@ module Compute
 
         # check if kvm volume type is available in the list of available volume types,
         # otherwise there it is not possible to boot the image with KVM because the default type is not compatible
-        # TODO kvm: is it correct to hide the bootable volumes for kvm if no kvm volume type is available?
-        kvm_volume_type_is_available = available_volume_types.any? { |volume| volume["name"].start_with?("kvm") && volume["is_public"] }
+        kvm_volume_type_is_available = available_volume_types.any? { |volume| volume["name"].start_with?("kvm") } 
         if hv_type == "vmware" || ( hv_type == "kvm" && kvm_volume_type_is_available )
           if bootable_volumes && !bootable_volumes.empty?
             volume_items =
@@ -145,10 +144,11 @@ module Compute
       end
     end
 
-    def render_available_volume_types(volume_types, name)
+    # this renders a list of all available volume types for a given name prefix
+    def render_available_volume_types(volume_types, name_prefix)
       available_volume_types =
         volume_types.filter_map do |volume_type|
-          if volume_type["is_public"] && volume_type["name"].start_with?(name)
+          if volume_type["name"].start_with?(name_prefix)
             [
               volume_type["name"],
               volume_type["id"],
