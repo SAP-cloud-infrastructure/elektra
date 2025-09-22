@@ -68,8 +68,8 @@ class DomainConfig
     @domain_config.fetch('check_cidr_range', true)
   end
 
-  def oauth2_proxy?
-    @domain_config.fetch('oauth2_proxy', false)
+  def oidc_provider?
+    @domain_config.fetch('oidc_provider', false)
   end
 
   def idp?
