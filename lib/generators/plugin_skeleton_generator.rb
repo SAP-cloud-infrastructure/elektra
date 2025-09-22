@@ -32,6 +32,8 @@ class PluginSkeletonGenerator
     add_policy
 
     create_service_layer_service if options.service_layer?
+
+    update_license_in_readme
   end
 
   def add_policy
@@ -80,6 +82,14 @@ class PluginSkeletonGenerator
 
   def replace_test_with_spec
     create_file "#{plugin_path}/#{name}/spec/.keep"
+  end
+
+  def update_license_in_readme
+    # Update the license reference in README.md
+    readme_path = "#{plugin_path}/#{name}/README.md"
+    gsub_file readme_path, 
+      "The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).",
+      "The gem is available as open source under the terms of the [Apache License 2.0](https://opensource.org/licenses/Apache-2.0)."
   end
 
   def add_controller_spec
