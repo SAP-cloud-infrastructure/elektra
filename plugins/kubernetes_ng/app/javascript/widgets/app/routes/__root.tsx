@@ -5,7 +5,7 @@ import { ApiClient } from "../apiClient"
 import { Breadcrumb } from "../components/Breadcrumb"
 
 interface RouterContext {
-  apiClient?: ApiClient
+  apiClient: ApiClient
 }
 
 export const Root = () => {

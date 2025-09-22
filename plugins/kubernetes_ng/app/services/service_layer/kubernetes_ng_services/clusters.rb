@@ -83,7 +83,10 @@ module ServiceLayer
           version: spec.dig('kubernetes', 'version'),
           readiness: get_cluster_readiness(shoot),
           purpose: spec['purpose'],
+          cloudProfileName: spec['cloudProfileName'],
+          namespace: metadata.dig('namespace'),
           secretBindingName: spec['secretBindingName'],
+          labels: metadata['labels'] || {},
           # State details for operations tracking
           stateDetails: get_state_details(shoot),
           # Worker nodes configuration
@@ -107,8 +110,6 @@ module ServiceLayer
           'spec' => build_shoot_spec(cluster)
         }.compact
       end
-      
-      private
       
       # convert_shoot_to_cluster -> Helper functions
       # Helper function to determine cluster status from last operation

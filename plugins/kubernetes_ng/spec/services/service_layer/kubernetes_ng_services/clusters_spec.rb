@@ -10,13 +10,19 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           'uid' => '12345678-1234-1234-1234-123456789012',
           'resourceVersion' => '1234567',
           'generation' => 1,
-          'creationTimestamp' => Time.now.iso8601
+          'creationTimestamp' => Time.now.iso8601,
+          'labels' => {
+            'environment' => 'production',
+            'team' => 'devops'
+          }
         },
         'spec' => {
           'cloudProfileName' => 'openstack',
           'kubernetes' => {
             'version' => '1.25.4'
           },
+          'secretBindingName' => 'my-secret',
+          'purpose' => 'evaluation',
           'networking' => {
             'type' => 'calico',
             'pods' => '100.96.0.0/11',
@@ -102,6 +108,11 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
         infrastructure: shoot_mock['spec']['provider']['type'],
         status: 'Operational',
         version: shoot_mock['spec']['kubernetes']['version'],
+        purpose: shoot_mock['spec']['purpose'],
+        cloudProfileName: shoot_mock['spec']['cloudProfileName'],
+        namespace: shoot_mock['metadata']['namespace'],
+        secretBindingName: shoot_mock['spec']['secretBindingName'],
+        labels: shoot_mock['metadata']['labels'],
         readiness: {
           conditions: [
             {
@@ -578,6 +589,12 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
         cloudProfileName: 'openstack',
         version: '1.25.4',
         purpose: 'production',
+        metadata: {
+          labels: {
+            environment: 'production',
+            team: 'devops'
+          }
+        },
         workers: [
           {
             name: 'worker-pool-1',
@@ -608,7 +625,7 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
       expect(shoot).to eq({
         'metadata' => {
           'uid' => '12345678-1234-1234-1234-123456789012',
-          'name' => 'test-cluster'
+          'name' => 'test-cluster',
         },
         'spec' => {
           'region' => 'eu-de',
