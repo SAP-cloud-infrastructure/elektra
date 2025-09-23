@@ -798,6 +798,14 @@ module Compute
             execute_instance_action("unassign_security_group", sg, false)
           end
 
+          if @instance.errors.present?
+            flash[
+              :error
+            ] = "An error happend while assigning/unassigned security groups to the server. Error: #{@instance.errors.full_messages.join(", ")}"
+          else
+            flash[:notice] = "Security groups successfully updated."
+          end
+
           if @action_from_show
             respond_to do |format|
               format.html do
