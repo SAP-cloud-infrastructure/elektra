@@ -1,6 +1,6 @@
 import { createRouter } from "@tanstack/react-router"
 import { routeTree } from "./routeTree.gen"
-import { apiClient, gardenerApi } from "./apiClient"
+import { gardenerApi } from "./apiClient"
 
 // Register the router instance for type safety
 declare module "@tanstack/react-router" {
