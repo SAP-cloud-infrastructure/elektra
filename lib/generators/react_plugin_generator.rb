@@ -28,9 +28,16 @@ class ReactPluginGenerator
     add_routes
     update_assets
     add_controller_spec
+    add_configs
   end
 
   private
+
+  def add_configs
+    copy_file "react/.eslintrc.js", "#{plugin_path}/#{name}/.eslintrc.js"
+    copy_file "react/esbuild.plugin.js", "#{plugin_path}/#{name}/esbuild.plugin.js"
+    copy_file "react/tsconfig.json", "#{plugin_path}/#{name}/tsconfig.json"
+  end
 
   def update_assets
     remove_file "#{plugin_path}/#{name}/app/assets/stylesheets/#{name}/application.css"

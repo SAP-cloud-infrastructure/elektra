@@ -43,8 +43,17 @@
                   = link_to "App Credentials", plugin('identity').app_credentials_path 
                 %li.divider
               %li
-                = link_to 'Log out', monsoon_openstack_auth.logout_path(domain_fid: @scoped_domain_fid || params[:domain_id],
-                  domain_name: @scoped_domain_name, redirect_to: main_app.landing_page_url)
+                - # https://oauth2-proxy.github.io/oauth2-proxy/features/endpoints/#sign-out
+                - openstack_auth_logout_url = monsoon_openstack_auth.logout_path(domain_fid: @scoped_domain_fid || params[:domain_id], domain_name: @scoped_domain_name, redirect_to:  main_app.landing_page_url)
+                - dashboard_url = URI.encode_www_form_component("https://dashboard.#{current_region}.cloud.sap")
+                - oauth_logout_url = "https://auth.#{current_region}.cloud.sap/oauth2/sign_out?rd=#{dashboard_url}#{openstack_auth_logout_url}"
+                - if @domain_config.oidc_provider?
+                  - # 1. logout from oidc_provider (oauth2-proxy) to clear the session there
+                  - # 2. redirect to elektra openstack logout to clear the session there
+                  = link_to 'Log out', oauth_logout_url
+                - else
+                  - # only logout from elektra openstack to clear the session there
+                  = link_to 'Log out', openstack_auth_logout_url
 
         %li.dropdown
           %a.nav-highlight.dropdown-toggle{"aria-expanded" => "false", "data-toggle" => "dropdown", :href => "#", :role => "button"}
