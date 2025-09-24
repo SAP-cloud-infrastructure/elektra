@@ -11,11 +11,13 @@ module DnsService
       "CAA - Certification Authority Authorization record" => "caa",
       "CERT - Certificate record" => "cert",
       "CNAME - Canonical name record" => "cname",
+      "HTTPS - Hypertext Transfer Protocol Secure record" => "https",
       "MX - Mail exchange record" => "mx",
       "NS - Nameserver record" => "ns",
       "PTR - Pointer record" => "ptr",
-      "SPF - Sender Policy Framework" => "spf",
-      "SRV - Service locator" => "srv",
+      "SPF - Sender Policy Framework record" => "spf",
+      "SRV - Service locator record" => "srv",
+      "SVCB  - Service Binding record" => "svcb",
       "TXT - Text record" => "txt",
     }.freeze
 
@@ -57,13 +59,21 @@ module DnsService
         type: "text",
       },
       srv: {
-        label: "Value",
+        label: "Record Data",
         type: "string",
       },
       txt: {
         label: "Text",
         type: "text",
       },
+      svcb: {
+        label: "Record Data",
+        type: "string",
+      },
+      https: {
+        label: "Record Data",
+        type: "string",
+      }
     }.freeze
 
     validates :type, presence: { message: "Please select a type" }
