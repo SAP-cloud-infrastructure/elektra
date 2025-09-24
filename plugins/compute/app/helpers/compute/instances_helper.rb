@@ -122,21 +122,28 @@ module Compute
 
         # check if kvm volume type is available in the list of available volume types,
         # otherwise there it is not possible to boot the image with KVM because the default type is not compatible
-        kvm_volume_type_is_available = available_volume_types.any? { |volume| volume["name"].start_with?("kvm") } 
+        kvm_volume_type_is_available = available_volume_types.any? { |volume_type| volume_type["name"].start_with?("kvm") }
         if hv_type == "vmware" || ( hv_type == "kvm" && kvm_volume_type_is_available )
           if bootable_volumes && !bootable_volumes.empty?
-            volume_items =
-              @bootable_volumes.collect do |v|
-                infos = []
-                infos << "Size: #{v.size}GB" if v.size
-                infos << "(bootable)" # this is needed to identify bootable volumes on JS side
 
-                format =
-                  (v.volume_image_metadata || {}).fetch("disk_format", nil)
-                infos << "Format: #{format}" if format
-                infos_string = !infos.empty? ? "(#{infos.join(", ")})" : ""
-                ["#{v.name.present? ? v.name : v.id} #{infos_string}", v.id]
-              end
+          # select only bootable volumes that match in the metadata the hypervisor_type and img_hv_type of the image
+          volume_items = @bootable_volumes
+            .select { |v| v.volume_image_metadata && ((v.volume_image_metadata["hypervisor_type"] == hv_type) || (v.volume_image_metadata["img_hv_type"] == hv_type)) }
+            .map do |v|
+              
+              # puts "bootable volume name: #{v.name}, id: #{v.id}"
+              # puts "hypervisor_type: #{v.volume_image_metadata["hypervisor_type"]}"
+              # puts "img_hv_type: #{v.volume_image_metadata["img_hv_type"]}"
+              
+              infos = []
+              infos << "Size: #{v.size}GB" if v.size
+              infos << "Avz: #{v.availability_zone}" if v.availability_zone
+              infos << "Format: #{v.volume_image_metadata["disk_format"] if v.volume_image_metadata}" 
+              # this is needed to select with javascript
+              infos << "Bootable: #{hv_type}"
+              infos_string = !infos.empty? ? "(#{infos.join(", ")})" : ""
+              ["#{v.name.present? ? v.name : v.id} #{infos_string}", v.id]
+            end
             groups.unshift(["--bootable volumes", volume_items])
           end
         end

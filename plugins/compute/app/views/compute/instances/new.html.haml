@@ -70,7 +70,7 @@
         label: 'Custom Root Disk Size in GB'
 
     #baremetal_image_id_wrapper{class:'hidden'}
-      = f.input :baremetal_image_id, label: 'BM Image',
+      = f.input :baremetal_image_id, label: 'Baremetal Image',
         selected:      @instance.image_id, 
         as:            :grouped_select,
         collection:    grouped_images(@images, 'baremetal', @bootable_volumes),
@@ -79,7 +79,7 @@
         required:      true
         
     #vmware_image_id_wrapper{class:'hidden'}
-      = f.input :vmware_image_id, label: 'VM Image',
+      = f.input :vmware_image_id, label: 'VMware Image',
         selected:      @instance.image_id, 
         as:            :grouped_select,
         collection:    grouped_images(@images, 'vmware', @bootable_volumes),
@@ -123,6 +123,7 @@
           $('#server_custom_root_disk_size').val('');
           $('#server_custom_root_disk').prop("checked", false);
           $('button:contains("Create")').prop('disabled', false);
+          $('#kvm_volume_type').addClass('hidden');
         }
         else if ($('#server_flavor_id option:selected').text().match(/kvm/)) {
             // kvm
@@ -151,6 +152,7 @@
           $('#server_custom_root_disk_size').val("");
           $('#custom_root_disk_wrapper').addClass('hidden');
           $('button:contains("Create")').prop('disabled', false);
+          $('#kvm_volume_type').addClass('hidden');
         }
         else {
           // vmware
@@ -165,6 +167,7 @@
           $('#server_custom_root_disk_size').val("");
           $('#custom_root_disk_wrapper').removeClass('hidden');
           $('button:contains("Create")').prop('disabled', false);
+          $('#kvm_volume_type').addClass('hidden');
         }
       }
 
@@ -238,7 +241,7 @@
         // show available volume types for bootable volumes in kvm
         $('#kvm_image_id_wrapper').on('change', function() {
           console.log("kvm image changed");
-          if ($('#kvm_image_id_wrapper option:selected').text().match(/bootable/)) {
+          if ($('#kvm_image_id_wrapper option:selected').text().match(/Bootable: kvm/)) {
             $('#kvm_volume_type').removeClass('hidden');
             $('button:contains("Create")').prop('disabled', true);
           } else {
@@ -252,7 +255,7 @@
         // enable create button only if volume type is selected for kvm bootable volumes
         $('#server_kvm_volume_type').change(function() {
             var selectedValue = $(this).val(); 
-            if (selectedValue && $('#kvm_image_id_wrapper option:selected').text().match(/bootable/)) {
+            if (selectedValue && $('#kvm_image_id_wrapper option:selected').text().match(/Bootable: kvm/)) {
                 $('button:contains("Create")').prop('disabled', false);
             } else {
                 console.log('No selection made');

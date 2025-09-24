@@ -223,7 +223,8 @@ module Compute
     end
 
     def create
-      volume_type = "vmware"
+      # https://docs.openstack.org/api-ref/compute/#create-server
+      volume_type = ""
       # set image_id if baremetal_image_id or vmware_image_id or kvm_image_id is set
       # also set volume_type for bootable image if vmware_image_id or kvm_image_id is set
       if params[:server][:baremetal_image_id] != ""
