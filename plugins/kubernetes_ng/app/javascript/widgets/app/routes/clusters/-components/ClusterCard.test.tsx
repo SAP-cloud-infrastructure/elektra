@@ -3,6 +3,10 @@ import { render, screen, fireEvent, act } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import ClusterCard from "./ClusterCard"
 import { Cluster } from "../../../types/clusters"
+import { createRoute, createRootRoute, RouterProvider, createMemoryHistory, Outlet } from "@tanstack/react-router"
+import { PortalProvider } from "@cloudoperators/juno-ui-components/index"
+import { getTestRouter } from "../../../mocks/getTestRouter"
+import { defaultCluster } from "../../../mocks/data"
 
 // Mock navigator.clipboard
 Object.assign(navigator, {
@@ -11,41 +15,51 @@ Object.assign(navigator, {
   },
 })
 
-const defaultCluster: Cluster = {
-  uid: "12345678-1234-1234-1234-1234567890ab",
-  name: "test-cluster",
-  status: "Operational",
-  region: "",
-  readiness: {
-    status: "",
-    conditions: [
-      { type: "Ready", status: "True", displayValue: "Ready" },
-      { type: "ControlPlaneHealthy", status: "True", displayValue: "Control Plane Healthy" },
-    ],
-  },
-  purpose: "Testing",
-  infrastructure: "AWS",
-  version: "1.25.0",
-  lastMaintenance: { state: "Succeeded" },
-  workers: [],
-  maintenance: {
-    startTime: "",
-    timezone: "",
-    windowTime: "",
-  },
-  autoUpdate: { os: false, kubernetes: false },
+const renderComponent = (cluster: Cluster = defaultCluster) => {
+  const rootRoute = createRootRoute({
+    component: () => <Outlet />,
+  })
+  const testRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: "/clusters/",
+    loader: async () =>
+      Promise.resolve({
+        crumb: {
+          label: "Clusters",
+          icon: "home",
+        },
+        clusters: [cluster],
+      }),
+    component: () => (
+      <PortalProvider>
+        <ClusterCard cluster={cluster} />
+      </PortalProvider>
+    ),
+  })
+  const routeTree = rootRoute.addChildren([testRoute])
+  const router = getTestRouter({
+    routeTree,
+    history: createMemoryHistory({
+      initialEntries: ["/clusters/"],
+    }),
+  })
+
+  return {
+    ...render(<RouterProvider router={router} />),
+    router,
+  }
 }
 
 describe("<ClusterCard />", () => {
   let container: HTMLElement
 
-  it("renders cluster name", () => {
-    render(<ClusterCard cluster={defaultCluster} />)
+  it("renders cluster name", async () => {
+    await act(async () => renderComponent())
     expect(screen.getByText("test-cluster")).toBeInTheDocument()
   })
 
-  it("displays correct status icon and color for Operational status", () => {
-    const rendered = render(<ClusterCard cluster={defaultCluster} />)
+  it("displays correct status icon and color for Operational status", async () => {
+    const rendered = await act(async () => renderComponent())
     container = rendered.container
     const statusIcon = container.querySelector('[data-status-icon="status-icon"]')
     expect(statusIcon).toBeInTheDocument()
@@ -53,9 +67,9 @@ describe("<ClusterCard />", () => {
     expect(statusIcon).toHaveAttribute("data-color", "tw-text-theme-accent")
   })
 
-  it("displays correct status icon and color for Error status", () => {
+  it("displays correct status icon and color for Error status", async () => {
     const errorCluster = { ...defaultCluster, status: "Error" }
-    const rendered = render(<ClusterCard cluster={errorCluster} />)
+    const rendered = await act(async () => renderComponent(errorCluster))
     container = rendered.container
 
     const statusIcon = container.querySelector('[data-status-icon="status-icon"]')
@@ -64,8 +78,8 @@ describe("<ClusterCard />", () => {
     expect(statusIcon).toHaveAttribute("data-color", "tw-text-theme-error")
   })
 
-  it("renders readiness conditions with correct badges when ready and CP healthy", () => {
-    render(<ClusterCard cluster={defaultCluster} />)
+  it("renders readiness conditions with correct badges when ready and CP healthy", async () => {
+    await act(async () => renderComponent())
 
     const badges = screen.getAllByText(/Ready|Control Plane Healthy/)
     expect(badges).toHaveLength(2)
@@ -75,7 +89,7 @@ describe("<ClusterCard />", () => {
     expect(badges[1]).toHaveClass("juno-badge-success")
   })
 
-  it("renders readiness conditions with correct badges when not ready", () => {
+  it("renders readiness conditions with correct badges when not ready", async () => {
     const errorCluster = {
       ...defaultCluster,
       readiness: {
@@ -89,7 +103,7 @@ describe("<ClusterCard />", () => {
         ],
       },
     }
-    render(<ClusterCard cluster={errorCluster} />)
+    await act(async () => renderComponent(errorCluster))
 
     const badges = screen.getAllByText(/API|CP|OC|N|SC/)
     expect(badges).toHaveLength(5)
@@ -108,7 +122,7 @@ describe("<ClusterCard />", () => {
   it("copies cluster ID to clipboard when ID is clicked", async () => {
     const text = "12345678-1234-1234-1234-1234567890ab"
     const clusterWithLongId = { ...defaultCluster, uid: text }
-    render(<ClusterCard cluster={clusterWithLongId} />)
+    await act(async () => renderComponent(clusterWithLongId))
 
     const clusterId = screen.getByText(text)
 
@@ -121,8 +135,8 @@ describe("<ClusterCard />", () => {
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(text)
   })
 
-  it("renders View Details button", () => {
-    render(<ClusterCard cluster={defaultCluster} />)
+  it("renders View Details button", async () => {
+    await act(async () => renderComponent())
 
     const viewDetailsButton = screen.getByRole("button", { name: "View Details" })
     // TODO test the link to details as soon as implemented
