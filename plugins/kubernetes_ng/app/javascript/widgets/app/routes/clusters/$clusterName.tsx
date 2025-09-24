@@ -32,9 +32,9 @@ export const Route = createFileRoute("/clusters/$clusterName")({
       permissionsPromise: Promise<Record<string, boolean> | undefined>
     }
   > => {
-    const client = context.gardenerApi
-    const clusterDetailsPromise = client.getClusterByName(params.clusterName)
-    const permissionsPromise = client.getPermissions()
+    const client = context.apiClient
+    const clusterDetailsPromise = client.gardener.getClusterByName(params.clusterName)
+    const permissionsPromise = client.gardener.getPermissions()
 
     return {
       crumb: {

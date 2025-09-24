@@ -19,9 +19,9 @@ import InlineError from "../../components/InlineError"
 export const Route = createFileRoute("/clusters/")({
   component: Index,
   loader: async ({ context }) => {
-    const client = context.gardenerApi
-    const clustersPromise = client.getClusters()
-    const permissionsPromise = client.getPermissions()
+    const client = context.apiClient
+    const clustersPromise = client.gardener.getClusters()
+    const permissionsPromise = client.gardener.getPermissions()
 
     return {
       clustersPromise,

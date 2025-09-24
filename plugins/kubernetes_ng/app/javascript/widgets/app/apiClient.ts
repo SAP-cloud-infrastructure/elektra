@@ -20,8 +20,7 @@ const permissionsApi = {
 }
 
 export const gardenerApi = {
-  ...shootApi,
-  ...permissionsApi,
+  gardener: { ...shootApi, ...permissionsApi },
 }
 
 export type GardenerApi = typeof gardenerApi

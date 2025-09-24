@@ -5,7 +5,7 @@ import { GardenerApi } from "../apiClient"
 import { Breadcrumb } from "../components/Breadcrumb"
 
 interface RouterContext {
-  gardenerApi: GardenerApi
+  apiClient: GardenerApi
 }
 
 export const Root = () => {

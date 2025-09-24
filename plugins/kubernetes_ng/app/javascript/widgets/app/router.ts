@@ -12,7 +12,7 @@ declare module "@tanstack/react-router" {
 export const router = createRouter({
   routeTree,
   context: {
-    gardenerApi: gardenerApi,
+    apiClient: gardenerApi,
   },
   defaultPreload: "intent",
   scrollRestoration: true,
