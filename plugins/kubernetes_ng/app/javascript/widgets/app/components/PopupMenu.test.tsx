@@ -1,20 +1,7 @@
 import React from "react"
-import { render, screen, fireEvent, act } from "@testing-library/react"
+import { render, screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import PopupMenu from "./PopupMenu"
-import {
-  JsonViewer,
-  PopupMenuOptions,
-  PopupMenuItem,
-  Modal,
-  Button,
-  Container,
-  DataGrid,
-  DataGridRow,
-  DataGridHeadCell,
-  DataGridCell,
-  Stack,
-} from "@cloudoperators/juno-ui-components"
 
 describe("<PopupMenu />", () => {
   it("applies temporary custom popup menu styles", () => {
