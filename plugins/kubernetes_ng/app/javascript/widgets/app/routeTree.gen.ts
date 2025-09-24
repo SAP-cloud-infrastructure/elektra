@@ -9,48 +9,72 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ClustersRouteRouteImport } from './routes/clusters/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ClustersIndexRouteImport } from './routes/clusters/index'
+import { Route as ClustersClusterNameRouteImport } from './routes/clusters/$clusterName'
 
+const ClustersRouteRoute = ClustersRouteRouteImport.update({
+  id: '/clusters',
+  path: '/clusters',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClustersIndexRoute = ClustersIndexRouteImport.update({
-  id: '/clusters/',
-  path: '/clusters/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => ClustersRouteRoute,
+} as any)
+const ClustersClusterNameRoute = ClustersClusterNameRouteImport.update({
+  id: '/$clusterName',
+  path: '/$clusterName',
+  getParentRoute: () => ClustersRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/clusters': typeof ClustersIndexRoute
+  '/clusters': typeof ClustersRouteRouteWithChildren
+  '/clusters/$clusterName': typeof ClustersClusterNameRoute
+  '/clusters/': typeof ClustersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/clusters/$clusterName': typeof ClustersClusterNameRoute
   '/clusters': typeof ClustersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/clusters': typeof ClustersRouteRouteWithChildren
+  '/clusters/$clusterName': typeof ClustersClusterNameRoute
   '/clusters/': typeof ClustersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/clusters'
+  fullPaths: '/' | '/clusters' | '/clusters/$clusterName' | '/clusters/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/clusters'
-  id: '__root__' | '/' | '/clusters/'
+  to: '/' | '/clusters/$clusterName' | '/clusters'
+  id: '__root__' | '/' | '/clusters' | '/clusters/$clusterName' | '/clusters/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ClustersIndexRoute: typeof ClustersIndexRoute
+  ClustersRouteRoute: typeof ClustersRouteRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/clusters': {
+      id: '/clusters'
+      path: '/clusters'
+      fullPath: '/clusters'
+      preLoaderRoute: typeof ClustersRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -60,17 +84,38 @@ declare module '@tanstack/react-router' {
     }
     '/clusters/': {
       id: '/clusters/'
-      path: '/clusters'
-      fullPath: '/clusters'
+      path: '/'
+      fullPath: '/clusters/'
       preLoaderRoute: typeof ClustersIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ClustersRouteRoute
+    }
+    '/clusters/$clusterName': {
+      id: '/clusters/$clusterName'
+      path: '/$clusterName'
+      fullPath: '/clusters/$clusterName'
+      preLoaderRoute: typeof ClustersClusterNameRouteImport
+      parentRoute: typeof ClustersRouteRoute
     }
   }
 }
 
+interface ClustersRouteRouteChildren {
+  ClustersClusterNameRoute: typeof ClustersClusterNameRoute
+  ClustersIndexRoute: typeof ClustersIndexRoute
+}
+
+const ClustersRouteRouteChildren: ClustersRouteRouteChildren = {
+  ClustersClusterNameRoute: ClustersClusterNameRoute,
+  ClustersIndexRoute: ClustersIndexRoute,
+}
+
+const ClustersRouteRouteWithChildren = ClustersRouteRoute._addFileChildren(
+  ClustersRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ClustersIndexRoute: ClustersIndexRoute,
+  ClustersRouteRoute: ClustersRouteRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

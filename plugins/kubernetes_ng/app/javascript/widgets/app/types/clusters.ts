@@ -20,7 +20,8 @@ export const clusterSchema = z.object({
     ),
   }),
   purpose: z.string().optional(),
-
+  cloudProfileName: z.string().optional(),
+  labels: z.record(z.string()).optional(),
   // New state information fields
   stateDetails: z
     .object({

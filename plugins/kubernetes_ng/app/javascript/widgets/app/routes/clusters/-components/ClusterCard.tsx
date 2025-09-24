@@ -7,12 +7,13 @@ import {
   DataGridHeadCell,
   DataGridCell,
   Container,
-  Badge,
   Button,
 } from "@cloudoperators/juno-ui-components"
 import Card from "../../../components/Card"
 import { Cluster } from "../../../types/clusters"
 import ClipboardText from "../../../components/ClipboardText"
+import { Link } from "@tanstack/react-router"
+import RedinessConditions from "../../../components/RedinessConditions"
 
 const getStatusStyles = (status: string) => {
   switch (status.toLowerCase()) {
@@ -43,32 +44,6 @@ const getStatusStyles = (status: string) => {
   }
 }
 
-const getReadinessConditionStyles = (status: string) => {
-  // TODO add intermediate conditions as Processing, Degraded etc.
-  switch (status) {
-    case "True":
-      return {
-        variant: "success" as const,
-      }
-    case "False":
-      return {
-        variant: "error" as const,
-      }
-    default:
-      return {
-        variant: "warning" as const,
-      }
-  }
-}
-
-const renderReadinessConditions = (conditions: Array<{ type: string; status: string; displayValue: string }>) => {
-  return conditions.map((condition) => {
-    const conditionStyles = getReadinessConditionStyles(condition.status)
-
-    return <Badge key={condition.type} text={condition.displayValue} icon variant={conditionStyles.variant} />
-  })
-}
-
 const ClusterCard: React.FC<{
   cluster: Cluster
 }> = ({ cluster }) => {
@@ -95,11 +70,13 @@ const ClusterCard: React.FC<{
               </Stack>
               <Stack gap="2" direction="horizontal" className="tw-whitespace-nowrap">
                 {/* Actions */}
-                <Button size="small" label="View Details" variant="primary" />
+                <Link to="/clusters/$clusterName" params={{ clusterName: cluster.name }}>
+                  <Button label="View Details" variant="primary" size="small" />
+                </Link>
               </Stack>
             </Stack>
             {/* Readiness conditions */}
-            <Stack gap="1">{renderReadinessConditions(cluster.readiness.conditions)}</Stack>
+            <RedinessConditions conditions={cluster.readiness.conditions} />
           </Stack>
         </div>
 

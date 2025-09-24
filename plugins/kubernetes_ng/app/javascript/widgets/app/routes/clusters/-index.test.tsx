@@ -20,7 +20,7 @@ const renderComponent = () => {
           label: "Clusters",
           icon: "home",
         },
-        clusters: [defaultCluster],
+        clustersPromise: Promise.resolve([defaultCluster]),
       }),
     component: () => (
       <PortalProvider>
