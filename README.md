@@ -290,34 +290,34 @@ For ease-of-use we have provided a generator which generates a skeleton plugin f
 
 ` cd [Elektra root]`
 
-`bin/generate dashboard_plugin NAME`
+`bin/generate PLUGIN_NAME`
 
 #### Create ServiceLayer Plugin
 
 ` cd [Elektra root]`
 
-`bin/generate dashboard_plugin NAME --service_layer`
+`bin/generate PLUGIN_NAME --service_layer`
 
 #### Create Mountable Plugin
 
 ` cd [Elektra root]`
 
-`bin/generate dashboard_plugin NAME --mountable`
+`bin/generate PLUGIN_NAME --mountable`
 
 #### Create Mountable ServiceLayer-Plugin
 
 ` cd [Elektra root]`
 
-`bin/generate dashboard_plugin NAME --mountable --service_layer`
+`bin/generate PLUGIN_NAME --mountable --service_layer`
 
 #### Create React Plugin
 
 ` cd [Elektra root]`
 
-`bin/generate dashboard_plugin NAME --react`
+`bin/generate PLUGIN_NAME --react`
 
 For more information use:
-`bin/generate dashboard_plugin --help`
+`bin/generate --help`
 
 ### Creating Migrations
 
