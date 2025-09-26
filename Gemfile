@@ -58,10 +58,6 @@ gem 'httpclient' # The only faraday backend that handled no_proxy :|
 gem 'sentry-raven'
 gem 'faraday-httpclient', '~> 2.0'
 
-# auth
-# gem 'monsoon-openstack-auth', path: '../monsoon-openstack-auth'
-gem 'monsoon-openstack-auth', git: 'https://github.com/sapcc/monsoon-openstack-auth.git'
-
 # See https://github.com/sstephenson/execjs#readme for more supported runtimes
 # gem 'therubyracer', platforms: :ruby
 
@@ -131,7 +127,6 @@ group :development, :test do
 
   # Testing
 
-  gem 'rspec-rails'
   # gem 'factory_girl_rails', '~> 4.0'
   gem 'database_cleaner'
   gem 'factory_bot_rails'
@@ -146,3 +141,4 @@ group :test do
 end
 
 
+gem "rspec-rails", "~> 7.1"

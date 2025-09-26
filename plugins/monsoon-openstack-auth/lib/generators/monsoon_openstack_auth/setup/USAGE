@@ -1,0 +1,9 @@
+Description:
+    Setup the current app for using monsoon-openstack-auth
+
+Example:
+    rails generate monsoon_openstack_auth:setup
+
+    This will create:
+        - add mount point route for monsoon_openstack_auth
+        - create an initializer

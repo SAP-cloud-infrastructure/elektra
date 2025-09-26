@@ -1,0 +1,87 @@
+.panel.panel-collapse
+  %span.panel-toggle.js-panel-collapse-toggle
+    .panel-heading
+      %span.icon-chevron-right
+      %h3.panel-title
+        Keystone Token Debug
+  .panel-body
+    .row
+      .span2
+        %label
+          Token
+      .span9
+        %pre
+          =token[:value]
+    .row
+      .span2
+        %label
+          Expires
+      .span9
+        %pre
+          =token[:expires_at]
+    .row
+      .span2
+        %label
+          Issued At
+      .span9
+        %pre
+          =token[:issued_at]
+    .row
+      .span2
+        %label
+          Domain
+      .span9
+        %pre
+          -if token[:domain]
+            =token[:domain][:id]
+          -elsif token[:project]
+            =token[:project][:domain][:id]
+          -else
+            Not Set
+    .row
+      .span2
+        %label
+          Project
+      .span9
+        %pre
+          -if token[:project]
+            =token[:project][:id]
+          -else
+            Not Set
+    .row
+      .span2
+        %label
+          User
+      .span9
+        %pre
+          -if token[:user]
+            =token[:user][:id]
+            ( #{token[:user][:name]} )
+    .row
+      %h4
+        Service
+      %table.table
+        %thead
+          %tr
+            %th
+              ID
+            %th
+              Name
+            %th
+              Type
+            %th
+              Endpoints
+          -Array.wrap(token[:catalog]).each do |service|
+            %tr
+              %td
+                =service[:id]
+              %td
+                =service[:name]
+              %td
+                =service[:type]
+
+              %td
+                -service[:endpoints].each do |ep|
+                  %span.badge
+                    %span{data:{toggle: :popover,trigger: :hover,content:ep[:url]}}
+                      #{ep[:interface]} (#{ep[:region] ? ep[:region] : 'global'})
