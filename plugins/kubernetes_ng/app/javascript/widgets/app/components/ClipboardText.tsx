@@ -34,9 +34,7 @@ const ClipboardText: React.FC<ClipboardTextProps> = ({
   return (
     <div data-testid="clipboard-text" {...props} className={combinedClassName}>
       <Tooltip open={open}>
-        <TooltipTrigger onClick={handleCopy} className="cursor-pointer">
-          {text}
-        </TooltipTrigger>
+        <TooltipTrigger onClick={handleCopy}>{text}</TooltipTrigger>
         <TooltipContent>{tooltipContent}</TooltipContent>
       </Tooltip>
     </div>
