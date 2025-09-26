@@ -195,11 +195,11 @@ module MonsoonOpenstackAuth
             parsed_rule = rule.gsub(/%\(/, 'params["').gsub(/\)s/, '"]')
 
             # replace "(" and ")" with " ( " and " ) "
-            parsed_rule.gsub!(/\s*(?<bracket>\(|\))\s*/, ' \k<bracket> ')
+            parsed_rule.gsub!(/\s*+([()])\s*+/, ' \1 ')
             # replace "or" and "and" with " or " and " and "
-            parsed_rule.gsub!(/\s+(?<operator>or|\bor\b|and|\band\b)\s+/i, ' \k<operator> ')
+            parsed_rule.gsub!(/\s++\b(or|and)\b\s++/i, ' \1 ')
             # remove spaces betwenn ":" and text
-            parsed_rule.gsub!(/\s*(?<colon>:)\s*/, '\k<colon>')
+            parsed_rule.gsub!(/\s*+:\s*+/, ':')
             ############# end #############
 
             # replace params["param1.param2.param3"] with (params["param1"].param2.param3 rescue false)
