@@ -83,7 +83,6 @@ describe("<ClusterList />", () => {
   it("renders 'No clusters found' when the clusters array is empty with the list header", async () => {
     await act(async () => renderComponent([]))
 
-    // Check for table headers also even if no clusters are present
     expectClusterListHeaders()
 
     expect(screen.getByText("No clusters found")).toBeInTheDocument()
