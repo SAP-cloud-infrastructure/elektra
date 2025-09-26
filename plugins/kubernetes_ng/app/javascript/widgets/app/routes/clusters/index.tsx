@@ -1,23 +1,11 @@
-import React, { useState } from "react"
+import React from "react"
 import { createFileRoute, useLoaderData, Await } from "@tanstack/react-router"
-import {
-  JsonViewer,
-  Container,
-  ContentHeading,
-  Grid,
-  GridRow,
-  Stack,
-  PopupMenuItem,
-  Modal,
-  Button,
-  Spinner,
-} from "@cloudoperators/juno-ui-components"
-import ClusterCard from "./-components/ClusterCard"
-import PopupMenu from "../../components/PopupMenu"
+import { Container, ContentHeading, Stack, Button, Spinner } from "@cloudoperators/juno-ui-components"
 import InlineError from "../../components/InlineError"
+import ClusterList from "./-components/ClusterList"
 
 export const Route = createFileRoute("/clusters/")({
-  component: Index,
+  component: Clusters,
   loader: async ({ context }) => {
     const client = context.apiClient
     const clustersPromise = client.gardener.getClusters()
@@ -30,8 +18,7 @@ export const Route = createFileRoute("/clusters/")({
   },
 })
 
-function Index() {
-  const [displayJson, setDisplayJson] = useState(false)
+function Clusters() {
   const { clustersPromise, permissionsPromise } = useLoaderData({ from: Route.id })
 
   return (
@@ -43,11 +30,6 @@ function Index() {
             return (
               <Stack gap="2" className="tw-whitespace-nowrap" distribution="center">
                 <Button size="small" label="Add Cluster" disabled={!permissions?.create} />
-                <PopupMenu>
-                  <div onClick={() => setDisplayJson(true)}>
-                    <PopupMenuItem label="JSON" />
-                  </div>
-                </PopupMenu>
               </Stack>
             )
           }}
@@ -71,22 +53,9 @@ function Index() {
                   <InlineError error={new Error("You do not have permission to view clusters.")} />
                 </Container>
               ) : (
-                <>
-                  {clusters && clusters.length === 0 ? (
-                    <p>No clusters found.</p>
-                  ) : (
-                    <Container py px={false}>
-                      <Grid>
-                        <GridRow>
-                          {clusters?.map((cluster) => <ClusterCard key={cluster.uid} cluster={cluster} />)}
-                        </GridRow>
-                      </Grid>
-                    </Container>
-                  )}
-                  <Modal size="large" onCancel={() => setDisplayJson(false)} open={displayJson}>
-                    <JsonViewer expanded={2} data={clusters || []} />
-                  </Modal>
-                </>
+                <Container py px={false}>
+                  <ClusterList clusters={clusters} />
+                </Container>
               )}
             </>
           )
@@ -96,4 +65,4 @@ function Index() {
   )
 }
 
-export default Index
+export default Clusters
