@@ -203,9 +203,9 @@ module MonsoonOpenstackAuth
             ############# end #############
 
             # replace params["param1.param2.param3"] with (params["param1"].param2.param3 rescue false)
-            parsed_rule.gsub!(/params\["(?<param>[^.\]]+)(?<attributes>(?:\.[^\]]+)+)"\]/, 'params["\k<param>"]\k<attributes>')
+            parsed_rule.gsub!(/params\["([^.\]]+)((?:\.[^\]]+)+)"\]/, 'params["\1"]\2')
             # replace params["param"] with params["param".to_sym]
-            parsed_rule.gsub!(/params\["(?<param>[^\]]+)"\]/, 'params["\k<param>".to_sym]')
+            parsed_rule.gsub!(/params\["([^\]]+)"\]/, 'params["\1".to_sym]')
             # replace "True" and "@" and empty rule with "true"
             parsed_rule.gsub!(/^$/, 'true')
             parsed_rule.gsub!(/True|@/i, 'true')
@@ -217,11 +217,11 @@ module MonsoonOpenstackAuth
             parsed_rule.gsub!(/rule:([^\s]+)/) { |m| "rule:#{$1.gsub(/\:/, '<->')}" }
 
             # replace rule:name with @rules["name"].execute(locals,params)
-            parsed_rule.gsub!(/rule:(?<rule>[^\s]+)/, '@rules.get("\k<rule>").execute(locals,params,trace)')
+            parsed_rule.gsub!(/rule:([^\s]+)/, '@rules.get("\1").execute(locals,params,trace)')
             # replace role:name with locals["roles"].include?("name")
-            parsed_rule.gsub!(/role:(?<role>[^\s]+)/, 'locals["roles"].include?("\k<role>")')
+            parsed_rule.gsub!(/role:([^\s]+)/, 'locals["roles"].include?("\1")')
             # replace name:value with (locals["name"]=="value" rescue false)
-            parsed_rule.gsub!(/(?<key>[^\s|:]+):(?<value>[^\s]+)/, '(begin; locals["\k<key>"]==\k<value>; rescue; false; end)')
+            parsed_rule.gsub!(/([^\s|:]+):([^\s]+)/, '(begin; locals["\1"]==\2; rescue; false; end)')
 
             #********* recover rules
             # replace <-> with :
