@@ -205,7 +205,7 @@ module MonsoonOpenstackAuth
             # replace params["param1.param2.param3"] with (params["param1"].param2.param3 rescue false)
             parsed_rule.gsub!(/params\["([^.\]"]+)((?:\.[^\]"]+)+)"\]/, 'params["\1"]\2')
             # replace params["param"] with params["param".to_sym]
-            parsed_rule.gsub!(/params\["([^\]]+)"\]/, 'params["\1".to_sym]')
+            parsed_rule.gsub!(/params\["([^\]"]+)"\]/, 'params["\1".to_sym]')
             # replace "True" and "@" and empty rule with "true"
             parsed_rule.gsub!(/^$/, 'true')
             parsed_rule.gsub!(/True|@/i, 'true')
@@ -219,10 +219,9 @@ module MonsoonOpenstackAuth
             # replace rule:name with @rules["name"].execute(locals,params)
             parsed_rule.gsub!(/rule:([^\s]+)/, '@rules.get("\1").execute(locals,params,trace)')
             # replace role:name with locals["roles"].include?("name")
-            parsed_rule.gsub!(/role:([^\s]+)/, 'locals["roles"].include?("\1")')
+            parsed_rule.gsub!(/role:([^\s:]+)/, 'locals["roles"].include?("\1")')
             # replace name:value with (locals["name"]=="value" rescue false)
-            parsed_rule.gsub!(/([^\s|:]+):([^\s]+)/, '(begin; locals["\1"]==\2; rescue; false; end)')
-
+            parsed_rule.gsub!(/([^\s|:]+):([^\s:]+)/, '(begin; locals["\1"]==\2; rescue; false; end)')
             #********* recover rules
             # replace <-> with :
             parsed_rule.gsub!("<->", ":")
@@ -239,7 +238,7 @@ module MonsoonOpenstackAuth
           protected
 
           def parse_js(parsed_rule)
-            js_rule = parsed_rule.gsub(/@rules\.get\(([^\)]+)\)\.execute\([^\)]+\)/, 'rules[\1](rules,locals,params)')
+            js_rule = parsed_rule.gsub(/@rules\.get\(([^\)("]+)\)\.execute\([^\)("]+\)/, 'rules[\1](rules,locals,params)')
             js_rule.gsub!(/locals\["roles"\]\.include\?\(([^\)]+)\)/, 'locals["roles"].indexOf(\1)>=0')
             js_rule.gsub!(/begin;([^;]+);\s*rescue;([^;]+);\s*end/, 'function(){try { return \1;} catch(e){ return \2;} }() ')
             js_rule.gsub!(/\.to_sym/, '')
