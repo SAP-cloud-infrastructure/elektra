@@ -14,8 +14,4 @@ module Constants
       openstack_api_key: 'secret'
     }
   end
-
-
-
-
 end

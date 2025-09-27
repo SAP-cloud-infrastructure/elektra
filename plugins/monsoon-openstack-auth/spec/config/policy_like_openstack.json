@@ -1,6 +1,6 @@
 {
-  "p_owner" : "project_id:%(project_id)s",
-  "d_owner" : "domain_id:%(domain_id)s",
+  "p_owner": "project_id:%(project_id)s",
+  "d_owner": "domain_id:%(domain_id)s",
   "member": "rule:p_owner or rule:d_owner",
   "admin_required": "role:admin or is_admin:True",
   "admin_or_member": "rule:admin_required or rule:member",
