@@ -203,7 +203,7 @@ module MonsoonOpenstackAuth
             ############# end #############
 
             # replace params["param1.param2.param3"] with (params["param1"].param2.param3 rescue false)
-            parsed_rule.gsub!(/params\["([^.\]]+)((?:\.[^\]]+)+)"\]/, 'params["\1"]\2')
+            parsed_rule.gsub!(/params\["([^.\]"]+)((?:\.[^\]"]+)+)"\]/, 'params["\1"]\2')
             # replace params["param"] with params["param".to_sym]
             parsed_rule.gsub!(/params\["([^\]]+)"\]/, 'params["\1".to_sym]')
             # replace "True" and "@" and empty rule with "true"
@@ -332,7 +332,8 @@ module MonsoonOpenstackAuth
         protected
 
         def extract_required_locals
-          @parsed_rule.scan(/locals\["([^\]]+)"\]/).flatten
+          # @parsed_rule.scan(/locals\["([^\]]+)"\]/).flatten
+          @parsed_rule.scan(/locals\["([^\]"]+)"\]/).flatten
         end
 
         def extract_required_params
