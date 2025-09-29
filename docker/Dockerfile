@@ -55,7 +55,7 @@ RUN apk --no-cache add postgresql16-dev ruby-sassc \
     nio4r:2.7.1 \
     nokogiri:1.18.9 \
     pg:1.3.4 \
-    puma:6.4.2  \
+    puma:6.4.3  \
     redcarpet:3.6.0 \
     unf:0.2.0.beta2 \
     websocket-driver:0.7.6 \
@@ -116,9 +116,13 @@ RUN curl -fL http://aia.pki.co.sap.com/aia/SAP%20Global%20Root%20CA.crt -o /usr/
     update-ca-certificates
 
 # to upgrade the image to the latest
-# this is used to ensure all packages are up to date and 
-# vulnerable packages are fixed
+# this is used to ensure all packages are up to date and vulnerable packages are fixed
 RUN apk update && apk upgrade
+
+# rexml version 3.4.0 has a vulnerability see https://avd.aquasec.com/nvd/cve-2025-58767
+# we need to install version 3.4.2 and remove 3.4.0
+# Note: this needs to be removed once the base image is updated to a newer ruby version which includes rexml 3.4.2
+RUN gem install rexml -v 3.4.2 && rm /usr/local/lib/ruby/gems/3.4.0/specifications/rexml-3.4.0.gemspec
 
 # Note: in our k8s this will be overwriten from deployment
 ENTRYPOINT ["dumb-init", "-c", "--" ]

@@ -12,7 +12,7 @@ const InlineError = ({ error, className, ...props }: InlineErrorProps) => {
   const errorMessage = error.message || "Something went wrong"
   return (
     <Stack gap="2" alignment="center" className={`inline-error ${className}`} {...props}>
-      <Icon color="jn-text-theme-danger" icon="danger" />
+      <Icon color="tw-text-theme-danger" icon="danger" />
       <p>
         {errorName}
         {errorMessage}

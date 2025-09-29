@@ -7,7 +7,7 @@ module Image
         paginatable(per_page: 15) do |pagination_options|
           services.image.images(filter_params.merge(pagination_options))
         end
-
+      
       # this is relevant in case an ajax paginate call is made.
       # in this case we don't render the layout, only the list!
       if request.xhr?

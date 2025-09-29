@@ -74,3 +74,5 @@ yarn-debug.log*
 
 config/support/domain_config.local.yaml
 .npmrc
+
+.out-of-code-insights

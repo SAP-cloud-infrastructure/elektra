@@ -2,7 +2,6 @@ import React from "react"
 import { Badge, Stack } from "@cloudoperators/juno-ui-components"
 
 const getReadinessConditionStyles = (status: string) => {
-  // TODO add intermediate conditions as Processing, Degraded etc.
   switch (status) {
     case "True":
       return {
@@ -39,7 +38,7 @@ const RedinessConditions: React.FC<RedinessConditionsProps> = ({ conditions, ...
           <Badge
             key={condition.type}
             text={condition.displayValue}
-            icon
+            icon={conditionStyles.variant !== "success"}
             variant={conditionStyles.variant}
             data-variant={conditionStyles.variant}
           />
