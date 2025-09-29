@@ -5,7 +5,7 @@ export const Route = createFileRoute("/clusters")({
   loader: (): LoaderWithCrumb => ({
     crumb: {
       label: "Clusters",
-      icon: "home",
+      icon: "widgets",
     },
   }),
   component: Outlet,

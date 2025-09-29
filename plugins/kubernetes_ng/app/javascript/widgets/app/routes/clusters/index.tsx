@@ -1,8 +1,9 @@
 import React from "react"
 import { createFileRoute, useLoaderData, Await } from "@tanstack/react-router"
-import { Container, ContentHeading, Stack, Button, Spinner } from "@cloudoperators/juno-ui-components"
+import { Container, Stack, Button, Spinner } from "@cloudoperators/juno-ui-components"
 import InlineError from "../../components/InlineError"
 import ClusterList from "./-components/ClusterList"
+import PageHeader from "../../components/PageHeader"
 
 export const Route = createFileRoute("/clusters/")({
   component: Clusters,
@@ -22,9 +23,8 @@ function Clusters() {
   const { clustersPromise, permissionsPromise } = useLoaderData({ from: Route.id })
 
   return (
-    <Container py px={false}>
-      <Stack>
-        <ContentHeading className="tw-w-full">Kubernetes Clusters</ContentHeading>
+    <>
+      <PageHeader title="Kubernetes Clusters" subtitle="Manage your VM-based Kubernetes deployments">
         <Await promise={Promise.all([clustersPromise, permissionsPromise])} fallback={<></>}>
           {([_, permissions]) => {
             return (
@@ -34,8 +34,7 @@ function Clusters() {
             )
           }}
         </Await>
-      </Stack>
-      <p>Manage your VM-based Kubernetes deployments</p>
+      </PageHeader>
 
       <Await
         promise={Promise.all([clustersPromise, permissionsPromise])}
@@ -61,7 +60,7 @@ function Clusters() {
           )
         }}
       </Await>
-    </Container>
+    </>
   )
 }
 
