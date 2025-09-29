@@ -24,7 +24,7 @@ const renderComponent = () => {
       }),
     component: () => (
       <PortalProvider>
-        <Breadcrumb data-breadcrumb="main" />
+        <Breadcrumb data-testid="main-breadcrumb" />
         <Index />
       </PortalProvider>
     ),
@@ -55,22 +55,21 @@ describe("<Index />", () => {
     await act(async () => renderComponent())
 
     const addClusterButton = screen.getByRole("button", { name: "Add Cluster" })
-    // TODO test the link to add cluster as soon as implemented
+    expect(addClusterButton).toBeInTheDocument()
     expect(addClusterButton).toHaveClass("juno-button-default")
   })
 
-  it("renders cluster cards", async () => {
+  it("renders cluster list", async () => {
     await act(async () => renderComponent())
 
-    const cards = document.querySelectorAll('[data-card="cluster-card"]')
-    expect(cards.length).toBe(1)
-    expect(cards[0]).toBeInTheDocument()
+    const list = screen.getByTestId("cluster-list")
+    expect(list).toBeInTheDocument()
   })
 
   it("renders breadcrumb", async () => {
     await act(async () => renderComponent())
 
-    const breadcrumb = document.querySelector('[data-breadcrumb="main"]')
+    const breadcrumb = screen.getByTestId("main-breadcrumb")
     expect(breadcrumb).toBeInTheDocument()
     expect(breadcrumb).toHaveTextContent("Clusters")
   })
