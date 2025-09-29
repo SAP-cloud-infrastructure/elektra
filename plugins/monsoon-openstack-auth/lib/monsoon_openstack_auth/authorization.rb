@@ -3,7 +3,6 @@ require 'hashie'
 require 'monsoon_openstack_auth/authorization/errors'
 require 'monsoon_openstack_auth/authorization/policy_engine'
 require 'monsoon_openstack_auth/authorization/policy_params'
-require 'monsoon_openstack_auth/authorization/policy_interface'
 
 module MonsoonOpenstackAuth
   module Authorization

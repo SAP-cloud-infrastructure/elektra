@@ -12,6 +12,128 @@ describe MonsoonOpenstackAuth::Authentication::AuthUser do
     context "User initialized" do
       let(:user) {user = MonsoonOpenstackAuth::Authentication::AuthUser.new(token)}
 
+      describe "enabled?" do
+        it "should return user enabled status" do
+          expect(user.enabled?).to eq(token.dig("user", "enabled"))
+        end
+        
+        it "should return true for enabled user" do
+          new_user = MonsoonOpenstackAuth::Authentication::AuthUser.new(
+            token.merge({"user" => {"enabled" => true}})
+          )
+          expect(new_user.enabled?).to eq(true)
+        end
+      end
+
+      describe "is_admin_project_token?" do
+        it "should return admin project status" do
+          expect(user.is_admin_project_token?).to eq(token["is_admin_project"])
+        end
+        
+        it "should return true for admin project token" do
+          new_user = MonsoonOpenstackAuth::Authentication::AuthUser.new(
+            token.merge({"is_admin_project" => true})
+          )
+          expect(new_user.is_admin_project_token?).to eq(true)
+        end
+      end
+        
+      describe "role_names" do
+        it "should return array of role names" do
+          expected_names = (token["roles"] || []).map { |r| r.is_a?(Hash) ? r["name"] : r }
+          expect(user.role_names).to eq(expected_names)
+        end
+        
+        it "should handle mixed role formats" do
+          mixed_roles = [{"name" => "admin"}, "member", {"name" => "reader"}]
+          new_user = MonsoonOpenstackAuth::Authentication::AuthUser.new(
+            token.merge({"roles" => mixed_roles})
+          )
+          expect(new_user.role_names).to eq(["admin", "member", "reader"])
+        end
+      end
+
+      describe "service_url" do
+        before do
+          @test_token = token.merge({
+            "catalog" => [
+              {
+                "type" => "compute",
+                "endpoints" => [
+                  {
+                    "region" => "europe",
+                    "interface" => "public", 
+                    "url" => "http://compute.europe.example.com"
+                  },
+                  {
+                    "region" => "us",
+                    "interface" => "public",
+                    "url" => "http://compute.us.example.com"
+                  }
+                ]
+              }
+            ]
+          })
+          @test_user = MonsoonOpenstackAuth::Authentication::AuthUser.new(@test_token)
+        end
+        
+        it "should return service URL for given type and region" do
+          url = @test_user.service_url("compute", region: "europe")
+          expect(url).to eq("http://compute.europe.example.com")
+        end
+        
+        it "should return nil for non-existent service" do
+          url = @test_user.service_url("nonexistent")
+          expect(url).to be_nil
+        end
+        
+        it "should use default region when not specified" do
+          url = @test_user.service_url("compute")
+          expect(url).not_to be_nil
+        end
+      end  
+
+      describe "required_roles" do
+        before do
+          @mock_policy = double("policy")
+          @mock_policy_engine = double("policy_engine") 
+          allow(MonsoonOpenstackAuth).to receive(:policy_engine).and_return(@mock_policy_engine)
+          allow(@mock_policy_engine).to receive(:policy).and_return(@mock_policy)
+          allow(@mock_policy).to receive(:involved_roles).and_return(["admin", "member"])
+        end
+        
+        it "should return required roles for given rules" do
+          expect(@mock_policy).to receive(:involved_roles).with(["admin:read"])
+          result = user.required_roles(["admin:read"])
+          expect(result).to eq(["admin", "member"])
+        end
+      end
+      
+      describe "is_allowed?" do
+        before do
+          # Mock the policy engine
+          @mock_policy = double("policy")
+          @mock_policy_engine = double("policy_engine")
+          allow(MonsoonOpenstackAuth).to receive(:policy_engine).and_return(@mock_policy_engine)
+          allow(@mock_policy_engine).to receive(:policy).and_return(@mock_policy)
+          allow(@mock_policy).to receive(:enforce).and_return(true)
+        end
+        
+        it "should check permissions with policy engine" do
+          expect(@mock_policy).to receive(:enforce).with(["admin:read"], {})
+          result = user.is_allowed?(["admin:read"])
+          expect(result).to eq(true)
+        end
+        
+        it "should convert non-hash params to hash" do
+          mock_object = double("mock_object")
+          allow(mock_object).to receive(:class).and_return(double("class", name: "MockObject"))
+          
+          expect(@mock_policy).to receive(:enforce).with(["admin:read"], {mockobject: mock_object})
+          user.is_allowed?(["admin:read"], mock_object)
+        end
+      end
+
       describe "id" do
         it "should return id" do
           expect(user.id).to eq(token["user"]["id"])

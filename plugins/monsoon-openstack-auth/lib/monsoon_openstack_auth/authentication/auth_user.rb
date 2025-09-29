@@ -1,6 +1,6 @@
 module MonsoonOpenstackAuth
   module Authentication
-    class AuthUser < MonsoonOpenstackAuth::Authorization::PolicyInterface
+    class AuthUser
       attr_reader :context
 
       def initialize(token_hash)
@@ -142,7 +142,7 @@ module MonsoonOpenstackAuth
         return nil unless service
 
         endpoint = service["endpoints"].select do |endpoint|
-          endpoint["region_id"]==region.to_s and endpoint["interface"]==interface.to_s
+          (endpoint["region_id"]==region.to_s || endpoint["region"]==region.to_s) && endpoint["interface"]==interface.to_s
         end.first
 
         return nil unless endpoint

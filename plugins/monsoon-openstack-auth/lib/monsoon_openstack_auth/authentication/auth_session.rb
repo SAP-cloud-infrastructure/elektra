@@ -91,7 +91,6 @@ module MonsoonOpenstackAuth
         def create_from_auth_token(controller, auth_token)
           # reset session-id for Session Fixation
           reset_session(controller)
-
           session = AuthSession.new(controller, token_store(controller))
           session.login_auth_token(auth_token)
           session
@@ -494,6 +493,7 @@ module MonsoonOpenstackAuth
           return false
         end
 
+        return false unless auth_token
         begin
           # create auth token
           token = @api_client.authenticate_with_token(auth_token)

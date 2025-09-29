@@ -26,7 +26,6 @@ module MonsoonOpenstackAuth
       end
     end
     
-    class PolicyFileNotFound < StandardError; end
     class PolicyParseError < StandardError; end
     
     class RuleExecutionError < StandardError

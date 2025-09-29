@@ -19,11 +19,16 @@ module MonsoonOpenstackAuth
     end
 
     def consume_auth_token
+      domain_fid = params[:domain_fid]
       domain_id = params[:domain_id]
+
       # Determine the URL to redirect the user after login
-      after_login_url = params[:after_login] || main_app.root_url(
-        domain_id: domain_id
-      )
+      after_login_url = if safe_redirect_url?(params[:after_login]) 
+        params[:after_login]
+      else 
+        # default after login url
+        main_app.root_url(domain_id: domain_id)
+      end
 
       auth_token = params[:auth_token]
       auth_token = decode_auth_token(auth_token) if request.get?
@@ -31,7 +36,7 @@ module MonsoonOpenstackAuth
       auth_session = MonsoonOpenstackAuth::Authentication::AuthSession.create_from_auth_token(self, auth_token)
 
       if auth_session.nil? || !auth_session.logged_in?
-        redirect_to :new_session, alert: 'Invalid token.' and return
+        redirect_to new_session_path(domain_fid: domain_fid, domain_id: domain_id), alert: 'Invalid token.' and return
       else
         redirect_to after_login_url
       end
@@ -153,6 +158,18 @@ module MonsoonOpenstackAuth
       @verifier.verify(encoded_token)
     rescue ActiveSupport::MessageVerifier::InvalidSignature
       nil # Return nil if the token is invalid
+    end
+
+    def safe_redirect_url?(url)
+      return false if url.blank?
+      
+      begin
+        uri = URI.parse(url)
+        # Allow relative URLs and URLs from your domain
+        uri.host.nil? || uri.host == request.host
+      rescue URI::InvalidURIError
+        false
+      end
     end
   end
 end
