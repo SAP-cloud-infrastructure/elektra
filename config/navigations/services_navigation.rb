@@ -134,7 +134,7 @@ SimpleNavigation::Configuration.run do |navigation|
                           highlights_on:
                             proc { params[:controller][%r{kubernetes/.*}] }
       containers_nav.item :kubernetes_ng,
-                          'Gardener',
+                          'Kubernetes (Gardener)',
                           -> { plugin('kubernetes_ng').root_path },
                           if:
                             lambda {
