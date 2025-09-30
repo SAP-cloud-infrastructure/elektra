@@ -203,9 +203,9 @@ module MonsoonOpenstackAuth
             ############# end #############
 
             # replace params["param1.param2.param3"] with (params["param1"].param2.param3 rescue false)
-            parsed_rule.gsub!(/params\["([^.\]"]+)((?:\.[^\]"]+)+)"\]/, 'params["\1"]\2')
+            parsed_rule.gsub!(/params\["([^.\]"]{1,100})((?:\.[^\]"]{1,100})+)"\]/, 'params["\1"]\2')
             # replace params["param"] with params["param".to_sym]
-            parsed_rule.gsub!(/params\["([^\]"]+)"\]/, 'params["\1".to_sym]')
+            parsed_rule.gsub!(/params\["([^\]"]{1,100})"\]/, 'params["\1".to_sym]')
             # replace "True" and "@" and empty rule with "true"
             parsed_rule.gsub!(/^$/, 'true')
             parsed_rule.gsub!(/True|@/i, 'true')
@@ -238,8 +238,8 @@ module MonsoonOpenstackAuth
           protected
 
           def parse_js(parsed_rule)
-            js_rule = parsed_rule.gsub(/@rules\.get\(([^\)("]+)\)\.execute\([^\)("]+\)/, 'rules[\1](rules,locals,params)')
-            js_rule.gsub!(/locals\["roles"\]\.include\?\(([^\)]+)\)/, 'locals["roles"].indexOf(\1)>=0')
+            js_rule = parsed_rule.gsub(/@rules\.get\(([^)("]+)\)\.execute\([^\)("]+\)/, 'rules[\1](rules,locals,params)')
+            js_rule.gsub!(/locals\["roles"\]\.include\?\(([^)]+)\)/, 'locals["roles"].indexOf(\1)>=0')
             js_rule.gsub!(/begin;([^;]+);\s*rescue;([^;]+);\s*end/, 'function(){try { return \1;} catch(e){ return \2;} }() ')
             js_rule.gsub!(/\.to_sym/, '')
             js_rule.gsub!(/\sor\s/, ' || ')
