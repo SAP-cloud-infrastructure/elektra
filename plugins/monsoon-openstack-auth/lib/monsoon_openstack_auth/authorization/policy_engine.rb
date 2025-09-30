@@ -203,9 +203,19 @@ module MonsoonOpenstackAuth
             ############# end #############
 
             # replace params["param1.param2.param3"] with (params["param1"].param2.param3 rescue false)
-            parsed_rule.gsub!(/params\["([^.\]"]{1,100})((?:\.[^\]"]{1,100})+)"\]/, 'params["\1"]\2')
+            # Pass 1: Handle nested parameters (contains dots)
+            parsed_rule.gsub!(/params\["([a-zA-Z0-9_]{1,100}\.[a-zA-Z0-9_.]{1,200})"\]/) do |match|
+              param_path = $1
+              parts = param_path.split('.')
+              if parts.all? { |part| part.match?(/\A[a-zA-Z0-9_]+\z/) }
+                "params[\"#{parts.first}\"].#{parts[1..-1].join('.')}"
+              else
+                match # Leave unchanged if invalid
+              end
+            end
+
             # replace params["param"] with params["param".to_sym]
-            parsed_rule.gsub!(/params\["([^\]"]{1,100})"\]/, 'params["\1".to_sym]')
+            parsed_rule.gsub!(/params\["([a-zA-Z0-9_]{1,200})"\]/, 'params["\1".to_sym]')
             # replace "True" and "@" and empty rule with "true"
             parsed_rule.gsub!(/^$/, 'true')
             parsed_rule.gsub!(/True|@/i, 'true')
