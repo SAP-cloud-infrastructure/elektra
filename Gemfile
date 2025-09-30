@@ -31,8 +31,8 @@ gem 'high_voltage'
 gem 'kaminari'
 gem 'simple-navigation' # Navigation menu builder
 gem 'nokogiri', '>= 1.18.9'
-
 gem 'responders'
+gem 'dry-schema', '>= 1.14'
 
 # Database
 gem 'activerecord-session_store'

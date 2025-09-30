@@ -641,6 +641,7 @@ DEPENDENCIES
   database_cleaner
   dns_service!
   dotenv-rails
+  dry-schema (>= 1.14)
   ed25519 (>= 1.2, < 2.0)
   elektron!
   email_service!
