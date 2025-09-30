@@ -1,6 +1,4 @@
 = content_for :main_toolbar do
   Kubernetes as a Service (Gardener)
 
-
-#kubernetes_ng_app_widget{ data: { basepath: plugin("kubernetes_ng").root_path } }
-  = javascript_include_tag "kubernetes_ng_app_widget", data: { url: plugin("kubernetes_ng").root_path }
+= javascript_include_tag "kubernetes_ng_app_widget", data: {basepath: plugin("kubernetes_ng").root_path, mountpoint: Core::PluginsManager.plugin("kubernetes_ng").mount_point }

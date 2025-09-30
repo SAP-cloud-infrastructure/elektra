@@ -1,22 +1,23 @@
 import React, { StrictMode } from "react"
 import { AppShellProvider } from "@cloudoperators/juno-ui-components"
 import { RouterProvider } from "@tanstack/react-router"
-import { router } from "./router"
+import { createAppRouter } from "./router"
 import styles from "./styles.scss?inline"
 
-const rootElement = document.getElementById("kubernetes_ng_app_widget")
+interface AppProps {
+  basepath: string
+  mountpoint: string
+}
 
-export default function App() {
-  const basePath = rootElement?.dataset.basepath || "/"
+export default function App(props: AppProps) {
+  const router = createAppRouter(props.mountpoint)
 
   return (
-    <>
-      <AppShellProvider theme="theme-light">
-        <style>{styles}</style>
-        <StrictMode>
-          <RouterProvider basepath={basePath} context={{}} router={router} />
-        </StrictMode>
-      </AppShellProvider>
-    </>
+    <AppShellProvider theme="theme-light">
+      <style>{styles}</style>
+      <StrictMode>
+        <RouterProvider basepath={props.basepath} context={{}} router={router} />
+      </StrictMode>
+    </AppShellProvider>
   )
 }

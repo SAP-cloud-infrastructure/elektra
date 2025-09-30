@@ -1,6 +1,6 @@
 import { createRouter } from "@tanstack/react-router"
 import { routeTree } from "./routeTree.gen"
-import { gardenerApi } from "./apiClient"
+import { createGardenerApi } from "./apiClient"
 
 // Register the router instance for type safety
 declare module "@tanstack/react-router" {
@@ -9,11 +9,15 @@ declare module "@tanstack/react-router" {
   }
 }
 
-export const router = createRouter({
-  routeTree,
-  context: {
-    apiClient: gardenerApi,
-  },
-  defaultPreload: "intent",
-  scrollRestoration: true,
-})
+export function createAppRouter(mountpoint: string) {
+  const gardenerApi = createGardenerApi(mountpoint)
+
+  return createRouter({
+    routeTree,
+    context: {
+      apiClient: gardenerApi,
+    },
+    defaultPreload: "intent",
+    scrollRestoration: true,
+  })
+}
