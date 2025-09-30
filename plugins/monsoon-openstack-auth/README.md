@@ -1,10 +1,8 @@
-Monsoon Openstack Auth
-======================
+# Monsoon Openstack Auth
 
 This gem enables authentication for Ruby on Rails applications against Openstack Keystone Service using the Identity API v3. Further it implements a Policy Engine to allow permission cheks.
 
-Example
--------
+## Example
 
 ```ruby
 class DashboardController < ::ScopeController
@@ -28,31 +26,10 @@ class DashboardController < ::ScopeController
     end
 ```
 
-Install
--------
-
-```
-$ [sudo] gem install monsoon-openstack-auth
-```
-
-### Gemfile
-
-
-```
-gem 'monsoon-openstack-auth', git: 'git://github.com/sapcc/monsoon-openstack-auth.git'
-```
-
-Setup
------
-
-```
-rails generate monsoon_openstack_auth:setup
-```
-
-Usage
------
+## Usage
 
 ### Configuration
+
 File: config/initializers/monsoon_openstack_auth.rb
 
 ```ruby
@@ -79,7 +56,7 @@ MonsoonOpenstackAuth.configure do |config|
   # optional, default= last url before redirected to form
   # config.login_redirect_url = '/'
 
-  ########## Authorization #########  
+  ########## Authorization #########
   # policy_file_path: path to policy file
   config.authorization.policy_file_path = "config/policy.json"
 
@@ -117,6 +94,7 @@ end
 ```
 
 ### Session Store
+
 If this gem should support the form based login then the session store must be anything but cookie_store.
 
 Example of setting up a [ActiveRecord session_store](https://github.com/rails/activerecord-session_store)
@@ -153,7 +131,6 @@ ActionController::API does not include MonsoonOpenstackAuth::Authentication. So 
 include MonsoonOpenstackAuth::Authentication
 ```
 
-
 #### Controller
 
 ##### authentication_required
@@ -163,16 +140,17 @@ Class method which is called in controllers. This method is based on the before_
 ```ruby
 authentication_required options
 ```
+
 options:
 
-* **rescope**, boolean (optional). Default is true. If rescope is true the user token will be scoped to domain or/and project.
-* **domain**, symbol, value or Proc (optional?). Provides user domain id. This option is used for both the user domain and the scope domain (if rescope = false). One of options domain_id or domain_name should be provided!
-* **domain_name**, string or Proc (optional?). Use this option instead of domain_id. One of options domain_id or domain_name should be provided!
-* **project**, symbol, value or Proc (optional). Provides project id. This option is used for scope project (if rescope = true).
-* **only**, array (optional). Example only: [:index,:show]
-* **except**, optional. Example except: [:index,:show]
-* **if**, optional. Example if: -> c {c.params[:region_id].nil?}
-* **unless**, optional
+- **rescope**, boolean (optional). Default is true. If rescope is true the user token will be scoped to domain or/and project.
+- **domain**, symbol, value or Proc (optional?). Provides user domain id. This option is used for both the user domain and the scope domain (if rescope = false). One of options domain_id or domain_name should be provided!
+- **domain_name**, string or Proc (optional?). Use this option instead of domain_id. One of options domain_id or domain_name should be provided!
+- **project**, symbol, value or Proc (optional). Provides project id. This option is used for scope project (if rescope = true).
+- **only**, array (optional). Example only: [:index,:show]
+- **except**, optional. Example except: [:index,:show]
+- **if**, optional. Example if: -> c {c.params[:region_id].nil?}
+- **unless**, optional
 
 **Example for unscoped token authentication**. User is redirected to the login page, where he/she is prompted to enter his/her credentials.
 
@@ -187,6 +165,7 @@ end
 ```
 
 **Example for project scoped token authentication**.
+
 ```ruby
 DashboardController < ApplicationController
   authentication_required domain_name: DOMAIN_NAME, project: PROJECT_ID, rescope: true
@@ -223,12 +202,13 @@ Class method which is called in controllers. This method allows you to skip auth
 ```ruby
 skip_authentication options
 ```
+
 options:
 
-* **only**, optional. Example only: [:index,:show]
-* **except**, optional. Example except: [:index,:show]
-* **if**, optional. Example if: -> c {!c.params[:domain].nil?}
-* **unless**, optional
+- **only**, optional. Example only: [:index,:show]
+- **except**, optional. Example except: [:index,:show]
+- **if**, optional. Example if: -> c {!c.params[:domain].nil?}
+- **unless**, optional
 
 ##### Prevent rescoping
 
@@ -271,36 +251,35 @@ presented.
 
 Instance methods:
 
-* **context**, returns the token received by API
-* **enabled?**, true if user is active (enabled)
-* **token**, returns the token value (auth_token)  
-* **id**, user id (obtained through the token)
-* **name**, user name (obtained through the token)
-* **description**, user description (obtained through the token)
-* **user_domain_id**, received by scoped token
-* **user_domain_name**, received by scoped token
-* **domain_id**, scope (obtained through the token)
-* **domain_name**, scope (obtained through the token)
-* **project_id**, scope (obtained through the token)
-* **project_name**, scope (obtained through the token)
-* **project_domain_id**, scope (obtained through the token)
-* **project_domain_name**, scope (obtained through the token)
-* **project_scoped**, returns a hash (scope)
-* **domain_scoped**, returns a hash (scope)
-* **token_expires_at**, returns datetime
-* **token_expired?**, true if token expired
-* **token_issued_at**, returns datetime
-* **service_catalog**, returns an array of hashes (services)
-* **has_service?(type)**, returns true if service_catalog contains the given type
-* **roles**, returns an array of hashes
-* **role_names**, returns an array of roles
-* **has_role?(name)**, returns true if user has the given role
-* **admin?**, true if user is a superuser (can do anything)
-* **default_services_region**, returns the first endpoint region for first non-identity service in the service catalog
-* **available_services_regions**, returns list of unique region name values found in service catalog
-* **is_allowed?(RULE_NAMES)**, returns true or false
-* **required_roles(RULE_NAMES)**, returns an array of required roles
-
+- **context**, returns the token received by API
+- **enabled?**, true if user is active (enabled)
+- **token**, returns the token value (auth_token)
+- **id**, user id (obtained through the token)
+- **name**, user name (obtained through the token)
+- **description**, user description (obtained through the token)
+- **user_domain_id**, received by scoped token
+- **user_domain_name**, received by scoped token
+- **domain_id**, scope (obtained through the token)
+- **domain_name**, scope (obtained through the token)
+- **project_id**, scope (obtained through the token)
+- **project_name**, scope (obtained through the token)
+- **project_domain_id**, scope (obtained through the token)
+- **project_domain_name**, scope (obtained through the token)
+- **project_scoped**, returns a hash (scope)
+- **domain_scoped**, returns a hash (scope)
+- **token_expires_at**, returns datetime
+- **token_expired?**, true if token expired
+- **token_issued_at**, returns datetime
+- **service_catalog**, returns an array of hashes (services)
+- **has_service?(type)**, returns true if service_catalog contains the given type
+- **roles**, returns an array of hashes
+- **role_names**, returns an array of roles
+- **has_role?(name)**, returns true if user has the given role
+- **admin?**, true if user is a superuser (can do anything)
+- **default_services_region**, returns the first endpoint region for first non-identity service in the service catalog
+- **available_services_regions**, returns list of unique region name values found in service catalog
+- **is_allowed?(RULE_NAMES)**, returns true or false
+- **required_roles(RULE_NAMES)**, returns an array of required roles
 
 ### Authorization
 
@@ -313,20 +292,20 @@ An example could look like:
 ```json
 {
   "default": "rule:admin_required",
-  "p_member" : "project_id:%(project.id)s",
-  "d_member" : "domain_id:%(domain.id)s",
+  "p_member": "project_id:%(project.id)s",
+  "d_member": "domain_id:%(domain.id)s",
   "admin_required": "role:admin or is_admin:True",
   "admin_or_project_member": "rule:admin_required or rule:p_member",
-  "admin_or_domain_member": "rule:admin_required or rule:d_member",  
+  "admin_or_domain_member": "rule:admin_required or rule:d_member",
 
-  "identity:domain_list":    "rule:test or rule:admin_required or rule:is_service or rule:admin_or_domain_member",
-  "identity:domain_show":     "rule:admin_required or rule:d_member",
-  "identity:domain_create":   "",
-  "identity:domain_change":   "rule:admin_required or rule:d_member",
-  "identity:domain_delete":   "rule:admin_required",
-  "identity:project_list":    "rule:admin_or_domain_member",
-  "identity:project_create":  "rule:admin_or_domain_member",
-  "identity:project_change":  "rule:admin_or_domain_member or rule:p_member"
+  "identity:domain_list": "rule:test or rule:admin_required or rule:is_service or rule:admin_or_domain_member",
+  "identity:domain_show": "rule:admin_required or rule:d_member",
+  "identity:domain_create": "",
+  "identity:domain_change": "rule:admin_required or rule:d_member",
+  "identity:domain_delete": "rule:admin_required",
+  "identity:project_list": "rule:admin_or_domain_member",
+  "identity:project_create": "rule:admin_or_domain_member",
+  "identity:project_change": "rule:admin_or_domain_member or rule:p_member"
 }
 ```
 
@@ -334,19 +313,19 @@ The policy syntax is described at [openstack olso policies](http://docs.openstac
 
 Some explanations on that:
 
-```"default": "rule:admin_required" ``` defines the default rule which is used in case that an authorization request with an undefined rule is made.
+`"default": "rule:admin_required" ` defines the default rule which is used in case that an authorization request with an undefined rule is made.
 
-```"admin_required": "role:admin or is_admin:True"``` defines a rule which can later be referenced in other rules. It uses the role and is_admin attributes from the current user for whom a authorization request is made.
+`"admin_required": "role:admin or is_admin:True"` defines a rule which can later be referenced in other rules. It uses the role and is_admin attributes from the current user for whom a authorization request is made.
 
-```"d_member" : "domain_id:%(domain.id)s"``` when the user domain_id from his current authentication scope is the same as the one given to the auth. request. The auth. request could be made with an Domain object which has an id attribute.
+`"d_member" : "domain_id:%(domain.id)s"` when the user domain_id from his current authentication scope is the same as the one given to the auth. request. The auth. request could be made with an Domain object which has an id attribute.
 
-```"identity:project_list":    "rule:admin_or_domain_member"``` defines a application specific rule where the context is identity (might come from config.authorization.context) and the action to be checked is project_list.
+`"identity:project_list":    "rule:admin_or_domain_member"` defines a application specific rule where the context is identity (might come from config.authorization.context) and the action to be checked is project_list.
 
 #### Explizit authorization enforcement
 
 You've to use the policy_engine to do a policy enforcement. The engine is always available
 
-```policy_engine = MonsoonOpenstackAuth.policy_engine```
+`policy_engine = MonsoonOpenstackAuth.policy_engine`
 
 Afterwards you can do a policy check for a user with
 
@@ -354,6 +333,7 @@ Afterwards you can do a policy check for a user with
 action = "identity:project_list"
 policy_engine.policy(@current_user).enforce(action)
 ```
+
 You get a `true or false` as an result.
 
 #### User authorization checks
@@ -364,6 +344,7 @@ Similar to the above but more convinient you can check authorizations for a user
 action = "identity:project_list"
 @current_user.is_allowed?(action, @domain)
 ```
+
 and get a boolean response.
 
 #### Controller authorization enforcements
@@ -405,19 +386,8 @@ Authorizations for a user can be checked by the `is_allowed?` method. So you can
 ```
 
 Example:
+
 ```ruby
   @current_user.is_allowed?("identity:project_create", {domain_id: 1})
   @current_user.is_allowed?(["identity:project_create","identity:project_change"], {domain_id: 1})
-```
-
-
-Develop
--------
-```
-git clone https://github.com/sapcc/monsoon-openstack-auth.git
-cd monsoon-openstack-auth
-bundle install
-cd spec/dummy
-bundle exec rake db:migrate
-bundle exec rails s
 ```
