@@ -483,6 +483,19 @@ SimpleNavigation::Configuration.run do |navigation|
                         highlights_on: lambda {
                           params[:controller][%r{email_service/?.*}]
                         }
+      services_nav.item :smartops,
+                          'SmartOps',
+                          lambda {
+                            plugin('smartops').start_path
+                          },
+                          if: lambda {
+                            services.available?(:smartops) &&
+                              plugin_available?(:smartops)
+                          },
+                          highlights_on:
+                            proc {
+                              params[:controller][%r{smartops/.*}]
+                            }
     end
 
     primary.item :cc_tools,
@@ -503,6 +516,7 @@ SimpleNavigation::Configuration.run do |navigation|
                             plugin_available?(:cc_tools)
                         },
                         highlights_on: -> { params[:controller][%r{tools/?.*}] }
+
     end
 
     # Add an item which has a sub navigation (same params, but with block)
