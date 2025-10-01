@@ -2799,10 +2799,10 @@
     "@react-spring/shared" "~9.7.3"
     "@react-spring/types" "~9.7.3"
 
-"@sapcc/limes-ui@^1.3.9":
-  version "1.12.0"
-  resolved "https://npm.pkg.github.com/download/@sapcc/limes-ui/1.12.0/42c0352a3bb2a609931d7ce238146ab116cb55a7#42c0352a3bb2a609931d7ce238146ab116cb55a7"
-  integrity sha512-AM0zhsvZolDngtQO/SUmWCNCwd4pydOldmSZMlVkwVL3JOp1ONxDDDN3vjBjWGAPsb7SlI4ifBu9UIhbrgwAuQ==
+"@sapcc/limes-ui@1.12.1":
+  version "1.12.1"
+  resolved "https://npm.pkg.github.com/download/@sapcc/limes-ui/1.12.1/edccb2468b2a3e12965b5b4607baac7a3b5901db#edccb2468b2a3e12965b5b4607baac7a3b5901db"
+  integrity sha512-gPJXOXADXz86Kj+YTnHRZV1+ag14KDW3qJewl5h0lttrc76yotMHoql+EQQkBtdavWfDGF5bQNPdVq2UQMGYsA==
   dependencies:
     "@cloudoperators/juno-ui-components" "5.5.0"
     "@cloudoperators/juno-url-state-provider" "*"
