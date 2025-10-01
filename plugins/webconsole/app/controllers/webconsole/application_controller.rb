@@ -3,8 +3,7 @@ module Webconsole
     include UrlHelper
 
     authorization_context "webconsole"
-    # enforce permission checks. This will automatically
-    # investigate the rule name.
+    # enforce permission checks. This will automatically investigate the rule name.
     authorization_required
 
     def show
@@ -15,9 +14,7 @@ module Webconsole
       @user_name = current_user.name
     end
 
-    # returns current context
     def current_context
-      # TODO: Replace endpoint url with catalog entry
       result = {
         token: current_user.token,
         webcli_endpoint: current_user.service_url("webcli"),
@@ -36,7 +33,7 @@ module Webconsole
           File.new(general_help_file, "r").read if File.exist?(
           general_help_file,
         )
-        # replace placeholders inside this contet
+        # replace placeholders inside this content
         general_help_source =
           general_help_source
             .gsub('#{@scoped_domain_name}', @scoped_domain_name)
