@@ -81,14 +81,9 @@ Rails.application.config.content_security_policy do |policy|
   # :self = can embed iframes from same origin
   # "*.cloud.sap" = can embed iframes from any cloud.sap subdomain
   # ✅ Allowed: <iframe src="/internal-widget">, 
-  #            <iframe src="https://ccloudshell-qa.eu-de-1.cloud.sap"> QA case
-  #            <iframe src="https://ccloudshell.eu-de-2.cloud.sap"> Prod case
+  #             <iframe src="https://*.cloud.sap"> Prod case (webconsole)
   # ❌ Blocked: <iframe src="https://external-malicious-site.com">
-  if region.start_with?("qa")
-      policy.frame_src :self, "*.eu-de-1.cloud.sap" 
-  else
-    policy.frame_src :self, "*.#{region}.cloud.sap"
-  end
+  policy.frame_src :self, "*.cloud.sap" 
 
   # FORM ACTIONS - Controls where forms can submit data
   # :self = forms can only submit to same origin
