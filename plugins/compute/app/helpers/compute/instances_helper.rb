@@ -36,7 +36,7 @@ module Compute
     #  'id' => 'cd116ba4-3d20-4011-adb9-f86d821b5e8f'
     # }
 
-    def grouped_images(images, bootable_volumes = nil, hv_type)
+    def grouped_images(images, hv_type, bootable_volumes = nil, available_volume_types = [])
       if images.blank?
         [["Couldn't retrieve images. Please try again", []]]
       else
@@ -49,18 +49,31 @@ module Compute
               visibility = image.visibility
               visibility = "snapshot" if image.image_type == "snapshot"
               map[visibility] ||= {}
-              
-              # some years ago we decided to treat images without hypervisor_type as baremetal. 
-              # From now on we will treat them as both baremetal and vmware because 
-              # thus images run on both hypervisors.
-              
-              # images that have no hypervisor_type are treated as both baremetal and vmware
-              if image.hypervisor_type.nil? 
+
+              # * hypervisor_type='vmware'
+              # * img_hv_type='kvm'
+              # * img_hv_type='baremetal'
+
+              # hypervisor_type is the legacy property replaced since "liberty" by img_hv_type, but we still have them in use.
+
+              if image.hypervisor_type.nil? && image.img_hv_type != "kvm"
+                # some years ago we decided to treat images without hypervisor_type as baremetal. 
+                # From now on we will treat them as both baremetal and vmware because 
+                # thus images run on both hypervisors.
+
+                # images that have no hypervisor_type are treated as both baremetal and vmware
                 map[visibility]["baremetal"] ||= []
                 map[visibility]["vmware"] ||= []
                 map[visibility]["baremetal"] << image
                 map[visibility]["vmware"] << image
+              elsif image.img_hv_type == "kvm"
+                map[visibility]["kvm"] ||= []
+                map[visibility]["kvm"] << image
+              elsif image.img_hv_type == "baremetal"
+                map[visibility]["baremetal"] ||= []
+                map[visibility]["baremetal"] << image
               else
+                # take care of the legacy rest that has hypervisor_type set
                 map[visibility][image.hypervisor_type] ||= []
                 map[visibility][image.hypervisor_type] << image
               end
@@ -107,24 +120,48 @@ module Compute
         #  ]
         # ]
 
-        if hv_type == "vmware"
+        # check if kvm volume type is available in the list of available volume types,
+        # otherwise there it is not possible to boot the image with KVM because the default type is not compatible
+        kvm_volume_type_is_available = available_volume_types.any? { |volume_type| volume_type["name"].start_with?("kvm") }
+        if hv_type == "vmware" || ( hv_type == "kvm" && kvm_volume_type_is_available )
           if bootable_volumes && !bootable_volumes.empty?
-            volume_items =
-              @bootable_volumes.collect do |v|
-                infos = []
-                infos << "Size: #{v.size}GB" if v.size
 
-                format =
-                  (v.volume_image_metadata || {}).fetch("disk_format", nil)
-                infos << "Format: #{format}" if format
-                infos_string = !infos.empty? ? "(#{infos.join(", ")})" : ""
-                ["#{v.name.present? ? v.name : v.id} #{infos_string}", v.id]
-              end
+          # select only bootable volumes that match in the metadata the hypervisor_type and img_hv_type of the image
+          volume_items = @bootable_volumes
+            .select { |v| v.volume_image_metadata && ((v.volume_image_metadata["hypervisor_type"] == hv_type) || (v.volume_image_metadata["img_hv_type"] == hv_type)) }
+            .map do |v|
+              
+              # puts "bootable volume name: #{v.name}, id: #{v.id}"
+              # puts "hypervisor_type: #{v.volume_image_metadata["hypervisor_type"]}"
+              # puts "img_hv_type: #{v.volume_image_metadata["img_hv_type"]}"
+              
+              infos = []
+              infos << "Size: #{v.size}GB" if v.size
+              infos << "Avz: #{v.availability_zone}" if v.availability_zone
+              infos << "Format: #{v.volume_image_metadata["disk_format"] if v.volume_image_metadata}" 
+              # this is needed to select with javascript
+              infos << "Bootable: #{hv_type}"
+              infos_string = !infos.empty? ? "(#{infos.join(", ")})" : ""
+              ["#{v.name.present? ? v.name : v.id} #{infos_string}", v.id]
+            end
             groups.unshift(["--bootable volumes", volume_items])
           end
         end
         groups
       end
+    end
+
+    # this renders a list of all available volume types for a given name prefix
+    def render_available_volume_types(volume_types, name_prefix)
+      available_volume_types =
+        volume_types.filter_map do |volume_type|
+          if volume_type["name"].start_with?(name_prefix)
+            [
+              volume_type["name"],
+              volume_type["id"],
+            ]
+          end
+        end
     end
 
     def js_images_data(images)
@@ -189,17 +226,36 @@ module Compute
     # handle flavor data
     def grouped_flavors(flavors)
       public_flavors_vmware = []
+      public_flavors_kvm = []
       public_flavors_baremetal = []
-      private_flavors = []
+      private_flavors_vmware = []
+      private_flavors_kvm = []
+      private_flavors_baremetal = []
+
+      # Note: the whole logic below is based on the hypervisor_type in the extra_specs of the flavor.
+      #       that means this logic only works if the hypervisor_type is set correctly in the extra_specs of the flavor 🤔
+      
+      # capabilities:hypervisor_type='VMware vCenter Server'
+      # capabilities:hypervisor_type='QEMU'
+      # capabilities:hypervisor_type='ironic'
+
       flavors.each do |flavor|
         if flavor.public?
           if flavor.extra_specs["capabilities:hypervisor_type"] == "ironic"
             public_flavors_baremetal << flavor
-          else
+          elsif flavor.extra_specs["capabilities:hypervisor_type"] == "VMware vCenter Server"
             public_flavors_vmware << flavor
+          elsif (flavor.extra_specs["capabilities:hypervisor_type"] == "CH" || flavor.extra_specs["capabilities:hypervisor_type"] == "QEMU")
+            public_flavors_kvm << flavor
           end
         else
-          private_flavors << flavor
+          if flavor.extra_specs["capabilities:hypervisor_type"] == "ironic"
+            private_flavors_baremetal << flavor
+          elsif flavor.extra_specs["capabilities:hypervisor_type"] == "VMware vCenter Server"
+            private_flavors_vmware << flavor
+          elsif (flavor.extra_specs["capabilities:hypervisor_type"] == "CH" || flavor.extra_specs["capabilities:hypervisor_type"] == "QEMU")
+            private_flavors_kvm << flavor
+          end
         end
       end
 
@@ -211,14 +267,30 @@ module Compute
           public_flavors_baremetal.sort_by { |a| [a.ram, a.vcpus] },
         ]
       end
+      unless public_flavors_kvm.empty?
+        result << [
+          "--kvm",
+          public_flavors_kvm.sort_by { |a| [a.ram, a.vcpus] },
+        ]
+      end
       unless public_flavors_vmware.empty?
         result << [
           "--vmware",
           public_flavors_vmware.sort_by { |a| [a.ram, a.vcpus] },
         ]
       end
-      unless private_flavors.empty?
-        result << ["private", private_flavors.sort_by { |a| [a.ram, a.vcpus] }]
+      result << ["private", []]
+      unless private_flavors_baremetal.empty?
+        result << [
+          "--bare metal",
+          private_flavors_baremetal.sort_by { |a| [a.ram, a.vcpus] },
+        ]
+      end
+      unless private_flavors_kvm.empty?
+        result << ["--kvm", private_flavors_kvm.sort_by { |a| [a.ram, a.vcpus] }]
+      end
+      unless private_flavors_vmware.empty?
+        result << ["--vmware", private_flavors_vmware.sort_by { |a| [a.ram, a.vcpus] }]
       end
       result
     end
@@ -284,10 +356,14 @@ module Compute
     # flavor label in dropdown
     def flavor_label_for_select(flavor)
 
+      # default label for vmware flavors
       label = "#{flavor.name}  (RAM: #{Core::DataType.new(:bytes, :mega).format(flavor.ram)}, VCPUs: #{flavor.vcpus}, Disk: #{Core::DataType.new(:bytes, :giga).format(flavor.disk)} )"
-
+      # this is needed to distinguish between kvm and baremetal flavors on javascript side
       if flavor.extra_specs["capabilities:hypervisor_type"] == "ironic"
         label = "#{flavor.name} ironic  (RAM: #{Core::DataType.new(:bytes, :mega).format(flavor.ram)}, VCPUs: #{flavor.vcpus}, Disk: #{Core::DataType.new(:bytes, :giga).format(flavor.disk)} )"
+      end
+      if flavor.extra_specs["capabilities:hypervisor_type"] == "QEMU" || flavor.extra_specs["capabilities:hypervisor_type"] == "CH"
+        label = "#{flavor.name} kvm  (RAM: #{Core::DataType.new(:bytes, :mega).format(flavor.ram)}, VCPUs: #{flavor.vcpus}, Disk: #{Core::DataType.new(:bytes, :giga).format(flavor.disk)} )"
       end
 
       return label
