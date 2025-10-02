@@ -1,0 +1,29 @@
+<% if @policy_trace %>
+  <style>
+    policy_trace{ display:block; padding: 10px; background-color: #eee; border-color: #333; font-size: 12px;}
+    policy_trace ul {margin:10px 15px; padding:0;}
+    policy_trace rule { display: block;}
+    policy_trace rule.red {color:red;}
+    policy_trace rule.green {color:green;}
+    policy_trace rule rule{ margin-left: 20px;}
+  </style>
+  <%
+  def print_trace(trace,level=0)
+    content_tag(:rule, class: "#{trace.result ? 'green' : 'red'}") do 
+      concat(content_tag(:strong, "#{trace.rule.name}: ")) 
+      concat(content_tag(:span, "#{trace.rule.rule}"))
+      trace.next.each{|t| concat(print_trace(t,level+1))}
+    end
+  end 
+  
+  %>
+  <policy_trace>
+    <h3>Policy Rule Trace</h3>
+    <ul>
+      <li>given: <%=@policy_trace.locals%></li>
+      <li>params: <%=@policy_trace.params%></li>
+    </ul>
+
+    <%= print_trace(@policy_trace)%>
+    </policy_trace>  
+<% end %>
