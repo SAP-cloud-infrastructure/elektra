@@ -66,7 +66,10 @@ function Clusters() {
   return (
     <>
       <PageHeader title="Kubernetes Clusters" subtitle="Manage your VM-based Kubernetes deployments">
-        <CatchBoundary getResetKey={() => "reset"} errorComponent={() => <ClusterActions disabled />}>
+        <CatchBoundary
+          getResetKey={() => "reset"}
+          errorComponent={(error) => <ClusterActions disabled isError={!!error} />}
+        >
           <Await promise={combinedPromise} fallback={<ClusterActions disabled />}>
             {([_, permissions]) => <ClusterActions permissions={permissions} />}
           </Await>

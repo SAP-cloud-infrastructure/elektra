@@ -129,7 +129,7 @@ describe("<Clusters />", () => {
       expect(screen.getByTestId("cluster-list")).toBeInTheDocument()
     })
 
-    it("disables action buttons when there is an error", async () => {
+    it("disables new cluster button when there is an error", async () => {
       let rejectClustersList: (err: any) => void
 
       // The promise is already rejected when the component mounts.
@@ -150,6 +150,7 @@ describe("<Clusters />", () => {
       })
 
       expect(screen.getByRole("button", { name: /Add Cluster/i })).toBeDisabled()
+      expect(screen.getByRole("button", { name: /Refresh/i })).not.toBeDisabled()
     })
   })
 })
