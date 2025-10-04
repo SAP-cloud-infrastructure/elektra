@@ -1,6 +1,7 @@
 import { createAjaxHelper } from "lib/ajax_helper"
 import { widgetBasePath } from "lib/widget"
-import { Cluster } from "./types/clusters"
+import { Cluster } from "./types/cluster"
+import { Permissions } from "./types/permissions"
 import { defaultCluster, errorCluster, unknownStatusCluster } from "./mocks/data"
 
 export const gardenerTestApi = {
@@ -29,8 +30,7 @@ export function createGardenerApi(mountpoint: string) {
   }
 
   const permissionsApi = {
-    getPermissions: () =>
-      apiClient.get<{ data: Record<string, boolean> | undefined }>("/api/permissions/shoots/").then((res) => res.data),
+    getPermissions: () => apiClient.get<{ data: Permissions }>("/api/permissions/shoots/").then((res) => res.data),
   }
 
   return {
