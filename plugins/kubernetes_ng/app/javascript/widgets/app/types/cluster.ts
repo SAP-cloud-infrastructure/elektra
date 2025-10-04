@@ -1,5 +1,22 @@
 import { z } from "zod"
 
+// Define simplified worker schema for the UI
+export const workerSchema = z.object({
+  name: z.string(),
+  architecture: z.string(),
+  machineType: z.string(),
+  machineImage: z.object({
+    name: z.string(),
+    version: z.string(),
+  }),
+  containerRuntime: z.string(),
+  min: z.number(),
+  max: z.number(),
+  actual: z.number().optional(),
+  maxSurge: z.number(),
+  zones: z.array(z.string()),
+})
+
 // Define simplified cluster schema for the UI
 export const clusterSchema = z.object({
   // List view fields
@@ -34,23 +51,7 @@ export const clusterSchema = z.object({
     .optional(),
 
   // Additional detail fields
-  workers: z.array(
-    z.object({
-      name: z.string(),
-      architecture: z.string(),
-      machineType: z.string(),
-      machineImage: z.object({
-        name: z.string(),
-        version: z.string(),
-      }),
-      containerRuntime: z.string(),
-      min: z.number(),
-      max: z.number(),
-      actual: z.number().optional(), // This might need to come from another API
-      maxSurge: z.number(),
-      zones: z.array(z.string()),
-    })
-  ),
+  workers: z.array(workerSchema),
 
   maintenance: z.object({
     startTime: z.string(),
@@ -68,4 +69,5 @@ export const clusterSchema = z.object({
   }),
 })
 
+export type Worker = z.infer<typeof workerSchema>
 export type Cluster = z.infer<typeof clusterSchema>

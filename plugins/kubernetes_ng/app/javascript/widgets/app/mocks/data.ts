@@ -1,4 +1,4 @@
-import { Cluster } from "../types/clusters"
+import { Cluster } from "../types/cluster"
 
 export const defaultCluster: Cluster = {
   uid: "12345678-1234-1234-1234-1234567890ab",

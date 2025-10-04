@@ -1,6 +1,7 @@
 import React from "react"
-import { createFileRoute, Await } from "@tanstack/react-router"
-import { Cluster } from "../../types/clusters"
+import { createFileRoute, Await, CatchBoundary, useParams } from "@tanstack/react-router"
+import { Cluster } from "../../types/cluster"
+import { Permissions } from "../../types/permissions"
 import { LoaderWithCrumb } from "../-types"
 import {
   JsonViewer,
@@ -10,7 +11,6 @@ import {
   DataGridRow,
   DataGridHeadCell,
   DataGridCell,
-  Stack,
   Spinner,
   Tabs,
   TabList,
@@ -19,10 +19,12 @@ import {
 } from "@cloudoperators/juno-ui-components"
 import PageHeader from "../../components/PageHeader"
 import ClipboardText from "../../components/ClipboardText"
-import RedinessConditions from "../../components/RedinessConditions"
+import ReadinessConditions from "../../components/ReadinessConditions"
 import InlineError from "../../components/InlineError"
 
-export const Route = createFileRoute("/clusters/$clusterName")({
+const ROUTE_ID = "/clusters/$clusterName"
+
+export const Route = createFileRoute(ROUTE_ID)({
   component: ClusterDetail,
   loader: async ({
     context,
@@ -30,7 +32,7 @@ export const Route = createFileRoute("/clusters/$clusterName")({
   }): Promise<
     LoaderWithCrumb & {
       clusterDetailsPromise: Promise<Cluster>
-      permissionsPromise: Promise<Record<string, boolean> | undefined>
+      permissionsPromise: Promise<Permissions>
     }
   > => {
     const client = context.apiClient
@@ -47,161 +49,130 @@ export const Route = createFileRoute("/clusters/$clusterName")({
   },
 })
 
-const sectionHeaderStyles = "section tw-text-lg tw-font-bold tw-mb-4"
+function ClusterDetailActions({ permissions, disabled = false }: { permissions?: Permissions; disabled?: boolean }) {
+  return (
+    <>
+      <Button
+        size="small"
+        label="Delete Cluster"
+        variant="primary-danger"
+        disabled={disabled || !permissions?.delete}
+      />
+      <Button size="small" label="Edit Cluster" disabled={disabled || !permissions?.update} />
+    </>
+  )
+}
+
+function ClusterField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <DataGridRow>
+      <DataGridHeadCell>{label}</DataGridHeadCell>
+      <DataGridCell>{children}</DataGridCell>
+    </DataGridRow>
+  )
+}
+
+const sectionHeaderStyles = "details-section tw-text-lg tw-font-bold tw-mb-4"
 
 function ClusterDetail() {
   const { clusterDetailsPromise, permissionsPromise } = Route.useLoaderData()
+  const params = useParams({ from: ROUTE_ID })
+  const combinedPromise = Promise.all([clusterDetailsPromise, permissionsPromise])
+
   return (
-    <Await
-      promise={Promise.all([clusterDetailsPromise, permissionsPromise])}
-      fallback={
-        <Container py px={false}>
-          <Spinner size="small" />
-        </Container>
-      }
-    >
-      {([cluster, permissions]) => {
-        return (
-          <>
-            <PageHeader title={`Cluster ${cluster.name} Information`}>
-              <Button size="small" label="Delete Cluster" variant="primary-danger" disabled={!permissions?.delete} />
-              <Button size="small" label="Edit Cluster" disabled={!permissions?.update} />
-            </PageHeader>
+    <>
+      <PageHeader title={`Cluster ${params.clusterName} Information`}>
+        <CatchBoundary getResetKey={() => "reset"} errorComponent={() => <ClusterDetailActions disabled />}>
+          <Await promise={combinedPromise} fallback={<ClusterDetailActions disabled />}>
+            {([_, permissions]) => <ClusterDetailActions permissions={permissions} />}
+          </Await>
+        </CatchBoundary>
+      </PageHeader>
 
-            {permissions?.view === false ? (
-              <Container py px={false}>
-                <InlineError error={new Error("You do not have permission to view cluster details.")} />
-              </Container>
-            ) : (
+      <CatchBoundary getResetKey={() => "reset"} errorComponent={({ error }) => <InlineError error={error} />}>
+        <Await promise={combinedPromise} fallback={<Spinner size="small" data-testid="loading-state" />}>
+          {([cluster, permissions]) => {
+            return (
               <>
-                <Tabs>
-                  <TabList>
-                    <Tab>Overview</Tab>
-                    <Tab>JSON</Tab>
-                  </TabList>
-                  <TabPanel>
-                    {/* Basic info */}
-                    <Container py px={false}>
-                      <p className={sectionHeaderStyles}>Basic information</p>
-                      <DataGrid columns={2} gridColumnTemplate="50% 50%">
-                        <DataGridRow>
-                          <div>
-                            <DataGrid columns={2} gridColumnTemplate="35% auto">
-                              <DataGridRow>
-                                <DataGridHeadCell>Name</DataGridHeadCell>
-                                <DataGridCell>
-                                  <Stack gap="1" direction="horizontal" wrap>
-                                    {cluster.name}
-                                  </Stack>
-                                </DataGridCell>
-                              </DataGridRow>
-                              <DataGridRow>
-                                <DataGridHeadCell>ID</DataGridHeadCell>
-                                <DataGridCell>
-                                  <Stack gap="1" direction="horizontal" wrap>
-                                    <ClipboardText text={cluster.uid} />
-                                  </Stack>
-                                </DataGridCell>
-                              </DataGridRow>
-                              <DataGridRow>
-                                <DataGridHeadCell>Cluster Status</DataGridHeadCell>
-                                <DataGridCell>
-                                  <Stack gap="1" direction="horizontal" wrap>
-                                    {cluster.status}
-                                  </Stack>
-                                </DataGridCell>
-                              </DataGridRow>
-                              <DataGridRow>
-                                <DataGridHeadCell>Kubernetes Version</DataGridHeadCell>
-                                <DataGridCell>
-                                  <Stack gap="1" direction="horizontal" wrap>
-                                    {cluster.version}
-                                  </Stack>
-                                </DataGridCell>
-                              </DataGridRow>
-                              <DataGridRow>
-                                <DataGridHeadCell>Cloud Profile</DataGridHeadCell>
-                                <DataGridCell>
-                                  <Stack gap="1" direction="horizontal" wrap>
-                                    {cluster.cloudProfileName}
-                                  </Stack>
-                                </DataGridCell>
-                              </DataGridRow>
-                            </DataGrid>
-                          </div>
-                          <div>
-                            <DataGrid columns={2} gridColumnTemplate="35% auto">
-                              <DataGridRow>
-                                <DataGridHeadCell>Purpose</DataGridHeadCell>
-                                <DataGridCell>
-                                  <Stack gap="1" direction="horizontal" wrap>
-                                    {cluster.purpose}
-                                  </Stack>
-                                </DataGridCell>
-                              </DataGridRow>
-                              <DataGridRow>
-                                <DataGridHeadCell>Infrastructure</DataGridHeadCell>
-                                <DataGridCell>
-                                  <Stack gap="1" direction="horizontal" wrap>
-                                    {cluster.infrastructure}
-                                  </Stack>
-                                </DataGridCell>
-                              </DataGridRow>
-                            </DataGrid>
-                          </div>
-                        </DataGridRow>
-                      </DataGrid>
-                    </Container>
-
-                    {/* Cluster Labels */}
-                    <Container py px={false}>
-                      <p className={sectionHeaderStyles}>Labels</p>
-                      {cluster.labels && Object.keys(cluster.labels).length > 0 ? (
-                        <DataGrid columns={2} minContentColumns={[0]}>
-                          {Object.entries(cluster.labels).map(([key, value]) => (
-                            <DataGridRow key={key}>
-                              <DataGridHeadCell>{key}</DataGridHeadCell>
-                              <DataGridCell>
-                                <Stack gap="1" direction="horizontal" wrap>
-                                  {value}
-                                </Stack>
-                              </DataGridCell>
-                            </DataGridRow>
-                          ))}
-                        </DataGrid>
-                      ) : (
-                        <p>No labels found.</p>
-                      )}
-                    </Container>
-
-                    {/* Readiness Conditions */}
-                    <Container py px={false}>
-                      <p className={sectionHeaderStyles}>Rediness</p>
-                      {cluster.readiness && cluster.readiness.conditions && cluster.readiness.conditions.length > 0 ? (
-                        <DataGrid columns={2} minContentColumns={[0]}>
+                {permissions?.get === false ? (
+                  <InlineError error={new Error("You do not have permission to view cluster details.")} />
+                ) : (
+                  <Tabs>
+                    <TabList>
+                      <Tab>Overview</Tab>
+                      <Tab>JSON</Tab>
+                    </TabList>
+                    <TabPanel>
+                      {/* Basic info */}
+                      <Container py px={false}>
+                        <p className={sectionHeaderStyles}>Basic Information</p>
+                        <DataGrid columns={2} gridColumnTemplate="50% 50%">
                           <DataGridRow>
-                            <DataGridHeadCell>Rediness</DataGridHeadCell>
-                            <DataGridCell>
-                              <RedinessConditions conditions={cluster.readiness.conditions} />
-                            </DataGridCell>
+                            <div>
+                              <DataGrid columns={2} gridColumnTemplate="35% auto">
+                                <ClusterField label="Name">{cluster.name}</ClusterField>
+                                <ClusterField label="ID">
+                                  <ClipboardText text={cluster.uid} />
+                                </ClusterField>
+                                <ClusterField label="Cluster Status">{cluster.status}</ClusterField>
+                                <ClusterField label="Kubernetes Version">{cluster.version}</ClusterField>
+                                <ClusterField label="Cloud Profile">{cluster.cloudProfileName}</ClusterField>
+                              </DataGrid>
+                            </div>
+                            <div>
+                              <DataGrid columns={2} gridColumnTemplate="35% auto">
+                                <ClusterField label="Purpose">{cluster.purpose}</ClusterField>
+                                <ClusterField label="Infrastructure">{cluster.infrastructure}</ClusterField>
+                              </DataGrid>
+                            </div>
                           </DataGridRow>
                         </DataGrid>
-                      ) : (
-                        <p>No readiness conditions found.</p>
-                      )}
-                    </Container>
-                  </TabPanel>
-                  <TabPanel>
-                    <Container py px={false}>
-                      <JsonViewer expanded={2} data={cluster} toolbar />
-                    </Container>
-                  </TabPanel>
-                </Tabs>
+                      </Container>
+
+                      {/* Cluster Labels */}
+                      <Container py px={false}>
+                        <p className={sectionHeaderStyles}>Labels</p>
+                        {cluster.labels && Object.keys(cluster.labels).length > 0 ? (
+                          <DataGrid columns={2} minContentColumns={[0]}>
+                            {Object.entries(cluster.labels).map(([key, value]) => (
+                              <ClusterField key={key} label={key}>
+                                {value}
+                              </ClusterField>
+                            ))}
+                          </DataGrid>
+                        ) : (
+                          <p>No labels found.</p>
+                        )}
+                      </Container>
+
+                      {/* Readiness Conditions */}
+                      <Container py px={false}>
+                        <p className={sectionHeaderStyles}>Readiness</p>
+                        {cluster?.readiness?.conditions?.length > 0 ? (
+                          <DataGrid columns={2} minContentColumns={[0]}>
+                            <ClusterField label="Readiness">
+                              <ReadinessConditions conditions={cluster?.readiness?.conditions} />
+                            </ClusterField>
+                          </DataGrid>
+                        ) : (
+                          <p>No readiness conditions found.</p>
+                        )}
+                      </Container>
+                    </TabPanel>
+                    <TabPanel>
+                      <Container py px={false}>
+                        <JsonViewer expanded={2} data={cluster} toolbar data-testid="json-viewer" />
+                      </Container>
+                    </TabPanel>
+                  </Tabs>
+                )}
               </>
-            )}
-          </>
-        )
-      }}
-    </Await>
+            )
+          }}
+        </Await>
+      </CatchBoundary>
+    </>
   )
 }
+
+export default ClusterDetail

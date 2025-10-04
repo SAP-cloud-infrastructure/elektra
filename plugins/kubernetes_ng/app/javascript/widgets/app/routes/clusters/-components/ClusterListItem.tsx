@@ -1,7 +1,7 @@
 import React from "react"
-import { Cluster } from "../../../types/clusters"
+import { Cluster } from "../../../types/cluster"
 import { DataGridRow, DataGridCell, Icon, Stack, Button } from "@cloudoperators/juno-ui-components"
-import RedinessConditions from "../../../components/RedinessConditions"
+import ReadinessConditions from "../../../components/ReadinessConditions"
 import ClipboardText from "../../../components/ClipboardText"
 import { Link } from "@tanstack/react-router"
 
@@ -60,7 +60,7 @@ const ClusterListItem: React.FC<ClusterListItemProps> = ({ cluster, ...props }) 
         </Stack>
       </DataGridCell>
       <DataGridCell>
-        <RedinessConditions conditions={cluster.readiness.conditions} data-testid="readiness-conditions" />
+        <ReadinessConditions conditions={cluster.readiness.conditions} data-testid="readiness-conditions" />
       </DataGridCell>
       <DataGridCell>
         <Stack gap="1">
