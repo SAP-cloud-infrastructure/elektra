@@ -26,7 +26,7 @@ type Condition = {
 
 type ReadinessConditionsProps = {
   conditions: Condition[]
-  [key: string]: any
+  [key: string]: unknown
 }
 
 const ReadinessConditions: React.FC<ReadinessConditionsProps> = ({ conditions, ...props }) => {

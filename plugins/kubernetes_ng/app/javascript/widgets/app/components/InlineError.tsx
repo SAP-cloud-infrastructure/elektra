@@ -1,18 +1,33 @@
 import React from "react"
 import { Stack, Icon } from "@cloudoperators/juno-ui-components"
 
+// Handle deferred errors from tankstack router loader awaited promises
+// If the promise is rejected, the Await component will throw the serialized error
+// wrapped into the data attribute and have a __isServerError property
+function isSerializedServerError(error: unknown): error is { data: { message: string } } {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "data" in error &&
+    typeof (error as { data?: any }).data?.message === "string"
+  )
+}
+
 function normalizeError(error: unknown): { title: string; message: string } {
-  // tanstack router errors from loaders are wrapped into the data attribute
-  // and have a __isServerError property
-  if (error && (error as any).__isServerError) {
+  if (isSerializedServerError(error)) {
     return {
       title: "Server Error: ",
-      message: (error as any).data?.message || "Please try again later.",
+      message: error.data?.message ?? "Please try again later.",
     }
   }
+
   if (error instanceof Error) {
-    return { title: error.name ? `${error.name}: ` : "Error: ", message: error.message || "Something went wrong" }
+    return {
+      title: error.name ? `${error.name}: ` : "Error: ",
+      message: error.message || "Something went wrong",
+    }
   }
+
   return { title: "Unknown Error", message: "Something went wrong." }
 }
 
