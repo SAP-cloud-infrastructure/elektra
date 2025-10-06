@@ -70,7 +70,7 @@ describe("<ClusterDetail />", () => {
     expect(screen.getByText("Labels")).toBeInTheDocument()
 
     // test overview tab content readiness conditions
-    const [sectionHeader, _] = screen.getAllByText("Readiness")
+    const [sectionHeader] = screen.getAllByText("Readiness")
     expect(sectionHeader).toHaveClass("details-section")
   })
 

@@ -29,12 +29,11 @@ const ClusterListHeader = () => (
 interface ClusterListProps {
   clusters?: Cluster[]
   isLoading?: boolean
-  isFetching?: boolean
   error?: Error
   [key: string]: any
 }
 
-const ClusterList: React.FC<ClusterListProps> = ({ clusters = [], error, isLoading, isFetching, ...props }) => {
+const ClusterList: React.FC<ClusterListProps> = ({ clusters = [], error, isLoading, ...props }) => {
   const hoverClass = isLoading || error || clusters.length === 0 ? "" : "datagrid-hover"
 
   const renderContent = () => {
