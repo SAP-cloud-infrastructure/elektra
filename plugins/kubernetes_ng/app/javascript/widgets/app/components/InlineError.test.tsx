@@ -43,10 +43,12 @@ describe("<InlineError />", () => {
       render(<InlineError error={error} />)
       expect(screen.getByText("Server Error: Server is down")).toBeInTheDocument()
     })
-    it("falls back to 'Please try again later.' if error.data.message is missing", () => {
+    it("falls back to 'Please try again later.' if error.data.message is empty", () => {
       const error = {
         __isServerError: true,
-        data: {},
+        data: {
+          message: "",
+        },
       }
 
       render(<InlineError error={error} />)

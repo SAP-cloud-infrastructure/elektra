@@ -17,7 +17,7 @@ function normalizeError(error: unknown): { title: string; message: string } {
   if (isSerializedServerError(error)) {
     return {
       title: "Server Error: ",
-      message: error.data?.message ?? "Please try again later.",
+      message: error.data?.message.length > 0 ? error.data?.message : "Please try again later.",
     }
   }
 
