@@ -18,7 +18,7 @@ export const workerSchema = z.object({
 })
 
 // Define simplified cluster schema for the UI
-export const clusterSchema = z.object({
+export const ClusterSchema = z.object({
   // List view fields
   uid: z.string().uuid(),
   name: z.string(),
@@ -68,6 +68,7 @@ export const clusterSchema = z.object({
     kubernetes: z.boolean(),
   }),
 })
+export const ClustersSchema = z.array(ClusterSchema)
 
 export type Worker = z.infer<typeof workerSchema>
-export type Cluster = z.infer<typeof clusterSchema>
+export type Cluster = z.infer<typeof ClusterSchema>
