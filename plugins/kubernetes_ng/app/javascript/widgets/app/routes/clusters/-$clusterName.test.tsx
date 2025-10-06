@@ -6,6 +6,7 @@ import { PortalProvider } from "@cloudoperators/juno-ui-components/index"
 import { getTestRouter } from "../../mocks/getTestRouter"
 import { defaultCluster } from "../../mocks/data"
 import { Breadcrumb } from "../../components/Breadcrumb"
+import { Cluster } from "../../types/cluster"
 
 const renderComponent = ({
   clusterDetailsPromise = Promise.resolve(defaultCluster),
@@ -121,7 +122,7 @@ describe("<ClusterDetail />", () => {
       // The promise is already rejected when the component mounts.
       // React Router treats it as a loader error and throws a “server error” outside the render tree.
       // As a result, the CatchBoundary never sees it, and Jest reports an unhandled rejection causing the test to fail.
-      const clusterDetailsPromise = new Promise((_, reject) => {
+      const clusterDetailsPromise: Promise<Cluster> = new Promise((_, reject) => {
         rejectClusterDetails = reject
       })
 
@@ -148,7 +149,7 @@ describe("<ClusterDetail />", () => {
       // The promise is already rejected when the component mounts.
       // React Router treats it as a loader error and throws a “server error” outside the render tree.
       // As a result, the CatchBoundary never sees it, and Jest reports an unhandled rejection causing the test to fail.
-      const clusterDetailsPromise = new Promise((_, reject) => {
+      const clusterDetailsPromise: Promise<Cluster> = new Promise((_, reject) => {
         rejectClusterDetails = reject
       })
 
