@@ -1,6 +1,7 @@
 = content_for :title do
   Manage Subnets
 .modal-body
-  .subnets{data: { network_subnets: true, network: @network.attributes.to_json, url: networks_subnets_path(params[:network_id]) } }
+  - check_cidr_range_str = @domain_config.check_cidr_range?.to_s
+  .subnets{data: { check_cidr_range: check_cidr_range_str, network_subnets: true, network: @network.attributes.to_json, url: networks_subnets_path(params[:network_id]) } }
 .buttons.modal-footer
   %button.btn.btn-default{ type: 'button', data: { dismiss:'modal' }, aria: { label: 'Close' } } Close

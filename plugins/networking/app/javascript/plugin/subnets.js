@@ -21,11 +21,13 @@ const errorsToStringArray = function (errors) {
 }
 
 class SubnetForm {
-  constructor(url, createCallback) {
+  constructor(url, checkCidrRange, createCallback) {
     this.data = { name: null, cidr: null }
     this.url = url
+    this.checkCidrRange = checkCidrRange
     this.createCallback = createCallback
     this.state = {
+      checkCidrRange: this.checkCidrRange,
       errors: null,
       show: false,
       loading: false,
@@ -39,14 +41,12 @@ class SubnetForm {
       url: this.url,
       method: "post",
       data: { subnet: this.data },
-      success: (data, textStatus, jqXHR) => {
+      success: (data) => {
         this.state.loading = false
         return this.createCallback(data)
       },
       error: (jqXHR, statusText, errorThrown) => {
-        const errors = jqXHR.responseJSON
-          ? jqXHR.responseJSON["errors"]
-          : errorThrown || statusText
+        const errors = jqXHR.responseJSON ? jqXHR.responseJSON["errors"] : errorThrown || statusText
         this.state.errors = errorsToStringArray(errors)
 
         this.state.loading = false
@@ -85,7 +85,9 @@ class SubnetForm {
 
   render() {
     if (!this.$form) {
-      const cidrHelpText = "must be a valid cidr adress like 10.180.1.0/16"
+      const cidrHelpText = this.state.checkCidrRange
+        ? "must be a valid cidr adress like 10.180.1./16"
+        : "should be a valid cidr adress like 10.10.10.10/16"
 
       this.$form = $('<form class="form-inline"></form>')
       this.$form.submit((e) => {
@@ -94,10 +96,10 @@ class SubnetForm {
       })
 
       this.$nameInput = $(
-        '<input class="form-control string required" placeholder="Name" type="text">'
+        '<input class="form-control string required" placeholder="Name" type="text"  style="width: 400px;">'
       )
       this.$cidrInput = $(
-        `<input class="form-control string required" placeholder="CIDR (${cidrHelpText})" type="text">`
+        `<input class="form-control string required" placeholder="CIDR (${cidrHelpText})" type="text" style="width: 600px;">`
       )
 
       const self = this
@@ -108,13 +110,7 @@ class SubnetForm {
         return (self.data["cidr"] = this.value)
       })
 
-      this.$submitButton = $(
-        '<input type="submit" class="btn btn-primary" value="Add">'
-      )
-
-      // @$form.append($('<div class="form-group"></div>').append(@$nameInput))
-      // .append($('<div class="form-group"></div>').append(@$cidrInput))
-      // .append($('<div class="form-group"></div>').append(@$submitButton))
+      this.$submitButton = $('<input type="submit" class="btn btn-primary" value="Add">')
 
       this.$form
         .append($('<div class="form-group"></div>').append(this.$nameInput))
@@ -138,9 +134,7 @@ class SubnetForm {
 
     if (this.state.errors) {
       this.$error.append(
-        `<div class="has-error"><span class="help-block">${this.state.errors.join(
-          " and "
-        )}</span></div>`
+        `<div class="has-error"><span class="help-block">${this.state.errors.join(" and ")}</span></div>`
       )
     }
 
@@ -157,6 +151,7 @@ class Subnets {
   constructor(element) {
     this.element = element
     this.url = $(element).data("url")
+    this.checkCidrRange = $(element).data("check-cidr-range")
     this.subnets = $(element).data("items")
     this.network = $(element).data("network")
 
@@ -168,7 +163,7 @@ class Subnets {
       errors: null,
     }
 
-    this.form = new SubnetForm(this.url, (subnet) => {
+    this.form = new SubnetForm(this.url, this.checkCidrRange, (subnet) => {
       this.state.subnets.push(subnet)
       this.state.showForm = false
       return this.render()
@@ -186,7 +181,7 @@ class Subnets {
     return $.ajax({
       url: this.url,
       cache: false,
-      success: (data, textStatus, jqXHR) => {
+      success: (data) => {
         this.state.loading = false
         this.state.subnets = data
         return this.render()
@@ -194,7 +189,7 @@ class Subnets {
     })
   }
 
-  toggleForm(anker) {
+  toggleForm() {
     this.state.showForm = !this.state.showForm
     return this.render()
   }
@@ -211,13 +206,11 @@ class Subnets {
         error: (jqXHR, statusText, errorThrown) => {
           $(anker).show().data("confirm", false)
           $(anker).closest("tr").removeClass("updating")
-          const errors = jqXHR.responseJSON
-            ? jqXHR.responseJSON["errors"]
-            : errorThrown || statusText
+          const errors = jqXHR.responseJSON ? jqXHR.responseJSON["errors"] : errorThrown || statusText
           this.state.errors = errorsToStringArray(errors)
           return this.render()
         },
-        success: (data, textStatus, jqXHR) => {
+        success: () => {
           const { subnets } = this.state
           this.state.subnets = []
           for (var subnet of Array.from(subnets)) {
@@ -230,19 +223,13 @@ class Subnets {
       })
     } else {
       $(anker).data("confirm", true).text("Confirm Delete")
-      const reset = () =>
-        $(anker).data("confirm", false).html('<i class="fa fa-trash"></i>')
+      const reset = () => $(anker).data("confirm", false).html('<i class="fa fa-trash"></i>')
       return (this.removeTimer = setTimeout(reset, 3000))
     }
   }
 
   loading() {
-    return (
-      this.$loading ||
-      (this.$loading = $(
-        '<tr><td colspan="5"><span class="spinner"></span></td></tr>'
-      ))
-    )
+    return this.$loading || (this.$loading = $('<tr><td colspan="5"><span class="spinner"></span></td></tr>'))
   }
 
   render() {
@@ -256,17 +243,11 @@ class Subnets {
           network: this.network,
         })
       ) {
-        const toolbar = $(
-          '<div class="toolbar toolbar-controlcenter"></div>'
-        ).appendTo(this.element)
-        const buttons = $('<div class="main-control-buttons"></div>').appendTo(
-          toolbar
-        )
+        const toolbar = $('<div class="toolbar toolbar-controlcenter"></div>').appendTo(this.element)
+        const buttons = $('<div class="main-control-buttons"></div>').appendTo(toolbar)
 
         this.form.render().appendTo(toolbar).hide()
-        this.$addButton = $(
-          '<a href="#" class="btn btn-primary">+</a>'
-        ).appendTo(buttons)
+        this.$addButton = $('<a href="#" class="btn btn-primary">+</a>').appendTo(buttons)
         this.$addButton.click(() => this.toggleForm(this))
       }
 
@@ -284,10 +265,7 @@ class Subnets {
       this.$tbody = $("<tbody></tbody>").appendTo($table)
     }
 
-    if (
-      this.state.subnets &&
-      this.state.lastItemsCount !== this.state.subnets.length
-    ) {
+    if (this.state.subnets && this.state.lastItemsCount !== this.state.subnets.length) {
       this.state.lastItemsCount = this.state.subnets.length
 
       this.$tbody.empty()
@@ -329,9 +307,9 @@ class Subnets {
             network: this.network,
           })
         ) {
-          var $deleteButton = $(
-            '<a class="btn btn-danger btn-sm" href="#"><i class="fa fa-trash"></i></a>'
-          ).appendTo($actions)
+          var $deleteButton = $('<a class="btn btn-danger btn-sm" href="#"><i class="fa fa-trash"></i></a>').appendTo(
+            $actions
+          )
           $deleteButton.click(function () {
             const subnet_id = $(this).closest("tr").prop("id")
             return self.removeSubnet(this, subnet_id)
@@ -347,16 +325,10 @@ class Subnets {
     ) {
       if (this.state.showForm) {
         this.form.show()
-        this.$addButton
-          .addClass("btn-default")
-          .removeClass("btn-primary")
-          .text("x")
+        this.$addButton.addClass("btn-default").removeClass("btn-primary").text("x")
       } else {
         this.form.hide()
-        this.$addButton
-          .addClass("btn-primary")
-          .removeClass("btn-default")
-          .text("+")
+        this.$addButton.addClass("btn-primary").removeClass("btn-default").text("+")
       }
     }
 
@@ -369,9 +341,7 @@ class Subnets {
     this.$error.empty()
     if (this.state.errors) {
       return this.$error.append(
-        `<div class="has-error"><span class="help-block">${this.state.errors.join(
-          " and "
-        )}</span></div>`
+        `<div class="has-error"><span class="help-block">${this.state.errors.join(" and ")}</span></div>`
       )
     }
   }
