@@ -24,12 +24,12 @@ type Condition = {
   displayValue: string
 }
 
-type RedinessConditionsProps = {
+type ReadinessConditionsProps = {
   conditions: Condition[]
-  [key: string]: any
+  [key: string]: unknown
 }
 
-const RedinessConditions: React.FC<RedinessConditionsProps> = ({ conditions, ...props }) => {
+const ReadinessConditions: React.FC<ReadinessConditionsProps> = ({ conditions, ...props }) => {
   return (
     <Stack gap="1" {...props}>
       {conditions.map((condition) => {
@@ -48,4 +48,4 @@ const RedinessConditions: React.FC<RedinessConditionsProps> = ({ conditions, ...
   )
 }
 
-export default RedinessConditions
+export default ReadinessConditions
