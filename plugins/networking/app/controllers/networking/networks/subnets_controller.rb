@@ -15,6 +15,7 @@ module Networking
           services.networking.new_subnet(
             params[:subnet].merge(network_id: params[:network_id]),
           )
+        subnet.check_cidr_range = @domain_config.check_cidr_range?
         if subnet.save
           render json: subnet, status: 201
         else
