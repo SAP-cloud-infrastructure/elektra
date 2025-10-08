@@ -1,0 +1,20 @@
+<%= inside_layout 'monsoon_openstack_auth/application' do %>
+
+  <%= form_tag check_passcode_path, id: "monsoon_openstack_auth_login" do %>
+    <% if @error%>
+      <div class="error"><i class="fa fa-exclamation-triangle"></i><%= @error %></div>
+    <% end %>
+    <h1>RSA SecurID</h1>
+
+    <fieldset id="inputs">
+      <p class="username-wrapper"><%= text_field_tag :username, @username, placeholder: "Userid", autofocus: true, required: true %></p>
+      <p class="passcode-wrapper"><%= password_field_tag :passcode, @passcode, placeholder: "Passcode", required: true %></p>
+    </fieldset>
+
+    <fieldset id="actions">
+
+      <input type="submit" id="submit" value="Log in">
+      <!-- <a href="">Forgot your password?</a><a href="">Register</a> -->
+    </fieldset>
+  <% end %>
+<%end%>

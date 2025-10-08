@@ -138,10 +138,11 @@ module Compute
       @flavors = services.compute.flavors
       
       # images
-      all_images = services.image.all_images # all images
-      project_images = services.image.all_images({"owner" => @scoped_project_id}) # to be sure to load also all images that are related to the project
+      all_private_images = services.image.all_images({visibility: "private"})
+      all_shared_images =  services.image.all_images({visibility: "shared"})
+      all_public_images =  services.image.all_images({visibility: "public"})
       # Merge and remove duplicates based on ID
-      @images = (all_images + project_images).uniq { |image| image.id }
+      @images = (all_private_images + all_shared_images + all_public_images).uniq { |image| image.id }
 
       @fixed_ip_ports = services.networking.fixed_ip_ports
       @subnets = services.networking.subnets
@@ -809,6 +810,14 @@ module Compute
 
           to_be_unassigned.uniq.each do |sg|
             execute_instance_action("unassign_security_group", sg, false)
+          end
+
+          if @instance.errors.present?
+            flash[
+              :error
+            ] = "An error happend while assigning/unassigned security groups to the server. Error: #{@instance.errors.full_messages.join(", ")}"
+          else
+            flash[:notice] = "Security groups successfully updated."
           end
 
           if @action_from_show

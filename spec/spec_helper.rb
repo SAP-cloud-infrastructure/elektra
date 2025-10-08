@@ -26,6 +26,29 @@ Dir[Rails.root.join("spec/support/**/*.rb")].each { |f| require f }
 # If you are not using ActiveRecord, you can remove this line.
 ActiveRecord::Migration.maintain_test_schema!
 
+# Define custom ordering strategy
+module AuthFirstOrdering
+  def self.order(examples)
+    auth_examples = []
+    other_examples = []
+    
+    examples.each do |example|
+      file_path = example.metadata[:example_group][:file_path]
+      if file_path.include?('plugins/monsoon-openstack-auth')
+        auth_examples << example
+      else
+        other_examples << example
+      end
+    end
+    
+    puts "Auth plugin tests: #{auth_examples.length}, Other tests: #{other_examples.length}"
+    
+    # Return auth tests first, then others
+    auth_examples + other_examples
+  end
+end
+
+
 RSpec.configure do |config|
   config.full_backtrace = false
 
@@ -54,7 +77,17 @@ RSpec.configure do |config|
   # order dependency and want to debug it, you can fix the order by providing
   # the seed, which is printed after each run.
   #     --seed 1234
-  config.order = "random"
+
+  # Custom order: Run monsoon-openstack-auth tests first to prevent authentication 
+  # stub pollution. Other plugins (lbaas2, email) modify authentication_stub data,
+  # but random order can cause auth tests to reset stubs mid-execution, leading 
+  # to flaky tests and state pollution between plugins.
+  config.register_ordering :auth_first do |examples|
+    auth_tests, other_tests = examples.partition do |example|
+      example.metadata[:example_group][:file_path].include?('plugins/monsoon-openstack-auth')
+    end
+    auth_tests.shuffle + other_tests.shuffle
+  end
 
   # RSpec Rails can automatically mix in different behaviours to your tests
   # based on their file location, for example enabling you to call `get` and

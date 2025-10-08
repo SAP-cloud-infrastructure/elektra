@@ -24,7 +24,7 @@ class DashboardPluginGenerator < Rails::Generators::NamedBase
                description: "Generate plugin using react"
   class_option :juno,
                type: :boolean,
-               default: true,
+               default: false,
                description: "Generate plugin using react and juno ui components"
 
   def start
@@ -44,7 +44,7 @@ class DashboardPluginGenerator < Rails::Generators::NamedBase
       .glob("#{PLUGINS_PATH}/#{name}/**/*")
       .each do |file|
         next unless File.file?(file)
-
+        
         gsub_file(file, "%{PLUGIN_NAME}", name)
         gsub_file(file, "%{PLUGIN_NAME_CAMELIZE}", name.camelize)
         gsub_file(file, "%{PLUGIN_NAME_HUMANIZE}", name.humanize)

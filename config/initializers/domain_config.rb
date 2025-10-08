@@ -68,6 +68,10 @@ class DomainConfig
     @domain_config.fetch('check_cidr_range', true)
   end
 
+  def oidc_provider?
+    @domain_config.fetch('oidc_provider', false)
+  end
+
   def idp?
     idp_value = @domain_config.fetch('idp', false)
     idp_value ? URI.encode_www_form_component(idp_value.to_s) : false

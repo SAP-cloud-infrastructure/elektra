@@ -6,7 +6,7 @@
 class ScopeController < ::ApplicationController
   # keep the before_action with prepend to ensure that the load_scoped_objects method is called first
   prepend_before_action :load_scoped_objects
-  prepend_before_action :create_default_domain_config
+  before_action :create_default_domain_config
   # At this point is the domain configuration already loaded and the scoped domain and project are set.
   # The plugin_name is set by the ApplicationController which is inherited by this class.
   before_action :hidden_plugin_redirect
@@ -93,8 +93,6 @@ class ScopeController < ::ApplicationController
 
     @can_access_domain = !@scoped_domain_name.nil?
     @can_access_project = !@scoped_project_name.nil?
-    # from here the real domain name is known so we can update the domain config with this name
-    @domain_config.update_domain(@scoped_domain_name)
   end
 
   rescue_from(
@@ -114,11 +112,8 @@ class ScopeController < ::ApplicationController
     )
   end
 
-  # this method creates a default domain config object from the domain_id parameter
-  # the domain_id parameter can be the name or the id of the domain
-  # the real name is resolved in the load_scoped_objects method and also updates the domain config
-  # this method called in the prepend_before_action chain as first to ensure that the domain config is available
+  # load_scoped_objects is running before create_default_domain_config so we can use scoped_domain_name
   def create_default_domain_config
-    @domain_config = DomainConfig.new(params[:domain_id])
+    @domain_config = DomainConfig.new(@scoped_domain_name || params[:domain_id])
   end
 end
