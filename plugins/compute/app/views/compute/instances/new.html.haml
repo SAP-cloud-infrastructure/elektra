@@ -197,6 +197,7 @@
             $('#kvm_image_id_wrapper').find('optgroup[label="--bootable volumes"]').addClass('hidden')
             $('#custom_root_disk_size_wrapper').removeClass('hidden')
             $('button:contains("Create")').prop('disabled', true);
+            // restore value if available
             if (server_custom_root_disk_size != '' && server_custom_root_disk_size != '0') {
               $('#server_custom_root_disk_size').val(server_custom_root_disk_size)
             }
@@ -205,9 +206,10 @@
             $('#vmware_image_id_wrapper').find('optgroup[label="--bootable volumes"]').removeClass('hidden')
             $('#kvm_image_id_wrapper').find('optgroup[label="--bootable volumes"]').removeClass('hidden')
             $('#custom_root_disk_size_wrapper').addClass('hidden')
+            $('button:contains("Create")').prop('disabled', false);
+            // store value and reset field
             server_custom_root_disk_size = $('#server_custom_root_disk_size').val()
             $('#server_custom_root_disk_size').val('')
-            $('button:contains("Create")').prop('disabled', false);
           }
         }
         var showRootDisk = #{params[:server] && params[:server][:custom_root_disk]}
@@ -242,7 +244,7 @@
         })
 
         // field validation
-        // disable create button if kvm with 0 disk size is selected and no volume type is selected
+        // disable create button if kvm with disk size = 0, is selected and no volume type is selected
         $('#server_kvm_volume_type').change(function() {
             var selectedValue = $(this).val(); 
             if (selectedValue && $('#server_flavor_id option:selected').text().match(/Disk: 0/)) {
