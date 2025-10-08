@@ -79,9 +79,9 @@ module Compute
       begin
         if hypervisor.to_s.include?("nova-compute-ironic")
           @console = services.compute.remote_console(params[:id], "serial", "shellinabox")
-        # TODO kvm: ask that this is correct?
-        # check for "node[numbers]-bb[numbers]"
         elsif hypervisor.to_s.match?(/node\d+-bb\d+/)
+          # kvm hypervisors have the pattern nodeX-bbY
+          # Note this needs to be reviewed because it is not very generic, check also issue #1605
           @console = services.compute.remote_console(params[:id], "vnc", "novnc")
         else
           @console = services.compute.remote_console(params[:id])

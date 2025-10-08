@@ -85,7 +85,7 @@
       = f.input :kvm_image_id, label: 'KVM Image',
         selected:      @instance.image_id, 
         as:            :grouped_select,
-        collection:    grouped_images(@images, 'kvm', @bootable_volumes, @available_volume_types),
+        collection:    grouped_images(@images, 'kvm', @bootable_volumes),
         group_method:  :last,
         include_blank: "Choose image",
         required:      true

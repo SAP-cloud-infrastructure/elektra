@@ -36,7 +36,7 @@ module Compute
     #  'id' => 'cd116ba4-3d20-4011-adb9-f86d821b5e8f'
     # }
 
-    def grouped_images(images, hv_type, bootable_volumes = nil, available_volume_types = [])
+    def grouped_images(images, hv_type, bootable_volumes = nil)
       if images.blank?
         [["Couldn't retrieve images. Please try again", []]]
       else
@@ -120,10 +120,7 @@ module Compute
         #  ]
         # ]
 
-        # check if kvm volume type is available in the list of available volume types,
-        # otherwise there it is not possible to boot the image with KVM because the default type is not compatible
-        kvm_volume_type_is_available = available_volume_types.any? { |volume_type| volume_type["name"].start_with?("kvm") }
-        if hv_type == "vmware" || ( hv_type == "kvm" && kvm_volume_type_is_available )
+        if hv_type == "vmware" || hv_type == "kvm"
           if bootable_volumes && !bootable_volumes.empty?
 
           # select only bootable volumes that match in the metadata the hypervisor_type and img_hv_type of the image
