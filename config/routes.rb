@@ -1,6 +1,20 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
+  scope '/v2/:domain_id' do 
+    scope module: 'v2' do 
+      get "/login", to: 'session#login'
+      post "/create", to: 'session#create'
+    end
+  end
+
+  scope '/v2/:domain_id(/:project_id)(/:plugin)' do 
+    scope module: 'v2' do 
+      get '/', to: 'debug#index'
+    end
+  end
+
+
   post '/verify-auth-token', to: 'auth_token#verify'
 
   mount MonsoonOpenstackAuth::Engine => '/:domain_fid/auth'
