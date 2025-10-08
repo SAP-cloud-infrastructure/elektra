@@ -30,13 +30,6 @@
       selected:           @instance.availability_zone_id,
       required:           true}
 
-    -# = f.input :security_groups, { label: "Security groups",
-    -#   input_html:         {multiple: true},
-    -#   as:                 :select,
-    -#   collection:         @security_groups.collect{|sg| ["#{sg.name} (#{sg.project_name || sg.project_id})",sg.id]},
-    -#   selected:           (@instance.security_groups || []).collect{|sg| sg},
-    -#   required:           true}
-
     = f.input :security_groups, { label: "Security groups",
       input_html:         {multiple: true},
       as:                 :grouped_select,
@@ -233,32 +226,28 @@
             $('#server_custom_root_disk').prop('checked', true).trigger('change')
             $('#custom_root_disk_wrapper').addClass('hidden');
             $('button:contains("Create")').prop('disabled', true);
-          } else {
-            $('#server_custom_root_disk').prop('checked', false).trigger('change')
-          }
-        })
-
-        // show available volume types for bootable volumes in kvm
-        $('#kvm_image_id_wrapper').on('change', function() {
-          console.log("kvm image changed");
-          if ($('#kvm_image_id_wrapper option:selected').text().match(/Bootable: kvm/)) {
+            // set default custom root disk size to 64GB
+            $('#server_custom_root_disk_size').val('64')
+            $('#server_custom_root_disk_size').trigger('change')
             $('#kvm_volume_type').removeClass('hidden');
-            $('button:contains("Create")').prop('disabled', true);
+            // set kvm volume type to default
+            $('#server_kvm_volume_type').prop('selectedIndex', 1).trigger('change');
           } else {
+            // reset values
+            $('#server_custom_root_disk').prop('checked', false).trigger('change')
+            $('#server_custom_root_disk_size').val('')
             $('#kvm_volume_type').addClass('hidden');
-            $('button:contains("Create")').prop('disabled', false);
+            $('#server_kvm_volume_type').prop('selectedIndex', 0).trigger('change');
           }
         })
 
         // field validation
-        // disable create button if kvm bootable volume is selected and no volume type is selected
-        // enable create button only if volume type is selected for kvm bootable volumes
+        // disable create button if kvm with 0 disk size is selected and no volume type is selected
         $('#server_kvm_volume_type').change(function() {
             var selectedValue = $(this).val(); 
-            if (selectedValue && $('#kvm_image_id_wrapper option:selected').text().match(/Bootable: kvm/)) {
+            if (selectedValue && $('#server_flavor_id option:selected').text().match(/Disk: 0/)) {
                 $('button:contains("Create")').prop('disabled', false);
             } else {
-                console.log('No selection made');
                 $('button:contains("Create")').prop('disabled', true);
             }
         });

@@ -275,7 +275,6 @@ module Compute
               uuid: volume.id,
               source_type: "volume",
               destination_type: "volume",
-              volume_type: volume_type,
               delete_on_termination: false,
             },
           ]
@@ -298,6 +297,7 @@ module Compute
                   volume_size: params[:server][:custom_root_disk_size],
                   source_type: "image",
                   destination_type: "volume",
+                  volume_type: volume_type,
                   delete_on_termination: true,
                 },
               ]
