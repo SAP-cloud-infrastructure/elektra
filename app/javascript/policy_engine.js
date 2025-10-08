@@ -13,12 +13,10 @@ if (window.policyConfig?.rules && window.policyConfig?.locals) {
   window.policy = {
     isAllowed: function (name, params = {}) {
       const rule = rules[name]
-      if (!rule) throw "Policy Engine Error: rule #{name} not found."
+      if (!rule) throw `Policy Engine Error: rule ${name} not found.`
       return rule(rules, window.policyConfig.locals, params)
     },
   }
 } else {
-  console.info(
-    "Policy engine is not loaded because window.policyConfig does not contain required data"
-  )
+  console.info("Policy engine is not loaded because window.policyConfig does not contain required data")
 }

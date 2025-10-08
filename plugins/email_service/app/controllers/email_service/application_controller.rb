@@ -65,7 +65,6 @@ module EmailService
       Rails.logger.debug("[secret]: #{secret}")
 
       return unless access || secret
-
       @cronus_region = cronus_region
       @aws_region = map_region(@cronus_region) || "eu-central-1"
       @cronus_endpoint = "https://cronus.#{@cronus_region}.cloud.sap"
