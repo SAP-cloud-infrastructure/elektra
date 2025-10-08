@@ -1,6 +1,7 @@
 import { createAjaxHelper } from "lib/ajax_helper"
 import { widgetBasePath } from "lib/widget"
-import { Cluster } from "./types/clusters"
+import { Cluster, ClusterSchema, ClustersSchema } from "./types/cluster"
+import { Permissions, PermissionsSchema } from "./types/permissions"
 import { defaultCluster, errorCluster, unknownStatusCluster } from "./mocks/data"
 
 export const gardenerTestApi = {
@@ -22,15 +23,37 @@ export function createGardenerApi(mountpoint: string) {
   const apiClient = createAjaxHelper({ baseURL })
 
   const shootApi = {
-    getClusters: () => apiClient.get<{ data: Cluster[] }>("/api/clusters/").then((res) => res.data),
+    getClusters: () =>
+      apiClient.get<{ data: Cluster[] }>("/api/clusters/").then((res) => {
+        const parsed = ClustersSchema.safeParse(res.data)
+        if (!parsed.success) {
+          console.error("Invalid API response:", parsed.error)
+          throw new Error("Failed to fetch clusters: invalid response")
+        }
+        return res.data
+      }),
 
     getClusterByName: (name: string) =>
-      apiClient.get<{ data: Cluster }>(`/api/clusters/${name}/`).then((res) => res.data),
+      apiClient.get<{ data: Cluster }>(`/api/clusters/${name}/`).then((res) => {
+        const parsed = ClusterSchema.safeParse(res.data)
+        if (!parsed.success) {
+          console.error("Invalid API response:", parsed.error)
+          throw new Error("Failed to fetch cluster: invalid response")
+        }
+        return res.data
+      }),
   }
 
   const permissionsApi = {
     getPermissions: () =>
-      apiClient.get<{ data: Record<string, boolean> | undefined }>("/api/permissions/shoots/").then((res) => res.data),
+      apiClient.get<{ data: Permissions }>("/api/permissions/shoots/").then((res) => {
+        const parsed = PermissionsSchema.safeParse(res.data)
+        if (!parsed.success) {
+          console.error("Invalid API response:", parsed.error)
+          throw new Error("Failed to fetch permissions: invalid response")
+        }
+        return res.data
+      }),
   }
 
   return {
