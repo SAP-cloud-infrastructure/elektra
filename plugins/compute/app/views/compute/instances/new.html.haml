@@ -221,6 +221,7 @@
           $('#kvm_image_id_wrapper').find('optgroup[label="--bootable volumes"]').removeClass('hidden')
           $('#custom_root_disk_size_wrapper').addClass('hidden')
           $('button:contains("Create")').prop('disabled', false);
+          $('#server_custom_root_disk').prop("checked", false);
           // store value and reset field
           server_custom_root_disk_size = $('#server_custom_root_disk_size').val()
           $('#server_custom_root_disk_size').val('')
