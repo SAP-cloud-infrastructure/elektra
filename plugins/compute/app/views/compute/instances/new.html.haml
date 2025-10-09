@@ -120,7 +120,7 @@
         }
         else if ($('#server_flavor_id option:selected').text().match(/kvm/)) {
             // kvm
-            console.info("kvm flavor selected");
+            console.debug("kvm flavor selected");
             $('#baremetal_image_id_wrapper').addClass('hidden');
             $('#kvm_image_id_wrapper').removeClass('hidden');
             $('#vmware_image_id_wrapper').addClass('hidden');
@@ -133,7 +133,7 @@
           }
         else if ($('#server_flavor_id').val() == "") {
           // hide if nothing is selected
-          console.info("no flavor selected");
+          console.debug("no flavor selected");
           $('#baremetal_image_id_wrapper').addClass('hidden');
           $('#kvm_image_id_wrapper').addClass('hidden');
           $('#vmware_image_id_wrapper').addClass('hidden');
@@ -149,7 +149,7 @@
         }
         else {
           // vmware
-          console.info("vmware flavor selected");
+          console.debug("vmware flavor selected");
           $('#baremetal_image_id_wrapper').addClass('hidden');
           $('#kvm_image_id_wrapper').addClass('hidden');
           $('#vmware_image_id_wrapper').removeClass('hidden');
@@ -170,88 +170,101 @@
           var numericValue = parseInt(value);
           
           if (value === '') {
-              //console.log('No custom disk size specified');
               $('button:contains("Create")').prop('disabled', true);
           } else if (isNaN(numericValue) || numericValue <= 10) {
-              // console.log('Invalid disk size entered');
               $('button:contains("Create")').prop('disabled', true);
           } else {
-              console.log('Valid disk size entered:', numericValue + 'GB');
+              console.debug('valid disk size entered:', numericValue + 'GB');
               $('button:contains("Create")').prop('disabled', false);
           }
       }
 
+      function forceCustomRootDisk() {
+        // handle custom root disk
+        if ($('#server_flavor_id option:selected').text().match(/Disk: 0/)){
+          // force custom root disk
+          console.debug("force custom root disk");
+          toggleRootDisk(true)
+          // hide the checkbox
+          $('#custom_root_disk_wrapper').addClass('hidden')
+          // set default custom root disk size to 64GB
+          $('#server_custom_root_disk_size').val('64')
+          $('#server_custom_root_disk_size').trigger('change')
+          // set kvm volume type to default
+          $('#kvm_volume_type').removeClass('hidden');
+          $('#server_kvm_volume_type').prop('selectedIndex', 1).trigger('change');
+        } else {
+          // reset values
+          console.debug("reset values custom root disk");
+          toggleRootDisk(false)
+          $('#kvm_volume_type').addClass('hidden');
+        }
+      }
+
+      function toggleRootDisk(show, currentDiskSize = '') {
+        var server_custom_root_disk_size = currentDiskSize;
+        if(show) {
+          // hide bootable volumes if custom root disk is choosen
+          $('#vmware_image_id_wrapper').val('')
+          $('#vmware_image_id_wrapper').find('optgroup[label="--bootable volumes"]').addClass('hidden')
+          $('#kvm_image_id_wrapper').val('')
+          $('#kvm_image_id_wrapper').find('optgroup[label="--bootable volumes"]').addClass('hidden')
+          $('#custom_root_disk_size_wrapper').removeClass('hidden')
+          $('button:contains("Create")').prop('disabled', true);
+          // restore value if available
+          if (server_custom_root_disk_size != '' && server_custom_root_disk_size != '0') {
+            $('#server_custom_root_disk_size').val(server_custom_root_disk_size)
+          }
+        } else {
+          // show bootable volumes again
+          $('#vmware_image_id_wrapper').find('optgroup[label="--bootable volumes"]').removeClass('hidden')
+          $('#kvm_image_id_wrapper').find('optgroup[label="--bootable volumes"]').removeClass('hidden')
+          $('#custom_root_disk_size_wrapper').addClass('hidden')
+          $('button:contains("Create")').prop('disabled', false);
+          // store value and reset field
+          server_custom_root_disk_size = $('#server_custom_root_disk_size').val()
+          $('#server_custom_root_disk_size').val('')
+        }
+        return server_custom_root_disk_size; // Rückgabe des aktualisierten Werts
+      }
+
+      function checkKvmVolumeType() {
+        var flavorText = $('#server_flavor_id option:selected').text();
+        var volumeTypeSelected = $('#server_kvm_volume_type').val() !== "";
+
+        if (flavorText.match(/kvm/) && flavorText.match(/Disk: 0/) && !volumeTypeSelected) {
+          console.debug("kvm flavor with 0 disk and no volume type selected");
+          $('button:contains("Create")').prop('disabled', true);
+        } else {
+          $('button:contains("Create")').prop('disabled', false);
+        }
+      }
+
       $(document).ready(function(){
-        // Initial render of images based on the selected flavor
         // this is needed to set the correct visibility if we re-render in case of error
+        // initial render of images based on the selected flavor
         renderImages()
+        // check if custom root disk is needed
+        forceCustomRootDisk()
+        // initial check of disk size
+        handleDiskSizeChange()
+        // initial check of kvm volume type
+        checkKvmVolumeType()
 
         // Root Disk Toggle
         var server_custom_root_disk_size = ''
-        var toggleRootDisk = function(show) {
-          if(show) {
-            // hide bootable volumes if custom root disk is choosen
-            $('#vmware_image_id_wrapper').val('')
-            $('#vmware_image_id_wrapper').find('optgroup[label="--bootable volumes"]').addClass('hidden')
-            $('#kvm_image_id_wrapper').val('')
-            $('#kvm_image_id_wrapper').find('optgroup[label="--bootable volumes"]').addClass('hidden')
-            $('#custom_root_disk_size_wrapper').removeClass('hidden')
-            $('button:contains("Create")').prop('disabled', true);
-            // restore value if available
-            if (server_custom_root_disk_size != '' && server_custom_root_disk_size != '0') {
-              $('#server_custom_root_disk_size').val(server_custom_root_disk_size)
-            }
-          } else {
-            // show bootable volumes again
-            $('#vmware_image_id_wrapper').find('optgroup[label="--bootable volumes"]').removeClass('hidden')
-            $('#kvm_image_id_wrapper').find('optgroup[label="--bootable volumes"]').removeClass('hidden')
-            $('#custom_root_disk_size_wrapper').addClass('hidden')
-            $('button:contains("Create")').prop('disabled', false);
-            // store value and reset field
-            server_custom_root_disk_size = $('#server_custom_root_disk_size').val()
-            $('#server_custom_root_disk_size').val('')
-          }
-        }
-        var showRootDisk = #{params[:server] && params[:server][:custom_root_disk]}
-        toggleRootDisk(showRootDisk)
         $('#server_custom_root_disk').change(function(t) {
-          toggleRootDisk($('#server_custom_root_disk').is(':checked'))
+          server_custom_root_disk_size = toggleRootDisk($('#server_custom_root_disk').is(':checked'), server_custom_root_disk_size)
         })
 
         // show images based on the selected flavor
         $('#server_flavor_id').change(function(){
           renderImages()
-          // handle custom root disk
-          if ($('#server_flavor_id option:selected').text().match(/Disk: 0/)){
-            // force custom root disk
-            console.debug("force custom root disk");
-            $('#server_custom_root_disk').prop('checked', true).trigger('change')
-            $('#custom_root_disk_wrapper').addClass('hidden');
-            $('button:contains("Create")').prop('disabled', true);
-            // set default custom root disk size to 64GB
-            $('#server_custom_root_disk_size').val('64')
-            $('#server_custom_root_disk_size').trigger('change')
-            $('#kvm_volume_type').removeClass('hidden');
-            // set kvm volume type to default
-            $('#server_kvm_volume_type').prop('selectedIndex', 1).trigger('change');
-          } else {
-            // reset values
-            $('#server_custom_root_disk').prop('checked', false).trigger('change')
-            $('#server_custom_root_disk_size').val('')
-            $('#kvm_volume_type').addClass('hidden');
-            $('#server_kvm_volume_type').prop('selectedIndex', 0).trigger('change');
-          }
+          forceCustomRootDisk()
         })
-
-        // field validation
-        // disable create button if kvm with disk size = 0, is selected and no volume type is selected
+        // check for kvm volume type if visible
         $('#server_kvm_volume_type').change(function() {
-            var selectedValue = $(this).val(); 
-            if (selectedValue && $('#server_flavor_id option:selected').text().match(/Disk: 0/)) {
-                $('button:contains("Create")').prop('disabled', false);
-            } else {
-                $('button:contains("Create")').prop('disabled', true);
-            }
+          checkKvmVolumeType()
         });
 
         // check for custom root disk size if visible
