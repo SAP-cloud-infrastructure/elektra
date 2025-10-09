@@ -127,11 +127,6 @@ module Compute
           volume_items = @bootable_volumes
             .select { |v| v.volume_image_metadata && ((v.volume_image_metadata["hypervisor_type"] == hv_type) || (v.volume_image_metadata["img_hv_type"] == hv_type)) }
             .map do |v|
-              
-              # puts "bootable volume name: #{v.name}, id: #{v.id}"
-              # puts "hypervisor_type: #{v.volume_image_metadata["hypervisor_type"]}"
-              # puts "img_hv_type: #{v.volume_image_metadata["img_hv_type"]}"
-              
               infos = []
               infos << "Size: #{v.size}GB" if v.size
               infos << "Avz: #{v.availability_zone}" if v.availability_zone
@@ -352,17 +347,17 @@ module Compute
 
     # flavor label in dropdown
     def flavor_label_for_select(flavor)
-
-      # default label for vmware flavors
-      label = "#{flavor.name}  (RAM: #{Core::DataType.new(:bytes, :mega).format(flavor.ram)}, VCPUs: #{flavor.vcpus}, Disk: #{Core::DataType.new(:bytes, :giga).format(flavor.disk)} )"
-      # this is needed to distinguish between kvm and baremetal flavors on javascript side
-      if flavor.extra_specs["capabilities:hypervisor_type"] == "ironic"
-        label = "#{flavor.name} ironic  (RAM: #{Core::DataType.new(:bytes, :mega).format(flavor.ram)}, VCPUs: #{flavor.vcpus}, Disk: #{Core::DataType.new(:bytes, :giga).format(flavor.disk)} )"
+      hypervisor_type = flavor.extra_specs["capabilities:hypervisor_type"]
+      base_info = "(RAM: #{Core::DataType.new(:bytes, :mega).format(flavor.ram)}, VCPUs: #{flavor.vcpus}, Disk: #{Core::DataType.new(:bytes, :giga).format(flavor.disk)})"
+      label = ""
+      if hypervisor_type == "ironic"
+        label = "#{flavor.name} ironic #{base_info}"
+      elsif hypervisor_type == "QEMU" || hypervisor_type == "CH"
+        label = "#{flavor.name} kvm #{base_info}"
+      else
+        # default label for vmware flavors
+        label = "#{flavor.name} #{base_info}"
       end
-      if flavor.extra_specs["capabilities:hypervisor_type"] == "QEMU" || flavor.extra_specs["capabilities:hypervisor_type"] == "CH"
-        label = "#{flavor.name} kvm  (RAM: #{Core::DataType.new(:bytes, :mega).format(flavor.ram)}, VCPUs: #{flavor.vcpus}, Disk: #{Core::DataType.new(:bytes, :giga).format(flavor.disk)} )"
-      end
-
       return label
     end
 
