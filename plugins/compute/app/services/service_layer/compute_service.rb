@@ -15,7 +15,7 @@ module ServiceLayer
     include ComputeServices::Volume
     include ComputeServices::OsServerGroup
 
-    MICROVERSION = "2.60"
+    MICROVERSION = "2.67"
 
     def available?(_action_name_sym = nil)
       elektron.service?("compute")

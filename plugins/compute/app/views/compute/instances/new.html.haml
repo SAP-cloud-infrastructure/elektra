@@ -19,7 +19,9 @@
         = 'Please read '
         = link_to 'about CC Networking.', "#{sap_url_for('documentation')}docs/customer/networking/networks/how-to-guides/learn-network-ccloud-networking/", target: '_blank'
 
-    = f.input :name, icon_hint: 'The name must not end with dot and number'
+    = f.input :name, 
+      placeholder: 'set your Instance Name',
+      icon_hint: 'The name must not end with dot and number'
 
     = f.input :availability_zone_id, {label: "Availability zone",
       input_html:         {},
@@ -27,13 +29,6 @@
       collection:         @availability_zones,
       selected:           @instance.availability_zone_id,
       required:           true}
-
-    -# = f.input :security_groups, { label: "Security groups",
-    -#   input_html:         {multiple: true},
-    -#   as:                 :select,
-    -#   collection:         @security_groups.collect{|sg| ["#{sg.name} (#{sg.project_name || sg.project_id})",sg.id]},
-    -#   selected:           (@instance.security_groups || []).collect{|sg| sg},
-    -#   required:           true}
 
     = f.input :security_groups, { label: "Security groups",
       input_html:         {multiple: true},
@@ -56,7 +51,7 @@
       group_method:       :last,
       include_blank:      "Choose flavor",
       label_method:       -> (flavor) { flavor_label_for_select(flavor) }}
-    
+
     #custom_root_disk_wrapper{class: 'hidden'}
       = f.input :custom_root_disk, 
         as: :boolean,
@@ -64,115 +59,222 @@
     
     #custom_root_disk_size_wrapper{class: params[:custom_root_disk] ? '' : 'hidden'}
       = f.input :custom_root_disk_size, 
-        label: 'Custom Root Disk Size (GB)'
+        placeholder: 'set your Custom Root Disk Size (GB)',
+        label: 'Custom Root Disk Size in GB'
 
     #baremetal_image_id_wrapper{class:'hidden'}
-      = f.input :baremetal_image_id, label: 'BM Image',
+      = f.input :baremetal_image_id, label: 'Baremetal Image',
         selected:      @instance.image_id, 
         as:            :grouped_select,
-        collection:    grouped_images(@images,@bootable_volumes,'baremetal'),
+        collection:    grouped_images(@images, 'baremetal', @bootable_volumes),
         group_method:  :last,
         include_blank: "Choose image",
         required:      true
         
     #vmware_image_id_wrapper{class:'hidden'}
-      = f.input :vmware_image_id, label: 'VM Image',
+      = f.input :vmware_image_id, label: 'VMware Image',
         selected:      @instance.image_id, 
         as:            :grouped_select,
-        collection:    grouped_images(@images,@bootable_volumes,'vmware'),
+        collection:    grouped_images(@images, 'vmware', @bootable_volumes),
         group_method:  :last,
         include_blank: "Choose image",
         required:      true,
         icon_hint: "Please note that you only use images with a maximum size of 12GB. Otherwise the instance creation might fail.<br><br>If you need to use bigger images please go to <i>“Volumes & Snapshots -> Create New”</i> and create a bootable volume of the correct size.<br>Then you can create a new server and choose the bootable volume from the list of images."
-    
+
+    #kvm_image_id_wrapper{class:'hidden'}
+      = f.input :kvm_image_id, label: 'KVM Image',
+        selected:      @instance.image_id, 
+        as:            :grouped_select,
+        collection:    grouped_images(@images, 'kvm', @bootable_volumes),
+        group_method:  :last,
+        include_blank: "Choose image",
+        required:      true
+
+    #kvm_volume_type{class:'hidden'}
+      = f.input :kvm_volume_type, label: 'KVM Volume Type',
+        as: :select,
+        collection: render_available_volume_types(@available_volume_types, 'kvm'),
+        include_blank: "Choose volume type",
+        required: true
+
     :javascript
-      $(document).ready(function(){
-        if ($('#server_flavor_id option:selected').text() != "Choose flavor") {
-          if ($('#server_flavor_id option:selected').text().match(/ironic/)) {
+      function renderImages() {
+        if ($('#server_flavor_id option:selected').text().match(/ironic/)) {
           // baremetal
-            $('#baremetal_image_id_wrapper').removeClass('hidden');
+          console.debug("baremetal flavor selected");
+          $('#baremetal_image_id_wrapper').removeClass('hidden');
+          $('#kvm_image_id_wrapper').addClass('hidden');
+          $('#vmware_image_id_wrapper').addClass('hidden');
 
-            $('#custom_root_disk_wrapper').addClass('hidden');
-            $('#custom_root_disk_size_wrapper').addClass('hidden');
-            $('#server_custom_root_disk_size').val('');
-            $('#server_custom_root_disk').prop("checked", false);
-          }
-          else if ($('#server_flavor_id').val() == "") {
-            // hide if nothing is selected
-            $('#vmware_image_id_wrapper').addClass('hidden');
-            $('#baremetal_image_id_wrapper').addClass('hidden');
+          $('#server_vmware_image_id').val("");
+          $('#server_kvm_image_id').val("");
+          $('#kvm_volume_type').val("");
 
-            $('#custom_root_disk_wrapper').addClass('hidden');
-            $('#custom_root_disk_size_wrapper').addClass('hidden');
-            $('#server_custom_root_disk_size').val('');
-            $('#server_custom_root_disk').prop("checked", false);
-          }
-          else {
-            // vmware
-            $('#vmware_image_id_wrapper').removeClass('hidden');
-            $('#custom_root_disk_wrapper').removeClass('hidden');
-          }
+          // hide custom root disk for baremetal flavors
+          $('#custom_root_disk_wrapper').addClass('hidden');
+          $('#custom_root_disk_size_wrapper').addClass('hidden');
+          $('#server_custom_root_disk_size').val('');
+          $('#server_custom_root_disk').prop("checked", false);
+          $('button:contains("Create")').prop('disabled', false);
+          $('#kvm_volume_type').addClass('hidden');
         }
-      })
-      // Root Disk Toggle
-      var server_custom_root_disk_size = ''
-      var toggleRootDisk = function(show) {
+        else if ($('#server_flavor_id option:selected').text().match(/kvm/)) {
+            // kvm
+            console.debug("kvm flavor selected");
+            $('#baremetal_image_id_wrapper').addClass('hidden');
+            $('#kvm_image_id_wrapper').removeClass('hidden');
+            $('#vmware_image_id_wrapper').addClass('hidden');
+
+            $('#server_baremetal_image_id').val("");
+            $('#server_vmware_image_id').val("");
+            $('#server_custom_root_disk_size').val("");
+            $('#custom_root_disk_wrapper').removeClass('hidden');
+            $('button:contains("Create")').prop('disabled', false);
+          }
+        else if ($('#server_flavor_id').val() == "") {
+          // hide if nothing is selected
+          console.debug("no flavor selected");
+          $('#baremetal_image_id_wrapper').addClass('hidden');
+          $('#kvm_image_id_wrapper').addClass('hidden');
+          $('#vmware_image_id_wrapper').addClass('hidden');
+
+          $('#server_baremetal_image_id').val("");
+          $('#server_vmware_image_id').val("");
+          $('#server_kvm_image_id').val("");
+          $('#kvm_volume_type').val("");
+          $('#server_custom_root_disk_size').val("");
+          $('#custom_root_disk_wrapper').addClass('hidden');
+          $('button:contains("Create")').prop('disabled', false);
+          $('#kvm_volume_type').addClass('hidden');
+        }
+        else {
+          // vmware
+          console.debug("vmware flavor selected");
+          $('#baremetal_image_id_wrapper').addClass('hidden');
+          $('#kvm_image_id_wrapper').addClass('hidden');
+          $('#vmware_image_id_wrapper').removeClass('hidden');
+
+          $('#server_baremetal_image_id').val("");
+          $('#server_kvm_image_id').val("");
+          $('#kvm_volume_type').val("");
+          $('#server_custom_root_disk_size').val("");
+          $('#custom_root_disk_wrapper').removeClass('hidden');
+          $('button:contains("Create")').prop('disabled', false);
+          $('#kvm_volume_type').addClass('hidden');
+        }
+      }
+
+      function handleDiskSizeChange() {
+          var $input = $('#server_custom_root_disk_size');
+          var value = $input.val().trim();
+          var numericValue = parseInt(value);
+          
+          if (value === '') {
+              $('button:contains("Create")').prop('disabled', true);
+          } else if (isNaN(numericValue) || numericValue <= 10) {
+              $('button:contains("Create")').prop('disabled', true);
+          } else {
+              console.debug('valid disk size entered:', numericValue + 'GB');
+              $('button:contains("Create")').prop('disabled', false);
+          }
+      }
+
+      function forceCustomRootDisk() {
+        // handle custom root disk
+        if ($('#server_flavor_id option:selected').text().match(/Disk: 0/)){
+          // force custom root disk
+          console.debug("force custom root disk");
+          toggleRootDisk(true)
+          // hide the checkbox
+          $('#custom_root_disk_wrapper').addClass('hidden')
+          // set default custom root disk size to 64GB
+          $('#server_custom_root_disk_size').val('64')
+          $('#server_custom_root_disk_size').trigger('change')
+          // set kvm volume type to default
+          $('#kvm_volume_type').removeClass('hidden');
+          $('#server_kvm_volume_type').prop('selectedIndex', 1).trigger('change');
+        } else {
+          // reset values
+          console.debug("reset values custom root disk");
+          toggleRootDisk(false)
+          $('#kvm_volume_type').addClass('hidden');
+        }
+      }
+
+      function toggleRootDisk(show, currentDiskSize = '') {
+        var server_custom_root_disk_size = currentDiskSize;
         if(show) {
+          // hide bootable volumes if custom root disk is choosen
           $('#vmware_image_id_wrapper').val('')
           $('#vmware_image_id_wrapper').find('optgroup[label="--bootable volumes"]').addClass('hidden')
+          $('#kvm_image_id_wrapper').val('')
+          $('#kvm_image_id_wrapper').find('optgroup[label="--bootable volumes"]').addClass('hidden')
           $('#custom_root_disk_size_wrapper').removeClass('hidden')
+          $('button:contains("Create")').prop('disabled', true);
+          // restore value if available
           if (server_custom_root_disk_size != '' && server_custom_root_disk_size != '0') {
             $('#server_custom_root_disk_size').val(server_custom_root_disk_size)
           }
         } else {
+          // show bootable volumes again
           $('#vmware_image_id_wrapper').find('optgroup[label="--bootable volumes"]').removeClass('hidden')
+          $('#kvm_image_id_wrapper').find('optgroup[label="--bootable volumes"]').removeClass('hidden')
           $('#custom_root_disk_size_wrapper').addClass('hidden')
+          $('button:contains("Create")').prop('disabled', false);
+          $('#server_custom_root_disk').prop("checked", false);
+          // store value and reset field
           server_custom_root_disk_size = $('#server_custom_root_disk_size').val()
           $('#server_custom_root_disk_size').val('')
         }
+        return server_custom_root_disk_size;
       }
-      var showRootDisk = #{params[:server] && params[:server][:custom_root_disk]}
-      toggleRootDisk(showRootDisk)
-      $('#server_custom_root_disk').change(function(t) {
-        toggleRootDisk($('#server_custom_root_disk').is(':checked'))
-      })
 
-      var flavors = #{js_flavor_data(@flavors)};
-      //flavors = JSON.parse(flavors.replace(/&quot;/g,'"'));
-      $('#server_flavor_id').change(function(){
-        //console.log($( this ).val())
-        if ($('#server_flavor_id option:selected').text().match(/ironic/)) {
-          // baremetal
-          $('#baremetal_image_id_wrapper').removeClass('hidden');
-          $('#vmware_image_id_wrapper').addClass('hidden');
-          $('#server_vmware_image_id').val("");
+      function checkKvmVolumeType() {
+        var flavorText = $('#server_flavor_id option:selected').text();
+        var volumeTypeSelected = $('#server_kvm_volume_type').val() !== "";
 
-          $('#custom_root_disk_wrapper').addClass('hidden');
-          $('#custom_root_disk_size_wrapper').addClass('hidden');
-          $('#server_custom_root_disk_size').val('');
-          $('#server_custom_root_disk').prop("checked", false);
+        if (flavorText.match(/kvm/) && flavorText.match(/Disk: 0/) && !volumeTypeSelected) {
+          console.debug("kvm flavor with 0 disk and no volume type selected");
+          $('button:contains("Create")').prop('disabled', true);
+        } else {
+          $('button:contains("Create")').prop('disabled', false);
         }
-        else if ($('#server_flavor_id').val() == "") {
-          // hide if nothing is selected
-          $('#vmware_image_id_wrapper').addClass('hidden');
-          $('#baremetal_image_id_wrapper').addClass('hidden');
-          $('#server_baremetal_image_id').val("");
-          $('#server_vmware_image_id').val("");
+      }
 
-          $('#custom_root_disk_wrapper').addClass('hidden');
-          $('#custom_root_disk_size_wrapper').addClass('hidden');
-          $('#server_custom_root_disk_size').val('');
-          $('#server_custom_root_disk').prop("checked", false);
-        }
-        else {
-          // vmware
-          $('#baremetal_image_id_wrapper').addClass('hidden');
-          $('#vmware_image_id_wrapper').removeClass('hidden');
-          $('#server_baremetal_image_id').val("");
+      $(document).ready(function(){
+        // this is needed to set the correct visibility if we re-render in case of error
+        // initial render of images based on the selected flavor
+        renderImages()
+        // check if custom root disk is needed
+        forceCustomRootDisk()
+        // initial check of disk size
+        handleDiskSizeChange()
+        // initial check of kvm volume type
+        checkKvmVolumeType()
 
-          $('#custom_root_disk_wrapper').removeClass('hidden');
-        }
-      })
+        // Root Disk Toggle
+        var server_custom_root_disk_size = ''
+        $('#server_custom_root_disk').change(function(t) {
+          server_custom_root_disk_size = toggleRootDisk($('#server_custom_root_disk').is(':checked'), server_custom_root_disk_size)
+        })
+
+        // show images based on the selected flavor
+        $('#server_flavor_id').change(function(){
+          renderImages()
+          forceCustomRootDisk()
+        })
+        // check for kvm volume type if visible
+        $('#server_kvm_volume_type').change(function() {
+          checkKvmVolumeType()
+        });
+
+        // check for custom root disk size if visible
+        // Listen for input changes (real-time)
+        $('#server_custom_root_disk_size').on('input', handleDiskSizeChange);
+        // Also listen for blur (when user leaves the field)
+        $('#server_custom_root_disk_size').on('blur', handleDiskSizeChange);
+
+      });
 
     = f.input :network_ids, { label: "Private Network",
       wrapper_html:       { class: ('has-error' if @private_networks.empty?) },

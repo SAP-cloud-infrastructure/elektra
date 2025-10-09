@@ -79,6 +79,10 @@ module Compute
       begin
         if hypervisor.to_s.include?("nova-compute-ironic")
           @console = services.compute.remote_console(params[:id], "serial", "shellinabox")
+        elsif hypervisor.to_s.match?(/node\d+-bb\d+/)
+          # kvm hypervisors have the pattern nodeX-bbY
+          # Note this needs to be reviewed because it is not very generic, check also issue #1605
+          @console = services.compute.remote_console(params[:id], "vnc", "novnc")
         else
           @console = services.compute.remote_console(params[:id])
         end
@@ -129,10 +133,14 @@ module Compute
     end
 
     def new
+      @available_volume_types = services.block_storage.volume_types()
       @instance = services.compute.new_server
       @flavors = services.compute.flavors
       
       # images
+      # note we load here the images based on their visibility and not all at once
+      # because in some environments not all images are visible for the user if we use 
+      # services.image.all_images without filter
       all_private_images = services.image.all_images({visibility: "private"})
       all_shared_images =  services.image.all_images({visibility: "shared"})
       all_public_images =  services.image.all_images({visibility: "public"})
@@ -141,6 +149,7 @@ module Compute
 
       @fixed_ip_ports = services.networking.fixed_ip_ports
       @subnets = services.networking.subnets
+
       @bootable_volumes =
         services
           .block_storage
@@ -189,10 +198,7 @@ module Compute
       end
       @instance.errors.add :image, "not available" if @images.blank?
 
-      # @instance.flavor_id             = @flavors.first.try(:id)
-      # @instance.image_id              = params[:image_id] || @images.first.try(:id)
       @instance.availability_zone_id = @availability_zones.first.try(:id)
-      #@instance.network_ids            = [{ id: @private_networks.first.try(:id) }]
       @instance.security_groups = [
         @security_groups.find { |sg| sg.name == "default" }.try(:id),
       ] if @instance.security_groups.blank? # if no security group has been selected force select the default group
@@ -221,14 +227,23 @@ module Compute
     end
 
     def create
-      # set image_id
-      params[:server][:image_id] = if params[:server][:baremetal_image_id] != ""
-        params[:server][:baremetal_image_id]
-      else
-        params[:server][:vmware_image_id]
+      # https://docs.openstack.org/api-ref/compute/#create-server
+      volume_type = ""
+      # set image_id if baremetal_image_id or vmware_image_id or kvm_image_id is set
+      # also set volume_type for bootable image if vmware_image_id or kvm_image_id is set
+      if params[:server][:baremetal_image_id] != ""
+        params[:server][:image_id] = params[:server][:baremetal_image_id]
+      elsif params[:server][:vmware_image_id] != ""
+        params[:server][:image_id] = params[:server][:vmware_image_id]
+      elsif params[:server][:kvm_image_id] != ""
+        params[:server][:image_id] = params[:server][:kvm_image_id]
+        # there is a dropdown to select the kvm volume type
+        volume_type = params[:server][:kvm_volume_type]
       end
       params[:server].delete(:baremetal_image_id)
       params[:server].delete(:vmware_image_id)
+      params[:server].delete(:kvm_image_id)
+      params[:server].delete(:kvm_volume_type)
 
       @instance = services.compute.new_server
 
@@ -277,7 +292,7 @@ module Compute
               image_buildnumber: (image.buildnumber || "").truncate(255),
             }
 
-            # Custom root disk -> let nova create a bootable volume on the fly
+            # use custom root disk size if selected
             if params[:server][:custom_root_disk] == "1"
               @instance.block_device_mapping_v2 = [
                 {
@@ -286,6 +301,7 @@ module Compute
                   volume_size: params[:server][:custom_root_disk_size],
                   source_type: "image",
                   destination_type: "volume",
+                  volume_type: volume_type,
                   delete_on_termination: true,
                 },
               ]
@@ -351,12 +367,12 @@ module Compute
              params[:server][:network_ids].first["port"].blank?
           @port.destroy
         end
-        @flavors = services.compute.flavors
-        # @images = services.image.images
-        @availability_zones = services.compute.availability_zones
-        @security_groups ||= services.networking.security_groups
-        @fixed_ip_ports = services.networking.fixed_ip_ports
-        @subnets = services.networking.subnets
+        @available_volume_types = services.block_storage.volume_types
+        @flavors                = services.compute.flavors
+        @availability_zones     = services.compute.availability_zones
+        @security_groups       ||= services.networking.security_groups
+        @fixed_ip_ports         = services.networking.fixed_ip_ports
+        @subnets                = services.networking.subnets
 
         @private_networks =
           services
@@ -461,7 +477,7 @@ module Compute
             "OS-EXT-IPS-MAC:mac_addr" => port.mac_address,
           }
         end
-        # byebug
+
         load_security_groups(@instance) if @action_from_show
         respond_to do |format|
           format.html { redirect_to instances_url }
@@ -845,9 +861,8 @@ module Compute
             map[sg.id] = services.networking.find_security_group(sg.id)
           end
           .values
-
-      # byebug
     end
+
     # This method finds the availability zone with the most avalilable RAM.
     # It use the elektra object cache.
     def prefered_availability_zone
