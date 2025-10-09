@@ -1,0 +1,127 @@
+import { default as React } from 'react';
+import { ModalProps } from './Modal.component';
+type TemplateProps = {
+    closeOnConfirm: boolean;
+} & ModalProps;
+type StoryFunction = () => React.ReactNode;
+declare const _default: {
+    title: string;
+    component: React.FC<ModalProps>;
+    argTypes: {
+        children: {
+            control: boolean;
+            table: {
+                type: {
+                    summary: string;
+                };
+            };
+        };
+        modalFooter: {
+            control: boolean;
+            table: {
+                type: {
+                    summary: string;
+                };
+            };
+        };
+    };
+    parameters: {
+        actions: {
+            argTypesRegex: null;
+        };
+    };
+    decorators: ((story: StoryFunction) => React.JSX.Element)[];
+};
+export default _default;
+export declare const Default: {
+    render: ({ closeOnConfirm, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        children: React.JSX.Element;
+    };
+};
+export declare const SimpleConfirmDialog: {
+    render: ({ closeOnConfirm, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        children: React.JSX.Element;
+        cancelButtonLabel: string;
+        confirmButtonLabel: string;
+    };
+};
+export declare const AutoFocusDialog: {
+    render: ({ closeOnConfirm, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        children: React.JSX.Element;
+        initialFocus: string;
+    };
+};
+export declare const LargeWithTitle: {
+    render: ({ closeOnConfirm, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        size: string;
+        title: string;
+        confirmButtonLabel: string;
+        closeOnConfirm: boolean;
+        children: React.JSX.Element;
+    };
+};
+export declare const NonCloseable: {
+    render: ({ closeOnConfirm, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        title: string;
+        children: string;
+        closeable: boolean;
+    };
+};
+export declare const CloseOnBackdropClick: {
+    render: ({ closeOnConfirm, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        title: string;
+        children: React.JSX.Element;
+        closeOnBackdropClick: boolean;
+    };
+};
+export declare const Login: {
+    render: ({ closeOnConfirm, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        title: string;
+        initialFocus: string;
+        children: React.JSX.Element;
+        modalFooter: React.JSX.Element;
+    };
+};
+export declare const CustomModalFooter: {
+    render: ({ closeOnConfirm, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        title: string;
+        size: string;
+        children: React.JSX.Element;
+        modalFooter: React.JSX.Element;
+    };
+};
+export declare const TestSelectInModal: {
+    render: ({ closeOnConfirm, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        title: string;
+        size: string;
+        children: React.JSX.Element;
+    };
+};
+export declare const TestComboBoxInModal: {
+    render: ({ closeOnConfirm, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        title: string;
+        size: string;
+        children: React.JSX.Element;
+    };
+};
+export declare const ModalWithALargerForm: {
+    render: ({ closeOnConfirm, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        title: string;
+        initialFocus: string;
+        cancelButtonLabel: string;
+        confirmButtonLabel: string;
+        children: React.JSX.Element;
+    };
+};
+//# sourceMappingURL=Modal.stories.d.ts.map

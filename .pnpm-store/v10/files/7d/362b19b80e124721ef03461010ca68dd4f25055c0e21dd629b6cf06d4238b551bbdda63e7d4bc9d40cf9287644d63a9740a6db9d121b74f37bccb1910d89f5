@@ -1,0 +1,12 @@
+import { default as React } from 'react';
+export interface TooltipContentProps extends React.HTMLAttributes<HTMLDivElement> {
+    /** Pass child nodes to display in the tooltip */
+    children?: React.ReactNode;
+    /** Pass a className to render to the icon button*/
+    className?: string;
+}
+/**
+ * Put content for a tooltip here. See Tooltip for more in-depth explanation and examples.
+ */
+export declare const TooltipContent: React.ForwardRefExoticComponent<TooltipContentProps & React.RefAttributes<HTMLElement>>;
+//# sourceMappingURL=TooltipContent.component.d.ts.map

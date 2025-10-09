@@ -1,0 +1,47 @@
+import { default as React, ReactNode } from 'react';
+import { ShadowRootMode } from '../ShadowRoot/ShadowRoot.component';
+type SetThemeClassFunc = (value: string) => void;
+type AddClassFunc = (value: string) => void;
+type RemoveCssClassFunc = (value: string) => void;
+export interface StyleContextProps {
+    styles: string;
+    currentTheme: string;
+    setThemeClass: SetThemeClassFunc;
+    addCssClass: AddClassFunc;
+    removeCssClass: RemoveCssClassFunc;
+}
+export declare const DEFAULT_THEME_NAME = "theme-dark";
+/**
+ * Component that inserts the ui styles and manages theming and styles.
+ * Also creates a shadow DOM element with styes inside  if 'stylesWrapper' is equal to "shadowRoot".
+ * Accepted values for 'stylesWrapper' are 'head', 'inline' and 'shadowRoot'.
+ * Both this component and ShadowRoot can be used independently.
+ * The stylesWrapper parameter is set to "inline" by default.
+ * If you want to use StyleProvider without inline styles, then the value of this
+ * parameter should be changed to "head".
+ * Examples:
+ * Standalone:
+ * * <StyleProvider stylesWrapper="head">Content</StyleProvider>
+ *   styles and fonts are added to the document.head
+ * * <StyleProvider>Content</StyleProvider>
+ *   styles and fonts are added inline
+ * ShadowRoot:
+ *   <ShadowRoot><StyleProvider>Content</StyleProvider></ShadowRoot>
+ */
+export declare const StyleProvider: {
+    ({ stylesWrapper, theme: themeProp, children, shadowRootMode, }: StyleProviderProps): React.JSX.Element;
+    useStyles(): StyleContextProps;
+};
+type StyleProviderStylesWrapper = "head" | "inline" | "shadowRoot";
+export interface StyleProviderProps {
+    /** The children to render. */
+    children?: ReactNode;
+    /** What element to render as a wrapper, respectively where to render the StyleProvider.  */
+    stylesWrapper?: StyleProviderStylesWrapper;
+    /** The name of the theme to render. */
+    theme?: string;
+    /** The mode of the shadowRoot. Only relevant when `stylesWrapper="shadowRoot"`. */
+    shadowRootMode?: ShadowRootMode;
+}
+export {};
+//# sourceMappingURL=StyleProvider.component.d.ts.map

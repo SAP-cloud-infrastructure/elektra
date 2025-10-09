@@ -1,0 +1,7 @@
+import { default as React } from 'react';
+export declare function ColorPalette(props: ColorPaletteProps): React.JSX.Element;
+interface ColorPaletteProps {
+    theme: string;
+}
+export {};
+//# sourceMappingURL=ColorPalette.d.ts.map

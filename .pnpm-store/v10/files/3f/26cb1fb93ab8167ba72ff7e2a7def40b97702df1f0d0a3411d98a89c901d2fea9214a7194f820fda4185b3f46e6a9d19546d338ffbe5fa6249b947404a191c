@@ -1,0 +1,10 @@
+import { default as React } from 'react';
+/** A container to hold one or multiple buttons and space and align them. */
+export declare const ButtonRow: React.FC<ButtonRowProps>;
+export interface ButtonRowProps extends React.HTMLAttributes<HTMLElement> {
+    /** Add a class to the ButtonRow */
+    className?: string;
+    /** Children to render in the ButtonRow */
+    children?: React.ReactNode;
+}
+//# sourceMappingURL=ButtonRow.component.d.ts.map

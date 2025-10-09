@@ -1,0 +1,17 @@
+import { default as React } from 'react';
+interface UseEndlessScrollListOptions {
+    delay?: number;
+    showLoading?: boolean;
+    loadingObject?: React.ReactNode;
+    showRef?: boolean;
+    refFunction?: RefFunction;
+}
+type RefFunction = (node: Element) => undefined;
+export declare const useEndlessScrollList: (items: unknown[], options?: UseEndlessScrollListOptions) => {
+    scrollListItems: unknown[] | undefined;
+    iterator: {
+        map: (elements: (value: unknown, index: number, array: unknown[]) => React.JSX.Element) => React.JSX.Element;
+    };
+};
+export {};
+//# sourceMappingURL=useEndlessScrollList.d.ts.map

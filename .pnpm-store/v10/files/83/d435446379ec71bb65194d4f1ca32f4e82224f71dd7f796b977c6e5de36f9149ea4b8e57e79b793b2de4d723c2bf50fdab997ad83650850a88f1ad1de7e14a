@@ -1,0 +1,13 @@
+{
+    "v12.json": true,
+    "_file.css":true,
+    "file.ie.css": true,
+    "fake.dfds": true,
+    "file1.css": [true],
+    "file2.css": [false],
+    "file3.css": {},
+    "file4a.css": {"env":"a"},
+    "file5b.css": {"env":"b"},
+    "file6abc.css": [{"env":"a","lessThan":0},{"env":"b","biggerThan":999},true],
+    "file6b^c.css": [{"env":"c","skip":true},{"env":"b","biggerThan":999}]
+}

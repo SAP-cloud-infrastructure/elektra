@@ -1,0 +1,25 @@
+declare const _default: {
+    title: string;
+    component: import('react').FC<import('./SearchInput.component').SearchInputProps>;
+    argTypes: {};
+};
+export default _default;
+export declare const Default: {
+    args: {};
+};
+export declare const Rounded: {
+    args: {
+        variant: string;
+    };
+};
+export declare const Hero: {
+    args: {
+        variant: string;
+    };
+};
+export declare const Disabled: {
+    args: {
+        disabled: boolean;
+    };
+};
+//# sourceMappingURL=SearchInput.stories.d.ts.map

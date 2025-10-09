@@ -1,0 +1,21 @@
+import { default as React, HTMLAttributes } from 'react';
+export interface FormSectionProps extends HTMLAttributes<HTMLElement> {
+    /**
+     * Title for the form section.
+     */
+    title?: string;
+    /**
+     * Additional CSS classes to apply to the form section for custom styling.
+     */
+    className?: string;
+    /**
+     * Content to be rendered within the form section.
+     * This can include form elements and other React nodes.
+     */
+    children?: React.ReactNode;
+}
+/**
+ * FormSection component for grouping form elements within complex forms.
+ */
+export declare const FormSection: React.FC<FormSectionProps>;
+//# sourceMappingURL=FormSection.component.d.ts.map

@@ -1,0 +1,124 @@
+import { default as React } from 'react';
+import { ToolTipVariant, TooltipPlacement } from './ToolTip.types';
+declare const _default: {
+    title: string;
+    component: React.FC<import('./Tooltip.component').TooltipProps>;
+    argTypes: {
+        text: {
+            table: {
+                disable: boolean;
+            };
+        };
+        triggerText: {
+            table: {
+                disable: boolean;
+            };
+        };
+        children: {
+            control: boolean;
+        };
+    };
+    decorators: ((Story: React.FC) => React.JSX.Element)[];
+};
+export default _default;
+interface TemplateProps {
+    placement?: TooltipPlacement;
+    variant?: ToolTipVariant;
+    initialOpen?: boolean;
+    open?: boolean;
+    triggerEvent?: "click" | "hover";
+    disabled?: boolean;
+    text?: string;
+    triggerText?: string;
+}
+export declare const Default: {
+    render: ({ placement, variant, initialOpen, open, triggerEvent, disabled, text, triggerText, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        text: string;
+        triggerText: string;
+        initialOpen: boolean;
+    };
+};
+export declare const Hover: {
+    render: ({ placement, variant, initialOpen, open, triggerEvent, disabled, text, triggerText, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        text: string;
+        triggerText: string;
+        triggerEvent: string;
+    };
+};
+export declare const AsChildTooltipTrigger: {
+    render: ({ initialOpen, placement, variant, open, triggerEvent, disabled, text, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        text: string;
+    };
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+};
+export declare const ButtonAsChildTooltipTrigger: {
+    render: ({ initialOpen, placement, variant, open, triggerEvent, disabled, text, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        text: string;
+        triggerEvent: string;
+    };
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+};
+export declare const InfoTooltip: {
+    render: ({ initialOpen, placement, variant, open, triggerEvent, disabled, text, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        variant: string;
+        text: string;
+        open: boolean;
+    };
+};
+export declare const WarningTooltip: {
+    render: ({ initialOpen, placement, variant, open, triggerEvent, disabled, text, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        variant: string;
+        text: string;
+        open: boolean;
+    };
+};
+export declare const ErrorTooltip: {
+    render: ({ initialOpen, placement, variant, open, triggerEvent, disabled, text, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        variant: string;
+        text: string;
+        open: boolean;
+    };
+};
+export declare const DangerTooltip: {
+    render: ({ initialOpen, placement, variant, open, triggerEvent, disabled, text, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        variant: string;
+        text: string;
+        open: boolean;
+    };
+};
+export declare const SuccessTooltip: {
+    render: ({ initialOpen, placement, variant, open, triggerEvent, disabled, text, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        variant: string;
+        text: string;
+        open: boolean;
+    };
+};
+export declare const Disabled: {
+    render: ({ initialOpen, placement, variant, open, triggerEvent, disabled, text, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        text: string;
+        disabled: boolean;
+    };
+};
+//# sourceMappingURL=Tooltip.stories.d.ts.map

@@ -1,0 +1,181 @@
+import { default as React } from 'react';
+import { StackProps } from './Stack.component';
+declare const _default: {
+    title: string;
+    component: React.FC<StackProps>;
+    argTypes: {
+        children: {
+            control: boolean;
+            table: {
+                type: {
+                    summary: string;
+                };
+            };
+        };
+        gap: {
+            options: string[];
+        };
+    };
+};
+export default _default;
+export declare const Horizontal: {
+    render: (args: StackProps) => React.JSX.Element;
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+    args: {};
+};
+export declare const Vertical: {
+    render: (args: StackProps) => React.JSX.Element;
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+    args: {
+        direction: string;
+    };
+};
+export declare const GapHorizontal: {
+    render: (args: StackProps) => React.JSX.Element;
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+    args: {
+        gap: string;
+    };
+};
+export declare const GapVertical: {
+    render: (args: StackProps) => React.JSX.Element;
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+    args: {
+        direction: string;
+        gap: string;
+    };
+};
+export declare const HorizontalAlignmentCenter: {
+    render: (args: StackProps) => React.JSX.Element;
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+    args: {
+        alignment: string;
+    };
+};
+export declare const VerticalAlignmentCenter: {
+    render: (args: StackProps) => React.JSX.Element;
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+    args: {
+        direction: string;
+        alignment: string;
+    };
+};
+export declare const HorizontalAlignmentStart: {
+    render: (args: StackProps) => React.JSX.Element;
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+    args: {
+        alignment: string;
+    };
+};
+export declare const VerticalAlignmentStart: {
+    render: (args: StackProps) => React.JSX.Element;
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+    args: {
+        direction: string;
+        alignment: string;
+    };
+};
+export declare const HorizontalDistributionCenter: {
+    render: (args: StackProps) => React.JSX.Element;
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+    args: {
+        distribution: string;
+    };
+};
+export declare const VerticalDistributionCenter: {
+    render: (args: StackProps) => React.JSX.Element;
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+    args: {
+        direction: string;
+        distribution: string;
+    };
+};
+export declare const Centered: {
+    render: (args: StackProps) => React.JSX.Element;
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+    args: {
+        alignment: string;
+        distribution: string;
+    };
+};
+export declare const Wrap: {
+    render: (args: StackProps) => React.JSX.Element;
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+    args: {
+        wrap: boolean;
+        gap: string;
+    };
+};
+//# sourceMappingURL=Stack.stories.d.ts.map

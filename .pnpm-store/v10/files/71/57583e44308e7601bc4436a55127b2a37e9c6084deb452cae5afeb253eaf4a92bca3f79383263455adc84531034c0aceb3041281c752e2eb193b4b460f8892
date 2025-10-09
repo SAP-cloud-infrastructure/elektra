@@ -1,0 +1,69 @@
+import { default as React, ReactNode } from 'react';
+export type SelectContextProps = {
+    truncateOptions: boolean;
+    addOptionValueAndLabel: (value: unknown, label: unknown, children: unknown) => void;
+};
+export declare const SelectContext: React.Context<SelectContextProps | undefined>;
+export interface SelectProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "value" | "defaultValue" | "onChange"> {
+    /** Pass an aria-label to the Select toggle button */
+    ariaLabel?: string;
+    /** The children to render as options. Use the SelectOption component, and SelectDivider if needed. */
+    children?: ReactNode;
+    /** Pass a custom className to the internal Select toggle button */
+    className?: string;
+    /** Pass a defaultValue to use as an uncontrolled component that handles its state internally. When setting `multiple` on the Select pass an Array instead of a string.  */
+    defaultValue?: string | string[];
+    /** Whether the Select is disabled */
+    disabled?: boolean;
+    /** Whether the Select has an error, e.g. when loading options. When validated negatively, use `invalid` instead. */
+    error?: boolean;
+    /** A small message rendered in red text below the Select toggle. */
+    errortext?: ReactNode;
+    /** A small, neutral text rendered below the Select toggle to explain meaning and significance of the Select element */
+    helptext?: ReactNode;
+    /** Pass an id to the Select toggle */
+    id?: string;
+    /** Whether the Select has been validated unsuccessfully / negatively */
+    invalid?: boolean;
+    /** Pass a label to render in the Select toggle button */
+    label?: string;
+    /** Whether the Select is busy loading options. Will show a Spinner in the Select toggle. */
+    loading?: boolean;
+    /** Whether multiple options of the Select can be selected. When passing true, pass an array containing one or multiple options as `value` / `defaultValue` respectively. */
+    multiple?: boolean;
+    /** Pass a name attribute to the Select to be transmitted when used in a form. */
+    name?: string;
+    /** Handler to be executed when the selected value changes */
+    onChange?: (value?: string | number | string[]) => void;
+    /** Handle for openning of select */
+    open?: boolean;
+    /** LEGACY: Handler to be executed when the Select value changes. Here for backwards compatibility with apps based on older versions of Select. Use onChange instead. */
+    onValueChange?: (value?: string | number | string[]) => void;
+    /** A placeholder to render when no value has been selected. Default is "Select…". */
+    placeholder?: string;
+    /** Whether a selection is required. Will show a small required marker next to the label. If no label is used, no marker will be visible. */
+    required?: boolean;
+    /** A note to render below the Select toggle in case the selected value has been positively validated. Will set the visible state of the Select toggle to `valid`. */
+    successtext?: ReactNode;
+    /** Whether long texts in options will be truncated with "…" or not. Default is false. The Select toggle label will always be truncated. */
+    truncateOptions?: boolean;
+    /** Whether the Select was positively validated. Will show a green checkmark icon inside the Select toggle. */
+    valid?: boolean;
+    /** The currently (pre-)selected value of the Select. Will trigger controlled mode. When setting `multiple` on the Select pass an Array instead of a string. */
+    value?: string | number | string[];
+    /** The label of the passed value or defaultValue. If you want to use controlled mode or pass as defaultValue in uncontrolled mode and additionally use labels for
+     *  human-readable SelectOptions you need to also pass the matching label for the passed value/defaultValue so that the Select component can render itself properly. */
+    valueLabel?: string;
+    /** The semantic variant of the Select toggle button.*/
+    variant?: "default" | "primary" | "primary-danger" | "subdued";
+    /** Whether the Select toggle should consume the available width of its parent container (default), or render its "natural" width depending on the content and the currently selected value or state. */
+    width?: "full" | "auto";
+    /** Pass a custom classname to the wrapping element. This can be useful if you must add styling to the outermost wrapping element of this component, e.g. for positioning. */
+    wrapperClassName?: string;
+}
+/**
+  A Select component that can be configured to allow selecting a single item or multiple items.
+  Pass a `defaultValue` to render as an uncontrolled component that tracks its open state etc internally.
+*/
+export declare const Select: React.FC<SelectProps>;
+//# sourceMappingURL=Select.component.d.ts.map

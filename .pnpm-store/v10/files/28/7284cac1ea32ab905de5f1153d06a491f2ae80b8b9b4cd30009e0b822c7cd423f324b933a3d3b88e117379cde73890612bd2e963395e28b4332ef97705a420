@@ -1,0 +1,8 @@
+import { Meta, StoryObj } from '@storybook/react-vite';
+import { SortButton } from './SortButton.component';
+declare const meta: Meta<typeof SortButton>;
+export default meta;
+type Story = StoryObj<typeof meta>;
+export declare const Default: Story;
+export declare const Disabled: Story;
+//# sourceMappingURL=SortButton.stories.d.ts.map

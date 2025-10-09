@@ -1,0 +1,26 @@
+declare const _default: {
+    title: string;
+    component: import('react').FC<import('./LoadingIndicator.component').LoadingIndicatorProps>;
+    argTypes: {
+        size: {
+            control: {
+                type: string;
+            };
+        };
+    };
+};
+export default _default;
+export declare const Default: {
+    args: {};
+};
+export declare const SizedLoadingIndicator: {
+    args: {
+        size: string;
+    };
+};
+export declare const ColoredLoadingIndicator: {
+    args: {
+        color: string;
+    };
+};
+//# sourceMappingURL=LoadingIndicator.stories.d.ts.map

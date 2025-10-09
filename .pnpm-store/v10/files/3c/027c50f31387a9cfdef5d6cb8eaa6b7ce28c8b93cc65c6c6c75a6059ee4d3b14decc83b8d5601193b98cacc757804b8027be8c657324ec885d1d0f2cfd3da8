@@ -1,0 +1,10 @@
+article a {}       /* must not alter space as descendant combinator */
+p + p {}           /* should remove spaces around other combinators */
+a, .btn-link {}    /* should remove spaces after commas in selector lists */
+a ,.btn-link {}    /* as well as before them */
+  h1  ~    p   {}  /* should handle >1 space in any position */
+div   .foo {}      /* should remove extra spaces in descendant combinator */
+
+/* must not alter whitespace inside of attribute selector values */
+button[aria-label="hamburger menu"] {}
+img[alt*="A picture of "] {}

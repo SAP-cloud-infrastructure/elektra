@@ -1,0 +1,6 @@
+import { ObjectToEncode } from './types';
+export declare const saveStateToUrl: (state: ObjectToEncode, replace?: boolean) => void;
+export declare const readStateFromUrl: () => {
+    [key: string]: import('./types').Primitive | import('./types').Primitive[];
+};
+//# sourceMappingURL=utils.d.ts.map

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+
+    <title>limesUI Dev</title>
+    <style>
+      html {
+        display: flex;
+        flex-direction: column;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        flex-grow: 1;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+      }
+      #root {
+        display: block;
+        width: 1140px;
+        margin: auto;
+      }
+      #quotaPlugin {
+        display: block;
+        width: 1140px;
+        margin: auto;
+      }
+    </style>
+    <script>
+      // automatically reload on build changes
+      new EventSource("/esbuild").addEventListener("change", () => location.reload());
+    </script>
+  </head>
+  <body>
+    <script type="module">
+      // appProps are generated in development env and added to the build
+      import appProps from "./build/appProps.js";
+      appProps.getTokenFuncName = "_getCurrentToken";
+      window._getCurrentToken = async () => {
+        return { authToken: appProps.token };
+      };
+      import("./build/index.js").then((app) => {
+        app.mount(document.getElementById("root"), { props: appProps });
+      });
+      import("./build/quotaPlugin.js").then((app) => {
+        app.mount(document.getElementById("quotaPlugin"), { props: appProps });
+      });
+    </script>
+    <div id="quotaPlugin" data-juno-app="limesUI"></div>
+    <div id="root" data-juno-app="limesUI"></div>
+  </body>
+</html>

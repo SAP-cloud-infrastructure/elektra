@@ -1,0 +1,70 @@
+import { default as React } from 'react';
+import { SideNavigationItemProps } from './index';
+type StoryDefinition = () => React.ReactNode;
+declare const _default: {
+    title: string;
+    component: React.FC<SideNavigationItemProps>;
+    argTypes: {
+        icon: {
+            options: (string | null)[];
+            control: {
+                type: string;
+            };
+        };
+        onClick: {
+            control: boolean;
+        };
+        children: {
+            control: boolean;
+        };
+    };
+    parameters: {
+        actions: {
+            argTypesRegex: null;
+        };
+    };
+    decorators: ((story: StoryDefinition) => React.JSX.Element)[];
+};
+export default _default;
+export declare const Default: {
+    render: (args: SideNavigationItemProps) => React.JSX.Element;
+    args: {
+        label: string;
+    };
+};
+export declare const Active: {
+    render: (args: SideNavigationItemProps) => React.JSX.Element;
+    args: {
+        label: string;
+        active: boolean;
+    };
+};
+export declare const Disabled: {
+    render: (args: SideNavigationItemProps) => React.JSX.Element;
+    args: {
+        label: string;
+        disabled: boolean;
+    };
+};
+export declare const WithIcon: {
+    render: (args: SideNavigationItemProps) => React.JSX.Element;
+    args: {
+        label: string;
+        icon: string;
+    };
+};
+export declare const AsLink: {
+    render: (args: SideNavigationItemProps) => React.JSX.Element;
+    args: {
+        label: string;
+        href: string;
+    };
+};
+export declare const WithChildren: {
+    render: (args: SideNavigationItemProps) => React.JSX.Element;
+    args: {
+        value: string;
+        children: string;
+    };
+};
+//# sourceMappingURL=SideNavigationItem.stories.d.ts.map

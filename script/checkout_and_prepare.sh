@@ -21,7 +21,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
   echo ""
   git checkout $COMMIT && 
   rm -rf ./node_modules/ &&
-  yarn &&
+  pnpm i &&
   bundle install &&
   echo "" &&
   echo "INFO: Checkout and preparations for release $COMMIT done" &&

@@ -1,0 +1,18 @@
+import { Meta, StoryObj } from '@storybook/react-vite';
+import { PopupMenu } from './';
+declare const meta: Meta<typeof PopupMenu>;
+export default meta;
+type Story = StoryObj<typeof meta>;
+export declare const Default: Story;
+export declare const NoMenu: Story;
+export declare const DisabledDefaultToggle: Story;
+export declare const WithMenuChild: Story;
+export declare const WithChildrenAsLinks: Story;
+export declare const WithMenuWithRandomContent: Story;
+export declare const WithMenuChildWithSection: Story;
+export declare const WithIcon: Story;
+export declare const WithToggleAndMenuChildren: Story;
+export declare const WithToggleAsButtonComponent: Story;
+export declare const WithToggleAsButtonStyledByState: Story;
+export declare const WithCustomButtonComponentAsChild: Story;
+//# sourceMappingURL=PopupMenu.stories.d.ts.map

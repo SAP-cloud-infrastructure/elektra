@@ -1,0 +1,35 @@
+import { default as React } from 'react';
+import { KnownIcons } from '../Icon/Icon.component';
+/**
+ * The basic button component. Use this for `onClick` interactions.
+ */
+export declare const Button: React.ForwardRefExoticComponent<Omit<ButtonProps, "ref"> & React.RefAttributes<HTMLButtonElement | HTMLAnchorElement>>;
+type ButtonVariant = "primary" | "primary-danger" | "default" | "subdued";
+type ButtonSize = "small" | "default";
+export interface ButtonProps extends Omit<React.HTMLProps<HTMLAnchorElement> | React.HTMLProps<HTMLButtonElement>, "size"> {
+    children?: React.ReactNode;
+    /** Choose a variant for your purpose. May leave empty to get default button. */
+    variant?: ButtonVariant;
+    /** Leave empty for default size */
+    size?: ButtonSize;
+    /** Whether the button is disabled */
+    disabled?: boolean;
+    /** Optionally specify an href. This will turn the Button into an <a> element */
+    href?: string;
+    /** Button label can be passed like this or as children */
+    label?: string;
+    /** Specify title for accessibility. Gets value of label if no title specified */
+    title?: string;
+    /** Pass the name of an icon the button should show. Can be any icon included with Juno. */
+    icon?: KnownIcons;
+    /** Pass a className */
+    className?: string;
+    /** Click handler  */
+    onClick?: React.MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>;
+    /** Whether the button action is in progress */
+    progress?: boolean;
+    /** Display an alternative label while the button action is in progress */
+    progressLabel?: string;
+}
+export {};
+//# sourceMappingURL=Button.component.d.ts.map

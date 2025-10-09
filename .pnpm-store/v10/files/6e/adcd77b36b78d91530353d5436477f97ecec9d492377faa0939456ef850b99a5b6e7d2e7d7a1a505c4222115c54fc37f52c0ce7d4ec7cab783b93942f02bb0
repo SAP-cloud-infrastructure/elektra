@@ -1,0 +1,14 @@
+import { default as React } from 'react';
+/** An inner wrapper to constrain page / view content width. */
+export declare const MainContainerInner: React.FC<MainContainerInnerProps>;
+export interface MainContainerInnerProps extends React.HTMLAttributes<HTMLDivElement> {
+    /** The children to render */
+    children?: React.ReactNode;
+    /** Whether the page/view content will stretch over the full width of the viewport or not. Default is `false`. */
+    fullWidth?: boolean;
+    /** Whether the main inner container needs to house a side navigation or not. Do not use, for internal use only. */
+    hasSideNav?: boolean;
+    /** Add a custom class */
+    className?: string;
+}
+//# sourceMappingURL=MainContainerInner.component.d.ts.map

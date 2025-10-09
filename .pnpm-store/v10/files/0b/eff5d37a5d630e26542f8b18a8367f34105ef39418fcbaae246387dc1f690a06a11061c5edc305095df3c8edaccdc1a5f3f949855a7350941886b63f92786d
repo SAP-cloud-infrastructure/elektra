@@ -1,0 +1,3 @@
+import { default as React } from 'react';
+export declare function JunoColorPalette(): React.JSX.Element;
+//# sourceMappingURL=JunoColorPalette.d.ts.map

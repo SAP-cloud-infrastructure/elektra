@@ -1,0 +1,14 @@
+import { default as React } from 'react';
+import { SelectDividerProps } from './SelectDivider.component';
+declare const _default: {
+    title: string;
+    component: React.ForwardRefExoticComponent<SelectDividerProps & React.RefAttributes<HTMLDivElement>>;
+    argTypes: {};
+    decorators: ((story: () => React.ReactNode) => React.JSX.Element)[];
+};
+export default _default;
+export declare const Default: {
+    render: React.FC<SelectDividerProps>;
+    args: {};
+};
+//# sourceMappingURL=SelectDivider.stories.d.ts.map

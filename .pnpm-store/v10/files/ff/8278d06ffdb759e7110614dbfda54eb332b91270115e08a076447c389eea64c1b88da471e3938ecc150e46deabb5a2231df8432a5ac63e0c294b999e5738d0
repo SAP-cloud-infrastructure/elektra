@@ -1,0 +1,18 @@
+import { default as React } from 'react';
+export interface GridRowProps extends React.HTMLAttributes<HTMLDivElement> {
+    /**
+     * Elements to be rendered within the grid row.
+     * Typically, these would be GridColumn components.
+     */
+    children?: React.ReactNode;
+    /**
+     * Additional CSS classes to apply to the grid row for custom styling.
+     */
+    className?: string;
+}
+/**
+ * A grid row container to hold GridColumn elements inside a Grid.
+ * This component ensures that its children are wrapped correctly in a flexbox layout.
+ */
+export declare const GridRow: React.FC<GridRowProps>;
+//# sourceMappingURL=GridRow.component.d.ts.map

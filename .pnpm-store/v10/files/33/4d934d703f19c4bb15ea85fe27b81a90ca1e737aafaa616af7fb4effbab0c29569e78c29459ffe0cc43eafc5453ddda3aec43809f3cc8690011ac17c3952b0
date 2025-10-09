@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+
+    <title>Maillog Dev</title>
+    <style>
+      html {
+        display: flex;
+        flex-direction: column;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        flex-grow: 1;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+      }
+      #root {
+        display: inline;
+      }
+    </style>
+    <script
+      src="https://elektra.ap.ws2.eu-nl-1.cloud.sap/apps/widget-loader@latest/build/app.js"
+      data-importmap-only="true"
+    ></script>
+  </head>
+  <body>
+    <!-- <script
+      src="https://elektra.ap.ws2.eu-nl-1.cloud.sap/apps/widget-loader@latest/build/app.js"
+      data-name="maillog"
+    ></script> -->
+
+    <script type="module">
+      // appProps are generated in development env and added to the build
+      const appProps = {
+        endpoint:
+        "",
+        embedded: true,
+        token: ""
+      }
+
+      // window.addEventListener("JUNO_IMPORTMAP_LOADED", () => {
+      //   importShim(
+      //     "https://elektra.ap.ws2.eu-nl-1.cloud.sap/apps/supernova@latest/build/index.js?" +
+      //       Date.now()
+      //   ).then((app) => {
+      //     console.log("=================app", app)
+      //      app.mount(document.getElementById("root"), { props: appProps })
+      //   })
+      // })
+          // app.mount(document.getElementById("root"), { props: appProps })
+
+    </script>
+    <div id="root"></div>
+  </body>
+</html>

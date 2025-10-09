@@ -1,0 +1,30 @@
+import { default as React } from 'react';
+export interface ThemeToggleProps {
+    /**
+     * Additional CSS classes for custom styling.
+     */
+    className?: string;
+    /**
+     * If true, the ThemeToggle will be disabled and not respond to user input.
+     */
+    disabled?: boolean;
+    /**
+     * HTML id attribute for the ThemeToggle.
+     */
+    id?: string;
+    /**
+     * HTML name attribute for the ThemeToggle.
+     */
+    name?: string;
+    /**
+     * Callback function that is called when the theme is toggled.
+     */
+    onToggleTheme?: (newTheme: string) => void;
+}
+/**
+ * ThemeToggle is a button component that toggles between Light and Dark UI Themes.
+ * This component requires a StyleProvider context to function, which is automatically provided by the Juno AppShell.
+ * If not using the AppShell, include a StyleProvider manually.
+ */
+export declare const ThemeToggle: React.FC<ThemeToggleProps>;
+//# sourceMappingURL=ThemeToggle.component.d.ts.map

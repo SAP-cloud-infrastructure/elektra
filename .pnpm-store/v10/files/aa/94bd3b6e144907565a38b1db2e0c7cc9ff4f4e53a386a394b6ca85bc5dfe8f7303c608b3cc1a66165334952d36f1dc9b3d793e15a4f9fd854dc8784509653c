@@ -1,0 +1,8 @@
+import { Meta, StoryFn, StoryObj } from '@storybook/react';
+import { PanelProps } from './Panel.component';
+declare const _default: Meta;
+export default _default;
+type Story = StoryObj<PanelProps>;
+export declare const WithHeading: Story;
+export declare const Plain: StoryFn<PanelProps>;
+//# sourceMappingURL=Panel.stories.d.ts.map

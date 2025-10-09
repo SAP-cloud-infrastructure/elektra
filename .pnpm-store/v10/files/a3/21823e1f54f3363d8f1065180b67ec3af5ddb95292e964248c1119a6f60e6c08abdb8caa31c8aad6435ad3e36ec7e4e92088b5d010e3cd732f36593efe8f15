@@ -1,0 +1,37 @@
+import { default as React } from 'react';
+import { KnownIcons } from '../Icon/Icon.component';
+export type BadgeVariantType = "default" | "info" | "success" | "warning" | "danger" | "error";
+export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
+    /**
+     * Specify an optional semantic variant that determines the appearance of a badge.
+     */
+    variant?: BadgeVariantType;
+    /**
+     * Optional.
+     * If true, an icon corresponding to the variant will be displayed.
+     * If a string is provided and it's a valid icon name, that icon will be displayed.
+     */
+    icon?: boolean | KnownIcons;
+    /**
+     * Pass an optional string of text to be rendered as content.
+     * Alternatively, content can be passed as children (see below).
+     * If children are provided, they will take precedence.
+     */
+    text?: string;
+    /**
+     * Pass an optional CSS class to apply to the message.
+     */
+    className?: string;
+    /**
+     * Pass optional React nodes or a collection of React nodes to be rendered as content.
+     * Takes precedence over the text property.
+     */
+    children?: React.ReactNode;
+}
+/**
+ * A Badge is used to visually represent properties or states of an entity.
+ * It supports multiple semantic versions, each with distinct styling.
+ * Optionally, an icon can be included to further emphasize the meaning.
+ */
+export declare const Badge: React.FC<BadgeProps>;
+//# sourceMappingURL=Badge.component.d.ts.map

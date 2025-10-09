@@ -1,0 +1,139 @@
+import { default as React, ReactNode } from 'react';
+import { default as flatpickr } from 'flatpickr';
+import { DateOption, DateLimit } from 'flatpickr/dist/types/options';
+import { key as LocaleKey, CustomLocale } from 'flatpickr/dist/types/locale';
+/** A all-purpose date and time picker component. Highly configurable, based on Flatpickr. */
+export declare const DateTimePicker: React.FC<DateTimePickerProps>;
+type DateChangeHandler = (dates?: Date[], dateStr?: string, instance?: flatpickr.Instance) => void;
+export interface DateTimePickerProps extends Omit<React.HTMLAttributes<HTMLInputElement>, "defaultValue" | "onFocus" | "onBlur" | "onChange"> {
+    /** Whether the DateTimePicker input element allows direct user keyboard input. Default is `false`. */
+    allowInput?: boolean;
+    /** Allows the preloading of an invalid date (e.g. a date that hass been disable by passing `disable`). When disabled, the field will be cleared if the provided date is invalid */
+    allowInvalidPreload?: boolean;
+    /** How the `aria-label` date for each day in the calendar will be formed. Uses the same rules/tokens as `dateFormat´ as described here: https://flatpickr.js.org/formatting/. When changing this, make sure the outcome makes sense when using a screenreader.*/
+    ariaDateFormat?: string;
+    /** Pass custom classNames. These will be appended to the input element of the DateTimePicker. */
+    className?: string;
+    /** A custom string to separate individual dates in `multiple` mode. */
+    conjunction?: string;
+    /** A string of characters to customize how a date will be formatted in the input field. Available options: https://flatpickr.js.org/formatting/ */
+    dateFormat?: string;
+    /**
+     * Sets the default date of the DateTimePicker. Same as `value`, only here for compatibility with the original Flatpickr library. If both `value` and `defaultDate` are being passed, `value` will win. Date Objects, timestamps, ISO date strings, chronological date strings `YYYY-MM-DD HH:MM` (must be compatible to current `dateFormat`), and the shortcut `today` are all accepted.
+     */
+    defaultDate?: string | number | Date | DateOption[];
+    /** The initial value of the hour input element. Only effective if time is enabled. Note this will only set the hour input element to the value specified. Setting this options will not set a selected value on the DateTimePicker. */
+    defaultHour?: number;
+    /** The initial value of the minute input element. Only effective if time is enabled. Note this will only set the minute input element to the value specified. Setting this options will not set a selected value on the DateTimePicker. */
+    defaultMinute?: number;
+    /**
+     * Same as value, defaultDate
+     */
+    defaultValue?: string | number | Date | DateOption[];
+    /**
+     * Pass an array of dates, date strings, date ranges or functions to disable dates. More on disabling dates: https://flatpickr.js.org/examples/#disabling-specific-dates
+     */
+    disable?: DateLimit<DateOption>[];
+    /** Whether the DateTimePicker is disabled */
+    disabled?: boolean;
+    /** Whether to show seconds when showing a time picker. */
+    enableSeconds?: boolean;
+    /** Whether to show a time picker.  */
+    enableTime?: boolean;
+    /** A text to render when the DateTimePicker has an error or could not be validated. */
+    errortext?: ReactNode;
+    /** A helptext to render to explain meaning and significance of the DateTimePicker. */
+    helptext?: ReactNode;
+    /** The step for the hour input. Only has an effect when a time picker is enabled via `enableTime`. */
+    hourIncrement?: number;
+    /** The id of the DateTimePicker input element. If none is passed, an automatically generated id will be used. */
+    id?: string;
+    /** Whether the DateTimePicker selected date was negatively validated.  */
+    invalid?: boolean;
+    /** The label of the DateTimePicker input element. */
+    label?: string;
+    /**
+     * Localization string or object. Can be used to set starting day of the week, e.g. Mondays instead of Sundays. More on localization: https://flatpickr.js.org/localization/
+     */
+    locale?: LocaleKey | Partial<CustomLocale>;
+    /**
+     * The maximum / latest date a user can select (inclusive).
+     */
+    maxDate?: DateOption;
+    /**
+     * The minimum / earliest date a user can select (inclusive).
+     */
+    minDate?: DateOption;
+    /**  The step for the minute input. Only has an effect when a time picker is enabled via `enableTime`.  */
+    minuteIncrement?: number;
+    /** The mode of the Datepicker. */
+    mode?: "single" | "multiple" | "range";
+    /** Whether to show a dropdown to select the current month. Default is "static". If `showMonths` is set to be greater than 1, it will always be displayed as static. Arrows to scroll through the months as well as through years will still be displayed and working. */
+    monthSelectorType?: "static" | "dropdown";
+    /** The name of the DateTimePicker input element */
+    name?: string;
+    /** Set to `true` to not display a calendar at all. To create a time picker, set `enableTime` to true, too. */
+    noCalendar?: boolean;
+    /**
+     * A handler to be executed when the DateTimePicker input element looses focus.
+     */
+    onBlur?: DateChangeHandler;
+    /**
+     * A handler to be executed when the selected date(s), date range or time changes
+     */
+    onChange?: DateChangeHandler;
+    /**
+     * A handler to be executed when the DateTimePicker value is reset by clicking the clear icon. The onChnage handler will be fired in this event too, onClear is more specific.
+     */
+    onClear?: DateChangeHandler;
+    /**
+     * A handler to be executed when the DateTimePicker calendar closes
+     */
+    onClose?: DateChangeHandler;
+    /**
+     * A handler to be executed when the DateTimePicker input element receives focus.
+     */
+    onFocus?: DateChangeHandler;
+    /**
+     * A handler to be executed when the selected month changes
+     */
+    onMonthChange?: DateChangeHandler;
+    /**
+     * A handler to be executed when the DateTimePicker calendar opens
+     */
+    onOpen?: DateChangeHandler;
+    /**
+     * A handler to be executed when the DateTimePicker component is ready
+     */
+    onReady?: DateChangeHandler;
+    /**
+     * A handler to be executed when the selected year changes
+     */
+    onYearChange?: DateChangeHandler;
+    /** The placeholder of the DateTimePicker input element */
+    placeholder?: string;
+    /** Whether the DateTimePicker should be marked as required. Requires a `Label` to be set. */
+    required?: boolean;
+    /** Whether the current month in the date picker should be displayed as shorthand, e.g. "Jan" instead of "January" */
+    shorthandCurrentMonth?: boolean;
+    /** The number of months to show in the date picker */
+    showMonths?: number;
+    /** A text to render when the DateTimePicker was successfully validated */
+    successtext?: ReactNode;
+    /** Displays time picker in 24 hour mode without AM/PM selection when enabled. Requires `enableTime` to be set, too. Default is `false`. */
+    time_24hr?: boolean;
+    /** Whether the DateTimePicker has been successfully validated */
+    valid?: boolean;
+    /**
+     * The value of the datepicker. Date Objects, timestamps, ISO date strings, chronological date strings `YYYY-MM-DD HH:MM` (must be compatible to current `dateFormat`), and the shortcut `today` are all accepted.
+     */
+    value?: string | number | Date | DateOption[];
+    /** Whether to render week numbers. Default is `false`. */
+    weekNumbers?: boolean;
+    /** The width of the datepicker input. Either 'full' (default) or 'auto'. */
+    width?: "full" | "auto";
+    /** Pass a custom className to the wrapping element. This can be useful if you must add styling to the outermost wrapping element of this component, e.g. for positioning. */
+    wrapperClassName?: string;
+}
+export {};
+//# sourceMappingURL=DateTimePicker.component.d.ts.map

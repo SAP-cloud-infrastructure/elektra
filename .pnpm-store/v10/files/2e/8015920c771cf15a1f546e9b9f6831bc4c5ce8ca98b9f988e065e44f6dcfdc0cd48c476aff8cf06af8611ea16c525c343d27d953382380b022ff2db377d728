@@ -1,0 +1,49 @@
+{
+  "name": "react-clipboard.js",
+  "version": "2.0.16",
+  "description": "Clipboard.js wrapper for ReactJS",
+  "main": "dist/react-clipboard.js",
+  "browser": "dist/react-clipboard.js",
+  "types": "./react-clipboard.d.ts",
+  "scripts": {
+    "build-debug": "webpack --mode development --devtool inline-source-map",
+    "build": "npm run build-debug && webpack --mode production --output-filename react-clipboard.min.js",
+    "watch": "webpack --watch",
+    "test": "eslint index.js && npm run build"
+  },
+  "keywords": [
+    "clipboard",
+    "react",
+    "react-component"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nihey/react-clipboard.js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nihey/react-clipboard.js/issues"
+  },
+  "author": "Nihey Takizawa <nihey.takizawa@gmail.com>",
+  "license": "CC0",
+  "peerDependencies": {
+    "react": ">=15.5.0",
+    "react-dom": ">=15.0.0"
+  },
+  "dependencies": {
+    "@types/clipboard": "^2.0.1",
+    "clipboard": "^2.0.0",
+    "prop-types": "^15.5.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.3.3",
+    "@babel/plugin-proposal-class-properties": "^7.3.3",
+    "@babel/plugin-proposal-function-bind": "^7.2.0",
+    "@babel/preset-env": "^7.3.4",
+    "babel-eslint": "^10.0.1",
+    "babel-loader": "^8.0.5",
+    "browser-sync": "^2.26.7",
+    "eslint": "^5.14.0",
+    "webpack": "^4.29.4",
+    "webpack-cli": "^3.2.3"
+  }
+}

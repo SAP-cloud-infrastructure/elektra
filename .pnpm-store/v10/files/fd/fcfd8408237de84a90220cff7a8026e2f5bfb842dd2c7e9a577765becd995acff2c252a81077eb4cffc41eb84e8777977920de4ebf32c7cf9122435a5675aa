@@ -1,0 +1,10 @@
+import { Meta, StoryObj } from '@storybook/react';
+import { Grid, GridProps } from './Grid.component';
+declare const _default: Meta<typeof Grid>;
+export default _default;
+export declare const Default: StoryObj<GridProps>;
+export declare const Auto: StoryObj<GridProps>;
+export declare const MixedGrid: StoryObj<GridProps>;
+export declare const MixedAutoGrid: StoryObj<GridProps>;
+export declare const NestedGrid: StoryObj<GridProps>;
+//# sourceMappingURL=Grid.stories.d.ts.map

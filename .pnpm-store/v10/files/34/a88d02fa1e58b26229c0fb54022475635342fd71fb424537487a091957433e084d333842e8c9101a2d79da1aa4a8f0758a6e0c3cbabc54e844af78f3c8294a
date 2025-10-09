@@ -1,0 +1,73 @@
+import { default as React } from 'react';
+export declare enum KnownIconsEnum {
+    accessTime = "accessTime",
+    accountCircle = "accountCircle",
+    addCircle = "addCircle",
+    autoAwesomeMosaic = "autoAwesomeMosaic",
+    autoAwesomeMotion = "autoAwesomeMotion",
+    bolt = "bolt",
+    calendarToday = "calendarToday",
+    cancel = "cancel",
+    check = "check",
+    checkCircle = "checkCircle",
+    chevronLeft = "chevronLeft",
+    chevronRight = "chevronRight",
+    close = "close",
+    comment = "comment",
+    contentCopy = "contentCopy",
+    danger = "danger",
+    dangerous = "dangerous",
+    default = "default",
+    deleteForever = "deleteForever",
+    description = "description",
+    dns = "dns",
+    download = "download",
+    edit = "edit",
+    error = "error",
+    errorOutline = "errorOutline",
+    exitToApp = "exitToApp",
+    expandLess = "expandLess",
+    expandMore = "expandMore",
+    filterAlt = "filterAlt",
+    forum = "forum",
+    help = "help",
+    home = "home",
+    info = "info",
+    manageAccounts = "manageAccounts",
+    monitorHeart = "monitorHeart",
+    moreVert = "moreVert",
+    nightsStay = "nightsStay",
+    notificationsOff = "notificationsOff",
+    openInBrowser = "openInBrowser",
+    openInNew = "openInNew",
+    place = "place",
+    search = "search",
+    severityLow = "severityLow",
+    severityMedium = "severityMedium",
+    severityHigh = "severityHigh",
+    severityVeryHigh = "severityVeryHigh",
+    severityCritical = "severityCritical",
+    severityUnknown = "severityUnknown",
+    sortShortWideArrowUp = "sortShortWideArrowUp",
+    sortShortWideArrowDown = "sortShortWideArrowDown",
+    sortWideShortArrowUp = "sortWideShortArrowUp",
+    sortWideShortArrowDown = "sortWideShortArrowDown",
+    success = "success",
+    upload = "upload",
+    warning = "warning",
+    wbSunny = "wbSunny",
+    widgets = "widgets"
+}
+export type KnownIcons = keyof typeof KnownIconsEnum;
+export declare const Icon: React.ForwardRefExoticComponent<Omit<IconProps, "ref"> & React.RefAttributes<HTMLAnchorElement | HTMLButtonElement>>;
+export interface IconProps extends Omit<React.HTMLProps<HTMLAnchorElement> | React.HTMLProps<HTMLButtonElement>, "size"> {
+    icon?: KnownIcons;
+    color?: string;
+    size?: string | number;
+    title?: string;
+    className?: string;
+    href?: string;
+    disabled?: boolean;
+    onClick?: React.MouseEventHandler<HTMLButtonElement>;
+}
+//# sourceMappingURL=Icon.component.d.ts.map

@@ -1,0 +1,85 @@
+import { default as React } from 'react';
+import { NavigationProps } from './index';
+declare const _default: {
+    title: string;
+    component: React.FC<NavigationProps>;
+    argTypes: {
+        children: {
+            control: boolean;
+            table: {
+                type: {
+                    summary: string;
+                };
+            };
+        };
+        onActiveItemChange: {
+            control: boolean;
+            table: {
+                type: {
+                    summary: string;
+                };
+            };
+        };
+    };
+};
+export default _default;
+export declare const DefaultWithChildren: {
+    render: ({ children, ...props }: NavigationProps) => React.JSX.Element;
+    args: {
+        activeItem: string;
+        children: React.JSX.Element[];
+    };
+};
+export declare const WithValuesAndLabels: {
+    render: ({ children, ...props }: NavigationProps) => React.JSX.Element;
+    args: {
+        children: React.JSX.Element[];
+    };
+};
+export declare const WithValuesLabelsAndChildren: {
+    render: ({ children, ...props }: NavigationProps) => React.JSX.Element;
+    args: {
+        children: React.JSX.Element[];
+    };
+};
+export declare const ValuesOnly: {
+    render: ({ children, ...props }: NavigationProps) => React.JSX.Element;
+    args: {
+        children: React.JSX.Element[];
+    };
+};
+export declare const WithActiveItemByValue: {
+    render: ({ children, ...props }: NavigationProps) => React.JSX.Element;
+    args: {
+        activeItem: string;
+        children: React.JSX.Element[];
+    };
+};
+export declare const WithActiveItemByLabel: {
+    render: ({ children, ...props }: NavigationProps) => React.JSX.Element;
+    args: {
+        activeItem: string;
+        children: React.JSX.Element[];
+    };
+};
+export declare const WithActiveItemByChild: {
+    render: ({ children, ...props }: NavigationProps) => React.JSX.Element;
+    args: {
+        activeItem: string;
+        children: React.JSX.Element[];
+    };
+};
+export declare const Disabled: {
+    render: ({ children, ...props }: NavigationProps) => React.JSX.Element;
+    args: {
+        disabled: boolean;
+        children: React.JSX.Element[];
+    };
+};
+export declare const ItemsAsLinks: {
+    render: ({ children, ...props }: NavigationProps) => React.JSX.Element;
+    args: {
+        children: React.JSX.Element[];
+    };
+};
+//# sourceMappingURL=Navigation.stories.d.ts.map

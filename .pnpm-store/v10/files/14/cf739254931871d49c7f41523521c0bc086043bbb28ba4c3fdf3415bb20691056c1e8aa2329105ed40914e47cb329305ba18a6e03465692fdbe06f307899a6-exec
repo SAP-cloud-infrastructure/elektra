@@ -1,0 +1,13 @@
+{
+    "name": "@types/clipboard",
+    "version": "2.0.7",
+    "typings": null,
+    "description": "Stub TypeScript definitions entry for clipboard, which provides its own types definitions",
+    "main": "",
+    "scripts": {},
+    "author": "",
+    "license": "MIT",
+    "dependencies": {
+        "clipboard": "*"
+    }
+}

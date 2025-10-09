@@ -1,0 +1,15 @@
+import { default as React } from 'react';
+import { TabListProps as ReactTabListProps } from 'react-tabs';
+import { TabsVariant } from '../Tabs/Tabs.component';
+/** A tabList component wraps all individual Tabs inside a parent Tabs component */
+export declare const TabList: {
+    ({ variant, children, ...props }: TabListProps): React.JSX.Element;
+    tabsRole: string;
+};
+export interface TabListProps extends ReactTabListProps {
+    /** Pick the TabList style */
+    variant?: TabsVariant;
+    /** The individual child Tabs to render */
+    children?: React.ReactNode;
+}
+//# sourceMappingURL=TabList.component.d.ts.map

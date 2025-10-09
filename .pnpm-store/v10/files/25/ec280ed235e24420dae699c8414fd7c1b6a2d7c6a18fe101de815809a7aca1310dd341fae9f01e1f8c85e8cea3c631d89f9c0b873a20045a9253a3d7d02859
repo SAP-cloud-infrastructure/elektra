@@ -1,0 +1,22 @@
+import { default as React } from 'react';
+export interface BoxProps extends React.HTMLAttributes<HTMLDivElement> {
+    /**
+     * Child elements to be rendered inside the Box.
+     */
+    children?: React.ReactNode;
+    /**
+     * If true, padding is removed.
+     */
+    unpad?: boolean;
+    /**
+     * Additional CSS styles to apply to the Box.
+     */
+    className?: string;
+}
+/**
+ * A generic Box component with optional padding and a light border.
+ * Ideal for annotations, additional explanations, and remarks where a Message or InfoBox would be too visually emphasized.
+ * Typically used for small text but can contain any child elements, as required.
+ */
+export declare const Box: React.FC<BoxProps>;
+//# sourceMappingURL=Box.component.d.ts.map

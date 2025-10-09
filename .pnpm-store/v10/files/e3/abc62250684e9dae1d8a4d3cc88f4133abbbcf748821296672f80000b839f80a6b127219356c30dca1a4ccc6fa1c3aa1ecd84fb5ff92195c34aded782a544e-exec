@@ -1,0 +1,44 @@
+#!/usr/bin/env node
+var cto = require('../checkFiles.js'),
+    fs = require('fs'),
+    path = require('path'),
+    nopt = require('nopt'),
+    opts = nopt({
+        env: String,
+        file: [path, Array]
+    });
+if(!opts.file){
+    console.log('--file <filename>.json is required');
+    return;
+}
+if(!opts.file.length){
+    console.log('No file');
+    return;
+}
+processFile();
+
+var status = 0;
+function processFile(){
+    var file = '';
+    if(opts.file.length){
+        do{
+            file = path.resolve(opts.file.pop());
+            if(!fs.existsSync(file)){
+                console.warn('WARNING: "' + file + '" not found');
+                file = '';
+            }
+        }while(!file && opts.file.length);
+    }
+    if(!file && !opts.file.length){
+        console.log('Check completed');
+        process.exit(status);
+    }
+    var data = require(file);
+    console.log('=== checking files in list "' + file + '" with env "' + opts.env + '" ===');
+    cto(data, path.dirname(file), opts.env, function(result, count){
+        console.log('=== ' + count + ' files had been checked with result ' + !result + ' ===');
+        status = result || status;
+        processFile();
+    });
+}
+

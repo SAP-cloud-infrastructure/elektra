@@ -1,0 +1,25 @@
+import { default as React, ReactNode } from 'react';
+/**
+ * Body of the app. Treat this like the body tag of an html page.
+ */
+export declare const AppShell: React.FC<AppShellProps>;
+export interface AppShellProps extends React.HTMLAttributes<HTMLElement> {
+    /** The main content of the app. */
+    children?: ReactNode;
+    /** Pass either the `<PageHeader>` component or if you don't need to add any content to the page header pass a string to be used as the app name in the standard page header. */
+    pageHeader?: ReactNode;
+    /** Optional. If specified pass a `<PageFooter>` component. If undefined will use default PageFooter */
+    pageFooter?: ReactNode;
+    /** Optional. If specified expects a `<TopNavigation>` component. If undefined no top navigation is rendered. */
+    topNavigation?: ReactNode;
+    /** Optional. If specified expects a `<SideNavigation>` component. If undefined no side navigation is rendered. */
+    sideNavigation?: ReactNode;
+    /** Optional: Defaults to false. Set embedded to true if app is to be rendered embedded in another app/page.
+     * In this case only the content area and children are rendered, a TopNavigation if passed, but no header/footer or remaining layout components */
+    embedded?: boolean;
+    /** Whether the main page / view content can spread over the full available width of the viewport or not. Default is `false` (resulting in a width-constrained, centred content column on very wide screens) UNLESS the AppShell is rendered with embedded as true, then the main content will be full-width by default. In embedded mode, `fullWidthContent` can still be passed as `false` explicitly. */
+    fullWidthContent?: boolean;
+    /** Add a custom class name */
+    className?: string;
+}
+//# sourceMappingURL=AppShell.component.d.ts.map

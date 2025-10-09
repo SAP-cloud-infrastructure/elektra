@@ -1,0 +1,7 @@
+import { default as React } from 'react';
+interface DummyComponentProps {
+    label: string;
+}
+declare const DummyComponent: ({ label }: DummyComponentProps) => React.JSX.Element;
+export default DummyComponent;
+//# sourceMappingURL=DummyComponent.d.ts.map

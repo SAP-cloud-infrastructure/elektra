@@ -1,0 +1,49 @@
+import { default as React } from 'react';
+import { AppShellProviderProps } from './AppShellProvider.component';
+declare const _default: {
+    title: string;
+    component: React.FC<AppShellProviderProps>;
+    argTypes: {
+        children: {
+            control: boolean;
+        };
+    };
+};
+export default _default;
+export declare const Default: {
+    render: (args: AppShellProviderProps) => React.JSX.Element;
+    args: {
+        children: React.JSX.Element[];
+    };
+};
+export declare const NoShadowRoot: {
+    render: (args: AppShellProviderProps) => React.JSX.Element;
+    args: {
+        shadowRoot: boolean;
+        children: React.JSX.Element[];
+    };
+};
+export declare const StylesInHead: {
+    render: (args: AppShellProviderProps) => React.JSX.Element;
+    args: {
+        shadowRoot: boolean;
+        stylesWrapper: string;
+        children: React.JSX.Element[];
+    };
+};
+export declare const StylesInline: {
+    render: (args: AppShellProviderProps) => React.JSX.Element;
+    args: {
+        shadowRoot: boolean;
+        stylesWrapper: string;
+        children: React.JSX.Element[];
+    };
+};
+export declare const ThemeLight: {
+    render: (args: AppShellProviderProps) => React.JSX.Element;
+    args: {
+        theme: string;
+        children: React.JSX.Element[];
+    };
+};
+//# sourceMappingURL=AppShellProvider.stories.d.ts.map

@@ -1,0 +1,141 @@
+import { default as React } from 'react';
+import { CodeBlockProps } from './CodeBlock.component';
+import { Tab } from '../Tab';
+declare const _default: {
+    title: string;
+    component: React.FC<CodeBlockProps>;
+    argTypes: {
+        size: {
+            options: string[];
+            control: {
+                type: string;
+            };
+        };
+        children: {
+            control: boolean;
+            table: {
+                type: {
+                    summary: string;
+                };
+            };
+        };
+    };
+};
+export default _default;
+interface TabsTemplateProps {
+    tabs: React.ComponentProps<typeof Tab>[];
+    codeBlocks: CodeBlockProps[];
+}
+export declare const Default: {
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+    args: {
+        content: string;
+    };
+};
+export declare const DefaultWithChildren: {
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+    args: {
+        lang: string;
+        children: string;
+    };
+};
+export declare const DefaultWithHeading: {
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+    args: {
+        children: string;
+        heading: string;
+    };
+};
+export declare const FixedSize: {
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+    args: {
+        size: string;
+        content: string;
+    };
+};
+export declare const NonWrappingCodeBlock: {
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+    args: {
+        wrap: boolean;
+        children: string;
+    };
+};
+export declare const JSONView: {
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+    args: {
+        lang: string;
+        heading: string;
+        content: {
+            someKey: string;
+            someOtherKey: string;
+            nestedKeys: {
+                firstNestedKey: string;
+            };
+        };
+    };
+};
+export declare const CodeBlocksWithTabs: {
+    render: ({ tabs, codeBlocks }: TabsTemplateProps) => React.JSX.Element;
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+    args: {
+        tabs: {
+            children: string;
+            key: string;
+            label: string;
+        }[];
+        codeBlocks: ({
+            content: string;
+            lang?: undefined;
+        } | {
+            lang: string;
+            content: {
+                firstName: string;
+                lastName: string;
+                placeOfBirth: string;
+            };
+        })[];
+    };
+};
+//# sourceMappingURL=CodeBlock.stories.d.ts.map

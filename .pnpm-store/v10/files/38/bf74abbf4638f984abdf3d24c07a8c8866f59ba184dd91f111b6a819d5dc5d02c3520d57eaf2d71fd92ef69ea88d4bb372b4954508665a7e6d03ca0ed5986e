@@ -1,0 +1,16 @@
+import { Meta, StoryFn } from '@storybook/react';
+import { PanelFooterProps } from './PanelFooter.component';
+declare const _default: Meta;
+export default _default;
+export declare const Footer: {
+    render: StoryFn<PanelFooterProps>;
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+    args: Record<string, unknown>;
+};
+//# sourceMappingURL=PanelFooter.stories.d.ts.map

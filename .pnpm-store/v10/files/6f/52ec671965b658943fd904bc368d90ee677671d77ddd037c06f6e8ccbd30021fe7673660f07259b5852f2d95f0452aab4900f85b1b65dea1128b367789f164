@@ -1,0 +1,45 @@
+declare const _default: {
+    title: string;
+    component: import('react').FC<import('./Spinner.component').SpinnerProps>;
+    argTypes: {};
+};
+export default _default;
+export declare const Primary: {
+    args: {
+        variant: string;
+    };
+};
+export declare const Danger: {
+    args: {
+        variant: string;
+    };
+};
+export declare const Success: {
+    args: {
+        variant: string;
+    };
+};
+export declare const Warning: {
+    args: {
+        variant: string;
+    };
+};
+export declare const Light: {
+    args: {};
+};
+export declare const WithCustomColor: {
+    args: {
+        color: string;
+    };
+};
+export declare const Small: {
+    args: {
+        size: string;
+    };
+};
+export declare const Large: {
+    args: {
+        size: string;
+    };
+};
+//# sourceMappingURL=Spinner.stories.d.ts.map

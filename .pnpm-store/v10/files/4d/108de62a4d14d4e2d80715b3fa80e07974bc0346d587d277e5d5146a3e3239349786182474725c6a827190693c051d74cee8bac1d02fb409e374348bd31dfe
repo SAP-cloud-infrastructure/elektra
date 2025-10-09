@@ -1,0 +1,24 @@
+import { default as React } from 'react';
+import { ContentHeadingProps } from './ContentHeading.component';
+declare const _default: {
+    title: string;
+    component: React.FC<ContentHeadingProps>;
+    argTypes: {
+        children: {
+            control: boolean;
+            table: {
+                type: {
+                    summary: string;
+                };
+            };
+        };
+    };
+};
+export default _default;
+export declare const Default: {
+    render: (args: ContentHeadingProps) => React.JSX.Element;
+    args: {
+        heading: string;
+    };
+};
+//# sourceMappingURL=ContentHeading.stories.d.ts.map

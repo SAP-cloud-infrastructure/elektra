@@ -1,0 +1,9 @@
+import { Meta, StoryObj } from '@storybook/react';
+import { GridColumnProps } from './GridColumn.component';
+declare const _default: Meta;
+export default _default;
+type Story = StoryObj<GridColumnProps>;
+export declare const Default: Story;
+export declare const AutoColumn: Story;
+export declare const WidthColumn: Story;
+//# sourceMappingURL=GridColumn.stories.d.ts.map

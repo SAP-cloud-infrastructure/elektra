@@ -1,0 +1,12 @@
+export type Primitive = string | number | boolean | null | undefined | RegExp;
+type LimitedNestedObject = {
+    [key: string]: Primitive | Primitive[];
+};
+export type ObjectToEncode = LimitedNestedObject;
+export type DecodedObject = LimitedNestedObject;
+export type EncodeOptions = {
+    skipEmptyString?: boolean;
+    skipNull?: boolean;
+};
+export {};
+//# sourceMappingURL=types.d.ts.map

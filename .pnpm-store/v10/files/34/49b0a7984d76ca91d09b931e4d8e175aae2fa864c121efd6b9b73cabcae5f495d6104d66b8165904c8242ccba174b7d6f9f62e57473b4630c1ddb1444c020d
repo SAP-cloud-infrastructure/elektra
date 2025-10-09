@@ -1,0 +1,28 @@
+import { default as React } from 'react';
+import { Meta, StoryObj } from '@storybook/react-vite';
+import { ToolTipVariant, TooltipPlacement } from './ToolTip.types';
+interface TooltipStoryProps {
+    placement?: TooltipPlacement;
+    variant?: ToolTipVariant;
+    initialOpen?: boolean;
+    open?: boolean;
+    triggerEvent?: "click" | "hover";
+    disabled?: boolean;
+    text?: string;
+    triggerText?: string;
+    children?: React.ReactNode;
+}
+declare const meta: Meta<TooltipStoryProps>;
+export default meta;
+type Story = StoryObj<TooltipStoryProps>;
+export declare const Default: Story;
+export declare const Hover: Story;
+export declare const AsChildTooltipTrigger: Story;
+export declare const ButtonAsChildTooltipTrigger: Story;
+export declare const InfoTooltip: Story;
+export declare const WarningTooltip: Story;
+export declare const ErrorTooltip: Story;
+export declare const DangerTooltip: Story;
+export declare const SuccessTooltip: Story;
+export declare const Disabled: Story;
+//# sourceMappingURL=Tooltip.stories.d.ts.map

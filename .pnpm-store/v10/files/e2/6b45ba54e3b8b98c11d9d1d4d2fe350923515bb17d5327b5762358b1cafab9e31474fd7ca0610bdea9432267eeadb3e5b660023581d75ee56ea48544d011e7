@@ -1,0 +1,31 @@
+import { default as React } from 'react';
+export interface TabsContextType {
+    variant?: TabsVariant;
+}
+export declare const useTabsContext: () => TabsContextType;
+/**
+A Tabs component.
+The parent wrapping TabList, Tab, and TabPanel subcomponents.
+For a navigation that looks like tabs, but runs onClick handlers or contains hrefs, use TabNavigation instead.
+Tabs are used to provide a tabbed section within the content area when combining static content and tabbed content on the same page. You will probably want to use a 'Container' (px=false) inside the TabPanels to get nice padding.
+*/
+export declare const Tabs: {
+    ({ children, defaultIndex, selectedIndex, onSelect, variant, className, ...props }: TabsProps): React.JSX.Element;
+    tabsRole: string;
+};
+export type TabsVariant = "main" | "content" | "codeblocks";
+export interface TabsProps {
+    /** All the child elements of the Tabs: Tab(s) inside a TabList and TabPanel(s) */
+    children?: React.ReactNode;
+    /** The index of the Tab to be selected by default in "Uncontrolled Mode" (default) where Tabs handle their state internally. Do not use in "Controlled Mode".*/
+    defaultIndex?: number;
+    /** The index of the Tab to be selected by default. This enables "Controlled Mode" where the developer takes over control of the Tabs state and behaviour. Requires onSelect to be set.*/
+    selectedIndex?: number | null;
+    /** Handler required in "Controlled Mode" */
+    onSelect?: (value: number) => void;
+    /** Switch on Main Tab styles and context if needed */
+    variant?: TabsVariant;
+    /** Add a custom className to the whole Tabs construct */
+    className?: string;
+}
+//# sourceMappingURL=Tabs.component.d.ts.map

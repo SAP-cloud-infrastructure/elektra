@@ -1,0 +1,37 @@
+declare const _default: {
+    title: string;
+    component: {
+        ({ children, label, icon, disabled, className, ...props }: import('./Tab.component').TabProps): import("react").JSX.Element;
+        tabsRole: string;
+    };
+    argTypes: {
+        icon: {
+            options: string[];
+            control: {
+                type: string;
+            };
+        };
+        children: {
+            control: boolean;
+            table: {
+                type: {
+                    summary: string;
+                };
+            };
+        };
+    };
+};
+export default _default;
+export declare const Default: {
+    args: {
+        label: string;
+        children: string;
+    };
+};
+export declare const WithIcon: {
+    args: {
+        children: string;
+        icon: string;
+    };
+};
+//# sourceMappingURL=Tab.stories.d.ts.map

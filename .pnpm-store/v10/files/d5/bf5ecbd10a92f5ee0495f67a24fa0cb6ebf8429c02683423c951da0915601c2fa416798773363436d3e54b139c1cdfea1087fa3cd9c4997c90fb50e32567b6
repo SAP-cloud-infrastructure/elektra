@@ -1,0 +1,16 @@
+import { default as React } from 'react';
+import { TabPanelProps as ReactTabPanelProps } from 'react-tabs';
+/**
+The TabPanel holds content related to a Tab in a TabList in a wrapping Tab component. Not to be used standalone / outside a Tabs wrapper.
+*/
+export declare const TabPanel: {
+    ({ children, className, ...props }: TabPanelProps): React.JSX.Element;
+    tabsRole: string;
+};
+export interface TabPanelProps extends ReactTabPanelProps {
+    /** The content to show/render when the associated Tab is selected */
+    children?: React.ReactNode;
+    /** Add a custom classList to the TabPanel */
+    className?: string;
+}
+//# sourceMappingURL=TabPanel.component.d.ts.map

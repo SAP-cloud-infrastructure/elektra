@@ -1,0 +1,4 @@
+import { default as React } from 'react';
+export declare const ExpandAllIcon: () => React.JSX.Element;
+export declare const CollapseAllIcon: () => React.JSX.Element;
+//# sourceMappingURL=JsonViewer.ToolbarIcons.component.d.ts.map

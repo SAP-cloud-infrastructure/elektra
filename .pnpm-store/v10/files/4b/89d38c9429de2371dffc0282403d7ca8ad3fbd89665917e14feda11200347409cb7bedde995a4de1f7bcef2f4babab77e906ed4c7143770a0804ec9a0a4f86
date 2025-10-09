@@ -1,0 +1,26 @@
+{
+  "name": "check-files",
+  "version": "0.0.2",
+  "description": "Check list of files against some rules",
+  "main": "checkFiles.js",
+  "directories": {
+    "test": "tests"
+  },
+  "bin": {
+      "check-files": "./bin/check-files"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github:insane-developer/check-files.git"
+  },
+  "author": "Andrey Mokrousov",
+  "license": "MIT",
+  "dependencies": {
+    "vow": "0.4.1",
+    "nopt": "2.1.2",
+    "extend": "1.2.1"
+  }
+}

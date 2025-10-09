@@ -1,0 +1,61 @@
+{
+  "name": "@cloudoperators/juno-url-state-provider",
+  "version": "3.0.7",
+  "description": "Save several paths in the url. This makes it possible to manage the status of several apps such as micro frontends with the help of URL.",
+  "author": "UI-Team",
+  "contributors": [
+    "Tilman Haupt",
+    "Andreas Pfau"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cloudoperators/juno.git#main"
+  },
+  "source": "src/index.ts",
+  "main": "build/index.cjs.js",
+  "module": "build/index.es.js",
+  "types": "build/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./build/index.d.ts",
+      "import": "./build/index.es.js",
+      "require": "./build/index.cjs.js"
+    }
+  },
+  "files": [
+    "build"
+  ],
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "devDependencies": {
+    "jsdom": "26.1.0",
+    "juri-cutlery": "1.0.0",
+    "lz-string": "1.5.0",
+    "typescript": "5.9.2",
+    "vite": "7.1.7",
+    "vite-plugin-dts": "4.5.4",
+    "vitest": "3.2.4",
+    "@cloudoperators/juno-config": "0.0.5"
+  },
+  "babel": {
+    "presets": [
+      "@babel/preset-env"
+    ]
+  },
+  "dependencies": {
+    "history": "5.3.0",
+    "query-string": "9.1.1"
+  },
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "lint": "eslint",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf build && rm -rf node_modules && rm -rf .turbo",
+    "clean:cache": "rm -rf .turbo"
+  }
+}

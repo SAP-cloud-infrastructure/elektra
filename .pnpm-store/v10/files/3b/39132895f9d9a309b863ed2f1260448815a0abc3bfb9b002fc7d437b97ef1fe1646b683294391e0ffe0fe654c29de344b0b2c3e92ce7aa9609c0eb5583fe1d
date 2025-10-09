@@ -1,0 +1,1 @@
+@import "./utils.css";@media screen and (min-width:600px) and (max-width:800px){}@media only screen and (min-width:800px),not all and (min-width:1200px),not print and (min-height:400px),(color),(min-height:100px) and (max-height:1000px),(orientation:landscape){html{background:red}}

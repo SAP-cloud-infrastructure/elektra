@@ -1,0 +1,7 @@
+import { Meta, StoryObj } from '@storybook/react';
+import { PanelBodyProps } from './PanelBody.component';
+declare const _default: Meta;
+export default _default;
+export declare const Body: StoryObj<PanelBodyProps>;
+export declare const BodyWithFooter: StoryObj<PanelBodyProps>;
+//# sourceMappingURL=PanelBody.stories.d.ts.map

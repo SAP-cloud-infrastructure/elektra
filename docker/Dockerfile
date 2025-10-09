@@ -41,7 +41,7 @@ RUN apk upgrade --no-cache --no-progress \
 ################################### BUILDER ################################
 FROM base AS builder 
 
-RUN apk --no-cache add git curl nodejs yarn shared-mime-info build-base
+RUN apk --no-cache add git curl nodejs pnpm shared-mime-info build-base
 
 # Install gems with native extensions before running bundle install
 # This avoids recompiling them everytime the Gemfile.lock changes.
@@ -65,8 +65,8 @@ RUN apk --no-cache add postgresql16-dev ruby-sassc \
 # add Gemfile and Gemfile.lock to $APP_PATH/
 ADD Gemfile Gemfile.lock ./
 
-# add package.json yarn.lock to $APP_PATH
-ADD package.json yarn.lock ./
+# add package.json pnpm-lock.yaml to $APP_PATH
+ADD package.json pnpm-lock.yaml ./
 
 # copy all gemspec files from plugins folder into $APP_PATH/tmp/plugins/
 ADD plugins/*/*.gemspec tmp/plugins/
@@ -94,11 +94,7 @@ ADD .npmrc.sample .npmrc
 # so writing $GITHUB_TOKEN in the .npmrc file won’t automatically replace it with the environment variable at build time.
 RUN sed -i "s|\$GITHUB_TOKEN|$GITHUB_TOKEN|g" .npmrc
 
-# transpile javascripts
-# this is needed because some juno packages have unnecessary node checks
-RUN yarn config set ignore-engines true
-# this step is no longer needed since the rails assets:precompile step will do it for us
-# RUN yarn install --no-progress && yarn build --production && rm -rf node_modules
+
 RUN bin/rails assets:precompile && rm -rf node_modules
 
 RUN echo $(git rev-parse HEAD) > $APP_PATH/REVISION && rm -rf .git

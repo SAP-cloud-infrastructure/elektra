@@ -1,0 +1,24 @@
+declare const _default: {
+    title: string;
+    component: import('react').ForwardRefExoticComponent<import('./Label.component').LabelProps & import('react').RefAttributes<HTMLLabelElement>>;
+    argTypes: {};
+};
+export default _default;
+export declare const Default: {
+    args: {
+        text: string;
+    };
+};
+export declare const Disabled: {
+    args: {
+        text: string;
+        disabled: boolean;
+    };
+};
+export declare const Required: {
+    args: {
+        text: string;
+        required: boolean;
+    };
+};
+//# sourceMappingURL=Label.stories.d.ts.map

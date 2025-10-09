@@ -1,0 +1,20 @@
+body {
+  font-family: sans-serif;
+  font-weight:        400;
+}
+
+
+h1 {
+
+  line-height  :  2em;
+
+
+  /* newlines for days! */
+
+
+
+}
+
+
+
+p {      color: #222;    font-size:   small;      }

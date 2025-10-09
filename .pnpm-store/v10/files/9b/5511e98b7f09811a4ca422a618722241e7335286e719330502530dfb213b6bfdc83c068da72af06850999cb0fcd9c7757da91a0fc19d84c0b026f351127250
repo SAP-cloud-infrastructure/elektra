@@ -1,0 +1,69 @@
+import { default as React, ReactNode } from 'react';
+import { Menu as HeadlessMenu } from '@headlessui/react';
+import { KnownIcons } from '../Icon/Icon.component';
+export interface PopupMenuContextType {
+    close: () => void;
+    isOpen: boolean;
+    menuSize: "normal" | "small";
+}
+export interface PopupMenuProps extends React.ComponentProps<typeof HeadlessMenu> {
+    /** The children to render. If no PopupMenu.Toggle child is passed, PopupMenu will render a default toggle. Pass a PopupMenu.Menu child in order to have a working component. */
+    children?: ReactNode;
+    /** Add a custom className to the wrapping element. NOTE: The Menu will be rendered into a Portal outside the wrapping parent element, so the Menu and its children will be outside the scope of the parent CSS selector.*/
+    className?: string;
+    /** Whether the PopupMenu is disabled. */
+    disabled?: boolean;
+    /** The icon to render when using the default toggle. Will be ignored if a PopupMenu.Toggle child is passed. */
+    icon?: KnownIcons;
+    /** The size of the menu and its items. */
+    menuSize?: "normal" | "small";
+    /** Handler to run when the Menu closes. */
+    onClose?: () => void;
+    /** Handler to run when the Menu opens. */
+    onOpen?: () => void;
+}
+export interface PopupMenuToggleProps extends React.ComponentProps<typeof HeadlessMenu.Button> {
+    className?: string;
+}
+type HeadlessMenuItemsProps = React.ComponentPropsWithRef<React.ElementType>;
+export interface PopupMenuOptionsProps extends HeadlessMenuItemsProps {
+    as?: React.ElementType;
+    className?: string;
+    children?: ReactNode;
+    key?: React.Key;
+}
+export interface PopupMenuItemProps extends React.ComponentProps<typeof HeadlessMenu.Item> {
+    as?: React.ElementType;
+    className?: string;
+    disabled?: boolean;
+    href?: string;
+    icon?: KnownIcons;
+    label?: string;
+    rel?: string;
+    target?: string;
+}
+export interface PopupMenuSectionProps {
+    children?: ReactNode;
+    className?: string;
+}
+export interface PopupMenuSectionHeadingProps {
+    children?: ReactNode;
+    className?: string;
+    label?: string;
+}
+export interface PopupMenuSectionSeparatorProps {
+    className?: string;
+}
+declare const PopupMenuContext: React.Context<PopupMenuContextType | null>;
+export declare const usePopupMenuContext: () => PopupMenuContextType;
+export { PopupMenuContext };
+/** A Popup Menu component that wraps Headless UI Menu. The Menu will be rendered into a Juno Portal, so using Juno's PortalProvider (which is already included when using Juno's AppShell) is mandatory. */
+declare const PopupMenu: React.FC<PopupMenuProps>;
+export declare const PopupMenuToggle: React.FC<PopupMenuToggleProps>;
+export declare const PopupMenuOptions: React.FC<PopupMenuOptionsProps>;
+export declare const PopupMenuItem: React.FC<PopupMenuItemProps>;
+export declare const PopupMenuSection: React.FC<PopupMenuSectionProps>;
+export declare const PopupMenuSectionHeading: React.FC<PopupMenuSectionHeadingProps>;
+export declare const PopupMenuSectionSeparator: React.FC<PopupMenuSectionSeparatorProps>;
+export { PopupMenu };
+//# sourceMappingURL=PopupMenu.component.d.ts.map

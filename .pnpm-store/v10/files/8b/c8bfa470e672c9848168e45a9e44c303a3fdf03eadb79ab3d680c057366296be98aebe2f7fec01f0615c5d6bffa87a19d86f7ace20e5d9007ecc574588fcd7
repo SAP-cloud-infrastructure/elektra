@@ -1,0 +1,35 @@
+import { default as React } from 'react';
+import { ComboBox } from './index';
+import { ComboBoxProps } from './ComboBox.component';
+import { Meta, StoryObj } from '@storybook/react-vite';
+declare const meta: Meta<typeof ComboBox>;
+export default meta;
+type Story = StoryObj<typeof meta>;
+export declare const Default: Story;
+export declare const ControlledComboBox: Story;
+export declare const UncontrolledComboBox: Story;
+export declare const WithLabel: Story;
+export declare const WithLabelAndPlaceholder: Story;
+export declare const Required: Story;
+export declare const Valid: Story;
+export declare const Invalid: Story;
+export declare const Disabled: Story;
+export declare const DisabledOption: Story;
+export declare const WithHelpText: Story;
+export declare const WithHelpTextAsNode: Story;
+export declare const WithErrorText: Story;
+export declare const WithSuccessText: Story;
+export declare const NonNullable: Story;
+export declare const NonTruncatedOptions: Story;
+export declare const TruncatedOptions: Story;
+export declare const OptionsWithLabels: Story;
+export declare const Loading: Story;
+export declare const Error: {
+    render: ({ children, ...args }: ComboBoxProps) => React.JSX.Element;
+    args: {
+        error: boolean;
+        errortext: string;
+    };
+};
+export declare const ValueAndDefaultValue: Story;
+//# sourceMappingURL=ComboBox.stories.d.ts.map

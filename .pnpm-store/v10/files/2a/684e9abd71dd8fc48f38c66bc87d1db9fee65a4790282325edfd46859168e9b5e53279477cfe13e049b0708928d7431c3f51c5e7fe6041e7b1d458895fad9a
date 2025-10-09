@@ -1,0 +1,7 @@
+import { default as React } from 'react';
+interface DummyComponentListProps {
+    count: number;
+}
+declare const DummyComponentList: ({ count }: DummyComponentListProps) => React.JSX.Element;
+export default DummyComponentList;
+//# sourceMappingURL=DummyComponentList.d.ts.map

@@ -1,0 +1,79 @@
+declare const _default: {
+    title: string;
+    component: import('react').FC<import('./Checkbox.component').CheckboxProps>;
+    argTypes: {
+        errortext: {
+            control: boolean;
+        };
+        helptext: {
+            control: boolean;
+        };
+        successtext: {
+            control: boolean;
+        };
+    };
+};
+export default _default;
+export declare const Default: {
+    args: {};
+};
+export declare const Checked: {
+    args: {
+        checked: boolean;
+    };
+};
+export declare const WithLabel: {
+    args: {
+        label: string;
+    };
+};
+export declare const Required: {
+    args: {
+        required: boolean;
+        label: string;
+    };
+};
+export declare const Disabled: {
+    args: {
+        disabled: boolean;
+    };
+};
+export declare const Indeterminate: {
+    args: {
+        indeterminate: boolean;
+    };
+};
+export declare const Valid: {
+    args: {
+        valid: boolean;
+    };
+};
+export declare const Invalid: {
+    args: {
+        invalid: boolean;
+    };
+};
+export declare const ValidWithLabel: {
+    args: {
+        valid: boolean;
+        label: string;
+        successtext: string;
+        helptext: string;
+    };
+};
+export declare const InvalidWithLabel: {
+    args: {
+        invalid: boolean;
+        label: string;
+        errortext: string;
+        helptext: string;
+    };
+};
+export declare const IndeterminateWithLabel: {
+    args: {
+        indeterminate: boolean;
+        label: string;
+        helptext: string;
+    };
+};
+//# sourceMappingURL=Checkbox.stories.d.ts.map

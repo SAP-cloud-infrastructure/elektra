@@ -1,0 +1,90 @@
+version: 2.1
+
+workflows:
+  version: 2.1
+  main:
+    jobs:
+      - lint
+      - test-v4
+      - test-v5
+      - test-v6
+      - release:
+          requires:
+            - lint
+            - test-v4
+            - test-v5
+            - test-v6
+          filters:
+            branches:
+              only:
+                - master
+
+jobs:
+  lint:
+    docker:
+      - image: circleci/node:16
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: npm ci
+      - run:
+          name: Lint code
+          command: npm run lint
+
+  test-v4:
+    docker:
+      - image: circleci/node:16
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: npm ci
+      - run:
+          name: Install ESLint 4
+          command: npm install eslint@4
+      - run:
+          name: Test ESLint 4
+          command: npm test
+
+  test-v5:
+    docker:
+      - image: circleci/node:16
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: npm ci
+      - run:
+          name: Install ESLint 5
+          command: npm install eslint@5
+      - run:
+          name: Test ESLint 5
+          command: npm test
+
+  test-v6:
+    docker:
+      - image: circleci/node:16
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: npm ci
+      - run:
+          name: Install ESLint 6
+          command: npm install eslint@6
+      - run:
+          name: Test ESLint 6
+          command: npm test
+
+  release:
+    docker:
+      - image: circleci/node:16
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: npm ci
+      - run:
+          name: Run semantic release
+          command: npm run semantic-release

@@ -1,0 +1,19 @@
+import { default as React } from 'react';
+import { Textarea } from './index';
+import { Meta, StoryObj } from '@storybook/react-vite';
+type TextareaProps = React.ComponentProps<typeof Textarea>;
+declare const meta: Meta<TextareaProps>;
+export default meta;
+type Story = StoryObj<typeof meta>;
+export declare const Default: Story;
+export declare const WithLabel: Story;
+export declare const RequiredWithLabel: Story;
+export declare const Invalid: Story;
+export declare const Valid: Story;
+export declare const Disabled: Story;
+export declare const Autofocus: Story;
+export declare const WithHelpText: Story;
+export declare const WithHelpTextAsNode: Story;
+export declare const WithSuccessText: Story;
+export declare const WithErrorText: Story;
+//# sourceMappingURL=Textarea.stories.d.ts.map

@@ -1,0 +1,19 @@
+import { default as React, ReactElement, ReactNode } from 'react';
+/**
+ * The PageHeader component renders a header to the application.
+ * In order to customize the header Logo, PageHeader accepts a `logo` prop that expects a custom component: `logo={<CustomLogo />}` Ideally, the custom logo component should return an `<img />` or an inline `<svg>` element. When using `svg`, make sure the file does not contain any unnecessary cruft. `Svgo` is a great tool to optimize `svg` files. Make sure the `viewBox` element is not removed when optimizing a file for usage a a header logo.
+ * Pass as prop to AppShell so it gets slotted into the correct place in the layout. If building your layout manually without AppShell place as first child of AppBody.
+ */
+export declare const PageHeader: React.FC<PageHeaderProps>;
+export interface PageHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
+    /** Heading (typically the name of the application) */
+    heading?: string | ReactElement;
+    /** Add custom class name */
+    className?: string;
+    logo?: boolean | ReactElement;
+    /** Optional: onClick handler for brand logo/page title. To be used to navigate to the home page.  */
+    onClick?: React.MouseEventHandler<HTMLDivElement>;
+    /** Children to render in the header such as user name, avatar, log-in/out button, etc. */
+    children?: ReactNode;
+}
+//# sourceMappingURL=PageHeader.component.d.ts.map

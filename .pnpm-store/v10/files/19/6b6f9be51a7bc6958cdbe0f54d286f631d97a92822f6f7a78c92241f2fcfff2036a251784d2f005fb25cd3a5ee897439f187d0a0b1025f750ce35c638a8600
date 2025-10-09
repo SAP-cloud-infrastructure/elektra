@@ -1,0 +1,9 @@
+import { default as React } from 'react';
+import { ButtonProps } from '../Button';
+interface SortButtonProps extends Omit<ButtonProps, "value" | "onChange"> {
+    order?: "asc" | "desc";
+    onOrderChange?: (_order: string) => void;
+}
+export declare const SortButton: React.FC<SortButtonProps>;
+export {};
+//# sourceMappingURL=SortButton.component.d.ts.map

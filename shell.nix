@@ -10,6 +10,6 @@ mkShell {
     nodejs
     postgresql
     ruby
-    yarn
+    pnpm
   ];
 }

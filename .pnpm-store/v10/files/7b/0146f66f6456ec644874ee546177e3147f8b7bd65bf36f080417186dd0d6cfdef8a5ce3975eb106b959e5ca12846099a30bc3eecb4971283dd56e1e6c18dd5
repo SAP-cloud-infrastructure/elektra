@@ -1,0 +1,28 @@
+import { default as React } from 'react';
+import { ComboBoxOptionProps } from './ComboBoxOption.component';
+declare const _default: {
+    title: string;
+    component: React.FC<ComboBoxOptionProps>;
+    argTypes: {};
+};
+export default _default;
+export declare const Default: {
+    render: (args: ComboBoxOptionProps) => React.JSX.Element;
+    args: {
+        value: string;
+    };
+};
+export declare const Disabled: {
+    render: (args: ComboBoxOptionProps) => React.JSX.Element;
+    args: {
+        disabled: boolean;
+        value: string;
+    };
+};
+export declare const ChildrenOnly: {
+    render: (args: ComboBoxOptionProps) => React.JSX.Element;
+    args: {
+        children: string;
+    };
+};
+//# sourceMappingURL=ComboBoxOption.stories.d.ts.map

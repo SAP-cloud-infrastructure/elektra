@@ -1,0 +1,64 @@
+import { default as React } from 'react';
+type StoryFunction = () => JSX.Element;
+declare const _default: {
+    title: string;
+    component: React.FC<import('./InputGroup.component').InputGroupProps>;
+    argTypes: {
+        children: {
+            control: boolean;
+        };
+    };
+    decorators: ((story: StoryFunction) => React.JSX.Element)[];
+};
+export default _default;
+export declare const Default: {
+    args: {
+        children: React.JSX.Element[];
+    };
+};
+export declare const PrimaryInputGroup: {
+    args: {
+        variant: string;
+        children: React.JSX.Element[];
+    };
+};
+export declare const PrimaryDangerInputGroup: {
+    args: {
+        variant: string;
+        children: React.JSX.Element[];
+    };
+};
+export declare const SubduedInputGroup: {
+    args: {
+        variant: string;
+        children: React.JSX.Element[];
+    };
+};
+export declare const Disabled: {
+    args: {
+        disabled: boolean;
+        children: React.JSX.Element[];
+    };
+};
+export declare const IconButtons: {
+    args: {
+        children: React.JSX.Element[];
+    };
+};
+export declare const TextInputWithButton: {
+    args: {
+        children: React.JSX.Element[];
+    };
+};
+export declare const MultipleTextInputsWithButton: {
+    args: {
+        children: React.JSX.Element[];
+    };
+};
+export declare const SelectInputsWithButton: {
+    args: {
+        variant: string;
+        children: React.JSX.Element[];
+    };
+};
+//# sourceMappingURL=InputGroup.stories.d.ts.map

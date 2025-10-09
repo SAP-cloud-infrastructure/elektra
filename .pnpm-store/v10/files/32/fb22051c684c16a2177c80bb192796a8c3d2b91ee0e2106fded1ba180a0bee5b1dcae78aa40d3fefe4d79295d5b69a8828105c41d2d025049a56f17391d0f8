@@ -1,0 +1,185 @@
+declare const _default: {
+    title: string;
+    component: import('react').FC<import('./JsonViewer.component.tsx').JsonViewerProps>;
+    description: string;
+    argTypes: {};
+    parameters: {
+        controls: {
+            sort: string;
+        };
+    };
+};
+export default _default;
+export declare const Default: {
+    args: {
+        data: {
+            id: number;
+            date: Date;
+            getPrice: () => string;
+            regex: RegExp;
+            nan: number;
+            null: null;
+            title: string;
+            description: string;
+            price: number;
+            discountPercentage: number;
+            rating: number;
+            stock: number;
+            available: boolean;
+            array: never[];
+            brand: string;
+            category: string;
+            thumbnail: string;
+            test: string;
+            test2: string;
+            images: string[];
+        };
+    };
+};
+export declare const ArrayData: {
+    args: {
+        data: ({
+            hello: string[];
+            foo: string;
+            arrays?: undefined;
+            fun?: undefined;
+            work?: undefined;
+        } | {
+            arrays: string;
+            fun: string;
+            work: string;
+            hello?: undefined;
+            foo?: undefined;
+        })[];
+    };
+};
+export declare const Light: {
+    args: {
+        theme: string;
+        toolbar: boolean;
+        data: {
+            id: number;
+            date: Date;
+            getPrice: () => string;
+            regex: RegExp;
+            nan: number;
+            null: null;
+            title: string;
+            description: string;
+            price: number;
+            discountPercentage: number;
+            rating: number;
+            stock: number;
+            available: boolean;
+            array: never[];
+            brand: string;
+            category: string;
+            thumbnail: string;
+            test: string;
+            test2: string;
+            images: string[];
+        };
+    };
+};
+export declare const Expanded: {
+    args: {
+        expanded: boolean;
+        data: {
+            id: number;
+            date: Date;
+            getPrice: () => string;
+            regex: RegExp;
+            nan: number;
+            null: null;
+            title: string;
+            description: string;
+            price: number;
+            discountPercentage: number;
+            rating: number;
+            stock: number;
+            available: boolean;
+            array: never[];
+            brand: string;
+            category: string;
+            thumbnail: string;
+            test: string;
+            test2: string;
+            images: string[];
+        };
+    };
+};
+export declare const WithToolbar: {
+    args: {
+        expanded: number;
+        toolbar: boolean;
+        data: {
+            id: number;
+            date: Date;
+            getPrice: () => string;
+            regex: RegExp;
+            nan: number;
+            null: null;
+            title: string;
+            description: string;
+            price: number;
+            discountPercentage: number;
+            rating: number;
+            stock: number;
+            available: boolean;
+            array: never[];
+            brand: string;
+            category: string;
+            thumbnail: string;
+            test: string;
+            test2: string;
+            images: string[];
+        };
+    };
+};
+export declare const CustomTheme: {
+    args: {
+        theme: {
+            base00: string;
+            base01: string;
+            base02: string;
+            base03: string;
+            base04: string;
+            base05: string;
+            base06: string;
+            base07: string;
+            base08: string;
+            base09: string;
+            base0A: string;
+            base0B: string;
+            base0C: string;
+            base0D: string;
+            base0E: string;
+            base0F: string;
+        };
+        data: {
+            test2: undefined;
+            id: number;
+            date: Date;
+            getPrice: () => string;
+            regex: RegExp;
+            nan: number;
+            null: null;
+            title: string;
+            description: string;
+            price: number;
+            discountPercentage: number;
+            rating: number;
+            stock: number;
+            available: boolean;
+            array: never[];
+            brand: string;
+            category: string;
+            thumbnail: string;
+            test: string;
+            images: string[];
+        };
+        toolbar: boolean;
+        truncate: boolean;
+    };
+};
+//# sourceMappingURL=JsonViewer.stories.d.ts.map

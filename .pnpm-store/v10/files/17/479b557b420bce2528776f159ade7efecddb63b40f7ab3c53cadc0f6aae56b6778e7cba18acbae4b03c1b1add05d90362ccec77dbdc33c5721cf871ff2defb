@@ -1,0 +1,29 @@
+import { default as React, ReactNode } from 'react';
+type ItemChangeHandler = (value: ReactNode) => void;
+type AddItemFunction = (key: ReactNode, children: ReactNode, label: string, value: string) => void;
+export interface NavigationContextType {
+    activeItem?: ReactNode;
+    addItem?: AddItemFunction;
+    handleActiveItemChange?: ItemChangeHandler;
+    navigationDisabled?: boolean;
+    navigationRole?: string;
+}
+export declare const NavigationContext: React.Context<NavigationContextType | undefined>;
+/** A generic Navigation component providing all the necessary functionality for a navigation. For internal use only. Not to be used directly, but to be wrapped by more role-specific / semantic navigation components such as `TabNavigation`, `TopNavigation`, `SideNavigation`. */
+export declare const Navigation: React.FC<NavigationProps>;
+export interface NavigationProps extends React.HTMLAttributes<HTMLUListElement> {
+    /** The currently active item. Pass the `value`, `label` prop, or the child string of the respective NavigationItem. */
+    activeItem?: ReactNode;
+    /** The aria label of the navigation */
+    ariaLabel?: string;
+    /** The child navigation items of the navigation  */
+    children?: ReactNode;
+    /** Pass a custom className to the navigation parent element */
+    className?: string;
+    /** Whether the navigation is disabled. Will disable all children. */
+    disabled?: boolean;
+    /** Handler to execute when the active item changes. */
+    onActiveItemChange?: ItemChangeHandler;
+}
+export {};
+//# sourceMappingURL=Navigation.component.d.ts.map

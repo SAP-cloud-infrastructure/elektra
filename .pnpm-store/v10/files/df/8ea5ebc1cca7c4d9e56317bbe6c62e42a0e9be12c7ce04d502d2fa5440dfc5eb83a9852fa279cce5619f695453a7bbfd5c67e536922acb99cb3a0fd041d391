@@ -1,0 +1,32 @@
+import { default as React } from 'react';
+interface PortalContextType {
+    current: HTMLDivElement | null;
+}
+export declare const PortalContext: React.Context<PortalContextType | undefined>;
+/** A hook that creates a portal container in the current portal root, and returns this newly created container as a node to use in other components:
+ * ```
+ *   const portalRef = usePortalRef()
+ *
+ *   createPortal(<MyComponent />, portalRef ? portalRef : document.body)
+ * ```
+ *  The ref to the portal container element can also be passed as a parameter to components that expect a reference element for positioning, such as Flatpickr / DateTimePickr.
+ */
+export declare function usePortalRef(): HTMLDivElement | null;
+/** A PortalProvider component that helps using and managing portals.
+ * It renders a portal root container, creates a context to expose a ref the container, a `PortalProvider.Portal` component to render content into a portal, and a `usePortalRef` hook to render content into a portal.
+ * Normally, there is no need to include `PortalProvider` manually, when using `AppShell` `PortalProvider` is already included in the app.
+ */
+export declare const PortalProvider: {
+    ({ children, className, id }: PortalProviderProps): React.JSX.Element;
+    Portal: React.FC<import('./PortalProvider.Portal.component').PortalProviderPortalProps>;
+};
+export interface PortalProviderProps {
+    /** Optionally a class name can be passed to the portal container which is the container where portals are created by PortalProvider */
+    className?: string;
+    /** Optionally an id can be passed to the portal container which is the container where portals are created by PortalProvider */
+    id?: string;
+    /** The PortalProvider must have children. It is typically used as a wrapper for the whole app. */
+    children?: React.ReactNode;
+}
+export {};
+//# sourceMappingURL=PortalProvider.component.d.ts.map

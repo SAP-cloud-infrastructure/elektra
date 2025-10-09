@@ -1,0 +1,72 @@
+import { default as React } from 'react';
+declare const _default: {
+    title: string;
+    component: React.FC<import('./TabNavigation.component').TabNavigationProps>;
+    argTypes: {
+        children: {
+            control: boolean;
+        };
+        onActiveItemChange: {
+            control: boolean;
+        };
+        tabStyle: {
+            options: string[];
+            control: {
+                type: string;
+            };
+        };
+    };
+};
+export default _default;
+interface TemplateProps {
+    children?: React.ReactNode;
+}
+export declare const Default: {
+    render: ({ children, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        children: React.JSX.Element[];
+    };
+};
+export declare const Disabled: {
+    render: ({ children, ...args }: TemplateProps) => React.JSX.Element;
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+    args: {
+        disabled: boolean;
+        children: React.JSX.Element[];
+    };
+};
+export declare const WithValues: {
+    render: ({ children, ...args }: TemplateProps) => React.JSX.Element;
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+    args: {
+        activeItem: string;
+        children: React.JSX.Element[];
+    };
+};
+export declare const WithChildren: {
+    render: ({ children, ...args }: TemplateProps) => React.JSX.Element;
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+    args: {
+        activeItem: string;
+        children: React.JSX.Element[];
+    };
+};
+//# sourceMappingURL=TabNavigation.stories.d.ts.map

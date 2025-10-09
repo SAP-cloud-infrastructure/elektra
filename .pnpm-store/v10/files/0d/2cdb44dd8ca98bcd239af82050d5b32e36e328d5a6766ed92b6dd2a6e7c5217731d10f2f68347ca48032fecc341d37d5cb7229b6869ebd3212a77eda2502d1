@@ -1,0 +1,11 @@
+import { default as React } from 'react';
+export interface FormattedTextProps extends React.HTMLAttributes<HTMLDivElement> {
+    /** Add custom class name */
+    className?: string;
+    children?: React.ReactNode;
+}
+/**
+ * A very basic layout container with padding.
+ */
+export declare const FormattedText: React.FC<FormattedTextProps>;
+//# sourceMappingURL=FormattedText.component.d.ts.map

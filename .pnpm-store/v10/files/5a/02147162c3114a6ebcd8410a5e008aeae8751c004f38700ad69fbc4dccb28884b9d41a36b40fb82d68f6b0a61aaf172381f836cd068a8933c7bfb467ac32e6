@@ -1,0 +1,24 @@
+import { default as React } from 'react';
+type IconType = "info" | "warning" | "danger" | "error" | "success";
+export interface ToastProps extends React.HTMLAttributes<HTMLDivElement> {
+    /** Specify a semantic variant */
+    variant?: IconType;
+    /** Pass child nodes to be rendered as contents */
+    children?: React.ReactNode;
+    /** Pass an optional text */
+    text?: string;
+    /** Optional. If set to 'true', the message will be automatically dismissed after 10 seconds by default or after the specified autoDismissTimeout */
+    autoDismiss?: boolean;
+    /** Optional. Timeout in miliseconds after which the message is automatically dismissed. By default 10000 (10s).*/
+    autoDismissTimeout?: number;
+    /** Optional. Pass a handler that will be called when the message is dismissed */
+    onDismiss?: () => void;
+    /** Pass an optional className */
+    className?: string;
+}
+/**
+A Toast component. Use for short-lived, temporary/transient messaging to users relating to their current usage context, e.g. 'Edits changed successfully'. For more general, persistent messaging, e.g. 'Our servers will be down for maintenance all weekend', use Message instead.
+*/
+export declare const Toast: React.FC<ToastProps>;
+export {};
+//# sourceMappingURL=Toast.component.d.ts.map

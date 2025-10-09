@@ -1,0 +1,2 @@
+export { DataGridCheckboxCell, type DataGridCheckboxCellProps } from './DataGridCheckboxCell.component';
+//# sourceMappingURL=index.d.ts.map

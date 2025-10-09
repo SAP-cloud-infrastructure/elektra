@@ -1,0 +1,11 @@
+import { default as React } from 'react';
+/** A basic inline `<code>` component.
+ *   Accepts "content" prop or renders children as passed.
+ */
+export declare const Code: React.FC<CodeProps>;
+export interface CodeProps extends React.ComponentPropsWithoutRef<"code"> {
+    content?: string;
+    className?: string;
+    children?: React.ReactNode;
+}
+//# sourceMappingURL=Code.component.d.ts.map

@@ -1,0 +1,25 @@
+declare const _default: {
+    title: string;
+    component: import('react').FC<import('./Box.component').BoxProps>;
+    argTypes: {};
+};
+export default _default;
+export declare const Default: {
+    args: {
+        children: string;
+    };
+};
+export declare const WithoutPadding: {
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+    args: {
+        children: string;
+        unpad: boolean;
+    };
+};
+//# sourceMappingURL=Box.stories.d.ts.map

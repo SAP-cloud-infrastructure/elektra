@@ -1,0 +1,25 @@
+import { Component, ReactNode } from "react";
+import { DetectElementResize } from "./vendor/detectElementResize.js";
+import { Props } from "./types.js";
+type State = {
+    height: number;
+    width: number;
+};
+export declare class AutoSizer extends Component<Props, State> {
+    state: {
+        height: number;
+        width: number;
+    };
+    _autoSizer: HTMLElement | null;
+    _detectElementResize: DetectElementResize | null;
+    _didLogDeprecationWarning: boolean;
+    _parentNode: HTMLElement | null;
+    _resizeObserver: ResizeObserver | null;
+    _timeoutId: number | null;
+    componentDidMount(): void;
+    componentWillUnmount(): void;
+    render(): ReactNode;
+    _onResize: () => void;
+    _setRef: (autoSizer: HTMLElement | null) => void;
+}
+export {};

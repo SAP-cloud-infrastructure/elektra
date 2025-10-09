@@ -1,0 +1,146 @@
+import { default as React } from 'react';
+declare const _default: {
+    title: string;
+    component: React.FC<import('./RadioGroup.component').RadioGroupProps>;
+    argTypes: {
+        items: {
+            table: {
+                disable: boolean;
+            };
+        };
+        errortext: {
+            control: boolean;
+        };
+        helptext: {
+            control: boolean;
+        };
+        successtext: {
+            control: boolean;
+        };
+        children: {
+            control: boolean;
+        };
+        onChange: {
+            table: {
+                type: {
+                    summary: string;
+                };
+            };
+        };
+    };
+};
+export default _default;
+interface TemplateProps {
+    children: React.ReactNode;
+}
+export declare const Default: {
+    render: ({ children, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        children: React.JSX.Element[];
+    };
+};
+export declare const Selected: {
+    render: ({ children, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        name: string;
+        selected: string;
+        children: React.JSX.Element[];
+    };
+};
+export declare const IndividuallyChecked: {
+    render: ({ children, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        name: string;
+        children: React.JSX.Element[];
+    };
+};
+export declare const WithLabel: {
+    render: ({ children, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        name: string;
+        selected: string;
+        label: string;
+        children: React.JSX.Element[];
+    };
+};
+export declare const Required: {
+    render: ({ children, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        name: string;
+        selected: string;
+        label: string;
+        required: boolean;
+        children: React.JSX.Element[];
+    };
+};
+export declare const Disabled: {
+    render: ({ children, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        name: string;
+        selected: string;
+        label: string;
+        disabled: boolean;
+        children: React.JSX.Element[];
+    };
+};
+export declare const Valid: {
+    render: ({ children, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        name: string;
+        selected: string;
+        label: string;
+        valid: boolean;
+        children: React.JSX.Element[];
+    };
+};
+export declare const Invalid: {
+    render: ({ children, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        name: string;
+        selected: string;
+        label: string;
+        invalid: boolean;
+        children: React.JSX.Element[];
+    };
+};
+export declare const WithHelptext: {
+    render: ({ children, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        name: string;
+        selected: string;
+        label: string;
+        helptext: string;
+        children: React.JSX.Element[];
+    };
+};
+export declare const WithHelptextAsNode: {
+    render: ({ children, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        name: string;
+        selected: string;
+        label: string;
+        helptext: React.JSX.Element;
+        children: React.JSX.Element[];
+    };
+};
+export declare const WithSuccess: {
+    render: ({ children, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        name: string;
+        selected: string;
+        successtext: string;
+        label: string;
+        children: React.JSX.Element[];
+    };
+};
+export declare const WithError: {
+    render: ({ children, ...args }: TemplateProps) => React.JSX.Element;
+    args: {
+        name: string;
+        selected: string;
+        errortext: string;
+        label: string;
+        children: React.JSX.Element[];
+    };
+};
+//# sourceMappingURL=RadioGroup.stories.d.ts.map

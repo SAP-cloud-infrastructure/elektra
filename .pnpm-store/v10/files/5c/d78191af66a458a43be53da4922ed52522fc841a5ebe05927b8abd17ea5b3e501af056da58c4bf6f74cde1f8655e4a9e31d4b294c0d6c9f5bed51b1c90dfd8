@@ -1,0 +1,110 @@
+import { default as React } from 'react';
+declare const _default: {
+    title: string;
+    component: React.FC<import('./Switch.component').SwitchProps>;
+    argTypes: {
+        errortext: {
+            control: boolean;
+        };
+        helptext: {
+            control: boolean;
+        };
+        successtext: {
+            control: boolean;
+        };
+    };
+};
+export default _default;
+export declare const Default: {
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+    args: {
+        label: string;
+        id: string;
+    };
+};
+export declare const Small: {
+    args: {
+        size: string;
+        label: string;
+        id: string;
+    };
+};
+export declare const Large: {
+    args: {
+        size: string;
+        label: string;
+        id: string;
+    };
+};
+export declare const On: {
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+    args: {
+        on: boolean;
+    };
+};
+export declare const Disabled: {
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+    args: {
+        on: boolean;
+        disabled: boolean;
+        label: string;
+        id: string;
+    };
+};
+export declare const Invalid: {
+    args: {
+        invalid: boolean;
+        label: string;
+        id: string;
+    };
+};
+export declare const Valid: {
+    args: {
+        valid: boolean;
+        label: string;
+        id: string;
+    };
+};
+export declare const WithHelpText: {
+    args: {
+        label: string;
+        helptext: string;
+    };
+};
+export declare const WithHelpTextAsNode: {
+    args: {
+        label: string;
+        helptext: React.JSX.Element;
+    };
+};
+export declare const WithSuccessText: {
+    args: {
+        label: string;
+        successtext: string;
+    };
+};
+export declare const WithErrorText: {
+    args: {
+        label: string;
+        errortext: string;
+    };
+};
+//# sourceMappingURL=Switch.stories.d.ts.map

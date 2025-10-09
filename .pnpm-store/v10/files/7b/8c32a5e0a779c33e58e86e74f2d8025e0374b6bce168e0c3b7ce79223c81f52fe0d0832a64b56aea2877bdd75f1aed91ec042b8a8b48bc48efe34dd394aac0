@@ -1,0 +1,36 @@
+import { default as React } from 'react';
+import { ModalFooterProps } from './ModalFooter.component';
+declare const _default: {
+    title: string;
+    component: React.FC<ModalFooterProps>;
+    argTypes: {
+        children: {
+            control: boolean;
+        };
+    };
+    parameters: {
+        actions: {
+            argTypesRegex: null;
+        };
+    };
+};
+export default _default;
+export declare const Default: {
+    render: (args: ModalFooterProps) => React.JSX.Element;
+    args: {};
+};
+export declare const Configure: {
+    render: (args: ModalFooterProps) => React.JSX.Element;
+    args: {
+        confirmButtonLabel: string;
+        cancelButtonLabel: string;
+    };
+};
+export declare const Custom: {
+    render: (args: ModalFooterProps) => React.JSX.Element;
+    args: {
+        className: string;
+        children: React.JSX.Element[];
+    };
+};
+//# sourceMappingURL=ModalFooter.stories.d.ts.map

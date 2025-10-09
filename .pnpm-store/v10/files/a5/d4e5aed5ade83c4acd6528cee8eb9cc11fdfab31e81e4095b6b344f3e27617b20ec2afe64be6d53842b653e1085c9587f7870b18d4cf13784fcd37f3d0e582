@@ -1,0 +1,21 @@
+/* charset utf-8 */
+/*! this comment is important and should be kept */
+
+/*
+ * multiline comments
+ * should also
+ * be deleted
+ */
+
+body /* comments after selectors should be deleted */ {
+  /* as should comments in rules */
+  color: /* and comments */ red /* anywhere in */; /* declarations */
+}
+
+p /* comments in selectors */, aside /* should also be removed */ {
+  font-size: 16px;
+}
+
+/**/     /* empty comments shouldn't cause an error */
+/*!*/    /* nor should empty important comments */
+/*   */  /* or comments containing only whitespace */

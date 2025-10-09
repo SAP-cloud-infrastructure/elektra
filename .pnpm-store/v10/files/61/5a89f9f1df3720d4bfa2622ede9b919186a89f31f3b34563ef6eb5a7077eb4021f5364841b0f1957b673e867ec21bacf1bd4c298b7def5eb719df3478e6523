@@ -1,0 +1,6 @@
+import { Meta } from '@storybook/react';
+import { GridRow } from './GridRow.component';
+declare const _default: Meta<typeof GridRow>;
+export default _default;
+export declare const Default: Meta<typeof GridRow>;
+//# sourceMappingURL=GridRow.stories.d.ts.map

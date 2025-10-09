@@ -1,0 +1,139 @@
+{
+  "name": "@sapcc/limes-ui",
+  "version": "1.12.3",
+  "author": "VoigtS",
+  "license": "MIT",
+  "source": "src/index.js",
+  "module": "build/index.js",
+  "private": false,
+  "files": [
+    "build",
+    "public",
+    "LICENSE"
+  ],
+  "devDependencies": {
+    "@babel/core": "^7.20.2",
+    "@babel/preset-env": "^7.20.2",
+    "@babel/preset-react": "^7.18.6",
+    "@changesets/cli": "^2.27.11",
+    "@eslint/compat": "^1.1.1",
+    "@svgr/core": "^8.0.0",
+    "@svgr/plugin-jsx": "^8.0.0",
+    "@tanstack/react-query": "5.90.2",
+    "@testing-library/dom": "^10.0.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.4.3",
+    "assert": "^2.0.0",
+    "autoprefixer": "^10.4.2",
+    "babel-jest": "^30.0.0",
+    "babel-plugin-transform-import-meta": "^2.2.0",
+    "eslint": "^9.15.0",
+    "eslint-plugin-jest": "^29.0.0",
+    "eslint-plugin-react": "^7.36.1",
+    "jest": "^30.0.0",
+    "jest-environment-jsdom": "^30.0.0",
+    "luxon": "^3.0.0",
+    "postcss": "^8.4.21",
+    "postcss-url": "^10.1.3",
+    "prettier": "^3.2.5",
+    "prop-types": "^15.8.1",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-test-renderer": "19.2.0",
+    "sass": "^1.60.0",
+    "shadow-dom-testing-library": "^1.7.1",
+    "tailwindcss": "^4.1.11",
+    "util": "^0.12.4",
+    "zustand": "5.0.8"
+  },
+  "scripts": {
+    "build": "NODE_ENV=production node esbuild.config.js",
+    "start": "PORT=$APP_PORT NODE_ENV=development node esbuild.config.js --serve --watch",
+    "format": "prettier --log-level warn --write \"**/*.{js,jsx,ts,tsx,md}\"",
+    "check-format": "prettier --config ./.prettierrc --check \"**/*.{js,jsx,ts,tsx,md}\" ",
+    "license-headers": "addlicense -c 'SAP SE' src/",
+    "lint": "npx eslint",
+    "test": "jest",
+    "version": "changeset version"
+  },
+  "importmapExtras": {
+    "zustand/middleware": "4.3.7"
+  },
+  "appProps": {
+    "theme": {
+      "value": "theme-dark",
+      "type": "optional",
+      "description": "Override the default theme. Possible values are theme-light or theme-dark (default)"
+    },
+    "endpoint": {
+      "value": "",
+      "type": "required",
+      "description": "Base URL of the Limes API as stored in the Keystone catalog"
+    },
+    "projectID": {
+      "value": "",
+      "type": "required",
+      "description": "Project ID (if scoped to a project)"
+    },
+    "domainID": {
+      "value": "",
+      "type": "required",
+      "description": "Domain ID (if scoped to a project or domain)"
+    },
+    "token": {
+      "value": "",
+      "type": "required",
+      "description": "Keystone token for the scope specified by domain_id and project_id"
+    },
+    "canEdit": {
+      "value": "false",
+      "type": "required",
+      "description": "Whether the user has edit permissions in the token's scope"
+    },
+    "embedded": {
+      "value": "false",
+      "type": "optional",
+      "description": "Set to true if app is to be embedded in another existing app or page, like e.g. Elektra.  If set to true the app won't render a page header/footer and instead render only the content. The default value is false."
+    },
+    "mockAPI": {
+      "value": "false",
+      "type": "optional",
+      "description": "Wheter the API data should be mocked."
+    },
+    "local": {
+      "value": false,
+      "type": "optional",
+      "description": "Used to display debug log data in local development."
+    },
+    "quotaProject": {
+      "value": "string",
+      "type": "optional",
+      "description": "Identify the current project."
+    },
+    "quotaAlign": {
+      "value": "",
+      "type": "optional",
+      "description": "Align the displayed quota text to start, center or end (default: end)"
+    }
+  },
+  "dependencies": {
+    "@cloudoperators/juno-ui-components": "5.6.0",
+    "@cloudoperators/juno-url-state-provider": "*",
+    "@tailwindcss/postcss": "^4.1.11",
+    "cypress": "^15.0.0",
+    "esbuild": "^0.25.0",
+    "moment": "^2.29.4",
+    "msw": "^2.6.6",
+    "postcss-url": "^10.1.3",
+    "react-day-picker": "^9.0.0",
+    "react-router": "^7.5.1"
+  },
+  "appPreview": true,
+  "packageManager": "^npm@10.0.0",
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
+  }
+}

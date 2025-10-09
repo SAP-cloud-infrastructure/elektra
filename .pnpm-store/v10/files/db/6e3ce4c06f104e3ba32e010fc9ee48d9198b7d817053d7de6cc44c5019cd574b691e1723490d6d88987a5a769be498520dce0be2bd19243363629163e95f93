@@ -1,0 +1,67 @@
+import { default as React } from 'react';
+export interface SearchInputProps extends Omit<React.HTMLProps<HTMLInputElement>, "onClick"> {
+    /**
+     * Specifies the name attribute for the input element.
+     */
+    name?: string;
+    /**
+     * Determines the visual styling variant of the SearchInput component.
+     * - "default": Standard search input styling.
+     * - "hero": A larger search input intended for standalone use on a dedicated search page, akin to the initial Google search page.
+     * - "rounded": A search input with rounded edges.
+     */
+    variant?: "rounded" | "hero" | "default";
+    /**
+     * Disables the search input when set to true.
+     */
+    disabled?: boolean;
+    /**
+     * Custom placeholder text displayed in the search input.
+     */
+    placeholder?: string;
+    /**
+     * Initial value for the search input.
+     */
+    value?: string;
+    /**
+     * Controls the autocomplete attribute of the input element.
+     * Pass a valid autocomplete value.
+     * We do not enforce validity.
+     */
+    autoComplete?: string;
+    /**
+     * Determines whether to show the 'Clear' button.
+     */
+    clear?: boolean;
+    /**
+     * Pass an optional CSS class to apply to the search input.
+     */
+    className?: string;
+    /**
+     * Callback function invoked when a search is triggered, either by pressing the 'Enter' key or by clicking the search icon.
+     */
+    onSearch?: (value: string) => void;
+    /**
+     * Click handler for the search icon.
+     */
+    onClick?: React.MouseEventHandler<HTMLElement>;
+    /**
+     * Change handler for the search input.
+     */
+    onChange?: React.ChangeEventHandler<HTMLInputElement>;
+    /**
+     * KeyPress handler for the search input. By default, triggers the onSearch function when the 'Enter' key is pressed.
+     */
+    onKeyPress?: React.KeyboardEventHandler<HTMLInputElement>;
+    /**
+     * Click handler for the 'Clear' button.
+     */
+    onClear?: React.MouseEventHandler<HTMLElement>;
+}
+/**
+ * A SearchInput is a controlled input component for searching.
+ * It provides a text field to enter a search query and optional clear and search icons.
+ * Three styling variants are supported: "rounded", "hero", and "default".
+ */
+export declare const SearchInput: React.FC<SearchInputProps>;
+//# sourceMappingURL=SearchInput.component.d.ts.map

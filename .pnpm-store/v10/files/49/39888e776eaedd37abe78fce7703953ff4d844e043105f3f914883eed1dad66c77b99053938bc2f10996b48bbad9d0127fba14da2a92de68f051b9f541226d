@@ -1,0 +1,52 @@
+declare const _default: {
+    title: string;
+    component: import('react').FC<import('./Pill.component.tsx').PillProps>;
+    argTypes: {
+        onClose: {
+            table: {
+                type: {
+                    summary: string;
+                };
+            };
+        };
+        onClick: {
+            table: {
+                type: {
+                    summary: string;
+                };
+            };
+        };
+    };
+};
+export default _default;
+export declare const Default: {
+    args: {
+        pillKey: string;
+        pillKeyLabel: string;
+        pillValue: string;
+        pillValueLabel: string;
+    };
+};
+export declare const Closeable: {
+    args: {
+        pillKey: string;
+        pillKeyLabel: string;
+        pillValue: string;
+        pillValueLabel: string;
+        closeable: boolean;
+    };
+};
+export declare const ValueOnly: {
+    args: {
+        pillValue: string;
+        pillValueLabel: string;
+    };
+};
+export declare const ValueOnlyCloseable: {
+    args: {
+        pillValue: string;
+        pillValueLabel: string;
+        closeable: boolean;
+    };
+};
+//# sourceMappingURL=Pill.stories.d.ts.map

@@ -1,0 +1,14 @@
+import { default as React } from 'react';
+export interface TooltipTriggerProps extends React.HTMLAttributes<HTMLElement> {
+    /** If true, the child you passed to the TooltipTrigger is rendered as the trigger element, instead of the default trigger component. This is useful if you e.g. want to use a Button or Icon as the trigger. */
+    asChild?: boolean;
+    /** Pass child nodes to display in the tooltip */
+    children?: React.ReactNode;
+    /** Pass a className to render to the trigger element */
+    className?: string;
+}
+/**
+ * This is the trigger element for a tooltip. See Tooltip for more in-depth explanation and examples.
+ */
+export declare const TooltipTrigger: React.ForwardRefExoticComponent<TooltipTriggerProps & React.RefAttributes<HTMLElement>>;
+//# sourceMappingURL=TooltipTrigger.component.d.ts.map

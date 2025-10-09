@@ -1,0 +1,9 @@
+import { default as React } from 'react';
+export declare const DataGridRow: React.ForwardRefExoticComponent<DataGridRowProps & React.RefAttributes<HTMLDivElement>>;
+export interface DataGridRowProps extends React.HTMLAttributes<HTMLDivElement> {
+    /** Children to render in the DataGridRow */
+    children?: React.ReactNode;
+    /** Add a classname */
+    className?: string;
+}
+//# sourceMappingURL=DataGridRow.component.d.ts.map

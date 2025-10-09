@@ -1,0 +1,16 @@
+declare const _default: {
+    title: string;
+    component: import('react').FC<import('./ThemeToggle.component').ThemeToggleProps>;
+    argTypes: {};
+};
+export default _default;
+export declare const Default: {
+    parameters: {};
+    args: {};
+};
+export declare const Disabled: {
+    args: {
+        disabled: boolean;
+    };
+};
+//# sourceMappingURL=ThemeToggle.stories.d.ts.map

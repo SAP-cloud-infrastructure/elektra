@@ -1,0 +1,2 @@
+declare const generateTailwindThemeClassesJson: () => void;
+//# sourceMappingURL=generateTailwindThemeClassesJson.d.ts.map

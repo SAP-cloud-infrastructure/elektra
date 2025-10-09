@@ -1,0 +1,22 @@
+import { default as React } from 'react';
+export interface GridProps extends React.HTMLAttributes<HTMLDivElement> {
+    /**
+     * Controls whether columns should auto-size.
+     * If true, this will override the default 12-column grid layout.
+     */
+    auto?: boolean;
+    /**
+     * Elements to be rendered within the grid.
+     */
+    children?: React.ReactNode;
+    /**
+     * Additional CSS classes to apply to the grid for custom styling.
+     */
+    className?: string;
+}
+/**
+ * A general-use grid component.
+ * Used in conjunction with GridColumn and GridRow components to create a flexible grid layout.
+ */
+export declare const Grid: React.FC<GridProps>;
+//# sourceMappingURL=Grid.component.d.ts.map

@@ -1,0 +1,19 @@
+import { default as React, ReactNode, HTMLAttributes } from 'react';
+export interface PanelFooterProps extends HTMLAttributes<HTMLDivElement> {
+    /**
+     * Additional CSS classes to apply to the panel footer for custom styling.
+     */
+    className?: string;
+    /**
+     * The content to render inside the panel footer.
+     * Typically, this will include buttons or other control elements.
+     */
+    children?: ReactNode;
+}
+/**
+ * The PanelFooter component renders the footer section of a panel.
+ * Typically used to contain footer elements like buttons, which can be added to the PanelBody component via its `footer` property.
+ * Buttons placed inside will be automatically aligned to the right.
+ */
+export declare const PanelFooter: React.FC<PanelFooterProps>;
+//# sourceMappingURL=PanelFooter.component.d.ts.map

@@ -1,0 +1,26 @@
+<!--
+  ~ SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Juno contributors
+  ~ SPDX-License-Identifier: Apache-2.0
+-->
+
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="20" role="img" aria-label="Built with Juno">
+  <title>Built with Juno</title>
+  <linearGradient id="s" x2="0" y2="100%">
+    <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
+    <stop offset="1" stop-opacity=".1"/>
+  </linearGradient>
+  <clipPath id="r">
+    <rect width="120" height="20" rx="3" fill="#fff"/>
+  </clipPath>
+  <g clip-path="url(#r)">
+    <rect width="70" height="20" fill="#555"/>
+    <rect x="70" width="50" height="20" fill="rgb(240 171 0)"/>
+    <rect width="120" height="20" fill="url(#s)"/>
+  </g>
+  <g fill="#fff" text-anchor="middle" font-family="Verdana, Geneva, DejaVu Sans, sans-serif" text-rendering="geometricPrecision" font-size="110">
+    <text aria-hidden="true" x="355" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="600">Built with</text>
+    <text x="355" y="140" transform="scale(.1)" fill="#fff" textLength="600">Built with</text>
+    <text aria-hidden="true" x="930" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="300">Juno</text>
+    <text x="930" y="140" transform="scale(.1)" fill="#fff" textLength="300">Juno</text>
+  </g>
+</svg>

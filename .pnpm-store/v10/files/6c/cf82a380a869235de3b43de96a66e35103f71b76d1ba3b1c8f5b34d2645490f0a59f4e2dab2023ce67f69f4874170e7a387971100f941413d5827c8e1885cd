@@ -1,0 +1,1 @@
+{"version":3,"file":"GlobalStyles.d.ts","sourceRoot":"","sources":["../../../../src/components/StyleProvider/GlobalStyles.tsx"],"names":[],"mappings":"AAKA;;;;GAIG;AACH,OAAO,KAA6B,MAAM,OAAO,CAAA;AAIjD,QAAA,MAAM,MAAM,QAAuB,CAAA;AAInC,QAAA,MAAM,YAAY,eAAgB,iBAAiB,6BAiBlD,CAAA;AAED,UAAU,iBAAiB;IACzB,MAAM,CAAC,EAAE,OAAO,CAAA;CACjB;AAED,eAAe,YAAY,CAAA;AAE3B,OAAO,EAAE,MAAM,EAAE,CAAA"}

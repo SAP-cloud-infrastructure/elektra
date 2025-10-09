@@ -1,0 +1,48 @@
+import { default as React } from 'react';
+import { StyleProviderProps } from './StyleProvider.component';
+declare const _default: {
+    title: string;
+    component: {
+        ({ stylesWrapper, theme: themeProp, children, shadowRootMode, }: StyleProviderProps): React.JSX.Element;
+        useStyles(): import('./StyleProvider.component').StyleContextProps;
+    };
+    argTypes: {
+        stylesWrapper: {
+            options: string[];
+            control: {
+                type: string;
+            };
+        };
+        children: {
+            control: boolean;
+        };
+    };
+};
+export default _default;
+export declare const AddStylesToHead: {
+    render: (args: StyleProviderProps) => React.JSX.Element;
+    args: {
+        stylesWrapper: string;
+    };
+};
+export declare const AddInlineStyles: {
+    render: (args: StyleProviderProps) => React.JSX.Element;
+    args: {
+        stylesWrapper: string;
+    };
+};
+export declare const AddStylesToShadowRoot: {
+    render: (args: StyleProviderProps) => React.JSX.Element;
+    args: {
+        stylesWrapper: string;
+    };
+};
+export declare const WithLightTheme: {
+    render: (args: StyleProviderProps) => React.JSX.Element;
+    args: {
+        stylesWrapper: string;
+        theme: string;
+        children: string;
+    };
+};
+//# sourceMappingURL=StyleProvider.stories.d.ts.map

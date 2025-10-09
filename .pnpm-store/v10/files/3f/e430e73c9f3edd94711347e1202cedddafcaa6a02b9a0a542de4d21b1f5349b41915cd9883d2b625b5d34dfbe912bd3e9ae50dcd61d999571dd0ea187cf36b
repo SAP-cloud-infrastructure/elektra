@@ -1,0 +1,22 @@
+import { default as React } from 'react';
+/**
+ * A re-usable Label component
+ */
+export declare const Label: React.ForwardRefExoticComponent<LabelProps & React.RefAttributes<HTMLLabelElement>>;
+export interface LabelProps extends React.HTMLAttributes<HTMLLabelElement> {
+    /** Pass a string of text to be rendered as contents. Required.  */
+    text?: string;
+    /** An Id of an input element to associate the label with */
+    htmlFor?: string;
+    /** Required */
+    required?: boolean;
+    /** Pass a className */
+    className?: string;
+    /** Label for a disabled input */
+    disabled?: boolean;
+    /** Whether the label is floating */
+    floating?: boolean;
+    /** Whether the label is minimized. Requires `floating` set to TRUE, otherwise it will have no effect. */
+    minimized?: boolean;
+}
+//# sourceMappingURL=Label.component.d.ts.map

@@ -1,0 +1,10 @@
+import { default as React } from 'react';
+export interface SelectOptionProps extends React.HTMLAttributes<HTMLLIElement> {
+    children?: string;
+    className?: string;
+    disabled?: boolean;
+    value?: string;
+    label?: string;
+}
+export declare const SelectOption: React.FC<SelectOptionProps>;
+//# sourceMappingURL=SelectOption.component.d.ts.map

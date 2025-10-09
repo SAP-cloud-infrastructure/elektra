@@ -1,0 +1,17 @@
+import { Meta, StoryObj } from '@storybook/react-vite';
+import { PageHeader } from './index';
+type Story = StoryObj<typeof meta>;
+declare const meta: Meta<typeof PageHeader>;
+export default meta;
+export declare const Default: Story;
+export declare const WithapplicationName: Story;
+export declare const WithapplicationNameAndChildren: Story;
+export declare const NoapplicationNameWithChildren: Story;
+export declare const NoLogo: Story;
+export declare const WithCustomLogoSquareInline: Story;
+export declare const WithCustomLogoLandscapeInline: Story;
+export declare const WithCustomLogoPortraitInline: Story;
+export declare const WithCustomLogoPNGSquare: Story;
+export declare const WithCustomLogoPNGLandscape: Story;
+export declare const WithCustomLogoPNGPortrait: Story;
+//# sourceMappingURL=PageHeader.stories.d.ts.map

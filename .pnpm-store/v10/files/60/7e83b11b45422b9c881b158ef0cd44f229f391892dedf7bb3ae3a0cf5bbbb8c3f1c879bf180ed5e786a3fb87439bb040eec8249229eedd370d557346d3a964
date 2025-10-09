@@ -1,0 +1,68 @@
+import { default as React } from 'react';
+import { DataGridCellProps } from './index';
+type StoryFunction = () => JSX.Element;
+declare const _default: {
+    title: string;
+    component: React.ForwardRefExoticComponent<DataGridCellProps & React.RefAttributes<HTMLDivElement>>;
+    argTypes: {
+        children: {
+            control: boolean;
+            table: {
+                type: {
+                    summary: string;
+                };
+            };
+        };
+    };
+    decorators: ((story: StoryFunction) => React.JSX.Element)[];
+    parameters: {
+        docs: {
+            source: {
+                excludeDecorators: boolean;
+            };
+        };
+    };
+};
+export default _default;
+export declare const Default: {
+    render: (args: DataGridCellProps) => React.JSX.Element;
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+    args: {
+        children: string[];
+    };
+};
+export declare const NoWrap: {
+    render: (args: DataGridCellProps) => React.JSX.Element;
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+    args: {
+        nowrap: boolean;
+        children: string[];
+    };
+};
+export declare const ColSpan: {
+    render: (args: DataGridCellProps) => React.JSX.Element;
+    parameters: {
+        docs: {
+            description: {
+                story: string;
+            };
+        };
+    };
+    args: {
+        colSpan: number;
+        children: string[];
+    };
+};
+//# sourceMappingURL=DataGridCell.stories.d.ts.map

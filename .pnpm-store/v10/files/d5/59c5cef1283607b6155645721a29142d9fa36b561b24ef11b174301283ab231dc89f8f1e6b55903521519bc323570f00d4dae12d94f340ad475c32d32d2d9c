@@ -1,0 +1,32 @@
+import { default as React, ReactNode } from 'react';
+import { KnownIcons } from '../Icon/Icon.component';
+/** A generic Navigation Item component. For internal use only. Use to wrap more semantic, role-specific navigation item components such as `SidenavigationItem`, `TabNavigationItem` , `TopNavigationItem` around. */
+export declare const NavigationItem: React.FC<NavigationItemProps>;
+export interface NavigationItemProps extends React.HTMLAttributes<HTMLElement> {
+    /** Whether the navigation item is the currently active item. If an acitve item is set on the parent, the one on the parent will win. */
+    active?: boolean;
+    /** Styles to apply to the active item*/
+    activeItemStyles?: string;
+    /** The aria-label of the item */
+    ariaLabel?: string;
+    /** Pass custom classNames to the item itself. */
+    className?: string;
+    /** The child string of the item. Will override `label` when passed. */
+    children?: ReactNode;
+    /** Whether the item is disabled */
+    disabled?: boolean;
+    /** An icon to render in the item */
+    icon?: KnownIcons;
+    inactiveItemStyles?: string;
+    /** The label of the item. Will be rendered if no children are passed */
+    label?: string;
+    /** The href of the item. The item will be rendered as an `<a>` element when passed, instead of a `<button>`.  */
+    href?: string;
+    /** Handler to execute when the item is clicked */
+    onClick?: React.MouseEventHandler<EventTarget>;
+    /** The value of the item as a technical identifier. Use if needed to be different from the visble `label` or child string. Will only be rendered when no `label` prop and no children are passed. */
+    value?: string;
+    /** Pass a custom className to the parent `<li>` element of the item. */
+    wrapperClassName?: string;
+}
+//# sourceMappingURL=NavigationItem.component.d.ts.map
