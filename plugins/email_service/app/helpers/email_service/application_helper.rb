@@ -287,6 +287,7 @@ module EmailService
     end
 
     def ses_client_v2
+      @cronus_region = cronus_region
       @region ||= map_region(@cronus_region)
       @endpoint ||= email_service_url
       unless !ec2_creds || ec2_creds.nil?

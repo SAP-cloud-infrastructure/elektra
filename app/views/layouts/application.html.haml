@@ -7,6 +7,7 @@
     %title= page_title
     = stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track' => true
     -# = content_for :javascripts do
+
     :javascript
       window.policyConfig = #{policy.try(:to_js).try(:html_safe) || {}}
       window.pluginName = "#{plugin_name}";
