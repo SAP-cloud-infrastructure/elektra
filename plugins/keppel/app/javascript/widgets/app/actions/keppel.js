@@ -68,7 +68,10 @@ export const putAccount =
           })
           resolve(newAccount)
         })
-        .catch((error) => reject({ errors: errorMessage(error) }))
+        .catch((error) => {
+          showError(error)
+          reject({ errors: errorMessage(error) })
+        })
     )
   }
 

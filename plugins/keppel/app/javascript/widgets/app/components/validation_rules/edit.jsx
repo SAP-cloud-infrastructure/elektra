@@ -20,14 +20,11 @@ export default class RBACPoliciesEditModal extends React.Component {
     return true
   }
 
-  onSubmit = ({ required_labels: requiredLabelsStr }) => {
+  onSubmit = ({ rule_for_manifest: requiredLabelsStr }) => {
     const newAccount = {
       ...this.props.account,
       validation: {
-        required_labels: requiredLabelsStr
-          .split(",")
-          .map((l) => l.trim())
-          .filter((l) => l != ""),
+        rule_for_manifest: requiredLabelsStr,
       },
     }
     return this.props.putAccount(newAccount).then(() => this.close())
@@ -40,9 +37,7 @@ export default class RBACPoliciesEditModal extends React.Component {
     }
 
     const initialValues = {
-      required_labels: ((account.validation || {}).required_labels || []).join(
-        ", "
-      ),
+      rule_for_manifest: (account.validation || {}).rule_for_manifest || "",
     }
 
     return (
@@ -66,24 +61,42 @@ export default class RBACPoliciesEditModal extends React.Component {
           initialValues={initialValues}
         >
           <Modal.Body>
-            <Form.ElementHorizontal
-              label="Required labels"
-              name="required_labels"
-            >
-              <Form.Input
-                elementType="input"
-                type="text"
-                name="required_labels"
-                readOnly={!isAdmin}
-              />
+            <Form.ElementHorizontal label="Validation rules" name="required_labels">
+              <Form.Input elementType="input" type="text" name="rule_for_manifest" readOnly={!isAdmin} />
               <p className="form-control-static">
-                When set, only images that have all these labels can be pushed
-                into the account. Labels can be set on Docker images by adding{" "}
-                <a href="https://docs.docker.com/engine/reference/builder/#label">
+                Validation rules for manifest allow you to restrict image pushes to the account by permitting specific
+                labels. These labels can be added with{" "}
+                <a
+                  href="https://docs.docker.com/engine/reference/builder/#label"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   LABEL commands
                 </a>{" "}
-                to the Dockerfile.
+                in the Dockerfile or by other means.
               </p>
+              <div>
+                <div>Labels are configured by using the Common Expression Language (CEL).</div>
+                <div>Examples of valid expressions include:</div>
+                <pre>
+                  <code>
+                    <div>&apos;label_1&apos; in labels </div>
+                    <div>&apos;label_1&apos; in labels && repo_name == &quot;repository_1&quot;</div>
+                    <div>&apos;label_1&apos; in labels || repo_name == &quot;repository_1&quot;</div>
+                  </code>
+                </pre>
+                <div>
+                  {" "}
+                  More information is available in the{" "}
+                  <a
+                    href="https://github.com/sapcc/keppel/blob/master/docs/api-spec.md#put-keppelv1accountsname"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Keppel documentation
+                  </a>
+                </div>
+              </div>
             </Form.ElementHorizontal>
           </Modal.Body>
 
