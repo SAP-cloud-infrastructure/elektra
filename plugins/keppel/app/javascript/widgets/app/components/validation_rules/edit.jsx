@@ -64,8 +64,7 @@ export default class RBACPoliciesEditModal extends React.Component {
             <Form.ElementHorizontal label="Validation rules" name="required_labels">
               <Form.Input elementType="input" type="text" name="rule_for_manifest" readOnly={!isAdmin} />
               <p className="form-control-static tw-mt-2">
-                Validation rules for manifest allow you to restrict image pushes to the account by permitting specific
-                labels. These labels can be added with{" "}
+                Validation rules for manifests allow you to restrict image pushes to the account in various ways, such as by permitting specific labels through{" "}
                 <a
                   href="https://docs.docker.com/engine/reference/builder/#label"
                   target="_blank"
@@ -73,10 +72,10 @@ export default class RBACPoliciesEditModal extends React.Component {
                 >
                   LABEL commands
                 </a>{" "}
-                in the Dockerfile or by other means.
+                in the Dockerfile, or by other means.
               </p>
               <div>
-                <div>Labels are configured by using the Common Expression Language (CEL).</div>
+                <div>The rules are configured by using the Common Expression Language (CEL).</div>
                 <div>Examples of valid expressions include:</div>
                 <pre>
                   <code>
