@@ -14,7 +14,7 @@ module.exports = {
     "^config/(.*)$": "<rootDir>/config/$1",
   },
   testEnvironment: "jsdom",
-  // Fix for pnpm's nested structure
+
   transformIgnorePatterns: [
     "node_modules/(?!.*\\.pnpm.*@cloudoperators.*juno-ui-components|@cloudoperators/juno-ui-components)",
   ],
