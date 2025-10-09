@@ -19,7 +19,7 @@ RUN apk upgrade --no-cache --no-progress \
   postgresql16-jit \
   postgresql16-client \
   openssh \
-  yarn \
+  pnpm \
   bash \
   unzip \
   jq \
@@ -73,7 +73,7 @@ RUN gem install bundler -v 2.3.20 && bundle config set --local path 'vendor/bund
 RUN echo -e '#!/bin/bash\n\n\
   set -e \n\
   bundle install \n\
-  yarn \n\
+  pnpm i \n\
   mkdir -p "$PGDATA" && chown -R postgres:postgres "$PGDATA"\n\
   PGDATA_FILES=$(ls -A $PGDATA)\n\
   if [ -z "$PGDATA_FILES" ]; then\n\
@@ -113,7 +113,7 @@ RUN echo -e '\n\
 
 RUN echo -e '\n\
   #!/bin/bash\n\n\
-  cd /app && yarn build --watch\n\
+  cd /app && pnpm build --watch\n\
   ' >> /usr/local/bin/start-js && chmod +x /usr/local/bin/start-js
 
 RUN echo -e '\n\
@@ -128,7 +128,7 @@ RUN echo -e '\n\
 
 RUN echo -e '\n\
   #!/bin/bash\n\n\
-  cd /app && rm -rf node_modules && yarn\n\
+  cd /app && rm -rf node_modules && pnpm i\n\
   ' >> /usr/local/bin/rebuild-npms && chmod +x /usr/local/bin/rebuild-npms
 
 RUN echo -e '\n\
@@ -152,9 +152,6 @@ RUN echo -e '\n\
 RUN apk --no-cache add curl libsass-dev ca-certificates
 RUN curl -fL http://aia.pki.co.sap.com/aia/SAP%20Global%20Root%20CA.crt -o /usr/local/share/ca-certificates/SAP_Global_Root_CA.crt && \
   update-ca-certificates
-
-# this is needed because some juno packages have unnecessary node checks
-RUN yarn config set ignore-engines true
 
 # to upgrade the image to the latest
 # this is used to ensure all packages are up to date and 

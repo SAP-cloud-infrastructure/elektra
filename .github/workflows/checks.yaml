@@ -92,19 +92,8 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.ELEKTRA_GITHUB_NPM_TOKEN }}
 
-      - name: Install yarn
-        run: npm install -g yarn
-
-      - name: Get yarn cache dir
-        id: yarn-cache-dir
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-
-      - name: Yarn cache
-        id: cache-yarn
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
-        with:
-          path: ${{ steps.yarn-cache-dir.outputs.dir }}
-          key: yarn-${{ hashFiles('**/yarn.lock') }}
+      - name: Install pnpm
+        run: npm install -g pnpm
 
       - name: Install packages and run tests
         # this runs only in PRs from the same repo because of the missing npm token to download the packages
@@ -112,8 +101,8 @@ jobs:
           github.event.pull_request.head.repo.full_name == github.repository
         id: test-js
         run: |
-          yarn install
-          yarn test
+          pnpm install
+          pnpm test
 
       - name: Run typecheck
         # this runs only in PRs from the same repo because of the missing npm token to download the packages
@@ -121,7 +110,7 @@ jobs:
           github.event.pull_request.head.repo.full_name == github.repository
         id: typecheck
         run: |
-          yarn typecheck
+          pnpm typecheck
 
       - name: Run lint in plugins (see script/lint-plugins.js)
         # this runs only in PRs from the same repo because of the missing npm token to
@@ -129,4 +118,4 @@ jobs:
           github.event.pull_request.head.repo.full_name == github.repository
         id: lint
         run: |
-          yarn lint:plugins
+          pnpm lint:plugins

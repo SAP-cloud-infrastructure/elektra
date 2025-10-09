@@ -155,16 +155,16 @@ Alternatively, we use NVM to manage Node versions — please ensure you’re usi
     nvm use
     ```
 
-5.  [Install](https://yarnpkg.com/en/docs/install) **yarn** (actual version is 1.22.22 but higher works also fine)
+5.  [Install]
 
     ```bash
-    brew install yarn@1.22.22
+    npm install -g pnpm
     ```
 
-    Check the yarn version running:
+    or optional **On MAC**
 
     ```bash
-    yarn --version
+    brew install pnpm
     ```
 
 6.  Clone this repository to your machine.
@@ -191,7 +191,7 @@ Alternatively, we use NVM to manage Node versions — please ensure you’re usi
     Cd into elektra/ directory and run:
 
     ```bash
-    bundle exec yarn
+    pnpm i
     ```
 
 10. Create, migrate and seed the database
@@ -202,7 +202,6 @@ Alternatively, we use NVM to manage Node versions — please ensure you’re usi
     ```
 
 11. Copy the **env.sample** file to a **.env** file and adjust the values
-
     - Set the MONSOON*OPENSTACK_AUTH_API*\* values to your devstack/openstack configuration settings
     - Enter the database configuration parameters
 
@@ -218,7 +217,7 @@ Alternatively, we use NVM to manage Node versions — please ensure you’re usi
     b. Run react live compiling
 
     ```bash
-    bin/yarn build --watch
+    pnpm build --watch
     ```
 
     Browser access for Elektra: http://localhost:3000
@@ -232,9 +231,9 @@ Alternatively, we use NVM to manage Node versions — please ensure you’re usi
    1. Set up [rbenv](https://github.com/rbenv/rbenv) and [ruby-build](https://github.com/rbenv/ruby-build) according to their documentation.
    2. Install Ruby with `rbenv install 2.7.6` (substitute the Ruby version with the one from the aforementioned file).
 4. Install Ruby gems with `bundle install`.
-5. Install JavaScript packages with `yarn`.
+5. Install JavaScript packages with `pnpm`.
 6. Create database if not already done `./testing/with-postgres-db.sh bin/rails db:prepare`
-7. In one terminal or tmux, run `yarn build --watch` to compile the JavaScript assets. Leave this running until you're done with development.
+7. In one terminal or tmux, run `pnpm build --watch` to compile the JavaScript assets. Leave this running until you're done with development.
 8. In a second terminal or tmux, run `./testing/with-postgres-db.sh bin/rails server -p 3000` to run the Ruby application. Leave this running, too.
 9. Now you can access the GUI at `http://localhost:3000`. When coming in from a different machine, you need to set up forwarding for ports 3000, e.g. `ssh -L 3000:127.0.0.1:8180 -L 8081:127.0.0.1:8081`.
 

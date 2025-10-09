@@ -1,5 +1,5 @@
 //
-// Add to your .env following variable LBAAS2_LOGGER and restart yarn build
+// Add to your .env following variable LBAAS2_LOGGER and restart pnpm build
 const LBAAS2_LOGGER = false
 
 const BASE = "lbaas2"
