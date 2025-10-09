@@ -63,7 +63,7 @@ export default class RBACPoliciesEditModal extends React.Component {
           <Modal.Body>
             <Form.ElementHorizontal label="Validation rules" name="required_labels">
               <Form.Input elementType="input" type="text" name="rule_for_manifest" readOnly={!isAdmin} />
-              <p className="form-control-static">
+              <p className="form-control-static tw-mt-2">
                 Validation rules for manifest allow you to restrict image pushes to the account by permitting specific
                 labels. These labels can be added with{" "}
                 <a
