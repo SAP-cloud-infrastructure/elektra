@@ -138,6 +138,9 @@ module Compute
       @flavors = services.compute.flavors
       
       # images
+      # note we load here the images based on their visibility and not all at once
+      # because in some environments not all images are visible for the user if we use 
+      # services.image.all_images without filter
       all_private_images = services.image.all_images({visibility: "private"})
       all_shared_images =  services.image.all_images({visibility: "shared"})
       all_public_images =  services.image.all_images({visibility: "public"})
