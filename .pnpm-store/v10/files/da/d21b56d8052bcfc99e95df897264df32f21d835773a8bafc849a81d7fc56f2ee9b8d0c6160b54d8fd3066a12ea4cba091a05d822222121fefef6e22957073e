@@ -1,1 +1,0 @@
-{"version":3,"file":"useCanGoBack.js","sources":["../../src/useCanGoBack.ts"],"sourcesContent":["import { useRouterState } from './useRouterState'\n\nexport function useCanGoBack() {\n  return useRouterState({ select: (s) => s.location.state.__TSR_index !== 0 })\n}\n"],"names":[],"mappings":";AAEO,SAAS,eAAe;AACtB,SAAA,eAAe,EAAE,QAAQ,CAAC,MAAM,EAAE,SAAS,MAAM,gBAAgB,GAAG;AAC7E;"}

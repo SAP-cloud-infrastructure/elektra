@@ -1,9 +1,0 @@
-import { DecodedObject } from './types';
-type TestCase = {
-    id: number;
-    encoded: string;
-    decoded: DecodedObject;
-};
-declare const testCases: TestCase[];
-export default testCases;
-//# sourceMappingURL=testCases.d.ts.map

@@ -1,8 +1,0 @@
-import { Meta, StoryObj } from '@storybook/react-vite';
-import { Box } from './index';
-declare const meta: Meta<typeof Box>;
-export default meta;
-type Story = StoryObj<typeof meta>;
-export declare const Default: Story;
-export declare const WithoutPadding: Story;
-//# sourceMappingURL=Box.stories.d.ts.map

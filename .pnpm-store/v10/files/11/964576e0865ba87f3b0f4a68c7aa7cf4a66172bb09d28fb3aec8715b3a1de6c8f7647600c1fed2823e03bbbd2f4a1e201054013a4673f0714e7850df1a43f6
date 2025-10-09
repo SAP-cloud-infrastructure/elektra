@@ -1,4 +1,0 @@
-import { MessagesProvider, useActions, useMessages } from './useMessageStore';
-import { default as Messages } from './Messages';
-export { MessagesProvider, Messages, useActions, useMessages };
-//# sourceMappingURL=index.d.ts.map

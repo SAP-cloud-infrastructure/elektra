@@ -1,2 +1,0 @@
-export { PopupMenu, PopupMenuOptions, PopupMenuToggle, PopupMenuItem, PopupMenuSection, PopupMenuSectionHeading, PopupMenuSectionSeparator, usePopupMenuContext, } from './PopupMenu.component';
-//# sourceMappingURL=index.d.ts.map

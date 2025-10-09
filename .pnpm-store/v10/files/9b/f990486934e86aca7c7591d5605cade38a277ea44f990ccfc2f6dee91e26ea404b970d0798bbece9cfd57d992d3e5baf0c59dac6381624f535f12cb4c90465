@@ -1,5 +1,0 @@
-{
-  "main": "dist/react-select-base.cjs.js",
-  "module": "dist/react-select-base.esm.js",
-  "types": "dist/react-select-base.cjs.d.ts"
-}

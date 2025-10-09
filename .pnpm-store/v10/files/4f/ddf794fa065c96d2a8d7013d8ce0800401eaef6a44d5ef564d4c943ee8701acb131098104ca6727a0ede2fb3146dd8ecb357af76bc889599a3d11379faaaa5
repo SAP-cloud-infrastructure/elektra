@@ -1,7 +1,0 @@
-import { Meta, StoryObj } from '@storybook/react';
-import { Form, FormProps } from './Form.component';
-declare const _default: Meta<typeof Form>;
-export default _default;
-export declare const Default: StoryObj<FormProps>;
-export declare const ComplexForm: StoryObj<FormProps>;
-//# sourceMappingURL=Form.stories.d.ts.map

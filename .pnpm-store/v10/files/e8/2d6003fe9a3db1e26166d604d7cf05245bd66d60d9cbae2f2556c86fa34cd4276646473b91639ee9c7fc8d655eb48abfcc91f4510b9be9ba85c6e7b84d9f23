@@ -1,1 +1,0 @@
-{"version":3,"file":"PanelBody.stories.d.ts","sourceRoot":"","sources":["../../../../src/components/PanelBody/PanelBody.stories.tsx"],"names":[],"mappings":"AAMA,OAAO,EAAE,IAAI,EAAW,QAAQ,EAAE,MAAM,kBAAkB,CAAA;AAG1D,OAAO,EAAa,cAAc,EAAE,MAAM,uBAAuB,CAAA;wBA6B5D,IAAI;AAxBT,wBAwBS;AAiBT,eAAO,MAAM,IAAI,EAAE,QAAQ,CAAC,cAAc,CAYzC,CAAA;AAED,eAAO,MAAM,cAAc,EAAE,QAAQ,CAAC,cAAc,CAcnD,CAAA"}

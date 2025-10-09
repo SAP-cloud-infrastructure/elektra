@@ -1,1 +1,0 @@
-{"version":3,"file":"utils.js","sources":["../../../src/core/utils.ts"],"sourcesContent":["export const debug =\n  process.env.TSR_VITE_DEBUG &&\n  ['true', 'router-plugin'].includes(process.env.TSR_VITE_DEBUG)\n"],"names":[],"mappings":"AAAa,MAAA,QACX,QAAQ,IAAI,kBACZ,CAAC,QAAQ,eAAe,EAAE,SAAS,QAAQ,IAAI,cAAc;"}

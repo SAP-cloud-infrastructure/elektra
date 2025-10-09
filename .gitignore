@@ -70,3 +70,4 @@ config/support/domain_config.local.yaml
 .npmrc
 
 .out-of-code-insights
+.pnpm-store

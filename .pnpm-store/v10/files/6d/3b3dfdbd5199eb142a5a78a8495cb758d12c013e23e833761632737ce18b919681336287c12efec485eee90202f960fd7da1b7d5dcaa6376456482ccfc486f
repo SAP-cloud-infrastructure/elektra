@@ -1,8 +1,0 @@
-import { default as React } from 'react';
-export interface SelectDividerProps extends React.HTMLAttributes<HTMLDivElement> {
-    /** add a custom className */
-    className?: string;
-}
-/** A visual border/divider between SelectOptions or SelectGroups */
-export declare const SelectDivider: React.ForwardRefExoticComponent<SelectDividerProps & React.RefAttributes<HTMLDivElement>>;
-//# sourceMappingURL=SelectDivider.component.d.ts.map

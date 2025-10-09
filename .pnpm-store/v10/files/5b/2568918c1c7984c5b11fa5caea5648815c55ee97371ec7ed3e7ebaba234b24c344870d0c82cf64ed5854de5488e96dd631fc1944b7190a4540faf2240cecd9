@@ -1,9 +1,0 @@
-import { default as React } from 'react';
-export declare function ColorCard(props: ColorCardProps): React.JSX.Element;
-interface ColorCardProps {
-    colorName: string;
-    colorClass: string;
-    prefix?: string;
-}
-export {};
-//# sourceMappingURL=ColorCard.d.ts.map

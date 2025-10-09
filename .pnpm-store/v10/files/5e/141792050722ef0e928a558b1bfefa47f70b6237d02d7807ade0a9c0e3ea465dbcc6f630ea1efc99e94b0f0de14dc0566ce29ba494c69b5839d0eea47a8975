@@ -1,4 +1,0 @@
-import { default as React, ComponentType } from 'react';
-declare function withDeprecationWarning<T extends object>(WrappedComponent: ComponentType<T>, message: string): React.FC<T>;
-export { withDeprecationWarning };
-//# sourceMappingURL=withDeprecationWarning.component.d.ts.map

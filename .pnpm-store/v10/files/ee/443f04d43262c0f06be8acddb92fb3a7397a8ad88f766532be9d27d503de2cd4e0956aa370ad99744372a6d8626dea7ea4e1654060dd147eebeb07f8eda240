@@ -1,9 +1,0 @@
-import { default as React } from 'react';
-export declare const DataGridFoot: React.FC<DataGridFootProps>;
-export interface DataGridFootProps extends React.HTMLAttributes<HTMLTableSectionElement> {
-    /** Children to render in the DataGridFoot */
-    children?: React.ReactNode;
-    /** Add a classname */
-    className?: string;
-}
-//# sourceMappingURL=DataGridFoot.component.d.ts.map

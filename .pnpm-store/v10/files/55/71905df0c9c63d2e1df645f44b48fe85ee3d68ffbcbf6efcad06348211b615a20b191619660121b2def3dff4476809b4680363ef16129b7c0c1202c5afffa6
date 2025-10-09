@@ -1,6 +1,0 @@
-﻿// @flow
-import type {Classes} from 'jss'
-
-type MergeClasses = (Classes, Classes) => Classes
-
-declare export default MergeClasses

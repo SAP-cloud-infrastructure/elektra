@@ -1,1 +1,0 @@
-{"version":3,"file":"tsrScript.js","sources":["../../../src/ssr/tsrScript.ts?script-string"],"sourcesContent":["self.$_TSR = {\n  c: () => {\n    document.querySelectorAll('.\\\\$tsr').forEach((o) => {\n      o.remove()\n    })\n  },\n}\n"],"names":[],"mappings":"AAAA,MAAA,6BAAe;"}

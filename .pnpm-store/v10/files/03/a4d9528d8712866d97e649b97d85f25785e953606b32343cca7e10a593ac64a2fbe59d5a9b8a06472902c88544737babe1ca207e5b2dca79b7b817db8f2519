@@ -1,4 +1,0 @@
-import { EncodeOptions, ObjectToEncode } from './types';
-declare const encode: (object: ObjectToEncode, options?: EncodeOptions) => string;
-export default encode;
-//# sourceMappingURL=encode.d.ts.map

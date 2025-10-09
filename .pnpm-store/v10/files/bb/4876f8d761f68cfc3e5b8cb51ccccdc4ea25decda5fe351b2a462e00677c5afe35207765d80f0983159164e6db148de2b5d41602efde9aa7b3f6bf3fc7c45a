@@ -1,4 +1,0 @@
-import { DecodedObject } from './types';
-declare const decode: (string: string) => DecodedObject;
-export default decode;
-//# sourceMappingURL=decode.d.ts.map

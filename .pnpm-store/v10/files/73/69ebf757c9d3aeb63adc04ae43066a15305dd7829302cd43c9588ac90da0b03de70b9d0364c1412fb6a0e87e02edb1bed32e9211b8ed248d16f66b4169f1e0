@@ -1,1 +1,0 @@
-{"version":3,"file":"root.cjs","sources":["../../src/root.ts"],"sourcesContent":["export const rootRouteId = '__root__'\nexport type RootRouteId = typeof rootRouteId\n"],"names":[],"mappings":";;AAAO,MAAM,cAAc;;"}

@@ -1,1 +1,0 @@
-import {BLOCKLISTED} from '@env'
