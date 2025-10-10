@@ -69,7 +69,7 @@ export default class RBACPoliciesEditModal extends React.Component {
           initialValues={initialValues}
         >
           <Modal.Body>
-            <Form.ElementHorizontal label="Rules" labelWidth={1} name="rule_for_manifest">
+            <Form.ElementHorizontal label="Rule" labelWidth={1} name="rule_for_manifest">
               <Form.Input elementType="input" type="text" name="rule_for_manifest" readOnly={!isAdmin} />
               <div className="form-control-static tw-mt-2">
                 Setting a validation rule for manifests will restrict image pushes to only allow images that match the
@@ -96,12 +96,11 @@ export default class RBACPoliciesEditModal extends React.Component {
               </div>
               <pre>
                 <code>
-                  <div>repo_name.startsWith(&quot;official/&quot;)</div>
-                  <div className="tw-ml-2">
-                    ?
-                    labels[&quot;org.opencontainers.image.source&quot;].startsWith(&quot;https://github.com/example-official/&quot;)
-                    <div>: true</div>
-                  </div>
+                  repo_name.startsWith(&quot;official/&quot;)
+                  <br />
+                  ?
+                  labels[&quot;org.opencontainers.image.source&quot;].startsWith(&quot;https://github.com/example-official/&quot;)
+                  <br />: true
                 </code>
               </pre>
               <div>
