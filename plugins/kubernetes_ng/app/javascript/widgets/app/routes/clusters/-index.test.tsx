@@ -1,4 +1,3 @@
-import React from "react"
 import { render, screen, act } from "@testing-library/react"
 import { createRoute, createRootRoute, RouterProvider, createMemoryHistory, Outlet } from "@tanstack/react-router"
 import Clusters from "./index"
@@ -7,6 +6,7 @@ import { getTestRouter } from "../../mocks/getTestRouter"
 import { defaultCluster } from "../../mocks/data"
 import { Breadcrumb } from "../../components/Breadcrumb"
 import { Cluster } from "../../types/cluster"
+import { MockInstance } from "vitest"
 
 const renderComponent = ({
   clustersPromise = Promise.resolve([defaultCluster]),
@@ -95,10 +95,10 @@ describe("<Clusters />", () => {
   })
 
   describe("Error", () => {
-    let consoleErrorSpy: jest.SpyInstance
+    let consoleErrorSpy: MockInstance
 
     beforeEach(() => {
-      consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {})
+      consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
     })
 
     afterEach(() => {

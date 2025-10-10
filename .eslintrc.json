@@ -3,8 +3,8 @@
     "browser": true,
     "es2021": true,
     "es6": true,
-    "jest": true,
-    "node": true
+    "node": true,
+    "vitest-globals/env": true
   },
   "extends": [
     "eslint:recommended",

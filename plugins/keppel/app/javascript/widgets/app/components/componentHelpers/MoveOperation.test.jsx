@@ -1,10 +1,9 @@
 import React from "react"
-import { render, fireEvent } from "@testing-library/react"
-import { screen } from "@testing-library/dom"
+import { render, fireEvent, screen } from "@testing-library/react"
 import { MoveOperation } from "./MoveOperation"
 
 describe("MoveOperation", () => {
-  const onMove = jest.fn()
+  const onMove = vi.fn()
   let itemCount = 4
 
   it("renders the buttons correctly", () => {
@@ -35,13 +34,7 @@ describe("MoveOperation", () => {
   })
 
   it("disables the move down button when index is the last item", () => {
-    render(
-      <MoveOperation
-        index={itemCount - 1}
-        itemCount={itemCount}
-        onMove={onMove}
-      />
-    )
+    render(<MoveOperation index={itemCount - 1} itemCount={itemCount} onMove={onMove} />)
 
     const moveUpButton = screen.getByText("Move down")
     expect(moveUpButton.disabled).toBe(true)

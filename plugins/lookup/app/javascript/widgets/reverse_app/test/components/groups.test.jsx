@@ -1,6 +1,5 @@
 import React from "react"
-import { render } from "@testing-library/react"
-import { screen } from "@testing-library/dom"
+import { render, screen } from "@testing-library/react"
 import Groups from "../../components/groups"
 
 describe("Groups component", () => {

@@ -1,20 +1,71 @@
+// // Mock navigator.clipboard
+// Object.assign(navigator, {
+//   clipboard: {
+//     writeText: vi.fn(() => Promise.resolve()),
+//   },
+// })
+
+// vi.useFakeTimers() // For testing setTimeout
+
+// describe("<ClipboardText />", () => {
+//   const text = "Hello Clipboard"
+//   const tooltipText = "Copied successfully!"
+
+//   it("renders the text", () => {
+//     render(<ClipboardText text={text} />)
+//     expect(screen.getByText(text)).toBeInTheDocument()
+//   })
+
+//   it("copies text to clipboard and shows tooltip", async () => {
+//     render(<ClipboardText text={text} tooltipContent={tooltipText} />)
+//     const trigger = screen.getByText(text)
+
+//     // Wrap click in act to flush state updates
+//     await act(async () => {
+//       fireEvent.click(trigger)
+//     })
+
+//     // Clipboard should have been called
+//     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(text)
+
+//     // Tooltip appears immediately
+//     expect(screen.getByText(tooltipText)).toBeInTheDocument()
+
+//     // Advance timers 1000ms to hide tooltip
+//     act(() => {
+//       vi.advanceTimersByTime(1000)
+//     })
+
+//     await waitFor(() => {
+//       expect(screen.queryByText(tooltipText)).not.toBeInTheDocument()
+//     })
+//   })
+// })
+
 import React from "react"
-import { render, screen, fireEvent, act, waitFor } from "@testing-library/react"
+import { render, screen, fireEvent, act } from "@testing-library/react"
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import "@testing-library/jest-dom"
 import ClipboardText from "./ClipboardText"
-
-// Mock navigator.clipboard
-Object.assign(navigator, {
-  clipboard: {
-    writeText: jest.fn(),
-  },
-})
-
-jest.useFakeTimers() // For testing setTimeout
 
 describe("<ClipboardText />", () => {
   const text = "Hello Clipboard"
   const tooltipText = "Copied successfully!"
+
+  beforeEach(() => {
+    // Mock navigator.clipboard
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: vi.fn(() => Promise.resolve()),
+      },
+    })
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.clearAllMocks()
+  })
 
   it("renders the text", () => {
     render(<ClipboardText text={text} />)
@@ -23,11 +74,12 @@ describe("<ClipboardText />", () => {
 
   it("copies text to clipboard and shows tooltip", async () => {
     render(<ClipboardText text={text} tooltipContent={tooltipText} />)
-    const trigger = screen.getByText(text)
 
-    // Wrap click in act to flush state updates
+    // Based on DOM structure, click the button instead of the text
+    const button = screen.getByRole("button")
+
     await act(async () => {
-      fireEvent.click(trigger)
+      fireEvent.click(button)
     })
 
     // Clipboard should have been called
@@ -36,13 +88,12 @@ describe("<ClipboardText />", () => {
     // Tooltip appears immediately
     expect(screen.getByText(tooltipText)).toBeInTheDocument()
 
-    // Advance timers 1000ms to hide tooltip
+    // Advance timers to hide tooltip
     act(() => {
-      jest.advanceTimersByTime(1000)
+      vi.advanceTimersByTime(1000)
     })
 
-    await waitFor(() => {
-      expect(screen.queryByText(tooltipText)).not.toBeInTheDocument()
-    })
+    // Check tooltip disappears
+    expect(screen.queryByText(tooltipText)).not.toBeInTheDocument()
   })
 })
