@@ -3,9 +3,7 @@
 #       this is super important because if a proxy is set in the .env file,
 #       because act will use the proxy and the tests will fail
 # act -j test --env-file dummy.env --rm
-
 name: Checks
-
 on:
   pull_request:
     types:
@@ -13,17 +11,30 @@ on:
       - opened
       - synchronize
       - reopened
-
 permissions:
   contents: read
 
 jobs:
-  test:
-    name: Run tests
+  # Check permissions and prerequisites
+  check-permissions:
+    name: Check PR permissions
     runs-on: ubuntu-latest
+    steps:
+      - name: Check for fork and missing label
+        if: |
+          github.event.pull_request.head.repo.full_name != github.repository && !contains(github.event.pull_request.labels.*.name, 'save-to-merge')
+        run: |
+          echo "PR is from a fork and the label 'save-to-merge' is missing, this will not pass 🧙❌"
+          echo "Message for the Maintainer: Please check the tests and if they are ok, add the label 'save-to-merge' to the PR."
+          exit 1
+
+  # Ruby/Rails tests
+  test-rails:
+    name: Rails tests
+    runs-on: ubuntu-latest
+    needs: check-permissions
     container:
       image: ruby:3.2
-
     services:
       postgres:
         image: postgres:16
@@ -34,26 +45,8 @@ jobs:
           POSTGRES_HOST_AUTH_METHOD: trust
         ports:
           - 5432:5432
-        # needed because the postgres container does not provide a healthcheck
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-
     steps:
-      - name: Check for fork and missing label
-        if: |
-          github.event.pull_request.head.repo.full_name != github.repository && !contains(github.event.pull_request.labels.*.name, 'save-to-merge')
-        run: |
-          echo "PR is from a fork and the label 'save-to-merge' is missing, this will not pass 🧙❌"
-          echo "Message for the Maintainer: Please check the tests and if they are ok, add the label 'save-to-merge' to the PR."
-          exit 1
-      - name: Setup Javascript (act only)
-        # install nodejs only if running locally with act
-        # otherwise the actions/setup-node@v4 will fails
-        # because it needs a installed nodejs to be able to run
-        if: ${{ env.ACT }}
-        run: |
-          apt-get update
-          apt-get install -y nodejs
-
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
@@ -65,15 +58,13 @@ jobs:
           key: bundle-${{ hashFiles('**/Gemfile.lock') }}
 
       - name: Bundle install
-        id: bundle-install
         env:
           RAILS_ENV: test
         run: |
           gem install bundler
           bundle install --jobs 4 --retry 3 --path vendor/bundle
 
-      - name: Setup DB, Run tests
-        id: test-rails
+      - name: Setup DB and run Rails tests
         env:
           POSTGRES_SERVICE_HOST: postgres
           PGUSER: postgres
@@ -82,6 +73,23 @@ jobs:
         run: |
           bin/rake db:create db:migrate
           bundle exec rspec
+
+  # JavaScript/TypeScript tests
+  test-javascript:
+    name: JavaScript tests
+    runs-on: ubuntu-latest
+    needs: check-permissions
+    # Only run for PRs from the same repo (has access to secrets)
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - name: Setup Javascript (act only)
+        if: ${{ env.ACT }}
+        run: |
+          apt-get update
+          apt-get install -y nodejs
+
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
@@ -95,27 +103,118 @@ jobs:
       - name: Install pnpm
         run: npm install -g pnpm
 
-      - name: Install packages and run tests
-        # this runs only in PRs from the same repo because of the missing npm token to download the packages
-        if: |
-          github.event.pull_request.head.repo.full_name == github.repository
-        id: test-js
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
         run: |
-          pnpm install
-          pnpm test
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
 
-      - name: Run typecheck
-        # this runs only in PRs from the same repo because of the missing npm token to download the packages
-        if: |
-          github.event.pull_request.head.repo.full_name == github.repository
-        id: typecheck
-        run: |
-          pnpm typecheck
+      - name: Setup pnpm cache
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
-      - name: Run lint
-        # this runs only in PRs from the same repo because of the missing npm token to
-        if: |
-          github.event.pull_request.head.repo.full_name == github.repository
-        id: lint
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run JavaScript tests
+        run: pnpm test
+
+  # TypeScript type checking
+  typecheck:
+    name: TypeScript check
+    runs-on: ubuntu-latest
+    needs: check-permissions
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - name: Setup Javascript (act only)
+        if: ${{ env.ACT }}
         run: |
-          pnpm lint
+          apt-get update
+          apt-get install -y nodejs
+
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "20.x"
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@sapcc"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.ELEKTRA_GITHUB_NPM_TOKEN }}
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run TypeScript check
+        run: pnpm typecheck
+
+  # ESLint checking
+  lint:
+    name: Lint check
+    runs-on: ubuntu-latest
+    needs: check-permissions
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - name: Setup Javascript (act only)
+        if: ${{ env.ACT }}
+        run: |
+          apt-get update
+          apt-get install -y nodejs
+
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "20.x"
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@sapcc"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.ELEKTRA_GITHUB_NPM_TOKEN }}
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run lint check
+        run: pnpm lint
