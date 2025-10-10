@@ -112,10 +112,10 @@ jobs:
         run: |
           pnpm typecheck
 
-      - name: Run lint in plugins (see script/lint-plugins.js)
+      - name: Run lint
         # this runs only in PRs from the same repo because of the missing npm token to
         if: |
           github.event.pull_request.head.repo.full_name == github.repository
         id: lint
         run: |
-          pnpm lint:plugins
+          pnpm lint
