@@ -76,7 +76,7 @@ export default class RBACPoliciesEditModal extends React.Component {
                 provided rule. Validation rules for Keppel are written in{" "}
                 {getDocumentationLink("https://cel.dev/", "Common Expression Language (CEL)")}.<h4>Examples</h4>
                 <div className="tw-mb-1">
-                  Manifest validation rules can access <code>labels</code> in the manifest that were set using e.g in
+                  Manifest validation rules can access <code>labels</code> in the manifest that were set using e.g. in
                   the image&apos;s Dockerfile. The example rule below will only allow images that link to their source
                   code using the respective{" "}
                   {getDocumentationLink(
