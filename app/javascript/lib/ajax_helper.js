@@ -118,9 +118,7 @@ const toPath = (pathParts = [], params = {}) => {
     params && typeof params === "object"
       ? Object.keys(params)
           .filter((k) => !!params[k])
-          .map(
-            (k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`
-          )
+          .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`)
           .join("&")
       : ""
   if (query && query !== "") path += "?" + query
@@ -128,11 +126,8 @@ const toPath = (pathParts = [], params = {}) => {
 }
 
 const checkClientConfig = (config = {}) => {
-  const badConfigKeys = Object.keys(config).filter(
-    (key) => !ALLOWED_CLIENT_CONFIG_KEYS.includes(key)
-  )
-  if (badConfigKeys.length > 0)
-    throw new Error(`Config keys ${badConfigKeys.join(", ")} are not allowed`)
+  const badConfigKeys = Object.keys(config).filter((key) => !ALLOWED_CLIENT_CONFIG_KEYS.includes(key))
+  if (badConfigKeys.length > 0) throw new Error(`Config keys ${badConfigKeys.join(", ")} are not allowed`)
 }
 
 const handleResponse = async (response) => {
@@ -140,8 +135,7 @@ const handleResponse = async (response) => {
   // to ensure (axios) backwards compatibility.
   // Important: the Headers object from fetch makes all keys lower case.
   const headers = {}
-  if (response.headers)
-    response.headers.forEach((value, key) => (headers[key] = value))
+  if (response.headers) response.headers.forEach((value, key) => (headers[key] = value))
 
   // handle location header (redirect to login)
   if (headers && headers.location) {
@@ -152,10 +146,7 @@ const handleResponse = async (response) => {
     let redirectToUrl = headers.location
 
     if (redirectToUrl.match(/after_login=(.*)/i)) {
-      redirectToUrl = redirectToUrl.replace(
-        /after_login=(.*)/g,
-        `after_login=${currentUrl}`
-      )
+      redirectToUrl = redirectToUrl.replace(/after_login=(.*)/g, `after_login=${currentUrl}`)
     } else if (redirectToUrl.match(/\/auth\/login/i)) {
       redirectToUrl = `${redirectToUrl}?after_login=${currentUrl}`
     }
@@ -191,14 +182,11 @@ const handleResponse = async (response) => {
         })
 
   if (!response.ok) {
-    const statusText =
-      data?.error ||
-      response.statusText ||
-      HTTP_CODE_STATUS[response.status] ||
-      response.status
+    const statusText = data?.error || response.statusText || HTTP_CODE_STATUS[response.status] || response.status
     const error = new Error(statusText)
 
     error.status = response.status
+    error.statusText = HTTP_CODE_STATUS[response.status]
     error.headers = headers
     // data is set if response is a json. Otherwise it is null
     // to ensure (axios) backwards compatibility
@@ -206,7 +194,6 @@ const handleResponse = async (response) => {
     // store origin fetch response
     // it allows us to call other functions like blob() or text()
     error.response = response
-
     throw error
   }
 
@@ -238,18 +225,8 @@ const mergeConfigs = (...configs) => {
 
 const prepareRequest = (path, config = {}) => {
   // merge and remove non fetch options
-  let {
-    baseURL,
-    pathPrefix,
-    headerPrefix,
-    nonPrefixHeaders,
-    params,
-    timeout,
-    headers,
-    body,
-    debug,
-    ...otherOptions
-  } = config
+  let { baseURL, pathPrefix, headerPrefix, nonPrefixHeaders, params, timeout, headers, body, debug, ...otherOptions } =
+    config
 
   // convert headers keys to lower case
   headers = Object.keys(headers).reduce((map, key) => {
@@ -258,12 +235,7 @@ const prepareRequest = (path, config = {}) => {
   }, {})
 
   // try to convert body to json until it is a file, form data or string
-  if (
-    body &&
-    typeof body !== "string" &&
-    !(body instanceof FormData) &&
-    !(body instanceof File)
-  ) {
+  if (body && typeof body !== "string" && !(body instanceof FormData) && !(body instanceof File)) {
     try {
       body = JSON.stringify(body)
       headers["content-type"] = headers["content-type"] || "application/json"
@@ -282,14 +254,12 @@ const prepareRequest = (path, config = {}) => {
 
   headers = { ...DEFAULT_HEADERS, ...headers, ...nonPrefixHeaders }
   // remove csrf token if x-auth token is presented
-  if (!headers["X-Auth-Token"] && !headers["x-auth-token"])
-    headers[X_CSRF_TOKEN_KEY] = X_CSRF_TOKEN_VALUE
+  if (!headers["X-Auth-Token"] && !headers["x-auth-token"]) headers[X_CSRF_TOKEN_KEY] = X_CSRF_TOKEN_VALUE
 
   // final path
   const url = toPath([baseURL, pathPrefix, path], params)
 
-  if (debug)
-    console.log("url: ", url, "options: ", { headers, body, ...otherOptions })
+  if (debug) console.log("url: ", url, "options: ", { headers, body, ...otherOptions })
 
   // create cancel controller
   const controller = new AbortController()
@@ -338,10 +308,7 @@ const Client = (config = {}) => {
   return {
     url: (path, options = {}) => {
       const mergedOptions = mergeConfigs(config, options)
-      return toPath(
-        [mergedOptions.baseURL, mergedOptions.pathPrefix, path],
-        mergedOptions.params
-      )
+      return toPath([mergedOptions.baseURL, mergedOptions.pathPrefix, path], mergedOptions.params)
     },
     cancelable: {
       head: (path, options = {}) =>
@@ -351,30 +318,15 @@ const Client = (config = {}) => {
             method: "HEAD",
           })
         ),
-      get: (path, options = {}) =>
-        prepareRequest(path, mergeConfigs(config, options, { method: "GET" })),
+      get: (path, options = {}) => prepareRequest(path, mergeConfigs(config, options, { method: "GET" })),
       put: (path, values = null, options = {}) =>
-        prepareRequest(
-          path,
-          mergeConfigs(config, options, { method: "PUT", body: values })
-        ),
+        prepareRequest(path, mergeConfigs(config, options, { method: "PUT", body: values })),
       post: (path, values = null, options = {}) =>
-        prepareRequest(
-          path,
-          mergeConfigs(config, options, { method: "POST", body: values })
-        ),
+        prepareRequest(path, mergeConfigs(config, options, { method: "POST", body: values })),
       patch: (path, values = null, options = {}) =>
-        prepareRequest(
-          path,
-          mergeConfigs(config, options, { method: "PATCH", body: values })
-        ),
-      copy: (path, options) =>
-        prepareRequest(path, mergeConfigs(config, options, { method: "COPY" })),
-      delete: (path, options = {}) =>
-        prepareRequest(
-          path,
-          mergeConfigs(config, options, { method: "DELETE" })
-        ),
+        prepareRequest(path, mergeConfigs(config, options, { method: "PATCH", body: values })),
+      copy: (path, options) => prepareRequest(path, mergeConfigs(config, options, { method: "COPY" })),
+      delete: (path, options = {}) => prepareRequest(path, mergeConfigs(config, options, { method: "DELETE" })),
     },
     head: (path, options = {}) =>
       prepareRequest(
@@ -383,30 +335,15 @@ const Client = (config = {}) => {
           method: "HEAD",
         })
       ).request,
-    get: (path, options = {}) =>
-      prepareRequest(path, mergeConfigs(config, options, { method: "GET" }))
-        .request,
+    get: (path, options = {}) => prepareRequest(path, mergeConfigs(config, options, { method: "GET" })).request,
     put: (path, values = null, options = {}) =>
-      prepareRequest(
-        path,
-        mergeConfigs(config, options, { method: "PUT", body: values })
-      ).request,
+      prepareRequest(path, mergeConfigs(config, options, { method: "PUT", body: values })).request,
     post: (path, values = null, options = {}) =>
-      prepareRequest(
-        path,
-        mergeConfigs(config, options, { method: "POST", body: values })
-      ).request,
+      prepareRequest(path, mergeConfigs(config, options, { method: "POST", body: values })).request,
     patch: (path, values = null, options = {}) =>
-      prepareRequest(
-        path,
-        mergeConfigs(config, options, { method: "PATCH", body: values })
-      ).request,
-    copy: (path, options) =>
-      prepareRequest(path, mergeConfigs(config, options, { method: "COPY" }))
-        .request,
-    delete: (path, options = {}) =>
-      prepareRequest(path, mergeConfigs(config, options, { method: "DELETE" }))
-        .request,
+      prepareRequest(path, mergeConfigs(config, options, { method: "PATCH", body: values })).request,
+    copy: (path, options) => prepareRequest(path, mergeConfigs(config, options, { method: "COPY" })).request,
+    delete: (path, options = {}) => prepareRequest(path, mergeConfigs(config, options, { method: "DELETE" })).request,
   }
 }
 
@@ -424,10 +361,8 @@ const pluginAjaxHelper = (pluginName, options = {}) => {
   // console.log('pluginAjaxHelper options before',options,scope)
 
   if (!options.baseURL) {
-    const domain =
-      options.domain == false ? null : options.domain || scope.domain
-    let project =
-      options.project == false ? null : options.project || scope.project
+    const domain = options.domain == false ? null : options.domain || scope.domain
+    let project = options.project == false ? null : options.project || scope.project
     if (project == "cc-tools") project = null
 
     delete options.domain
@@ -455,8 +390,7 @@ const createAjaxHelper = (options = {}) => {
       // add header prefix for all headers keys
       if (newOsApiOptions.headers) {
         for (let key in newOsApiOptions.heders) {
-          newOsApiOptions[`${OS_API_HEADER_PREFIX}${key}`] =
-            newOsApiOptions.headers[key]
+          newOsApiOptions[`${OS_API_HEADER_PREFIX}${key}`] = newOsApiOptions.headers[key]
           delete newOsApiOptions.headers[key]
         }
       }
@@ -467,22 +401,11 @@ const createAjaxHelper = (options = {}) => {
         ...options,
         ...newOsApiOptions,
       }
-      mergedOptions.pathPrefix = toPath([
-        OS_API_PATH_PREFIX,
-        serviceName,
-        mergedOptions.pathPrefix,
-      ])
-      mergedOptions.headerPrefix =
-        OS_API_HEADER_PREFIX + mergedOptions.headerPrefix
+      mergedOptions.pathPrefix = toPath([OS_API_PATH_PREFIX, serviceName, mergedOptions.pathPrefix])
+      mergedOptions.headerPrefix = OS_API_HEADER_PREFIX + mergedOptions.headerPrefix
       return Client(mergedOptions)
     },
   }
 }
 
-export {
-  scope,
-  ajaxHelper,
-  pluginAjaxHelper,
-  configureAjaxHelper,
-  createAjaxHelper,
-}
+export { scope, ajaxHelper, pluginAjaxHelper, configureAjaxHelper, createAjaxHelper }

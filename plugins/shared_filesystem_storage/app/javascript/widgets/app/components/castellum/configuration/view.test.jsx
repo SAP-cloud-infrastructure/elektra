@@ -9,8 +9,8 @@ describe("CastellumConfigurationView", () => {
   beforeEach(() => {
     props = {
       config: { allShares: true, data: {} },
-      loadShareTypesOnce: jest.fn(),
-      disableAutoscaling: jest.fn(),
+      loadShareTypesOnce: vi.fn(),
+      disableAutoscaling: vi.fn(),
       projectID: "1234",
       shareTypes: { items: [], isFetching: false },
     }
