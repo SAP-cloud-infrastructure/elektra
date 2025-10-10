@@ -75,7 +75,7 @@ export default class RBACPoliciesEditModal extends React.Component {
                 Setting a validation rule for manifests will restrict image pushes to only allow images that match the
                 provided rule. Validation rules for Keppel are written in{" "}
                 {getDocumentationLink("https://cel.dev/", "Common Expression Language (CEL)")}.<h4>Examples</h4>
-                <div className="tw-mb-1">
+                <div>
                   Manifest validation rules can access <code>labels</code> in the manifest that were set using e.g. in
                   the image&apos;s Dockerfile. The example rule below will only allow images that link to their source
                   code using the respective{" "}
@@ -85,15 +85,15 @@ export default class RBACPoliciesEditModal extends React.Component {
                   )}
                   :
                 </div>
-                <pre>
+                <pre className="tw-mt-1">
                   <code>&quot;org.opencontainers.image.source&quot; in labels</code>
                 </pre>
-                <div className="tw-mb-1">
+                <div>
                   Manifest validation rules can access the <code>repo_name</code> where the manifest is being pushed to.
                   The example rule below requires that manifests pushed to a repo starting with <code>official/</code>{" "}
                   refer to a source repository below a certain GitHub organization:
                 </div>
-                <pre>
+                <pre className="tw-mt-1">
                   <code>
                     repo_name.startsWith(&quot;official/&quot;)
                     <br />
