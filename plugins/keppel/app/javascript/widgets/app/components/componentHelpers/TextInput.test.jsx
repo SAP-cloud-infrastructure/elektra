@@ -4,7 +4,7 @@ import { TextInput } from "./TextInput" // Adjust the import according to your f
 
 describe("TextInput", () => {
   it("renders input element when isEditable is true", async () => {
-    const mockOnChange = jest.fn()
+    const mockOnChange = vi.fn()
     let value = ""
 
     const { rerender } = render(
@@ -20,7 +20,7 @@ describe("TextInput", () => {
     )
     const inputElement = screen.getByTestId("input")
     expect(inputElement).not.toBeNull()
-    
+
     fireEvent.change(inputElement, { target: { value: "New Value" } })
     rerender(
       <TextInput

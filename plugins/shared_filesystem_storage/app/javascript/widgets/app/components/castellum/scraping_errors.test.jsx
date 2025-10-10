@@ -7,14 +7,14 @@ describe("CastellumScrapingErrors", () => {
 
   beforeEach(() => {
     props = {
-      loadShareTypesOnce: jest.fn(),
-      loadAssetsOnce: jest.fn(),
+      loadShareTypesOnce: vi.fn(),
+      loadAssetsOnce: vi.fn(),
       projectID: "1234",
       config: { data: null },
       assets: { errorMessage: null, isFetching: false, data: null },
       shares: [],
-      handleDelete: jest.fn(),
-      handleForceDelete: jest.fn(),
+      handleDelete: vi.fn(),
+      handleForceDelete: vi.fn(),
     }
   })
 

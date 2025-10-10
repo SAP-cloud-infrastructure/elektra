@@ -21,9 +21,7 @@ describe("fetchProject action", () => {
 
   it("fetches a project", async () => {
     const projectId = "a_project_id"
-    client.get = jest
-      .fn()
-      .mockResolvedValue({ data: { id: projectId }, headers: [] })
+    client.get = vi.fn().mockResolvedValue({ data: { id: projectId }, headers: [] })
 
     // when
     store.dispatch(fetchProject("a_project_id", projectId))
@@ -37,9 +35,7 @@ describe("fetchProject action", () => {
 
   it("reject project if it is not the same as was requested because of asynchronous requests", async () => {
     const projectId = "b_project_id"
-    client.get = jest
-      .fn()
-      .mockResolvedValue({ data: { id: "a_project_id" }, headers: [] })
+    client.get = vi.fn().mockResolvedValue({ data: { id: "a_project_id" }, headers: [] })
     // when
     store.dispatch(fetchProject("b_project_id", projectId))
     await flushAllPromises()

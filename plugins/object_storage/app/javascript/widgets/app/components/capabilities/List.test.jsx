@@ -1,6 +1,4 @@
-import React from "react"
-import { render } from "@testing-library/react"
-import { screen } from "@testing-library/dom"
+import { render, screen } from "@testing-library/react"
 import List from "./List"
 
 describe("object_storage", () => {

@@ -1,17 +1,17 @@
-/* global jest */
+import { vi } from "vitest"
 const data = { name: "test" }
 
 const mockFetchPromise = Promise.resolve({
-  json: jest.fn(() => Promise.resolve({ name: "test" })),
-  blob: jest.fn(() => {
+  json: vi.fn(() => Promise.resolve({ name: "test" })),
+  blob: vi.fn(() => {
     const blob = new Blob([JSON.stringify(data)], {
       type: "application/json",
     })
-    blob.text = jest.fn().mockResolvedValue(JSON.stringify(data))
+    blob.text = vi.fn().mockResolvedValue(JSON.stringify(data))
     return Promise.resolve(blob)
   }),
-  text: jest.fn().mockResolvedValue(JSON.stringify(data)),
-  formData: jest.fn(() => Promise.resolve(new FormData())),
+  text: vi.fn().mockResolvedValue(JSON.stringify(data)),
+  formData: vi.fn(() => Promise.resolve(new FormData())),
   ok: true,
   status: 200,
   statusText: "success",
@@ -21,4 +21,4 @@ const mockFetchPromise = Promise.resolve({
   }),
 })
 
-global.fetch = jest.fn(() => mockFetchPromise)
+global.fetch = vi.fn(() => mockFetchPromise)
