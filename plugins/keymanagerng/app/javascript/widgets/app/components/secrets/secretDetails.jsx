@@ -10,7 +10,6 @@ import {
   DataGridCell,
   DataGridHeadCell,
   CodeBlock,
-  SecretText,
   Badge,
   Button,
 } from "@cloudoperators/juno-ui-components"
@@ -39,7 +38,6 @@ const SecretDetails = () => {
   const history = useHistory()
   const params = useParams()
   const [secretId, setSecretId] = useState(null)
-  const [payloadString, setPayloadString] = useState("")
   const [creatorName, setCreatorName] = useState(null)
   const [secretMetadata, setSecretMetadata] = useState(null)
   const [payloadRequested, setPayloadRequested] = useState(false)
@@ -99,9 +97,6 @@ const SecretDetails = () => {
     setShow(!!params.id)
   }, [params.id])
 
-  const isPayloadContentTypeTextPlain = (contentType) => {
-    return contentType?.includes("text/plain")
-  }
 
   const secretPlayload = useQuery({
     queryKey: [
@@ -110,14 +105,8 @@ const SecretDetails = () => {
       secret?.data?.content_types?.default,
     ],
     queryFn: getSecretPayload,
-    enabled:
-      payloadRequested || // Enable when download requested
-      (!!secretId &&
-        isPayloadContentTypeTextPlain(secret?.data?.content_types?.default)), // Enable for text/plain content types when panel is shown,
+    enabled: payloadRequested, // Only enable when download is requested
     onSuccess: (data) => {
-      if (isPayloadContentTypeTextPlain(secret?.data?.content_types?.default)) {
-        setPayloadString(data)
-      }
       if (payloadRequested) {
         //Downloading the payload content as a file, put the raw data into a blob
         const blob = new Blob([data], {
@@ -245,20 +234,6 @@ const SecretDetails = () => {
                 </DataGridCell>
               </DataGridRow>
             </DataGrid>
-            {isPayloadContentTypeTextPlain(
-              secret?.data?.content_types?.default
-            ) && (
-              <>
-               {payloadString && (
-                <SecretText
-                  label="Payload"
-                  disableClear
-                  disablePaste
-                  value={payloadString}
-                />
-               )}
-              </>
-            )}
             {metadata?.isLoading && !metadata?.data ? (
               <HintLoading />
             ) : metadata?.data ? (
