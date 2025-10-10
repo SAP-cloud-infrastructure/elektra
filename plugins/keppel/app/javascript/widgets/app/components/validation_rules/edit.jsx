@@ -88,29 +88,29 @@ export default class RBACPoliciesEditModal extends React.Component {
                 <pre>
                   <code>&quot;org.opencontainers.image.source&quot; in labels</code>
                 </pre>
-              </div>
-              <div className="tw-mb-1">
-                Manifest validation rules can access the <code>repo_name</code> where the manifest is being pushed to.
-                The example rule below requires that manifests pushed to a repo starting with <code>official/</code>{" "}
-                refer to a source repository below a certain GitHub organization:
-              </div>
-              <pre>
-                <code>
-                  repo_name.startsWith(&quot;official/&quot;)
-                  <br />
-                  ?
-                  labels[&quot;org.opencontainers.image.source&quot;].startsWith(&quot;https://github.com/example-official/&quot;)
-                  <br />: true
-                </code>
-              </pre>
-              <div>
-                The{" "}
-                {getDocumentationLink(
-                  "https://github.com/sapcc/keppel/blob/master/docs/api-spec.md#put-keppelv1accountsname",
-                  "API reference in the Keppel documentation"
-                )}{" "}
-                contains the complete and most up-to-date list of attributes that are available inside the validation
-                rule expression.
+                <div className="tw-mb-1">
+                  Manifest validation rules can access the <code>repo_name</code> where the manifest is being pushed to.
+                  The example rule below requires that manifests pushed to a repo starting with <code>official/</code>{" "}
+                  refer to a source repository below a certain GitHub organization:
+                </div>
+                <pre>
+                  <code>
+                    repo_name.startsWith(&quot;official/&quot;)
+                    <br />
+                    ?
+                    labels[&quot;org.opencontainers.image.source&quot;].startsWith(&quot;https://github.com/example-official/&quot;)
+                    <br />: true
+                  </code>
+                </pre>
+                <div>
+                  The{" "}
+                  {getDocumentationLink(
+                    "https://github.com/sapcc/keppel/blob/master/docs/api-spec.md#put-keppelv1accountsname",
+                    "API reference in the Keppel documentation"
+                  )}{" "}
+                  contains the complete and most up-to-date list of attributes that are available inside the validation
+                  rule expression.
+                </div>
               </div>
             </Form.ElementHorizontal>
           </Modal.Body>
