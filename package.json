@@ -118,7 +118,7 @@
     "format": "prettier --log-level warn --write \"**/*.{js,jsx,ts,tsx,md}\"",
     "check-format": "prettier --config ./.prettierrc --check \"**/*.{js,jsx,ts,tsx,md}\" ",
     "prepare": "husky",
-    "typecheck": "tsc --project plugins/kubernetes_ng --noEmit",
+    "typecheck": "tsc --noEmit",
     "lint:plugins": "node ./script/lint-plugins.js"
   },
   "name": "elektra-cc-dashboard",
