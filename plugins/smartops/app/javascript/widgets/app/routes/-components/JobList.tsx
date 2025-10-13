@@ -2,14 +2,7 @@
 import { Job } from "../../types/job" // Adjust import path as needed
 import { JobItem } from "./JobItem"
 import React from "react"
-import {
-  DataGrid,
-  DataGridRow,
-  DataGridHeadCell,
-  DataGridCell,
-  Icon,
-  Spinner,
-} from "@cloudoperators/juno-ui-components"
+import { DataGrid, DataGridRow, DataGridHeadCell, DataGridCell } from "@cloudoperators/juno-ui-components"
 
 interface JobListProps {
   jobs: Job[]

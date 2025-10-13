@@ -1,47 +1,39 @@
 // components/JobItem.tsx
-import { Link } from "@tanstack/react-router"
-import { Job } from "../../types/job" // Adjust import path as needed
+import { useNavigate } from "@tanstack/react-router"
+import { Job } from "../../types/job"
+import { getStatusColor, formatDate } from "./utils/jobUtils"
 import React from "react"
-import { DataGridRow, DataGridCell, Button } from "@cloudoperators/juno-ui-components"
+import { DataGridRow, DataGridCell, Button, Badge, Stack } from "@cloudoperators/juno-ui-components"
 
 interface JobItemProps {
   job: Job
 }
 
 export function JobItem({ job }: JobItemProps) {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString()
-  }
+  const navigate = useNavigate()
 
-  const getStatusColor = (state: string) => {
-    switch (state) {
-      case "successful":
-        return "tw-text-theme-success"
-      case "failed":
-        return "tw-text-theme-error"
-      case "running":
-        return "tw-text-theme-info"
-      case "pending":
-        return "tw-text-theme-warning"
-      default:
-        return "tw-text-theme-warning"
-    }
+  const handleJobClick = () => {
+    navigate({ search: { jobId: job.id } })
   }
 
   return (
     <DataGridRow>
       <DataGridCell>
-        <Link to="/show" params={{ jobId: job.id }}>
-          {job.name}
-        </Link>
+        <button onClick={handleJobClick}>{job.name}</button>
       </DataGridCell>
       <DataGridCell>
-        <span className={`${getStatusColor(job.state)}`}>{job.state}</span>
+        <Stack direction="horizontal" gap="1">
+          <Badge variant={`${getStatusColor(job.state)}`}>{job.state}</Badge>
+        </Stack>
       </DataGridCell>
       <DataGridCell>{job.description || "No description"}</DataGridCell>
       <DataGridCell>{formatDate(job.schedule_date)}</DataGridCell>
       <DataGridCell>
-        <Button>Schedule</Button>
+        {(job.state === "initial" || job.state === "scheduled") && (
+          <Button variant="primary" size="small">
+            Schedule
+          </Button>
+        )}
       </DataGridCell>
     </DataGridRow>
   )
