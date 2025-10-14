@@ -1,18 +1,20 @@
 import { Modal, Button } from "react-bootstrap"
 import { Form } from "lib/elektra-form"
+import { FormErrors } from "lib/elektra-form/components/form_errors"
 import React from "react"
 import { apiStateIsDeleting } from "../utils"
 
 export default class RBACPoliciesEditModal extends React.Component {
   state = {
     show: true,
+    apiError: null,
   }
 
   close = (e) => {
     if (e) {
       e.stopPropagation()
     }
-    this.setState({ ...this.state, show: false })
+    this.setState({ ...this.state, show: false, apiError: null })
     setTimeout(() => this.props.history.replace("/accounts"), 300)
   }
 
@@ -27,7 +29,15 @@ export default class RBACPoliciesEditModal extends React.Component {
         rule_for_manifest: requiredLabelsStr,
       },
     }
-    return this.props.putAccount(newAccount).then(() => this.close())
+    this.props
+      .putAccount(newAccount)
+      .then(() => this.close())
+      .catch((error) => {
+        this.setState({
+          ...this.state,
+          apiError: error,
+        })
+      })
   }
 
   render() {
@@ -69,6 +79,7 @@ export default class RBACPoliciesEditModal extends React.Component {
           initialValues={initialValues}
         >
           <Modal.Body>
+            {this.state.apiError && <FormErrors errors={this.state.apiError} />}
             <Form.ElementHorizontal label="Rule" labelWidth={1} name="rule_for_manifest">
               <Form.Input elementType="input" type="text" name="rule_for_manifest" readOnly={!isAdmin} />
               <div className="form-control-static tw-mt-2">
