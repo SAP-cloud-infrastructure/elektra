@@ -9,8 +9,6 @@ import {
   Container,
   DataGrid,
   DataGridRow,
-  DataGridHeadCell,
-  DataGridCell,
   Spinner,
   Tabs,
   TabList,
@@ -21,6 +19,8 @@ import PageHeader from "../../components/PageHeader"
 import ClipboardText from "../../components/ClipboardText"
 import ReadinessConditions from "../../components/ReadinessConditions"
 import InlineError from "../../components/InlineError"
+import WorkerList from "./-components/WorkerList"
+import ClusterDetailRow from "./-components/ClusterDetailRow"
 
 const ROUTE_ID = "/clusters/$clusterName"
 
@@ -63,15 +63,6 @@ function ClusterDetailActions({ permissions, disabled = false }: { permissions?:
   )
 }
 
-function ClusterField({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <DataGridRow>
-      <DataGridHeadCell>{label}</DataGridHeadCell>
-      <DataGridCell>{children}</DataGridCell>
-    </DataGridRow>
-  )
-}
-
 const sectionHeaderStyles = "details-section tw-text-lg tw-font-bold tw-mb-4"
 
 function ClusterDetail() {
@@ -110,23 +101,38 @@ function ClusterDetail() {
                           <DataGridRow>
                             <div>
                               <DataGrid columns={2} gridColumnTemplate="35% auto">
-                                <ClusterField label="Name">{cluster.name}</ClusterField>
-                                <ClusterField label="ID">
+                                <ClusterDetailRow label="Name">{cluster.name}</ClusterDetailRow>
+                                <ClusterDetailRow label="ID">
                                   <ClipboardText text={cluster.uid} />
-                                </ClusterField>
-                                <ClusterField label="Cluster Status">{cluster.status}</ClusterField>
-                                <ClusterField label="Kubernetes Version">{cluster.version}</ClusterField>
-                                <ClusterField label="Cloud Profile">{cluster.cloudProfileName}</ClusterField>
+                                </ClusterDetailRow>
+                                <ClusterDetailRow label="Cluster Status">{cluster.status}</ClusterDetailRow>
+                                <ClusterDetailRow label="Kubernetes Version">{cluster.version}</ClusterDetailRow>
+                                <ClusterDetailRow label="Namespace">{cluster.namespace}</ClusterDetailRow>
                               </DataGrid>
                             </div>
                             <div>
                               <DataGrid columns={2} gridColumnTemplate="35% auto">
-                                <ClusterField label="Purpose">{cluster.purpose}</ClusterField>
-                                <ClusterField label="Infrastructure">{cluster.infrastructure}</ClusterField>
+                                <ClusterDetailRow label="Purpose">{cluster.purpose}</ClusterDetailRow>
+                                <ClusterDetailRow label="Add ons"></ClusterDetailRow>
+                                <ClusterDetailRow label="Created by"></ClusterDetailRow>
                               </DataGrid>
                             </div>
                           </DataGridRow>
                         </DataGrid>
+                      </Container>
+
+                      {/* Readiness Conditions */}
+                      <Container py px={false}>
+                        <p className={sectionHeaderStyles}>Readiness</p>
+                        {cluster?.readiness?.conditions?.length > 0 ? (
+                          <DataGrid columns={2} gridColumnTemplate="17.5% auto">
+                            <ClusterDetailRow label="Readiness">
+                              <ReadinessConditions conditions={cluster?.readiness?.conditions} showDetails />
+                            </ClusterDetailRow>
+                          </DataGrid>
+                        ) : (
+                          <p>No readiness conditions found.</p>
+                        )}
                       </Container>
 
                       {/* Cluster Labels */}
@@ -135,9 +141,9 @@ function ClusterDetail() {
                         {cluster.labels && Object.keys(cluster.labels).length > 0 ? (
                           <DataGrid columns={2} minContentColumns={[0]}>
                             {Object.entries(cluster.labels).map(([key, value]) => (
-                              <ClusterField key={key} label={key}>
+                              <ClusterDetailRow key={key} label={key}>
                                 {value}
-                              </ClusterField>
+                              </ClusterDetailRow>
                             ))}
                           </DataGrid>
                         ) : (
@@ -145,18 +151,33 @@ function ClusterDetail() {
                         )}
                       </Container>
 
-                      {/* Readiness Conditions */}
+                      {/* Maintenance and auto update */}
+                      <DataGrid columns={2} gridColumnTemplate="50% 50%">
+                        <DataGridRow>
+                          <Container py px={false}>
+                            <p className={sectionHeaderStyles}>Maintenace Window</p>
+                            <DataGrid columns={2} gridColumnTemplate="35% auto">
+                              <ClusterDetailRow label="Start Time">{cluster.maintenance?.startTime}</ClusterDetailRow>
+                              <ClusterDetailRow label="Window Time">{cluster.maintenance?.windowTime}</ClusterDetailRow>
+                              <ClusterDetailRow label="Timezone">{cluster.maintenance?.timezone}</ClusterDetailRow>
+                            </DataGrid>
+                          </Container>
+                          <Container py px={false}>
+                            <p className={sectionHeaderStyles}>Auto Update</p>
+                            <DataGrid columns={2} gridColumnTemplate="35% auto">
+                              <ClusterDetailRow label="OS Updates">{cluster.autoUpdate?.os}</ClusterDetailRow>
+                              <ClusterDetailRow label="Kubernetes Updates">
+                                {cluster.autoUpdate?.kubernetes}
+                              </ClusterDetailRow>
+                            </DataGrid>
+                          </Container>
+                        </DataGridRow>
+                      </DataGrid>
+
+                      {/* Workers */}
                       <Container py px={false}>
-                        <p className={sectionHeaderStyles}>Readiness</p>
-                        {cluster?.readiness?.conditions?.length > 0 ? (
-                          <DataGrid columns={2} minContentColumns={[0]}>
-                            <ClusterField label="Readiness">
-                              <ReadinessConditions conditions={cluster?.readiness?.conditions} />
-                            </ClusterField>
-                          </DataGrid>
-                        ) : (
-                          <p>No readiness conditions found.</p>
-                        )}
+                        <p className={sectionHeaderStyles}>Worker Pools</p>
+                        <WorkerList workers={cluster.workers} />
                       </Container>
                     </TabPanel>
                     <TabPanel>
