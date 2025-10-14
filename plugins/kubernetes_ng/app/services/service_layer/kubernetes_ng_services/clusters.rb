@@ -154,7 +154,9 @@ module ServiceLayer
             {
               displayValue: condition_display_names[condition['type']] || condition['type'],
               type: condition['type'],
-              status: condition['status']
+              status: condition['status'],
+              message: condition['message'],
+              lastUpdateTime: condition['lastUpdateTime'],
             }
           end
         }

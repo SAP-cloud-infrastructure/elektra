@@ -118,12 +118,16 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
             {
               displayValue: 'API',
               status: 'True',
-              type: 'APIServerAvailable'
+              type: 'APIServerAvailable',
+              message: 'API server is running',
+              lastUpdateTime: '2023-05-01T09:58:00Z'
             },
             {
               displayValue: 'CP',
               status: 'True',
-              type: 'ControlPlaneHealthy'
+              type: 'ControlPlaneHealthy',
+              message: 'Control plane is running',
+              lastUpdateTime: '2023-05-01T09:59:00Z'
             }
           ],
           status: '2/2'
