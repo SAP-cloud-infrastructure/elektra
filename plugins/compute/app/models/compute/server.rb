@@ -224,6 +224,7 @@ module Compute
       return @all_ip_maps if @all_ip_maps
       return {} unless addresses
 
+
       ip_network_names = {}
       server_floating_ips = []
       server_floating_ips_and_network = {}
@@ -240,7 +241,7 @@ module Compute
             # store the floating ips and the network name
             # this is needed to check if there is only one floating IP and one fixed IP
             server_floating_ips_and_network[network_name] ||= []
-            server_floating_ips_and_network[network_name] << ip["addr"]
+            server_floating_ips_and_network[network_name] << {addr: ip["addr"], mac: ip["OS-EXT-IPS-MAC:mac_addr"]}
           end
 
           if ip["OS-EXT-IPS:type"] == "fixed"
@@ -249,7 +250,7 @@ module Compute
             # store the fixed ips and the network name
             # this is needed to check if there is only one floating IP and one fixed IP
             server_fixed_ips_and_network[network_name] ||= []
-            server_fixed_ips_and_network[network_name] << ip["addr"]
+            server_fixed_ips_and_network[network_name] << {addr: ip["addr"], mac: ip["OS-EXT-IPS-MAC:mac_addr"]}
           end
         end
       end
@@ -264,16 +265,18 @@ module Compute
             # if there is only one floating IP and one fixed IP, we can assume that the floating IP is associated with the fixed IP
             
             # load the floating IP object to access the floating IP ID
-            floating_ip = @service.service_manager.networking.floating_ips({floating_ip_address: fips.first}).first
+            floating_ip = @service.service_manager.networking.floating_ips({floating_ip_address: fips.first[:addr]}).first
             # byebug
             fip_ip_one_to_one_maps << 
               {
                 "fixed" => {
-                  "addr" => server_fixed_ips_and_network[network_name].first,
+                  "addr" => server_fixed_ips_and_network[network_name].first[:addr],
+                  "mac" => server_fixed_ips_and_network[network_name].first[:mac],
                   "network_name" => network_name,
                 },
                 "floating" => {
-                  "addr" => fips.first,
+                  "addr" => fips.first[:addr],
+                  "mac" => fips.first[:mac],
                   "network_name" => network_name,
                   # add floating IP ID to the map
                   "id" => floating_ip&.id,
@@ -308,12 +311,14 @@ module Compute
             data = {
               "fixed" => {
                 "addr" => fixed_address,
+                "mac" => ip["OS-EXT-IPS-MAC:mac_addr"],
                 "network_name" => ip_network_names[fixed_address],
               },
             }
             if floating_ip
               data["floating"] = {
                 "addr" => floating_ip.floating_ip_address,
+                "mac" => ip["OS-EXT-IPS-MAC:mac_addr"],
                 "id" => floating_ip.id,
                 "network_name" =>
                   ip_network_names[floating_ip.floating_ip_address],

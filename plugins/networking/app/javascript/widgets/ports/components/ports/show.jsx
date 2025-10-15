@@ -62,14 +62,11 @@ export default class ShowPortModal extends React.Component {
       return (
         <div key={index}>
           <b>{ip.ip_address} </b>
+
           {this.props.subnets.isFetching && <span className="spinner"></span>}
-          {subnet && (
-            <span>
-              {subnet.name}
-              <br />
-            </span>
-          )}
-          <span className="info-text">{ip.subnet_id}</span>
+          {subnet && <span>{subnet.name}</span>}
+          <br />
+          <span className="info-text">subnet id: {ip.subnet_id}</span>
         </div>
       )
     })
@@ -79,9 +76,7 @@ export default class ShowPortModal extends React.Component {
       if (!this.props.securityGroups || !this.props.securityGroups.items) {
         return <div key={groupId}>{groupId}</div>
       }
-      const securityGroup = this.props.securityGroups.items.filter(
-        (i) => i.id == groupId
-      )[0]
+      const securityGroup = this.props.securityGroups.items.filter((i) => i.id == groupId)[0]
 
       if (!securityGroup) return <div key={groupId}>{groupId}</div>
 
@@ -104,8 +99,9 @@ export default class ShowPortModal extends React.Component {
       <table className="table no-borders">
         <tbody>
           <Row label="Port ID" value={port.id} />
+          <Row label="MAC" value={port.mac_address} />
           <Row label="Network">{this.renderNetwork(port)}</Row>
-          <Row label="IP">{this.renderSubnets(port)}</Row>
+          <Row label="IPs">{this.renderSubnets(port)}</Row>
           <Row label="Description" value={port.description} />
           <Row label="Name" value={port.name} />
           <Row label="Device Owner" value={port.device_owner} />
@@ -118,46 +114,18 @@ export default class ShowPortModal extends React.Component {
         </tbody>
       </table>
     )
-
-    // admin_state_up
-    // allowed_address_pairs
-    // binding:host_id
-    // binding:profile
-    // binding:vif_details
-    // binding:vif_type
-    // binding:vnic_type
-    // data_plane_status
-    // device_id
-    // device_owner
-    // dns_assignment
-    // dns_domain
-    // dns_name
-    // extra_dhcp_opts
-    // ip_allocation
-    // mac_address
-    // port_security_enabled
-    // revision_number
   }
 
   render() {
     return (
-      <Modal
-        show={this.state.show}
-        onHide={this.close}
-        bsSize="large"
-        aria-labelledby="contained-modal-title-lg"
-      >
+      <Modal show={this.state.show} onHide={this.close} bsSize="large" aria-labelledby="contained-modal-title-lg">
         <Modal.Header closeButton>
           <Modal.Title id="contained-modal-title-lg">
             Port {this.port && (this.port.description || this.port.id)}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {this.props.port ? (
-            this.renderTable(this.props.port)
-          ) : (
-            <span className="spinner"></span>
-          )}
+          {this.props.port ? this.renderTable(this.props.port) : <span className="spinner"></span>}
         </Modal.Body>
         <Modal.Footer>
           <Button onClick={this.close}>Close</Button>
