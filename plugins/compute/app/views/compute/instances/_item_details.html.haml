@@ -200,7 +200,22 @@
               - network_ips.each do |network_name, ips|
                 %tr
                   %th= network_name
-                  %td= render_fixed_floating_ips(ips)
+                  %td 
+                    - ips.each do |ip|
+                      %div.details-ips
+                        - if ip["fixed"]
+                          %div.ip-container
+                            %i.fa.fa-desktop.fa-fw                              
+                            %span
+                              = ip["fixed"]["addr"]
+                              %span.info-text= "(mac: #{ip["fixed"]["mac"]})"
+                        - if ip["fixed"] && ip["floating"]
+                          %i.fa.fa-arrows-h.delimiter
+                          
+                        - if ip["floating"]
+                          %div.ip-container
+                            %i.fa.fa-globe.fa-fw                              
+                            %span= ip["floating"]["addr"]
         .tab-pane{role: "tabpanel", id: "sec_groups"}
           %table.table.datatable
             %tbody
