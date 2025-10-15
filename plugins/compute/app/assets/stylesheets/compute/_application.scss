@@ -62,3 +62,15 @@
 .loading-place {
   display: inline-block !important;
 }
+
+.details-ips {
+  display: flex;
+  align-items: baseline;
+  .ip-container {
+    display: flex;
+    align-items: baseline;
+  }
+  .delimiter {
+    margin: 0 10px;
+  }
+}
