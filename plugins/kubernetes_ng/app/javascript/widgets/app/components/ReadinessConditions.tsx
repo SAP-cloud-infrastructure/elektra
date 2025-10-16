@@ -13,6 +13,15 @@ type ConditionVariant = (typeof CONDITION_VARIANTS)[keyof typeof CONDITION_VARIA
 const getReadinessConditionVariant = (status: string): ConditionVariant =>
   CONDITION_VARIANTS[status as keyof typeof CONDITION_VARIANTS] ?? CONDITION_VARIANTS.Unknown
 
+const VARIANT_CLASSES: Record<ConditionVariant, string> = {
+  success: "tw-bg-theme-success tw-border-theme-success",
+  error: "tw-bg-theme-error tw-border-theme-error",
+  warning: "tw-bg-theme-warning tw-border-theme-warning",
+}
+
+const getBoxClasses = (variant: ConditionVariant = "warning"): string =>
+  VARIANT_CLASSES[variant] ?? VARIANT_CLASSES.warning
+
 type BoxProps = React.PropsWithChildren<{
   variant?: ConditionVariant
   children?: React.ReactNode
@@ -21,10 +30,7 @@ type BoxProps = React.PropsWithChildren<{
 
 const Box: React.FC<BoxProps> = ({ variant = "warning", className = "", children, ...props }) => {
   return (
-    <div
-      className={`tw-bg-theme-${variant} tw-bg-opacity-25 tw-border tw-border-theme-${variant} tw-rounded tw-p-4 ${className}`}
-      {...props}
-    >
+    <div className={`${getBoxClasses(variant)} tw-bg-opacity-25 tw-border tw-rounded tw-p-4 ${className}`} {...props}>
       {children}
     </div>
   )
