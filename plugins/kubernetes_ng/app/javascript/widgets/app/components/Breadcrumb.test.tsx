@@ -1,25 +1,23 @@
 import React from "react"
 import { render, screen } from "@testing-library/react"
+import { RouteMatch, useMatches } from "@tanstack/react-router"
 import { Breadcrumb } from "./Breadcrumb"
-import "@testing-library/jest-dom"
 
-const mockNavigate = jest.fn()
+const mockNavigate = vi.fn()
 
-jest.mock("@tanstack/react-router", () => ({
-  useMatches: jest.fn(),
+vi.mock("@tanstack/react-router", () => ({
+  useMatches: vi.fn(),
   useNavigate: () => mockNavigate,
   isMatch: (match: any, key: string) => key === "loaderData.crumb" && !!match.loaderData?.crumb,
 }))
 
-import { useMatches } from "@tanstack/react-router"
-
 describe("<Breadcrumb /> (integration with Juno)", () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it("renders nothing if there are no crumbs", () => {
-    const mockedUseMatches = useMatches as jest.Mock
+    const mockedUseMatches = vi.mocked(useMatches)
     mockedUseMatches.mockReturnValue([])
 
     render(<Breadcrumb data-testid="breadcrumb-testid" />)
@@ -31,16 +29,19 @@ describe("<Breadcrumb /> (integration with Juno)", () => {
   })
 
   it("renders breadcrumb items for matches with crumbs", () => {
-    const mockedUseMatches = useMatches as jest.Mock
+    const mockedUseMatches = vi.mocked(useMatches)
+
+    type AnyRouteMatch = RouteMatch<any, any, any, any, any, any, any>
+
     mockedUseMatches.mockReturnValue([
       {
         pathname: "/clusters",
         loaderData: { crumb: { label: "Clusters", icon: "cloud" } },
-      },
+      } as Partial<AnyRouteMatch> as AnyRouteMatch,
       {
         pathname: "/services",
         loaderData: { crumb: { label: "Services" } },
-      },
+      } as Partial<AnyRouteMatch> as AnyRouteMatch,
     ])
 
     render(<Breadcrumb data-testid="breadcrumb-testid2" />)

@@ -3,7 +3,7 @@ delete window.location
 window.location = {
   pathname: "/monsoon3/cc-demo/object-storage-ng/containers",
   href: "https://server2.com/monsoon3/cc-demo/object-storage-ng/containers",
-  replace: jest.fn(),
+  replace: vi.fn(),
 }
 
 const meta = document.createElement("meta")
@@ -14,13 +14,7 @@ document.head.append(meta)
 // use require instead of import because of the window object.
 // we want to mock this object before loading the ajax helper
 // imports are automatically moved to the top by js.
-let {
-  scope,
-  ajaxHelper,
-  configureAjaxHelper,
-  pluginAjaxHelper,
-  createAjaxHelper,
-} = require("./ajax_helper")
+let { scope, ajaxHelper, configureAjaxHelper, pluginAjaxHelper, createAjaxHelper } = require("./ajax_helper")
 
 const ACTIONS = ["head", "get", "post", "put", "patch", "copy", "delete"]
 
@@ -28,20 +22,20 @@ const originFetch = global.fetch || window.fetch
 describe("client", () => {
   beforeEach(() => {
     // mock fetch function
-    window.fetch = jest.fn(() => {
+    window.fetch = vi.fn(() => {
       const data = { name: "test" }
 
       return Promise.resolve({
-        json: jest.fn(() => Promise.resolve(data)),
-        blob: jest.fn(() => {
+        json: vi.fn(() => Promise.resolve(data)),
+        blob: vi.fn(() => {
           const blob = new Blob([JSON.stringify(data)], {
             type: "application/json",
           })
-          blob.text = jest.fn().mockResolvedValue(JSON.stringify(data))
+          blob.text = vi.fn().mockResolvedValue(JSON.stringify(data))
           return Promise.resolve(blob)
         }),
-        text: jest.fn().mockResolvedValue(JSON.stringify(data)),
-        formData: jest.fn(() => Promise.resolve(new FormData())),
+        text: vi.fn().mockResolvedValue(JSON.stringify(data)),
+        formData: vi.fn(() => Promise.resolve(new FormData())),
         ok: true,
         status: 200,
         statusText: "success",
@@ -103,55 +97,49 @@ describe("client", () => {
       })
 
       describe("redirect to login", () => {
-        it(
-          action +
-            ": " +
-            "should redirect to login if after_login location presented",
-          async () => {
-            window.fetch = jest.fn(() =>
-              Promise.resolve({
-                json: jest.fn(() => Promise.resolve(null)),
-                blob: jest.fn(() => {
-                  const blob = new Blob([JSON.stringify(null)], {
-                    type: "application/json",
-                  })
-                  blob.text = jest.fn().mockResolvedValue(JSON.stringify(null))
-                  return Promise.resolve(blob)
-                }),
-                text: jest.fn(() => Promise.resolve(null)),
-                formData: jest.fn(() => Promise.resolve(new FormData())),
-                ok: true,
-                status: 200,
-                statusText: "success",
-                headers: new Headers({
-                  location:
-                    "https://server1.com/login?after_login=http://test1.com",
-                }),
-              })
-            )
-
-            await client[action]("test")
-            expect(window.location.replace).toHaveBeenLastCalledWith(
-              `https://server1.com/login?after_login=${encodeURIComponent(
-                "https://server2.com/monsoon3/cc-demo/object-storage-ng/containers"
-              )}`
-            )
-          }
-        )
-
-        it("should redirect to login if auth/login location presented", async () => {
-          window.fetch = jest.fn(() =>
+        it(action + ": " + "should redirect to login if after_login location presented", async () => {
+          window.fetch = vi.fn(() =>
             Promise.resolve({
-              json: jest.fn(() => Promise.resolve(null)),
-              blob: jest.fn(() => {
+              json: vi.fn(() => Promise.resolve(null)),
+              blob: vi.fn(() => {
                 const blob = new Blob([JSON.stringify(null)], {
                   type: "application/json",
                 })
-                blob.text = jest.fn().mockResolvedValue(JSON.stringify(null))
+                blob.text = vi.fn().mockResolvedValue(JSON.stringify(null))
                 return Promise.resolve(blob)
               }),
-              text: jest.fn().mockResolvedValue(JSON.stringify(null)),
-              formData: jest.fn(() => Promise.resolve(new FormData())),
+              text: vi.fn(() => Promise.resolve(null)),
+              formData: vi.fn(() => Promise.resolve(new FormData())),
+              ok: true,
+              status: 200,
+              statusText: "success",
+              headers: new Headers({
+                location: "https://server1.com/login?after_login=http://test1.com",
+              }),
+            })
+          )
+
+          await client[action]("test")
+          expect(window.location.replace).toHaveBeenLastCalledWith(
+            `https://server1.com/login?after_login=${encodeURIComponent(
+              "https://server2.com/monsoon3/cc-demo/object-storage-ng/containers"
+            )}`
+          )
+        })
+
+        it("should redirect to login if auth/login location presented", async () => {
+          window.fetch = vi.fn(() =>
+            Promise.resolve({
+              json: vi.fn(() => Promise.resolve(null)),
+              blob: vi.fn(() => {
+                const blob = new Blob([JSON.stringify(null)], {
+                  type: "application/json",
+                })
+                blob.text = vi.fn().mockResolvedValue(JSON.stringify(null))
+                return Promise.resolve(blob)
+              }),
+              text: vi.fn().mockResolvedValue(JSON.stringify(null)),
+              formData: vi.fn(() => Promise.resolve(new FormData())),
               ok: true,
               status: 200,
               statusText: "success",
@@ -172,19 +160,19 @@ describe("client", () => {
 
       describe("error", () => {
         beforeEach(() => {
-          window.fetch = jest.fn(() => {
+          window.fetch = vi.fn(() => {
             const data = { error: "name can not be empty" }
             return Promise.resolve({
-              json: jest.fn().mockResolvedValue(JSON.stringify(data)),
-              blob: jest.fn(() => {
+              json: vi.fn().mockResolvedValue(JSON.stringify(data)),
+              blob: vi.fn(() => {
                 const blob = new Blob([JSON.stringify(data)], {
                   type: "application/json",
                 })
-                blob.text = jest.fn().mockResolvedValue(JSON.stringify(data))
+                blob.text = vi.fn().mockResolvedValue(JSON.stringify(data))
                 return Promise.resolve(blob)
               }),
-              text: jest.fn().mockResolvedValue(JSON.stringify(data)),
-              formData: jest.fn().mockResolvedValue(new FormData()),
+              text: vi.fn().mockResolvedValue(JSON.stringify(data)),
+              formData: vi.fn().mockResolvedValue(new FormData()),
               ok: false,
               status: 400,
               statusText: "bad request",
@@ -196,10 +184,10 @@ describe("client", () => {
         })
 
         it(action + ": " + "should throw an error", async () => {
-          await expect(client[action]("test")).rejects.toThrow({
+          await expect(client[action]("test")).rejects.toMatchObject({
             message: "name can not be empty",
             status: 400,
-            statusText: "bad request",
+            statusText: "Bad Request",
             data: { error: "name can not be empty" },
           })
         })
@@ -222,9 +210,7 @@ describe("client", () => {
   describe("cancelable", () => {
     ACTIONS.forEach((action) => {
       it(action + ": " + "cancelable", () => {
-        const result = createAjaxHelper({ timeout: 60 }).cancelable[action](
-          "test"
-        )
+        const result = createAjaxHelper({ timeout: 60 }).cancelable[action]("test")
         expect(result.request).toBeDefined()
         expect(result.request instanceof Promise).toEqual(true)
         expect(result.cancel).toBeDefined()
@@ -257,18 +243,12 @@ describe("client", () => {
       describe("osApi", () => {
         it(action + ": " + "should preset prefix os-api/SERVICE_NAME", () => {
           client.osApi("compute")[action]("test")
-          expect(fetch).toHaveBeenLastCalledWith(
-            "os-api/compute/test",
-            expect.anything()
-          )
+          expect(fetch).toHaveBeenLastCalledWith("os-api/compute/test", expect.anything())
         })
 
         it(action + ": " + "should respect leading and tail slash", () => {
           client.osApi("compute")[action]("/test/")
-          expect(fetch).toHaveBeenLastCalledWith(
-            "os-api/compute/test/",
-            expect.anything()
-          )
+          expect(fetch).toHaveBeenLastCalledWith("os-api/compute/test/", expect.anything())
         })
       })
 
@@ -277,10 +257,7 @@ describe("client", () => {
         it(action + ": " + "should preset baseURL", () => {
           const client = createAjaxHelper({ baseURL: "http://test.com/" })
           client[action]("test")
-          expect(fetch).toHaveBeenLastCalledWith(
-            "http://test.com/test",
-            expect.anything()
-          )
+          expect(fetch).toHaveBeenLastCalledWith("http://test.com/test", expect.anything())
         })
 
         it(action + ": " + "should preset baseURL and add pathPrefix", () => {
@@ -289,54 +266,34 @@ describe("client", () => {
             pathPrefix: "v2",
           })
           client[action]("test")
-          expect(fetch).toHaveBeenLastCalledWith(
-            "http://test.com/v2/test",
-            expect.anything()
-          )
+          expect(fetch).toHaveBeenLastCalledWith("http://test.com/v2/test", expect.anything())
         })
 
         // baseURL
         describe("osApi", () => {
-          it(
-            action + ": " + "should preset baseURL and add os-api prefix",
-            () => {
-              const client = createAjaxHelper({
-                baseURL: "http://test.com/",
-              }).osApi("compute")
-              client[action]("test")
-              expect(fetch).toHaveBeenLastCalledWith(
-                "http://test.com/os-api/compute/test",
-                expect.anything()
-              )
-            }
-          )
+          it(action + ": " + "should preset baseURL and add os-api prefix", () => {
+            const client = createAjaxHelper({
+              baseURL: "http://test.com/",
+            }).osApi("compute")
+            client[action]("test")
+            expect(fetch).toHaveBeenLastCalledWith("http://test.com/os-api/compute/test", expect.anything())
+          })
 
-          it(
-            action +
-              ": " +
-              "should preset baseURL and add os-api and pathPrefix",
-            () => {
-              const client = createAjaxHelper({
-                baseURL: "http://test.com/",
-                pathPrefix: "v2",
-              }).osApi("compute")
-              client[action]("test")
-              expect(fetch).toHaveBeenLastCalledWith(
-                "http://test.com/os-api/compute/v2/test",
-                expect.anything()
-              )
-            }
-          )
+          it(action + ": " + "should preset baseURL and add os-api and pathPrefix", () => {
+            const client = createAjaxHelper({
+              baseURL: "http://test.com/",
+              pathPrefix: "v2",
+            }).osApi("compute")
+            client[action]("test")
+            expect(fetch).toHaveBeenLastCalledWith("http://test.com/os-api/compute/v2/test", expect.anything())
+          })
 
           it(action + ": " + "should override baseURL", () => {
             const client = createAjaxHelper({
               baseURL: "http://test.com/",
             }).osApi("compute", { baseURL: "https://osApi.com" })
             client[action]("test")
-            expect(fetch).toHaveBeenLastCalledWith(
-              "https://osApi.com/os-api/compute/test",
-              expect.anything()
-            )
+            expect(fetch).toHaveBeenLastCalledWith("https://osApi.com/os-api/compute/test", expect.anything())
           })
           it(action + ": " + "should override baseURL and pathPrefix", () => {
             const client = createAjaxHelper({
@@ -347,10 +304,7 @@ describe("client", () => {
               pathPrefix: "",
             })
             client[action]("test")
-            expect(fetch).toHaveBeenLastCalledWith(
-              "https://osApi.com/os-api/compute/test",
-              expect.anything()
-            )
+            expect(fetch).toHaveBeenLastCalledWith("https://osApi.com/os-api/compute/test", expect.anything())
           })
         })
       })
@@ -413,10 +367,7 @@ describe("client", () => {
             params: { test1: "test", test2: "test" },
           })
           client[action]("test")
-          expect(fetch).toHaveBeenLastCalledWith(
-            "test?test1=test&test2=test",
-            expect.anything()
-          )
+          expect(fetch).toHaveBeenLastCalledWith("test?test1=test&test2=test", expect.anything())
         })
 
         describe("osApi", () => {
@@ -425,10 +376,7 @@ describe("client", () => {
               params: { test1: "test", test2: "test" },
             }).osApi("compute")
             client[action]("test")
-            expect(fetch).toHaveBeenLastCalledWith(
-              "os-api/compute/test?test1=test&test2=test",
-              expect.anything()
-            )
+            expect(fetch).toHaveBeenLastCalledWith("os-api/compute/test?test1=test&test2=test", expect.anything())
           })
         })
       })
@@ -593,73 +541,35 @@ describe("client", () => {
           expect(fetch).toHaveBeenLastCalledWith("v2/test", expect.anything())
         })
 
-        it(
-          action + ": " + "should respect leading slash and ignore tail slash",
-          () => {
-            const client = createAjaxHelper({ pathPrefix: "/v2/" })
-            client[action]("test")
-            expect(fetch).toHaveBeenLastCalledWith(
-              "/v2/test",
-              expect.anything()
-            )
-          }
-        )
+        it(action + ": " + "should respect leading slash and ignore tail slash", () => {
+          const client = createAjaxHelper({ pathPrefix: "/v2/" })
+          client[action]("test")
+          expect(fetch).toHaveBeenLastCalledWith("/v2/test", expect.anything())
+        })
 
         describe("osApi", () => {
-          it(
-            action + ": " + "should add pathPrefix after os-api prefix",
-            () => {
-              const client = createAjaxHelper({ pathPrefix: "v2" }).osApi(
-                "compute"
-              )
-              client[action]("test")
-              expect(fetch).toHaveBeenLastCalledWith(
-                "os-api/compute/v2/test",
-                expect.anything()
-              )
-            }
-          )
+          it(action + ": " + "should add pathPrefix after os-api prefix", () => {
+            const client = createAjaxHelper({ pathPrefix: "v2" }).osApi("compute")
+            client[action]("test")
+            expect(fetch).toHaveBeenLastCalledWith("os-api/compute/v2/test", expect.anything())
+          })
 
-          it(
-            action + ": " + "should ignore leading slash of pathPrefix",
-            () => {
-              const client = createAjaxHelper({ pathPrefix: "/v2" }).osApi(
-                "compute"
-              )
-              client[action]("test")
-              expect(fetch).toHaveBeenLastCalledWith(
-                "os-api/compute/v2/test",
-                expect.anything()
-              )
-            }
-          )
+          it(action + ": " + "should ignore leading slash of pathPrefix", () => {
+            const client = createAjaxHelper({ pathPrefix: "/v2" }).osApi("compute")
+            client[action]("test")
+            expect(fetch).toHaveBeenLastCalledWith("os-api/compute/v2/test", expect.anything())
+          })
 
-          it(
-            action +
-              ": " +
-              "should ignore leading and tail slash of pathPrefix",
-            () => {
-              const client = createAjaxHelper({ pathPrefix: "/v2/" }).osApi(
-                "compute"
-              )
-              client[action]("test")
-              expect(fetch).toHaveBeenLastCalledWith(
-                "os-api/compute/v2/test",
-                expect.anything()
-              )
-            }
-          )
+          it(action + ": " + "should ignore leading and tail slash of pathPrefix", () => {
+            const client = createAjaxHelper({ pathPrefix: "/v2/" }).osApi("compute")
+            client[action]("test")
+            expect(fetch).toHaveBeenLastCalledWith("os-api/compute/v2/test", expect.anything())
+          })
 
           it(action + ": " + "should override pathPrefix", () => {
-            const client = createAjaxHelper({ pathPrefix: "/v2/" }).osApi(
-              "compute",
-              { pathPrefix: "v3" }
-            )
+            const client = createAjaxHelper({ pathPrefix: "/v2/" }).osApi("compute", { pathPrefix: "v3" })
             client[action]("test")
-            expect(fetch).toHaveBeenLastCalledWith(
-              "os-api/compute/v3/test",
-              expect.anything()
-            )
+            expect(fetch).toHaveBeenLastCalledWith("os-api/compute/v3/test", expect.anything())
           })
         })
       })

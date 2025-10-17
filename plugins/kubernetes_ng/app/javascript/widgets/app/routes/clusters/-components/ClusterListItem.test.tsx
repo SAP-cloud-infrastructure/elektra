@@ -11,7 +11,7 @@ import { defaultCluster } from "../../../mocks/data"
 // Mock navigator.clipboard
 Object.assign(navigator, {
   clipboard: {
-    writeText: jest.fn(),
+    writeText: vi.fn(),
   },
 })
 
