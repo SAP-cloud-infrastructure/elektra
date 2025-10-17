@@ -10,7 +10,6 @@ interface RouterContext {
 export const Root = () => {
   return (
     <AppShell embedded={true}>
-      {"Welcome to Smartops"}
       <Outlet />
     </AppShell>
   )

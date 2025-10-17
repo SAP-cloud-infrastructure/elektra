@@ -1,6 +1,6 @@
 // components/JobItem.tsx
 import { useNavigate } from "@tanstack/react-router"
-import { Job } from "../../types/job"
+import { Job } from "../../../types/job"
 import { getStatusColor, formatDate } from "./utils/jobUtils"
 import React from "react"
 import { DataGridRow, DataGridCell, Button, Badge, Stack } from "@cloudoperators/juno-ui-components"
@@ -13,7 +13,7 @@ export function JobItem({ job }: JobItemProps) {
   const navigate = useNavigate()
 
   const handleJobClick = () => {
-    navigate({ search: { jobId: job.id } })
+    navigate({ to: `/jobs/${job.id}` })
   }
 
   return (

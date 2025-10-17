@@ -126,6 +126,7 @@ module ServiceLayer
     module Jobs
 
       def list_jobs(filter = {})
+        sleep(rand(0..3)) # Simulate random network delay between 0 and 3 seconds
         filtered_jobs = MOCK_DATA
 
         # Filter by name (partial match, case-insensitive)

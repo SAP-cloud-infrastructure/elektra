@@ -1,3 +1,4 @@
+import React from "react"
 import { StrictMode } from "react"
 import { AppShellProvider } from "@cloudoperators/juno-ui-components"
 import { RouterProvider } from "@tanstack/react-router"

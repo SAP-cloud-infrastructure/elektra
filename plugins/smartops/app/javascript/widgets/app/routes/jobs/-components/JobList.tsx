@@ -1,11 +1,12 @@
 // components/JobList.tsx
-import { Job } from "../../types/job" // Adjust import path as needed
+import { Job } from "../../../types/job"
 import { JobItem } from "./JobItem"
 import React from "react"
-import { DataGrid, DataGridRow, DataGridHeadCell, DataGridCell } from "@cloudoperators/juno-ui-components"
+import { DataGrid, DataGridRow, DataGridHeadCell, DataGridCell, Spinner } from "@cloudoperators/juno-ui-components"
 
 interface JobListProps {
   jobs: Job[]
+  isLoading?: boolean
 }
 
 const JobsListHeader = () => (
@@ -18,7 +19,20 @@ const JobsListHeader = () => (
   </DataGridRow>
 )
 
-export function JobList({ jobs }: JobListProps) {
+export function JobList({ jobs, isLoading }: JobListProps) {
+  if (isLoading) {
+    return (
+      <DataGrid columns={5} minContentColumns={[5]}>
+        <JobsListHeader />
+        <DataGridRow>
+          <DataGridCell>
+            <Spinner size="small" aria-label="Loading Jobs" />
+          </DataGridCell>
+        </DataGridRow>
+      </DataGrid>
+    )
+  }
+
   if (jobs.length === 0) {
     return (
       <DataGrid columns={5} minContentColumns={[5]}>
