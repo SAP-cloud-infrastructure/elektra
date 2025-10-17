@@ -7,6 +7,7 @@ import { getTestRouter } from "../../mocks/getTestRouter"
 import { defaultCluster } from "../../mocks/data"
 import { Breadcrumb } from "../../components/Breadcrumb"
 import { Cluster } from "../../types/cluster"
+import type { MockInstance } from "vitest"
 
 const renderComponent = ({
   clusterDetailsPromise = Promise.resolve(defaultCluster),
@@ -106,10 +107,10 @@ describe("<ClusterDetail />", () => {
   })
 
   describe("Error", () => {
-    let consoleErrorSpy: jest.SpyInstance
+    let consoleErrorSpy: MockInstance
 
     beforeEach(() => {
-      consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {})
+      consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
     })
 
     afterEach(() => {

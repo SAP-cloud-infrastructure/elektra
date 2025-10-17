@@ -6,9 +6,9 @@ const defaultProps = {
   account: { name: "Test Account" },
   isAdmin: true,
   policies: { isFetching: false, data: [] },
-  putAccount: jest.fn(() => Promise.resolve()),
+  putAccount: vi.fn(() => Promise.resolve()),
   history: {
-    replace: jest.fn(),
+    replace: vi.fn(),
   },
 }
 
