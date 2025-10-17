@@ -1,9 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, Navigate, useNavigate } from "@tanstack/react-router"
 import { Job } from "../../types/job"
 import { JobDetails } from "./-components/JobDetails"
 import React from "react"
-import { Spinner } from "@cloudoperators/juno-ui-components"
-import { useJobStore } from "../stores/jobStore"
+import { Breadcrumb, BreadcrumbItem, Spinner } from "@cloudoperators/juno-ui-components"
 
 export const Route = createFileRoute("/jobs/$jobId")({
   component: Details,
@@ -13,37 +12,27 @@ export const Route = createFileRoute("/jobs/$jobId")({
     if (!client) {
       throw new Error("API client is undefined")
     }
+    const response = await client.get<{ data: Job[] }>(`/jobs/${params.jobId}`)
+    const [job] = response.data // takes the first job from the response
 
-    // 1. check the Zustand store first
-    const cachedJob = useJobStore.getState().getJobById(params.jobId)
-    if (cachedJob) {
-      console.debug("Using job from store:", cachedJob)
-      return { job: cachedJob, source: "store" }
+    if (!job) {
+      throw new Error("Job not found")
     }
-
-    // 2. Fallback: api call for deeplink or store miss
-    try {
-      const response = await client.get<{ data: Job[] }>(`/jobs/${params.jobId}`)
-      const [job] = response.data
-      if (!job) {
-        throw new Error("Job not found")
-      }
-
-      // store the job in Zustand store
-      useJobStore.getState().updateJob(job)
-      console.debug("Fetched job from API:", job)
-      return { job, source: "api" }
-    } catch (error) {
-      console.error("Failed to load job:", error)
-      throw new Error(`Job with ID ${params.jobId} not found`)
-    }
+    return { job }
   },
 })
 
 function Details() {
   const { job } = Route.useLoaderData()
+  const navigate = useNavigate()
+  console.debug("Job details loaded:", job)
   return (
     <>
+      <Breadcrumb>
+        <BreadcrumbItem icon="home" label="" disabled />
+        <BreadcrumbItem label="Jobs" onClick={() => navigate({ to: "/jobs" })} />
+        <BreadcrumbItem label={`${job.name}`} disabled />
+      </Breadcrumb>
       <JobDetails job={job} />
     </>
   )

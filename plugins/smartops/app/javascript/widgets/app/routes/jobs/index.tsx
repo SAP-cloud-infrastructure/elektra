@@ -2,7 +2,6 @@ import { createFileRoute, useLoaderData } from "@tanstack/react-router"
 import { Job } from "../../types/job"
 import { JobList } from "./-components/JobList"
 import { IntroBox } from "@cloudoperators/juno-ui-components"
-import { useJobStore } from "../stores/jobStore"
 import React from "react"
 
 const STATUS_ORDER = [
@@ -59,13 +58,6 @@ export const Route = createFileRoute("/jobs/")({
 
 function Jobs() {
   const { jobs } = useLoaderData({ from: Route.id })
-  const { setJobs } = useJobStore()
-
-  // load jobs into zustand store
-  React.useEffect(() => {
-    console.debug("Updating job store with", jobs.length, "jobs")
-    setJobs(jobs)
-  }, [jobs, setJobs])
 
   return (
     <>

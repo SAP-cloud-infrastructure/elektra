@@ -11,13 +11,11 @@ interface AppProps {
 
 export function App({ basePath }: AppProps) {
   return (
-    <>
-      <AppShellProvider theme="theme-light">
-        <style>{styles}</style>
-        <StrictMode>
-          <RouterProvider basepath={basePath} context={{}} router={router} />
-        </StrictMode>
-      </AppShellProvider>
-    </>
+    <AppShellProvider theme="theme-light">
+      <style>{styles}</style>
+      <StrictMode>
+        <RouterProvider basepath={basePath} context={{}} router={router} />
+      </StrictMode>
+    </AppShellProvider>
   )
 }
