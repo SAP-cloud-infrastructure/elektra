@@ -2,6 +2,7 @@ import { createFileRoute, useLoaderData } from "@tanstack/react-router"
 import { Job } from "../../types/job"
 import { JobList } from "./-components/JobList"
 import { IntroBox } from "@cloudoperators/juno-ui-components"
+import { useJobStore } from "../stores/jobStore"
 import React from "react"
 
 const STATUS_ORDER = [
@@ -58,7 +59,14 @@ export const Route = createFileRoute("/jobs/")({
 
 function Jobs() {
   const { jobs } = useLoaderData({ from: Route.id })
-  console.debug("Jobs data in component:", jobs)
+  const { setJobs } = useJobStore()
+
+  // load jobs into zustand store
+  React.useEffect(() => {
+    console.debug("Updating job store with", jobs.length, "jobs")
+    setJobs(jobs)
+  }, [jobs, setJobs])
+
   return (
     <>
       <IntroBox text="SmartOps helps to manage planned maintenance activities for virtual machines across your infrastructure. Schedule and coordinate planned updates, and maintenance jobs while minimizing service disruption and ensuring business continuity. Manage and monitor your jobs here and set a Schedule date." />

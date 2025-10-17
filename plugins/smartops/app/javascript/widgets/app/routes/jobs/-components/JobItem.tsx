@@ -13,7 +13,9 @@ export function JobItem({ job }: JobItemProps) {
   const navigate = useNavigate()
 
   const handleJobClick = () => {
-    navigate({ to: `/jobs/${job.id}` })
+    navigate({
+      to: `/jobs/${job.id}`,
+    })
   }
 
   return (
