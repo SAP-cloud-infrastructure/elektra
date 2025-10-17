@@ -8,7 +8,7 @@ import reactHooks from "eslint-plugin-react-hooks"
 export default [
   // Ignore common directories
   {
-    ignores: ["*", "!plugins", "plugins/*", "!plugins/kubernetes_ng", "!plugins/smartops"],
+    ignores: ["*", "!plugins", "plugins/*", "!plugins/kubernetes_ng", "!plugins/smartops", "app/javascript/lib"],
   },
 
   // JavaScript/JSX files
