@@ -15,12 +15,13 @@ module ServiceLayer
     # elektron adds automaticaly the X-Auth-Token openstack header for auth
     # but the kubernetes api uses another auth header than openstack
     # thats why we add a new authorization header here
-    def elektron_gardener   
+    def elektron_gardener
+      region = ENV["MONSOON_DASHBOARD_REGION"]
       @elektron_identity ||=
         elektron.service(
           "gardener",
            headers:{
-            "Authorization":"Bearer #{elektron.available_services_regions&.first}:#{elektron.token}"
+            "Authorization":"Bearer #{region}:#{elektron.token}"
           }
         )
     end
