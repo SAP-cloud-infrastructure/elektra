@@ -58,7 +58,7 @@ export const Route = createFileRoute("/jobs/")({
 
 function Jobs() {
   const { jobs } = useLoaderData({ from: Route.id })
-  console.log("Jobs data in component:", jobs)
+  console.debug("Jobs data in component:", jobs)
   return (
     <>
       <IntroBox text="SmartOps helps to manage planned maintenance activities for virtual machines across your infrastructure. Schedule and coordinate planned updates, and maintenance jobs while minimizing service disruption and ensuring business continuity. Manage and monitor your jobs here and set a Schedule date." />
