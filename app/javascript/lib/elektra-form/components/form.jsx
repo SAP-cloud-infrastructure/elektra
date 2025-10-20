@@ -43,9 +43,7 @@ export default class Form extends React.Component {
     if (nextProps.initialValues && Object.keys(this.state.values).length == 0) {
       this.setState({
         values: nextProps.initialValues,
-        isValid: nextProps.validate
-          ? nextProps.validate(nextProps.initialValues)
-          : true,
+        isValid: nextProps.validate ? nextProps.validate(nextProps.initialValues) : true,
       })
     }
   }
@@ -67,15 +65,8 @@ export default class Form extends React.Component {
     } else {
       values[name] = value
     }
-    let isValid = this.props.validate
-      ? this.props.validate(values)
-        ? true
-        : false
-      : true
-    this.setState(
-      { values, isValid },
-      this.props.onValueChange ? this.props.onValueChange(name, values) : null
-    )
+    let isValid = this.props.validate ? (this.props.validate(values) ? true : false) : true
+    this.setState({ values, isValid }, this.props.onValueChange ? this.props.onValueChange(name, values) : null)
   }
 
   onChange(e) {
@@ -117,12 +108,12 @@ export default class Form extends React.Component {
     }
 
     return (
-      <form className={this.props.className} onSubmit={this.onSubmit}>
+      <form data-testid="elektra-form" className={this.props.className} onSubmit={this.onSubmit}>
         {this.state.isSubmitting}
         <FormContext.Provider value={contextValue}>
           {React.Children.map(this.props.children, (formElement) => {
             if (!formElement) return null
-            return React.cloneElement(formElement, elementProps) // should be ok
+            return React.cloneElement(formElement, elementProps)
           })}
         </FormContext.Provider>
       </form>
