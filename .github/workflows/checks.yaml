@@ -13,7 +13,6 @@ on:
       - reopened
 permissions:
   contents: read
-  packages: read
 
 jobs:
   # Check permissions and prerequisites
@@ -99,7 +98,7 @@ jobs:
           registry-url: "https://npm.pkg.github.com"
           scope: "@sapcc"
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.ELEKTRA_GITHUB_NPM_TOKEN }}
 
       - name: Install pnpm
         run: npm install -g pnpm
@@ -147,7 +146,7 @@ jobs:
           registry-url: "https://npm.pkg.github.com"
           scope: "@sapcc"
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.ELEKTRA_GITHUB_NPM_TOKEN }}
 
       - name: Install pnpm
         run: npm install -g pnpm
@@ -195,7 +194,7 @@ jobs:
           registry-url: "https://npm.pkg.github.com"
           scope: "@sapcc"
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.ELEKTRA_GITHUB_NPM_TOKEN }}
 
       - name: Install pnpm
         run: npm install -g pnpm
