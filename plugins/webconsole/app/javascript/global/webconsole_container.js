@@ -46,9 +46,7 @@ var WebconsoleContainer = (function () {
         if (settings.toolbar === "on") {
           // toolbar is on
           // add toolbar to container
-          const $toolbar = $(
-            `<div class='${settings.toolbarCssClass}'/>`
-          ).prependTo($container.parent())
+          const $toolbar = $(`<div class='${settings.toolbarCssClass}'/>`).prependTo($container.parent())
 
           if (settings.title) {
             // title exists
@@ -58,9 +56,7 @@ var WebconsoleContainer = (function () {
           if (settings.buttons && settings.buttons.length > 0) {
             // buttons given
             // add buttons container to toolbar
-            const $buttons = $(
-              `<div class='${settings.buttonsCssClass}'/>`
-            ).appendTo($toolbar)
+            const $buttons = $(`<div class='${settings.buttonsCssClass}'/>`).appendTo($toolbar)
 
             // create and add each button to buttons container
             for (let i = 0; i < settings.buttons.length; i++) {
@@ -76,9 +72,7 @@ var WebconsoleContainer = (function () {
 
         // add webconsole holder to container
         // and return this holder
-        return $(`<div class='${settings.holderCssClass}'/>`).appendTo(
-          $container
-        )
+        return $(`<div class='${settings.holderCssClass}'/>`).appendTo($container)
       }
 
       // adds help container to console holder
@@ -87,14 +81,10 @@ var WebconsoleContainer = (function () {
         let $helpContent
         let $helpContainer = $container.find(`.${settings.helpCssClass}`)
         if ($helpContainer.length === 0) {
-          $helpContainer = $(`<div class='${settings.helpCssClass}'></div>`)
-            .appendTo($container)
-            .hide()
+          $helpContainer = $(`<div class='${settings.helpCssClass}'></div>`).appendTo($container).hide()
 
           // create a container div for help text and show it
-          $helpContent = $(
-            `<div class='${settings.helpCssClass}-content'></div>`
-          ).appendTo($helpContainer)
+          $helpContent = $(`<div class='${settings.helpCssClass}-content'></div>`).appendTo($helpContainer)
 
           // open help container unless already seen
           if (!webconsoleHelpSeen) {
@@ -118,16 +108,11 @@ var WebconsoleContainer = (function () {
           // $webconsoleHolder = $container.find(".#{settings.holderCssClass}")
           // height = $webconsoleHolder.height()
           const $toolbar = $container.find(`.${settings.toolbarCssClass}`)
-          const top =
-            $toolbar.length > 0
-              ? $toolbar.position().top + $toolbar.outerHeight(true)
-              : 0
+          const top = $toolbar.length > 0 ? $toolbar.position().top + $toolbar.outerHeight(true) : 0
           // $helpContainer.css(top: top, height: height)
           $helpContainer.css({ top })
         } else {
-          $helpContent = $helpContainer.find(
-            `.${settings.helpCssClass}-content`
-          )
+          $helpContent = $helpContainer.find(`.${settings.helpCssClass}-content`)
         }
 
         return $helpContent
@@ -142,11 +127,7 @@ var WebconsoleContainer = (function () {
         }
         const arr = path.split("/")
         const scope = `${arr[0]}/${arr[1]}`
-        //
-        // console.log 'path', path
-        // console.log 'scope', scope
-        // console.log "lastIndexOf('#{scope}')", path.lastIndexOf(scope)
-        //
+
         const options = {
           dataType: "json",
           type: "GET",
@@ -167,10 +148,7 @@ var WebconsoleContainer = (function () {
 
       let height = this.settings["height"]
       if (height) {
-        height =
-          $(document).height() -
-          this.$container.offset().top -
-          $(".footer").outerHeight(true)
+        height = $(document).height() - this.$container.offset().top - $(".footer").outerHeight(true)
         if (!height || height < 500) {
           height = 500
         }
@@ -197,17 +175,13 @@ var WebconsoleContainer = (function () {
 
       $('[data-trigger="webconsole:help"]').click((e) => {
         e.preventDefault()
-        this.$container
-          .find(`.${this.settings.helpCssClass}`)
-          .animate({ width: "toggle" }, "400px")
+        this.$container.find(`.${this.settings.helpCssClass}`).animate({ width: "toggle" }, "400px")
         return $(e.currentTarget).toggleClass("active")
       })
 
       $('[data-trigger="webconsole:close"]').click(function (e) {
         e.preventDefault()
-        return WebconsoleContainer.close(() =>
-          $('[data-trigger="webconsole:open"]').removeClass("active")
-        )
+        return WebconsoleContainer.close(() => $('[data-trigger="webconsole:open"]').removeClass("active"))
       })
 
       return $('[data-trigger="webconsole:fullscreen"]').click((e) => {
@@ -226,10 +200,51 @@ var WebconsoleContainer = (function () {
       })
     }
 
+    static addUnloadHandler() {
+      // Protect against accidental browser tab closure while webconsole is active
+      // Problem: Users working in the web terminal often use keyboard shortcuts,
+      // and it's easy to accidentally hit Cmd+W (Mac) or Ctrl+W (Windows/Linux)
+      // which closes the browser tab, terminating their active shell session
+      // and losing any unsaved work, running processes, or command history
+
+      // Store reference to the handler so we can remove it later
+      // (prevents memory leaks and unwanted confirmations after console is closed)
+      this.unloadHandler = function (e) {
+        const confirmationMessage = "You have an active web console session. Are you sure you want to close this tab?"
+
+        // Standard cross-browser way to show confirmation dialog
+        // Both e.returnValue and return value are needed for compatibility
+        // with different browsers (Chrome, Firefox, Safari, etc.)
+        e.returnValue = confirmationMessage
+        return confirmationMessage
+      }
+
+      // Listen for beforeunload event (triggered when user tries to close tab/window)
+      window.addEventListener("beforeunload", this.unloadHandler)
+    }
+
+    static removeUnloadHandler() {
+      // Clean up the beforeunload event listener to prevent:
+      // 1. Memory leaks from lingering event handlers
+      // 2. False confirmation dialogs when webconsole is not active
+      // 3. Annoying users with unnecessary prompts on normal page navigation
+
+      if (this.unloadHandler) {
+        window.removeEventListener("beforeunload", this.unloadHandler)
+        this.unloadHandler = null
+      }
+    }
+
     static open(callback) {
       // Open console container
       return this.$container.parent().slideDown("slow", function () {
         WebconsoleContainer.load()
+
+        // Add beforeunload handler when webconsole opens
+        // This prevents users from accidentally closing the browser tab with Cmd+W/Ctrl+W
+        // while working in the web console, which would lose their active terminal session
+        // and any unsaved work or running commands
+        WebconsoleContainer.addUnloadHandler()
         if (callback) {
           return callback()
         }
@@ -238,6 +253,11 @@ var WebconsoleContainer = (function () {
 
     static close(callback) {
       return this.$container.parent().slideUp("slow", function () {
+        // Remove beforeunload handler when webconsole closes
+        // Once the console is intentionally closed, we no longer need to protect
+        // against accidental tab closure since there's no active session to lose
+        WebconsoleContainer.removeUnloadHandler()
+
         if (callback) {
           return callback()
         }
@@ -248,8 +268,7 @@ var WebconsoleContainer = (function () {
       const $parentContainer = this.$container.parent()
 
       const new_width = $parentContainer.data("width") || $(window).width()
-      const new_left =
-        $parentContainer.data("left") || -$parentContainer.offset().left
+      const new_left = $parentContainer.data("left") || -$parentContainer.offset().left
 
       $parentContainer.data("width", $parentContainer.width())
       $parentContainer.data("left", new_left !== 0 ? 0 : false)
@@ -312,17 +331,12 @@ var WebconsoleContainer = (function () {
               success(data) {
                 $loadingHint.find(".status").text("80%")
                 // success -> add terminal div to container
-                const $cliContent = $(
-                  `<iframe id='webcli-content' src='${data.url}' height='100%' width='100%' />`
-                )
+                const $cliContent = $(`<iframe id='webcli-content' src='${data.url}' height='100%' width='100%' />`)
 
                 self.$holder.append($cliContent)
 
                 if (context.help_html) {
-                  const $helpContainer = addHelpContainer(
-                    self.$container,
-                    self.settings
-                  )
+                  const $helpContainer = addHelpContainer(self.$container, self.settings)
                   $helpContainer.html(context.help_html)
                 }
 
