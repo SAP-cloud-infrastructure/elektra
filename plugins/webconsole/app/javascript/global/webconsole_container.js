@@ -211,7 +211,6 @@ var WebconsoleContainer = (function () {
       // (prevents memory leaks and unwanted confirmations after console is closed)
       this.unloadHandler = function (e) {
         e.preventDefault()
-        console.log("=================================")
         const confirmationMessage = "You have an active web console session. Are you sure you want to close this tab?"
 
         // Standard cross-browser way to show confirmation dialog
