@@ -137,7 +137,7 @@ let AdvancedOptions = function ({
                             (() => {
                               const result = []
                               for (
-                                i = 0;
+                                let i = 0;
                                 i < metaData.securityGroups.length;
                                 i++
                               ) {
@@ -189,7 +189,7 @@ let AdvancedOptions = function ({
                           },
                           (() => {
                             const result1 = []
-                            for (i = 0; i < metaData.routers.length; i++) {
+                            for (let i = 0; i < metaData.routers.length; i++) {
                               var router = metaData.routers[i]
                               result1.push(
                                 <option value={router.id} key={i}>
@@ -244,7 +244,7 @@ let AdvancedOptions = function ({
                             (() => {
                               const result2 = []
                               for (
-                                i = 0;
+                                let i = 0;
                                 i < selectedRouter.networks.length;
                                 i++
                               ) {
@@ -303,7 +303,7 @@ let AdvancedOptions = function ({
                             (() => {
                               const result3 = []
                               for (
-                                i = 0;
+                                let i = 0;
                                 i < selectedNetwork.subnets.length;
                                 i++
                               ) {
