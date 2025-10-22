@@ -125,7 +125,7 @@ class EditCluster extends React.Component {
                         <option value="">None</option>
                         {(() => {
                           const result = []
-                          for (keyPair of Array.from(metaData.keyPairs)) {
+                          for (let keyPair of Array.from(metaData.keyPairs)) {
                             result.push(
                               <option
                                 value={keyPair.publicKey}
