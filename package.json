@@ -123,7 +123,7 @@
     "check-format": "prettier --config ./.prettierrc --check \"**/*.{js,jsx,ts,tsx,md}\" ",
     "prepare": "husky",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint ."
+    "lint": "eslint . --max-warnings 0"
   },
   "name": "elektra-cc-dashboard",
   "license": "SEE LICENSE IN LICENSE",

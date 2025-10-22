@@ -5,7 +5,6 @@ interface PageHeaderProps {
   title: string
   subtitle?: string
   children?: React.ReactNode
-  [key: string]: any
 }
 
 const PageHeader: React.FC<PageHeaderProps> = ({ title, subtitle, children, ...props }) => {
