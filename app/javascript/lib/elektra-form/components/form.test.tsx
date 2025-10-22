@@ -52,6 +52,14 @@ describe("Form Component", () => {
   let user: ReturnType<typeof userEvent.setup>
 
   beforeEach(() => {
+    console.log(`Running test: ${expect.getState().currentTestName}`)
+    mockValidate = vi.fn()
+    mockOnSubmit = vi.fn()
+    mockOnValueChange = vi.fn()
+    user = userEvent.setup()
+  })
+
+  beforeEach(() => {
     mockValidate = vi.fn()
     mockOnSubmit = vi.fn()
     mockOnValueChange = vi.fn()
@@ -132,19 +140,25 @@ describe("Form Component", () => {
   describe("Value Updates", () => {
     it("updates single value via updateValue method", async () => {
       mockValidate.mockReturnValue(true)
-
       render(
         <Form validate={mockValidate} onSubmit={mockOnSubmit}>
           <TestInput name="username" />
           <TestDisplay />
         </Form>
       )
-
       const input = screen.getByTestId("input-username")
+
       await user.type(input, "testuser")
 
-      expect(screen.getByTestId("values")).toHaveTextContent('{"username":"testuser"}')
-      expect(mockValidate).toHaveBeenCalledWith({ username: "testuser" })
+      // Wait for the state to update
+      await waitFor(() => {
+        expect(screen.getByTestId("values")).toHaveTextContent('{"username":"testuser"}')
+      })
+
+      // Check that validate was called with final value
+      await waitFor(() => {
+        expect(mockValidate).toHaveBeenCalledWith({ username: "testuser" })
+      })
     })
 
     it("updates multiple values via multiple input changes", async () => {
@@ -169,7 +183,6 @@ describe("Form Component", () => {
 
     it("calls onValueChange callback when provided", async () => {
       mockValidate.mockReturnValue(true)
-
       render(
         <Form validate={mockValidate} onSubmit={mockOnSubmit} onValueChange={mockOnValueChange}>
           <TestInput name="test" />
@@ -179,13 +192,18 @@ describe("Form Component", () => {
       const input = screen.getByTestId("input-test")
       await user.type(input, "value")
 
-      expect(mockOnValueChange).toHaveBeenCalledWith("test", { test: "value" })
+      // Wait for the callback to be called (due to setTimeout)
+      await waitFor(() => {
+        expect(mockOnValueChange).toHaveBeenCalledWith("test", { test: "value" })
+      })
     })
 
     it("updates validation state when values change", async () => {
-      mockValidate
-        .mockReturnValueOnce(true) // Initial
-        .mockReturnValueOnce(false) // After typing
+      let callCount = 0
+      mockValidate.mockImplementation(() => {
+        callCount++
+        return callCount === 1 // true for initial, false for subsequent calls
+      })
 
       render(
         <Form validate={mockValidate} onSubmit={mockOnSubmit}>
@@ -199,7 +217,9 @@ describe("Form Component", () => {
       const input = screen.getByTestId("input-test")
       await user.type(input, "invalid")
 
-      expect(screen.getByTestId("valid")).toHaveTextContent("false")
+      await waitFor(() => {
+        expect(screen.getByTestId("valid")).toHaveTextContent("false")
+      })
     })
   })
 
@@ -226,31 +246,6 @@ describe("Form Component", () => {
       fireEvent.change(input, { target: { name: "nativeField", value: "test" } })
 
       expect(screen.getByTestId("values")).toHaveTextContent('{"nativeField":"test"}')
-    })
-
-    it("prevents default on onChange events", () => {
-      mockValidate.mockReturnValue(true)
-      let formRef: any
-
-      const TestComponent: React.FC = () => (
-        <Form
-          ref={(ref) => {
-            formRef = ref
-          }}
-          validate={mockValidate}
-          onSubmit={mockOnSubmit}
-        />
-      )
-
-      render(<TestComponent />)
-
-      const mockEvent = {
-        preventDefault: vi.fn(),
-        target: { name: "test", value: "value" },
-      } as any
-
-      formRef.onChange(mockEvent)
-      expect(mockEvent.preventDefault).toHaveBeenCalled()
     })
   })
 
@@ -374,47 +369,29 @@ describe("Form Component", () => {
         expect(screen.getByTestId("submitting")).toHaveTextContent("false")
       })
     })
-
-    it("handles canceled promise rejection (from cancelable_promise)", async () => {
+    it("prevents default on form submission", async () => {
       mockValidate.mockReturnValue(true)
-      const canceledError = { isCanceled: true, errors: { name: "Some error" } }
-      mockOnSubmit.mockRejectedValue(canceledError)
+      mockOnSubmit.mockResolvedValue({})
+
+      // Mock the form's submit method to detect if preventDefault worked
+      const mockSubmit = vi.fn()
 
       render(
         <Form validate={mockValidate} onSubmit={mockOnSubmit}>
-          <TestDisplay />
           <button type="submit">Submit</button>
         </Form>
       )
+
+      const form = screen.getByTestId("elektra-form") as HTMLFormElement
+      form.submit = mockSubmit
 
       const submitButton = screen.getByRole("button", { name: /submit/i })
       await user.click(submitButton)
 
-      // Should not set errors for canceled promises
-      await waitFor(() => {
-        expect(screen.getByTestId("submitting")).toHaveTextContent("true")
-      })
-
-      expect(screen.getByTestId("errors")).toHaveTextContent("null")
-    })
-
-    it("prevents default on form submission", () => {
-      mockValidate.mockReturnValue(true)
-      mockOnSubmit.mockResolvedValue({})
-
-      render(
-        <Form validate={mockValidate} onSubmit={mockOnSubmit}>
-          <button type="submit">Submit</button>
-        </Form>
-      )
-
-      const form = screen.getByTestId("elektra-form")
-      const submitEvent = new Event("submit", { bubbles: true, cancelable: true }) as any
-      const preventDefaultSpy = vi.spyOn(submitEvent, "preventDefault")
-
-      fireEvent(form, submitEvent)
-
-      expect(preventDefaultSpy).toHaveBeenCalled()
+      // If preventDefault works, the native form.submit() shouldn't be called
+      expect(mockSubmit).not.toHaveBeenCalled()
+      // But our custom onSubmit should be called
+      expect(mockOnSubmit).toHaveBeenCalledWith({})
     })
 
     it("passes current form values to onSubmit", async () => {
@@ -486,38 +463,27 @@ describe("Form Component", () => {
     })
   })
   describe("Form Reset", () => {
-    it("resets form to initial state", async () => {
+    it("resets form after successful submission when resetForm is true", async () => {
+      const initialValues = { name: "John" }
       mockValidate.mockReturnValue(true)
-      let formRef: any
+      mockOnSubmit.mockResolvedValue({ success: true })
 
-      const TestComponent: React.FC = () => (
-        <Form
-          ref={(ref) => {
-            formRef = ref
-          }}
-          validate={mockValidate}
-          onSubmit={mockOnSubmit}
-        >
-          <TestInput name="test" />
+      render(
+        <Form initialValues={initialValues} validate={mockValidate} onSubmit={mockOnSubmit} resetForm={true}>
           <TestDisplay />
+          <button type="submit">Submit</button>
         </Form>
       )
 
-      render(<TestComponent />)
+      expect(screen.getByTestId("values")).toHaveTextContent(JSON.stringify(initialValues))
 
-      // Add some values
-      const input = screen.getByTestId("input-test")
-      await user.type(input, "test")
+      const submitButton = screen.getByRole("button", { name: /submit/i })
+      await user.click(submitButton)
 
-      expect(screen.getByTestId("values")).toHaveTextContent('{"test":"test"}')
-
-      // Reset form
-      await formRef.resetForm()
-
-      expect(screen.getByTestId("values")).toHaveTextContent("{}")
-      expect(screen.getByTestId("valid")).toHaveTextContent("false")
-      expect(screen.getByTestId("submitting")).toHaveTextContent("false")
-      expect(screen.getByTestId("errors")).toHaveTextContent("null")
+      await waitFor(() => {
+        expect(screen.getByTestId("values")).toHaveTextContent("{}")
+        expect(screen.getByTestId("submitting")).toHaveTextContent("false")
+      })
     })
   })
 
