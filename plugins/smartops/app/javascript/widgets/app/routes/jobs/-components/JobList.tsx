@@ -11,7 +11,6 @@ import {
   Breadcrumb,
   BreadcrumbItem,
 } from "@cloudoperators/juno-ui-components"
-import { useRouter } from "@tanstack/react-router"
 
 interface JobListProps {
   jobs: Job[]
@@ -19,17 +18,10 @@ interface JobListProps {
 }
 
 const Navigation = () => {
-  const router = useRouter()
   return (
     <Breadcrumb>
-      <BreadcrumbItem icon="home" label="" />
-      <BreadcrumbItem
-        label="Jobs"
-        onClick={
-          // reload the jobs list
-          async () => await router.invalidate()
-        }
-      />
+      <BreadcrumbItem icon="home" label="" disabled />
+      <BreadcrumbItem label="Jobs" />
     </Breadcrumb>
   )
 }
