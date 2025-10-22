@@ -262,6 +262,9 @@ devDependencies:
   '@types/react':
     specifier: ^19.2.2
     version: 19.2.2
+  '@types/react-bootstrap-typeahead':
+    specifier: ^3.0.0
+    version: 3.4.7
   '@types/react-dom':
     specifier: ^19.2.1
     version: 19.2.1(@types/react@19.2.2)
@@ -3855,6 +3858,12 @@ packages:
   /@types/prop-types@15.7.15:
     resolution: {integrity: sha512-F6bEyamV9jKGAFBEmlQnesRPGOQqS2+Uwi0Em15xenOxHaf2hv6L8YCVn3rPdPJOiJfPiCnLIRyvwVaqMY3MIw==}
     dev: false
+
+  /@types/react-bootstrap-typeahead@3.4.7:
+    resolution: {integrity: sha512-UBezb5DY5Ywsqu5NuypgFjvyP1SJ9rS2Gqp0/rdVKesTEvvS+DqcvgUbTyZ84J4Ni1m0LDXTuU96Oji6dAMIag==}
+    dependencies:
+      '@types/react': 19.2.2
+    dev: true
 
   /@types/react-dom@18.3.7(@types/react@19.2.2):
     resolution: {integrity: sha512-MEe3UeoENYVFXzoXEWsvcpg6ZvlrFNlOQ7EOsvhI3CfAXwzPfO8Qwuxd40nepsYKqyyVQnTdEfv68q91yLcKrQ==}

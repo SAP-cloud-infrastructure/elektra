@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import { render, screen, fireEvent, waitFor } from "@testing-library/react"
+import { render, screen, fireEvent } from "@testing-library/react"
 import { BrowserRouter } from "react-router-dom"
 import "@testing-library/jest-dom"
 import React from "react"
@@ -24,11 +24,6 @@ interface PolicyType {
   isAllowed: (permission: string, options?: any) => boolean
 }
 
-// Properly declare global augmentation
-declare global {
-  var policy: PolicyType | undefined
-}
-
 // Mock global policy object
 const mockPolicy = {
   isAllowed: vi.fn(),
@@ -40,7 +35,6 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  delete global.policy // Now this works
   vi.clearAllMocks()
 })
 
@@ -53,13 +47,6 @@ interface MockSnapshot {
   status: string
   volume_id?: string
   volume_name?: string
-}
-
-interface SnapshotProps {
-  snapshot: MockSnapshot
-  searchTerm?: string
-  reloadSnapshot: (id: string) => void
-  deleteSnapshot: (id: string) => void
 }
 
 // Test wrapper component
