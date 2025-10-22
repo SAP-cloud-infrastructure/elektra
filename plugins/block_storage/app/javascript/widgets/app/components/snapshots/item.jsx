@@ -28,10 +28,7 @@ export default class Snapshot extends React.Component {
   startPolling = () => {
     // do not create a new polling interval if already polling
     if (this.polling) return
-    this.polling = setInterval(
-      () => this.props.reloadSnapshot(this.props.snapshot.id),
-      5000
-    )
+    this.polling = setInterval(() => this.props.reloadSnapshot(this.props.snapshot.id), 5000)
   }
 
   stopPolling = () => {
@@ -66,9 +63,7 @@ export default class Snapshot extends React.Component {
           </span>
         </td>
         <td>
-          <MyHighlighter search={searchTerm}>
-            {snapshot.description}
-          </MyHighlighter>
+          <MyHighlighter search={searchTerm}>{snapshot.description}</MyHighlighter>
         </td>
         <td>
           <MyHighlighter search={searchTerm}>{snapshot.size}</MyHighlighter>
@@ -76,9 +71,7 @@ export default class Snapshot extends React.Component {
         <td>
           {snapshot.volume_name ? (
             <>
-              <Link to={`/snapshots/volumes/${snapshot.volume_id}/show`}>
-                {snapshot.volume_name}
-              </Link>
+              <Link to={`/snapshots/volumes/${snapshot.volume_id}/show`}>{snapshot.volume_name}</Link>
               <br />
               <span className="info-text">{snapshot.volume_id}</span>
             </>
@@ -92,12 +85,15 @@ export default class Snapshot extends React.Component {
         </td>
 
         <td className="snug">
-          {(policy.isAllowed("block_storage:snapshot_delete", {
-            target: { scoped_domain_name: scope.domain },
-          }) ||
-            policy.isAllowed("block_storage:snapshot_update", {
+          {[
+            "block_storage:snapshot_delete",
+            "block_storage:snapshot_update",
+            "block_storage:snapshot_reset_status",
+          ].some((permission) =>
+            policy.isAllowed(permission, {
               target: { scoped_domain_name: scope.domain },
-            })) && (
+            })
+          ) && (
             <div className="btn-group">
               <button
                 className="btn btn-default btn-sm dropdown-toggle"
@@ -119,9 +115,7 @@ export default class Snapshot extends React.Component {
                 )}
                 {snapshot.status == "available" && (
                   <li>
-                    <Link to={`/snapshots/${snapshot.id}/volumes/new`}>
-                      Create Volume
-                    </Link>
+                    <Link to={`/snapshots/${snapshot.id}/volumes/new`}>Create Volume</Link>
                   </li>
                 )}
                 {policy.isAllowed("block_storage:snapshot_delete", {
@@ -140,9 +134,7 @@ export default class Snapshot extends React.Component {
                   <>
                     <li className="divider"></li>
                     <li>
-                      <Link to={`/snapshots/${snapshot.id}/reset-status`}>
-                        Reset Status
-                      </Link>
+                      <Link to={`/snapshots/${snapshot.id}/reset-status`}>Reset Status</Link>
                     </li>
                   </>
                 )}
