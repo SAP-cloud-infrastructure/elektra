@@ -62,7 +62,7 @@ const multiselect = (elementsSelector) =>
         label.textContent = value
         newLabels.push(label.outerHTML)
       }
-      for (value of Array.from(valuesToRemove)) {
+      for (var value of Array.from(valuesToRemove)) {
         const label = document.createElement("s")
         label.textContent = value
         newLabels.push(label.outerHTML)
