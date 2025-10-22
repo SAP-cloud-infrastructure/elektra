@@ -9,8 +9,8 @@ import App from "./components/app"
 import { setAjaxHelper, setBackendAjaxClient } from "./actions/ajax_helper"
 import { createWidget } from "lib/widget"
 
-composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose
-store = createStore(AppReducers, composeEnhancers(applyMiddleware(ReduxThunk)))
+const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose
+const store = createStore(AppReducers, composeEnhancers(applyMiddleware(ReduxThunk)))
 
 const AppProvider = ({ permissions, authToken, kubernikusBaseUrl }) => {
   setAjaxHelper(new ReactAjaxHelper(kubernikusBaseUrl, { authToken }))

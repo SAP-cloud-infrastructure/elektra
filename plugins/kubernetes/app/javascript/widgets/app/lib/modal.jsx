@@ -83,7 +83,7 @@ ReactModal.Wrapper = (title, WrappedComponent, options = {}) =>
 ReactModal.Reducer = (state = [], action) => {
   switch (action.type) {
     case ReactModal.SHOW_MODAL: {
-      for (m of state) {
+      for (const m of state) {
         if (m.modalType === action.modalType) {
           return state
         }
@@ -99,7 +99,7 @@ ReactModal.Reducer = (state = [], action) => {
     }
     case ReactModal.HIDE_MODAL: {
       let newState = state.slice()
-      for (i in state) {
+      for (const i in state) {
         const m = state[i]
         if (m.modalType === action.modalType) newState.splice(i, 1)
       }

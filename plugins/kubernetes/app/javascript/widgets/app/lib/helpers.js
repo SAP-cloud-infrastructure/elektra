@@ -16,10 +16,10 @@ ReactHelpers.mergeObjects = function (obj1, obj2, obj3) {
   for (var key in obj1) {
     result[key] = obj1[key]
   }
-  for (key in obj2) {
+  for (var key in obj2) {
     result[key] = obj2[key]
   }
-  for (key in obj3) {
+  for (var key in obj3) {
     result[key] = obj3[key]
   }
   return result

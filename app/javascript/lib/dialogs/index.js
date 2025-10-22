@@ -29,13 +29,6 @@ const showDialog = function (type, message, options) {
   }
 
   wrapper = document.body.appendChild(document.createElement("div"))
-  // cleanup = function() {
-  //   ReactDOM.unmountComponentAtNode(wrapper)
-  //   return setTimeout(function() {
-  //     return wrapper.remove();
-  //   });
-  // };
-
   // props = Object.assign({ message, type, onHide: cleanup}, options);
   props = Object.assign({ message, type }, options)
   const promise = new Deferred()
