@@ -127,25 +127,25 @@ module ServiceLayer
 
       def list_jobs(filter = {})
         sleep(rand(0..3)) # Simulate random network delay between 0 and 3 seconds
-        filtered_jobs = MOCK_DATA
+        jobs = MOCK_DATA # if api is available, fetch data from there
 
         # Filter by name (partial match, case-insensitive)
         if filter[:name]
-          filtered_jobs = filtered_jobs.select do |job|
+          jobs = jobs.select do |job|
             job[:name].downcase.include?(filter[:name].downcase)
           end
         end
 
         # Filter by type (object_type)
         if filter[:type]
-          filtered_jobs = filtered_jobs.select do |job|
+          jobs = jobs.select do |job|
             job[:object_type] == filter[:type]
           end
         end
 
         # Filter by id (exact match)
         if filter[:id]
-          filtered_jobs = filtered_jobs.select do |job|
+          jobs = jobs.select do |job|
             job[:id] == filter[:id]
           end
         end
@@ -153,7 +153,7 @@ module ServiceLayer
         # Filter by scheduled_date (assuming you want jobs scheduled on or after this date)
         if filter[:scheduled_date]
           filter_date = Time.parse(filter[:scheduled_date])
-          filtered_jobs = filtered_jobs.select do |job|
+          jobs = jobs.select do |job|
             job_date = Time.parse(job[:schedule_date])
             job_date >= filter_date
           end
@@ -162,13 +162,13 @@ module ServiceLayer
         # Filter by due_date (assuming you want jobs due on or before this date)
         if filter[:due_date]
           filter_date = Time.parse(filter[:due_date])
-          filtered_jobs = filtered_jobs.select do |job|
+          jobs = jobs.select do |job|
             job_date = Time.parse(job[:due_date])
             job_date <= filter_date
           end
         end
 
-        filtered_jobs
+        jobs
       end
 
       def schedule_job(id, schedule_date)
