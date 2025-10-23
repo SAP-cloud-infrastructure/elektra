@@ -16,7 +16,7 @@ interface FormProps {
 }
 
 const Form: React.FC<FormProps> = ({
-  initialValues = {},
+  initialValues,
   resetForm = true,
   validate,
   onSubmit,
@@ -24,27 +24,26 @@ const Form: React.FC<FormProps> = ({
   className,
   children,
 }) => {
-  const [values, setValues] = useState<FormValues>(initialValues)
-  const [isValid, setIsValid] = useState(() => (validate ? validate(initialValues) : true))
+  const [values, setValues] = useState<FormValues>(initialValues || {})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<Record<string, string> | null>(null)
+  const [isTouched, setIsTouched] = useState(false) // Track if user has made changes
 
   // Use refs to track previous values to avoid infinite loops
   const prevInitialValues = useRef(initialValues)
 
   useEffect(() => {
-    if (initialValues !== prevInitialValues.current && initialValues && Object.keys(values).length === 0) {
+    if (initialValues && initialValues !== prevInitialValues.current && !isTouched) {
       setValues(initialValues)
-      setIsValid(validate ? validate(initialValues) : true)
     }
     prevInitialValues.current = initialValues
-  }, [initialValues, validate, values])
+  }, [initialValues, isTouched])
 
   const resetFormHandler = () => {
     setValues({})
-    setIsValid(validate ? validate({}) : false)
     setIsSubmitting(false)
     setErrors(null)
+    setIsTouched(false) // Reset touched state
   }
 
   const updateValue = (name: string | FormValues, value?: any) => {
@@ -56,10 +55,8 @@ const Form: React.FC<FormProps> = ({
       newValues = { ...values, [name]: value }
     }
 
-    const newIsValid = validate ? validate(newValues) : true
-
     setValues(newValues)
-    setIsValid(newIsValid)
+    setIsTouched(true) // Mark form as touched when user makes changes
 
     // Call onValueChange after state update to match original behavior
     if (onValueChange) {
@@ -68,11 +65,6 @@ const Form: React.FC<FormProps> = ({
         onValueChange(name, newValues)
       }, 0)
     }
-  }
-
-  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.preventDefault()
-    updateValue(e.target.name, e.target.value)
   }
 
   const onSubmitHandler = (e?: React.FormEvent<HTMLFormElement>) => {
@@ -101,7 +93,7 @@ const Form: React.FC<FormProps> = ({
     formValues: values,
     onChange: updateValue,
     isFormSubmitting: isSubmitting,
-    isFormValid: isValid,
+    isFormValid: validate ? validate(values) : true,
     formErrors: errors,
   }
 
