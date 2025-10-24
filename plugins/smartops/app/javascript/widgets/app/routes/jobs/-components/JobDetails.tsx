@@ -1,6 +1,5 @@
 // components/JobDetails.tsx
-import React from "react"
-import { Job } from "../../../types/job"
+import type { Job } from "../../../types/api"
 import { getStatusColor, formatDate } from "./utils/jobUtils"
 import { Stack, DataGrid, DataGridRow, DataGridHeadCell, DataGridCell, Badge } from "@cloudoperators/juno-ui-components"
 

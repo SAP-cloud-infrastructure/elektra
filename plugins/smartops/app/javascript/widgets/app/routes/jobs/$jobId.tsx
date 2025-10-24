@@ -1,7 +1,6 @@
-import { createFileRoute, Navigate, useNavigate } from "@tanstack/react-router"
-import { Job } from "../../types/job"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import type { ApiResponse } from "../../types/api"
 import { JobDetails } from "./-components/JobDetails"
-import React from "react"
 import { Breadcrumb, BreadcrumbItem, Spinner } from "@cloudoperators/juno-ui-components"
 
 export const Route = createFileRoute("/jobs/$jobId")({
@@ -12,8 +11,11 @@ export const Route = createFileRoute("/jobs/$jobId")({
     if (!client) {
       throw new Error("API client is undefined")
     }
-    const response = await client.get<{ data: Job[] }>(`/jobs/${params.jobId}`)
-    const [job] = response.data // takes the first job from the response
+    const response = await client.get<ApiResponse>(`/jobs/${params.jobId}`)
+    if (!response.data.success) {
+      throw new Error(response.data.error?.message || "Failed to fetch job details")
+    }
+    const job = response.data.job
 
     if (!job) {
       throw new Error("Job not found")
@@ -25,7 +27,7 @@ export const Route = createFileRoute("/jobs/$jobId")({
 function Details() {
   const { job } = Route.useLoaderData()
   const navigate = useNavigate()
-  console.debug("Job details loaded:", job)
+  console.log("Job details loaded:", job)
   return (
     <>
       <Breadcrumb>

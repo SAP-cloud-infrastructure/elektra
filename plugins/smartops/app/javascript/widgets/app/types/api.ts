@@ -15,6 +15,7 @@ export const JobState = z.enum([
   "canceled",
   "cancelling",
   "failed",
+  "unknown",
 ])
 
 // Object types enum
@@ -26,7 +27,7 @@ export const JobSchema = z.object({
   name: z.string(),
   policy: z.string(),
   description: z.string().optional(),
-  state: JobState,
+  state: JobState.optional(),
   schedule_date: z.string().datetime(),
   due_date: z.string().datetime(),
   object_type: ObjectType,
@@ -57,3 +58,20 @@ export const JobFilterSchema = z
   .partial()
 
 export type JobFilter = z.infer<typeof JobFilterSchema>
+
+export const ApiErrorSchema = z.object({
+  type: z.string(),
+  message: z.string(),
+  backtrace: z.array(z.string()),
+})
+
+export const ApiResponseSchema = z.object({
+  data: z.object({
+    success: z.boolean(),
+    jobs: JobsSchema.optional(),
+    job: JobSchema.optional(),
+    error: ApiErrorSchema.optional(),
+  }),
+})
+
+export type ApiResponse = z.infer<typeof ApiResponseSchema>

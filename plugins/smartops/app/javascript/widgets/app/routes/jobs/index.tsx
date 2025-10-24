@@ -1,8 +1,7 @@
 import { createFileRoute, useLoaderData } from "@tanstack/react-router"
-import { Job } from "../../types/job"
+import type { Job, ApiResponse } from "../../types/api"
 import { JobList } from "./-components/JobList"
 import { IntroBox } from "@cloudoperators/juno-ui-components"
-import React from "react"
 
 const STATUS_ORDER = [
   "initial",
@@ -16,6 +15,7 @@ const STATUS_ORDER = [
   "error",
   "canceled",
   "reset",
+  "unknown",
 ] as const
 
 function sortJobsByStatus(jobs: Job[]): Job[] {
@@ -48,7 +48,12 @@ export const Route = createFileRoute("/jobs/")({
     if (!client) {
       throw new Error("API client is undefined")
     }
-    const jobs = await client.get<{ data: Job[] }>("/jobs").then((response) => response.data)
+    const result = await client.get<ApiResponse>("/jobs").then((response) => response.data)
+    console.log("Fetched jobs:", result)
+    if (!result.success || !result.jobs) {
+      throw new Error(result.error?.message || "Failed to fetch jobs")
+    }
+    const jobs = result.jobs
     const sortedJobs = sortJobsByStatus(jobs)
     return {
       jobs: sortedJobs,

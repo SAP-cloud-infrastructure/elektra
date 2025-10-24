@@ -1,7 +1,6 @@
 // components/JobList.tsx
-import { Job } from "../../../types/job"
+import type { Job } from "../../../types/api"
 import { JobItem } from "./JobItem"
-import React from "react"
 import {
   DataGrid,
   DataGridRow,

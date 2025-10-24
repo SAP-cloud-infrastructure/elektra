@@ -1,8 +1,7 @@
 // components/JobItem.tsx
 import { useNavigate } from "@tanstack/react-router"
-import { Job } from "../../../types/job"
+import type { Job } from "../../../types/api"
 import { getStatusColor, formatDate } from "./utils/jobUtils"
-import React from "react"
 import { DataGridRow, DataGridCell, Button, Badge, Stack } from "@cloudoperators/juno-ui-components"
 
 interface JobItemProps {
