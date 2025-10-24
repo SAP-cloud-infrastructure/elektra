@@ -4,13 +4,7 @@ import { Form } from "lib/elektra-form"
 
 const defaultVolumeType = "vmware"
 
-const FormBody = ({
-  values,
-  availabilityZones,
-  images,
-  volumes,
-  typeDescription,
-}) => {
+const FormBody = ({ values, availabilityZones, images, volumes }) => {
   const groupedImages = React.useMemo(() => {
     const result = {}
     if (!images.items) return result
@@ -30,11 +24,7 @@ const FormBody = ({
       </Form.ElementHorizontal>
 
       <Form.ElementHorizontal label="Description" name="description" required>
-        <Form.Input
-          elementType="textarea"
-          className="text optional form-control"
-          name="description"
-        />
+        <Form.Input elementType="textarea" className="text optional form-control" name="description" />
       </Form.ElementHorizontal>
 
       <Form.ElementHorizontal label="Size in GB" name="size" required>
@@ -43,8 +33,7 @@ const FormBody = ({
 
       <Form.ElementHorizontal label="" name="bootable">
         <label>
-          <Form.Input elementType="input" type="checkbox" name="bootable" />{" "}
-          bootable
+          <Form.Input elementType="input" type="checkbox" name="bootable" /> bootable
         </label>
       </Form.ElementHorizontal>
 
@@ -55,11 +44,7 @@ const FormBody = ({
           ) : images.error ? (
             <span className="text-danger">Could not load images</span>
           ) : (
-            <Form.Input
-              elementType="select"
-              className="select required form-control"
-              name="imageRef"
-            >
+            <Form.Input elementType="select" className="select required form-control" name="imageRef">
               <option></option>
               {Object.keys(groupedImages)
                 .sort()
@@ -75,8 +60,7 @@ const FormBody = ({
             </Form.Input>
           )}
           <span className="help-block">
-            The UUID of the image from which you want to create the volume.
-            Required to create a bootable volume.
+            The UUID of the image from which you want to create the volume. Required to create a bootable volume.
           </span>
         </Form.ElementHorizontal>
       )}
@@ -87,11 +71,7 @@ const FormBody = ({
         ) : volumes.error ? (
           <span className="text-danger">{volumes.error}</span>
         ) : (
-          <Form.Input
-            elementType="select"
-            className="select required form-control"
-            name="volume_type"
-          >
+          <Form.Input elementType="select" className="select required form-control" name="volume_type">
             {volumes.types.map((vt, index) => {
               let name = vt.description
               if (vt.description === null) {
@@ -108,39 +88,13 @@ const FormBody = ({
         )}
       </Form.ElementHorizontal>
 
-      {/*
-    //NOTE: at the moment this is not used because description is used as name in the volume type dropdown
-
-    <div className="row">
-      <div className="col-md-4"></div>
-      <div className="col-md-8">
-        { typeDescription != null && typeDescription != "" ? 
-          <p className="help-block">
-            <i className="fa fa-info-circle"></i>
-            {typeDescription}
-          </p>
-          :
-          null
-        }
-      </div>
-    </div>
-    */}
-
-      <Form.ElementHorizontal
-        label="Availability Zone"
-        required
-        name="availability_zone"
-      >
+      <Form.ElementHorizontal label="Availability Zone" required name="availability_zone">
         {availabilityZones.isFetching ? (
           <span className="spinner" />
         ) : availabilityZones.error ? (
           <span className="text-danger">{availabilityZones.error}</span>
         ) : (
-          <Form.Input
-            elementType="select"
-            className="select required form-control"
-            name="availability_zone"
-          >
+          <Form.Input elementType="select" className="select required form-control" name="availability_zone">
             <option></option>
             {availabilityZones.items.map((az, index) => (
               <option value={az.zoneName} key={index}>
@@ -165,12 +119,6 @@ const NewVolumeForm = ({
   history,
 }) => {
   const [show, setShow] = React.useState(true)
-  const [typeDescription, updateTypeDescription] =
-    React.useState(defaultVolumeType)
-  // state = {
-  //   show: true,
-  //   typeDescription: null,
-  // }
 
   React.useEffect(() => {
     loadAvailabilityZonesOnce()
@@ -178,42 +126,12 @@ const NewVolumeForm = ({
     loadVolumeTypesOnce()
   }, [])
 
-  //NOTE: at the moment this is not used because description is used as name in the volume type dropdown
-  const setTypesDescription = React.useCallback(
-    (name) => {
-      if (name && volumes.types) {
-        volumes.types.map((vt, index) => {
-          if (vt.name === name) {
-            updateTypeDescription(vt.description)
-          }
-        })
-      }
-    },
-    [volumes.types, updateTypeDescription]
-  )
-
   const validate = React.useCallback(
-    ({
-      name,
-      size,
-      volume_type,
-      availability_zone,
-      description,
-      bootable,
-      imageRef,
-    }) => {
-      setTypesDescription(volume_type)
-      return (
-        name &&
-        size &&
-        volume_type &&
-        availability_zone &&
-        description &&
-        (!bootable || imageRef) &&
-        true
-      )
+    ({ name, size, volume_type, availability_zone, description, bootable, imageRef }) => {
+      // Pure validation function - no side effects
+      return name && size && volume_type && availability_zone && description && (!bootable || imageRef) && true
     },
-    [setTypesDescription]
+    []
   )
 
   const close = React.useCallback(
@@ -238,10 +156,7 @@ const NewVolumeForm = ({
     [handleSubmit, close]
   )
 
-  const initialValues = React.useMemo(
-    () => ({ volume_type: defaultVolumeType }),
-    []
-  )
+  const initialValues = React.useMemo(() => ({ volume_type: defaultVolumeType }), [])
 
   return (
     <Modal
@@ -256,18 +171,8 @@ const NewVolumeForm = ({
         <Modal.Title id="contained-modal-title-lg">New Volume</Modal.Title>
       </Modal.Header>
 
-      <Form
-        className="form form-horizontal"
-        validate={validate}
-        onSubmit={onSubmit}
-        initialValues={initialValues}
-      >
-        <FormBody
-          availabilityZones={availabilityZones}
-          images={images}
-          volumes={volumes}
-          typeDescription={typeDescription}
-        />
+      <Form className="form form-horizontal" validate={validate} onSubmit={onSubmit} initialValues={initialValues}>
+        <FormBody availabilityZones={availabilityZones} images={images} volumes={volumes} />
 
         <Modal.Footer>
           <Button onClick={close}>Cancel</Button>
