@@ -30,7 +30,6 @@ interface ClusterListProps {
   clusters?: Cluster[]
   isLoading?: boolean
   error?: Error
-  [key: string]: any
 }
 
 const ClusterList: React.FC<ClusterListProps> = ({ clusters = [], error, isLoading, ...props }) => {

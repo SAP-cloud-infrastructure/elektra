@@ -1,18 +1,18 @@
 import React from "react"
 import { Stack, Icon } from "@cloudoperators/juno-ui-components"
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null
+}
 // Handle deferred errors from tankstack router loader awaited promises
 // If the promise is rejected, the Await component will throw the serialized error
 // wrapped into the data attribute and have a __isServerError property
-function isSerializedServerError(error: unknown): error is { data: { message: string } } {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "data" in error &&
-    typeof (error as { data?: any }).data?.message === "string"
-  )
+export function isSerializedServerError(error: unknown): error is { data: { message: string } } {
+  if (!isRecord(error)) return false
+  const data = error["data"]
+  if (!isRecord(data)) return false
+  return typeof data["message"] === "string"
 }
-
 function normalizeError(error: unknown): { title: string; message: string } {
   if (isSerializedServerError(error)) {
     return {
@@ -34,7 +34,6 @@ function normalizeError(error: unknown): { title: string; message: string } {
 interface InlineErrorProps {
   error: unknown
   className?: string
-  [key: string]: any
 }
 
 const InlineError = ({ error, className, ...props }: InlineErrorProps) => {

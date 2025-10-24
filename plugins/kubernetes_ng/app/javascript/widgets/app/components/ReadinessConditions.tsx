@@ -44,7 +44,6 @@ const ConditionBadge: React.FC<{ condition: ReadinessCondition }> = ({ condition
 type ReadinessConditionsProps = {
   conditions: ReadinessCondition[]
   showDetails?: boolean
-  [key: string]: unknown
 }
 
 const ReadinessConditions: React.FC<ReadinessConditionsProps> = ({ conditions, showDetails = false, ...props }) => {

@@ -27,7 +27,6 @@ export function createGardenerApi(mountpoint: string) {
       apiClient.get<{ data: Cluster[] }>("/api/clusters/").then((res) => {
         const parsed = ClustersSchema.safeParse(res.data)
         if (!parsed.success) {
-          console.error("Invalid API response:", parsed.error)
           throw new Error("Failed to fetch clusters: invalid response")
         }
         return res.data
@@ -37,7 +36,6 @@ export function createGardenerApi(mountpoint: string) {
       apiClient.get<{ data: Cluster }>(`/api/clusters/${name}/`).then((res) => {
         const parsed = ClusterSchema.safeParse(res.data)
         if (!parsed.success) {
-          console.error("Invalid API response:", parsed.error)
           throw new Error("Failed to fetch cluster: invalid response")
         }
         return res.data
@@ -49,7 +47,6 @@ export function createGardenerApi(mountpoint: string) {
       apiClient.get<{ data: Permissions }>("/api/permissions/shoots/").then((res) => {
         const parsed = PermissionsSchema.safeParse(res.data)
         if (!parsed.success) {
-          console.error("Invalid API response:", parsed.error)
           throw new Error("Failed to fetch permissions: invalid response")
         }
         return res.data
