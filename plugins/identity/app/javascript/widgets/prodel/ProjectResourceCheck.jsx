@@ -156,9 +156,9 @@ export default function ProjectResourceCheck({ opened, onClose }) {
     } else if (resourceType === "object_store_containers" && serviceType === "object-store") {
       typeHref = "/object-storage/containers"
     } else if (resourceType === "key_manager_containers") {
-      typeHref = "/keymanagerng/containers"
+      typeHref = "/keymanager/containers"
     } else if (resourceType === "key_manager_secrets") {
-      typeHref = "/keymanagerng/secrets"
+      typeHref = "/keymanager/secrets"
     } else if (resourceType === "load_balancers" && serviceType === "load-balancer") {
       typeHref = "/lbaas2/?r=/loadbalancers"
     } else if (resourceType === "cronus_nebula_aws" || resourceType === "cronus_nebula_int") {

@@ -1,4 +1,4 @@
-describe("keymanagerng", () => {
+describe("keymanager", () => {
   let randomNumber
   let createSecret
   let deleteSecret
@@ -44,30 +44,30 @@ describe("keymanagerng", () => {
     createOrder = (sOrderName, sOrderType, sAlgorithm, sBitLength, sMode) => {
       cy.contains("New Order").click()
       cy.contains("New Order").should("have.lengthOf", 1)
-      
+
       // Fill order name if provided
       if (sOrderName) {
         cy.get("[data-target='order-name-text-input']").type(sOrderName)
       }
-      
+
       // Select order type
       cy.get("[data-target='order-type-select']").click()
       cy.get("[data-target='order-type-select-option-" + sOrderType + "']").click({
         force: true,
       })
-      
+
       // Select algorithm
       cy.get("[data-target='order-algorithm-select']").click()
       cy.get("[data-target='order-algorithm-select-option-" + sAlgorithm + "']").click({
         force: true,
       })
-      
+
       // Select bit length
       cy.get("[data-target='order-bit-length-select']").click()
       cy.get("[data-target='order-bit-length-select-option-" + sBitLength + "']").click({
         force: true,
       })
-      
+
       // Select mode if provided (for AES)
       if (sMode) {
         cy.get("[data-target='order-mode-select']").click()
@@ -75,10 +75,10 @@ describe("keymanagerng", () => {
           force: true,
         })
       }
-      
+
       // Save the new order
       cy.contains("Save").click({ force: true })
-      
+
       // Find the newly created order in orders table
       cy.get("[data-target=" + sOrderName + "]").should("have.lengthOf", 1)
     }
@@ -143,7 +143,7 @@ describe("keymanagerng", () => {
   })
 
   it("open key manager and create a new 'Passphrase' secret and delete it", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/keymanagerng/secrets`)
+    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/keymanager/secrets`)
 
     //Check domain and project names and titles
     cy.contains("cc3test").should("have.lengthOf", 1)
@@ -182,7 +182,7 @@ describe("keymanagerng", () => {
   })
 
   it("Create a new 'AES Key' order and delete it", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/keymanagerng/secrets`)
+    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/keymanager/secrets`)
 
     // Check that Orders tab exists
     cy.contains("Orders").should("have.lengthOf", 1)
@@ -229,7 +229,7 @@ describe("keymanagerng", () => {
   })
 
   it("Create a new 'RSA Asymmetric' order and delete it", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/keymanagerng/secrets`)
+    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/keymanager/secrets`)
 
     // Navigate to Orders tab
     cy.contains("Orders").click()
@@ -262,7 +262,7 @@ describe("keymanagerng", () => {
   })
 
   it("Test order validation with invalid bit length for AES", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/keymanagerng/secrets`)
+    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/keymanager/secrets`)
 
     // Navigate to Orders tab
     cy.contains("Orders").click()
@@ -294,7 +294,7 @@ describe("keymanagerng", () => {
   })
 
   it("Test order with expiration date", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/keymanagerng/secrets`)
+    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/keymanager/secrets`)
 
     // Navigate to Orders tab
     cy.contains("Orders").click()
@@ -325,8 +325,8 @@ describe("keymanagerng", () => {
     // Set expiration date (future date)
     const futureDate = new Date()
     futureDate.setDate(futureDate.getDate() + 30)
-    const futureDateString = futureDate.toISOString().split('T')[0]
-    
+    const futureDateString = futureDate.toISOString().split("T")[0]
+
     cy.get("[data-target='order-expiration-date-picker']").click()
     cy.get("[data-target='order-expiration-date-picker']").type(futureDateString)
 
@@ -340,7 +340,7 @@ describe("keymanagerng", () => {
   })
 
   it("Test order details panel and secret generation", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/keymanagerng/secrets`)
+    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/keymanager/secrets`)
 
     // Navigate to Orders tab
     cy.contains("Orders").click()
@@ -350,10 +350,10 @@ describe("keymanagerng", () => {
 
     // Click on the order to view details
     cy.get("[data-target=" + sOrderName + "]").click()
-    
+
     // Check that order details panel opens
     cy.contains("Order " + sOrderName).should("have.lengthOf", 1)
-    
+
     // Check order details are displayed
     cy.contains("Name").should("have.lengthOf", 1)
     cy.contains("Order Ref").should("have.lengthOf", 1)
@@ -369,16 +369,6 @@ describe("keymanagerng", () => {
     // Delete the order
     deleteOrder(sOrderName)
   })
-
-  /*it("Create a new 'Symmetric' secret, check 'Payload Content Encoding' is available, then delete the newly created secret", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/keymanagerng/secrets`)
-
-    //Create a new secret with symmetric type
-    createSecret(sSymmetricSecretName, "symmetric", "application/octet-stream")
-
-    //Delete the newly created secret
-    deleteSecret(sSymmetricSecretName)
-  })*/
 
   it("Create new containers with 'Generic' and 'Certificate' container types and delete them afterwards", () => {
     cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/keymanagerng/secrets`)

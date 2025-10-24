@@ -16,12 +16,10 @@ import { widgetBasePath } from "lib/widget"
 import { Messages } from "@cloudoperators/juno-messages-provider"
 import useStore from "../store"
 
-const baseName = widgetBasePath("keymanagerng")
+const baseName = widgetBasePath("keymanager")
 
 const AppRouter = () => {
-  const showNewContainer = useStore(
-    useCallback((state) => state.showNewContainer)
-  )
+  const showNewContainer = useStore(useCallback((state) => state.showNewContainer))
   const showNewSecret = useStore(useCallback((state) => state.showNewSecret))
   const showNewOrder = useStore(useCallback((state) => state.showNewOrder))
   const tabsDisabled = showNewSecret || showNewContainer || showNewOrder ? true : false
@@ -46,7 +44,7 @@ const AppRouter = () => {
       disabled: tabsDisabled,
     },
   ]
-    
+
   return (
     <>
       <Messages />
