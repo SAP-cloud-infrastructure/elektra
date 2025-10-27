@@ -17,6 +17,7 @@ export function JobItem({ job }: JobItemProps) {
     })
   }
 
+  const jobState = job.state || "unknown"
   return (
     <DataGridRow>
       <DataGridCell>
@@ -24,14 +25,14 @@ export function JobItem({ job }: JobItemProps) {
       </DataGridCell>
       <DataGridCell>
         <Stack direction="horizontal" gap="1">
-          <Badge variant={`${getStatusColor(job.state)}`}>{job.state}</Badge>
+          <Badge variant={`${getStatusColor(jobState)}`}>{jobState}</Badge>
         </Stack>
       </DataGridCell>
       <DataGridCell>{job.description || "No description"}</DataGridCell>
-      <DataGridCell>{formatDate(job.schedule_date)}</DataGridCell>
+      <DataGridCell>{job.schedule_date ? formatDate(job.schedule_date) : "No schedule date"}</DataGridCell>
       <DataGridCell>
-        {(job.state === "initial" || job.state === "scheduled") && (
-          <Button variant="primary" size="small">
+        {(jobState === "initial" || jobState === "scheduled") && (
+          <Button variant="primary" size="small" href={`jobs/${job.id}/edit`}>
             Schedule
           </Button>
         )}

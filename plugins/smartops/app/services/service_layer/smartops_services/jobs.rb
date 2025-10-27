@@ -90,8 +90,8 @@ MOCK_DATA = [
     "policy": "certificate_renewal",
     "description": "Renew SSL certificates for all web services before expiration",
     "state": "initial",
-    "schedule_date": "2024-01-25T01:00:00Z",
-    "due_date": "2024-01-25T03:00:00Z",
+    "schedule_date": "",
+    "due_date": "2025-11-01T03:00:00Z",
     "object_type": "server",
     "object_id": "srv_web_cluster"
   },
@@ -172,6 +172,7 @@ module ServiceLayer
       end
 
       def schedule_job(id, schedule_date)
+        puts "Scheduling job in service layer: ID #{id} with schedule_date: #{schedule_date}"
         job = MOCK_DATA.find { |j| j[:id] == id }
         raise "Job not found" unless job
 

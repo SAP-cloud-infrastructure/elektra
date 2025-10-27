@@ -49,7 +49,6 @@ export const Route = createFileRoute("/jobs/")({
       throw new Error("API client is undefined")
     }
     const result = await client.get<ApiResponse>("/jobs").then((response) => response.data)
-    console.log("Fetched jobs:", result)
     if (!result.success || !result.jobs) {
       throw new Error(result.error?.message || "Failed to fetch jobs")
     }

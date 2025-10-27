@@ -1,9 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
-import type { ApiResponse } from "../../types/api"
-import { JobDetails } from "./-components/JobDetails"
-import { Breadcrumb, BreadcrumbItem, Spinner } from "@cloudoperators/juno-ui-components"
+import type { ApiResponse } from "../../../types/api"
+import { JobDetails } from "../-components/JobDetails"
+import { Breadcrumb, BreadcrumbItem, Spinner, Button, ButtonRow } from "@cloudoperators/juno-ui-components"
 
-export const Route = createFileRoute("/jobs/$jobId")({
+export const Route = createFileRoute("/jobs/$jobId/")({
   component: Details,
   pendingComponent: () => <Spinner size="small" aria-label="Loading Job Details" />,
   loader: async ({ context, params }) => {
@@ -16,7 +16,6 @@ export const Route = createFileRoute("/jobs/$jobId")({
       throw new Error(response.data.error?.message || "Failed to fetch job details")
     }
     const job = response.data.job
-
     if (!job) {
       throw new Error("Job not found")
     }
@@ -27,7 +26,7 @@ export const Route = createFileRoute("/jobs/$jobId")({
 function Details() {
   const { job } = Route.useLoaderData()
   const navigate = useNavigate()
-  console.log("Job details loaded:", job)
+
   return (
     <>
       <Breadcrumb>
@@ -36,6 +35,9 @@ function Details() {
         <BreadcrumbItem label={`${job.name}`} disabled />
       </Breadcrumb>
       <JobDetails job={job} />
+      <ButtonRow>
+        <Button label="Back" onClick={() => navigate({ to: "/jobs" })} />
+      </ButtonRow>
     </>
   )
 }

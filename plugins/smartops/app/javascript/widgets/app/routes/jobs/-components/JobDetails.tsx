@@ -8,6 +8,7 @@ interface JobDetailsProps {
 }
 
 export function JobDetails({ job }: JobDetailsProps) {
+  const jobState = job.state || "unknown"
   return (
     <DataGrid columns={2}>
       <DataGridRow>
@@ -32,7 +33,7 @@ export function JobDetails({ job }: JobDetailsProps) {
         </DataGridCell>
         <DataGridCell>
           <Stack direction="horizontal" gap="1">
-            <Badge variant={getStatusColor(job.state)}>{job.state}</Badge>
+            <Badge variant={getStatusColor(jobState)}>{jobState}</Badge>
           </Stack>
         </DataGridCell>
       </DataGridRow>
