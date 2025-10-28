@@ -4,7 +4,6 @@ import { isMatch, useMatches, useNavigate } from "@tanstack/react-router"
 
 type BreadcrumbProps = {
   className?: string
-  [key: string]: any
 }
 
 export const Breadcrumb = ({ className = "", ...props }: BreadcrumbProps) => {
