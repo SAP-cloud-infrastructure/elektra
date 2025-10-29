@@ -58,7 +58,6 @@ function EditJob() {
       })
 
       if (!response.data.success) {
-        console.log("API Error Response:", response.data.error)
         throw new Error(response.data.error?.message || "Failed to update job")
       }
 
@@ -91,7 +90,7 @@ function EditJob() {
 
       {success && (
         <Message variant="success" className="mb-4">
-          Job updated successfully! Redirecting...
+          Job updated successfully!
         </Message>
       )}
 
@@ -102,6 +101,7 @@ function EditJob() {
               label="Select the date and time to schedule the job."
               helptext={`Schedule Date not later as for job due by ${new Date(job.due_date).toLocaleDateString()}`}
               value={scheduleDate}
+              enableTime={true}
               onChange={(selectedDate) => {
                 const currentDate = new Date()
                 // Handle both string and array values
@@ -121,8 +121,6 @@ function EditJob() {
                   return
                 } else {
                   setError(null)
-                  selectedDateTime.setHours(23, 59, 59)
-                  console.log("Selected Schedule Date:", selectedDateTime.toISOString())
                   setScheduleDate(selectedDateTime.toISOString())
                 }
               }}
@@ -130,7 +128,12 @@ function EditJob() {
           </div>
         </FormSection>
         <ButtonRow>
-          <Button label="Schedule" onClick={handleSubmit} variant="primary" disabled={isLoading || !scheduleDate} />
+          <Button
+            label="Schedule"
+            onClick={handleSubmit}
+            variant="primary"
+            disabled={isLoading || !scheduleDate || !!error}
+          />
           <Button label="Cancel" onClick={() => navigate({ to: "/jobs" })} />
         </ButtonRow>
       </Form>
