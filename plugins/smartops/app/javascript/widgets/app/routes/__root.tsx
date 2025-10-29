@@ -4,6 +4,8 @@ import { ApiClient } from "../apiClient"
 
 interface RouterContext {
   apiClient?: ApiClient
+  domainName?: string
+  projectName?: string
 }
 
 export const Root = () => {
