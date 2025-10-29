@@ -9,50 +9,50 @@ MOCK_DATA = [
     "schedule_date": "2024-01-15T23:00:00Z",
     "due_date": "2024-01-16T06:00:00Z",
     "object_type": "server",
-    "object_id": "srv_prod_db_001"
+    "object_id": "56780c30-09ac-46b3-9352-16c144f8890d"
   },
   {
     "id": "job_002",
     "created_at": "2024-01-15T09:15:00Z",
-    "name": "Network Security Scan",
-    "policy": "weekly_security_scan",
-    "description": "Comprehensive security vulnerability scan of the corporate network infrastructure",
+    "name": "Hypervisor Migration - Web Server",
+    "policy": "infrastructure_migration",
+    "description": "Migrate web server from VMware vSphere to Proxmox hypervisor for better resource utilization",
     "state": "running",
     "schedule_date": "2024-01-15T10:00:00Z",
     "due_date": "2024-01-15T14:00:00Z",
-    "object_type": "network",
-    "object_id": "net_corp_main"
+    "object_type": "server",
+    "object_id": "ed080e9c-5701-447f-b631-311b6a2fe282"
   },
   {
     "id": "job_003",
     "created_at": "2024-01-15T07:45:00Z",
-    "name": "Web Server Maintenance",
-    "policy": "monthly_maintenance",
-    "description": "Routine maintenance including system updates, log rotation, and performance optimization",
+    "name": "Kernel Update - Application Server",
+    "policy": "security_update",
+    "description": "Apply critical kernel security updates and reboot application server",
     "state": "scheduled",
     "schedule_date": "2024-01-20T02:00:00Z",
     "due_date": "2024-01-20T05:00:00Z",
     "object_type": "server",
-    "object_id": "srv_web_001"
+    "object_id": "srv_app_001"
   },
   {
     "id": "job_004",
     "created_at": "2024-01-15T11:20:00Z",
-    "name": "Load Balancer Configuration Update",
-    "policy": "on_demand",
-    "description": "Update load balancer configuration to handle increased traffic during peak hours",
+    "name": "RAM Upgrade - Database Server",
+    "policy": "hardware_maintenance",
+    "description": "Upgrade database server RAM from 64GB to 128GB to improve query performance during peak hours",
     "state": "pending",
     "schedule_date": "2024-01-15T18:00:00Z",
     "due_date": "2024-01-15T20:00:00Z",
-    "object_type": "network",
-    "object_id": "net_lb_cluster_01"
+    "object_type": "server",
+    "object_id": "srv_db_primary"
   },
   {
     "id": "job_005",
     "created_at": "2024-01-15T06:30:00Z",
-    "name": "Application Server Restart",
+    "name": "Emergency Server Restart",
     "policy": "emergency_restart",
-    "description": "Emergency restart of application server due to memory leak detection",
+    "description": "Emergency restart of application server due to memory leak detection and system instability",
     "state": "failed",
     "schedule_date": "2024-01-15T07:00:00Z",
     "due_date": "2024-01-15T07:30:00Z",
@@ -62,62 +62,62 @@ MOCK_DATA = [
   {
     "id": "job_006",
     "created_at": "2024-01-15T12:00:00Z",
-    "name": "Firewall Rule Update",
-    "policy": "security_update",
-    "description": "Update firewall rules to block newly identified malicious IP ranges",
+    "name": "HDD Replacement - File Server",
+    "policy": "hardware_maintenance",
+    "description": "Replace failing 2TB hard drive in RAID array on file server before complete failure",
     "state": "waiting",
     "schedule_date": "2024-01-15T16:00:00Z",
     "due_date": "2024-01-15T17:00:00Z",
-    "object_type": "network",
-    "object_id": "net_firewall_main"
+    "object_type": "server",
+    "object_id": "srv_file_storage"
   },
   {
     "id": "job_007",
     "created_at": "2024-01-15T10:45:00Z",
-    "name": "Database Index Optimization",
-    "policy": "performance_optimization",
-    "description": "Optimize database indexes to improve query performance for reporting system",
+    "name": "Hypervisor Migration - Mail Server",
+    "policy": "infrastructure_migration",
+    "description": "Migrate mail server from aging Hyper-V host to new KVM hypervisor infrastructure",
     "state": "canceled",
     "schedule_date": "2024-01-15T22:00:00Z",
     "due_date": "2024-01-16T01:00:00Z",
     "object_type": "server",
-    "object_id": "srv_reporting_db"
+    "object_id": "srv_mail_exchange"
   },
   {
     "id": "job_008",
     "created_at": "2024-01-15T13:30:00Z",
-    "name": "SSL Certificate Renewal",
-    "policy": "certificate_renewal",
-    "description": "Renew SSL certificates for all web services before expiration",
+    "name": "SSD Upgrade - Web Server",
+    "policy": "hardware_maintenance",
+    "description": "Upgrade web server storage from traditional HDD to NVMe SSD for improved I/O performance",
     "state": "initial",
     "schedule_date": "",
-    "due_date": "2025-11-01T03:00:00Z",
+    "due_date": "2024-01-25T03:00:00Z",
     "object_type": "server",
-    "object_id": "srv_web_cluster"
+    "object_id": "ed080e9c-5701-447f-b631-311b6a2fe282"
   },
   {
     "id": "job_009",
     "created_at": "2024-01-15T14:15:00Z",
-    "name": "Network Bandwidth Analysis",
-    "policy": "monthly_analysis",
-    "description": "Analyze network bandwidth usage patterns and generate capacity planning report",
+    "name": "Kernel Update - Monitoring Server",
+    "policy": "monthly_updates",
+    "description": "Apply monthly kernel updates and security patches to monitoring server infrastructure",
     "state": "cancelling",
     "schedule_date": "2024-01-15T15:00:00Z",
     "due_date": "2024-01-15T18:00:00Z",
-    "object_type": "network",
-    "object_id": "net_wan_primary"
+    "object_type": "server",
+    "object_id": "srv_monitoring_001"
   },
   {
     "id": "job_010",
     "created_at": "2024-01-15T08:00:00Z",
-    "name": "Log Archive Cleanup",
-    "policy": "weekly_cleanup",
-    "description": "Archive old log files and clean up disk space on logging servers",
+    "name": "CPU Upgrade - Compute Server",
+    "policy": "hardware_maintenance",
+    "description": "Upgrade compute server CPU from Intel Xeon E5-2690 to E5-2695 v4 for increased processing power",
     "state": "error",
     "schedule_date": "2024-01-15T03:00:00Z",
     "due_date": "2024-01-15T05:00:00Z",
     "object_type": "server",
-    "object_id": "srv_logging_001"
+    "object_id": "srv_compute_node_03"
   }
 ]
 
