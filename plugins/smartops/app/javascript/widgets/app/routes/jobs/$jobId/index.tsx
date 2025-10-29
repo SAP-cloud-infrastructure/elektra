@@ -19,12 +19,12 @@ export const Route = createFileRoute("/jobs/$jobId/")({
     if (!job) {
       throw new Error("Job not found")
     }
-    return { job }
+    return { job, domainName: context.domainName, projectName: context.projectName }
   },
 })
 
 function Details() {
-  const { job } = Route.useLoaderData()
+  const { job, domainName, projectName } = Route.useLoaderData()
   const navigate = useNavigate()
 
   return (
@@ -34,7 +34,7 @@ function Details() {
         <BreadcrumbItem label="Jobs" onClick={() => navigate({ to: "/jobs" })} />
         <BreadcrumbItem label={`${job.name}`} disabled />
       </Breadcrumb>
-      <JobDetails job={job} />
+      <JobDetails job={job} domainName={domainName} projectName={projectName} />
       <ButtonRow>
         <Button label="Back" onClick={() => navigate({ to: "/jobs" })} />
       </ButtonRow>
