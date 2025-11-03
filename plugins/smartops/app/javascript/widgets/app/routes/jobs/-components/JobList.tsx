@@ -1,4 +1,4 @@
-// components/JobList.tsx
+// jobs/-components/JobList.tsx
 import type { Job } from "../../../types/api"
 import { JobItem } from "./JobItem"
 import {
@@ -36,6 +36,9 @@ const JobsListHeader = () => (
 )
 
 export function JobList({ jobs, isLoading }: JobListProps) {
+  // Remove the search hook since we don't need it here anymore
+  // If you want to highlight selected job, you can pass it as a prop instead
+
   if (isLoading) {
     return (
       <>
@@ -60,7 +63,7 @@ export function JobList({ jobs, isLoading }: JobListProps) {
           <JobsListHeader />
           <DataGridRow>
             <DataGridCell>
-              <span role="status">No Jobs found, nothing to do 👍</span>
+              <span role="status">No Jobs found, nothing to do �👍</span>
             </DataGridCell>
           </DataGridRow>
         </DataGrid>

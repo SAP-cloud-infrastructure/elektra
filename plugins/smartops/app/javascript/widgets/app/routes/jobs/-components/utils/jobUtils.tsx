@@ -34,7 +34,7 @@ export const scheduleDate = (job: Job, details?: boolean) => {
     <Stack gap="2" direction="horizontal">
       <Badge variant="warning">No schedule date</Badge>
       {details && (
-        <Icon color="jn-global-text" icon="edit" href={`${job.id}/edit`} title={`Schedule job ${job.name}`} />
+        <Icon color="jn-global-text" icon="edit" href={`jobs/${job.id}/edit`} title={`Schedule job ${job.name}`} />
       )}
     </Stack>
   )

@@ -1,4 +1,4 @@
-// components/JobItem.tsx
+// jobs/-components/JobItem.tsx
 import { useNavigate } from "@tanstack/react-router"
 import type { Job } from "../../../types/api"
 import { getStatusColor, scheduleDate } from "./utils/jobUtils"
@@ -12,16 +12,23 @@ export function JobItem({ job }: JobItemProps) {
   const navigate = useNavigate()
 
   const handleJobClick = () => {
+    console.log("Job clicked:", job.id) // Debug log
     navigate({
-      to: `/jobs/${job.id}`,
+      to: "/jobs",
+      search: { jobId: job.id },
     })
   }
 
   const handleScheduleClick = (event: React.MouseEvent) => {
-    event.stopPropagation() // Prevents the row click event from firing
+    event.stopPropagation()
+    console.log("Schedule clicked:", job.id) // Debug log
+    navigate({
+      to: `/jobs/${job.id}/edit`,
+    })
   }
 
   const jobState = job.state || "unknown"
+
   return (
     <DataGridRow onClick={handleJobClick} style={{ cursor: "pointer" }}>
       <DataGridCell>{job.name}</DataGridCell>
@@ -34,7 +41,7 @@ export function JobItem({ job }: JobItemProps) {
       <DataGridCell>{scheduleDate(job)}</DataGridCell>
       <DataGridCell>
         {(jobState === "initial" || jobState === "scheduled") && (
-          <Button variant="primary" size="small" href={`jobs/${job.id}/edit`} onClick={handleScheduleClick}>
+          <Button variant="primary" size="small" onClick={handleScheduleClick}>
             Schedule
           </Button>
         )}

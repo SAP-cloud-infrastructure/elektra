@@ -64,7 +64,7 @@ function EditJob() {
       setSuccess(true)
       // Navigate back to job details after a short delay
       setTimeout(() => {
-        navigate({ to: "/jobs/$jobId", params: { jobId: job.id } })
+        navigate({ to: "/jobs", search: { jobId: job.id } })
       }, 1500)
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unexpected error occurred")
@@ -78,7 +78,7 @@ function EditJob() {
       <Breadcrumb>
         <BreadcrumbItem icon="home" label="" disabled />
         <BreadcrumbItem label="Jobs" onClick={() => navigate({ to: "/jobs" })} />
-        <BreadcrumbItem label={job.name} onClick={() => navigate({ to: "/jobs/$jobId", params: { jobId: job.id } })} />
+        <BreadcrumbItem label={job.name} onClick={() => navigate({ to: "/jobs", search: { jobId: job.id } })} />
         <BreadcrumbItem label="Edit" disabled />
       </Breadcrumb>
 
