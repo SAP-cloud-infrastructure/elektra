@@ -40,7 +40,7 @@ export function JobItem({ job }: JobItemProps) {
       <DataGridCell>{job.description || "No description"}</DataGridCell>
       <DataGridCell>{scheduleDate(job)}</DataGridCell>
       <DataGridCell>
-        {(jobState === "initial" || jobState === "scheduled") && (
+        {new Date(job.due_date) > new Date() && (jobState === "initial" || jobState === "scheduled") && (
           <Button variant="primary" size="small" onClick={handleScheduleClick}>
             Schedule
           </Button>

@@ -66,7 +66,7 @@ export function JobDetails({ job, domainName, projectName }: JobDetailsProps) {
         <DataGridCell>
           <strong>Due Date</strong>
         </DataGridCell>
-        <DataGridCell>{job.due_date ? formatDate(job.due_date) : "No due date"}</DataGridCell>
+        <DataGridCell>{job.due_date ? formatDate(job.due_date) : "No due date!!!"}</DataGridCell>
       </DataGridRow>
       <DataGridRow>
         <DataGridCell>
