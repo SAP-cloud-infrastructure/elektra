@@ -128,7 +128,9 @@ function Jobs() {
               <Spinner size="small" aria-label="Loading Jobs" />
             </>
           ) : (
-            selectedJob && <JobDetails job={selectedJob} domainName={domainName} projectName={projectName} />
+            selectedJob && (
+              <JobDetails job={selectedJob} domainName={domainName} projectName={projectName} apiClient={apiClient} />
+            )
           )}
         </PanelBody>
       </Panel>

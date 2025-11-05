@@ -1,8 +1,8 @@
 // jobs/-components/JobItem.tsx
 import { useNavigate } from "@tanstack/react-router"
 import type { Job } from "../../../types/api"
-import { getStatusColor, scheduleDate } from "./utils/jobUtils"
-import { DataGridRow, DataGridCell, Button, Badge, Stack } from "@cloudoperators/juno-ui-components"
+import { getStatusColor, formatScheduleDate } from "./utils/jobUtils"
+import { DataGridRow, DataGridCell, Badge, Stack } from "@cloudoperators/juno-ui-components"
 
 interface JobItemProps {
   job: Job
@@ -19,14 +19,6 @@ export function JobItem({ job }: JobItemProps) {
     })
   }
 
-  const handleScheduleClick = (event: React.MouseEvent) => {
-    event.stopPropagation()
-    console.log("Schedule clicked:", job.id) // Debug log
-    navigate({
-      to: `/jobs/${job.id}/edit`,
-    })
-  }
-
   const jobState = job.state || "unknown"
 
   return (
@@ -38,14 +30,8 @@ export function JobItem({ job }: JobItemProps) {
         </Stack>
       </DataGridCell>
       <DataGridCell>{job.description || "No description"}</DataGridCell>
-      <DataGridCell>{scheduleDate(job)}</DataGridCell>
-      <DataGridCell>
-        {new Date(job.due_date) > new Date() && (jobState === "initial" || jobState === "scheduled") && (
-          <Button variant="primary" size="small" onClick={handleScheduleClick}>
-            Schedule
-          </Button>
-        )}
-      </DataGridCell>
+      <DataGridCell>{new Date(job.due_date).toLocaleString()}</DataGridCell>
+      <DataGridCell>{formatScheduleDate(job)}</DataGridCell>
     </DataGridRow>
   )
 }

@@ -27,7 +27,7 @@ export const getStatusColor = (state: string) => {
   }
 }
 
-export const scheduleDate = (job: Job, details?: boolean) => {
+export const formatScheduleDate = (job: Job, details?: boolean) => {
   // check current data behind due_date than show warning message
   if (new Date(job.due_date) < new Date() && !job.schedule_date) {
     return (
