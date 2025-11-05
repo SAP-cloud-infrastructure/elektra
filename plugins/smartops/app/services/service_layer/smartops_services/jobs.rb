@@ -41,9 +41,9 @@ MOCK_DATA = [
     "name": "RAM Upgrade - Database Server",
     "policy": "hardware_maintenance",
     "description": "Upgrade database server RAM from 64GB to 128GB to improve query performance during peak hours",
-    "state": "pending",
-    "schedule_date": "2024-01-15T18:00:00Z",
-    "due_date": "2024-01-15T20:00:00Z",
+    "state": "initial",
+    "schedule_date": "",
+    "due_date": "2026-01-15T20:00:00Z",
     "object_type": "server",
     "object_id": "srv_db_primary"
   },
