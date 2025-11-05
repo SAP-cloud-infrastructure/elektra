@@ -3,6 +3,7 @@ import React, { useContext } from "react"
 import { FormContext } from "./form_context"
 
 export const FormInput = ({
+  testId,
   elementType,
   id,
   className = "",
@@ -15,19 +16,12 @@ export const FormInput = ({
 
   let values = context.formValues || {}
   let isValid = true
-  if (
-    context.formErrors &&
-    typeof context.formErrors === "object" &&
-    context.formErrors[name]
-  ) {
+  if (context.formErrors && typeof context.formErrors === "object" && context.formErrors[name]) {
     isValid = false
   }
 
   const { type } = otherProps || {}
-  let newClassName =
-    type === "checkbox" || type === "radio"
-      ? "form-check-input"
-      : "form-control"
+  let newClassName = type === "checkbox" || type === "radio" ? "form-check-input" : "form-control"
   newClassName += " " + (required ? "required" : "optional")
   newClassName += " " + (isValid ? "" : "is-invalid")
 
@@ -41,6 +35,7 @@ export const FormInput = ({
   }
 
   let inputProps = {
+    "data-testid": testId,
     className: `${newClassName} ${className}`,
     name,
     id: id || (context.formName ? context.formName + "_" + name : name),

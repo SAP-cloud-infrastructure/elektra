@@ -14,11 +14,16 @@
     "typeRoots": ["./config/esbuild/types", "./node_modules"],
     "jsx": "react-jsx",
     "allowJs": true,
-    "types": ["vitest/globals"]
+    "types": ["vitest/globals"],
+    "baseUrl": ".",
+    "paths": {
+      "lib/*": ["app/javascript/lib/*"],
+    }
   },
   "exclude": ["node_modules"],
   "include": [
     "config/esbuild/types/**/*",
+    "app/javascript/lib",
     "plugins/**/app/javascript/widgets/app/**/*"
   ]
 }
