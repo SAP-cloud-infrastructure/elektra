@@ -1,0 +1,41 @@
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import type { ApiResponse } from "../../../types/api"
+import { JobDetails } from "../-components/JobDetails"
+import { Breadcrumb, BreadcrumbItem, Spinner } from "@cloudoperators/juno-ui-components"
+
+export const Route = createFileRoute("/jobs/$jobId/$jobId")({
+  component: Details,
+  pendingComponent: () => <Spinner size="small" aria-label="Loading Job Details" />,
+  loader: async ({ context, params }) => {
+    const client = context.apiClient
+    if (!client) {
+      throw new Error("API client is undefined")
+    }
+    const response = await client.get<ApiResponse>(`/jobs/${params.jobId}`)
+    if (!response.data.success) {
+      throw new Error(response.data.error?.message || "Failed to fetch job details")
+    }
+    const job = response.data.job
+
+    if (!job) {
+      throw new Error("Job not found")
+    }
+    return { job }
+  },
+})
+
+function Details() {
+  const { job } = Route.useLoaderData()
+  const navigate = useNavigate()
+  console.log("Job details loaded:", job)
+  return (
+    <>
+      <Breadcrumb>
+        <BreadcrumbItem icon="home" label="" disabled />
+        <BreadcrumbItem label="Jobs" onClick={() => navigate({ to: "/jobs" })} />
+        <BreadcrumbItem label={`${job.name}`} disabled />
+      </Breadcrumb>
+      <JobDetails job={job} />
+    </>
+  )
+}
