@@ -23,7 +23,6 @@ class SLIMetricsMiddleware
     if should_skip_path?(path_info)
       return @app.call(env)
     end
-    pp "=============================="
     # Extract domain (first path segment)
     domain = extract_domain(path_info)
     
