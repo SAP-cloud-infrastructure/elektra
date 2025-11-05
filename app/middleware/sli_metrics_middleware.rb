@@ -1,5 +1,4 @@
 # frozen_string_literal: true
-
 require "benchmark"
 
 # This middleware collects the Service Level Indicator metrics
@@ -19,21 +18,27 @@ class SLIMetricsMiddleware
   end
 
   def call(env)
-    # trace latency metrics if landing page
-    if ![@path, "/assets"].include?(env["PATH_INFO"]) &&
-         %r{^/[^/]+/?$}.match?(env["PATH_INFO"])
+    path_info = env["PATH_INFO"]
+    
+    # ignore /metrics, /assets, and /system/* paths
+    unless ["/metrics", "/assets"].include?(path_info) || 
+            path_info.start_with?("/assets/", "/system/")
+      
+      # Extract domain (first path segment)
+      domain = extract_domain(path_info)
+      
       response = nil
       duration = Benchmark.realtime { response = @app.call(env) }
       @histogram.observe(
         duration,
         labels: {
-          path: env["PATH_INFO"],
+          path: domain,
           method: env["REQUEST_METHOD"].downcase,
         },
       )
       return response
     end
-
+    
     @app.call(env)
   end
 end
