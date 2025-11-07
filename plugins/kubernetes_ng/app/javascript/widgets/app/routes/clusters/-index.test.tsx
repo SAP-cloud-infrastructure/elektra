@@ -1,51 +1,36 @@
 import { render, screen, act } from "@testing-library/react"
-import { createRoute, createRootRoute, RouterProvider, createMemoryHistory, Outlet } from "@tanstack/react-router"
-import Clusters from "./index"
-import { PortalProvider } from "@cloudoperators/juno-ui-components/index"
-import { getTestRouter } from "../../mocks/getTestRouter"
-import { defaultCluster } from "../../mocks/data"
-import { Breadcrumb } from "../../components/Breadcrumb"
+import { RouterProvider, createMemoryHistory } from "@tanstack/react-router"
+import { Route as ClustersRoute, CLUSTERS_ROUTE_ID } from "./index"
+import { getTestRouter, deferredPromise } from "../../mocks/TestTools"
+import { defaultCluster, permissionsAllTrue } from "../../mocks/data"
 import { Cluster } from "../../types/cluster"
+import { Permissions } from "../../types/permissions"
 import { MockInstance } from "vitest"
+import { RouterContext } from "../__root"
 
 const renderComponent = ({
   clustersPromise = Promise.resolve([defaultCluster]),
-  permissionsPromise = Promise.resolve({ get: true, update: true, delete: true }),
+  permissionsPromise = Promise.resolve(permissionsAllTrue),
 } = {}) => {
-  const rootRoute = createRootRoute({
-    component: () => <Outlet />,
-  })
-  const testRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: "/clusters/",
-    loader: async () =>
-      Promise.resolve({
-        crumb: {
-          label: "Clusters",
-          icon: "home",
+  const mockClient: RouterContext = {
+    apiClient: {
+      gardener: {
+        getClusters: () => clustersPromise,
+        getPermissions: () => permissionsPromise,
+        getClusterByName: () => {
+          return Promise.resolve(defaultCluster)
         },
-        clustersPromise,
-        permissionsPromise,
-      }),
-    component: () => (
-      <PortalProvider>
-        <Breadcrumb data-testid="main-breadcrumb" />
-        <Clusters />
-      </PortalProvider>
-    ),
-  })
-  const routeTree = rootRoute.addChildren([testRoute])
+      },
+    },
+  }
+
   const router = getTestRouter({
-    routeTree,
-    history: createMemoryHistory({
-      initialEntries: ["/clusters/"],
-    }),
+    routeTree: ClustersRoute,
+    context: mockClient,
+    history: createMemoryHistory({ initialEntries: [CLUSTERS_ROUTE_ID] }),
   })
 
-  return {
-    ...render(<RouterProvider router={router} />),
-    router,
-  }
+  return render(<RouterProvider router={router} />)
 }
 
 describe("<Clusters />", () => {
@@ -60,8 +45,12 @@ describe("<Clusters />", () => {
     await act(async () => renderComponent())
 
     const addClusterButton = screen.getByRole("button", { name: "Add Cluster" })
+    const refreshButton = screen.getByRole("button", { name: "Refresh" })
+
+    expect(refreshButton).toBeInTheDocument()
+    expect(refreshButton).toHaveClass("juno-button-default")
     expect(addClusterButton).toBeInTheDocument()
-    expect(addClusterButton).toHaveClass("juno-button-default")
+    expect(addClusterButton).toHaveClass("juno-button-primary")
   })
 
   it("renders cluster list", async () => {
@@ -71,86 +60,62 @@ describe("<Clusters />", () => {
     expect(list).toBeInTheDocument()
   })
 
-  it("renders breadcrumb", async () => {
-    await act(async () => renderComponent())
-
-    const breadcrumb = screen.getByTestId("main-breadcrumb")
-    expect(breadcrumb).toBeInTheDocument()
-    expect(breadcrumb).toHaveTextContent("Clusters")
-  })
-
   describe("Loading", () => {
     it("shows loading state within the clusters list", async () => {
-      await act(async () => renderComponent({ clustersPromise: new Promise(() => {}) }))
-
-      expect(screen.getByTestId("cluster-list")).toBeInTheDocument()
-      expect(screen.getByTestId("loading-state")).toBeInTheDocument()
+      const clustersDeferred = deferredPromise<Cluster[]>()
+      const permissionsDeferred = deferredPromise<Permissions>()
+      renderComponent({
+        clustersPromise: clustersDeferred.promise,
+        permissionsPromise: permissionsDeferred.promise,
+      })
+      const loading = await screen.findByTestId("clusters-list-loading-state")
+      expect(loading).toBeInTheDocument()
     })
 
     it("disables action buttons when loading", async () => {
-      await act(async () => renderComponent({ clustersPromise: new Promise(() => {}) }))
-
-      expect(screen.getByRole("button", { name: /Add Cluster/i })).toBeDisabled()
+      const clustersDeferred = deferredPromise<Cluster[]>()
+      const permissionsDeferred = deferredPromise<Permissions>()
+      renderComponent({
+        clustersPromise: clustersDeferred.promise,
+        permissionsPromise: permissionsDeferred.promise,
+      })
+      const addClusterButton = await screen.findByRole("button", { name: /Add Cluster/i })
+      expect(addClusterButton).toBeDisabled()
+      const refreshButton = await screen.getByRole("button", { name: /Refresh/i })
+      expect(refreshButton).toBeDisabled()
     })
   })
 
-  describe("Error", () => {
+  describe("Loader Error", () => {
     let consoleErrorSpy: MockInstance
-
     beforeEach(() => {
       consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
     })
-
     afterEach(() => {
       consoleErrorSpy.mockRestore()
     })
 
     it("shows error state within the clusters list", async () => {
-      let rejectClustersList: (err: any) => void
+      const clustersPromise = Promise.reject(new Error("Failed to fetch clusters"))
+      const permissionsPromise = Promise.resolve(permissionsAllTrue)
 
-      // The promise is already rejected when the component mounts.
-      // React Router treats it as a loader error and throws a “server error” outside the render tree.
-      // As a result, the CatchBoundary never sees it, and Jest reports an unhandled rejection causing the test to fail.
-      const clustersPromise: Promise<Cluster[]> = new Promise((_, reject) => {
-        rejectClustersList = reject
-      })
+      renderComponent({ clustersPromise, permissionsPromise })
 
-      await act(async () => {
-        renderComponent({
-          clustersPromise,
-        })
-      })
-
-      await act(async () => {
-        rejectClustersList!(new Error("Failed to load clusters"))
-      })
-
-      expect(await screen.findByText("Server Error: Failed to load clusters")).toBeInTheDocument()
-      expect(screen.getByTestId("cluster-list")).toBeInTheDocument()
+      const error = await screen.findByTestId("clusters-list-error-state")
+      expect(error).toBeInTheDocument()
+      expect(error).toHaveTextContent("Failed to fetch clusters")
     })
 
     it("disables new cluster button when there is an error", async () => {
-      let rejectClustersList: (err: any) => void
+      const clustersPromise = Promise.reject(new Error("Failed to fetch clusters"))
+      const permissionsPromise = Promise.resolve(permissionsAllTrue)
 
-      // The promise is already rejected when the component mounts.
-      // React Router treats it as a loader error and throws a “server error” outside the render tree.
-      // As a result, the CatchBoundary never sees it, and Jest reports an unhandled rejection causing the test to fail.
-      const clustersPromise: Promise<Cluster[]> = new Promise((_, reject) => {
-        rejectClustersList = reject
-      })
+      renderComponent({ clustersPromise, permissionsPromise })
 
-      await act(async () => {
-        renderComponent({
-          clustersPromise,
-        })
-      })
-
-      await act(async () => {
-        rejectClustersList!(new Error("Failed to load clusters"))
-      })
-
-      expect(screen.getByRole("button", { name: /Add Cluster/i })).toBeDisabled()
-      expect(screen.getByRole("button", { name: /Refresh/i })).not.toBeDisabled()
+      const addClusterButton = await screen.findByRole("button", { name: /Add Cluster/i })
+      expect(addClusterButton).toBeDisabled()
+      const refreshButton = screen.getByRole("button", { name: /Refresh/i })
+      expect(refreshButton).not.toBeDisabled()
     })
   })
 })

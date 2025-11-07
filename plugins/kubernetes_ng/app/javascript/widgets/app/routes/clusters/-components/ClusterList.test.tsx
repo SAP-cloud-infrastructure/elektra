@@ -1,11 +1,8 @@
 import React from "react"
-import { render, screen, within, act } from "@testing-library/react"
+import { screen, within, act } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import ClusterList from "./ClusterList"
-import { Cluster } from "../../../types/cluster"
-import { createRoute, createRootRoute, RouterProvider, createMemoryHistory, Outlet } from "@tanstack/react-router"
-import { PortalProvider } from "@cloudoperators/juno-ui-components/index"
-import { getTestRouter } from "../../../mocks/getTestRouter"
+import { renderComponent } from "../../../mocks/TestTools"
 import { defaultCluster } from "../../../mocks/data"
 
 const expectClusterListHeaders = () => {
@@ -24,46 +21,17 @@ const expectClusterListHeaders = () => {
   expect(icon).toBeInTheDocument()
 }
 
-const renderComponent = (clusters: Cluster[] = [defaultCluster]) => {
-  const rootRoute = createRootRoute({
-    component: () => <Outlet />,
-  })
-  const testRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: "/clusters/",
-    loader: async () =>
-      Promise.resolve({
-        crumb: {
-          label: "Clusters",
-          icon: "home",
-        },
-        clusters: clusters,
-      }),
-    component: () => (
-      <PortalProvider>
-        <ClusterList clusters={clusters} />
-      </PortalProvider>
-    ),
-  })
-  const routeTree = rootRoute.addChildren([testRoute])
-  const router = getTestRouter({
-    routeTree,
-    history: createMemoryHistory({
-      initialEntries: ["/clusters/"],
-    }),
-  })
-
-  return {
-    ...render(<RouterProvider router={router} />),
-    router,
-  }
-}
-
 describe("<ClusterList />", () => {
   it("renders the table headers if clusters are present", async () => {
-    await act(async () => renderComponent())
-
+    await act(async () => renderComponent(<ClusterList clusters={[defaultCluster]} />))
     expectClusterListHeaders()
+  })
+
+  it("renders updated at", async () => {
+    await act(async () => renderComponent(<ClusterList clusters={[defaultCluster]} updatedAt={Date.now()} />))
+
+    const updatedAt = await screen.findByTestId("clusters-updated-at")
+    expect(updatedAt).toBeInTheDocument()
   })
 
   it("renders a ClusterListItem for each cluster", async () => {
@@ -72,7 +40,7 @@ describe("<ClusterList />", () => {
       { ...defaultCluster, uid: "2", name: "cluster-two" },
     ]
 
-    await act(async () => renderComponent(clusters))
+    await act(async () => renderComponent(<ClusterList clusters={clusters} />))
 
     const items = screen.getAllByTestId("cluster-list-item")
     expect(items).toHaveLength(2)
@@ -81,7 +49,7 @@ describe("<ClusterList />", () => {
   })
 
   it("renders 'No clusters found' when the clusters array is empty with the list header", async () => {
-    await act(async () => renderComponent([]))
+    await act(async () => renderComponent(<ClusterList clusters={[]} />))
 
     expectClusterListHeaders()
 

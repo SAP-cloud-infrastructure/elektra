@@ -1,7 +1,7 @@
 import React from "react"
-import { render, act } from "@testing-library/react"
+import { render, act, screen } from "@testing-library/react"
 import { createRootRoute, RouterProvider, createMemoryHistory } from "@tanstack/react-router"
-import { getTestRouter } from "../mocks/getTestRouter"
+import { getTestRouter } from "../mocks/TestTools"
 
 import { Root } from "./__root"
 
@@ -28,7 +28,6 @@ describe("<Root />", () => {
     await act(async () => renderComponent())
 
     // Breadcrumb should be in the document
-    const breadcrumb = document.querySelector('[data-breadcrumb="main"]')
-    expect(breadcrumb).toBeInTheDocument()
+    expect(screen.getByTestId("main-breadcrumb")).toBeInTheDocument()
   })
 })
