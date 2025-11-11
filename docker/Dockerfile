@@ -50,7 +50,6 @@ RUN apk --no-cache add git curl nodejs pnpm shared-mime-info build-base
 RUN apk --no-cache add postgresql16-dev ruby-sassc \
     && \ 
     gem install --no-document \
-    bundler:2.6.9 \
     byebug:12.0.0 \
     ffi:1.17.2 \
     nio4r:2.7.5 \
