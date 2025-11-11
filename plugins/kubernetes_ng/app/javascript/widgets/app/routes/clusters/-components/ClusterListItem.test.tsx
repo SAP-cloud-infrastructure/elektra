@@ -37,12 +37,18 @@ describe("<ClusterListItem />", () => {
 
   it("renders readiness conditions", async () => {
     await act(async () => renderComponent(<ClusterListItem cluster={defaultCluster} />))
-    expect(screen.getByTestId("readiness-conditions")).toBeInTheDocument()
+
+    defaultCluster.readiness.conditions.forEach((condition) => {
+      expect(screen.getByText(condition.displayValue)).toBeInTheDocument()
+    })
   })
 
   it("copies cluster ID to clipboard", async () => {
     await act(async () => renderComponent(<ClusterListItem cluster={defaultCluster} />))
-    const clipboardButton = screen.getByTestId("clipboard-text")
+    // const clipboardButton = screen.getByTestId("clipboard-text")
+    const clipboardButton = screen.getByRole("button", {
+      name: new RegExp(`copy ${defaultCluster.uid} to clipboard`, "i"),
+    })
     expect(clipboardButton).toHaveTextContent(defaultCluster.uid)
     expect(clipboardButton).toBeInTheDocument()
   })

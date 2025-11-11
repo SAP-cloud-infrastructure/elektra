@@ -17,7 +17,7 @@ const NUMBER_OF_COLUMNS = 6
 const ClusterListHeader = () => (
   <DataGridRow>
     <DataGridHeadCell>
-      <Icon icon="monitorHeart" data-testid="icon-monitorHeart" />
+      <Icon icon="monitorHeart" />
     </DataGridHeadCell>
     <DataGridHeadCell>Status</DataGridHeadCell>
     <DataGridHeadCell>Name</DataGridHeadCell>
@@ -42,7 +42,7 @@ const ClusterList: React.FC<ClusterListProps> = ({ clusters = [], error, isLoadi
       return (
         <DataGridRow>
           <DataGridCell colSpan={NUMBER_OF_COLUMNS}>
-            <Spinner size="small" aria-label="Loading clusters" data-testid="clusters-list-loading-state" />
+            <Spinner size="small" aria-label="Loading clusters" />
           </DataGridCell>
         </DataGridRow>
       )
@@ -52,7 +52,7 @@ const ClusterList: React.FC<ClusterListProps> = ({ clusters = [], error, isLoadi
       return (
         <DataGridRow>
           <DataGridCell colSpan={NUMBER_OF_COLUMNS}>
-            <InlineError error={error} data-testid="clusters-list-error-state" />
+            <InlineError error={error} />
           </DataGridCell>
         </DataGridRow>
       )
@@ -72,13 +72,13 @@ const ClusterList: React.FC<ClusterListProps> = ({ clusters = [], error, isLoadi
   }
 
   return (
-    <div className={hoverClass} data-testid="cluster-list" {...props}>
+    <div className={hoverClass} {...props}>
       {updatedAt && (
-        <Stack alignment="center" distribution="end" className="tw-mb-2 tw-text-sm" data-testid="clusters-updated-at">
+        <Stack alignment="center" distribution="end" className="tw-mb-2 tw-text-sm">
           <span>Last updated: {new Date(updatedAt).toLocaleString()}</span>
         </Stack>
       )}
-      <DataGrid minContentColumns={[0]} columns={NUMBER_OF_COLUMNS}>
+      <DataGrid minContentColumns={[0]} columns={NUMBER_OF_COLUMNS} aria-label="Cluster list">
         <ClusterListHeader />
         {renderContent()}
       </DataGrid>

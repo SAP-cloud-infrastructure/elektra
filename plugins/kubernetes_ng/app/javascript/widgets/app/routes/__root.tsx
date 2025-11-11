@@ -11,7 +11,7 @@ export interface RouterContext {
 export const Root = () => {
   return (
     <AppShell embedded={true}>
-      <Breadcrumb data-testid="main-breadcrumb" />
+      <Breadcrumb />
       <Outlet />
     </AppShell>
   )

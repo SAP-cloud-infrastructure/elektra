@@ -1,5 +1,5 @@
 import React from "react"
-import { render, screen, act } from "@testing-library/react"
+import { render, screen, act, within } from "@testing-library/react"
 import { createRoute, RouterProvider, createMemoryHistory, createRootRouteWithContext } from "@tanstack/react-router"
 import { RouterConfig, CLUSTER_DETAIL_ROUTE_ID } from "./$clusterName"
 import { getTestRouter, deferredPromise } from "../../mocks/TestTools"
@@ -57,8 +57,7 @@ describe("<ClusterDetail />", () => {
   it("renders updated at", async () => {
     await act(async () => renderComponent())
 
-    const updatedAt = screen.getByTestId("cluster-details-updated-at")
-    expect(updatedAt).toBeInTheDocument()
+    expect(screen.getByText(/Last updated:/i)).toBeInTheDocument()
   })
 
   it("renders Overview tab correctly", async () => {
@@ -87,17 +86,18 @@ describe("<ClusterDetail />", () => {
       jsonTab.click()
     })
 
-    const jsonviewer = await screen.findByTestId("json-viewer")
-    expect(jsonviewer).toBeInTheDocument()
+    const someKey = Object.keys(defaultCluster.raw)[0]
+    const jsonViewer = await screen.findByText(new RegExp(someKey, "i"))
+    expect(jsonViewer).toBeInTheDocument()
   })
 
   describe("Breadcrumb", () => {
     test("renders cluster name into breadcrumb", async () => {
       await act(async () => renderComponent())
 
-      const breadcrumb = screen.getByTestId("main-breadcrumb")
-      expect(breadcrumb).toBeInTheDocument()
-      expect(breadcrumb).toHaveTextContent(defaultCluster.name)
+      expect(
+        within(screen.getByRole("navigation", { name: /breadcrumb/i })).getByRole("link", { name: defaultCluster.name })
+      ).toBeInTheDocument()
     })
   })
 
@@ -112,7 +112,10 @@ describe("<ClusterDetail />", () => {
         permissionsPromise: permissionsDeferred.promise,
       })
 
-      expect(await screen.findByTestId("cluster-details-loading-state")).toBeInTheDocument()
+      const spinner = await screen.findByRole("progressbar", { name: /loading cluster details/i })
+      expect(spinner).toBeInTheDocument()
+
+      // Ensure tabs are not rendered yet
       expect(screen.queryByRole("tab", { name: "JSON" })).not.toBeInTheDocument()
       expect(screen.queryByRole("tab", { name: "Overview" })).not.toBeInTheDocument()
     })

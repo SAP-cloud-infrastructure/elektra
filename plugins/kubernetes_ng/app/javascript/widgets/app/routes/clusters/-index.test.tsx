@@ -1,4 +1,4 @@
-import { render, screen, act } from "@testing-library/react"
+import { render, screen, act, within } from "@testing-library/react"
 import { RouterProvider, createMemoryHistory } from "@tanstack/react-router"
 import { Route as ClustersRoute, CLUSTERS_ROUTE_ID } from "./index"
 import { getTestRouter, deferredPromise } from "../../mocks/TestTools"
@@ -56,7 +56,7 @@ describe("<Clusters />", () => {
   it("renders cluster list", async () => {
     await act(async () => renderComponent())
 
-    const list = screen.getByTestId("cluster-list")
+    const list = screen.getByRole("grid", { name: /cluster list/i })
     expect(list).toBeInTheDocument()
   })
 
@@ -68,8 +68,8 @@ describe("<Clusters />", () => {
         clustersPromise: clustersDeferred.promise,
         permissionsPromise: permissionsDeferred.promise,
       })
-      const loading = await screen.findByTestId("clusters-list-loading-state")
-      expect(loading).toBeInTheDocument()
+      const spinner = await screen.findByRole("progressbar", { name: /loading clusters/i })
+      expect(spinner).toBeInTheDocument()
     })
 
     it("disables action buttons when loading", async () => {
@@ -101,9 +101,13 @@ describe("<Clusters />", () => {
 
       renderComponent({ clustersPromise, permissionsPromise })
 
-      const error = await screen.findByTestId("clusters-list-error-state")
-      expect(error).toBeInTheDocument()
-      expect(error).toHaveTextContent("Failed to fetch clusters")
+      // Wait for the cluster list container
+      const list = await screen.findByRole("grid", { name: /cluster list/i })
+      expect(list).toBeInTheDocument()
+
+      // Wait for the error message inside it
+      const errorMessage = await within(list).findByText(/failed to fetch clusters/i)
+      expect(errorMessage).toBeInTheDocument()
     })
 
     it("disables new cluster button when there is an error", async () => {

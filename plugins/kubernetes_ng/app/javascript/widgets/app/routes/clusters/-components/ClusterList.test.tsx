@@ -17,7 +17,7 @@ const expectClusterListHeaders = () => {
   expect(columnHeaders).toHaveLength(6)
 
   // check the first header contains the icon
-  const icon = within(columnHeaders[0]).getByTestId("icon-monitorHeart")
+  const icon = within(columnHeaders[0]).getByRole("img")
   expect(icon).toBeInTheDocument()
 }
 
@@ -30,8 +30,7 @@ describe("<ClusterList />", () => {
   it("renders updated at", async () => {
     await act(async () => renderComponent(<ClusterList clusters={[defaultCluster]} updatedAt={Date.now()} />))
 
-    const updatedAt = await screen.findByTestId("clusters-updated-at")
-    expect(updatedAt).toBeInTheDocument()
+    expect(screen.getByText(/Last updated:/i)).toBeInTheDocument()
   })
 
   it("renders a ClusterListItem for each cluster", async () => {
@@ -41,11 +40,8 @@ describe("<ClusterList />", () => {
     ]
 
     await act(async () => renderComponent(<ClusterList clusters={clusters} />))
-
-    const items = screen.getAllByTestId("cluster-list-item")
-    expect(items).toHaveLength(2)
-    expect(items[0]).toHaveTextContent("cluster-one")
-    expect(items[1]).toHaveTextContent("cluster-two")
+    expect(screen.getByText(clusters[0].name)).toBeInTheDocument()
+    expect(screen.getByText(clusters[1].name)).toBeInTheDocument()
   })
 
   it("renders 'No clusters found' when the clusters array is empty with the list header", async () => {
@@ -54,6 +50,5 @@ describe("<ClusterList />", () => {
     expectClusterListHeaders()
 
     expect(screen.getByText("No clusters found")).toBeInTheDocument()
-    expect(screen.queryByTestId("cluster-list-item")).not.toBeInTheDocument()
   })
 })

@@ -119,7 +119,7 @@ const sectionHeaderStyles = "details-section tw-text-lg tw-font-bold tw-mb-4"
 function clusterDetailContent({ cluster, updatedAt }: { cluster: Cluster; updatedAt?: number }) {
   return (
     <div className="tw-relative">
-      <div className="tw-absolute tw-right-0 tw-top-6 tw-text-sm" data-testid="cluster-details-updated-at">
+      <div className="tw-absolute tw-right-0 tw-top-6 tw-text-sm">
         {updatedAt && <span>Last updated: {new Date(updatedAt).toLocaleString()}</span>}
       </div>
       <Tabs>
@@ -214,7 +214,7 @@ function clusterDetailContent({ cluster, updatedAt }: { cluster: Cluster; update
         </TabPanel>
         <TabPanel>
           <Container py px={false}>
-            <JsonViewer expanded={2} data={cluster.raw} toolbar data-testid="json-viewer" />
+            <JsonViewer expanded={2} data={cluster.raw} toolbar />
           </Container>
         </TabPanel>
       </Tabs>
@@ -238,7 +238,7 @@ function ClusterDetail({ cluster, permissions, isLoading, error, updatedAt }: Cl
 
   const renderContent = () => {
     if (isLoading) {
-      return <Spinner size="small" aria-label="Loading cluster details" data-testid="cluster-details-loading-state" />
+      return <Spinner size="small" aria-label="Loading cluster details" />
     }
 
     if (detailsError) {
