@@ -70,6 +70,8 @@ export const ClusterSchema = z.object({
     os: z.boolean(),
     kubernetes: z.boolean(),
   }),
+
+  raw: z.looseObject({}), // Raw data for JSON viewer
 })
 export const ClustersSchema = z.array(ClusterSchema)
 

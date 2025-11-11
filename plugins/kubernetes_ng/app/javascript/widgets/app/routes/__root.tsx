@@ -4,14 +4,14 @@ import { AppShell } from "@cloudoperators/juno-ui-components"
 import { GardenerApi } from "../apiClient"
 import { Breadcrumb } from "../components/Breadcrumb"
 
-interface RouterContext {
+export interface RouterContext {
   apiClient: GardenerApi
 }
 
 export const Root = () => {
   return (
     <AppShell embedded={true}>
-      <Breadcrumb data-breadcrumb="main" />
+      <Breadcrumb />
       <Outlet />
     </AppShell>
   )

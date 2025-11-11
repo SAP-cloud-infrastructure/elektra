@@ -42,7 +42,7 @@ const ClusterListItem: React.FC<ClusterListItemProps> = ({ cluster, ...props }) 
   const statusStyles = getStatusStyles(cluster.status)
 
   return (
-    <DataGridRow data-testid="cluster-list-item" {...props}>
+    <DataGridRow {...props}>
       <DataGridCell>
         <Icon
           color={statusStyles.color}
@@ -60,7 +60,7 @@ const ClusterListItem: React.FC<ClusterListItemProps> = ({ cluster, ...props }) 
         </Stack>
       </DataGridCell>
       <DataGridCell>
-        <ReadinessConditions conditions={cluster.readiness.conditions} data-testid="readiness-conditions" />
+        <ReadinessConditions conditions={cluster.readiness.conditions} />
       </DataGridCell>
       <DataGridCell>
         <Stack gap="1">

@@ -15,7 +15,7 @@ export const gardenerTestApi = {
       return Promise.reject(new Error("Cluster not found"))
     }
   },
-  getPermissions: () => Promise.resolve({ list: true, create: true, delete: true }),
+  getPermissions: () => Promise.resolve({ list: true, get: true, create: true, update: true, delete: true }),
 }
 
 export function createGardenerApi(mountpoint: string) {
