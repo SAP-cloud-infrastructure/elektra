@@ -24,15 +24,15 @@ function normalizeError(error: unknown): { title: string; message: string } {
   if (error instanceof Error) {
     return {
       title: error.name ? `${error.name}: ` : "Error: ",
-      message: error.message || "Something went wrong",
+      message: error.message || "An unknown error occurred. Try again.",
     }
   }
 
-  return { title: "Unknown Error", message: "Something went wrong." }
+  return { title: "Unknown Error", message: "An unknown error occurred. Try again." }
 }
 
 interface InlineErrorProps {
-  error: unknown
+  error?: unknown
   className?: string
 }
 

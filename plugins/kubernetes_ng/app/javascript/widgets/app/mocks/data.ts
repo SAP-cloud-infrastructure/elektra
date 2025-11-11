@@ -1,4 +1,5 @@
 import { Cluster } from "../types/cluster"
+import { Permissions } from "../types/permissions"
 
 export const worker1 = {
   name: "worker-a1",
@@ -86,6 +87,7 @@ export const defaultCluster: Cluster = {
     windowTime: "",
   },
   autoUpdate: { os: false, kubernetes: false },
+  raw: { some: "raw data" },
 }
 
 export const errorCluster: Cluster = {
@@ -110,4 +112,12 @@ export const unknownStatusCluster: Cluster = {
     conditions: [ReadinessConditionUnknown, ReadinessConditionPending],
   },
   lastMaintenance: { state: "Error" },
+}
+
+export const permissionsAllTrue: Permissions = {
+  list: true,
+  get: true,
+  create: true,
+  update: true,
+  delete: true,
 }
