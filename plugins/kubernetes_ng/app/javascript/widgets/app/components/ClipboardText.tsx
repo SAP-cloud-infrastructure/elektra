@@ -32,9 +32,11 @@ const ClipboardText: React.FC<ClipboardTextProps> = ({
   }
 
   return (
-    <div data-testid="clipboard-text" {...props} className={combinedClassName}>
+    <div {...props} className={combinedClassName}>
       <Tooltip open={open}>
-        <TooltipTrigger onClick={handleCopy}>{text}</TooltipTrigger>
+        <TooltipTrigger onClick={handleCopy} aria-label={`Copy ${text} to clipboard`}>
+          {text}
+        </TooltipTrigger>
         <TooltipContent>{tooltipContent}</TooltipContent>
         <Icon
           icon="contentCopy"

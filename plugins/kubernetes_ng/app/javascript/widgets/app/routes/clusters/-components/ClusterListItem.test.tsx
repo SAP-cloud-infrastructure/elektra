@@ -1,11 +1,8 @@
 import React from "react"
-import { render, screen, act } from "@testing-library/react"
+import { screen, act } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import ClusterListItem from "./ClusterListItem"
-import { Cluster } from "../../../types/cluster"
-import { createRoute, createRootRoute, RouterProvider, createMemoryHistory, Outlet } from "@tanstack/react-router"
-import { PortalProvider } from "@cloudoperators/juno-ui-components/index"
-import { getTestRouter } from "../../../mocks/getTestRouter"
+import { renderComponent } from "../../../mocks/TestTools"
 import { defaultCluster } from "../../../mocks/data"
 
 // Mock navigator.clipboard
@@ -15,46 +12,11 @@ Object.assign(navigator, {
   },
 })
 
-const renderComponent = (cluster: Cluster = defaultCluster) => {
-  const rootRoute = createRootRoute({
-    component: () => <Outlet />,
-  })
-  const testRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: "/clusters/",
-    loader: async () =>
-      Promise.resolve({
-        crumb: {
-          label: "Clusters",
-          icon: "home",
-        },
-        clusters: [cluster],
-      }),
-    component: () => (
-      <PortalProvider>
-        <ClusterListItem cluster={cluster} />
-      </PortalProvider>
-    ),
-  })
-  const routeTree = rootRoute.addChildren([testRoute])
-  const router = getTestRouter({
-    routeTree,
-    history: createMemoryHistory({
-      initialEntries: ["/clusters/"],
-    }),
-  })
-
-  return {
-    ...render(<RouterProvider router={router} />),
-    router,
-  }
-}
-
 describe("<ClusterListItem />", () => {
   let container: HTMLElement
 
   it("displays correct status icon and color for Operational status", async () => {
-    const rendered = await act(async () => renderComponent())
+    const rendered = await act(async () => renderComponent(<ClusterListItem cluster={defaultCluster} />))
     container = rendered.container
     const statusIcon = container.querySelector('[data-status-icon="status-icon"]')
     expect(statusIcon).toBeInTheDocument()
@@ -64,7 +26,7 @@ describe("<ClusterListItem />", () => {
 
   it("displays correct status icon and color for Error status", async () => {
     const errorCluster = { ...defaultCluster, status: "Error" }
-    const rendered = await act(async () => renderComponent(errorCluster))
+    const rendered = await act(async () => renderComponent(<ClusterListItem cluster={errorCluster} />))
     container = rendered.container
 
     const statusIcon = container.querySelector('[data-status-icon="status-icon"]')
@@ -74,20 +36,26 @@ describe("<ClusterListItem />", () => {
   })
 
   it("renders readiness conditions", async () => {
-    await act(async () => renderComponent())
-    expect(screen.getByTestId("readiness-conditions")).toBeInTheDocument()
+    await act(async () => renderComponent(<ClusterListItem cluster={defaultCluster} />))
+
+    defaultCluster.readiness.conditions.forEach((condition) => {
+      expect(screen.getByText(condition.displayValue)).toBeInTheDocument()
+    })
   })
 
   it("copies cluster ID to clipboard", async () => {
-    await act(async () => renderComponent())
-    const clipboardButton = screen.getByTestId("clipboard-text")
+    await act(async () => renderComponent(<ClusterListItem cluster={defaultCluster} />))
+    // const clipboardButton = screen.getByTestId("clipboard-text")
+    const clipboardButton = screen.getByRole("button", {
+      name: new RegExp(`copy ${defaultCluster.uid} to clipboard`, "i"),
+    })
     expect(clipboardButton).toHaveTextContent(defaultCluster.uid)
     expect(clipboardButton).toBeInTheDocument()
   })
 
   it("renders View Details button with correct link", async () => {
     const clusterWithName = { ...defaultCluster, name: "test-cluster-123" }
-    await act(async () => renderComponent(clusterWithName))
+    await act(async () => renderComponent(<ClusterListItem cluster={clusterWithName} />))
 
     const viewDetailsButton = screen.getByRole("button", { name: "View Details" })
     const link = viewDetailsButton.closest("a")

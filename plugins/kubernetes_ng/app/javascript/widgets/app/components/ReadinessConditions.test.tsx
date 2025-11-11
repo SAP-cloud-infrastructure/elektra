@@ -19,9 +19,9 @@ describe("<ReadinessConditions />", () => {
         />
       )
 
-      expect(screen.getByText("Ready")).toBeInTheDocument()
-      expect(screen.getByText("CP")).toBeInTheDocument()
-      expect(screen.getByText("OC")).toBeInTheDocument()
+      expect(screen.getByText(ReadinessConditionTrue.displayValue)).toBeInTheDocument()
+      expect(screen.getByText(ReadinessConditionFalse.displayValue)).toBeInTheDocument()
+      expect(screen.getByText(ReadinessConditionUnknown.displayValue)).toBeInTheDocument()
     })
 
     it("applies success variant when status is True without icon", () => {
@@ -72,42 +72,42 @@ describe("<ReadinessConditions />", () => {
     })
 
     it("renders only non-True conditions boxes initially", () => {
-      render(<ReadinessConditions conditions={conditions} showDetails />)
+      render(<ReadinessConditions conditions={conditions} showDetails data-testid="readiness-conditions" />)
 
-      const boxes = screen.getAllByTestId("condition-box")
-      expect(boxes).toHaveLength(3)
-      expect(boxes[0]).toHaveTextContent(ReadinessConditionFalse.type)
-      expect(boxes[1]).toHaveTextContent(ReadinessConditionUnknown.type)
-      expect(boxes[2]).toHaveTextContent(ReadinessConditionPending.type)
+      expect(screen.getByText(ReadinessConditionFalse.type)).toBeInTheDocument()
+      expect(screen.getByText(ReadinessConditionUnknown.type)).toBeInTheDocument()
+      expect(screen.getByText(ReadinessConditionPending.type)).toBeInTheDocument()
 
       // True condition should not appear
       expect(screen.queryByText(ReadinessConditionTrue.type)).not.toBeInTheDocument()
 
       expect(
-        within(screen.getByTestId("toggle-readiness-details")).getByText("Show full readiness details")
+        within(screen.getByTestId("readiness-conditions")).getByText("Show full readiness details")
       ).toBeInTheDocument()
     })
 
     it("shows all conditions after clicking 'Show all'", async () => {
-      render(<ReadinessConditions conditions={conditions} showDetails />)
+      render(<ReadinessConditions conditions={conditions} showDetails data-testid="readiness-conditions" />)
 
-      const toggle = screen.getByTestId("toggle-readiness-details")
+      const toggle = screen.getByRole("button", { name: /show full readiness details/i })
       await act(async () => {
         fireEvent.click(toggle)
       })
 
-      // all 3 should now appear
-      const boxes = screen.getAllByTestId("condition-box")
-      expect(boxes).toHaveLength(4)
+      expect(screen.getByText(ReadinessConditionFalse.type)).toBeInTheDocument()
+      expect(screen.getByText(ReadinessConditionUnknown.type)).toBeInTheDocument()
+      expect(screen.getByText(ReadinessConditionPending.type)).toBeInTheDocument()
+      expect(screen.getByText(ReadinessConditionTrue.type)).toBeInTheDocument()
+
       expect(
-        within(screen.getByTestId("toggle-readiness-details")).getByText("Hide full readiness details")
+        within(screen.getByTestId("readiness-conditions")).getByText("Hide full readiness details")
       ).toBeInTheDocument()
     })
 
     it("hides healthy conditions again after clicking 'Hide healthy'", async () => {
       render(<ReadinessConditions conditions={conditions} showDetails />)
 
-      const toggle = screen.getByTestId("toggle-readiness-details")
+      const toggle = screen.getByRole("button", { name: /show full readiness details/i })
       // Expand to show all
       await act(async () => {
         fireEvent.click(toggle)
@@ -117,19 +117,23 @@ describe("<ReadinessConditions />", () => {
         fireEvent.click(toggle)
       })
 
-      const boxes = screen.getAllByTestId("condition-box")
-      expect(boxes).toHaveLength(3)
+      expect(screen.getByText(ReadinessConditionFalse.type)).toBeInTheDocument()
+      expect(screen.getByText(ReadinessConditionUnknown.type)).toBeInTheDocument()
+      expect(screen.getByText(ReadinessConditionPending.type)).toBeInTheDocument()
+      expect(screen.queryByText(ReadinessConditionTrue.type)).not.toBeInTheDocument()
     })
 
     it("does not render toggle or boxes when showDetails=false", () => {
       render(<ReadinessConditions conditions={conditions} showDetails={false} />)
 
       // Toggle link shouldn't appear
-      expect(screen.queryByTestId("toggle-readiness-details")).not.toBeInTheDocument()
+      expect(screen.queryByRole("button", { name: /show full readiness details/i })).not.toBeInTheDocument()
 
       // No boxes
-      const boxes = screen.queryAllByTestId("condition-box")
-      expect(boxes).toHaveLength(0)
+      expect(screen.queryByText(ReadinessConditionFalse.type)).not.toBeInTheDocument()
+      expect(screen.queryByText(ReadinessConditionUnknown.type)).not.toBeInTheDocument()
+      expect(screen.queryByText(ReadinessConditionPending.type)).not.toBeInTheDocument()
+      expect(screen.queryByText(ReadinessConditionTrue.type)).not.toBeInTheDocument()
     })
   })
 })

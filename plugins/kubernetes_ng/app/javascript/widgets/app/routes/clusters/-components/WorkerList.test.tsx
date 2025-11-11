@@ -6,7 +6,7 @@ import { worker1, worker2 } from "../../../mocks/data"
 
 describe("WorkerList", () => {
   it("renders without crashing", () => {
-    render(<WorkerList workers={[worker1, worker2]} />)
+    render(<WorkerList workers={[worker1, worker2]} data-testid="worker-list" />)
     expect(screen.getByTestId("worker-list")).toBeInTheDocument()
   })
 
@@ -21,7 +21,8 @@ describe("WorkerList", () => {
 
   it("renders the correct number of WorkerListItem components", () => {
     render(<WorkerList workers={[worker1, worker2]} />)
-    expect(screen.getAllByTestId("worker-list-item")).toHaveLength(2)
+    expect(screen.getByText(worker1.name)).toBeInTheDocument()
+    expect(screen.getByText(worker2.name)).toBeInTheDocument()
   })
 
   it("renders 'No workers found' when list is empty", () => {
@@ -30,7 +31,7 @@ describe("WorkerList", () => {
   })
 
   it("passes extra props to the wrapper div", () => {
-    render(<WorkerList workers={[worker1, worker2]} data-extra="test-prop" />)
+    render(<WorkerList workers={[worker1, worker2]} data-extra="test-prop" data-testid="worker-list" />)
     const wrapper = screen.getByTestId("worker-list")
     expect(wrapper).toHaveAttribute("data-extra", "test-prop")
   })
