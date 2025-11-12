@@ -46,19 +46,19 @@ RUN apk --no-cache add git curl nodejs pnpm shared-mime-info build-base
 # Install gems with native extensions before running bundle install
 # This avoids recompiling them everytime the Gemfile.lock changes.
 # The versions need to be kept in sync with the Gemfile.lock
+# check also with "bundler info <gemname>"
 RUN apk --no-cache add postgresql16-dev ruby-sassc \
     && \ 
     gem install --no-document \
-    bundler:2.3.20 \
-    byebug:11.1.3 \
-    ffi:1.15.5 \
-    nio4r:2.7.1 \
-    nokogiri:1.18.9 \
+    byebug:12.0.0 \
+    ffi:1.17.2 \
+    nio4r:2.7.5 \
+    nokogiri:1.18.10 \
     pg:1.3.4 \
     puma:6.4.3  \
-    redcarpet:3.6.0 \
-    unf:0.2.0.beta2 \
-    websocket-driver:0.7.6 \
+    redcarpet:3.6.1 \
+    unf:0.2.0 \
+    websocket-driver:0.8.0 \
     bindex:0.8.1 \
     sassc:2.4.0 
 
