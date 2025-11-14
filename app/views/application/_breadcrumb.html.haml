@@ -23,6 +23,13 @@
           = current_user && render_navigation(expand_all: true, renderer: :fancy_list, context: navigation_context(@scoped_domain_name, @scoped_project_name))
 
     .special-crumb
+      -# AI Assistant
+      = javascript_include_tag "http://localhost:3012/components/index.js", type: "module"
+      :javascript 
+        window._getAuthToken =async  () => await window._getCurrentToken().then((d) => d.authToken)
+      %sci-assistant-button{"token-func": "_getAuthToken", "button-text":"✨", variant: "toolbar", "panel-width": "600px" }
+      %sci-assistant-button{"token-func": "_getAuthToken"}
+      -# END AI Assistant 
       - if services.available?(:webconsole) &&  plugin_available?(:webconsole) && current_user && current_user.is_allowed?('webconsole:application_get') && @scoped_project_fid && plugin_name!='webconsole'
         = link_to 'javascript:void(0)', class: 'solo-icon-link', data: {trigger: 'webconsole:open'} do
           %span.fa-stack
