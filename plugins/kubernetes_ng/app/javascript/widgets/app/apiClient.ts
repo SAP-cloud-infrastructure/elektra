@@ -2,6 +2,7 @@ import { createAjaxHelper } from "lib/ajax_helper"
 import { widgetBasePath } from "lib/widget"
 import { Cluster, ClusterSchema, ClustersSchema } from "./types/cluster"
 import { Permissions, PermissionsSchema } from "./types/permissions"
+import { CloudProfile, CloudProfilesSchema } from "./types/cloudProfiles"
 import { defaultCluster, errorCluster, unknownStatusCluster } from "./mocks/data"
 
 export const gardenerTestApi = {
@@ -53,8 +54,19 @@ export function createGardenerApi(mountpoint: string) {
       }),
   }
 
+  const CloudProfilesApi = {
+    getCloudProfiles: () =>
+      apiClient.get<{ data: CloudProfile[] }>("/api/cloud-profiles").then((res) => {
+        const parsed = CloudProfilesSchema.safeParse(res.data)
+        if (!parsed.success) {
+          throw new Error("Failed to fetch cloud profiles: invalid response")
+        }
+        return res.data
+      }),
+  }
+
   return {
-    gardener: { ...shootApi, ...permissionsApi },
+    gardener: { ...shootApi, ...permissionsApi, ...CloudProfilesApi },
   }
 }
 

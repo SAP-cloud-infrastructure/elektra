@@ -271,5 +271,3 @@ function ClusterDetailLoader() {
     </ClusterDetailErrorBoundary>
   )
 }
-
-export default ClusterDetailLoader

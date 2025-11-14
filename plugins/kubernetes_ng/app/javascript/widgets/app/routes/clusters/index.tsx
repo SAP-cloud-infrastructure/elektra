@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useState } from "react"
 import { createFileRoute, useLoaderData, useRouter, useMatch } from "@tanstack/react-router"
 import { Container, Button } from "@cloudoperators/juno-ui-components"
 import ClusterList from "./-components/ClusterList"
@@ -7,6 +7,8 @@ import { Permissions } from "../../types/permissions"
 import { Cluster } from "../../types/cluster"
 import { ErrorBoundary, FallbackProps } from "react-error-boundary"
 import InlineError from "../../components/InlineError"
+import CreateClusterWizard from "./-components/CreateClusterWizard"
+import { GardenerApi } from "../../apiClient"
 
 export const CLUSTERS_ROUTE_ID = "/clusters/"
 
@@ -28,6 +30,7 @@ export const Route = createFileRoute(CLUSTERS_ROUTE_ID)({
     return {
       clusters,
       permissions,
+      client,
       updatedAt: Date.now(),
     }
   },
@@ -56,7 +59,15 @@ function ClustersErrorBoundary({ children }: { children?: React.ReactNode }) {
   )
 }
 
-function ClusterActions({ permissions, disabled = false }: { permissions?: Permissions; disabled?: boolean }) {
+function ClusterActions({
+  permissions,
+  disabled = false,
+  onAddCluster,
+}: {
+  permissions?: Permissions
+  disabled?: boolean
+  onAddCluster?: () => void
+}) {
   const router = useRouter()
   const match = useMatch({ from: Route.id })
   const isFetching = match.isFetching === "loader"
@@ -71,7 +82,13 @@ function ClusterActions({ permissions, disabled = false }: { permissions?: Permi
         }}
         disabled={disabled}
       />
-      <Button variant="primary" size="small" label="Add Cluster" disabled={disabled || !permissions?.create} />
+      <Button
+        variant="primary"
+        size="small"
+        label="Add Cluster"
+        disabled={disabled || !permissions?.create}
+        onClick={onAddCluster}
+      />
     </>
   )
 }
@@ -81,6 +98,7 @@ interface ClustersViewProps {
   permissions?: Permissions
   error?: Error
   isLoading?: boolean
+  client?: GardenerApi
   updatedAt?: number
 }
 
@@ -96,13 +114,28 @@ function ClusterContent({ clusters = [], permissions, error, isLoading = false, 
 }
 
 function Clusters(props: ClustersViewProps) {
-  const { permissions, isLoading = false } = props
+  const { permissions, isLoading = false, client } = props
+  const [createWizardModal, setCreateWizardModal] = useState(false)
+
   return (
     <>
       <ClustersPageHeader>
-        <ClusterActions permissions={permissions} disabled={isLoading} />
+        <ClusterActions
+          permissions={permissions}
+          disabled={isLoading}
+          onAddCluster={() => setCreateWizardModal(true)}
+        />
       </ClustersPageHeader>
       <ClusterContent {...props} />
+      {createWizardModal && client && (
+        <CreateClusterWizard
+          isOpen={createWizardModal}
+          onClose={() => {
+            setCreateWizardModal(false)
+          }}
+          client={client}
+        />
+      )}
     </>
   )
 }
@@ -116,5 +149,3 @@ function ClustersLoader() {
     </ClustersErrorBoundary>
   )
 }
-
-export default ClustersLoader
