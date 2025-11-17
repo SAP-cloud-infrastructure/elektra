@@ -12,7 +12,12 @@ export const Breadcrumb = ({ className = "", ...props }: BreadcrumbProps) => {
   const matchesWithCrumbs = matches.filter((match) => isMatch(match, "loaderData.crumb"))
 
   return (
-    <BreadcrumbContainer className={`breadcrumb-container ${className}`} {...props}>
+    <BreadcrumbContainer
+      className={`breadcrumb-container ${className}`}
+      role="navigation"
+      aria-label="Breadcrumb"
+      {...props}
+    >
       {matchesWithCrumbs.map((match, i) => {
         const { pathname, loaderData } = match
 

@@ -6,7 +6,7 @@ import { worker1 as mockWorker } from "../../../mocks/data"
 
 describe("WorkerListItem", () => {
   it("renders without crashing", () => {
-    render(<WorkerListItem worker={mockWorker} />)
+    render(<WorkerListItem worker={mockWorker} data-testid="worker-list-item" />)
     expect(screen.getByTestId("worker-list-item")).toBeInTheDocument()
   })
 

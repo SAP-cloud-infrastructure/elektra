@@ -9,8 +9,8 @@ const WorkerList: React.FC<{
   workers: Worker[]
 }> = ({ workers, ...props }) => {
   return (
-    <div className="datagrid-hover" data-testid="worker-list" {...props}>
-      <DataGrid columns={NUMBER_OF_COLUMNS}>
+    <div className="datagrid-hover" {...props}>
+      <DataGrid columns={NUMBER_OF_COLUMNS} aria-label="Worker list">
         <DataGridRow>
           <DataGridHeadCell>Name</DataGridHeadCell>
           <DataGridHeadCell>Architecture</DataGridHeadCell>

@@ -52,20 +52,24 @@ const ReadinessConditions: React.FC<ReadinessConditionsProps> = ({ conditions, s
   const filteredConditions = showAll ? conditions : conditions.filter((c) => c.status !== "True")
 
   return (
-    <Stack direction="vertical" gap="1">
+    <Stack direction="vertical" gap="1" {...props}>
       <Stack gap="2">
-        <Stack gap="1" {...props}>
+        <Stack gap="1">
           {conditions.map((condition) => (
             <ConditionBadge key={condition.type} condition={condition} />
           ))}
         </Stack>
         {showDetails && hasHealthy && (
-          <div onClick={() => setShowAll((prev) => !prev)} data-testid="toggle-readiness-details">
-            <Stack gap="1" className="tw-cursor-pointer tw-text-theme-link hover:tw-underline" direction="horizontal">
-              {showAll ? "Hide full readiness details" : "Show full readiness details"}
-              <Icon color="global-text" icon={showAll ? "expandLess" : "expandMore"} />
-            </Stack>
-          </div>
+          <button
+            type="button"
+            onClick={() => setShowAll((prev) => !prev)}
+            className="tw-cursor-pointer tw-text-theme-link hover:tw-underline tw-inline-flex tw-items-center tw-gap-1 tw-bg-transparent tw-border-none tw-p-0"
+            aria-expanded={showAll}
+            aria-controls="readiness-details"
+          >
+            {showAll ? "Hide full readiness details" : "Show full readiness details"}
+            <Icon color="global-text" icon={showAll ? "expandLess" : "expandMore"} />
+          </button>
         )}
       </Stack>
       {showDetails && (
@@ -73,9 +77,8 @@ const ReadinessConditions: React.FC<ReadinessConditionsProps> = ({ conditions, s
           {filteredConditions.map((condition) => {
             const variant = getReadinessConditionVariant(condition.status)
             return (
-              <Box key={condition.type} variant={variant} data-testid={`condition-box`}>
+              <Box key={condition.type} variant={variant}>
                 <ConditionBadge key={condition.type} condition={condition} />
-
                 <Grid>
                   <GridRow>
                     <GridColumn
