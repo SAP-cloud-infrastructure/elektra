@@ -1,33 +1,30 @@
-import { regionOptions, stepDefinitions } from "./constants"
-
-export type RegionValue = (typeof regionOptions)[number]["value"]
+import { stepDefinitions } from "./constants"
 
 type StepDefinition = (typeof stepDefinitions)[number]
 export type StepId = StepDefinition["id"]
 export type Step = StepDefinition & { hasError: boolean }
 
-export type BasicInfoData = {
+export type BasicInfo = {
   name: string
   cloudProfileName: string
-  region: RegionValue
   kubernetesVersion: string
 }
 
-export type InfrastructureData = {
-  infrastructure: {
+export type Infrastructure = {
+  infrastructure?: {
     floatingPoolName: string
   }
-  networking: {
+  networking?: {
     pods: string
     nodes: string
     services: string
   }
 }
 
-export type WorkerData = {
+export type WorkerGroup = {
   workers: {
     machineType: string
-    machineImage: {
+    machineImage?: {
       name: string
       version: string
     }
@@ -37,7 +34,7 @@ export type WorkerData = {
   }[]
 }
 
-export type ClusterFormData = BasicInfoData & InfrastructureData & WorkerData
+export type ClusterFormData = BasicInfo & Infrastructure & WorkerGroup
 
 export type ValidationErrors<T> = {
   [K in keyof T]?: T[K] extends (infer U)[]

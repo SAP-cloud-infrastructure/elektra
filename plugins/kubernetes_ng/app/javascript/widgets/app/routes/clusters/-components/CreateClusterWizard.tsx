@@ -13,7 +13,7 @@ interface CreateClusterWizardProps {
 
 const CreateClusterWizard: React.FC<CreateClusterWizardProps> = ({ isOpen, onClose, client }) => {
   return (
-    <WizardProvider cloudProfilesPromise={client.gardener.getCloudProfiles()}>
+    <WizardProvider client={client}>
       <Modal
         className="tw-w-[76.75rem]"
         open={isOpen}

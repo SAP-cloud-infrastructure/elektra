@@ -1,28 +1,21 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback } from "react"
 import {
-  BasicInfoData,
-  InfrastructureData,
   ClusterFormData,
+  BasicInfo,
+  Infrastructure,
+  WorkerGroup,
   ClusterFormErrors,
-  RegionValue,
-  WorkerData,
   Step,
   StepId,
   ValidationErrors,
 } from "./types"
-import { CloudProfile } from "../../../../types/cloudProfiles"
-import { useQuery } from "@tanstack/react-query"
 import { stepDefinitions } from "./constants"
+import { GardenerApi } from "../../../../apiClient"
 
-const DEFAULT_REGION_VALUE: RegionValue = "eu-de-1"
-const DEFAULT_CLOUD_PROFILE_NAME = "converged-cloud"
-const DEFAULT_BASIC_INFO = {
+const DEFAULT_BASIC_INFRA_DATA: BasicInfo & Infrastructure = {
   name: "",
   cloudProfileName: "",
-  region: DEFAULT_REGION_VALUE,
   kubernetesVersion: "",
-}
-const DEFAULT_INFRASCTRUCTURE = {
   infrastructure: {
     floatingPoolName: "",
   },
@@ -32,7 +25,7 @@ const DEFAULT_INFRASCTRUCTURE = {
     services: "",
   },
 }
-const DEFAULT_WORKER_NODES = {
+const DEFAULT_WORKER_GROUP: WorkerGroup = {
   workers: [
     {
       machineType: "",
@@ -47,12 +40,11 @@ const DEFAULT_WORKER_NODES = {
   ],
 }
 const DEFAULT_CLUSTER_FORM_DATA: ClusterFormData = {
-  ...DEFAULT_BASIC_INFO,
-  ...DEFAULT_INFRASCTRUCTURE,
-  ...DEFAULT_WORKER_NODES,
+  ...DEFAULT_BASIC_INFRA_DATA,
+  ...DEFAULT_WORKER_GROUP,
 }
 
-const validateBasicInfo = (data: BasicInfoData): ClusterFormErrors => {
+const validateBasicInfo = (data: BasicInfo & Infrastructure): ClusterFormErrors => {
   const errors: ClusterFormErrors = {}
 
   if (!data.name) {
@@ -62,38 +54,34 @@ const validateBasicInfo = (data: BasicInfoData): ClusterFormErrors => {
     errors.name = ["Name must start with a letter, followed by lowercase alphanumeric characters or dashes"]
   }
 
+  // if (!data?.infrastructure?.floatingPoolName) {
+  //   errors.infrastructure = {
+  //     floatingPoolName: ["Floating pool name is required"],
+  //   }
+  // }
+  // if (!data?.networking?.pods) {
+  //   errors.networking = {
+  //     ...(errors.networking || {}),
+  //     pods: ["Pod network CIDR is required"],
+  //   }
+  // }
+  // if (!data?.networking?.nodes) {
+  //   errors.networking = {
+  //     ...(errors.networking || {}),
+  //     nodes: ["Node network CIDR is required"],
+  //   }
+  // }
+  // if (!data?.networking?.services) {
+  //   errors.networking = {
+  //     ...(errors.networking || {}),
+  //     services: ["Service network CIDR is required"],
+  //   }
+  // }
+
   return errors
 }
 
-const validateInfrastructure = (data: InfrastructureData): ClusterFormErrors => {
-  const errors: ClusterFormErrors = {}
-  if (!data.infrastructure.floatingPoolName) {
-    errors.infrastructure = {
-      floatingPoolName: ["Floating pool name is required"],
-    }
-  }
-  if (!data.networking.pods) {
-    errors.networking = {
-      ...(errors.networking || {}),
-      pods: ["Pod network CIDR is required"],
-    }
-  }
-  if (!data.networking.nodes) {
-    errors.networking = {
-      ...(errors.networking || {}),
-      nodes: ["Node network CIDR is required"],
-    }
-  }
-  if (!data.networking.services) {
-    errors.networking = {
-      ...(errors.networking || {}),
-      services: ["Service network CIDR is required"],
-    }
-  }
-  return errors
-}
-
-const validateWorkers = (data: WorkerData): ClusterFormErrors => {
+const validateWorkers = (data: WorkerGroup): ClusterFormErrors => {
   // Use a separate property for array-level errors
   const errors: ValidationErrors<ClusterFormData> & { _workers?: string[] } = {}
   if (!data.workers || data.workers.length === 0) {
@@ -113,12 +101,6 @@ const validateWorkers = (data: WorkerData): ClusterFormErrors => {
     if (!worker.machineType) {
       wErrors.workers[index].machineType = ["Machine type is required"]
     }
-    if (!worker.machineImage.name) {
-      wErrors.workers[index].machineImage = {
-        ...(wErrors.workers[index].machineImage || {}),
-        name: ["Machine image name is required"],
-      }
-    }
     if (worker.minimum < 1) {
       wErrors.workers[index].minimum = ["Minimum number of nodes must be at least 1"]
     }
@@ -136,21 +118,18 @@ const validateWorkers = (data: WorkerData): ClusterFormErrors => {
   return errors
 }
 
-const validateAll = (basicInfo: BasicInfoData, infra: InfrastructureData, workers: WorkerData) => {
-  const basicErrors = validateBasicInfo(basicInfo)
-  const infraErrors = validateInfrastructure(infra)
-  const workerErrors = validateWorkers(workers)
+const validateAll = (basicAndInfraData: BasicInfo & Infrastructure, workerGroup: WorkerGroup) => {
+  const basicInfraErrors = validateBasicInfo(basicAndInfraData)
+  const workerErrors = validateWorkers(workerGroup)
 
   const allErrors = {
-    ...basicErrors,
-    ...infraErrors,
+    ...basicInfraErrors,
     ...workerErrors,
   }
 
   const stepErrors: Record<StepId, boolean> = {
-    basicInfo: Object.keys(basicErrors).length > 0,
-    infrastructure: Object.keys(infraErrors).length > 0,
-    workerNodes: Object.keys(workerErrors).length > 0,
+    basicInfoInfrastructure: Object.keys(basicInfraErrors).length > 0,
+    workerGroups: Object.keys(workerErrors).length > 0,
     review: false,
   }
 
@@ -158,24 +137,17 @@ const validateAll = (basicInfo: BasicInfoData, infra: InfrastructureData, worker
 }
 
 interface WizardContextProps {
+  client: GardenerApi
+
   currentStep: number
   handleSetCurrentStep: (step: number) => void
   maxStepReached: number
 
-  basicInfoData: BasicInfoData
-  setBasicInfoData: React.Dispatch<React.SetStateAction<BasicInfoData>>
+  basicAndInfraData: BasicInfo & Infrastructure
+  setBasicAndInfraData: React.Dispatch<React.SetStateAction<BasicInfo & Infrastructure>>
+  workerGroupData: WorkerGroup
+  setWorkerGroupData: React.Dispatch<React.SetStateAction<WorkerGroup>>
 
-  infrastructureData: InfrastructureData
-  setInfrastructureData: React.Dispatch<React.SetStateAction<InfrastructureData>>
-
-  workerData: WorkerData
-  setWorkerData: React.Dispatch<React.SetStateAction<WorkerData>>
-
-  cloudProfiles?: CloudProfile[]
-  isLoading: boolean
-  error: unknown
-
-  availableKubernetesVersions: string[]
   formErrors: ClusterFormErrors
   steps: Step[]
 }
@@ -191,47 +163,27 @@ export const useWizard = () => {
 }
 
 interface WizardProviderProps {
+  client: GardenerApi
   children: ReactNode
-  cloudProfilesPromise: Promise<CloudProfile[]>
 }
 
-export const WizardProvider: React.FC<WizardProviderProps> = ({ children, cloudProfilesPromise }) => {
+export const WizardProvider: React.FC<WizardProviderProps> = ({ children, client }) => {
   const [currentStep, setCurrentStep] = useState<number>(0)
   const [maxStepReached, setMaxStepReached] = useState<number>(0)
 
-  const [basicInfoData, setBasicInfoData] = useState<BasicInfoData>(DEFAULT_BASIC_INFO)
-  const [infrastructureData, setInfrastructureData] = useState<InfrastructureData>(DEFAULT_INFRASCTRUCTURE)
-  const [workerData, setWorkerData] = useState<WorkerData>(DEFAULT_WORKER_NODES)
+  const [basicAndInfraData, setBasicAndInfraData] = useState<BasicInfo & Infrastructure>(DEFAULT_BASIC_INFRA_DATA)
+  const [workerGroupData, setWorkerGroupData] = useState<WorkerGroup>(DEFAULT_WORKER_GROUP)
 
   const [steps, setSteps] = useState<Step[]>(stepDefinitions.map((s) => ({ ...s, hasError: false })))
 
   const [formErrors, setFormErrors] = useState<ClusterFormErrors>({})
-
-  const {
-    isLoading,
-    data: cloudProfiles,
-    error,
-  } = useQuery({
-    queryKey: ["cloudProfiles"],
-    queryFn: () => cloudProfilesPromise,
-    enabled: !!cloudProfilesPromise,
-    select: (profiles) => [...profiles].sort((a, b) => a.name.localeCompare(b.name)),
-    onSuccess: (profiles) => {
-      // set cloud profile or default
-      const defaultCloudProfile = profiles.find((profile) => profile.name === DEFAULT_CLOUD_PROFILE_NAME) || profiles[0]
-      setBasicInfoData((prev) => ({
-        ...prev,
-        cloudProfileName: defaultCloudProfile.name,
-      }))
-    },
-  })
 
   const handleSetCurrentStep = useCallback(
     (step: number) => {
       setCurrentStep(step)
       setMaxStepReached((prev) => Math.max(prev, step))
 
-      const { stepErrors, allErrors } = validateAll(basicInfoData, infrastructureData, workerData)
+      const { stepErrors, allErrors } = validateAll(basicAndInfraData, workerGroupData)
 
       setFormErrors(allErrors)
 
@@ -245,29 +197,20 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ children, cloudP
         }))
       )
     },
-    [basicInfoData, infrastructureData, workerData]
+    [basicAndInfraData, workerGroupData]
   )
-
-  const selectedCloudProfile = cloudProfiles?.find((cp) => cp.name === basicInfoData.cloudProfileName)
-
-  const availableKubernetesVersions = selectedCloudProfile?.kubernetesVersions ?? []
 
   return (
     <WizardContext.Provider
       value={{
+        client,
         currentStep,
         handleSetCurrentStep,
         maxStepReached,
-        basicInfoData,
-        setBasicInfoData,
-        infrastructureData,
-        setInfrastructureData,
-        workerData,
-        setWorkerData,
-        cloudProfiles,
-        error,
-        isLoading,
-        availableKubernetesVersions,
+        basicAndInfraData,
+        setBasicAndInfraData,
+        workerGroupData,
+        setWorkerGroupData,
         formErrors,
         steps,
       }}

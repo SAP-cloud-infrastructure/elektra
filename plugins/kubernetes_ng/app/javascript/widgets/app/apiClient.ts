@@ -4,6 +4,7 @@ import { Cluster, ClusterSchema, ClustersSchema } from "./types/cluster"
 import { Permissions, PermissionsSchema } from "./types/permissions"
 import { CloudProfile, CloudProfilesSchema } from "./types/cloudProfiles"
 import { defaultCluster, errorCluster, unknownStatusCluster } from "./mocks/data"
+import { ClusterFormData } from "./routes/clusters/-components/ClusterWizard/types"
 
 export const gardenerTestApi = {
   getClusters: () => Promise.resolve([defaultCluster, errorCluster, unknownStatusCluster]),
@@ -38,6 +39,15 @@ export function createGardenerApi(mountpoint: string) {
         const parsed = ClusterSchema.safeParse(res.data)
         if (!parsed.success) {
           throw new Error("Failed to fetch cluster: invalid response")
+        }
+        return res.data
+      }),
+
+    createCluster: (clusterData: ClusterFormData) =>
+      apiClient.post<{ data: Cluster }>("/api/clusters/", clusterData).then((res) => {
+        const parsed = ClusterSchema.safeParse(res.data)
+        if (!parsed.success) {
+          throw new Error("Failed to create cluster: invalid response")
         }
         return res.data
       }),
