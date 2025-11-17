@@ -8,7 +8,7 @@ interface WorkerListItemProps {
 
 const WorkerListItem: React.FC<WorkerListItemProps> = ({ worker, ...props }) => {
   return (
-    <DataGridRow data-testid="worker-list-item" {...props}>
+    <DataGridRow {...props}>
       <DataGridCell>{worker.name}</DataGridCell>
       <DataGridCell>{worker.architecture}</DataGridCell>
       <DataGridCell>{worker.machineType}</DataGridCell>

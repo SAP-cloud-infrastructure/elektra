@@ -29,7 +29,7 @@ describe("<InlineError />", () => {
 
       render(<InlineError error={error} />)
 
-      expect(screen.getByText("CustomError: Something went wrong")).toBeInTheDocument()
+      expect(screen.getByText("CustomError: An unknown error occurred. Try again.")).toBeInTheDocument()
     })
   })
 
@@ -53,6 +53,13 @@ describe("<InlineError />", () => {
 
       render(<InlineError error={error} />)
       expect(screen.getByText("Server Error: Please try again later.")).toBeInTheDocument()
+    })
+  })
+
+  describe("when no error is given", () => {
+    it("renders 'An unknown error occurred. Try again.' message", () => {
+      render(<InlineError />)
+      expect(screen.getByText(/An unknown error occurred\. Try again\./)).toBeInTheDocument()
     })
   })
 
