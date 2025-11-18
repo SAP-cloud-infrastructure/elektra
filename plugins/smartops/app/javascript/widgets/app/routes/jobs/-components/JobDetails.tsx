@@ -71,11 +71,12 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
 
   return (
     <>
+      {success && (
+        <Message variant="success" className="mb-4">
+          Job updated successfully!
+        </Message>
+      )}
       <DataGrid columns={2}>
-        <DataGridRow>
-          <DataGridHeadCell>Property</DataGridHeadCell>
-          <DataGridHeadCell>Value</DataGridHeadCell>
-        </DataGridRow>
         <DataGridRow>
           <DataGridCell>
             <strong>ID</strong>
@@ -112,6 +113,39 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
         </DataGridRow>
         <DataGridRow>
           <DataGridCell>
+            <strong>Type</strong>
+          </DataGridCell>
+          <DataGridCell>{job.object_type || "No type"}</DataGridCell>
+        </DataGridRow>
+        <DataGridRow>
+          <DataGridCell>
+            <strong>Object ID</strong>
+          </DataGridCell>
+          <DataGridCell>
+            {job.object_id ? (
+              objectLink(job, domainName, projectName) ? (
+                <Stack gap="2" direction="horizontal">
+                  <div>{job.object_id}</div>
+                  <a
+                    href={objectLink(job, domainName, projectName) || undefined}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.5rem" }}
+                  >
+                    <span>Jump to</span>
+                    <Icon color="jn-global-text" icon="openInNew" title={`Jump to ${job.object_type}`} />
+                  </a>
+                </Stack>
+              ) : (
+                job.object_id
+              )
+            ) : (
+              "No object"
+            )}
+          </DataGridCell>
+        </DataGridRow>
+        <DataGridRow>
+          <DataGridCell>
             <strong>Schedule Date</strong>
           </DataGridCell>
           <DataGridCell>
@@ -121,11 +155,6 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
               </Message>
             )}
 
-            {success && (
-              <Message variant="success" className="mb-4">
-                Job updated successfully!
-              </Message>
-            )}
             {new Date(job.due_date) < new Date() && !job.schedule_date ? (
               <Message variant="error" className="mb-4">
                 Job missed its scheduled time and can no longer be scheduled
@@ -185,37 +214,6 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
                   />
                 </ButtonRow>
               </>
-            )}
-          </DataGridCell>
-        </DataGridRow>
-        <DataGridRow>
-          <DataGridCell>
-            <strong>Type</strong>
-          </DataGridCell>
-          <DataGridCell>{job.object_type || "No type"}</DataGridCell>
-        </DataGridRow>
-        <DataGridRow>
-          <DataGridCell>
-            <strong>Object ID</strong>
-          </DataGridCell>
-          <DataGridCell>
-            {job.object_id ? (
-              objectLink(job, domainName, projectName) ? (
-                <Stack gap="2" direction="horizontal">
-                  <div>{job.object_id}</div>
-                  <Icon
-                    color="jn-global-text"
-                    icon="openInNew"
-                    href={objectLink(job, domainName, projectName) || undefined}
-                    target="_blank"
-                    title={`Jump to ${job.object_type}`}
-                  />
-                </Stack>
-              ) : (
-                job.object_id
-              )
-            ) : (
-              "No object"
             )}
           </DataGridCell>
         </DataGridRow>

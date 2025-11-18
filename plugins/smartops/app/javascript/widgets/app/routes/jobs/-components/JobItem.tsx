@@ -2,7 +2,7 @@
 import { useNavigate } from "@tanstack/react-router"
 import type { Job } from "../../../types/api"
 import { getStatusColor, formatScheduleDate } from "./utils/jobUtils"
-import { DataGridRow, DataGridCell, Badge, Stack } from "@cloudoperators/juno-ui-components"
+import { DataGridRow, DataGridCell, Badge, Stack, Button } from "@cloudoperators/juno-ui-components"
 
 interface JobItemProps {
   job: Job
@@ -32,6 +32,18 @@ export function JobItem({ job }: JobItemProps) {
       <DataGridCell>{job.description || "No description"}</DataGridCell>
       <DataGridCell>{new Date(job.due_date).toLocaleString()}</DataGridCell>
       <DataGridCell>{formatScheduleDate(job)}</DataGridCell>
+      <DataGridCell>
+        <Button
+          variant="primary"
+          size="small"
+          onClick={(e) => {
+            e.stopPropagation()
+            handleJobClick()
+          }}
+        >
+          Details
+        </Button>
+      </DataGridCell>
     </DataGridRow>
   )
 }

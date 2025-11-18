@@ -1,28 +1,11 @@
 // jobs/-components/JobList.tsx
 import type { Job } from "../../../types/api"
 import { JobItem } from "./JobItem"
-import {
-  DataGrid,
-  DataGridRow,
-  DataGridHeadCell,
-  DataGridCell,
-  Spinner,
-  Breadcrumb,
-  BreadcrumbItem,
-} from "@cloudoperators/juno-ui-components"
+import { DataGrid, DataGridRow, DataGridHeadCell, DataGridCell, Spinner } from "@cloudoperators/juno-ui-components"
 
 interface JobListProps {
   jobs: Job[]
   isLoading?: boolean
-}
-
-const Navigation = () => {
-  return (
-    <Breadcrumb>
-      <BreadcrumbItem icon="home" label="" disabled />
-      <BreadcrumbItem label="Jobs" />
-    </Breadcrumb>
-  )
 }
 
 const JobsListHeader = () => (
@@ -32,6 +15,7 @@ const JobsListHeader = () => (
     <DataGridHeadCell>Description</DataGridHeadCell>
     <DataGridHeadCell>Due Date</DataGridHeadCell>
     <DataGridHeadCell>Schedule Date</DataGridHeadCell>
+    <DataGridHeadCell></DataGridHeadCell>
   </DataGridRow>
 )
 
@@ -42,8 +26,7 @@ export function JobList({ jobs, isLoading }: JobListProps) {
   if (isLoading) {
     return (
       <>
-        <Navigation />
-        <DataGrid columns={5} minContentColumns={[5]}>
+        <DataGrid columns={6} minContentColumns={[6]}>
           <JobsListHeader />
           <DataGridRow>
             <DataGridCell>
@@ -58,8 +41,7 @@ export function JobList({ jobs, isLoading }: JobListProps) {
   if (jobs.length === 0) {
     return (
       <>
-        <Navigation />
-        <DataGrid columns={5} minContentColumns={[5]}>
+        <DataGrid columns={6} minContentColumns={[6]}>
           <JobsListHeader />
           <DataGridRow>
             <DataGridCell>
@@ -73,8 +55,7 @@ export function JobList({ jobs, isLoading }: JobListProps) {
 
   return (
     <>
-      <Navigation />
-      <DataGrid columns={5} minContentColumns={[5]}>
+      <DataGrid columns={6} minContentColumns={[6]}>
         <JobsListHeader />
         {jobs.map((job) => (
           <JobItem key={job.id} job={job} />
