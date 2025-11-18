@@ -14,7 +14,7 @@
   "image:image_list": "role:admin or role:Member or role:member or rule:image_viewer or rule:image_admin",
   "image:image_create": "role:admin or rule:image_admin",
   "image:image_update": "role:admin or user_id:%(image.user_id)s or rule:image_admin",
-  "image:image_delete": "project_id:%(image.owner)s or rule:image_admin",
+  "image:image_delete": "project_id:%(image.owner)s and rule:image_admin",
   "image:image_suggested": "not role:cloud_image_admin",
   "image:image_publish": "role:cloud_image_admin",
   "image:image_unpublish": "role:cloud_image_admin",
@@ -26,6 +26,7 @@
 
   "image:member_create": "project_id:%(image.owner)s",
   "image:member_update": "@",
+  "image:member_reject": "not project_id:%(image.owner)s",
   "image:member_delete": "project_id:%(image.owner)s",
-  "image:member_list": "@"
+  "image:member_list": "not rule:image:image_is_public"
 }
