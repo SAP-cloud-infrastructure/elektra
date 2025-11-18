@@ -237,7 +237,7 @@ class CacheController < ::ScopeController
         scope.where(domain_id: params[:domain]).order(:name)
       end
     
-    unless true#items.nil? || items.empty?
+    unless items.nil? || items.empty?
       items = items.to_a.map do |u|
         {
           id: u.payload['description'],
