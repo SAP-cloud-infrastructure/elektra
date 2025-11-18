@@ -25,7 +25,7 @@ export class AutocompleteField extends React.Component {
   // this is used to enable/disable the add button in the parent component
   // to prevent adding non-existing users
   handleChange = (selected) => {
-    const isValid = selected && selected.length > 0
+    const isValid = selected && selected?.length > 0
     this.setState({ isValid })
 
     if (this.props.onSelected) {

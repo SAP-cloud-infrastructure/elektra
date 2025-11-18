@@ -35,10 +35,6 @@ export default class ProjectRoleAssignments extends React.Component {
 
   // this function handles the selection of a new member in the autocomplete field
   handleNewMember = (member, isValid) => {
-    // if isValid is defined, use it
-    // otherwise, determine validity based on member type
-    let validMember = isValid !== undefined ? isValid : false
-
     // if an array is given, take the first element and ignore the rest
     if (Array.isArray(member)) member = member[0]
 
@@ -64,7 +60,7 @@ export default class ProjectRoleAssignments extends React.Component {
           name: member.name,
           description: member.full_name || member.description,
         },
-        isValidMember: validMember !== undefined ? validMember : true,
+        isValidMember: isValid,
       })
     } else {
       this.setState({ newMember: null, isValidMember: false })
