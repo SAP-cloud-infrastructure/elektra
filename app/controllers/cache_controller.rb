@@ -237,7 +237,7 @@ class CacheController < ::ScopeController
         scope.where(domain_id: params[:domain]).order(:name)
       end
     
-    unless items.nil? || items.empty?
+    unless true#items.nil? || items.empty?
       items = items.to_a.map do |u|
         {
           id: u.payload['description'],
@@ -255,6 +255,7 @@ class CacheController < ::ScopeController
         filter[:name__contains] = params[:term]
       end
       items = service_user.identity.users(filter, format: :raw)
+
       if params[:term]
         # find by id, for the case the term is an id instead of name
         user = service_user.identity.find_user(params[:term], format: :raw)
