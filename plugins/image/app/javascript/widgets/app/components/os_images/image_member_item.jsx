@@ -1,7 +1,6 @@
 /* eslint-disable no-undef */
 import React from "react"
 import * as test from "react-router-dom"
-console.log("::::", test)
 export default class ImageMemberItem extends React.Component {
   state = {
     confirm: false,
