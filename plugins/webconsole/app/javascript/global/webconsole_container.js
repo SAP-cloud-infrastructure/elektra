@@ -201,6 +201,7 @@ var WebconsoleContainer = (function () {
     }
 
     static addUnloadHandler() {
+      if (this.unloadHandler) return
       // Protect against accidental browser tab closure while webconsole is active
       // Problem: Users working in the web terminal often use keyboard shortcuts,
       // and it's easy to accidentally hit Cmd+W (Mac) or Ctrl+W (Windows/Linux)
@@ -211,7 +212,6 @@ var WebconsoleContainer = (function () {
       // (prevents memory leaks and unwanted confirmations after console is closed)
       this.unloadHandler = function (e) {
         e.preventDefault()
-        console.log("=================================")
         const confirmationMessage = "You have an active web console session. Are you sure you want to close this tab?"
 
         // Standard cross-browser way to show confirmation dialog
@@ -343,6 +343,12 @@ var WebconsoleContainer = (function () {
                 }
 
                 $loadingHint.remove()
+
+                // Add beforeunload handler when webconsole opens
+                // This prevents users from accidentally closing the browser tab with Cmd+W/Ctrl+W
+                // while working in the web console, which would lose their active terminal session
+                // and any unsaved work or running commands
+                WebconsoleContainer.addUnloadHandler()
 
                 return (self.loaded = true)
               },
