@@ -32,19 +32,15 @@ const requestOsImagesFailure = (state) => ({
 const receiveOsImages = (state, { osImages, hasNext, receivedAt }) => {
   let newItems = (state.items.slice() || []).concat(osImages)
   let items = {}
-  let visibilityCounts = Object.keys(state.visibilityCounts).reduce(
-    (map, key) => {
-      map[key] = 0
-      return map
-    },
-    {}
-  )
+  let visibilityCounts = Object.keys(state.visibilityCounts).reduce((map, key) => {
+    map[key] = 0
+    return map
+  }, {})
 
   for (let i = 0; i < newItems.length; i++) {
     let osImage = newItems[i]
     items[osImage.id] = osImage
-    visibilityCounts[osImage.visibility] =
-      (visibilityCounts[osImage.visibility] || 0) + 1
+    visibilityCounts[osImage.visibility] = (visibilityCounts[osImage.visibility] || 0) + 1
   }
 
   const hasNextByVisibility = { ...state.hasNext }
@@ -102,8 +98,7 @@ const receiveOsImage = function (state, { osImage }) {
     items[index] = osImage
   } else {
     items.unshift(osImage)
-    visibilityCounts[osImage.visibility] =
-      (visibilityCounts[osImage.visibility] || 0) + 1
+    visibilityCounts[osImage.visibility] = (visibilityCounts[osImage.visibility] || 0) + 1
     markers[state.activeVisibilityFilter] = osImage?.id
   }
   return { ...state, items, visibilityCounts }
@@ -140,8 +135,9 @@ const deleteOsImageSuccess = function (state, { osImageId }) {
   const visibilityCounts = { ...state.visibilityCounts }
 
   items.splice(index, 1)
-  visibilityCounts[items[index].visibility] -= 1
-
+  if (items[index]) {
+    visibilityCounts[items[index].visibility] -= 1
+  }
   return { ...state, items, visibilityCounts }
 }
 

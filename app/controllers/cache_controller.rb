@@ -255,6 +255,7 @@ class CacheController < ::ScopeController
         filter[:name__contains] = params[:term]
       end
       items = service_user.identity.users(filter, format: :raw)
+
       if params[:term]
         # find by id, for the case the term is an id instead of name
         user = service_user.identity.find_user(params[:term], format: :raw)
