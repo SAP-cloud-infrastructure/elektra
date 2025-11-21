@@ -8,7 +8,7 @@ module ServiceLayer
     end
 
     def get_url(region)
-      response = elektron.service("webcli").get(
+      response = elektron.service("webcli",{interface: "public"}).get(
         "auth/#{elektron.user_name}",
         {},
         { headers: { "X-OS-Region" => region } }
