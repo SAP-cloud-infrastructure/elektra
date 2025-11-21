@@ -9,7 +9,11 @@ module ServiceLayer
 
     def url()
       region=elektron.available_services_regions[0]
-      body = elektron.service("webcli").get("auth/#{elektron.user_name}",{headers: {"X-OS-Region": region}}).body
+      body = elektron.service("webcli").get(
+        "auth/#{elektron.user_name}",
+        {},
+        {headers: {"X-OS-Region": region}}
+      ).body
       body["url"]
     end
   end
