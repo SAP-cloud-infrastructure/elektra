@@ -317,50 +317,18 @@ var WebconsoleContainer = (function () {
         .success(function (context, textStatus, jqXHR) {
           $loadingHint.find(".status").text("20%")
 
-          // define function which implements the webconsole load procedure
-          const loadConsole = function () {
-            $loadingHint.find(".status").text("60%")
-
-            // success
-            // load webcli
-            return $.ajax({
-              url: `${context.webcli_endpoint}/auth/${context.user_name}`,
-              beforeSend(request) {
-                request.setRequestHeader("X-Auth-Token", context.token)
-                return request.setRequestHeader("X-OS-Region", context.region)
-              },
-              dataType: "json",
-              success(data) {
-                $loadingHint.find(".status").text("80%")
-                // success -> add terminal div to container
-                const $cliContent = $(`<iframe id='webcli-content' src='${data.url}' height='100%' width='100%' />`)
-
-                self.$holder.append($cliContent)
-
-                if (context.help_html) {
-                  const $helpContainer = addHelpContainer(self.$container, self.settings)
-                  $helpContainer.html(context.help_html)
-                }
-
-                $loadingHint.remove()
-
-                // Add beforeunload handler when webconsole opens
-                // This prevents users from accidentally closing the browser tab with Cmd+W/Ctrl+W
-                // while working in the web console, which would lose their active terminal session
-                // and any unsaved work or running commands
-                WebconsoleContainer.addUnloadHandler()
-
-                return (self.loaded = true)
-              },
-              error(xhr, bleep, error) {
-                return $loadingHint.html(
-                  `<div class='info-text'>An error has occurred while trying to load your shell. Please try again later. The error was: <br />${xhr.status} - ${error}</div>`
-                )
-              },
-            })
+          const $cliContent = $(`<iframe id='webcli-content' src='${context.url}' height='100%' width='100%' />`)
+          self.$holder.append($cliContent)
+          if (context.help_html) {
+            const $helpContainer = addHelpContainer(self.$container, self.settings)
+            $helpContainer.html(context.help_html)
           }
 
-          return loadConsole()
+          $loadingHint.find(".status").text("60%")
+          WebconsoleContainer.addUnloadHandler()
+          $loadingHint.remove()
+
+          return (self.loaded = true)
         })
     }
   }

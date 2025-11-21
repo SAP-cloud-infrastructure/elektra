@@ -21,6 +21,7 @@ module Webconsole
         identity_url: current_user.service_url("identity"),
         region: current_region,
         user_name: current_user.name,
+        url: services.webconsole.url 
       }
 
       help_file = File.join(Rails.root, "plugins/webconsole/webconsole_help.md")
