@@ -7,14 +7,19 @@ module ServiceLayer
       elektron.service?("webcli") && elektron.service?("identity")
     end
 
-    def url()
-      region=elektron.available_services_regions[0]
-      body = elektron.service("webcli").get(
+    def get_url(region)
+      response = elektron.service("webcli",{interface: "public"}).get(
         "auth/#{elektron.user_name}",
         {},
-        {headers: {"X-OS-Region": region}}
-      ).body
-      body["url"]
+        { headers: { "X-OS-Region" => region } }
+      )
+      
+      response.body["url"]
+    rescue => e
+      # Add logging to help debug production issues
+      Rails.logger.error("Webconsole URL fetch failed: #{e.message}")
+      Rails.logger.error(e.backtrace.join("\n"))
+      raise  
     end
   end
 end
