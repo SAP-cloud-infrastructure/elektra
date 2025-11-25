@@ -14,9 +14,10 @@ module ServiceLayer
         { headers: { "X-OS-Region" => region } }
       )
       
-      response.body["url"]
+      # Response body is a Hash in dev but a JSON string in prod - normalize it
+      body = response.body.is_a?(String) ? JSON.parse(response.body) : response.body
+      body["url"]
     rescue => e
-      # Add logging to help debug production issues
       Rails.logger.error("Webconsole URL fetch failed: #{e.message}")
       Rails.logger.error(e.backtrace.join("\n"))
       raise  
