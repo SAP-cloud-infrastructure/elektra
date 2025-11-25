@@ -132,9 +132,10 @@ const useActions = () => {
           .then((response) => {
             data = [...data, ...response.data]
             headers = response.headers
+
             if (response.data.length > 0) {
               marker = response.data[response.data.length - 1].name
-              hasMore = response.data.length > 9999
+              hasMore = true
             } else {
               hasMore = false
             }
