@@ -132,9 +132,11 @@ const useActions = () => {
           .then((response) => {
             data = [...data, ...response.data]
             headers = response.headers
-            if (response.data.length > 0) {
-              marker = response.data[response.data.length - 1].name
-              hasMore = response.data.length > 9999
+
+            if (response?.data?.length > 0) {
+              const lastItem = response.data[response.data.length - 1]
+              marker = lastItem.name || lastItem.subdir
+              hasMore = !!marker
             } else {
               hasMore = false
             }

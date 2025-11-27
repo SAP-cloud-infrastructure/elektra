@@ -9,6 +9,28 @@ export class AutocompleteField extends React.Component {
   state = {
     isLoading: false,
     options: [],
+    inputValue: "",
+    isValid: false,
+  }
+
+  // will set isValid to false on input change until a user was selected from the search results
+  handleInputChange = (text) => {
+    this.setState({ inputValue: text, isValid: false })
+    if (this.props.onInputChange) {
+      this.props.onInputChange(text, false)
+    }
+  }
+
+  // if a user was selected from the search results the isValid flag is true
+  // this is used to enable/disable the add button in the parent component
+  // to prevent adding non-existing users
+  handleChange = (selected) => {
+    const isValid = selected && selected?.length > 0
+    this.setState({ isValid })
+
+    if (this.props.onSelected) {
+      this.props.onSelected(selected, isValid)
+    }
   }
 
   // handleSearch calls first the elektra cache and if no results are returned it calls
@@ -65,8 +87,8 @@ export class AutocompleteField extends React.Component {
         autoFocus={true}
         allowNew={false}
         multiple={false}
-        onChange={this.props.onSelected}
-        onInputChange={this.props.onInputChange}
+        onChange={this.handleChange}
+        onInputChange={this.handleInputChange}
         onSearch={this.handleSearch}
         labelKey="name"
         filterBy={["id", "name", "full_name"]}

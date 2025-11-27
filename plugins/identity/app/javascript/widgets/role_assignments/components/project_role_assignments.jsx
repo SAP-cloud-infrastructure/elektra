@@ -22,10 +22,7 @@ export default class ProjectRoleAssignments extends React.Component {
   filterRoleAssignments = () => {
     if (!this.props.items) return []
 
-    if (
-      !this.state.filterString ||
-      this.state.filterString.trim().length == 0
-    ) {
+    if (!this.state.filterString || this.state.filterString.trim().length == 0) {
       return this.props.items
     }
 
@@ -36,26 +33,38 @@ export default class ProjectRoleAssignments extends React.Component {
     })
   }
 
-  handleNewMember = (member) => {
+  // this function handles the selection of a new member in the autocomplete field
+  handleNewMember = (member, isValid) => {
+    // if an array is given, take the first element and ignore the rest
     if (Array.isArray(member)) member = member[0]
 
-    if (!member) return this.setState({ newMember: null })
+    if (!member) {
+      return this.setState({ newMember: null, isValidMember: false })
+    }
 
     if (member.constructor == String) {
       if (member.trim().length == 0) {
-        this.setState({ newMember: null })
+        this.setState({ newMember: null, isValidMember: false })
       } else {
-        this.setState({ newMember: { id: member } })
+        // String input is NOT valid (was not selected from list)
+        this.setState({
+          newMember: { id: member },
+          isValidMember: false,
+        })
       }
     } else if (member.constructor == Object) {
+      // Object selection is valid (was selected from list)
       this.setState({
         newMember: {
           id: member.id,
           name: member.name,
           description: member.full_name || member.description,
         },
+        isValidMember: isValid,
       })
-    } else this.setState({ newMember: null })
+    } else {
+      this.setState({ newMember: null, isValidMember: false })
+    }
   }
 
   resetNewMemberState = () => {
@@ -63,6 +72,7 @@ export default class ProjectRoleAssignments extends React.Component {
       showNewMemberForm: false,
       showNewMemberInput: false,
       newMember: null,
+      isValidMember: false,
     })
   }
 
@@ -73,11 +83,7 @@ export default class ProjectRoleAssignments extends React.Component {
 
     const item = this.props.items.find((i) => {
       let member = i[this.props.type]
-      return (
-        member &&
-        (member.id == this.state.newMember.id ||
-          member.name == this.state.newMember.name)
-      )
+      return member && (member.id == this.state.newMember.id || member.name == this.state.newMember.name)
     })
     return item ? true : false
   }
@@ -89,15 +95,12 @@ export default class ProjectRoleAssignments extends React.Component {
         : policy.isAllowed("identity:project_group_list")
 
     if (!canList) {
-      return (
-        <div className="alert">You are not allowed to see role assignments</div>
-      )
+      return <div className="alert">You are not allowed to see role assignments</div>
     }
 
     const items = this.filterRoleAssignments()
     const isMember = this.state.newMember && this.alreadyMember()
-    const memberLabel =
-      this.props.type.charAt(0).toUpperCase() + this.props.type.slice(1)
+    const memberLabel = this.props.type.charAt(0).toUpperCase() + this.props.type.slice(1)
     const hasItems = this.props.items && this.props.items.length > 0
     const canCreate =
       this.props.type == "user"
@@ -111,9 +114,7 @@ export default class ProjectRoleAssignments extends React.Component {
             <>
               <SearchField
                 onChange={(term) => this.setState({ filterString: term })}
-                placeholder={`Name ${
-                  this.props.type == "user" ? ", C/D/I-number, " : ""
-                } or ID`}
+                placeholder={`Name ${this.props.type == "user" ? ", C/D/I-number, " : ""} or ID`}
                 isFetching={false}
                 searchIcon={true}
                 text={`Filter ${this.props.type}s by name or id`}
@@ -133,12 +134,7 @@ export default class ProjectRoleAssignments extends React.Component {
               {this.state.showNewMemberInput ? (
                 <div className="input-group input-group-left-button">
                   <span className="input-group-btn">
-                    <button
-                      className="btn btn-default"
-                      onClick={() =>
-                        this.setState({ showNewMemberInput: false })
-                      }
-                    >
+                    <button className="btn btn-default" onClick={() => this.setState({ showNewMemberInput: false })}>
                       x
                     </button>
                   </span>
@@ -148,13 +144,12 @@ export default class ProjectRoleAssignments extends React.Component {
                       type={`${this.props.type}s`}
                       domainId={this.props.projectDomainId}
                       onSelected={this.handleNewMember}
-                      onInputChange={this.handleNewMember}
                     />
                   </div>
                   <span className="input-group-btn">
                     <button
                       className="btn btn-primary"
-                      disabled={isMember || !this.state.newMember}
+                      disabled={isMember || !this.state.newMember || !this.state.isValidMember}
                       onClick={() => this.setState({ showNewMemberForm: true })}
                     >
                       {isMember ? (
@@ -171,10 +166,7 @@ export default class ProjectRoleAssignments extends React.Component {
                   </span>
                 </div>
               ) : (
-                <button
-                  className="btn btn-primary"
-                  onClick={() => this.setState({ showNewMemberInput: true })}
-                >
+                <button className="btn btn-primary" onClick={() => this.setState({ showNewMemberInput: true })}>
                   Add New Member
                 </button>
               )}
@@ -182,13 +174,9 @@ export default class ProjectRoleAssignments extends React.Component {
           )}
         </div>
 
-        {!hasItems &&
-          !this.props.isFetching &&
-          !this.state.showNewMemberForm && (
-            <div className="alert">
-              {`No ${this.props.type} role assignments for this project yet`}
-            </div>
-          )}
+        {!hasItems && !this.props.isFetching && !this.state.showNewMemberForm && (
+          <div className="alert">{`No ${this.props.type} role assignments for this project yet`}</div>
+        )}
 
         {(items.length > 0 || this.state.showNewMemberForm) && (
           <table className="table">
@@ -209,9 +197,7 @@ export default class ProjectRoleAssignments extends React.Component {
                           ? `${this.state.newMember.description} (${this.state.newMember.name})`
                           : this.state.newMember.name}
                         <br />
-                        <span className="info-text">
-                          {this.state.newMember.id}
-                        </span>
+                        <span className="info-text">{this.state.newMember.id}</span>
                       </>
                     )}
                   </td>
