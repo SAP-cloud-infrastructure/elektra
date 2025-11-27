@@ -9,11 +9,12 @@ interface CreateClusterWizardProps {
   isOpen: boolean
   onClose: () => void
   client: GardenerApi
+  region: string
 }
 
-const CreateClusterWizard: React.FC<CreateClusterWizardProps> = ({ isOpen, onClose, client }) => {
+const CreateClusterWizard: React.FC<CreateClusterWizardProps> = ({ isOpen, onClose, client, region }) => {
   return (
-    <WizardProvider client={client}>
+    <WizardProvider client={client} region={region}>
       <Modal
         className="tw-w-[76.75rem]"
         open={isOpen}

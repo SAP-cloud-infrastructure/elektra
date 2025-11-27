@@ -1,18 +1,34 @@
-import React, { createContext, useContext, useState, ReactNode, useCallback } from "react"
+import React, { createContext, useContext, useState, ReactNode, useCallback, useMemo } from "react"
 import {
   ClusterFormData,
   BasicInfo,
   Infrastructure,
+  WorkerGroups,
   WorkerGroup,
   ClusterFormErrors,
   Step,
   StepId,
   ValidationErrors,
 } from "./types"
-import { stepDefinitions } from "./constants"
+import { STEP_DEFINITIONS, DEFAULT_CLOUD_PROFILE_NAME } from "./constants"
 import { GardenerApi } from "../../../../apiClient"
+import { useQuery, UseQueryResult } from "@tanstack/react-query"
+import { CloudProfile } from "../../../../types/cloudProfiles"
+import { ExternalNetwork } from "../../../../types/network"
 
-const DEFAULT_BASIC_INFRA_DATA: BasicInfo & Infrastructure = {
+export const DEFAULT_WORKER_GROUP: WorkerGroup = {
+  name: "",
+  machineType: "",
+  machineImage: {
+    name: "",
+    version: "",
+  },
+  minimum: 1,
+  maximum: 1,
+  zones: [],
+}
+
+const DEFAULT_CLUSTER_FORM_DATA: ClusterFormData = {
   name: "",
   cloudProfileName: "",
   kubernetesVersion: "",
@@ -20,31 +36,21 @@ const DEFAULT_BASIC_INFRA_DATA: BasicInfo & Infrastructure = {
     floatingPoolName: "",
   },
   networking: {
-    pods: "",
-    nodes: "",
-    services: "",
+    podsCIDR: "",
+    nodesCIDR: "",
+    servicesCIDR: "",
   },
-}
-const DEFAULT_WORKER_GROUP: WorkerGroup = {
-  workers: [
-    {
-      machineType: "",
-      machineImage: {
-        name: "",
-        version: "",
-      },
-      minimum: 0,
-      maximum: 0,
-      zones: [],
-    },
-  ],
-}
-const DEFAULT_CLUSTER_FORM_DATA: ClusterFormData = {
-  ...DEFAULT_BASIC_INFRA_DATA,
-  ...DEFAULT_WORKER_GROUP,
+  workers: [DEFAULT_WORKER_GROUP],
 }
 
-const validateBasicInfo = (data: BasicInfo & Infrastructure): ClusterFormErrors => {
+const getLatestVersion = (versions: string[] = []) => {
+  return versions
+    .map((v) => v.split(".").map(Number))
+    .sort((a, b) => b[0] - a[0] || b[1] - a[1] || b[2] - a[2])[0]
+    .join(".")
+}
+
+const validateStep1 = (data: BasicInfo & Infrastructure): ClusterFormErrors => {
   const errors: ClusterFormErrors = {}
 
   if (!data.name) {
@@ -52,6 +58,14 @@ const validateBasicInfo = (data: BasicInfo & Infrastructure): ClusterFormErrors 
   } else if (!/^[a-zA-Z][a-z0-9-]*$/.test(data.name)) {
     // Test: Starts with a letter, followed by lowercase alphanumeric characters or dashes ('-')
     errors.name = ["Name must start with a letter, followed by lowercase alphanumeric characters or dashes"]
+  }
+
+  if (!data.cloudProfileName) {
+    errors.cloudProfileName = ["Cloud profile is required"]
+  }
+
+  if (!data.kubernetesVersion) {
+    errors.kubernetesVersion = ["Kubernetes version is required"]
   }
 
   // if (!data?.infrastructure?.floatingPoolName) {
@@ -81,7 +95,7 @@ const validateBasicInfo = (data: BasicInfo & Infrastructure): ClusterFormErrors 
   return errors
 }
 
-const validateWorkers = (data: WorkerGroup): ClusterFormErrors => {
+const validateStep2 = (data: WorkerGroups): ClusterFormErrors => {
   // Use a separate property for array-level errors
   const errors: ValidationErrors<ClusterFormData> & { _workers?: string[] } = {}
   if (!data.workers || data.workers.length === 0) {
@@ -90,7 +104,7 @@ const validateWorkers = (data: WorkerGroup): ClusterFormErrors => {
   }
 
   const workerErrors: ClusterFormErrors["workers"] = []
-  data.workers.forEach((worker, index) => {
+  data.workers.forEach((worker: WorkerGroup, index) => {
     const wErrors: ClusterFormErrors = {}
 
     // ensure worker errors array exists
@@ -117,19 +131,18 @@ const validateWorkers = (data: WorkerGroup): ClusterFormErrors => {
   }
   return errors
 }
-
-const validateAll = (basicAndInfraData: BasicInfo & Infrastructure, workerGroup: WorkerGroup) => {
-  const basicInfraErrors = validateBasicInfo(basicAndInfraData)
-  const workerErrors = validateWorkers(workerGroup)
+const validateAll = (formData: ClusterFormData) => {
+  const step1Errors = validateStep1(formData)
+  const step2Errors = validateStep2(formData)
 
   const allErrors = {
-    ...basicInfraErrors,
-    ...workerErrors,
+    ...step1Errors,
+    ...step2Errors,
   }
 
   const stepErrors: Record<StepId, boolean> = {
-    basicInfoInfrastructure: Object.keys(basicInfraErrors).length > 0,
-    workerGroups: Object.keys(workerErrors).length > 0,
+    basicInfoInfrastructure: Object.keys(step1Errors).length > 0,
+    workerGroups: Object.keys(step2Errors).length > 0,
     review: false,
   }
 
@@ -143,13 +156,17 @@ interface WizardContextProps {
   handleSetCurrentStep: (step: number) => void
   maxStepReached: number
 
-  basicAndInfraData: BasicInfo & Infrastructure
-  setBasicAndInfraData: React.Dispatch<React.SetStateAction<BasicInfo & Infrastructure>>
-  workerGroupData: WorkerGroup
-  setWorkerGroupData: React.Dispatch<React.SetStateAction<WorkerGroup>>
+  clusterFormData: ClusterFormData
+  setClusterFormData: React.Dispatch<React.SetStateAction<ClusterFormData>>
 
   formErrors: ClusterFormErrors
   steps: Step[]
+
+  cloudProfiles: UseQueryResult<CloudProfile[], unknown>
+  selectedCloudProfile?: CloudProfile
+  extNetworks: UseQueryResult<ExternalNetwork[], unknown>
+
+  region: string
 }
 
 const WizardContext = createContext<WizardContextProps | undefined>(undefined)
@@ -164,41 +181,68 @@ export const useWizard = () => {
 
 interface WizardProviderProps {
   client: GardenerApi
+  region: string
   children: ReactNode
 }
 
-export const WizardProvider: React.FC<WizardProviderProps> = ({ children, client }) => {
+export const WizardProvider: React.FC<WizardProviderProps> = ({ children, client, region }) => {
   const [currentStep, setCurrentStep] = useState<number>(0)
   const [maxStepReached, setMaxStepReached] = useState<number>(0)
+  const [steps, setSteps] = useState<Step[]>(STEP_DEFINITIONS.map((s) => ({ ...s, hasError: false })))
 
-  const [basicAndInfraData, setBasicAndInfraData] = useState<BasicInfo & Infrastructure>(DEFAULT_BASIC_INFRA_DATA)
-  const [workerGroupData, setWorkerGroupData] = useState<WorkerGroup>(DEFAULT_WORKER_GROUP)
-
-  const [steps, setSteps] = useState<Step[]>(stepDefinitions.map((s) => ({ ...s, hasError: false })))
-
+  const [clusterFormData, setClusterFormData] = useState<ClusterFormData>(DEFAULT_CLUSTER_FORM_DATA)
   const [formErrors, setFormErrors] = useState<ClusterFormErrors>({})
+
+  const cloudProfiles = useQuery({
+    queryKey: ["cloudProfiles"],
+    queryFn: () => client.gardener.getCloudProfiles(),
+    enabled: !!client.gardener.getCloudProfiles,
+    select: (profiles) => [...profiles].sort((a, b) => a.name.localeCompare(b.name)),
+    onSuccess: (profiles) => {
+      setClusterFormData((prev) => {
+        // don’t override if user selected something
+        if (prev.cloudProfileName) return prev
+        const defaultCloudProfile = profiles.find((p) => p.name === DEFAULT_CLOUD_PROFILE_NAME) ?? profiles[0]
+        // select the latest kubernetes version by default
+        const latestK8sVersion = getLatestVersion(defaultCloudProfile.kubernetesVersions)
+        return {
+          ...prev,
+          cloudProfileName: defaultCloudProfile.name,
+          kubernetesVersion: latestK8sVersion,
+        }
+      })
+    },
+  })
+
+  const extNetworks = useQuery({
+    queryKey: ["external-networks"],
+    queryFn: () => client.gardener.getExternalNetworks(),
+    enabled: !!client.gardener.getExternalNetworks,
+  })
 
   const handleSetCurrentStep = useCallback(
     (step: number) => {
       setCurrentStep(step)
       setMaxStepReached((prev) => Math.max(prev, step))
 
-      const { stepErrors, allErrors } = validateAll(basicAndInfraData, workerGroupData)
+      const { stepErrors, allErrors } = validateAll(clusterFormData)
 
       setFormErrors(allErrors)
 
       setSteps((prev) =>
         prev.map((s, idx) => ({
           ...s,
-          hasError:
-            idx < step // only steps <= currentStep show errors
-              ? (stepErrors[s.id] ?? false)
-              : s.hasError, // preserve previous state for future steps
+          hasError: idx < step ? (stepErrors[s.id] ?? false) : s.hasError,
         }))
       )
     },
-    [basicAndInfraData, workerGroupData]
+    [clusterFormData]
   )
+
+  const selectedCloudProfile = useMemo(() => {
+    if (!cloudProfiles.data) return undefined
+    return cloudProfiles.data.find((cp) => cp.name === clusterFormData.cloudProfileName)
+  }, [cloudProfiles.data, clusterFormData.cloudProfileName])
 
   return (
     <WizardContext.Provider
@@ -207,12 +251,14 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ children, client
         currentStep,
         handleSetCurrentStep,
         maxStepReached,
-        basicAndInfraData,
-        setBasicAndInfraData,
-        workerGroupData,
-        setWorkerGroupData,
+        clusterFormData,
+        setClusterFormData,
         formErrors,
         steps,
+        selectedCloudProfile,
+        cloudProfiles,
+        extNetworks,
+        region,
       }}
     >
       {children}

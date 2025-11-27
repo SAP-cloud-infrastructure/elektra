@@ -5,6 +5,7 @@ import { Permissions, PermissionsSchema } from "./types/permissions"
 import { CloudProfile, CloudProfilesSchema } from "./types/cloudProfiles"
 import { defaultCluster, errorCluster, unknownStatusCluster } from "./mocks/data"
 import { ClusterFormData } from "./routes/clusters/-components/ClusterWizard/types"
+import { ExternalNetwork, ExternalNetworksSchema } from "./types/network"
 
 export const gardenerTestApi = {
   getClusters: () => Promise.resolve([defaultCluster, errorCluster, unknownStatusCluster]),
@@ -64,6 +65,17 @@ export function createGardenerApi(mountpoint: string) {
       }),
   }
 
+  const networkApi = {
+    getExternalNetworks: () =>
+      apiClient.get<{ data: ExternalNetwork[] }>("/api/clusters/external-networks").then((res) => {
+        const parsed = ExternalNetworksSchema.safeParse(res.data)
+        if (!parsed.success) {
+          throw new Error("Failed to fetch external networks: invalid response")
+        }
+        return res.data
+      }),
+  }
+
   const CloudProfilesApi = {
     getCloudProfiles: () =>
       apiClient.get<{ data: CloudProfile[] }>("/api/cloud-profiles").then((res) => {
@@ -76,7 +88,7 @@ export function createGardenerApi(mountpoint: string) {
   }
 
   return {
-    gardener: { ...shootApi, ...permissionsApi, ...CloudProfilesApi },
+    gardener: { ...shootApi, ...permissionsApi, ...CloudProfilesApi, ...networkApi },
   }
 }
 

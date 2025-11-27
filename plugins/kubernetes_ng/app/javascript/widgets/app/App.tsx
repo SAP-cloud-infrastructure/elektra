@@ -12,10 +12,11 @@ const queryClient = new QueryClient()
 interface AppProps {
   basepath: string
   mountpoint: string
+  region: string
 }
 
-export default function App({ basepath, mountpoint }: AppProps) {
-  const router = createAppRouter(mountpoint)
+export default function App({ basepath, mountpoint, region }: AppProps) {
+  const router = createAppRouter(mountpoint, region)
 
   return (
     <AppShellProvider theme="theme-light">

@@ -1,6 +1,6 @@
-import { stepDefinitions } from "./constants"
+import { STEP_DEFINITIONS } from "./constants"
 
-type StepDefinition = (typeof stepDefinitions)[number]
+type StepDefinition = (typeof STEP_DEFINITIONS)[number]
 export type StepId = StepDefinition["id"]
 export type Step = StepDefinition & { hasError: boolean }
 
@@ -11,30 +11,33 @@ export type BasicInfo = {
 }
 
 export type Infrastructure = {
-  infrastructure?: {
+  infrastructure: {
     floatingPoolName: string
   }
   networking?: {
-    pods: string
-    nodes: string
-    services: string
+    podsCIDR?: string
+    nodesCIDR?: string
+    servicesCIDR?: string
   }
 }
 
-export type WorkerGroup = {
-  workers: {
-    machineType: string
-    machineImage?: {
-      name: string
-      version: string
-    }
-    minimum: number
-    maximum: number
-    zones: string[]
-  }[]
+export type WorkerGroups = {
+  workers: WorkerGroup[]
 }
 
-export type ClusterFormData = BasicInfo & Infrastructure & WorkerGroup
+export type WorkerGroup = {
+  name: string
+  machineType: string
+  machineImage: {
+    name: string
+    version: string
+  }
+  minimum: number
+  maximum: number
+  zones: string[]
+}
+
+export type ClusterFormData = BasicInfo & Infrastructure & WorkerGroups
 
 export type ValidationErrors<T> = {
   [K in keyof T]?: T[K] extends (infer U)[]

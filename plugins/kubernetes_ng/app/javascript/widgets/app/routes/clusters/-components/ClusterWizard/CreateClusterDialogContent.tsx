@@ -1,6 +1,7 @@
 import React from "react"
 import { useWizard } from "./WizzardProvider"
 import BasicInfoStep from "./BasicInfoStep"
+import WorkerGroupsStep from "./WorkerGroupsStep"
 import Progress from "./Progress"
 import Summary from "./Summary"
 
@@ -12,7 +13,7 @@ const CreateClusterDialogContent = () => {
       case 0:
         return <BasicInfoStep />
       case 1:
-        return <div>Step 2 Content</div>
+        return <WorkerGroupsStep />
       case 2:
         return <Summary />
       default:

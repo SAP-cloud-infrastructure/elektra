@@ -31,6 +31,7 @@ export const Route = createFileRoute(CLUSTERS_ROUTE_ID)({
       clusters,
       permissions,
       client,
+      region: context.region,
       updatedAt: Date.now(),
     }
   },
@@ -100,6 +101,7 @@ interface ClustersViewProps {
   isLoading?: boolean
   client?: GardenerApi
   updatedAt?: number
+  region?: string
 }
 
 function ClusterContent({ clusters = [], permissions, error, isLoading = false, updatedAt }: ClustersViewProps) {
@@ -114,28 +116,30 @@ function ClusterContent({ clusters = [], permissions, error, isLoading = false, 
 }
 
 function Clusters(props: ClustersViewProps) {
-  const { permissions, isLoading = false, client } = props
-  const [createWizardModal, setCreateWizardModal] = useState(false)
+  const { permissions, isLoading = false, client, region } = props
+  const [showWizardModal, setShowWizardModal] = useState(false)
 
   return (
     <>
       <ClustersPageHeader>
-        <ClusterActions
-          permissions={permissions}
-          disabled={isLoading}
-          onAddCluster={() => setCreateWizardModal(true)}
-        />
+        <ClusterActions permissions={permissions} disabled={isLoading} onAddCluster={() => setShowWizardModal(true)} />
       </ClustersPageHeader>
-      <ClusterContent {...props} />
-      {createWizardModal && client && (
+
+      {showWizardModal && (!client || !region) && (
+        <InlineError error={new Error("Cannot open cluster creation wizard: missing client or region.")} />
+      )}
+
+      {showWizardModal && client && region && (
         <CreateClusterWizard
-          isOpen={createWizardModal}
+          isOpen={showWizardModal}
           onClose={() => {
-            setCreateWizardModal(false)
+            setShowWizardModal(false)
           }}
           client={client}
+          region={region}
         />
       )}
+      <ClusterContent {...props} />
     </>
   )
 }
