@@ -193,21 +193,26 @@ export const deleteRepository = (accountName, repoName) => (dispatch) => {
 ////////////////////////////////////////////////////////////////////////////////
 // get manifests
 
-const fetchManifestPage = (accountName, repoName, marker) => (dispatch) => {
-  //send REQUEST_MANIFESTS only once at the start of the operation
-  if (marker == null) {
-    dispatch({
-      type: constants.REQUEST_MANIFESTS,
-      accountName,
-      repoName,
-      requestedAt: Date.now(),
-    })
-  }
+const fetchManifestPage =
+  (accountName, repoName, marker = null) =>
+  async (dispatch) => {
+    // Send REQUEST_MANIFESTS only once at the start of the operation
+    if (marker === null) {
+      dispatch({
+        type: constants.REQUEST_MANIFESTS,
+        accountName,
+        repoName,
+        requestedAt: Date.now(),
+      })
+    }
 
-  ajaxHelper
-    .get(`/keppel/v1/accounts/${accountName}/repositories/${repoName}/_manifests`, { params: { marker } })
-    .then((response) => {
+    try {
+      const response = await ajaxHelper.get(`/keppel/v1/accounts/${accountName}/repositories/${repoName}/_manifests`, {
+        params: { marker },
+      })
+
       const manifests = response.data.manifests
+
       dispatch({
         type: constants.RECEIVE_MANIFESTS,
         accountName,
@@ -215,8 +220,13 @@ const fetchManifestPage = (accountName, repoName, marker) => (dispatch) => {
         data: manifests,
         receivedAt: Date.now(),
       })
+
+      // Recursively fetch next page if truncated
       if (response.data.truncated) {
-        dispatch(fetchManifestPage(accountName, repoName, manifests[manifests.length - 1].digest))
+        const nextMarker = manifests[manifests.length - 1]?.digest
+        if (nextMarker) {
+          await dispatch(fetchManifestPage(accountName, repoName, nextMarker))
+        }
       } else {
         dispatch({
           type: constants.REQUEST_MANIFESTS_FINISHED,
@@ -225,16 +235,16 @@ const fetchManifestPage = (accountName, repoName, marker) => (dispatch) => {
           receivedAt: Date.now(),
         })
       }
-    })
-    .catch((error) => {
+    } catch (error) {
       dispatch({
         type: constants.REQUEST_MANIFESTS_FAILURE,
         accountName,
         repoName,
+        error: error.message,
       })
       showError(error)
-    })
-}
+    }
+  }
 
 export const fetchManifestsIfNeeded = (accountName, repoName) => (dispatch, getState) => {
   const state = (getState().keppel.manifestsFor[accountName] || {})[repoName] || {}
