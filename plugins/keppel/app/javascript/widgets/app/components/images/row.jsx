@@ -30,12 +30,8 @@ const mediaTypes = {
 const renderLabel = (key, value) => {
   const isLink = /^https?:\/\//.test(value)
   let label = (
-    <span
-      key={key}
-      className={isLink ? "label label-primary" : "label label-default"}
-    >
-      <span className="image-label-key">{key}:</span>{" "}
-      <span className="image-label-value">{value}</span>
+    <span key={key} className={isLink ? "label label-primary" : "label label-default"}>
+      <span className="image-label-key">{key}:</span> <span className="image-label-value">{value}</span>
     </span>
   )
   if (isLink) {
@@ -47,7 +43,7 @@ const renderLabel = (key, value) => {
   }
   //the labels have `white-space:nowrap` inside, so some extra whitespace is
   //required to allow long lines with lots of labels to break
-  return <>{label} </>
+  return label
 }
 
 export default class ImageRow extends React.Component {
@@ -118,50 +114,31 @@ export default class ImageRow extends React.Component {
             {tagName ? (
               <>
                 <div>
-                  <TagName
-                    name={tagName}
-                    repositoryURL={this.props.repositoryURL}
-                  />
+                  <TagName name={tagName} repositoryURL={this.props.repositoryURL} />
                 </div>
                 <div className="small text-muted">
-                  <Digest
-                    digest={digest}
-                    repositoryURL={this.props.repositoryURL}
-                  />
+                  <Digest digest={digest} repositoryURL={this.props.repositoryURL} />
                 </div>
               </>
             ) : (
-              <Digest
-                digest={digest}
-                repositoryURL={this.props.repositoryURL}
-              />
+              <Digest digest={digest} repositoryURL={this.props.repositoryURL} />
             )}
           </td>
           <td className="col-md-2">
             <span title={mediaType}>{mediaTypeInfo.description}</span>
           </td>
           <td className="col-md-2">
-            <span title={pushedAt.format("LLLL")}>
-              {pushedAt.fromNow(true)} ago
-            </span>
+            <span title={pushedAt.format("LLLL")}>{pushedAt.fromNow(true)} ago</span>
           </td>
           <td className="col-md-2">
             {lastPulledAt ? (
-              <span title={lastPulledAt.format("LLLL")}>
-                {lastPulledAt.fromNow(true)} ago
-              </span>
+              <span title={lastPulledAt.format("LLLL")}>{lastPulledAt.fromNow(true)} ago</span>
             ) : (
               <span className="text-muted">Never</span>
             )}
           </td>
           <td className="col-md-1">{byteToHuman(sizeBytes)}</td>
-          <td
-            className={
-              vulnerabilityStatus === "Error"
-                ? "col-md-1 text-danger"
-                : "col-md-1"
-            }
-          >
+          <td className={vulnerabilityStatus === "Error" ? "col-md-1 text-danger" : "col-md-1"}>
             {vulnerabilityStatus}
           </td>
           {(this.props.canEdit || mediaTypeInfo.hasDetails) && (
@@ -195,9 +172,7 @@ export default class ImageRow extends React.Component {
                         </Link>
                       </li>
                     ) : null}
-                    {this.props.canEdit && mediaTypeInfo.hasDetails ? (
-                      <li className="divider"></li>
-                    ) : null}
+                    {this.props.canEdit && mediaTypeInfo.hasDetails ? <li className="divider"></li> : null}
                     {this.props.canEdit && tagName ? (
                       <li>
                         <a href="#" onClick={(e) => this.handleUntag(e)}>
@@ -220,9 +195,7 @@ export default class ImageRow extends React.Component {
         </tr>
         {labelKeys.length > 0 ? (
           <tr className="image-labels explains-previous-line">
-            <td colSpan="7">
-              {labelKeys.map((key) => renderLabel(key, labels[key]))}
-            </td>
+            <td colSpan="7">{labelKeys.map((key) => renderLabel(key, labels[key]))}</td>
           </tr>
         ) : null}
       </>
