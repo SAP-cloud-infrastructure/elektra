@@ -5,7 +5,6 @@ import "jquery-ujs"
 import "bootstrap"
 import "./core/dialogs"
 import "./core/global_notifications"
-import "./core/avatar_loader"
 
 const styles = document.createElement("style")
 styles.setAttribute("type", "text/css")
