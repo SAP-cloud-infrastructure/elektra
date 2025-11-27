@@ -46,13 +46,8 @@
                           after_login: (request.base_url + request.original_fullpath),
                           password_sync: true), class: 'btn btn-primary'
             .picture
-              - avatar_url = url_for_avatar(140)
-              %div.avatar.avatar_profile{id: "user-profile-avatar"}          
+              = avatar_image_tag(size: 140, class: "avatar_profile")
 
 
         .modal-footer
           %button.btn.btn-default{ type: "button", "data-dismiss": "modal"} Close
-
-:javascript
-  window.loadAvatar({avatarUrl: '#{avatar_url}', elementId: "user-profile-avatar"})
-

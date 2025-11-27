@@ -6,14 +6,4 @@ module UrlHelper
 
     return "https://#{servicename}.#{region}.#{request.domain}/"
   end
-
-  def url_for_avatar(size=24)
-    avatar_url=""
-    begin
-      avatar_url = eval('"' + ENV["MONSOON_DASHBOARD_AVATAR_URL"] + '"').gsub(/size=24x24/, "s=#{size.to_s}x#{size.to_s}")
-    rescue StandardError
-      avatar_url="https://www.gravatar.com/avatar/#{Digest::MD5.hexdigest(current_user.email ? current_user.email : "")}?d=mm&s=#{size.to_s}"
-    end
-    avatar_url
-  end
 end
