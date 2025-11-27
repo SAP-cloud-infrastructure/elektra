@@ -380,6 +380,10 @@ section {
   margin: 0 5px;
 }
 
+.spinner-gray {
+  @include spinner(border-color #9d9d9d);
+}
+
 .info-text {
   opacity: 0.45;
 
@@ -945,10 +949,6 @@ section {
   display: flex;
   align-items: center;
   column-gap: 0.3rem;
-  .avatar {
-    margin-top: -5px;
-    border-radius: 5px;
-  }
 }
 
 .navbar-inverse {
@@ -1047,27 +1047,6 @@ section {
   left: $grid-gutter-width / 2;
   height: 30px;
   width: 62px;
-}
-
-.avatar {
-  background: inline_svg("avatar_default") no-repeat;
-  background-size: contain;
-  margin-right: 3px;
-
-  &,
-  img {
-    border-radius: 3px;
-    height: 24px;
-    width: 24px;
-  }
-}
-
-.avatar_profile {
-  &,
-  img {
-    height: 140px;
-    width: 140px;
-  }
 }
 
 // ---------------------------------------------------------------------------------
