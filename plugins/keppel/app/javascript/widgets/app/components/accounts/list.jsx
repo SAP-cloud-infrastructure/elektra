@@ -54,17 +54,9 @@ export default class AccountList extends React.Component {
             onChange={(e) => this.setSearchText(e.target.value)}
           />
         </div>
-        <DataTable
-          columns={columns}
-          pageSize={10}
-          searchText={this.state.searchText}
-        >
+        <DataTable columns={columns} pageSize={10} searchText={this.state.searchText}>
           {this.props.accounts.sort(byName).map((account) => (
-            <AccountRow
-              key={account.name}
-              account={account}
-              {...forwardProps}
-            />
+            <AccountRow key={account.name} account={account} {...forwardProps} />
           ))}
         </DataTable>
       </>
