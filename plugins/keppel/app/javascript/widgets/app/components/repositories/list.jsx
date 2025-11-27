@@ -18,8 +18,7 @@ const columns = [
     key: "image_counts",
     label: "Contains",
     sortStrategy: "numeric",
-    sortKey: (props) =>
-      (props.repo.manifest_count || 0) + 0.00001 * (props.repo.tag_count || 0),
+    sortKey: (props) => (props.repo.manifest_count || 0) + 0.00001 * (props.repo.tag_count || 0),
   },
   {
     key: "size_bytes",
@@ -110,11 +109,7 @@ export default class RepositoryList extends React.Component {
             <span className="spinner" /> Loading repositories for account...
           </p>
         ) : (
-          <DataTable
-            columns={columns}
-            pageSize={10}
-            searchText={this.state.searchText}
-          >
+          <DataTable columns={columns} pageSize={10} searchText={this.state.searchText}>
             {(repos || []).map((repo) => (
               <RepositoryRow key={repo.name} repo={repo} {...forwardProps} />
             ))}
