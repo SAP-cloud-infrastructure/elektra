@@ -8,13 +8,20 @@ const Step2 = () => {
   const { clusterFormData, setClusterFormData } = useWizard()
 
   const onAddWorkerGroup = () => {
-    setClusterFormData((prev) => ({
-      ...prev,
-      workers: [
-        ...prev.workers,
-        { ...DEFAULT_WORKER_GROUP }, // clone a new empty worker group
-      ],
-    }))
+    setClusterFormData((prev) => {
+      const nextNumber = prev.workers.length + 1
+
+      return {
+        ...prev,
+        workers: [
+          ...prev.workers,
+          {
+            ...DEFAULT_WORKER_GROUP,
+            name: `worker${nextNumber}`,
+          },
+        ],
+      }
+    })
   }
 
   const onDeleteWorkerGroup = (index: number) => {

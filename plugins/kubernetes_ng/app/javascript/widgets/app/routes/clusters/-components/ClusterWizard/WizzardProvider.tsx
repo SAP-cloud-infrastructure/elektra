@@ -36,7 +36,12 @@ const DEFAULT_CLUSTER_FORM_DATA: ClusterFormData = {
     floatingPoolName: "",
     apiVersion: "",
   },
-  workers: [DEFAULT_WORKER_GROUP],
+  workers: [
+    {
+      ...DEFAULT_WORKER_GROUP,
+      name: "worker1",
+    },
+  ],
 }
 
 const getLatestVersion = (versions: string[] = []) => {
