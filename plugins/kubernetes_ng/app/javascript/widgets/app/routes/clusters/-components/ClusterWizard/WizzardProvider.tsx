@@ -209,17 +209,9 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ children, client
       setClusterFormData((prev) => {
         // don’t override if user selected something
         if (prev.cloudProfileName) return prev
+        // check if default cloud profile exists or take the first one
         const defaultCloudProfile = profiles.find((p) => p.name === DEFAULT_CLOUD_PROFILE_NAME) ?? profiles[0]
-        // select the latest kubernetes version by default
-        const latestK8sVersion = getLatestVersion(defaultCloudProfile.kubernetesVersions)
-        return {
-          ...prev,
-          cloudProfileName: defaultCloudProfile.name,
-          kubernetesVersion: latestK8sVersion,
-          infrastructure: {
-            apiVersion: defaultCloudProfile.providerConfig.apiVersion,
-          },
-        }
+        return updateCloudProfile(prev, defaultCloudProfile?.name, profiles)
       })
     },
   })
@@ -270,20 +262,19 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ children, client
 
   const updateCloudProfile = (prev: ClusterFormData, newName: string, profiles: CloudProfile[]): ClusterFormData => {
     const profile = profiles.find((p) => p.name === newName)
-    const version = profile ? getLatestVersion(profile.kubernetesVersions) : ""
+    const latestK8sVersion = profile ? getLatestVersion(profile.kubernetesVersions) : ""
     const apiVersion = profile ? profile.providerConfig.apiVersion : ""
 
     return {
       ...prev,
       cloudProfileName: newName,
       // reset to latest kubernetes version of new profile
-      kubernetesVersion: version,
+      kubernetesVersion: latestK8sVersion,
       // reset infrastructure apiVersion
       infrastructure: {
         ...prev.infrastructure,
         apiVersion: apiVersion,
       },
-      // reset worker groups machineType, machineImage?.name, machineImage?.version, and workerGroup.zones from all worker groups
       workers: prev.workers.map((wg) => ({
         ...wg,
         machineType: "",
@@ -309,6 +300,7 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ children, client
       newNetworking[field] = value
     }
 
+    // remove networking entirely if empty
     const updatedCluster: ClusterFormData = { ...prev }
     if (Object.keys(newNetworking).length === 0) {
       delete updatedCluster.networking

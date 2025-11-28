@@ -4,4 +4,4 @@ export const STEP_DEFINITIONS = [
   { id: "review", title: "Review" },
 ] as const
 
-export const DEFAULT_CLOUD_PROFILE_NAME = "converged-cloud"
+export const DEFAULT_CLOUD_PROFILE_NAME = "openstack"
