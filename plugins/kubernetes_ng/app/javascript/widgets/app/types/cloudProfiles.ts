@@ -4,6 +4,9 @@ export const cloudProfileSchema = z.object({
   uid: z.string().uuid(),
   name: z.string(),
   provider: z.string(),
+  providerConfig: z.object({
+    apiVersion: z.string(),
+  }),
   kubernetesVersions: z.array(z.string()),
   machineTypes: z.array(
     z.object({

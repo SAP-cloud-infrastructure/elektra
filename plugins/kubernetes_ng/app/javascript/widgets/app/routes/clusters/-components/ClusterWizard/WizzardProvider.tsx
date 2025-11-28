@@ -34,11 +34,7 @@ const DEFAULT_CLUSTER_FORM_DATA: ClusterFormData = {
   kubernetesVersion: "",
   infrastructure: {
     floatingPoolName: "",
-  },
-  networking: {
-    podsCIDR: "",
-    nodesCIDR: "",
-    servicesCIDR: "",
+    apiVersion: "",
   },
   workers: [DEFAULT_WORKER_GROUP],
 }
@@ -141,8 +137,8 @@ const validateAll = (formData: ClusterFormData) => {
   }
 
   const stepErrors: Record<StepId, boolean> = {
-    basicInfoInfrastructure: Object.keys(step1Errors).length > 0,
-    workerGroups: Object.keys(step2Errors).length > 0,
+    step1: Object.keys(step1Errors).length > 0,
+    step2: Object.keys(step2Errors).length > 0,
     review: false,
   }
 
@@ -164,6 +160,12 @@ interface WizardContextProps {
 
   cloudProfiles: UseQueryResult<CloudProfile[], unknown>
   selectedCloudProfile?: CloudProfile
+  updateCloudProfile: (prev: ClusterFormData, newName: string, profiles: CloudProfile[]) => ClusterFormData
+  updateNetworkingField: (
+    prev: ClusterFormData,
+    field: keyof NonNullable<ClusterFormData["networking"]>,
+    value: string
+  ) => ClusterFormData
   extNetworks: UseQueryResult<ExternalNetwork[], unknown>
 
   region: string
@@ -209,6 +211,9 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ children, client
           ...prev,
           cloudProfileName: defaultCloudProfile.name,
           kubernetesVersion: latestK8sVersion,
+          infrastructure: {
+            apiVersion: defaultCloudProfile.providerConfig.apiVersion,
+          },
         }
       })
     },
@@ -218,6 +223,20 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ children, client
     queryKey: ["external-networks"],
     queryFn: () => client.gardener.getExternalNetworks(),
     enabled: !!client.gardener.getExternalNetworks,
+    onSuccess: (networks) => {
+      setClusterFormData((prev) => {
+        // don’t override if user selected something
+        if (prev.infrastructure.floatingPoolName) return prev
+        // set the first as default
+        return {
+          ...prev,
+          infrastructure: {
+            ...prev.infrastructure,
+            floatingPoolName: networks[0]?.name || "",
+          },
+        }
+      })
+    },
   })
 
   const handleSetCurrentStep = useCallback(
@@ -244,6 +263,57 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ children, client
     return cloudProfiles.data.find((cp) => cp.name === clusterFormData.cloudProfileName)
   }, [cloudProfiles.data, clusterFormData.cloudProfileName])
 
+  const updateCloudProfile = (prev: ClusterFormData, newName: string, profiles: CloudProfile[]): ClusterFormData => {
+    const profile = profiles.find((p) => p.name === newName)
+    const version = profile ? getLatestVersion(profile.kubernetesVersions) : ""
+    const apiVersion = profile ? profile.providerConfig.apiVersion : ""
+
+    return {
+      ...prev,
+      cloudProfileName: newName,
+      // reset to latest kubernetes version of new profile
+      kubernetesVersion: version,
+      // reset infrastructure apiVersion
+      infrastructure: {
+        ...prev.infrastructure,
+        apiVersion: apiVersion,
+      },
+      // reset worker groups machineType, machineImage?.name, machineImage?.version, and workerGroup.zones from all worker groups
+      workers: prev.workers.map((wg) => ({
+        ...wg,
+        machineType: "",
+        machineImage: {
+          name: "",
+          version: "",
+        },
+        zones: [],
+      })),
+    }
+  }
+
+  const updateNetworkingField = (
+    prev: ClusterFormData,
+    field: keyof NonNullable<ClusterFormData["networking"]>,
+    value: string
+  ): ClusterFormData => {
+    const newNetworking = { ...(prev.networking || {}) }
+
+    if (!value.trim()) {
+      delete newNetworking[field]
+    } else {
+      newNetworking[field] = value
+    }
+
+    const updatedCluster: ClusterFormData = { ...prev }
+    if (Object.keys(newNetworking).length === 0) {
+      delete updatedCluster.networking
+    } else {
+      updatedCluster.networking = newNetworking
+    }
+
+    return updatedCluster
+  }
+
   return (
     <WizardContext.Provider
       value={{
@@ -256,6 +326,8 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ children, client
         formErrors,
         steps,
         selectedCloudProfile,
+        updateCloudProfile,
+        updateNetworkingField,
         cloudProfiles,
         extNetworks,
         region,

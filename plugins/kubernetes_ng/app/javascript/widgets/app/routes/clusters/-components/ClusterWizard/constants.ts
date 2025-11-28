@@ -1,6 +1,6 @@
 export const STEP_DEFINITIONS = [
-  { id: "basicInfoInfrastructure", title: "Basic Info & Infrastructure" },
-  { id: "workerGroups", title: "Worker Groups" },
+  { id: "step1", title: "Basic Info & Infrastructure" },
+  { id: "step2", title: "Worker Groups" },
   { id: "review", title: "Review" },
 ] as const
 

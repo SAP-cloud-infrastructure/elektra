@@ -10,7 +10,7 @@ module ServiceLayer
       end
       
       def show_cluster_by_name(project_id, cluster_name)
-        return nil unless cluster_name
+        return nil unless cluster_name  
         namespace = "garden-#{project_id}"
         response = elektron_gardener.get("apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots/#{cluster_name}")
         shoot_body = response&.body
@@ -24,7 +24,8 @@ module ServiceLayer
           }) do
           convert_cluster_to_shoot(cluster_spec)
         end
-        return response&.body
+        shoot_body = response&.body
+        return convert_shoot_to_cluster(shoot_body)
       end
       
       def confirm_cluster_deletion(project_id, cluster_name)
@@ -102,12 +103,23 @@ module ServiceLayer
       end
       
       # Convert cluster format back to shoot API format
-      def convert_cluster_to_shoot(cluster)
-        return nil unless cluster.is_a?(Hash)
-        
+      def convert_cluster_to_shoot(raw_cluster)
+        # Ensure we have a proper Hash, supporting Rails params or any hash-like input
+        cluster =
+          if raw_cluster.respond_to?(:to_unsafe_h)
+            raw_cluster.to_unsafe_h
+          elsif raw_cluster.is_a?(Hash)
+            raw_cluster
+          else
+            {}
+          end
+
+        # Return nil if the result is empty
+        return nil if cluster.empty?
+
         {
           'metadata' => build_shoot_metadata(cluster),
-          'spec' => build_shoot_spec(cluster)
+          'spec'     => build_shoot_spec(cluster)
         }.compact
       end
       
@@ -255,9 +267,10 @@ module ServiceLayer
         # Basic fields
         spec['region'] = cluster[:region] if cluster[:region]
         spec['purpose'] = cluster[:purpose] if cluster[:purpose]
-        spec['cloudProfileName'] = cluster[:cloudProfileName] || cluster[:cloud_profile_name] if cluster[:cloudProfileName] || cluster[:cloud_profile_name] # Handle both camelCase and snake_case
+        if (cloud_profile_name = cluster[:cloudProfileName] || cluster[:cloud_profile_name]) # Handle both camelCase and snake_case
+          spec['cloudProfile'] = { 'name' => cloud_profile_name }
+        end
         spec['networking'] = cluster[:networking] if cluster[:networking]
-        spec['secretBindingName'] = cluster[:secretBindingName] || cluster[:secret_binding_name] if cluster[:secretBindingName] || cluster[:secret_binding_name] # Handle both camelCase and snake_case
         
         # Provider configuration
         if cluster[:infrastructure] || cluster[:workers]&.any?
@@ -265,8 +278,8 @@ module ServiceLayer
         end
         
         # Kubernetes version
-        if cluster[:version]
-          spec['kubernetes'] = { 'version' => cluster[:version] }
+        if cluster[:kubernetesVersion]
+          spec['kubernetes'] = { 'version' => cluster[:kubernetesVersion] }
         end
         
         # Maintenance configuration
@@ -286,8 +299,17 @@ module ServiceLayer
       def build_provider_spec(cluster)
         provider = {}
         
-        provider['type'] = cluster[:infrastructure] if cluster[:infrastructure]
+        if (provider_type = cluster[:cloudProfileName] || cluster[:cloud_profile_name]) # Handle both camelCase and snake_case
+          provider['type'] = provider_type
+        end        
         
+        if(cluster.dig(:infrastructure, :floatingPoolName)) 
+          provider['infrastructureConfig']= {
+            'apiVersion' => cluster.dig(:infrastructure, :apiVersion),
+            'floatingPoolName' => cluster.dig(:infrastructure, :floatingPoolName)
+          }
+        end
+
         if cluster[:workers]&.any?
           provider['workers'] = cluster[:workers].map do |worker|
             build_worker_spec(worker)
@@ -303,8 +325,8 @@ module ServiceLayer
         
         worker_spec = {}
         worker_spec['name'] = worker[:name] if worker[:name]
-        worker_spec['minimum'] = worker[:min] if worker[:min]
-        worker_spec['maximum'] = worker[:max] if worker[:max]
+        worker_spec['minimum'] = worker[:minimum] if worker[:minimum]
+        worker_spec['maximum'] = worker[:maximum] if worker[:maximum]
         worker_spec['maxSurge'] = worker[:maxSurge] || worker[:max_surge] if worker[:maxSurge] || worker[:max_surge] # Handle both camelCase and snake_case
         worker_spec['zones'] = worker[:zones] if worker[:zones]
         

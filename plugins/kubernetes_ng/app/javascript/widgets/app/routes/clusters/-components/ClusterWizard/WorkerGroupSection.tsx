@@ -41,7 +41,7 @@ const WorkerGroupSection = ({ workerGroup, onChange, onDelete }: WorkerGroupProp
           <GridColumn cols={6}>
             <FormRow>
               <TextInput
-                label="Worker Group Name"
+                label="Name"
                 id="workerGroupName"
                 required
                 type="text"

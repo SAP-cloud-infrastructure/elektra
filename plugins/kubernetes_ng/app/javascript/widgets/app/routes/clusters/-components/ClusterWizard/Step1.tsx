@@ -1,28 +1,25 @@
 import React, { useState } from "react"
-import {
-  Form,
-  FormRow,
-  Select,
-  SelectOption,
-  TextInput,
-  FormSection,
-  Stack,
-  Icon,
-  Container,
-} from "@cloudoperators/juno-ui-components"
+import { FormRow, Select, SelectOption, TextInput, FormSection, Stack, Icon } from "@cloudoperators/juno-ui-components"
 import Collapse from "../../../../components/Collapse"
 import { useWizard } from "./WizzardProvider"
 
-const BasicInfoStep = () => {
-  const { clusterFormData, setClusterFormData, formErrors, cloudProfiles, selectedCloudProfile, extNetworks } =
-    useWizard()
+const Step1 = () => {
+  const {
+    clusterFormData,
+    setClusterFormData,
+    formErrors,
+    cloudProfiles,
+    selectedCloudProfile,
+    extNetworks,
+    updateCloudProfile,
+    updateNetworkingField,
+  } = useWizard()
   const [showAdvanceNetworkSettings, setShowAdvanceNetworkSettings] = useState<boolean>(false)
 
-  // TODO: reset kubernetesVersion when cloud profile changes
   const availableKubernetesVersions = selectedCloudProfile?.kubernetesVersions ?? []
 
   return (
-    <Form>
+    <>
       <FormSection title="Basic Information">
         <FormRow>
           <TextInput
@@ -46,8 +43,11 @@ const BasicInfoStep = () => {
             name="cloudProfile"
             loading={cloudProfiles.isLoading}
             errortext={cloudProfiles.error instanceof Error ? cloudProfiles.error.message : undefined}
+            helptext="Cloud profiles define the infrastructure settings for your cluster. Changing the cloud profile will reset certain fields."
             value={clusterFormData.cloudProfileName}
-            onChange={(e) => setClusterFormData((prev) => ({ ...prev, cloudProfileName: e?.toString() || "" }))}
+            onChange={(e) =>
+              setClusterFormData((prev) => updateCloudProfile(prev, e?.toString() || "", cloudProfiles.data || []))
+            }
             truncateOptions
           >
             {cloudProfiles.data &&
@@ -108,82 +108,60 @@ const BasicInfoStep = () => {
               ))}
           </Select>
         </FormRow>
-
-        <Stack distribution="end" className="tw-mt-4">
-          <button
-            type="button"
-            onClick={() => setShowAdvanceNetworkSettings((prev) => !prev)}
-            className="tw-cursor-pointer tw-text-theme-link hover:tw-underline tw-inline-flex tw-items-center tw-gap-1 tw-bg-transparent tw-border-none tw-p-0"
-            aria-expanded={showAdvanceNetworkSettings}
-            aria-controls="readiness-details"
-          >
-            {showAdvanceNetworkSettings ? "Hide advanced network options" : "Show advanced network options"}
-            <Icon color="global-text" icon={showAdvanceNetworkSettings ? "expandLess" : "expandMore"} />
-          </button>
-        </Stack>
-
-        <Collapse className="tw-mt-2" isOpen={showAdvanceNetworkSettings}>
-          <Container py className="tw-mt-2 tw-bg-theme-background-lvl-1">
-            <p className="tw-font-bold tw-mb-2">Advanced network options</p>
-            <FormRow key={"podsCIDR"}>
-              <TextInput
-                label="Pods CIDR"
-                id="podsCIDR"
-                type="text"
-                value={clusterFormData?.networking?.podsCIDR || ""}
-                onChange={(e) =>
-                  setClusterFormData((prev) => ({
-                    ...prev,
-                    networking: {
-                      ...prev.networking,
-                      podsCIDR: e.target.value,
-                    },
-                  }))
-                }
-                maxLength={200}
-              />
-            </FormRow>
-            <FormRow>
-              <TextInput
-                label="Nodes CIDR"
-                id="nodesCIDR"
-                type="text"
-                value={clusterFormData?.networking?.nodesCIDR || ""}
-                onChange={(e) =>
-                  setClusterFormData((prev) => ({
-                    ...prev,
-                    networking: {
-                      ...prev.networking,
-                      nodesCIDR: e.target.value,
-                    },
-                  }))
-                }
-                maxLength={200}
-              />
-            </FormRow>
-            <FormRow>
-              <TextInput
-                label="Services CIDR"
-                id="servicesCIDR"
-                type="text"
-                value={clusterFormData?.networking?.servicesCIDR || ""}
-                onChange={(e) =>
-                  setClusterFormData((prev) => ({
-                    ...prev,
-                    networking: {
-                      ...prev.networking,
-                      servicesCIDR: e.target.value,
-                    },
-                  }))
-                }
-                maxLength={200}
-              />
-            </FormRow>
-          </Container>
-        </Collapse>
       </FormSection>
-    </Form>
+
+      <Stack className=" tw-mt-4">
+        <button
+          type="button"
+          onClick={() => setShowAdvanceNetworkSettings((prev) => !prev)}
+          className="tw-text-lg tw-font-bold tw-cursor-pointer hover:tw-underline tw-inline-flex tw-items-center tw-gap-1 tw-bg-transparent tw-border-none tw-p-0"
+          aria-expanded={showAdvanceNetworkSettings}
+          aria-controls="advanced-network-settings"
+        >
+          {showAdvanceNetworkSettings ? "Hide advanced network options" : "Show advanced network options"}
+          <Icon color="global-text" icon={showAdvanceNetworkSettings ? "expandLess" : "expandMore"} />
+        </button>
+      </Stack>
+      <Collapse className="tw-mt-2" isOpen={showAdvanceNetworkSettings}>
+        <FormRow key={"podsCIDR"}>
+          <TextInput
+            label="Pods CIDR"
+            id="podsCIDR"
+            type="text"
+            value={clusterFormData?.networking?.podsCIDR || ""}
+            onChange={(e) =>
+              setClusterFormData(updateNetworkingField(clusterFormData, "podsCIDR", e.target.value.trim()))
+            }
+            maxLength={200}
+          />
+        </FormRow>
+        <FormRow>
+          <TextInput
+            label="Nodes CIDR"
+            id="nodesCIDR"
+            type="text"
+            value={clusterFormData?.networking?.nodesCIDR || ""}
+            onChange={(e) =>
+              setClusterFormData(updateNetworkingField(clusterFormData, "nodesCIDR", e.target.value.trim()))
+            }
+            maxLength={200}
+          />
+        </FormRow>
+        <FormRow>
+          <TextInput
+            label="Services CIDR"
+            id="servicesCIDR"
+            type="text"
+            value={clusterFormData?.networking?.servicesCIDR || ""}
+            onChange={(e) =>
+              setClusterFormData(updateNetworkingField(clusterFormData, "servicesCIDR", e.target.value.trim()))
+            }
+            maxLength={200}
+          />
+        </FormRow>
+      </Collapse>
+    </>
   )
 }
 
-export default BasicInfoStep
+export default Step1

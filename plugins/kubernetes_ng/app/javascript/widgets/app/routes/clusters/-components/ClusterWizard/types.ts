@@ -13,6 +13,7 @@ export type BasicInfo = {
 export type Infrastructure = {
   infrastructure: {
     floatingPoolName: string
+    apiVersion: string
   }
   networking?: {
     podsCIDR?: string

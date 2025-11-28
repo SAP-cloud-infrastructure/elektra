@@ -12,41 +12,7 @@ module KubernetesNg
       end
     end
 
-    def create
-      # todo here we need to translate or copy the data over from the request parameters
-      # example data, this needs to be commented out!
-      # cluster_params = {
-      #   name: params[:name],
-      #   region: 'qa-de-1',
-      #   infrastructure: 'openstack',
-      #   version: '1.25.4',
-      #   cloud_profile_name: 'openstack',                          # this should be set from the API?
-      #   networking: {type: 'calico'},                             # this should be set from the API?
-      #   secret_binding_name: "e9141fb24eee4b3e9f25ae69cda31132",                               # this should be set from the API?
-      #   purpose: 'testing',
-      #   workers: [
-      #     {
-      #       name: 'worker-pool-1',
-      #       machine_type: 'g_c4_m16',
-      #       architecture: 'amd64',
-      #       machine_image: {
-      #         name: 'flatcar',
-      #         version: '1.0.0'
-      #       },
-      #       container_runtime: 'containerd',
-      #       min: 2,
-      #       max: 5,
-      #       max_surge: 1,
-      #       zones: ['qa-de-1a']
-      #     }
-      #   ],
-      #   auto_update: {
-      #     os: true,
-      #     kubernetes: true
-      #   }
-      # }
-
-
+    def create     
       cluster_defaults = { region: current_region }
 
       permitted_params = cluster_params.to_h
@@ -122,6 +88,7 @@ module KubernetesNg
         infrastructure: [:floatingPoolName],
         networking: [:pods, :nodes, :services],
         workers: [
+          :name,
           :machineType,
           { machineImage: [:name, :version] },
           :minimum,

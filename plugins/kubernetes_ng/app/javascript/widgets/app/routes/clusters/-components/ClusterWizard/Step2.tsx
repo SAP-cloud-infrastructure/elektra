@@ -4,7 +4,7 @@ import { WorkerGroup } from "./types"
 import { useWizard, DEFAULT_WORKER_GROUP } from "./WizzardProvider"
 import { Stack, Button } from "@cloudoperators/juno-ui-components"
 
-const WorkerGroupsStep = () => {
+const Step2 = () => {
   const { clusterFormData, setClusterFormData } = useWizard()
 
   const onAddWorkerGroup = () => {
@@ -50,4 +50,4 @@ const WorkerGroupsStep = () => {
   )
 }
 
-export default WorkerGroupsStep
+export default Step2
