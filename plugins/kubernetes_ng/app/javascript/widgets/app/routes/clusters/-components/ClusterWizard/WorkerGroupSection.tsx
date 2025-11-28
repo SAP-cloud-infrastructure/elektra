@@ -8,17 +8,20 @@ import {
   SelectOption,
   TextInput,
   FormSection,
+  Button,
 } from "@cloudoperators/juno-ui-components"
 import { useWizard } from "./WizzardProvider"
 import { WorkerGroup } from "./types"
 
 type WorkerGroupProps = {
   workerGroup: WorkerGroup
+  index: number
+  totalWorkers: number
   onChange: (updatedWorkerGroup: WorkerGroup) => void
   onDelete: () => void
 }
 
-const WorkerGroupSection = ({ workerGroup, onChange, onDelete }: WorkerGroupProps) => {
+const WorkerGroupSection = ({ workerGroup, index, totalWorkers, onChange, onDelete }: WorkerGroupProps) => {
   const { cloudProfiles, selectedCloudProfile, region } = useWizard()
 
   const availableMachineTypes = selectedCloudProfile?.machineTypes ?? []
@@ -36,6 +39,15 @@ const WorkerGroupSection = ({ workerGroup, onChange, onDelete }: WorkerGroupProp
 
   return (
     <FormSection title={`Worker Group: ${workerGroup.name || "New Worker Group"}`}>
+      {totalWorkers > 1 && index > 0 && (
+        <Button
+          variant="primary-danger"
+          icon="deleteForever"
+          size="small"
+          onClick={onDelete}
+          style={{ float: "right", marginTop: "-40px" }}
+        />
+      )}
       <Grid>
         <GridRow>
           <GridColumn cols={6}>
@@ -51,7 +63,19 @@ const WorkerGroupSection = ({ workerGroup, onChange, onDelete }: WorkerGroupProp
               />
             </FormRow>
           </GridColumn>
-          <GridColumn cols={6}></GridColumn>
+          <GridColumn cols={6}>
+            <FormRow>
+              <TextInput
+                label="Minimum Nodes"
+                id="minNodes"
+                required
+                type="number"
+                value={workerGroup.minimum}
+                onChange={(e) => handleFieldChange("minimum", Number(e.target.value))}
+                maxLength={4}
+              />
+            </FormRow>
+          </GridColumn>
         </GridRow>
         <GridRow>
           <GridColumn cols={6}>
@@ -78,12 +102,12 @@ const WorkerGroupSection = ({ workerGroup, onChange, onDelete }: WorkerGroupProp
           <GridColumn cols={6}>
             <FormRow>
               <TextInput
-                label="Minimum Nodes"
-                id="minNodes"
+                label="Maximum Nodes"
+                id="maxNodes"
                 required
                 type="number"
-                value={workerGroup.minimum}
-                onChange={(e) => handleFieldChange("minimum", Number(e.target.value))}
+                value={workerGroup.maximum}
+                onChange={(e) => handleFieldChange("maximum", Number(e.target.value))}
                 maxLength={4}
               />
             </FormRow>
@@ -122,15 +146,28 @@ const WorkerGroupSection = ({ workerGroup, onChange, onDelete }: WorkerGroupProp
           </GridColumn>
           <GridColumn cols={6}>
             <FormRow>
-              <TextInput
-                label="Maximum Nodes"
-                id="maxNodes"
+              <Select
                 required
-                type="number"
-                value={workerGroup.maximum}
-                onChange={(e) => handleFieldChange("maximum", Number(e.target.value))}
-                maxLength={4}
-              />
+                label="Availability Zones"
+                id="availabilityZones"
+                name="availabilityZones"
+                loading={cloudProfiles.isLoading}
+                errortext={cloudProfiles.error instanceof Error ? cloudProfiles.error.message : undefined}
+                value={workerGroup.zones}
+                onChange={(e) =>
+                  onChange({
+                    ...workerGroup,
+                    zones: e ? [e.toString()] : [],
+                  })
+                }
+                truncateOptions
+              >
+                {availableZones.map((opt) => (
+                  <SelectOption key={opt} value={opt}>
+                    {opt}
+                  </SelectOption>
+                ))}
+              </Select>
             </FormRow>
           </GridColumn>
         </GridRow>
@@ -164,32 +201,7 @@ const WorkerGroupSection = ({ workerGroup, onChange, onDelete }: WorkerGroupProp
               </Select>
             </FormRow>
           </GridColumn>
-          <GridColumn cols={6}>
-            <FormRow>
-              <Select
-                required
-                label="Availability Zones"
-                id="availabilityZones"
-                name="availabilityZones"
-                loading={cloudProfiles.isLoading}
-                errortext={cloudProfiles.error instanceof Error ? cloudProfiles.error.message : undefined}
-                value={workerGroup.zones}
-                onChange={(e) =>
-                  onChange({
-                    ...workerGroup,
-                    zones: e ? [e.toString()] : [],
-                  })
-                }
-                truncateOptions
-              >
-                {availableZones.map((opt) => (
-                  <SelectOption key={opt} value={opt}>
-                    {opt}
-                  </SelectOption>
-                ))}
-              </Select>
-            </FormRow>
-          </GridColumn>
+          <GridColumn cols={6}></GridColumn>
         </GridRow>
       </Grid>
     </FormSection>

@@ -41,14 +41,21 @@ const Step2 = () => {
 
   return (
     <>
-      {clusterFormData.workers.map((wg, index) => (
-        <WorkerGroupSection
-          key={index}
-          workerGroup={wg}
-          onChange={(updated) => onChangeWorkerGroup(index, updated)}
-          onDelete={() => onDeleteWorkerGroup(index)}
-        />
-      ))}
+      {clusterFormData.workers.map((wg, index) => {
+        const showSeparator = clusterFormData.workers.length > 1 && index < clusterFormData.workers.length - 1
+        return (
+          <div key={index}>
+            <WorkerGroupSection
+              workerGroup={wg}
+              index={index}
+              totalWorkers={clusterFormData.workers.length}
+              onChange={(updatedWorkerGroup) => onChangeWorkerGroup(index, updatedWorkerGroup)}
+              onDelete={() => onDeleteWorkerGroup(index)}
+            />
+            {showSeparator && <hr className="tw-border-theme-background-lvl-4 tw-mb-8" />}
+          </div>
+        )
+      })}
 
       <Stack distribution="end">
         <Button label=" Add Worker Group" variant="primary" size="small" onClick={onAddWorkerGroup} />
