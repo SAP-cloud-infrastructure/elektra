@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState } from "react"
 import { FormRow, Select, SelectOption, TextInput, FormSection, Stack, Icon } from "@cloudoperators/juno-ui-components"
 import Collapse from "../../../../components/Collapse"
 import { useWizard } from "./WizzardProvider"
@@ -15,22 +15,15 @@ const Step1 = () => {
     updateNetworkingField,
     validateSingleField,
   } = useWizard()
-  const [showAdvanceNetworkSettings, setShowAdvanceNetworkSettings] = useState(false)
-  const [networkErrorsPresent, setNetworkErrorsPresent] = useState(false)
 
+  // Check if there are any network-related errors, if so, show advanced network settings by default
+  const networkErrorsPresent =
+    formErrors["networking.podsCIDR"]?.length > 0 ||
+    formErrors["networking.nodesCIDR"]?.length > 0 ||
+    formErrors["networking.servicesCIDR"]?.length > 0
+
+  const [showAdvanceNetworkSettings, setShowAdvanceNetworkSettings] = useState(networkErrorsPresent)
   const availableKubernetesVersions = selectedCloudProfile?.kubernetesVersions ?? []
-
-  // TODO: close manually not working
-  useEffect(() => {
-    const hasErrors =
-      formErrors["networking.podsCIDR"]?.length > 0 ||
-      formErrors["networking.nodesCIDR"]?.length > 0 ||
-      formErrors["networking.servicesCIDR"]?.length > 0
-
-    if (hasErrors) {
-      setNetworkErrorsPresent(true) // remember that there were errors
-    }
-  }, [formErrors])
 
   return (
     <>
@@ -137,7 +130,7 @@ const Step1 = () => {
           <Icon color="global-text" icon={showAdvanceNetworkSettings ? "expandLess" : "expandMore"} />
         </button>
       </Stack>
-      <Collapse className="tw-mt-2" isOpen={showAdvanceNetworkSettings || networkErrorsPresent}>
+      <Collapse className="tw-mt-2" isOpen={showAdvanceNetworkSettings}>
         <FormRow key={"podsCIDR"}>
           <TextInput
             label="Pods CIDR"
