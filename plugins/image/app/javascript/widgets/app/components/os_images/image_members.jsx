@@ -16,8 +16,7 @@ export default class ImageMembersModal extends React.Component {
   state = { show: true, showForm: false, error: null }
 
   restoreUrl = (e) => {
-    if (!this.state.show)
-      this.props.history.replace(`/os-images/${this.props.activeTab}`)
+    if (!this.state.show) this.props.history.replace(`/os-images/${this.props.activeTab}`)
   }
 
   hide = (e) => {
@@ -39,7 +38,7 @@ export default class ImageMembersModal extends React.Component {
   }
 
   componentWillUnmount() {
-    this.props.resetImageMembers(this.props.image.id)
+    this.props?.image?.id && this.props.resetImageMembers(this.props.image.id)
   }
 
   loadDependencies(props) {
@@ -49,9 +48,7 @@ export default class ImageMembersModal extends React.Component {
   }
 
   handleSubmit = (imageId, memberId) => {
-    return this.props
-      .handleSubmit(imageId, memberId)
-      .then(() => this.setState({ showForm: false }))
+    return this.props.handleSubmit(imageId, memberId).then(() => this.setState({ showForm: false }))
   }
 
   render() {
@@ -66,9 +63,7 @@ export default class ImageMembersModal extends React.Component {
         aria-labelledby="contained-modal-title-lg"
       >
         <Modal.Header closeButton>
-          <Modal.Title id="contained-modal-title-lg">
-            Access Control for Image {image ? image.name : ""}
-          </Modal.Title>
+          <Modal.Title id="contained-modal-title-lg">Access Control for Image {image ? image.name : ""}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {image && image.visibility != "shared" ? (
@@ -101,6 +96,7 @@ export default class ImageMembersModal extends React.Component {
                 <table className="table share-rules">
                   <thead>
                     <tr>
+                      <th>Owner Project</th>
                       <th>Target Project</th>
                       <th className="snug">Status</th>
                       <th className="actions"></th>
@@ -117,8 +113,9 @@ export default class ImageMembersModal extends React.Component {
                           key={index}
                           member={member}
                           image={image}
-                          handleDelete={() =>
-                            this.props.handleDelete(image.id, member.member_id)
+                          handleDelete={() => this.props.handleDelete(image.id, member.member_id)}
+                          handleReject={() =>
+                            this.props.handleReject(image.id).then(() => this.props.reloadMembers(image.id))
                           }
                         />
                       ))
@@ -132,32 +129,23 @@ export default class ImageMembersModal extends React.Component {
                           <TransitionGroup>
                             {this.state.showForm && (
                               <FadeTransition>
-                                <ImageMemberForm
-                                  handleSubmit={(memberId) =>
-                                    this.handleSubmit(image.id, memberId)
-                                  }
-                                />
+                                <ImageMemberForm handleSubmit={(memberId) => this.handleSubmit(image.id, memberId)} />
                               </FadeTransition>
                             )}
                           </TransitionGroup>
                         </td>
                         <td></td>
+                        <td></td>
                         <td>
                           <a
-                            className={`btn btn-${
-                              this.state.showForm ? "default" : "primary"
-                            } btn-sm pull-right`}
+                            className={`btn btn-${this.state.showForm ? "default" : "primary"} btn-sm pull-right`}
                             href="#"
                             onClick={(e) => {
                               e.preventDefault()
                               this.toggleForm()
                             }}
                           >
-                            <i
-                              className={`fa ${
-                                this.state.showForm ? "fa-close" : "fa-plus"
-                              }`}
-                            />
+                            <i className={`fa ${this.state.showForm ? "fa-close" : "fa-plus"}`} />
                           </a>
                         </td>
                       </tr>
