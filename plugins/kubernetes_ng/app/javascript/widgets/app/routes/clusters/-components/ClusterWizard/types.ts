@@ -28,6 +28,7 @@ export type WorkerGroups = {
 
 export type WorkerGroup = {
   name: string
+  id: string
   machineType: string
   machineImage: {
     name: string
@@ -40,12 +41,4 @@ export type WorkerGroup = {
 
 export type ClusterFormData = BasicInfo & Infrastructure & WorkerGroups
 
-export type ValidationErrors<T> = {
-  [K in keyof T]?: T[K] extends (infer U)[]
-    ? ValidationErrors<U>[] // For arrays
-    : T[K] extends object
-      ? ValidationErrors<T[K]> | string[] // For nested objects - can be either nested validation or string array
-      : string[] // For primitive fields
-}
-
-export type ClusterFormErrors = ValidationErrors<ClusterFormData>
+export type ClusterFormErrorsFlat = Record<string, string[]>

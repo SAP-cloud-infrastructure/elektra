@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { FormRow, Select, SelectOption, TextInput, FormSection, Stack, Icon } from "@cloudoperators/juno-ui-components"
 import Collapse from "../../../../components/Collapse"
 import { useWizard } from "./WizzardProvider"
@@ -13,25 +13,40 @@ const Step1 = () => {
     extNetworks,
     updateCloudProfile,
     updateNetworkingField,
+    validateSingleField,
   } = useWizard()
-  const [showAdvanceNetworkSettings, setShowAdvanceNetworkSettings] = useState<boolean>(false)
+  const [showAdvanceNetworkSettings, setShowAdvanceNetworkSettings] = useState(false)
+  const [networkErrorsPresent, setNetworkErrorsPresent] = useState(false)
 
   const availableKubernetesVersions = selectedCloudProfile?.kubernetesVersions ?? []
+
+  // TODO: close manually not working
+  useEffect(() => {
+    const hasErrors =
+      formErrors["networking.podsCIDR"]?.length > 0 ||
+      formErrors["networking.nodesCIDR"]?.length > 0 ||
+      formErrors["networking.servicesCIDR"]?.length > 0
+
+    if (hasErrors) {
+      setNetworkErrorsPresent(true) // remember that there were errors
+    }
+  }, [formErrors])
 
   return (
     <>
       <FormSection title="Basic Information">
         <FormRow>
           <TextInput
-            label="Cluster Name"
+            label="Name"
             id="clusterName"
             required
             type="text"
             value={clusterFormData.name}
+            onBlur={() => validateSingleField("name")}
             onChange={(e) => setClusterFormData((prev) => ({ ...prev, name: e.target.value }))}
             helptext="Must start with a letter and may contain lowercase letters, numbers, or dashes (‘-’). The name can be at most 11 characters long."
-            errortext={formErrors.name ? formErrors.name.join(", ") : undefined}
-            maxLength={50}
+            errortext={formErrors.name ? formErrors.name[0] : undefined}
+            maxLength={20}
           />
         </FormRow>
 
@@ -122,7 +137,7 @@ const Step1 = () => {
           <Icon color="global-text" icon={showAdvanceNetworkSettings ? "expandLess" : "expandMore"} />
         </button>
       </Stack>
-      <Collapse className="tw-mt-2" isOpen={showAdvanceNetworkSettings}>
+      <Collapse className="tw-mt-2" isOpen={showAdvanceNetworkSettings || networkErrorsPresent}>
         <FormRow key={"podsCIDR"}>
           <TextInput
             label="Pods CIDR"
@@ -132,7 +147,9 @@ const Step1 = () => {
             onChange={(e) =>
               setClusterFormData(updateNetworkingField(clusterFormData, "podsCIDR", e.target.value.trim()))
             }
-            maxLength={200}
+            onBlur={() => validateSingleField("networking.podsCIDR")}
+            errortext={formErrors["networking.podsCIDR"] ? formErrors["networking.podsCIDR"][0] : undefined}
+            maxLength={32}
           />
         </FormRow>
         <FormRow>
@@ -144,7 +161,9 @@ const Step1 = () => {
             onChange={(e) =>
               setClusterFormData(updateNetworkingField(clusterFormData, "nodesCIDR", e.target.value.trim()))
             }
-            maxLength={200}
+            onBlur={() => validateSingleField("networking.nodesCIDR")}
+            errortext={formErrors["networking.nodesCIDR"] ? formErrors["networking.nodesCIDR"][0] : undefined}
+            maxLength={32}
           />
         </FormRow>
         <FormRow>
@@ -156,7 +175,9 @@ const Step1 = () => {
             onChange={(e) =>
               setClusterFormData(updateNetworkingField(clusterFormData, "servicesCIDR", e.target.value.trim()))
             }
-            maxLength={200}
+            onBlur={() => validateSingleField("networking.servicesCIDR")}
+            errortext={formErrors["networking.servicesCIDR"] ? formErrors["networking.servicesCIDR"][0] : undefined}
+            maxLength={32}
           />
         </FormRow>
       </Collapse>

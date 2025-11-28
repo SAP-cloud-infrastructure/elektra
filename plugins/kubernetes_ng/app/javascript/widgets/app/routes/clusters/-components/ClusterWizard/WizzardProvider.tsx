@@ -1,15 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback, useMemo } from "react"
-import {
-  ClusterFormData,
-  BasicInfo,
-  Infrastructure,
-  WorkerGroups,
-  WorkerGroup,
-  ClusterFormErrors,
-  Step,
-  StepId,
-  ValidationErrors,
-} from "./types"
+import { ClusterFormData, WorkerGroups, WorkerGroup, Step, StepId, ClusterFormErrorsFlat } from "./types"
 import { STEP_DEFINITIONS, DEFAULT_CLOUD_PROFILE_NAME } from "./constants"
 import { GardenerApi } from "../../../../apiClient"
 import { useQuery, UseQueryResult } from "@tanstack/react-query"
@@ -40,6 +30,7 @@ const DEFAULT_CLUSTER_FORM_DATA: ClusterFormData = {
     {
       ...DEFAULT_WORKER_GROUP,
       name: "worker1",
+      id: `worker-${Date.now()}`,
     },
   ],
 }
@@ -51,103 +42,101 @@ const getLatestVersion = (versions: string[] = []) => {
     .join(".")
 }
 
-const validateStep1 = (data: BasicInfo & Infrastructure): ClusterFormErrors => {
-  const errors: ClusterFormErrors = {}
+const isRequired = (value: any) => (value ? [] : ["This field is required"])
 
-  if (!data.name) {
-    errors.name = ["Cluster name is required"]
-  } else if (!/^[a-zA-Z][a-z0-9-]*$/.test(data.name)) {
-    // Test: Starts with a letter, followed by lowercase alphanumeric characters or dashes ('-')
-    errors.name = ["Name must start with a letter, followed by lowercase alphanumeric characters or dashes"]
+const matchesRegex = (value: string, regex: RegExp, message: string) => (regex.test(value) ? [] : [message])
+
+const validateStep1 = (data: ClusterFormData): ClusterFormErrorsFlat => {
+  return {
+    name: [
+      ...isRequired(data.name),
+      ...matchesRegex(
+        data.name || "",
+        /^[a-zA-Z][a-z0-9-]*$/,
+        "Name must start with a letter, followed by lowercase alphanumeric characters or dashes"
+      ),
+      ...(data.name && data.name.length > 11 ? ["Name can be at most 11 characters long"] : []),
+    ],
+    cloudProfileName: isRequired(data.cloudProfileName),
+    kubernetesVersion: isRequired(data.kubernetesVersion),
+    "infrastructure.floatingPoolName": isRequired(data.infrastructure.floatingPoolName),
+    "infrastructure.apiVersion": isRequired(data.infrastructure.apiVersion),
+    "networking.podsCIDR":
+      data?.networking?.podsCIDR && !/^([0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2}$/.test(data.networking.podsCIDR)
+        ? ["Pods CIDR must be in CIDR notation"]
+        : [],
+    "networking.nodesCIDR":
+      data?.networking?.nodesCIDR && !/^([0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2}$/.test(data.networking.nodesCIDR)
+        ? ["Nodes CIDR must be in CIDR notation"]
+        : [],
+    "networking.servicesCIDR":
+      data?.networking?.servicesCIDR &&
+      data?.networking?.nodesCIDR &&
+      !/^([0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2}$/.test(data.networking.nodesCIDR)
+        ? ["Nodes CIDR must be in CIDR notation"]
+        : [],
   }
-
-  if (!data.cloudProfileName) {
-    errors.cloudProfileName = ["Cloud profile is required"]
-  }
-
-  if (!data.kubernetesVersion) {
-    errors.kubernetesVersion = ["Kubernetes version is required"]
-  }
-
-  // if (!data?.infrastructure?.floatingPoolName) {
-  //   errors.infrastructure = {
-  //     floatingPoolName: ["Floating pool name is required"],
-  //   }
-  // }
-  // if (!data?.networking?.pods) {
-  //   errors.networking = {
-  //     ...(errors.networking || {}),
-  //     pods: ["Pod network CIDR is required"],
-  //   }
-  // }
-  // if (!data?.networking?.nodes) {
-  //   errors.networking = {
-  //     ...(errors.networking || {}),
-  //     nodes: ["Node network CIDR is required"],
-  //   }
-  // }
-  // if (!data?.networking?.services) {
-  //   errors.networking = {
-  //     ...(errors.networking || {}),
-  //     services: ["Service network CIDR is required"],
-  //   }
-  // }
-
-  return errors
 }
 
-const validateStep2 = (data: WorkerGroups): ClusterFormErrors => {
-  // Use a separate property for array-level errors
-  const errors: ValidationErrors<ClusterFormData> & { _workers?: string[] } = {}
-  if (!data.workers || data.workers.length === 0) {
-    // Error on the array itself
-    errors._workers = ["At least one worker node configuration is required"]
+const validateStep2 = (data: WorkerGroups): ClusterFormErrorsFlat => {
+  if (data.workers.length === 0) {
+    return { workers: ["At least one worker node configuration is required"] }
   }
-
-  const workerErrors: ClusterFormErrors["workers"] = []
-  data.workers.forEach((worker: WorkerGroup, index) => {
-    const wErrors: ClusterFormErrors = {}
-
-    // ensure worker errors array exists
-    wErrors.workers = wErrors.workers || []
-    // / ensure object exists for this index
-    wErrors.workers[index] = wErrors.workers[index] || {}
-
+  const errors: ClusterFormErrorsFlat = {}
+  data.workers.forEach((worker: WorkerGroup) => {
+    if (!worker.name) {
+      errors[`workers.${worker.id}.name`] = ["Name is required"]
+    }
     if (!worker.machineType) {
-      wErrors.workers[index].machineType = ["Machine type is required"]
+      errors[`workers.${worker.id}.machineType`] = ["Machine type is required"]
+    }
+    if (!worker.machineImage.name) {
+      errors[`workers.${worker.id}.machineImage.name`] = ["Machine image name is required"]
+    }
+    if (!worker.machineImage.version) {
+      errors[`workers.${worker.id}.machineImage.version`] = ["Machine image version is required"]
     }
     if (worker.minimum < 1) {
-      wErrors.workers[index].minimum = ["Minimum number of nodes must be at least 1"]
+      errors[`workers.${worker.id}.minimum`] = ["Minimum number of nodes must be at least 1"]
     }
     if (worker.maximum < worker.minimum) {
-      wErrors.workers[index].maximum = ["Maximum number of nodes must be greater than or equal to minimum"]
+      errors[`workers.${worker.id}.maximum`] = ["Maximum number of nodes must be greater than or equal to minimum"]
+    }
+    if (worker.maximum > 255) {
+      errors[`workers.${worker.id}.maximum`] = ["Maximum number of nodes cannot exceed 255"]
     }
     if (worker.zones.length === 0) {
-      wErrors.workers[index].zones = ["At least one zone must be selected"]
+      errors[`workers.${worker.id}.zones`] = ["Available zones must be selected"]
     }
   })
 
-  if (workerErrors.length > 0) {
-    errors.workers = workerErrors
-  }
   return errors
 }
+
 const validateAll = (formData: ClusterFormData) => {
   const step1Errors = validateStep1(formData)
   const step2Errors = validateStep2(formData)
 
-  const allErrors = {
-    ...step1Errors,
-    ...step2Errors,
-  }
+  const allErrors = { ...step1Errors, ...step2Errors }
 
-  const stepErrors: Record<StepId, boolean> = {
-    step1: Object.keys(step1Errors).length > 0,
-    step2: Object.keys(step2Errors).length > 0,
-    review: false,
+  const stepErrors: Record<StepId, { errors: ClusterFormErrorsFlat; hasError: boolean }> = {
+    step1: { errors: step1Errors, hasError: Object.keys(step1Errors).length > 0 },
+    step2: { errors: step2Errors, hasError: Object.keys(step2Errors).length > 0 },
+    review: { errors: {}, hasError: false },
   }
 
   return { allErrors, stepErrors }
+}
+
+function validateStep(data: ClusterFormData, stepId: StepId): ClusterFormErrorsFlat {
+  switch (stepId) {
+    case "step1":
+      return validateStep1(data)
+    case "step2":
+      return validateStep2(data)
+    case "review":
+      return {} // maybe no validation here
+  }
 }
 
 interface WizardContextProps {
@@ -160,7 +149,7 @@ interface WizardContextProps {
   clusterFormData: ClusterFormData
   setClusterFormData: React.Dispatch<React.SetStateAction<ClusterFormData>>
 
-  formErrors: ClusterFormErrors
+  formErrors: ClusterFormErrorsFlat
   steps: Step[]
 
   cloudProfiles: UseQueryResult<CloudProfile[], unknown>
@@ -172,6 +161,7 @@ interface WizardContextProps {
     value: string
   ) => ClusterFormData
   extNetworks: UseQueryResult<ExternalNetwork[], unknown>
+  validateSingleField: (fieldPath: string) => void
 
   region: string
 }
@@ -198,7 +188,7 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ children, client
   const [steps, setSteps] = useState<Step[]>(STEP_DEFINITIONS.map((s) => ({ ...s, hasError: false })))
 
   const [clusterFormData, setClusterFormData] = useState<ClusterFormData>(DEFAULT_CLUSTER_FORM_DATA)
-  const [formErrors, setFormErrors] = useState<ClusterFormErrors>({})
+  const [formErrors, setFormErrors] = useState<ClusterFormErrorsFlat>({})
 
   const cloudProfiles = useQuery({
     queryKey: ["cloudProfiles"],
@@ -238,21 +228,33 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ children, client
 
   const handleSetCurrentStep = useCallback(
     (step: number) => {
+      const newMaxStepReached = Math.max(maxStepReached, step)
+      setMaxStepReached(newMaxStepReached)
+
+      // validate all steps up to maxStepReached
+      const stepsToValidate = STEP_DEFINITIONS.slice(0, newMaxStepReached)
+      let newFormErrors: Record<string, any> = {}
+      const newStepErrors: Record<string, { hasError: boolean }> = {}
+
+      stepsToValidate.forEach((s) => {
+        const errors = validateStep(clusterFormData, s.id)
+        newFormErrors = { ...errors, ...newFormErrors }
+        newStepErrors[s.id] = { hasError: Object.keys(errors).length > 0 }
+      })
+
+      // compute new steps with updated hasError up to the maxStepReached
+      const newSteps = STEP_DEFINITIONS.map((s, idx) => ({
+        ...s,
+        hasError: idx < newMaxStepReached ? (newStepErrors[s.id]?.hasError ?? false) : false,
+      }))
+
+      // update all states at once
       setCurrentStep(step)
-      setMaxStepReached((prev) => Math.max(prev, step))
-
-      const { stepErrors, allErrors } = validateAll(clusterFormData)
-
-      setFormErrors(allErrors)
-
-      setSteps((prev) =>
-        prev.map((s, idx) => ({
-          ...s,
-          hasError: idx < step ? (stepErrors[s.id] ?? false) : s.hasError,
-        }))
-      )
+      setMaxStepReached(newMaxStepReached)
+      setFormErrors((prev) => ({ ...prev, ...newFormErrors }))
+      setSteps(newSteps)
     },
-    [clusterFormData]
+    [clusterFormData, maxStepReached]
   )
 
   const selectedCloudProfile = useMemo(() => {
@@ -311,6 +313,17 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ children, client
     return updatedCluster
   }
 
+  const validateSingleField = (fieldPath: string) => {
+    const step1Errors = validateStep1(clusterFormData)
+    const step2Errors = validateStep2(clusterFormData)
+    const allErrors = { ...step1Errors, ...step2Errors }
+
+    setFormErrors((prev) => ({
+      ...prev,
+      [fieldPath]: allErrors[fieldPath] || [],
+    }))
+  }
+
   return (
     <WizardContext.Provider
       value={{
@@ -325,6 +338,7 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ children, client
         selectedCloudProfile,
         updateCloudProfile,
         updateNetworkingField,
+        validateSingleField,
         cloudProfiles,
         extNetworks,
         region,

@@ -65,6 +65,7 @@ module ServiceLayer
 
       private
 
+      # TODO: check if the id of the workers gets ignored
       ## Helper Methods
       # Convert a single shoot API response to cluster format
       def convert_shoot_to_cluster(shoot)

@@ -22,7 +22,7 @@ type WorkerGroupProps = {
 }
 
 const WorkerGroupSection = ({ workerGroup, index, totalWorkers, onChange, onDelete }: WorkerGroupProps) => {
-  const { cloudProfiles, selectedCloudProfile, region } = useWizard()
+  const { cloudProfiles, selectedCloudProfile, region, formErrors, validateSingleField } = useWizard()
 
   const availableMachineTypes = selectedCloudProfile?.machineTypes ?? []
   const availableMachineImages = selectedCloudProfile?.machineImages ?? []
@@ -30,7 +30,7 @@ const WorkerGroupSection = ({ workerGroup, index, totalWorkers, onChange, onDele
   const availableImageVersions = selectedImage?.versions ?? []
   const availableZones = selectedCloudProfile?.regions?.find((r) => r.name === region)?.zones || []
 
-  const handleFieldChange = (field: string, value: any) => {
+  const handleFieldChange = (field: string, value: unknown) => {
     onChange({
       ...workerGroup,
       [field]: value,
@@ -38,7 +38,7 @@ const WorkerGroupSection = ({ workerGroup, index, totalWorkers, onChange, onDele
   }
 
   return (
-    <FormSection title={`Worker Group: ${workerGroup.name || "New Worker Group"}`}>
+    <FormSection title={`Worker Group: ${workerGroup.name || "New Worker Group"}`} data-worker-id={workerGroup.id}>
       {totalWorkers > 1 && index > 0 && (
         <Button
           variant="primary-danger"
@@ -59,6 +59,8 @@ const WorkerGroupSection = ({ workerGroup, index, totalWorkers, onChange, onDele
                 type="text"
                 value={workerGroup.name}
                 onChange={(e) => handleFieldChange("name", e.target.value)}
+                errortext={formErrors[`workers.${workerGroup.id}.name`]?.[0] || undefined}
+                onBlur={() => validateSingleField(`workers.${workerGroup.id}.name`)}
                 maxLength={50}
               />
             </FormRow>
@@ -72,6 +74,8 @@ const WorkerGroupSection = ({ workerGroup, index, totalWorkers, onChange, onDele
                 type="number"
                 value={workerGroup.minimum}
                 onChange={(e) => handleFieldChange("minimum", Number(e.target.value))}
+                errortext={formErrors[`workers.${workerGroup.id}.minimum`]?.[0] || undefined}
+                onBlur={() => validateSingleField(`workers.${workerGroup.id}.minimum`)}
                 maxLength={4}
               />
             </FormRow>
@@ -86,9 +90,14 @@ const WorkerGroupSection = ({ workerGroup, index, totalWorkers, onChange, onDele
                 id="machineType"
                 name="machineType"
                 loading={cloudProfiles.isLoading}
-                errortext={cloudProfiles.error instanceof Error ? cloudProfiles.error.message : undefined}
                 value={workerGroup.machineType}
                 onChange={(e) => handleFieldChange("machineType", e?.toString())}
+                errortext={
+                  cloudProfiles.error instanceof Error
+                    ? cloudProfiles.error.message
+                    : formErrors[`workers.${workerGroup.id}.machineType`]?.[0] || undefined
+                }
+                onBlur={() => validateSingleField(`workers.${workerGroup.id}.machineType`)}
                 truncateOptions
               >
                 {availableMachineTypes.map((opt) => (
@@ -108,6 +117,8 @@ const WorkerGroupSection = ({ workerGroup, index, totalWorkers, onChange, onDele
                 type="number"
                 value={workerGroup.maximum}
                 onChange={(e) => handleFieldChange("maximum", Number(e.target.value))}
+                errortext={formErrors[`workers.${workerGroup.id}.maximum`]?.[0] || undefined}
+                onBlur={() => validateSingleField(`workers.${workerGroup.id}.maximum`)}
                 maxLength={4}
               />
             </FormRow>
@@ -122,7 +133,11 @@ const WorkerGroupSection = ({ workerGroup, index, totalWorkers, onChange, onDele
                 id="machineImage"
                 name="machineImage"
                 loading={cloudProfiles.isLoading}
-                errortext={cloudProfiles.error instanceof Error ? cloudProfiles.error.message : undefined}
+                errortext={
+                  cloudProfiles.error instanceof Error
+                    ? cloudProfiles.error.message
+                    : formErrors[`workers.${workerGroup.id}.machineImage.name`]?.[0] || undefined
+                }
                 value={workerGroup?.machineImage?.name}
                 onChange={(e) =>
                   onChange({
@@ -134,6 +149,7 @@ const WorkerGroupSection = ({ workerGroup, index, totalWorkers, onChange, onDele
                     },
                   })
                 }
+                onBlur={() => validateSingleField(`workers.${workerGroup.id}.machineImage.name`)}
                 truncateOptions
               >
                 {availableMachineImages.map((opt) => (
@@ -152,7 +168,11 @@ const WorkerGroupSection = ({ workerGroup, index, totalWorkers, onChange, onDele
                 id="availabilityZones"
                 name="availabilityZones"
                 loading={cloudProfiles.isLoading}
-                errortext={cloudProfiles.error instanceof Error ? cloudProfiles.error.message : undefined}
+                errortext={
+                  cloudProfiles.error instanceof Error
+                    ? cloudProfiles.error.message
+                    : formErrors[`workers.${workerGroup.id}.zones`]?.[0] || undefined
+                }
                 value={workerGroup.zones}
                 onChange={(e) =>
                   onChange({
@@ -160,6 +180,7 @@ const WorkerGroupSection = ({ workerGroup, index, totalWorkers, onChange, onDele
                     zones: e ? [e.toString()] : [],
                   })
                 }
+                onBlur={() => validateSingleField(`workers.${workerGroup.id}.zones`)}
                 truncateOptions
               >
                 {availableZones.map((opt) => (
@@ -180,7 +201,11 @@ const WorkerGroupSection = ({ workerGroup, index, totalWorkers, onChange, onDele
                 id="imageVersion"
                 name="imageVersion"
                 loading={cloudProfiles.isLoading}
-                errortext={cloudProfiles.error instanceof Error ? cloudProfiles.error.message : undefined}
+                errortext={
+                  cloudProfiles.error instanceof Error
+                    ? cloudProfiles.error.message
+                    : formErrors[`workers.${workerGroup.id}.machineImage.version`]?.[0] || undefined
+                }
                 value={workerGroup?.machineImage?.version}
                 onChange={(e) =>
                   onChange({
@@ -191,6 +216,7 @@ const WorkerGroupSection = ({ workerGroup, index, totalWorkers, onChange, onDele
                     },
                   })
                 }
+                onBlur={() => validateSingleField(`workers.${workerGroup.id}.machineImage.version`)}
                 truncateOptions
               >
                 {availableImageVersions.map((opt) => (

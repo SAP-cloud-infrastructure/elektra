@@ -17,6 +17,7 @@ const Step2 = () => {
           ...prev.workers,
           {
             ...DEFAULT_WORKER_GROUP,
+            id: `worker-${Date.now()}`,
             name: `worker${nextNumber}`,
           },
         ],
