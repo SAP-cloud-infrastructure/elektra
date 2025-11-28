@@ -118,107 +118,109 @@ const sectionHeaderStyles = "details-section tw-text-lg tw-font-bold tw-mb-4"
 
 function clusterDetailContent({ cluster, updatedAt }: { cluster: Cluster; updatedAt?: number }) {
   return (
-    <div className="tw-relative">
-      <div className="tw-absolute tw-right-0 tw-top-6 tw-text-sm">
-        {updatedAt && <span>Last updated: {new Date(updatedAt).toLocaleString()}</span>}
-      </div>
-      <Tabs>
-        <TabList>
-          <Tab>Overview</Tab>
-          <Tab>JSON</Tab>
-        </TabList>
-        <TabPanel>
-          {/* Basic info */}
-          <Container py px={false}>
-            <p className={sectionHeaderStyles}>Basic Information</p>
+    <Container px={false} py>
+      <div className="tw-relative">
+        <div className="tw-absolute tw-right-0 tw-top-6 tw-text-sm">
+          {updatedAt && <span>Last updated: {new Date(updatedAt).toLocaleString()}</span>}
+        </div>
+        <Tabs>
+          <TabList>
+            <Tab>Overview</Tab>
+            <Tab>JSON</Tab>
+          </TabList>
+          <TabPanel>
+            {/* Basic info */}
+            <Container py px={false}>
+              <p className={sectionHeaderStyles}>Basic Information</p>
+              <DataGrid columns={2} gridColumnTemplate="50% 50%">
+                <DataGridRow>
+                  <div>
+                    <DataGrid columns={2} gridColumnTemplate="35% auto">
+                      <ClusterDetailRow label="Name">{cluster.name}</ClusterDetailRow>
+                      <ClusterDetailRow label="ID">
+                        <ClipboardText text={cluster.uid} />
+                      </ClusterDetailRow>
+                      <ClusterDetailRow label="Cluster Status">{cluster.status}</ClusterDetailRow>
+                      <ClusterDetailRow label="Kubernetes Version">{cluster.version}</ClusterDetailRow>
+                      <ClusterDetailRow label="Namespace">{cluster.namespace}</ClusterDetailRow>
+                    </DataGrid>
+                  </div>
+                  <div>
+                    <DataGrid columns={2} gridColumnTemplate="35% auto">
+                      <ClusterDetailRow label="Purpose">{cluster.purpose}</ClusterDetailRow>
+                      <ClusterDetailRow label="Add ons"></ClusterDetailRow>
+                      <ClusterDetailRow label="Created by"></ClusterDetailRow>
+                    </DataGrid>
+                  </div>
+                </DataGridRow>
+              </DataGrid>
+            </Container>
+
+            {/* Readiness Conditions */}
+            <Container py px={false}>
+              <p className={sectionHeaderStyles}>Readiness</p>
+              {cluster?.readiness?.conditions?.length > 0 ? (
+                <DataGrid columns={2} gridColumnTemplate="17.5% auto">
+                  <ClusterDetailRow label="Readiness">
+                    <ReadinessConditions conditions={cluster?.readiness?.conditions} showDetails />
+                  </ClusterDetailRow>
+                </DataGrid>
+              ) : (
+                <p>No readiness conditions found.</p>
+              )}
+            </Container>
+
+            {/* Cluster Labels */}
+            <Container py px={false}>
+              <p className={sectionHeaderStyles}>Labels</p>
+              {cluster.labels && Object.keys(cluster.labels).length > 0 ? (
+                <DataGrid columns={2} minContentColumns={[0]}>
+                  {Object.entries(cluster.labels).map(([key, value]) => (
+                    <ClusterDetailRow key={key} label={key}>
+                      {value}
+                    </ClusterDetailRow>
+                  ))}
+                </DataGrid>
+              ) : (
+                <p>No labels found.</p>
+              )}
+            </Container>
+
+            {/* Maintenance and auto update */}
             <DataGrid columns={2} gridColumnTemplate="50% 50%">
               <DataGridRow>
-                <div>
+                <Container py px={false}>
+                  <p className={sectionHeaderStyles}>Maintenace Window</p>
                   <DataGrid columns={2} gridColumnTemplate="35% auto">
-                    <ClusterDetailRow label="Name">{cluster.name}</ClusterDetailRow>
-                    <ClusterDetailRow label="ID">
-                      <ClipboardText text={cluster.uid} />
-                    </ClusterDetailRow>
-                    <ClusterDetailRow label="Cluster Status">{cluster.status}</ClusterDetailRow>
-                    <ClusterDetailRow label="Kubernetes Version">{cluster.version}</ClusterDetailRow>
-                    <ClusterDetailRow label="Namespace">{cluster.namespace}</ClusterDetailRow>
+                    <ClusterDetailRow label="Start Time">{cluster.maintenance?.startTime}</ClusterDetailRow>
+                    <ClusterDetailRow label="Window Time">{cluster.maintenance?.windowTime}</ClusterDetailRow>
+                    <ClusterDetailRow label="Timezone">{cluster.maintenance?.timezone}</ClusterDetailRow>
                   </DataGrid>
-                </div>
-                <div>
+                </Container>
+                <Container py px={false}>
+                  <p className={sectionHeaderStyles}>Auto Update</p>
                   <DataGrid columns={2} gridColumnTemplate="35% auto">
-                    <ClusterDetailRow label="Purpose">{cluster.purpose}</ClusterDetailRow>
-                    <ClusterDetailRow label="Add ons"></ClusterDetailRow>
-                    <ClusterDetailRow label="Created by"></ClusterDetailRow>
+                    <ClusterDetailRow label="OS Updates">{cluster.autoUpdate?.os}</ClusterDetailRow>
+                    <ClusterDetailRow label="Kubernetes Updates">{cluster.autoUpdate?.kubernetes}</ClusterDetailRow>
                   </DataGrid>
-                </div>
+                </Container>
               </DataGridRow>
             </DataGrid>
-          </Container>
 
-          {/* Readiness Conditions */}
-          <Container py px={false}>
-            <p className={sectionHeaderStyles}>Readiness</p>
-            {cluster?.readiness?.conditions?.length > 0 ? (
-              <DataGrid columns={2} gridColumnTemplate="17.5% auto">
-                <ClusterDetailRow label="Readiness">
-                  <ReadinessConditions conditions={cluster?.readiness?.conditions} showDetails />
-                </ClusterDetailRow>
-              </DataGrid>
-            ) : (
-              <p>No readiness conditions found.</p>
-            )}
-          </Container>
-
-          {/* Cluster Labels */}
-          <Container py px={false}>
-            <p className={sectionHeaderStyles}>Labels</p>
-            {cluster.labels && Object.keys(cluster.labels).length > 0 ? (
-              <DataGrid columns={2} minContentColumns={[0]}>
-                {Object.entries(cluster.labels).map(([key, value]) => (
-                  <ClusterDetailRow key={key} label={key}>
-                    {value}
-                  </ClusterDetailRow>
-                ))}
-              </DataGrid>
-            ) : (
-              <p>No labels found.</p>
-            )}
-          </Container>
-
-          {/* Maintenance and auto update */}
-          <DataGrid columns={2} gridColumnTemplate="50% 50%">
-            <DataGridRow>
-              <Container py px={false}>
-                <p className={sectionHeaderStyles}>Maintenace Window</p>
-                <DataGrid columns={2} gridColumnTemplate="35% auto">
-                  <ClusterDetailRow label="Start Time">{cluster.maintenance?.startTime}</ClusterDetailRow>
-                  <ClusterDetailRow label="Window Time">{cluster.maintenance?.windowTime}</ClusterDetailRow>
-                  <ClusterDetailRow label="Timezone">{cluster.maintenance?.timezone}</ClusterDetailRow>
-                </DataGrid>
-              </Container>
-              <Container py px={false}>
-                <p className={sectionHeaderStyles}>Auto Update</p>
-                <DataGrid columns={2} gridColumnTemplate="35% auto">
-                  <ClusterDetailRow label="OS Updates">{cluster.autoUpdate?.os}</ClusterDetailRow>
-                  <ClusterDetailRow label="Kubernetes Updates">{cluster.autoUpdate?.kubernetes}</ClusterDetailRow>
-                </DataGrid>
-              </Container>
-            </DataGridRow>
-          </DataGrid>
-
-          {/* Workers */}
-          <Container py px={false}>
-            <p className={sectionHeaderStyles}>Worker Pools</p>
-            <WorkerList workers={cluster.workers} />
-          </Container>
-        </TabPanel>
-        <TabPanel>
-          <Container py px={false}>
-            <JsonViewer expanded={2} data={cluster.raw} toolbar />
-          </Container>
-        </TabPanel>
-      </Tabs>
-    </div>
+            {/* Workers */}
+            <Container py px={false}>
+              <p className={sectionHeaderStyles}>Worker Pools</p>
+              <WorkerList workers={cluster.workers} />
+            </Container>
+          </TabPanel>
+          <TabPanel>
+            <Container py px={false}>
+              <JsonViewer expanded={2} data={cluster.raw} toolbar />
+            </Container>
+          </TabPanel>
+        </Tabs>
+      </div>
+    </Container>
   )
 }
 
@@ -271,5 +273,3 @@ function ClusterDetailLoader() {
     </ClusterDetailErrorBoundary>
   )
 }
-
-export default ClusterDetailLoader

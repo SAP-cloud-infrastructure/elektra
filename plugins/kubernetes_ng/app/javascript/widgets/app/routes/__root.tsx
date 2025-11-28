@@ -6,6 +6,7 @@ import { Breadcrumb } from "../components/Breadcrumb"
 
 export interface RouterContext {
   apiClient: GardenerApi
+  region: string
 }
 
 export const Root = () => {

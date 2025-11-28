@@ -39,7 +39,7 @@ describe("<ClusterList />", () => {
       { ...defaultCluster, uid: "2", name: "cluster-two" },
     ]
 
-    await act(async () => renderComponent(<ClusterList clusters={clusters} />))
+    await act(() => renderComponent(<ClusterList clusters={clusters} />))
     expect(screen.getByText(clusters[0].name)).toBeInTheDocument()
     expect(screen.getByText(clusters[1].name)).toBeInTheDocument()
   })

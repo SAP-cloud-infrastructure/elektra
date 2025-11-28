@@ -6,7 +6,7 @@ module ServiceLayer
       def list_cloud_profiles
         response = elektron_gardener.get("apis/core.gardener.cloud/v1beta1/cloudprofiles")
         cloud_profiles = response&.body&.dig("items") || []
-        
+
         cloud_profiles.map do |item|
           next unless item.is_a?(Hash)
           
@@ -18,6 +18,7 @@ module ServiceLayer
             uid: metadata['uid'],
             name: metadata['name'],
             provider: spec['type'],
+            providerConfig: extract_provider_config(spec),
             kubernetesVersions: safe_map_versions(kubernetes['versions']), # Changed from kubernetes_versions
             machineTypes: safe_map_machine_types(spec['machineTypes']), # Changed from machine_types
             machineImages: safe_map_machine_images(spec['machineImages']), # Changed from machine_images
@@ -29,6 +30,14 @@ module ServiceLayer
       
       private
       
+      def extract_provider_config(spec)
+        provider_config = spec['providerConfig']
+        return {} unless provider_config.is_a?(Hash) && provider_config['apiVersion']      
+        {
+          apiVersion: provider_config['apiVersion']
+        }
+      end
+
       def safe_map_versions(versions)
         return [] unless versions.is_a?(Array)
         

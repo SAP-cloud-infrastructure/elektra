@@ -9,13 +9,14 @@ declare module "@tanstack/react-router" {
   }
 }
 
-export function createAppRouter(mountpoint: string) {
+export function createAppRouter(mountpoint: string, region: string) {
   const gardenerApi = createGardenerApi(mountpoint)
 
   return createRouter({
     routeTree,
     context: {
       apiClient: gardenerApi,
+      region,
     },
     defaultPreload: "intent",
     scrollRestoration: true,
