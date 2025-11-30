@@ -2,7 +2,7 @@ import React from "react"
 import WorkerGroupSection from "./WorkerGroupSection"
 import { WorkerGroup } from "./types"
 import { useWizard, DEFAULT_WORKER_GROUP } from "./WizzardProvider"
-import { Stack, Button } from "@cloudoperators/juno-ui-components"
+import { Stack, Button, Container, Message } from "@cloudoperators/juno-ui-components"
 
 const Step2 = () => {
   const { clusterFormData, setClusterFormData } = useWizard()
@@ -42,6 +42,15 @@ const Step2 = () => {
 
   return (
     <>
+      <Message
+        variant="info"
+        title="Node Auto-scaling"
+        text="Each worker nodes will automatically scale between its minimum and maximum node counts based on workload demands. Ensure your maximum node counts align with your resource quotas."
+      />
+      <Container px={false} py>
+        Configure the worker nodes for your cluster. These settings determine the compute resources available for your
+        workloads.
+      </Container>
       {clusterFormData.workers.map((wg, index) => {
         const showSeparator = clusterFormData.workers.length > 1 && index < clusterFormData.workers.length - 1
         return (

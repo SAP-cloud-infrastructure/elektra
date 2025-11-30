@@ -38,7 +38,7 @@ const Step1 = () => {
             onBlur={() => validateSingleField("name")}
             onChange={(e) => setClusterFormData((prev) => ({ ...prev, name: e.target.value }))}
             helptext="Must start with a letter and may contain lowercase letters, numbers, or dashes (‘-’). The name can be at most 11 characters long."
-            errortext={formErrors.name ? formErrors.name[0] : undefined}
+            errortext={formErrors?.name?.[0] || undefined}
             maxLength={20}
           />
         </FormRow>
@@ -50,7 +50,11 @@ const Step1 = () => {
             id="cloudProfile"
             name="cloudProfile"
             loading={cloudProfiles.isLoading}
-            errortext={cloudProfiles.error instanceof Error ? cloudProfiles.error.message : undefined}
+            errortext={
+              cloudProfiles.error instanceof Error
+                ? cloudProfiles.error.message
+                : formErrors?.cloudProfileName?.[0] || undefined
+            }
             helptext="Cloud profiles define the infrastructure settings for your cluster. Changing the cloud profile will reset certain fields."
             value={clusterFormData.cloudProfileName}
             onChange={(e) =>
@@ -77,6 +81,11 @@ const Step1 = () => {
             disabled={cloudProfiles.isLoading}
             value={clusterFormData.kubernetesVersion}
             onChange={(e) => setClusterFormData((prev) => ({ ...prev, kubernetesVersion: e?.toString() || "" }))}
+            errortext={
+              cloudProfiles.error instanceof Error
+                ? cloudProfiles.error.message
+                : formErrors?.kubernetesVersion?.[0] || undefined
+            }
             truncateOptions
           >
             {availableKubernetesVersions.map((version) => (
@@ -95,7 +104,11 @@ const Step1 = () => {
             label="Floating IP Pool"
             name="floatingPool"
             loading={extNetworks.isLoading}
-            errortext={extNetworks.error instanceof Error ? extNetworks.error.message : undefined}
+            errortext={
+              extNetworks.error instanceof Error
+                ? extNetworks.error.message
+                : formErrors["infrastructure.floatingPoolName"]?.[0] || undefined
+            }
             value={clusterFormData.infrastructure?.floatingPoolName}
             onChange={(e) =>
               setClusterFormData((prev) => ({
@@ -142,6 +155,7 @@ const Step1 = () => {
             }
             onBlur={() => validateSingleField("networking.podsCIDR")}
             errortext={formErrors["networking.podsCIDR"] ? formErrors["networking.podsCIDR"][0] : undefined}
+            helptext="CIDR notation for pod IP addresses. Example: 10.44.0.0/16"
             maxLength={32}
           />
         </FormRow>
@@ -156,6 +170,7 @@ const Step1 = () => {
             }
             onBlur={() => validateSingleField("networking.nodesCIDR")}
             errortext={formErrors["networking.nodesCIDR"] ? formErrors["networking.nodesCIDR"][0] : undefined}
+            helptext="CIDR notation for node IP addresses. Example: 10.180.24.0/24"
             maxLength={32}
           />
         </FormRow>
@@ -170,6 +185,7 @@ const Step1 = () => {
             }
             onBlur={() => validateSingleField("networking.servicesCIDR")}
             errortext={formErrors["networking.servicesCIDR"] ? formErrors["networking.servicesCIDR"][0] : undefined}
+            helptext="CIDR notation for service IP addresses. Example: 10.45.0.0/16"
             maxLength={32}
           />
         </FormRow>

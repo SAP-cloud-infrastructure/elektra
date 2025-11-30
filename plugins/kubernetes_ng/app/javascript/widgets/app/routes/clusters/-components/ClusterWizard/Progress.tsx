@@ -38,23 +38,21 @@ const StepTitle = ({ status, title }: { status: StepStatus; title: string }) => 
 }
 
 export const getStepStatus = ({
-  index,
   currentStep,
   maxStepReached,
   step,
 }: {
-  index: number
   currentStep: number
   maxStepReached: number
   step: Step
 }): { isFuture: boolean; status: StepStatus } => {
-  const isFuture = index > maxStepReached
+  const isFuture = step.index > maxStepReached
   // FUTURE STEP ==> not clickable, show no status
   if (isFuture) return { isFuture: true, status: "none" }
   // STEP HAS ERROR ==> show error icon
   if (step.hasError) return { isFuture: false, status: "error" }
   // PAST STEP ==> already completed successfully, includes steps that are before the current step or before the max step reached
-  if (index < currentStep || index < maxStepReached) return { isFuture: false, status: "success" }
+  if (step.index < currentStep || step.index < maxStepReached) return { isFuture: false, status: "success" }
   // CURRENT STEP ==> in-progress but not yet completed
   return { isFuture: false, status: "none" }
 }
@@ -62,13 +60,11 @@ export const getStepStatus = ({
 const StepButton = React.memo(
   ({
     step,
-    index,
     status,
     isFuture,
     onClick,
   }: {
     step: Step
-    index: number
     status: StepStatus
     isFuture: boolean
     onClick: (index: number) => void
@@ -79,7 +75,7 @@ const StepButton = React.memo(
         type="button"
         className={buttonStyle}
         disabled={isFuture}
-        onClick={() => onClick(index)}
+        onClick={() => onClick(step.index)}
         aria-current={!isFuture && status === "none" ? "step" : undefined}
       >
         <Stack alignment="center" gap="2">
@@ -99,21 +95,18 @@ const Progress = () => {
     <Container px={false} py>
       <Grid>
         <GridRow>
-          {steps.map((step, index) => {
-            const { isFuture, status } = getStepStatus({ index, currentStep, maxStepReached, step })
+          {steps
+            .slice()
+            .sort((a, b) => a.index - b.index)
+            .map((step) => {
+              const { isFuture, status } = getStepStatus({ currentStep, maxStepReached, step })
 
-            return (
-              <GridColumn key={step.id} cols={stepCols} className="tw-text-center">
-                <StepButton
-                  step={step}
-                  index={index}
-                  status={status}
-                  isFuture={isFuture}
-                  onClick={handleSetCurrentStep}
-                />
-              </GridColumn>
-            )
-          })}
+              return (
+                <GridColumn key={step.id} cols={stepCols} className="tw-text-center">
+                  <StepButton step={step} status={status} isFuture={isFuture} onClick={handleSetCurrentStep} />
+                </GridColumn>
+              )
+            })}
         </GridRow>
       </Grid>
     </Container>

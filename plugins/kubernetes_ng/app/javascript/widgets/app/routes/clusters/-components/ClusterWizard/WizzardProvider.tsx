@@ -119,8 +119,8 @@ function validateStep(data: ClusterFormData, stepId: StepId): ClusterFormErrorsF
       return validateStep1(data)
     case "step2":
       return validateStep2(data)
-    case "review":
-      return {} // maybe no validation here
+    case "summary":
+      return {}
   }
 }
 
