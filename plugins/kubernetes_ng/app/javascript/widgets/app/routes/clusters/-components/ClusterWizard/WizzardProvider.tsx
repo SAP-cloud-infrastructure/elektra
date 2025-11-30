@@ -113,21 +113,6 @@ const validateStep2 = (data: WorkerGroups): ClusterFormErrorsFlat => {
   return errors
 }
 
-const validateAll = (formData: ClusterFormData) => {
-  const step1Errors = validateStep1(formData)
-  const step2Errors = validateStep2(formData)
-
-  const allErrors = { ...step1Errors, ...step2Errors }
-
-  const stepErrors: Record<StepId, { errors: ClusterFormErrorsFlat; hasError: boolean }> = {
-    step1: { errors: step1Errors, hasError: Object.keys(step1Errors).length > 0 },
-    step2: { errors: step2Errors, hasError: Object.keys(step2Errors).length > 0 },
-    review: { errors: {}, hasError: false },
-  }
-
-  return { allErrors, stepErrors }
-}
-
 function validateStep(data: ClusterFormData, stepId: StepId): ClusterFormErrorsFlat {
   switch (stepId) {
     case "step1":
@@ -231,18 +216,19 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ children, client
       const newMaxStepReached = Math.max(maxStepReached, step)
       setMaxStepReached(newMaxStepReached)
 
-      // validate all steps up to maxStepReached
+      // define which steps to validate
       const stepsToValidate = STEP_DEFINITIONS.slice(0, newMaxStepReached)
       let newFormErrors: Record<string, any> = {}
       const newStepErrors: Record<string, { hasError: boolean }> = {}
 
+      // validate all steps up to maxStepReached and collect errors
       stepsToValidate.forEach((s) => {
         const errors = validateStep(clusterFormData, s.id)
         newFormErrors = { ...errors, ...newFormErrors }
-        newStepErrors[s.id] = { hasError: Object.keys(errors).length > 0 }
+        newStepErrors[s.id] = { hasError: Object.values(errors).some((arr) => Array.isArray(arr) && arr.length > 0) }
       })
 
-      // compute new steps with updated hasError up to the maxStepReached
+      // updated hasError up to the maxStepReached
       const newSteps = STEP_DEFINITIONS.map((s, idx) => ({
         ...s,
         hasError: idx < newMaxStepReached ? (newStepErrors[s.id]?.hasError ?? false) : false,

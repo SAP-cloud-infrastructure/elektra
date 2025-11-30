@@ -1,6 +1,7 @@
 import React from "react"
-import { Grid, GridRow, GridColumn, Container, Stack } from "@cloudoperators/juno-ui-components"
+import { Grid, GridRow, GridColumn, Container, Stack, Icon } from "@cloudoperators/juno-ui-components"
 import { useWizard } from "./WizzardProvider"
+import { Step } from "./types"
 
 const enabledStepStyle = `
 tw-cursor-pointer 
@@ -23,31 +24,96 @@ tw-aspect-square
 tw-h-4
 tw-flex-shrink-0`
 
+type StepStatus = "error" | "success" | "none"
+
+const StepStatusIcon = ({ status }: { status: StepStatus }) => {
+  if (status === "success") return <Icon icon="checkCircle" color="tw-text-theme-success" size="20" />
+  if (status === "error") return <Icon icon="cancel" color="tw-text-theme-danger" size="20" />
+  return <span className={dotStyle} />
+}
+
+const StepTitle = ({ status, title }: { status: StepStatus; title: string }) => {
+  const color = status === "error" ? "tw-text-theme-danger" : status === "success" ? "tw-text-theme-default" : ""
+  return <b className={color}>{title}</b>
+}
+
+export const getStepStatus = ({
+  index,
+  currentStep,
+  maxStepReached,
+  step,
+}: {
+  index: number
+  currentStep: number
+  maxStepReached: number
+  step: Step
+}): { isFuture: boolean; status: StepStatus } => {
+  const isFuture = index > maxStepReached
+  // FUTURE STEP ==> not clickable, show no status
+  if (isFuture) return { isFuture: true, status: "none" }
+  // STEP HAS ERROR ==> show error icon
+  if (step.hasError) return { isFuture: false, status: "error" }
+  // PAST STEP ==> already completed successfully, includes steps that are before the current step or before the max step reached
+  if (index < currentStep || index < maxStepReached) return { isFuture: false, status: "success" }
+  // CURRENT STEP ==> in-progress but not yet completed
+  return { isFuture: false, status: "none" }
+}
+
+const StepButton = React.memo(
+  ({
+    step,
+    index,
+    status,
+    isFuture,
+    onClick,
+  }: {
+    step: Step
+    index: number
+    status: StepStatus
+    isFuture: boolean
+    onClick: (index: number) => void
+  }) => {
+    const buttonStyle = isFuture ? disabledStepStyle : enabledStepStyle
+    return (
+      <button
+        type="button"
+        className={buttonStyle}
+        disabled={isFuture}
+        onClick={() => onClick(index)}
+        aria-current={!isFuture && status === "none" ? "step" : undefined}
+      >
+        <Stack alignment="center" gap="2">
+          <StepStatusIcon status={status} />
+          <StepTitle status={status} title={step.title} />
+        </Stack>
+      </button>
+    )
+  }
+)
+
 const Progress = () => {
-  const { handleSetCurrentStep, maxStepReached, steps } = useWizard()
-  const stepCols = Math.floor(12 / steps.length)
+  const { handleSetCurrentStep, maxStepReached, steps, currentStep } = useWizard()
+  const stepCols = Math.max(Math.floor(12 / steps.length), 1)
 
   return (
     <Container px={false} py>
       <Grid>
         <GridRow>
-          {steps.map((step, index) => (
-            <GridColumn key={index} cols={stepCols} className="tw-text-center">
-              <button
-                type="button"
-                className={index > maxStepReached ? disabledStepStyle : enabledStepStyle}
-                disabled={index > maxStepReached}
-                onClick={() => handleSetCurrentStep(index)}
-                aria-disabled={index > maxStepReached}
-                aria-label={`Go to step ${index + 1}: ${step.title}${index > maxStepReached ? " (not available yet)" : ""}`}
-              >
-                <Stack alignment="center" gap="2">
-                  <span className={dotStyle} />
-                  <b className={step.hasError ? "tw-text-theme-danger" : ""}>{step.title}</b>
-                </Stack>
-              </button>
-            </GridColumn>
-          ))}
+          {steps.map((step, index) => {
+            const { isFuture, status } = getStepStatus({ index, currentStep, maxStepReached, step })
+
+            return (
+              <GridColumn key={step.id} cols={stepCols} className="tw-text-center">
+                <StepButton
+                  step={step}
+                  index={index}
+                  status={status}
+                  isFuture={isFuture}
+                  onClick={handleSetCurrentStep}
+                />
+              </GridColumn>
+            )
+          })}
         </GridRow>
       </Grid>
     </Container>
