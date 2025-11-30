@@ -44,7 +44,7 @@ const getLatestVersion = (versions: string[] = []) => {
     .join(".")
 }
 
-const isRequired = (value: any) => (value ? [] : ["This field is required"])
+const isRequired = (value: unknown) => (value ? [] : ["This field is required"])
 
 const matchesRegex = (value: string, regex: RegExp, message: string) => (regex.test(value) ? [] : [message])
 
@@ -226,7 +226,7 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ children, client
 
       // define which steps to validate
       const stepsToValidate = STEP_DEFINITIONS.slice(0, newMaxStepReached)
-      let newFormErrors: Record<string, any> = {}
+      let newFormErrors: Record<string, string[]> = {}
       const newStepErrors: Record<string, { hasError: boolean }> = {}
 
       // validate all steps up to maxStepReached and collect errors
