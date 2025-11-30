@@ -8,11 +8,18 @@ import Actions from "./ClusterWizard/Actions"
 interface CreateClusterWizardProps {
   isOpen: boolean
   onClose: () => void
+  onSuccessCreate: (clusterName: string) => void
   client: GardenerApi
   region: string
 }
 
-const CreateClusterWizard: React.FC<CreateClusterWizardProps> = ({ isOpen, onClose, client, region }) => {
+const CreateClusterWizard: React.FC<CreateClusterWizardProps> = ({
+  isOpen,
+  onClose,
+  client,
+  region,
+  onSuccessCreate,
+}) => {
   return (
     <WizardProvider client={client} region={region}>
       <Modal
@@ -22,7 +29,14 @@ const CreateClusterWizard: React.FC<CreateClusterWizardProps> = ({ isOpen, onClo
         size="large"
         aria-modal={true}
         title="Create Cluster"
-        modalFooter={<Actions />}
+        modalFooter={
+          <Actions
+            onSuccessCreate={(clusterName) => {
+              onSuccessCreate(clusterName)
+              onClose()
+            }}
+          />
+        }
         onConfirm={() => {
           onClose()
         }}

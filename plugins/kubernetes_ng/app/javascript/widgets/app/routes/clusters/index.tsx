@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { createFileRoute, useLoaderData, useRouter, useMatch } from "@tanstack/react-router"
-import { Container, Button } from "@cloudoperators/juno-ui-components"
+import { Container, Button, Message } from "@cloudoperators/juno-ui-components"
 import ClusterList from "./-components/ClusterList"
 import PageHeader from "../../components/PageHeader"
 import { Permissions } from "../../types/permissions"
@@ -118,9 +118,17 @@ function ClusterContent({ clusters = [], permissions, error, isLoading = false, 
 function Clusters(props: ClustersViewProps) {
   const { permissions, isLoading = false, client, region } = props
   const [showWizardModal, setShowWizardModal] = useState(false)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const router = useRouter()
 
   return (
     <>
+      <Container px={false} py>
+        {successMessage && (
+          <Message onDismiss={() => setSuccessMessage(null)} text={successMessage} variant="success" autoDismiss />
+        )}
+      </Container>
+
       <ClustersPageHeader>
         <ClusterActions permissions={permissions} disabled={isLoading} onAddCluster={() => setShowWizardModal(true)} />
       </ClustersPageHeader>
@@ -132,6 +140,10 @@ function Clusters(props: ClustersViewProps) {
       {showWizardModal && client && region && (
         <CreateClusterWizard
           isOpen={showWizardModal}
+          onSuccessCreate={(clusterName) => {
+            router.invalidate()
+            setSuccessMessage(`Cluster ${clusterName} created successfully.`)
+          }}
           onClose={() => {
             setShowWizardModal(false)
           }}

@@ -2,7 +2,6 @@ import React from "react"
 import { useWizard } from "./WizzardProvider"
 import {
   Button,
-  JsonViewer,
   DataGrid,
   DataGridRow,
   DataGridHeadCell,
@@ -10,7 +9,6 @@ import {
   Icon,
   Stack,
 } from "@cloudoperators/juno-ui-components"
-import { useMutation } from "@tanstack/react-query"
 import InlineError from "../../../../components/InlineError"
 import { STEP_DEFINITIONS } from "./constants"
 import { StepId } from "./types"
@@ -47,17 +45,7 @@ function SummaryRow({ label, children, hasError }: { label: string; children?: R
 }
 
 const Summary = () => {
-  const { client, clusterFormData, formErrors, handleSetCurrentStep } = useWizard()
-
-  const { isPending, error, data, mutate } = useMutation({
-    mutationFn: client.gardener.createCluster,
-    mutationKey: ["createCluster"],
-  })
-
-  const onSubmit = () => {
-    // Implement form submission logic here
-    return mutate(clusterFormData)
-  }
+  const { clusterFormData, formErrors, handleSetCurrentStep, createMutation } = useWizard()
 
   const goToStep = (stepId: StepId) => {
     const step = STEP_DEFINITIONS.find((s) => s.id === stepId)!
@@ -66,8 +54,13 @@ const Summary = () => {
 
   return (
     <div>
-      <h2>Cluster Wizard Summary</h2>
-      {error instanceof Error && <InlineError error={error} />}
+      <h1 className="tw-text-lg tw-font-bold">Summary</h1>
+
+      {createMutation.error instanceof Error && (
+        <div className="tw-mt-4">
+          <InlineError error={createMutation.error} />
+        </div>
+      )}
 
       <h1 className="tw-text-lg tw-font-bold tw-m-4">Basic Info</h1>
 
@@ -95,7 +88,7 @@ const Summary = () => {
         </DataGridRow>
       </DataGrid>
       <Stack distribution="end" className="tw-mt-4">
-        <Button onClick={() => goToStep("step1")} size="small" progress={isPending} icon="edit" label="Edit Section" />
+        <Button onClick={() => goToStep("step1")} size="small" icon="edit" label="Edit Section" />
       </Stack>
 
       <h1 className="tw-text-lg tw-font-bold tw-m-4">Infrastructure</h1>
@@ -131,7 +124,7 @@ const Summary = () => {
         </DataGridRow>
       </DataGrid>
       <Stack distribution="end" className="tw-mt-4">
-        <Button onClick={() => goToStep("step1")} size="small" progress={isPending} icon="edit" label="Edit Section" />
+        <Button onClick={() => goToStep("step1")} size="small" icon="edit" label="Edit Section" />
       </Stack>
 
       {clusterFormData.workers.map((wg, index) => (
@@ -190,14 +183,8 @@ const Summary = () => {
         </div>
       ))}
       <Stack distribution="end" className="tw-mt-4">
-        <Button onClick={() => goToStep("step2")} size="small" progress={isPending} icon="edit" label="Edit Section" />
+        <Button onClick={() => goToStep("step2")} size="small" icon="edit" label="Edit Section" />
       </Stack>
-
-      <JsonViewer data={clusterFormData} />
-
-      <Button onClick={onSubmit} variant="primary-danger" progress={isPending}>
-        Submit
-      </Button>
     </div>
   )
 }

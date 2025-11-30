@@ -2,12 +2,14 @@ import React, { createContext, useContext, useState, ReactNode, useCallback, use
 import { ClusterFormData, WorkerGroups, WorkerGroup, Step, StepId, ClusterFormErrorsFlat } from "./types"
 import { STEP_DEFINITIONS, DEFAULT_CLOUD_PROFILE_NAME } from "./constants"
 import { GardenerApi } from "../../../../apiClient"
-import { useQuery, UseQueryResult } from "@tanstack/react-query"
+import { useQuery, UseQueryResult, useMutation, UseMutationResult } from "@tanstack/react-query"
 import { CloudProfile } from "../../../../types/cloudProfiles"
+import { Cluster } from "../../../../types/cluster"
 import { ExternalNetwork } from "../../../../types/network"
 
 export const DEFAULT_WORKER_GROUP: WorkerGroup = {
   name: "",
+  id: "",
   machineType: "",
   machineImage: {
     name: "",
@@ -149,6 +151,7 @@ interface WizardContextProps {
   validateSingleField: (fieldPath: string) => void
 
   region: string
+  createMutation: UseMutationResult<Cluster, unknown, ClusterFormData, unknown>
 }
 
 const WizardContext = createContext<WizardContextProps | undefined>(undefined)
@@ -209,6 +212,11 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ children, client
         }
       })
     },
+  })
+
+  const createMutation = useMutation({
+    mutationFn: client.gardener.createCluster,
+    mutationKey: ["createCluster"],
   })
 
   const handleSetCurrentStep = useCallback(
@@ -328,6 +336,7 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ children, client
         cloudProfiles,
         extNetworks,
         region,
+        createMutation,
       }}
     >
       {children}

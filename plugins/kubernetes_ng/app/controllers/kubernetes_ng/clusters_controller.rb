@@ -85,10 +85,11 @@ module KubernetesNg
         :kubernetesVersion,
         :domain_id,
         :project_id,
-        infrastructure: [:floatingPoolName],
+        infrastructure: [:floatingPoolName, :apiVersion],
         networking: [:pods, :nodes, :services],
         workers: [
           :name,
+          :id,
           :machineType,
           { machineImage: [:name, :version] },
           :minimum,

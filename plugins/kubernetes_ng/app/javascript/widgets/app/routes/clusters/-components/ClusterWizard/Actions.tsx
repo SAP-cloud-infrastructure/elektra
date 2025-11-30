@@ -2,17 +2,22 @@ import React from "react"
 import { ModalFooter, ButtonRow, Button } from "@cloudoperators/juno-ui-components"
 import { useWizard } from "./WizzardProvider"
 
-const defaultmodalfooterstyles = `
-	tw-justify-end
-	tw-gap-3.5
-`
+const Actions = ({ onSuccessCreate }: { onSuccessCreate: (clusterName: string) => void }) => {
+  const { currentStep, handleSetCurrentStep, steps, createMutation, clusterFormData } = useWizard()
 
-const Actions = () => {
-  const { currentStep, handleSetCurrentStep, steps } = useWizard()
+  //check if hasError is false for all steps
+  const isFormValid = steps.every((step) => !step.hasError)
 
-  const isSubmitting = false
+  const onSubmit = () => {
+    return createMutation.mutate(clusterFormData, {
+      onSuccess: (cluster) => {
+        onSuccessCreate(cluster.name)
+      },
+    })
+  }
+
   return (
-    <ModalFooter className={defaultmodalfooterstyles}>
+    <ModalFooter className="tw-justify-end tw-items-center">
       <ButtonRow>
         <Button
           onClick={() => handleSetCurrentStep(Math.max(currentStep - 1, 0))}
@@ -26,8 +31,13 @@ const Actions = () => {
             Next
           </Button>
         ) : (
-          <Button onClick={() => {}} disabled={isSubmitting} variant="primary">
-            {isSubmitting ? <span>Creating...</span> : <span>Create Cluster</span>}
+          <Button
+            onClick={onSubmit}
+            disabled={!isFormValid || createMutation.isPending}
+            progress={createMutation.isPending}
+            variant="primary"
+          >
+            {createMutation.isPending ? <span>Creating...</span> : <span>Create Cluster</span>}
           </Button>
         )}
       </ButtonRow>
