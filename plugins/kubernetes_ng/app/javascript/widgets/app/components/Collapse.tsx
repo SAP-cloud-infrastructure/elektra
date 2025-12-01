@@ -6,7 +6,7 @@ interface CollapseProps {
   className?: string // optional wrapper classes
 }
 
-export default function Collapse({ isOpen, children, className }: CollapseProps) {
+export default function Collapse({ isOpen, children, className, ...props }: CollapseProps) {
   const ref = useRef<HTMLDivElement>(null)
   const [height, setHeight] = useState(isOpen ? "auto" : "0px")
 
@@ -27,6 +27,7 @@ export default function Collapse({ isOpen, children, className }: CollapseProps)
       ref={ref}
       style={{ height }}
       className={`tw-overflow-hidden tw-transition-[height] tw-duration-300 tw-ease-in-out ${className ?? ""}`}
+      {...props}
     >
       {children}
     </div>
