@@ -39,12 +39,8 @@ const Item = (props) => {
         {policy.isAllowed("image:image_owner", { image }) && <OwnerIcon />}
       </td>
       <td>
-        <Link
-          to={`/os-images/${props.activeTab}/${image.id}/show`}
-          data-test="images"
-        >
-          {image.image_type == "snapshot" && <SnapshotIcon />}{" "}
-          {image.name || image.id}
+        <Link to={`/os-images/${props.activeTab}/${image.id}/show`} data-test="images">
+          {image.image_type == "snapshot" && <SnapshotIcon />} {image.name || image.id}
         </Link>
         {image.name && (
           <span className="info-text">
@@ -77,49 +73,40 @@ const Item = (props) => {
             <ul className="dropdown-menu dropdown-menu-right" role="menu">
               {props.activeTab !== "suggested" && canCreateInstance && (
                 <li>
-                  <a
-                    href={`${props.launchInstanceUrl}?image_id=${image.id}`}
-                    data-modal
-                  >
+                  <a href={`${props.launchInstanceUrl}?image_id=${image.id}`} data-modal>
                     Launch Instance
                   </a>
                 </li>
               )}
-              {props.activeTab == "suggested" &&
-                image.visibility == "shared" && (
-                  <li>
-                    <a
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        props.handleAccept(image.id)
-                      }}
-                    >
-                      Accept
-                    </a>
-                  </li>
-                )}
-              {props.activeTab == "suggested" &&
-                image.visibility == "shared" && (
-                  <li>
-                    <a
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        props.handleReject(image.id)
-                      }}
-                    >
-                      Reject
-                    </a>
-                  </li>
-                )}
-              {props.activeTab == "available" && (
+              {props.activeTab == "suggested" && image.visibility == "shared" && (
                 <li>
-                  <Link
-                    to={`/os-images/${props.activeTab}/${image.id}/members`}
+                  <a
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      props.handleAccept(image.id)
+                    }}
                   >
-                    Access Control
-                  </Link>
+                    Accept
+                  </a>
+                </li>
+              )}
+              {props.activeTab == "suggested" && image.visibility == "shared" && (
+                <li>
+                  <a
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      props.handleReject(image.id)
+                    }}
+                  >
+                    Reject
+                  </a>
+                </li>
+              )}
+              {props.activeTab == "available" && policy.isAllowed("image:member_list", { image }) && (
+                <li>
+                  <Link to={`/os-images/${props.activeTab}/${image.id}/members`}>Access Control</Link>
                 </li>
               )}
               {image.visibility != "private" &&

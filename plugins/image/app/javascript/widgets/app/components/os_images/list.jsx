@@ -52,9 +52,7 @@ const List = ({
 
     // search term is given -> filter items dependent on the search term
     const regex = new RegExp(searchTerm.trim(), "i")
-    return result.filter(
-      (i) => `${i.name} ${i.id} ${i.format} ${i.status}`.search(regex) >= 0
-    )
+    return result.filter((i) => `${i.name} ${i.id} ${i.format} ${i.status}`.search(regex) >= 0)
   }, [items, searchTerm, activeVisibilityFilter])
 
   if (!active) return null
@@ -123,24 +121,14 @@ const List = ({
               ) : (
                 <TableRowFadeTransition>
                   <tr>
-                    <td colSpan="7">
-                      {isFetching ? (
-                        <span className="spinner" />
-                      ) : (
-                        "No images found."
-                      )}
-                    </td>
+                    <td colSpan="7">{isFetching ? <span className="spinner" /> : "No images found."}</td>
                   </tr>
                 </TableRowFadeTransition>
               )}
             </TransitionGroup>
           </table>
 
-          <AjaxPaginate
-            hasNext={hasNext}
-            isFetching={isFetching}
-            onLoadNext={loadNext}
-          />
+          <AjaxPaginate hasNext={hasNext} isFetching={isFetching} onLoadNext={loadNext} />
         </div>
       )}
     </div>
