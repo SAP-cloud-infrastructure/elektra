@@ -79,7 +79,7 @@ module Image
         members = services.image.members(params[:image_id])
         @member =
           members.find do |m|
-            m.member_id == @scoped_project_id && m.status == "pending"
+            m.member_id == @scoped_project_id && (m.status == "pending" || m.status == "accepted") 
           end
 
         if @member.member_id.blank?
