@@ -1,7 +1,9 @@
-import { Cluster } from "../types/cluster"
+import { Cluster, Worker } from "../types/cluster"
 import { Permissions } from "../types/permissions"
+import { ExternalNetwork } from "../types/network"
+import { CloudProfile } from "../types/cloudProfiles"
 
-export const worker1 = {
+export const worker1: Worker = {
   name: "worker-a1",
   architecture: "amd64",
   machineType: "m5.large",
@@ -17,7 +19,7 @@ export const worker1 = {
   zones: ["eu-central-1a"],
 }
 
-export const worker2 = {
+export const worker2: Worker = {
   name: "worker-arm1",
   architecture: "arm64",
   machineType: "c7g.large",
@@ -121,3 +123,30 @@ export const permissionsAllTrue: Permissions = {
   update: true,
   delete: true,
 }
+
+export const externalNetworks: ExternalNetwork[] = [
+  { id: "net1", name: "net1", description: "desc", availability_zones: [], status: "active" },
+]
+
+export const cloudProfiles: CloudProfile[] = [
+  {
+    uid: "cp1",
+    name: "cloud-profile-1",
+    provider: "aws",
+    providerConfig: { apiVersion: "v1" },
+    kubernetesVersions: ["1.27.0", "1.26.5"],
+    machineTypes: [
+      { name: "m5.large", cpu: "2", memory: "8Gi" },
+      { name: "m5.xlarge", cpu: "4", memory: "16Gi", architecture: "x86_64" },
+    ],
+    machineImages: [
+      { name: "ubuntu", versions: ["22.04", "20.04"] },
+      { name: "amazon-linux", versions: ["2.0"] },
+    ],
+    regions: [
+      { name: "us-east-1", zones: ["us-east-1a", "us-east-1b"] },
+      { name: "us-west-1", zones: ["us-west-1a", "us-west-1b"] },
+    ],
+    volumeTypes: ["gp2", "io1"],
+  },
+]

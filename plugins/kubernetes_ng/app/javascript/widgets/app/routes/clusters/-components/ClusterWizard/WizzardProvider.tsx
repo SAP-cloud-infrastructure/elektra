@@ -20,7 +20,7 @@ export const DEFAULT_WORKER_GROUP: WorkerGroup = {
   zones: [],
 }
 
-const DEFAULT_CLUSTER_FORM_DATA: ClusterFormData = {
+export const DEFAULT_CLUSTER_FORM_DATA: ClusterFormData = {
   name: "",
   cloudProfileName: "",
   kubernetesVersion: "",
@@ -126,7 +126,7 @@ function validateStep(data: ClusterFormData, stepId: StepId): ClusterFormErrorsF
   }
 }
 
-interface WizardContextProps {
+export interface WizardContextProps {
   client: GardenerApi
 
   currentStep: number
