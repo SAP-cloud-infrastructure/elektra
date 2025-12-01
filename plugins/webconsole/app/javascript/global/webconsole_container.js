@@ -201,6 +201,7 @@ var WebconsoleContainer = (function () {
     }
 
     static addUnloadHandler() {
+      if (this.unloadHandler) return
       // Protect against accidental browser tab closure while webconsole is active
       // Problem: Users working in the web terminal often use keyboard shortcuts,
       // and it's easy to accidentally hit Cmd+W (Mac) or Ctrl+W (Windows/Linux)
@@ -211,7 +212,6 @@ var WebconsoleContainer = (function () {
       // (prevents memory leaks and unwanted confirmations after console is closed)
       this.unloadHandler = function (e) {
         e.preventDefault()
-        console.log("=================================")
         const confirmationMessage = "You have an active web console session. Are you sure you want to close this tab?"
 
         // Standard cross-browser way to show confirmation dialog
@@ -308,53 +308,52 @@ var WebconsoleContainer = (function () {
       return loadWebconsoleData(this.settings)
         .error(function (jqXHR, textStatus, errorThrown) {
           const redirectTo = jqXHR.getResponseHeader("Location")
-          // response is a redirect
           if (redirectTo && redirectTo.indexOf("/auth/login/") > -1) {
-            // just reload to avoid redirect to a no layout page after login
             return window.location.reload()
           }
+          // ADD: Handle other errors
+          $loadingHint.html(
+            `<div class='info-text'>An error has occurred while trying to load your shell. Please try again later. The error was: <br />${jqXHR.status} - ${errorThrown}</div>`
+          )
         })
         .success(function (context, textStatus, jqXHR) {
           $loadingHint.find(".status").text("20%")
 
-          // define function which implements the webconsole load procedure
-          const loadConsole = function () {
-            $loadingHint.find(".status").text("60%")
-
-            // success
-            // load webcli
-            return $.ajax({
-              url: `${context.webcli_endpoint}/auth/${context.user_name}`,
-              beforeSend(request) {
-                request.setRequestHeader("X-Auth-Token", context.token)
-                return request.setRequestHeader("X-OS-Region", context.region)
-              },
-              dataType: "json",
-              success(data) {
-                $loadingHint.find(".status").text("80%")
-                // success -> add terminal div to container
-                const $cliContent = $(`<iframe id='webcli-content' src='${data.url}' height='100%' width='100%' />`)
-
-                self.$holder.append($cliContent)
-
-                if (context.help_html) {
-                  const $helpContainer = addHelpContainer(self.$container, self.settings)
-                  $helpContainer.html(context.help_html)
-                }
-
-                $loadingHint.remove()
-
-                return (self.loaded = true)
-              },
-              error(xhr, bleep, error) {
-                return $loadingHint.html(
-                  `<div class='info-text'>An error has occurred while trying to load your shell. Please try again later. The error was: <br />${xhr.status} - ${error}</div>`
-                )
-              },
-            })
+          // Check if URL is already provided by BFF
+          if (!context.url) {
+            $loadingHint.html("<div class='info-text'>Could not retrieve webconsole URL. Please try again later.</div>")
+            return
           }
 
-          return loadConsole()
+          $loadingHint.find(".status").text("60%")
+
+          // Create iframe with URL from BFF
+          const $cliContent = $(`<iframe id='webcli-content' src='${context.url}' height='100%' width='100%' />`)
+
+          // Add load event handler for iframe
+          $cliContent.on("load", function () {
+            $loadingHint.find(".status").text("100%")
+            $loadingHint.remove()
+            self.loaded = true
+          })
+
+          // Add error handler for iframe
+          $cliContent.on("error", function () {
+            $loadingHint.html("<div class='info-text'>Failed to load webconsole iframe. Please try again later.</div>")
+          })
+
+          self.$holder.append($cliContent)
+
+          $loadingHint.find(".status").text("80%")
+
+          // Add help content if available
+          if (context.help_html) {
+            const $helpContainer = addHelpContainer(self.$container, self.settings)
+            $helpContainer.html(context.help_html)
+          }
+
+          // Add unload handler
+          WebconsoleContainer.addUnloadHandler()
         })
     }
   }

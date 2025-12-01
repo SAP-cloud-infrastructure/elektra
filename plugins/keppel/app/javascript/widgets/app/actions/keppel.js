@@ -116,30 +116,36 @@ export const getAccountSubleaseToken = (accountName) => (dispatch) => {
 ////////////////////////////////////////////////////////////////////////////////
 // get repositories
 
-const fetchRepositoryPage = (accountName, marker) => (dispatch) => {
-  //send REQUEST_REPOSITORIES only once at the start of the operation
-  if (marker == null) {
-    dispatch({
-      type: constants.REQUEST_REPOSITORIES,
-      accountName,
-      requestedAt: Date.now(),
-    })
-  }
+const fetchRepositoryPage =
+  (accountName, marker = null) =>
+  async (dispatch) => {
+    // Send REQUEST_REPOSITORIES only once at the start of the operation
+    if (marker === null) {
+      dispatch({
+        type: constants.REQUEST_REPOSITORIES,
+        accountName,
+        requestedAt: Date.now(),
+      })
+    }
 
-  ajaxHelper
-    .get(`/keppel/v1/accounts/${accountName}/repositories`, {
-      params: { marker },
-    })
-    .then((response) => {
+    try {
+      const response = await ajaxHelper.get(`/keppel/v1/accounts/${accountName}/repositories`, { params: { marker } })
+
       const repos = response.data.repositories
+
       dispatch({
         type: constants.RECEIVE_REPOSITORIES,
         accountName,
         data: repos,
         receivedAt: Date.now(),
       })
+
+      // Recursively fetch next page if truncated
       if (response.data.truncated) {
-        fetchRepositoryPage(accountName, repos[repos.length - 1].name)
+        const nextMarker = repos[repos.length - 1]?.name
+        if (nextMarker) {
+          await dispatch(fetchRepositoryPage(accountName, nextMarker))
+        }
       } else {
         dispatch({
           type: constants.REQUEST_REPOSITORIES_FINISHED,
@@ -147,15 +153,15 @@ const fetchRepositoryPage = (accountName, marker) => (dispatch) => {
           receivedAt: Date.now(),
         })
       }
-    })
-    .catch((error) => {
+    } catch (error) {
       dispatch({
         type: constants.REQUEST_REPOSITORIES_FAILURE,
         accountName,
+        error: error.message, // Include error details
       })
       showError(error)
-    })
-}
+    }
+  }
 
 export const fetchRepositoriesIfNeeded = (accountName) => (dispatch, getState) => {
   const state = getState().keppel.repositoriesFor[accountName] || {}
@@ -187,21 +193,26 @@ export const deleteRepository = (accountName, repoName) => (dispatch) => {
 ////////////////////////////////////////////////////////////////////////////////
 // get manifests
 
-const fetchManifestPage = (accountName, repoName, marker) => (dispatch) => {
-  //send REQUEST_MANIFESTS only once at the start of the operation
-  if (marker == null) {
-    dispatch({
-      type: constants.REQUEST_MANIFESTS,
-      accountName,
-      repoName,
-      requestedAt: Date.now(),
-    })
-  }
+const fetchManifestPage =
+  (accountName, repoName, marker = null) =>
+  async (dispatch) => {
+    // Send REQUEST_MANIFESTS only once at the start of the operation
+    if (marker === null) {
+      dispatch({
+        type: constants.REQUEST_MANIFESTS,
+        accountName,
+        repoName,
+        requestedAt: Date.now(),
+      })
+    }
 
-  ajaxHelper
-    .get(`/keppel/v1/accounts/${accountName}/repositories/${repoName}/_manifests`, { params: { marker } })
-    .then((response) => {
+    try {
+      const response = await ajaxHelper.get(`/keppel/v1/accounts/${accountName}/repositories/${repoName}/_manifests`, {
+        params: { marker },
+      })
+
       const manifests = response.data.manifests
+
       dispatch({
         type: constants.RECEIVE_MANIFESTS,
         accountName,
@@ -209,8 +220,13 @@ const fetchManifestPage = (accountName, repoName, marker) => (dispatch) => {
         data: manifests,
         receivedAt: Date.now(),
       })
+
+      // Recursively fetch next page if truncated
       if (response.data.truncated) {
-        dispatch(fetchManifestPage(accountName, repoName, manifests[manifests.length - 1].digest))
+        const nextMarker = manifests[manifests.length - 1]?.digest
+        if (nextMarker) {
+          await dispatch(fetchManifestPage(accountName, repoName, nextMarker))
+        }
       } else {
         dispatch({
           type: constants.REQUEST_MANIFESTS_FINISHED,
@@ -219,16 +235,16 @@ const fetchManifestPage = (accountName, repoName, marker) => (dispatch) => {
           receivedAt: Date.now(),
         })
       }
-    })
-    .catch((error) => {
+    } catch (error) {
       dispatch({
         type: constants.REQUEST_MANIFESTS_FAILURE,
         accountName,
         repoName,
+        error: error.message,
       })
       showError(error)
-    })
-}
+    }
+  }
 
 export const fetchManifestsIfNeeded = (accountName, repoName) => (dispatch, getState) => {
   const state = (getState().keppel.manifestsFor[accountName] || {})[repoName] || {}
