@@ -65,7 +65,17 @@ module ServiceLayer
 
       private
 
-      # TODO: check if the id of the workers gets ignored
+      # Helper method for deep fetching nested hash values
+      # Usage: deep_fetch(obj, :key1, :key2, :key3)
+      # dig alternative that returns nil if a key isn't an existing hash
+      def deep_fetch(obj, *keys)
+        keys.reduce(obj) do |current, key|
+          hash = Hash.try_convert(current)
+          return nil unless hash
+          hash[key]
+        end
+      end
+
       ## Helper Methods
       # Convert a single shoot API response to cluster format
       def convert_shoot_to_cluster(shoot)
@@ -80,9 +90,9 @@ module ServiceLayer
           uid: metadata['uid'],
           name: metadata['name'],
           region: spec['region'],
-          infrastructure: spec.dig('provider', 'type'),
+          infrastructure: deep_fetch(spec, 'provider', 'type'),
           status: get_cluster_status(shoot),
-          version: spec.dig('kubernetes', 'version'),
+          version: deep_fetch(spec, 'kubernetes', 'version'),
           readiness: get_cluster_readiness(shoot),
           purpose: spec['purpose'],
           cloudProfileName: spec['cloudProfileName'],
@@ -92,7 +102,7 @@ module ServiceLayer
           # State details for operations tracking
           stateDetails: get_state_details(shoot),
           # Worker nodes configuration
-          workers: safe_map_workers(spec.dig('provider', 'workers')),
+          workers: safe_map_workers(deep_fetch(spec, 'provider', 'workers')),
           # Maintenance configuration
           maintenance: get_maintenance_info(spec),
           # Last maintenance state
@@ -120,14 +130,14 @@ module ServiceLayer
 
         {
           'metadata' => build_shoot_metadata(cluster),
-          'spec'     => build_shoot_spec(cluster)
+          'spec' => build_shoot_spec(cluster)
         }.compact
       end
       
       # convert_shoot_to_cluster -> Helper functions
       # Helper function to determine cluster status from last operation
       def get_cluster_status(shoot)
-        last_operation = shoot.dig('status', 'lastOperation')
+        last_operation = deep_fetch(shoot, 'status', 'lastOperation')
         return "Unknown" unless last_operation
         
         # Possible states: Aborted, Processing, Succeeded, Error, Failed
@@ -146,7 +156,7 @@ module ServiceLayer
       
       # Helper function to calculate readiness based on conditions
       def get_cluster_readiness(shoot)
-        conditions = shoot.dig('status', 'conditions')
+        conditions = deep_fetch(shoot, 'status', 'conditions')
         return { status: "Unknown", conditions: [] } unless conditions.is_a?(Array)        
 
         # Mapping of condition types to display abbreviations
@@ -177,7 +187,7 @@ module ServiceLayer
       
       # Extract detailed state information from last operation
       def get_state_details(shoot)
-        last_operation = shoot.dig('status', 'lastOperation')
+        last_operation = deep_fetch(shoot, 'status', 'lastOperation')
         return nil unless last_operation
         
         {
@@ -226,7 +236,7 @@ module ServiceLayer
         
         {
           startTime: time_window['begin'] || '',
-          timezone: hibernation&.dig('schedules', 0, 'location') || '',
+          timezone: deep_fetch(hibernation, 'schedules', 0, 'location') || '',
           windowTime: time_window['end'] || ''
         }
       end
@@ -244,7 +254,7 @@ module ServiceLayer
       
       # Extract auto-update settings
       def get_auto_update_settings(spec)
-        auto_update = spec.dig('maintenance', 'autoUpdate') || {}
+        auto_update = deep_fetch(spec, 'maintenance', 'autoUpdate') || {}
         
         {
           os: auto_update['machineImageVersion'] || false,
@@ -260,7 +270,7 @@ module ServiceLayer
         metadata['name'] = cluster[:name] if cluster[:name]
         metadata.empty? ? nil : metadata
       end
-      
+
       # Build spec section for shoot
       def build_shoot_spec(cluster)
         spec = {}
@@ -268,9 +278,12 @@ module ServiceLayer
         # Basic fields
         spec['region'] = cluster[:region] if cluster[:region]
         spec['purpose'] = cluster[:purpose] if cluster[:purpose]
+
+        # Cloud profile
         if (cloud_profile_name = cluster[:cloudProfileName] || cluster[:cloud_profile_name]) # Handle both camelCase and snake_case
           spec['cloudProfile'] = { 'name' => cloud_profile_name }
         end
+
         spec['networking'] = cluster[:networking] if cluster[:networking]
         
         # Provider configuration
@@ -289,7 +302,7 @@ module ServiceLayer
         end
         
         # Hibernation configuration
-        if cluster.dig(:maintenance, :timezone)
+        if deep_fetch(cluster, :maintenance, :timezone)
           spec['hibernation'] = build_hibernation_spec(cluster)
         end
         
@@ -304,10 +317,10 @@ module ServiceLayer
           provider['type'] = provider_type
         end        
         
-        if(cluster.dig(:infrastructure, :floatingPoolName)) 
+        if deep_fetch(cluster, :infrastructure, :floatingPoolName)
           provider['infrastructureConfig']= {
-            'apiVersion' => cluster.dig(:infrastructure, :apiVersion),
-            'floatingPoolName' => cluster.dig(:infrastructure, :floatingPoolName)
+            'apiVersion' => deep_fetch(cluster, :infrastructure, :apiVersion),
+            'floatingPoolName' => deep_fetch(cluster, :infrastructure, :floatingPoolName)
           }
         end
 
@@ -392,7 +405,7 @@ module ServiceLayer
       
       # Build hibernation specification
       def build_hibernation_spec(cluster)
-        timezone = cluster.dig(:maintenance, :timezone)
+        timezone = deep_fetch(cluster, :maintenance, :timezone)
         return nil unless timezone
         
         {
