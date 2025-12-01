@@ -4,6 +4,7 @@
 # All subclasses which require a logged in user should inherit from this class.
 class DashboardController < ::ScopeController
   include UrlHelper
+  include AvatarHelper
   include Rescue
 
   prepend_before_action do

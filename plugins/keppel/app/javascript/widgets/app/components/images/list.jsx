@@ -40,8 +40,7 @@ const taggedColumns = [
     label: "Vulnerability Status",
     sortStrategy: "numeric",
     searchKey: (props) => props.data.vulnerability_status || "",
-    sortKey: (props) =>
-      SEVERITY_ORDER[props.data.vulnerability_status || ""] || 0,
+    sortKey: (props) => SEVERITY_ORDER[props.data.vulnerability_status || ""] || 0,
   },
   { key: "actions", label: "" },
 ]
@@ -114,20 +113,13 @@ export default class RepositoryList extends React.Component {
         tags.push({
           ...manifest,
           ...tag,
-          last_pulled_at: maxTimestamp(
-            manifest.last_pulled_at,
-            tag.last_pulled_at
-          ),
+          last_pulled_at: maxTimestamp(manifest.last_pulled_at, tag.last_pulled_at),
         })
       }
     }
     tags.sort((a, b) => (a.name || a.digest).localeCompare(b.name || b.digest))
     return (
-      <DataTable
-        columns={taggedColumns}
-        pageSize={10}
-        searchText={this.state.searchText}
-      >
+      <DataTable columns={taggedColumns} pageSize={10} searchText={this.state.searchText}>
         {tags.map((tag) => (
           <ImageRow key={tag.name} data={tag} {...forwardProps} />
         ))}
@@ -145,16 +137,10 @@ export default class RepositoryList extends React.Component {
       )
     }
 
-    const untaggedManifests = (manifests || []).filter(
-      (manifest) => (manifest.tags || []).length == 0
-    )
+    const untaggedManifests = (manifests || []).filter((manifest) => (manifest.tags || []).length == 0)
 
     return (
-      <DataTable
-        columns={untaggedColumns}
-        pageSize={10}
-        searchText={this.state.searchText}
-      >
+      <DataTable columns={untaggedColumns} pageSize={10} searchText={this.state.searchText}>
         {untaggedManifests.map((manifest) => (
           <ImageRow key={manifest.digest} data={manifest} {...forwardProps} />
         ))}
@@ -176,9 +162,7 @@ export default class RepositoryList extends React.Component {
       { label: "Tags", key: "tagged" },
       { label: "Untagged images", key: "untagged" },
     ]
-    const hasUntagged = (this.props.manifests.data || []).some(
-      (manifest) => (manifest.tags || []).length == 0
-    )
+    const hasUntagged = (this.props.manifests.data || []).some((manifest) => (manifest.tags || []).length == 0)
     if (!hasUntagged) {
       tabs = tabs.filter((tab) => tab.key != "untagged")
     }
@@ -226,13 +210,9 @@ export default class RepositoryList extends React.Component {
           />
         )}
         {/* when there is only the "Tags" tab, skip the tablist entirely */}
-        {hasUntagged &&
-          makeTabBar(tabs, currentTab, (key) => this.selectTab(key))}
-        {(!hasUntagged || currentTab == "tagged") &&
-          this.renderTaggedImagesList(forwardProps)}
-        {hasUntagged &&
-          currentTab == "untagged" &&
-          this.renderUntaggedImagesList(forwardProps)}
+        {hasUntagged && makeTabBar(tabs, currentTab, (key) => this.selectTab(key))}
+        {(!hasUntagged || currentTab == "tagged") && this.renderTaggedImagesList(forwardProps)}
+        {hasUntagged && currentTab == "untagged" && this.renderUntaggedImagesList(forwardProps)}
       </>
     )
   }

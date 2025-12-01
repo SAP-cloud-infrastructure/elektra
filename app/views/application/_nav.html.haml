@@ -25,12 +25,7 @@
         - else
           %li.dropdown
             %a.navbar-identity.dropdown-toggle{"aria-expanded" => "false", "data-toggle" => "dropdown", :href => "#", :role => "button"}
-              -# loading:"lazy" this is needed to run the cypress tests in our CI because
-              -# https://avatars.wdf.sap.corp/avatar/ is not accessible from CI. Otherwise the tests will fail!
-              -# cypress is based on chromium/electron and loading:"lazy" is only interpreted in that browser
-              - avatar_url = url_for_avatar
-              %div.avatar{id: "user-avatar"}
-              
+              = avatar_image_tag
               = current_user.full_name
               %span.caret
             %ul.dropdown-menu{:role => "menu"}
@@ -61,7 +56,3 @@
             %span.caret
 
           = render_available_regions
-
-:javascript
-  window.loadAvatar({avatarUrl: '#{avatar_url}', elementId: "user-avatar"})
-

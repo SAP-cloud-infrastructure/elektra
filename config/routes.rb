@@ -3,6 +3,7 @@
 Rails.application.routes.draw do
   post '/verify-auth-token', to: 'auth_token#verify'
 
+
   mount MonsoonOpenstackAuth::Engine => '/:domain_fid/auth'
 
   get '/error-404', to: 'errors#error_404'
@@ -46,7 +47,9 @@ Rails.application.routes.draw do
     get 'os-api/__auth_token', to: 'os_api#auth_token'
     get 'os-api/__token', to: 'os_api#token'
     match 'os-api(/*path)', to: 'os_api#reverse_proxy', via: :all
-
+    
+    get '/avatar', to: 'avatars#show', as: 'avatar'
+    
     resources :cache, only: %i[index show] do
       collection do
         get 'csv'
