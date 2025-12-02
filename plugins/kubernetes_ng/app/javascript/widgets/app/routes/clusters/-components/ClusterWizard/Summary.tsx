@@ -62,74 +62,82 @@ const Summary = () => {
         </div>
       )}
 
-      <h1 className="tw-text-lg tw-font-bold tw-m-4">Basic Info</h1>
+      <section aria-labelledby="basic-info" className="tw-mt-4">
+        <h1 id="basic-info" className="tw-text-lg tw-font-bold tw-mb-4">
+          Basic Info
+        </h1>
+        <DataGrid columns={1}>
+          <DataGridRow>
+            <DataGrid columns={2} gridColumnTemplate="35% auto">
+              <SummaryRow label="Name" hasError={formErrors?.name?.length > 0}>
+                {clusterFormData.name}
+              </SummaryRow>
+            </DataGrid>
+          </DataGridRow>
+          <DataGridRow>
+            <DataGrid columns={2} gridColumnTemplate="35% auto">
+              <SummaryRow label="Cloud Profile" hasError={formErrors?.cloudProfileName?.length > 0}>
+                {clusterFormData.cloudProfileName}
+              </SummaryRow>
+            </DataGrid>
+          </DataGridRow>
+          <DataGridRow>
+            <DataGrid columns={2} gridColumnTemplate="35% auto">
+              <SummaryRow label="Kubernetes Version" hasError={formErrors?.kubernetesVersion?.length > 0}>
+                {clusterFormData.kubernetesVersion}
+              </SummaryRow>
+            </DataGrid>
+          </DataGridRow>
+        </DataGrid>
+        <Stack distribution="end" className="tw-mt-4">
+          <Button onClick={() => goToStep("step1")} size="small" icon="edit" label="Edit Section" />
+        </Stack>
+      </section>
 
-      <DataGrid columns={1}>
-        <DataGridRow>
-          <DataGrid columns={2} gridColumnTemplate="35% auto">
-            <SummaryRow label="Name" hasError={formErrors.name.length > 0}>
-              {clusterFormData.name}
-            </SummaryRow>
-          </DataGrid>
-        </DataGridRow>
-        <DataGridRow>
-          <DataGrid columns={2} gridColumnTemplate="35% auto">
-            <SummaryRow label="Cloud Profile" hasError={formErrors?.cloudProfile?.length > 0}>
-              {clusterFormData.cloudProfileName}
-            </SummaryRow>
-          </DataGrid>
-        </DataGridRow>
-        <DataGridRow>
-          <DataGrid columns={2} gridColumnTemplate="35% auto">
-            <SummaryRow label="Kubernetes Version" hasError={formErrors?.kubernetesVersion?.length > 0}>
-              {clusterFormData.kubernetesVersion}
-            </SummaryRow>
-          </DataGrid>
-        </DataGridRow>
-      </DataGrid>
-      <Stack distribution="end" className="tw-mt-4">
-        <Button onClick={() => goToStep("step1")} size="small" icon="edit" label="Edit Section" />
-      </Stack>
+      <section aria-labelledby="infrastructure" className="tw-mt-4">
+        <h1 id="infrastructure" className="tw-text-lg tw-font-bold tw-mb-4">
+          Infrastructure
+        </h1>
+        <DataGrid columns={1}>
+          <DataGridRow>
+            <DataGrid columns={2} gridColumnTemplate="35% auto">
+              <SummaryRow label="Floating IP Pool" hasError={formErrors["infrastructure.floatingPoolName"]?.length > 0}>
+                {clusterFormData.infrastructure?.floatingPoolName}
+              </SummaryRow>
+            </DataGrid>
+          </DataGridRow>
+          <DataGridRow>
+            <DataGrid columns={2} gridColumnTemplate="35% auto">
+              <SummaryRow label="Pods CIDR" hasError={formErrors["networking.podsCIDR"]?.length > 0}>
+                {clusterFormData.networking?.podsCIDR}
+              </SummaryRow>
+            </DataGrid>
+          </DataGridRow>
+          <DataGridRow>
+            <DataGrid columns={2} gridColumnTemplate="35% auto">
+              <SummaryRow label="Nodes CIDR" hasError={formErrors["networking.nodesCIDR"]?.length > 0}>
+                {clusterFormData.networking?.nodesCIDR}
+              </SummaryRow>
+            </DataGrid>
+          </DataGridRow>
+          <DataGridRow>
+            <DataGrid columns={2} gridColumnTemplate="35% auto">
+              <SummaryRow label="Services CIDR" hasError={formErrors["networking.servicesCIDR"]?.length > 0}>
+                {clusterFormData.networking?.servicesCIDR}
+              </SummaryRow>
+            </DataGrid>
+          </DataGridRow>
+        </DataGrid>
+        <Stack distribution="end" className="tw-mt-4">
+          <Button onClick={() => goToStep("step1")} size="small" icon="edit" label="Edit Section" />
+        </Stack>
+      </section>
 
-      <h1 className="tw-text-lg tw-font-bold tw-m-4">Infrastructure</h1>
-
-      <DataGrid columns={1}>
-        <DataGridRow>
-          <DataGrid columns={2} gridColumnTemplate="35% auto">
-            <SummaryRow label="Floating IP Pool" hasError={formErrors["infrastructure.floatingPoolName"]?.length > 0}>
-              {clusterFormData.infrastructure?.floatingPoolName}
-            </SummaryRow>
-          </DataGrid>
-        </DataGridRow>
-        <DataGridRow>
-          <DataGrid columns={2} gridColumnTemplate="35% auto">
-            <SummaryRow label="Pods CIDR" hasError={formErrors["networking.podsCIDR"]?.length > 0}>
-              {clusterFormData.networking?.podsCIDR}
-            </SummaryRow>
-          </DataGrid>
-        </DataGridRow>
-        <DataGridRow>
-          <DataGrid columns={2} gridColumnTemplate="35% auto">
-            <SummaryRow label="Nodes CIDR" hasError={formErrors["networking.nodesCIDR"]?.length > 0}>
-              {clusterFormData.networking?.nodesCIDR}
-            </SummaryRow>
-          </DataGrid>
-        </DataGridRow>
-        <DataGridRow>
-          <DataGrid columns={2} gridColumnTemplate="35% auto">
-            <SummaryRow label="Services CIDR" hasError={formErrors["networking.servicesCIDR"]?.length > 0}>
-              {clusterFormData.networking?.servicesCIDR}
-            </SummaryRow>
-          </DataGrid>
-        </DataGridRow>
-      </DataGrid>
-      <Stack distribution="end" className="tw-mt-4">
-        <Button onClick={() => goToStep("step1")} size="small" icon="edit" label="Edit Section" />
-      </Stack>
-
-      {clusterFormData.workers.map((wg, index) => (
-        <div key={index}>
-          <h1 className="tw-text-lg tw-font-bold tw-m-4">Worker Group {wg.name}</h1>
+      {clusterFormData.workers.map((wg) => (
+        <section aria-labelledby={`worker-group-${wg.id}`} id={`worker-group-${wg.id}`} className="tw-mt-4" key={wg.id}>
+          <h1 id={`worker-group-${wg.id}`} className="tw-text-lg tw-font-bold tw-m-4">
+            Worker Group {wg.name}
+          </h1>
           <DataGrid columns={1}>
             <DataGridRow>
               <DataGrid columns={2} gridColumnTemplate="35% auto">
@@ -179,8 +187,15 @@ const Summary = () => {
                 </SummaryRow>
               </DataGrid>
             </DataGridRow>
+            <DataGridRow>
+              <DataGrid columns={2} gridColumnTemplate="35% auto">
+                <SummaryRow label="Availability Zones" hasError={formErrors[`workers.${wg.id}.zones`]?.length > 0}>
+                  {wg.zones.join(", ")}
+                </SummaryRow>
+              </DataGrid>
+            </DataGridRow>
           </DataGrid>
-        </div>
+        </section>
       ))}
       <Stack distribution="end" className="tw-mt-4">
         <Button onClick={() => goToStep("step2")} size="small" icon="edit" label="Edit Section" />

@@ -179,7 +179,7 @@ export const validClusterFormData: ClusterFormData = {
       },
       minimum: 1,
       maximum: 3,
-      zones: ["us-east-1a", "us-east-1b"],
+      zones: ["us-east-1a"],
     },
   ],
 }
