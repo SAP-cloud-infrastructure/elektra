@@ -2,6 +2,7 @@ import { Cluster, Worker } from "../types/cluster"
 import { Permissions } from "../types/permissions"
 import { ExternalNetwork } from "../types/network"
 import { CloudProfile } from "../types/cloudProfiles"
+import { ClusterFormData } from "../routes/clusters/-components/ClusterWizard/types"
 
 export const worker1: Worker = {
   name: "worker-a1",
@@ -150,3 +151,35 @@ export const cloudProfiles: CloudProfile[] = [
     volumeTypes: ["gp2", "io1"],
   },
 ]
+
+export const validClusterFormData: ClusterFormData = {
+  name: "cluster1",
+  cloudProfileName: "aws",
+  kubernetesVersion: "1.30.1",
+
+  infrastructure: {
+    floatingPoolName: "pool-1",
+    apiVersion: "v1",
+  },
+
+  networking: {
+    podsCIDR: "10.0.0.0/16",
+    nodesCIDR: "10.1.0.0/16",
+    servicesCIDR: "10.2.0.0/16",
+  },
+
+  workers: [
+    {
+      name: "worker1",
+      id: "worker-test-1",
+      machineType: "m5.large",
+      machineImage: {
+        name: "ubuntu",
+        version: "20.04",
+      },
+      minimum: 1,
+      maximum: 3,
+      zones: ["us-east-1a", "us-east-1b"],
+    },
+  ],
+}

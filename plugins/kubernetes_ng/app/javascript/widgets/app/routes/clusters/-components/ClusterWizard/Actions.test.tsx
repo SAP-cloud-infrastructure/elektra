@@ -1,13 +1,14 @@
 import React from "react"
 import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import Actions from "./Actions"
-import { WizardContextProps, WizardProvider, DEFAULT_CLUSTER_FORM_DATA } from "./WizzardProvider"
-import { defaultCluster, permissionsAllTrue, externalNetworks, cloudProfiles } from "../../../../mocks/data"
+import { WizardContextProps, WizardProvider } from "./WizzardProvider"
+import { defaultCluster } from "../../../../mocks/data"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { GardenerApi } from "../../../../apiClient"
 import * as wizardHook from "./WizzardProvider"
 import { STEP_DEFINITIONS } from "./constants"
 import { UseMutationResult } from "@tanstack/react-query"
+import { defaultMockClient } from "../../../../mocks/TestTools"
 
 describe("Actions component", () => {
   const onSuccessCreate = vi.fn()
@@ -23,16 +24,7 @@ describe("Actions component", () => {
       },
     })
     mockClient = {
-      gardener: {
-        getClusters: () => Promise.resolve([defaultCluster]),
-        getClusterByName: () => Promise.resolve(defaultCluster),
-        createCluster: () => Promise.resolve(defaultCluster),
-
-        getPermissions: () => Promise.resolve(permissionsAllTrue),
-
-        getExternalNetworks: () => Promise.resolve(externalNetworks),
-        getCloudProfiles: () => Promise.resolve(cloudProfiles),
-      },
+      gardener: defaultMockClient.gardener,
     }
   })
 
@@ -97,7 +89,6 @@ describe("Actions component", () => {
       currentStep: 2, // set manually to last step
       handleSetCurrentStep: vi.fn(),
       steps: STEP_DEFINITIONS.map((s) => ({ ...s, hasError: false })), // no errors
-      clusterFormData: DEFAULT_CLUSTER_FORM_DATA,
       createMutation: createMutation as UseMutationResult<typeof defaultCluster>,
     } as Partial<WizardContextProps> as WizardContextProps)
 

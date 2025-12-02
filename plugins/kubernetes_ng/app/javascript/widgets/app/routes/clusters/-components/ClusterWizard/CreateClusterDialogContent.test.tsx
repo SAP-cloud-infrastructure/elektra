@@ -2,30 +2,16 @@ import React from "react"
 import { renderHook, screen, act } from "@testing-library/react"
 import { WizardProvider, useWizard } from "./WizzardProvider"
 import CreateClusterDialogContent from "./CreateClusterDialogContent"
-import { defaultCluster, permissionsAllTrue, externalNetworks, cloudProfiles } from "../../../../mocks/data"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { vi } from "vitest"
 import { PortalProvider } from "@cloudoperators/juno-ui-components"
-
-const mockClient = {
-  gardener: {
-    getClusters: () => Promise.resolve([defaultCluster]),
-    getClusterByName: () => Promise.resolve(defaultCluster),
-    createCluster: () => Promise.resolve(defaultCluster),
-
-    getPermissions: () => Promise.resolve(permissionsAllTrue),
-
-    getExternalNetworks: () => Promise.resolve(externalNetworks),
-    getCloudProfiles: () => Promise.resolve(cloudProfiles),
-  },
-}
+import { defaultMockClient } from "../../../../mocks/TestTools"
 
 const TestWrapper =
   (queryClient: QueryClient) =>
   ({ children }: { children: React.ReactNode }) => (
     <PortalProvider>
       <QueryClientProvider client={queryClient}>
-        <WizardProvider client={mockClient} region="us-east-1">
+        <WizardProvider client={defaultMockClient} region="us-east-1">
           <CreateClusterDialogContent />
           {children}
         </WizardProvider>
@@ -37,7 +23,6 @@ describe("CreateClusterDialogContent", () => {
   let queryClient: QueryClient
 
   beforeEach(() => {
-    vi.resetAllMocks()
     queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
