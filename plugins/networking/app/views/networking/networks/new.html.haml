@@ -18,7 +18,7 @@
       = f.simple_fields_for :subnets do |subnets|
         = subnets.input :name, { label: "#{Networking::Subnet.human_attribute_name(:name)}", input_html: { value: @subnet.try(:name) } }
         = # subnets.input :cidr, icon_hint: "Allowed network ranges please check #{link_to 'here', "https://netbox.global.cloud.sap/ipam/prefixes/?mask_length__lte=&q=&within_include=&fami[…]ngth=&present_in_vrf_id=&is_pool=&tag=cc-net-tenant-range", {target: :_blank}}", label: "#{Networking::Subnet.human_attribute_name(:cidr)}", input_html: { value: @subnet.try(:cidr) }
-        - hint = @domain_config.check_cidr_range? ? "Must be within a valid CIDR range starting with 10.180 (e.g., 10.180.0.0/16)" : "Should be a valid CIDR range, such as /16 (e.g., 10.10.10.10/16)"
+        - hint = @domain_config&.check_cidr_range? ? "Must be within a valid CIDR range starting with 10.180 (e.g., 10.180.0.0/16)" : "Should be a valid CIDR range, such as /16 (e.g., 10.10.10.10/16)"
         = subnets.input :cidr, icon_hint: hint, label: "#{Networking::Subnet.human_attribute_name(:cidr)}", input_html: { value: @subnet.try(:cidr) }
   .buttons{class: modal? ? 'modal-footer' : ''}
     - if modal?
