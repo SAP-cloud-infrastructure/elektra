@@ -1,7 +1,6 @@
-import { render, screen, act } from "@testing-library/react"
-import { describe, it, expect, beforeEach, vi } from "vitest"
+import { render, screen } from "@testing-library/react"
+import { describe, it, expect, beforeEach } from "vitest"
 import Collapse from "./Collapse"
-import { before } from "node:test"
 
 describe("Collapse", () => {
   beforeEach(() => {
