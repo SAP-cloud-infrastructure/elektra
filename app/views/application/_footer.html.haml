@@ -20,9 +20,9 @@
     .row
       .col-sm-3
         %ul.list-unstyled
-          - unless @domain_config.feature_hidden?('terms_of_use')
+          - unless @domain_config&.feature_hidden?('terms_of_use')
             %li= link_to "Terms of Use", main_app.terms_of_use_path, data:{modal: true} unless @scoped_domain_id.blank?
-          - unless @domain_config.feature_hidden?('documentation')
+          - unless @domain_config&.feature_hidden?('documentation')
             %li
               %a(href="#{sap_url_for('documentation')}" target='ccdocs') Documentation
 
