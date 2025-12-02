@@ -25,7 +25,7 @@ describe("Step2 Component", () => {
   let queryClient: QueryClient
 
   beforeEach(() => {
-    vi.clearAllMocks()
+    vi.restoreAllMocks()
     queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },

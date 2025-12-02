@@ -251,11 +251,13 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ children, client
     [clusterFormData, maxStepReached]
   )
 
+  // selects the currently selected cloud profile based on form data
   const selectedCloudProfile = useMemo(() => {
     if (!cloudProfiles.data) return undefined
     return cloudProfiles.data.find((cp) => cp.name === clusterFormData.cloudProfileName)
   }, [cloudProfiles.data, clusterFormData.cloudProfileName])
 
+  // updates cloud profile, resets dependent fields
   const updateCloudProfile = (prev: ClusterFormData, newName: string, profiles: CloudProfile[]): ClusterFormData => {
     const profile = profiles.find((p) => p.name === newName)
     const latestK8sVersion = profile ? getLatestVersion(profile.kubernetesVersions) : ""
@@ -283,6 +285,7 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ children, client
     }
   }
 
+  // updates a networking field, removes it if value is empty, and removes networking entirely if empty
   const updateNetworkingField = (
     prev: ClusterFormData,
     field: keyof NonNullable<ClusterFormData["networking"]>,
