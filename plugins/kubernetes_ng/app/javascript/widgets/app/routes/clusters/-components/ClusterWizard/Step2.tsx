@@ -68,7 +68,7 @@ const Step2 = () => {
       })}
 
       <Stack distribution="end">
-        <Button label=" Add Worker Group" variant="primary" size="small" onClick={onAddWorkerGroup} />
+        <Button label="Add Worker Group" variant="primary" size="small" onClick={onAddWorkerGroup} />
       </Stack>
     </>
   )

@@ -46,6 +46,7 @@ const WorkerGroupSection = ({ workerGroup, index, totalWorkers, onChange, onDele
           size="small"
           onClick={onDelete}
           style={{ float: "right", marginTop: "-40px" }}
+          aria-label={`Delete Worker Group ${workerGroup.name}`}
         />
       )}
       <Grid>

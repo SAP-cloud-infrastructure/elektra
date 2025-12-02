@@ -17,6 +17,7 @@ describe("Actions component", () => {
 
   beforeEach(() => {
     onSuccessCreate.mockClear()
+    vi.restoreAllMocks()
     queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },

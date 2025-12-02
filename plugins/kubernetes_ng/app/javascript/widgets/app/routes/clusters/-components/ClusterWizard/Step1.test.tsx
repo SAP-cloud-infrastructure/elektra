@@ -23,10 +23,9 @@ const TestWrapper =
 
 describe("Step1 Component", () => {
   let queryClient: QueryClient
-  const validateSingleField = vi.fn()
 
   beforeEach(() => {
-    validateSingleField.mockClear()
+    vi.restoreAllMocks()
     queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
@@ -136,6 +135,8 @@ describe("Step1 Component", () => {
   test("calls validateSingleField when Name input loses focus", async () => {
     const wrapper = TestWrapper(queryClient)
     const originalUseWizard = wizardHook.useWizard
+    const validateSingleField = vi.fn()
+
     const textFields = [
       { label: "Name", key: "name" },
       { label: "Pods CIDR", key: "networking.podsCIDR" },
