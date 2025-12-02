@@ -99,9 +99,7 @@ const deleteImageMember = (imageId, memberId) =>
       .delete(`/ng/images/${imageId}/members/${memberId}`)
       .then((response) => {
         if (response.data && response.data.errors) {
-          addError(
-            React.createElement(ErrorsList, { errors: response.data.errors })
-          )
+          addError(React.createElement(ErrorsList, { errors: response.data.errors }))
           dispatch(deleteImageMemberFailure(imageId, memberId))
         } else {
           dispatch(removeImageMember(imageId, memberId))
@@ -129,35 +127,24 @@ const submitNewImageMember = (imageId, memberId) => (dispatch) =>
 
 const acceptSuggestedImage = (imageId) => (dispatch, getState) => {
   dispatch(imageActions("suggested").requestOsImage(imageId))
-  return ajaxHelper
-    .put(`/ng/images/${imageId}/members/accept`, { image_id: imageId })
-    .then((response) => {
-      if (response.data.errors)
-        addError(
-          React.createElement(ErrorsList, { errors: response.data.errors })
-        )
-      else {
-        if (getState().available.requestedAt)
-          dispatch(imageActions("available").receiveOsImage(response.data))
+  return ajaxHelper.put(`/ng/images/${imageId}/members/accept`, { image_id: imageId }).then((response) => {
+    if (response.data.errors) addError(React.createElement(ErrorsList, { errors: response.data.errors }))
+    else {
+      if (getState().available.requestedAt) dispatch(imageActions("available").receiveOsImage(response.data))
 
-        dispatch(imageActions("suggested").removeOsImage(imageId))
-      }
-    })
+      dispatch(imageActions("suggested").removeOsImage(imageId))
+    }
+  })
 }
 
 const rejectSuggestedImage = (imageId) => (dispatch) => {
   dispatch(imageActions("suggested").requestOsImage(imageId))
-  return ajaxHelper
-    .put(`/ng/images/${imageId}/members/reject`, { image_id: imageId })
-    .then((response) => {
-      if (response.data.errors)
-        addError(
-          React.createElement(ErrorsList, { errors: response.data.errors })
-        )
-      else {
-        dispatch(imageActions("suggested").removeOsImage(imageId))
-      }
-    })
+  return ajaxHelper.put(`/ng/images/${imageId}/members/reject`, { image_id: imageId }).then((response) => {
+    if (response.data.errors) addError(React.createElement(ErrorsList, { errors: response.data.errors }))
+    else {
+      dispatch(imageActions("suggested").removeOsImage(imageId))
+    }
+  })
 }
 
 export {
