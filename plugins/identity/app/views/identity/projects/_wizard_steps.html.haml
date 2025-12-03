@@ -13,7 +13,7 @@
         %td= @active_project.description
 
 -# MASTERDATA
-- if !@domain_config.plugin_hidden?("masterdata_cockpit")
+- if !@domain_config&.plugin_hidden?("masterdata_cockpit")
   - if @masterdata_cockpit_service_available
     - can_setup_masterdata = current_user.is_allowed?("masterdata:create_masterdata")
     - can_see_masterdata = current_user.is_allowed?("masterdata:show")
