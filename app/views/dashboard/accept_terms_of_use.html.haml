@@ -16,7 +16,7 @@
         %label Terms and Conditions
         .scrollable-text
           :markdown
-            #{Settings.send(@domain_config.terms_of_use_name).terms}
+            #{Settings.send(@domain_config&.terms_of_use_name).terms}
 
     .col-sm-4
       .form-group
