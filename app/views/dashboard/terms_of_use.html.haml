@@ -11,7 +11,7 @@
     .tab-pane.active{role:"tabpanel", id:"overview"}
       .scrollable-text.plain
         :markdown
-          #{Settings.send(@domain_config.terms_of_use_name).terms}
+          #{Settings.send(@domain_config&.terms_of_use_name).terms}
 
     -if @tou and current_user
       .tab-pane{role:"tabpanel", id:"accepted"}

@@ -138,7 +138,7 @@ class DashboardController < ::ScopeController
 
   def check_terms_of_use
     @orginal_url = request.original_url
-    return if tou_accepted? || @domain_config.feature_hidden?('terms_of_use')
+    return if tou_accepted? || @domain_config&.feature_hidden?('terms_of_use')
 
     render action: :accept_terms_of_use
   end
@@ -156,7 +156,7 @@ class DashboardController < ::ScopeController
         .find_or_create_by(uid: current_user.id)
         .domain_profiles
         .create!(
-          tou_version: Settings.send(@domain_config.terms_of_use_name).version,
+          tou_version: Settings.send(@domain_config&.terms_of_use_name).version,
           domain_id: current_user.user_domain_id
         )
 
@@ -180,7 +180,7 @@ class DashboardController < ::ScopeController
         UserProfile.tou(
           current_user.id,
           current_user.user_domain_id,
-          Settings.send(@domain_config.terms_of_use_name).version
+          Settings.send(@domain_config&.terms_of_use_name).version
         )
     end
     render action: :terms_of_use
@@ -277,7 +277,7 @@ class DashboardController < ::ScopeController
       session[:tou_accepted] = UserProfile.tou_accepted?(
         current_user.id,
         current_user.user_domain_id,
-        Settings.send(@domain_config.terms_of_use_name).version
+        Settings.send(@domain_config&.terms_of_use_name).version
       )
     end
 
@@ -354,7 +354,7 @@ class DashboardController < ::ScopeController
     @plugin_help_text = File.new(help_file, 'r').read if File.exist?(help_file)
 
     # load plugin specific help links
-    if @domain_config.feature_hidden?('internal_help_links')
+    if @domain_config&.feature_hidden?('internal_help_links')
       # Load external Help
       # load plugin specific help external links
       if File.exist?(help_links_external)

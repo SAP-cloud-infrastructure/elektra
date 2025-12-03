@@ -1,7 +1,7 @@
 - content_for :main_toolbar do
   Backup Network
 
-- if @domain_config.feature_hidden?('networking_backup')
+- if @domain_config&.feature_hidden?('networking_backup')
   .alert.alert-info
     %strong Note:
     Backup network feature is disabled for this domain. If you think this is an issue Please contact your domain administrator.
