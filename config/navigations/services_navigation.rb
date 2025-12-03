@@ -290,7 +290,7 @@ SimpleNavigation::Configuration.run do |navigation|
                           'Backup Networks',
                           -> { plugin('networking').backup_networks_path },
                           if: lambda {
-                            plugin_available?(:networking) && !@domain_config.feature_hidden?('networking_backup')
+                            plugin_available?(:networking) && !@domain_config&.feature_hidden?('networking_backup')
                           },
                           highlights_on: %r{networking/(backup_networks)/?.*}
       networking_nav.item :ports,

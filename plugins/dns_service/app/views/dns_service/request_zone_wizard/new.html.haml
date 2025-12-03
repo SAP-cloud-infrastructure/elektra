@@ -29,7 +29,7 @@
           = f.input :domain_type, as: :hidden, input_html: {value: "rootdomain"}
           %p.description
           
-          - if @domain_config.dns_c_subdomain?
+          - if @domain_config&.dns_c_subdomain?
             %span.radio
               %label
                 = f.radio_button :domain_type, "subdomain"

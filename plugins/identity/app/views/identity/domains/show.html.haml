@@ -159,7 +159,7 @@
             %td
               = @scoped_domain_name
 
-      - unless @domain_config.feature_hidden?("documentation")
+      - unless @domain_config&.feature_hidden?("documentation")
         %h5
           Helpful Links
           %i.fa.fa-external-link
