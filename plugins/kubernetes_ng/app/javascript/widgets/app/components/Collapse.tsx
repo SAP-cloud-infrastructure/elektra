@@ -32,7 +32,7 @@ export default function Collapse({ isOpen, children, className, ...props }: Coll
       // before collapsing, set to full height to enable transition
       setHeight("0px")
     }
-  }, [isOpen])
+  }, [isOpen, height])
 
   return (
     <div
