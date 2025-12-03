@@ -14,13 +14,7 @@ interface CreateClusterWizardProps {
   region: string
 }
 
-const CreateClusterWizard: React.FC<CreateClusterWizardProps> = ({
-  isOpen,
-  onClose,
-  client,
-  region,
-  onSuccessCreate,
-}) => {
+const CreateClusterWizard = ({ isOpen, onClose, client, region, onSuccessCreate }: CreateClusterWizardProps) => {
   return (
     <WizardProvider client={client} region={region} formData={DEFAULT_CLUSTER_FORM_DATA}>
       <Modal
