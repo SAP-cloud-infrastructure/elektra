@@ -38,7 +38,11 @@ const WorkerGroupSection = ({ workerGroup, index, totalWorkers, onChange, onDele
   }
 
   return (
-    <FormSection title={`Worker Group: ${workerGroup.name || "New Worker Group"}`} data-worker-id={workerGroup.id}>
+    <FormSection
+      title={`Worker Group: ${workerGroup.name || "New Worker Group"}`}
+      data-worker-id={workerGroup.id}
+      aria-label={`Worker Group: ${workerGroup.name || "New Worker Group"}`}
+    >
       {totalWorkers > 1 && index > 0 && (
         <Button
           variant="primary-danger"

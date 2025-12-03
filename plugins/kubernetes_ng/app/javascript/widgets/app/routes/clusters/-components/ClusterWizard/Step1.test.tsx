@@ -133,7 +133,7 @@ describe("Step1 Component", () => {
     expect(screen.getAllByText("Invalid CIDR").length).toBe(3)
   })
 
-  test("calls validateSingleField when Name input loses focus", async () => {
+  test("validates on blur", async () => {
     const wrapper = TestWrapper(queryClient)
     const originalUseWizard = wizardHook.useWizard
     const validateSingleField = vi.fn()

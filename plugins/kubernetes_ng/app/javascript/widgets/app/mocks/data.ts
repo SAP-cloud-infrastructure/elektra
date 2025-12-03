@@ -2,7 +2,7 @@ import { Cluster, Worker } from "../types/cluster"
 import { Permissions } from "../types/permissions"
 import { ExternalNetwork } from "../types/network"
 import { CloudProfile } from "../types/cloudProfiles"
-import { ClusterFormData } from "../routes/clusters/-components/ClusterWizard/types"
+import { ClusterFormData, WorkerGroup } from "../routes/clusters/-components/ClusterWizard/types"
 
 export const worker1: Worker = {
   name: "worker-a1",
@@ -152,9 +152,22 @@ export const cloudProfiles: CloudProfile[] = [
   },
 ]
 
+export const validWorkerGroupFormData: WorkerGroup = {
+  name: "worker1",
+  id: "worker-test-1",
+  machineType: "m5.large", // should match one of the machine types in the selected cloud profile
+  machineImage: {
+    name: "ubuntu",
+    version: "20.04",
+  },
+  minimum: 1,
+  maximum: 3,
+  zones: ["us-east-1a"],
+}
+
 export const validClusterFormData: ClusterFormData = {
-  name: "cluster1",
-  cloudProfileName: "aws",
+  name: "c-test1",
+  cloudProfileName: "cloud-profile-1", // should match one of the cloudProfiles above
   kubernetesVersion: "1.30.1",
 
   infrastructure: {
@@ -168,18 +181,5 @@ export const validClusterFormData: ClusterFormData = {
     servicesCIDR: "10.2.0.0/16",
   },
 
-  workers: [
-    {
-      name: "worker1",
-      id: "worker-test-1",
-      machineType: "m5.large",
-      machineImage: {
-        name: "ubuntu",
-        version: "20.04",
-      },
-      minimum: 1,
-      maximum: 3,
-      zones: ["us-east-1a"],
-    },
-  ],
+  workers: [validWorkerGroupFormData],
 }
