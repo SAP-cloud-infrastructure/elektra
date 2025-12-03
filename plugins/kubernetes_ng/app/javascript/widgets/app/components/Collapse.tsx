@@ -17,7 +17,19 @@ export default function Collapse({ isOpen, children, className, ...props }: Coll
     if (isOpen) {
       const fullHeight = el.scrollHeight + "px"
       setHeight(fullHeight)
+
+      const timeout = setTimeout(() => setHeight("auto"), 300)
+      return () => clearTimeout(timeout)
     } else {
+      if (height === "auto") {
+        // set to full height first to enable transition
+        setHeight(el.scrollHeight + "px")
+        const timeout = setTimeout(() => {
+          setHeight("0px")
+        }, 100)
+        return () => clearTimeout(timeout)
+      }
+      // before collapsing, set to full height to enable transition
       setHeight("0px")
     }
   }, [isOpen])

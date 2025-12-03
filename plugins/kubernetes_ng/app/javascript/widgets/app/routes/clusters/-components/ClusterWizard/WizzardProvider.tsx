@@ -286,10 +286,24 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ client, region, 
     const step2Errors = validateStep2(clusterFormData)
     const allErrors = { ...step1Errors, ...step2Errors }
 
+    // update only the specified field
     setFormErrors((prev) => ({
       ...prev,
       [fieldPath]: allErrors[fieldPath] || [],
     }))
+
+    // update the hasError flag for the current step
+    const currentStepDef = STEP_DEFINITIONS[currentStep]
+    const stepErrors: Record<string, { hasError: boolean }> = {}
+    const errors = validateStep(clusterFormData, currentStepDef.id)
+    stepErrors[currentStepDef.id] = {
+      hasError: Object.values(errors).some((arr) => Array.isArray(arr) && arr.length > 0),
+    }
+    const newSteps = STEP_DEFINITIONS.map((s, idx) => ({
+      ...s,
+      hasError: idx < maxStepReached ? (stepErrors[s.id]?.hasError ?? false) : false,
+    }))
+    setSteps(newSteps)
   }
 
   return (
