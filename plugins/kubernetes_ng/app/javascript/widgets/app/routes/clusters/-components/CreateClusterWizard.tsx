@@ -4,6 +4,7 @@ import CreateClusterDialogContent from "./ClusterWizard/CreateClusterDialogConte
 import { GardenerApi } from "../../../apiClient"
 import { WizardProvider } from "./ClusterWizard/WizzardProvider"
 import Actions from "./ClusterWizard/Actions"
+import { DEFAULT_CLUSTER_FORM_DATA } from "./ClusterWizard/defaults"
 
 interface CreateClusterWizardProps {
   isOpen: boolean
@@ -21,7 +22,7 @@ const CreateClusterWizard: React.FC<CreateClusterWizardProps> = ({
   onSuccessCreate,
 }) => {
   return (
-    <WizardProvider client={client} region={region}>
+    <WizardProvider client={client} region={region} formData={DEFAULT_CLUSTER_FORM_DATA}>
       <Modal
         className="tw-w-[76.75rem]"
         open={isOpen}

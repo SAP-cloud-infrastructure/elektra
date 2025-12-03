@@ -7,36 +7,6 @@ import { CloudProfile } from "../../../../types/cloudProfiles"
 import { Cluster } from "../../../../types/cluster"
 import { ExternalNetwork } from "../../../../types/network"
 
-export const DEFAULT_WORKER_GROUP: WorkerGroup = {
-  name: "",
-  id: "",
-  machineType: "",
-  machineImage: {
-    name: "",
-    version: "",
-  },
-  minimum: 1,
-  maximum: 1,
-  zones: [],
-}
-
-export const DEFAULT_CLUSTER_FORM_DATA: ClusterFormData = {
-  name: "",
-  cloudProfileName: "",
-  kubernetesVersion: "",
-  infrastructure: {
-    floatingPoolName: "",
-    apiVersion: "",
-  },
-  workers: [
-    {
-      ...DEFAULT_WORKER_GROUP,
-      name: "worker1",
-      id: `worker-${Date.now()}`,
-    },
-  ],
-}
-
 const getLatestVersion = (versions: string[] = []) => {
   return versions
     .map((v) => v.split(".").map(Number))
@@ -167,15 +137,16 @@ export const useWizard = () => {
 interface WizardProviderProps {
   client: GardenerApi
   region: string
+  formData: ClusterFormData
   children: ReactNode
 }
 
-export const WizardProvider: React.FC<WizardProviderProps> = ({ children, client, region }) => {
+export const WizardProvider: React.FC<WizardProviderProps> = ({ client, region, formData, children }) => {
   const [currentStep, setCurrentStep] = useState<number>(0)
   const [maxStepReached, setMaxStepReached] = useState<number>(0)
   const [steps, setSteps] = useState<Step[]>(STEP_DEFINITIONS.map((s) => ({ ...s, hasError: false })))
 
-  const [clusterFormData, setClusterFormData] = useState<ClusterFormData>(DEFAULT_CLUSTER_FORM_DATA)
+  const [clusterFormData, setClusterFormData] = useState<ClusterFormData>(formData)
   const [formErrors, setFormErrors] = useState<ClusterFormErrorsFlat>({})
 
   const cloudProfiles = useQuery({

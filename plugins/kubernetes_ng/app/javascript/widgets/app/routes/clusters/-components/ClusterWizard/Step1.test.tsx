@@ -7,13 +7,14 @@ import { PortalProvider } from "@cloudoperators/juno-ui-components"
 import { defaultMockClient } from "../../../../mocks/TestTools"
 import Step1 from "./Step1"
 import { CloudProfile } from "../../../../types/cloudProfiles"
+import { DEFAULT_CLUSTER_FORM_DATA } from "./defaults"
 
 const TestWrapper =
   (queryClient: QueryClient) =>
   ({ children }: { children: React.ReactNode }) => (
     <PortalProvider>
       <QueryClientProvider client={queryClient}>
-        <WizardProvider client={defaultMockClient} region="us-east-1">
+        <WizardProvider client={defaultMockClient} region="us-east-1" formData={DEFAULT_CLUSTER_FORM_DATA}>
           <Step1 />
           {children}
         </WizardProvider>

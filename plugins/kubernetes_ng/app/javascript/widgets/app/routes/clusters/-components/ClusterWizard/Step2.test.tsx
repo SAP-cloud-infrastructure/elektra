@@ -1,19 +1,20 @@
 import React from "react"
 import { renderHook, screen, act, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { DEFAULT_WORKER_GROUP, WizardProvider, useWizard } from "./WizzardProvider"
+import { WizardProvider, useWizard } from "./WizzardProvider"
 import * as wizardHook from "./WizzardProvider"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { PortalProvider } from "@cloudoperators/juno-ui-components"
 import { defaultMockClient } from "../../../../mocks/TestTools"
 import Step2 from "./Step2"
+import { DEFAULT_WORKER_GROUP, DEFAULT_CLUSTER_FORM_DATA } from "./defaults"
 
 const TestWrapper =
   (queryClient: QueryClient) =>
   ({ children }: { children: React.ReactNode }) => (
     <PortalProvider>
       <QueryClientProvider client={queryClient}>
-        <WizardProvider client={defaultMockClient} region="us-east-1">
+        <WizardProvider client={defaultMockClient} region="us-east-1" formData={DEFAULT_CLUSTER_FORM_DATA}>
           <Step2 />
           {children}
         </WizardProvider>

@@ -1,8 +1,9 @@
 import React from "react"
 import WorkerGroupSection from "./WorkerGroupSection"
 import { WorkerGroup } from "./types"
-import { useWizard, DEFAULT_WORKER_GROUP } from "./WizzardProvider"
+import { useWizard } from "./WizzardProvider"
 import { Stack, Button, Container, Message } from "@cloudoperators/juno-ui-components"
+import { DEFAULT_WORKER_GROUP } from "./defaults"
 
 const Step2 = () => {
   const { clusterFormData, setClusterFormData } = useWizard()

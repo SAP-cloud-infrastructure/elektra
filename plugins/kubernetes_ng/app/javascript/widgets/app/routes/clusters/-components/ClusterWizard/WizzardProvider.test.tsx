@@ -1,17 +1,18 @@
 import React from "react"
 import { renderHook, act, waitFor } from "@testing-library/react"
-import { WizardProvider, useWizard, DEFAULT_CLUSTER_FORM_DATA } from "./WizzardProvider"
+import { WizardProvider, useWizard } from "./WizzardProvider"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { PortalProvider } from "@cloudoperators/juno-ui-components"
 import { defaultMockClient } from "../../../../mocks/TestTools"
 import { validClusterFormData, cloudProfiles } from "../../../../mocks/data"
+import { DEFAULT_CLUSTER_FORM_DATA } from "./defaults"
 
 const TestWrapper =
   (queryClient: QueryClient) =>
   ({ children }: { children: React.ReactNode }) => (
     <PortalProvider>
       <QueryClientProvider client={queryClient}>
-        <WizardProvider client={defaultMockClient} region="us-east-1">
+        <WizardProvider client={defaultMockClient} region="us-east-1" formData={DEFAULT_CLUSTER_FORM_DATA}>
           {children}
         </WizardProvider>
       </QueryClientProvider>

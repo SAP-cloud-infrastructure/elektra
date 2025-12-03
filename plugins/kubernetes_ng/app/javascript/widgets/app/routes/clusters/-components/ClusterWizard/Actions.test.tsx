@@ -9,6 +9,7 @@ import * as wizardHook from "./WizzardProvider"
 import { STEP_DEFINITIONS } from "./constants"
 import { UseMutationResult } from "@tanstack/react-query"
 import { defaultMockClient } from "../../../../mocks/TestTools"
+import { DEFAULT_CLUSTER_FORM_DATA } from "./defaults"
 
 describe("Actions component", () => {
   const onSuccessCreate = vi.fn()
@@ -32,7 +33,7 @@ describe("Actions component", () => {
   const renderComponent = () =>
     render(
       <QueryClientProvider client={queryClient}>
-        <WizardProvider client={mockClient} region="us-east-1">
+        <WizardProvider client={mockClient} region="us-east-1" formData={DEFAULT_CLUSTER_FORM_DATA}>
           <Actions onSuccessCreate={onSuccessCreate} />
         </WizardProvider>
       </QueryClientProvider>
