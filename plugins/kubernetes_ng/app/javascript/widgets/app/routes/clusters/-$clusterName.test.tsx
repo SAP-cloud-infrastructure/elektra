@@ -32,8 +32,12 @@ const renderComponent = ({
         getClusters: () => Promise.resolve([defaultCluster]),
         getPermissions: () => permissionsPromise,
         getClusterByName: () => clusterDetailsPromise,
+        createCluster: () => Promise.resolve(defaultCluster),
+        getCloudProfiles: () => Promise.resolve([]),
+        getExternalNetworks: () => Promise.resolve([]),
       },
     },
+    region: "qa-de-1",
   }
 
   const router = getTestRouter({

@@ -14,6 +14,14 @@ global.$ = vi.fn(() => ({
   // Add other jQuery methods your code might use
 }))
 
+// Global mocks that apply to all tests
+// ResizeObserver is needed for testing some JunoUI-Components like Select
+global.ResizeObserver = class {
+  observe = vi.fn()
+  unobserve = vi.fn()
+  disconnect = vi.fn()
+}
+
 global.jQuery = global.$
 window.$ = global.$
 window.jQuery = global.$
