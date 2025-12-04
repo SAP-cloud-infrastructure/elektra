@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 class AvatarsController < ApplicationController
-  skip_before_action :verify_authenticity_token # Safe for GET requests
-  
   def show
     size = params[:size] || 24
     email = params[:email]
