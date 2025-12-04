@@ -108,22 +108,29 @@ const Summary = () => {
           </DataGridRow>
           <DataGridRow>
             <DataGrid columns={2} gridColumnTemplate="35% auto">
-              <SummaryRow label="Pods CIDR" hasError={formErrors["networking.podsCIDR"]?.length > 0}>
-                {clusterFormData.networking?.podsCIDR}
+              <SummaryRow label="Pods CIDR" hasError={formErrors["networking.pods"]?.length > 0}>
+                {clusterFormData.networking?.pods}
               </SummaryRow>
             </DataGrid>
           </DataGridRow>
           <DataGridRow>
             <DataGrid columns={2} gridColumnTemplate="35% auto">
-              <SummaryRow label="Nodes CIDR" hasError={formErrors["networking.nodesCIDR"]?.length > 0}>
-                {clusterFormData.networking?.nodesCIDR}
+              <SummaryRow label="Nodes CIDR" hasError={formErrors["networking.nodes"]?.length > 0}>
+                {clusterFormData.networking?.nodes}
               </SummaryRow>
             </DataGrid>
           </DataGridRow>
           <DataGridRow>
             <DataGrid columns={2} gridColumnTemplate="35% auto">
-              <SummaryRow label="Services CIDR" hasError={formErrors["networking.servicesCIDR"]?.length > 0}>
-                {clusterFormData.networking?.servicesCIDR}
+              <SummaryRow label="Services CIDR" hasError={formErrors["networking.services"]?.length > 0}>
+                {clusterFormData.networking?.services}
+              </SummaryRow>
+            </DataGrid>
+          </DataGridRow>
+          <DataGridRow>
+            <DataGrid columns={2} gridColumnTemplate="35% auto">
+              <SummaryRow label="Workers CIDR" hasError={formErrors["infrastructure.networkWorkers"]?.length > 0}>
+                {clusterFormData.infrastructure?.networkWorkers}
               </SummaryRow>
             </DataGrid>
           </DataGridRow>

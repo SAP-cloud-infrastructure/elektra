@@ -71,8 +71,12 @@ describe("WizardProvider / useWizard", () => {
     const wrapper = TestWrapper(queryClient)
     const { result } = renderHook(() => useWizard(), { wrapper })
 
-    const updated = result.current.updateNetworkingField(DEFAULT_CLUSTER_FORM_DATA, "podsCIDR", "10.0.0.0/16")
-    expect(updated.networking?.podsCIDR).toBe("10.0.0.0/16")
+    let updated = result.current.updateNetworkingField(DEFAULT_CLUSTER_FORM_DATA, "pods", "10.0.0.0/16")
+    expect(updated.networking?.pods).toBe("10.0.0.0/16")
+    updated = result.current.updateNetworkingField(updated, "nodes", "10.0.1.0/16")
+    expect(updated.networking?.nodes).toBe("10.0.1.0/16")
+    updated = result.current.updateNetworkingField(updated, "services", "10.0.2.0/16")
+    expect(updated.networking?.services).toBe("10.0.2.0/16")
   })
 
   it("removes networking field when value is empty", () => {
@@ -82,16 +86,16 @@ describe("WizardProvider / useWizard", () => {
     const withNetworking: typeof DEFAULT_CLUSTER_FORM_DATA = {
       ...DEFAULT_CLUSTER_FORM_DATA,
       networking: {
-        podsCIDR: "10.0.0.0/16",
-        nodesCIDR: "10.0.1.0/16",
-        servicesCIDR: "10.0.1.0/16",
+        pods: "10.0.0.0/16",
+        nodes: "10.0.1.0/16",
+        services: "10.0.2.0/16",
       },
     }
 
-    const updated = result.current.updateNetworkingField(withNetworking, "podsCIDR", "")
-    expect(updated.networking?.podsCIDR).toBeUndefined()
-    expect(updated.networking?.nodesCIDR).toBe("10.0.1.0/16")
-    expect(updated.networking?.servicesCIDR).toBe("10.0.1.0/16")
+    const updated = result.current.updateNetworkingField(withNetworking, "pods", "")
+    expect(updated.networking?.pods).toBeUndefined()
+    expect(updated.networking?.nodes).toBe("10.0.1.0/16")
+    expect(updated.networking?.services).toBe("10.0.2.0/16")
   })
 
   it("removes entire networking when all fields are empty", () => {
@@ -101,15 +105,15 @@ describe("WizardProvider / useWizard", () => {
     const withNetworking: typeof DEFAULT_CLUSTER_FORM_DATA = {
       ...DEFAULT_CLUSTER_FORM_DATA,
       networking: {
-        podsCIDR: "10.0.0.0/16",
-        nodesCIDR: "10.0.1.0/16",
-        servicesCIDR: "10.0.1.0/16",
+        pods: "10.0.0.0/16",
+        nodes: "10.0.1.0/16",
+        services: "10.0.2.0/16",
       },
     }
 
-    let updated = result.current.updateNetworkingField(withNetworking, "podsCIDR", "")
-    updated = result.current.updateNetworkingField(updated, "nodesCIDR", "")
-    updated = result.current.updateNetworkingField(updated, "servicesCIDR", "")
+    let updated = result.current.updateNetworkingField(withNetworking, "pods", "")
+    updated = result.current.updateNetworkingField(updated, "nodes", "")
+    updated = result.current.updateNetworkingField(updated, "services", "")
     expect(updated.networking).toBeUndefined()
   })
 

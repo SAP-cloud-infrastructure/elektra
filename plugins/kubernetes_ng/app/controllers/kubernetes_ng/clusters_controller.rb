@@ -85,7 +85,7 @@ module KubernetesNg
         :kubernetesVersion,
         :domain_id,
         :project_id,
-        infrastructure: [:floatingPoolName, :apiVersion],
+        infrastructure: [:floatingPoolName, :apiVersion, :networkWorkers],
         networking: [:pods, :nodes, :services],
         workers: [
           :name,

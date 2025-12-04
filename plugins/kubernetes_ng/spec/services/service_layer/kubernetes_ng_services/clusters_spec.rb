@@ -591,7 +591,8 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
         region: 'eu-de',
         infrastructure: {
           floatingPoolName: 'public-floating-pool',
-          apiVersion: 'openstack.provider.extensions.gardener.cloud/v1alpha1'
+          apiVersion: 'openstack.provider.extensions.gardener.cloud/v1alpha1',
+          networkWorkers: "10.45.0.0/16"
         },
         cloudProfileName: 'openstack',
         kubernetesVersion: '1.25.4',
@@ -602,6 +603,11 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
             team: 'devops'
           }
         },
+        networking: {
+          pods: "10.45.0.0/16",
+          nodes: "10.45.0.0/16",
+          services: "10.45.0.0/16"
+        },        
         workers: [
           {
             name: 'worker-pool-1',
@@ -640,10 +646,18 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           'cloudProfile' => {
             'name' => 'openstack'
           },
+          'networking' => {
+              'pods' => '10.45.0.0/16',
+              'nodes' => '10.45.0.0/16',
+              'services' => '10.45.0.0/16'
+            },          
           'provider' => {
             'infrastructureConfig' => {
               'floatingPoolName' => 'public-floating-pool',
-              'apiVersion' => 'openstack.provider.extensions.gardener.cloud/v1alpha1'
+              'apiVersion' => 'openstack.provider.extensions.gardener.cloud/v1alpha1',
+              'networks' => {
+                'workers' => '10.45.0.0/16'
+              }
             },
             'type' => 'openstack',
             'workers' => [

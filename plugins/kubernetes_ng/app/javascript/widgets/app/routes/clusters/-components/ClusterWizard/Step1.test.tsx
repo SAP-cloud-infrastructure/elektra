@@ -67,9 +67,10 @@ describe("Step1 Component", () => {
       return {
         ...original,
         formErrors: {
-          "networking.podsCIDR": ["Invalid CIDR"],
-          "networking.nodesCIDR": ["Invalid CIDR"],
-          "networking.servicesCIDR": ["Invalid CIDR"],
+          "networking.pods": ["Invalid CIDR"],
+          "networking.nodes": ["Invalid CIDR"],
+          "networking.services": ["Invalid CIDR"],
+          "infrastructure.networkWorkers": ["Invalid CIDR"],
         },
       }
     })
@@ -118,9 +119,10 @@ describe("Step1 Component", () => {
           cloudProfileName: ["Cloud Profile is required"],
           kubernetesVersion: ["Kubernetes Version is required"],
           "infrastructure.floatingPoolName": ["Floating IP Pool is required"],
-          "networking.podsCIDR": ["Invalid CIDR"],
-          "networking.nodesCIDR": ["Invalid CIDR"],
-          "networking.servicesCIDR": ["Invalid CIDR"],
+          "networking.pods": ["Invalid CIDR"],
+          "networking.nodes": ["Invalid CIDR"],
+          "networking.services": ["Invalid CIDR"],
+          "infrastructure.networkWorkers": ["Invalid CIDR"],
         },
       }
     })
@@ -130,7 +132,7 @@ describe("Step1 Component", () => {
     expect(screen.getByText("Cloud Profile is required")).toBeInTheDocument()
     expect(screen.getByText("Kubernetes Version is required")).toBeInTheDocument()
     expect(screen.getByText("Floating IP Pool is required")).toBeInTheDocument()
-    expect(screen.getAllByText("Invalid CIDR").length).toBe(3)
+    expect(screen.getAllByText("Invalid CIDR").length).toBe(4)
   })
 
   test("validates on blur", async () => {
@@ -140,9 +142,10 @@ describe("Step1 Component", () => {
 
     const textFields = [
       { label: "Name", key: "name" },
-      { label: "Pods CIDR", key: "networking.podsCIDR" },
-      { label: "Nodes CIDR", key: "networking.nodesCIDR" },
-      { label: "Services CIDR", key: "networking.servicesCIDR" },
+      { label: "Pods CIDR", key: "networking.pods" },
+      { label: "Nodes CIDR", key: "networking.nodes" },
+      { label: "Services CIDR", key: "networking.services" },
+      { label: "Workers CIDR", key: "infrastructure.networkWorkers" },
     ]
 
     vi.spyOn(wizardHook, "useWizard").mockImplementation(() => {

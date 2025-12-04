@@ -14,11 +14,12 @@ export type Infrastructure = {
   infrastructure: {
     floatingPoolName: string
     apiVersion: string
+    networkWorkers?: string
   }
   networking?: {
-    podsCIDR?: string
-    nodesCIDR?: string
-    servicesCIDR?: string
+    pods?: string
+    nodes?: string
+    services?: string
   }
 }
 

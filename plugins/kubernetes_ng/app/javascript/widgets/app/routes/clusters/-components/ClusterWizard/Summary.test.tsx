@@ -122,11 +122,13 @@ describe("Summary Component", () => {
     expect(getByText("Floating IP Pool")).toBeInTheDocument()
     expect(getByText(validClusterFormData.infrastructure.floatingPoolName)).toBeInTheDocument()
     expect(getByText("Pods CIDR")).toBeInTheDocument()
-    expect(getByText(validClusterFormData.networking!.podsCIDR!)).toBeInTheDocument()
+    expect(getByText(validClusterFormData.networking!.pods!)).toBeInTheDocument()
     expect(getByText("Nodes CIDR")).toBeInTheDocument()
-    expect(getByText(validClusterFormData.networking!.nodesCIDR!)).toBeInTheDocument()
+    expect(getByText(validClusterFormData.networking!.nodes!)).toBeInTheDocument()
     expect(getByText("Services CIDR")).toBeInTheDocument()
-    expect(getByText(validClusterFormData.networking!.servicesCIDR!)).toBeInTheDocument()
+    expect(getByText(validClusterFormData.networking!.services!)).toBeInTheDocument()
+    expect(getByText("Workers CIDR")).toBeInTheDocument()
+    expect(getByText(validClusterFormData.infrastructure!.networkWorkers!)).toBeInTheDocument()
   })
 
   it("renders infrastructure info with errors", () => {
@@ -139,9 +141,10 @@ describe("Summary Component", () => {
         ...original,
         formErrors: {
           "infrastructure.floatingPoolName": ["Floating IP Pool is required."],
-          "networking.podsCIDR": ["Pods CIDR is invalid."],
-          "networking.nodesCIDR": ["Nodes CIDR is invalid."],
-          "networking.servicesCIDR": ["Services CIDR is invalid."],
+          "networking.pods": ["Pods CIDR is invalid."],
+          "networking.nodes": ["Nodes CIDR is invalid."],
+          "networking.services": ["Services CIDR is invalid."],
+          "infrastructure.networkWorkers": ["Workers CIDR is invalid."],
         },
       }
     })
@@ -155,6 +158,7 @@ describe("Summary Component", () => {
     expectFieldErrorWithinSection(basicInfoSection, "Pods CIDR")
     expectFieldErrorWithinSection(basicInfoSection, "Nodes CIDR")
     expectFieldErrorWithinSection(basicInfoSection, "Services CIDR")
+    expectFieldErrorWithinSection(basicInfoSection, "Workers CIDR")
   })
 
   it("renders worker groups info", () => {

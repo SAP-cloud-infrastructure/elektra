@@ -173,12 +173,13 @@ export const validClusterFormData: ClusterFormData = {
   infrastructure: {
     floatingPoolName: "pool-1",
     apiVersion: "v1",
+    networkWorkers: "10.3.0.0/16",
   },
 
   networking: {
-    podsCIDR: "10.0.0.0/16",
-    nodesCIDR: "10.1.0.0/16",
-    servicesCIDR: "10.2.0.0/16",
+    pods: "10.0.0.0/16",
+    nodes: "10.1.0.0/16",
+    services: "10.2.0.0/16",
   },
 
   workers: [validWorkerGroupFormData],

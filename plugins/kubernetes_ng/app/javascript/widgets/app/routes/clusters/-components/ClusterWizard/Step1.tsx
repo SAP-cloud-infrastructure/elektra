@@ -18,9 +18,10 @@ const Step1 = () => {
 
   // Check if there are any network-related errors, if so, show advanced network settings by default
   const networkErrorsPresent =
-    formErrors["networking.podsCIDR"]?.length > 0 ||
-    formErrors["networking.nodesCIDR"]?.length > 0 ||
-    formErrors["networking.servicesCIDR"]?.length > 0
+    formErrors["networking.pods"]?.length > 0 ||
+    formErrors["networking.nodes"]?.length > 0 ||
+    formErrors["networking.services"]?.length > 0 ||
+    formErrors["infrastructure.networkWorkers"]?.length > 0
 
   const [showAdvanceNetworkSettings, setShowAdvanceNetworkSettings] = useState(networkErrorsPresent)
   const availableKubernetesVersions = selectedCloudProfile?.kubernetesVersions ?? []
@@ -144,17 +145,15 @@ const Step1 = () => {
         </button>
       </Stack>
       <Collapse className="tw-mt-2" isOpen={showAdvanceNetworkSettings}>
-        <FormRow key={"podsCIDR"}>
+        <FormRow>
           <TextInput
             label="Pods CIDR"
-            id="podsCIDR"
+            id="pods"
             type="text"
-            value={clusterFormData?.networking?.podsCIDR || ""}
-            onChange={(e) =>
-              setClusterFormData(updateNetworkingField(clusterFormData, "podsCIDR", e.target.value.trim()))
-            }
-            onBlur={() => validateSingleField("networking.podsCIDR")}
-            errortext={formErrors["networking.podsCIDR"] ? formErrors["networking.podsCIDR"][0] : undefined}
+            value={clusterFormData?.networking?.pods || ""}
+            onChange={(e) => setClusterFormData(updateNetworkingField(clusterFormData, "pods", e.target.value.trim()))}
+            onBlur={() => validateSingleField("networking.pods")}
+            errortext={formErrors["networking.pods"] ? formErrors["networking.pods"][0] : undefined}
             helptext="CIDR notation for pod IP addresses. Example: 10.44.0.0/16"
             maxLength={32}
           />
@@ -162,14 +161,12 @@ const Step1 = () => {
         <FormRow>
           <TextInput
             label="Nodes CIDR"
-            id="nodesCIDR"
+            id="nodes"
             type="text"
-            value={clusterFormData?.networking?.nodesCIDR || ""}
-            onChange={(e) =>
-              setClusterFormData(updateNetworkingField(clusterFormData, "nodesCIDR", e.target.value.trim()))
-            }
-            onBlur={() => validateSingleField("networking.nodesCIDR")}
-            errortext={formErrors["networking.nodesCIDR"] ? formErrors["networking.nodesCIDR"][0] : undefined}
+            value={clusterFormData?.networking?.nodes || ""}
+            onChange={(e) => setClusterFormData(updateNetworkingField(clusterFormData, "nodes", e.target.value.trim()))}
+            onBlur={() => validateSingleField("networking.nodes")}
+            errortext={formErrors["networking.nodes"] ? formErrors["networking.nodes"][0] : undefined}
             helptext="CIDR notation for node IP addresses. Example: 10.180.24.0/24"
             maxLength={32}
           />
@@ -177,15 +174,38 @@ const Step1 = () => {
         <FormRow>
           <TextInput
             label="Services CIDR"
-            id="servicesCIDR"
+            id="services"
             type="text"
-            value={clusterFormData?.networking?.servicesCIDR || ""}
+            value={clusterFormData?.networking?.services || ""}
             onChange={(e) =>
-              setClusterFormData(updateNetworkingField(clusterFormData, "servicesCIDR", e.target.value.trim()))
+              setClusterFormData(updateNetworkingField(clusterFormData, "services", e.target.value.trim()))
             }
-            onBlur={() => validateSingleField("networking.servicesCIDR")}
-            errortext={formErrors["networking.servicesCIDR"] ? formErrors["networking.servicesCIDR"][0] : undefined}
+            onBlur={() => validateSingleField("networking.services")}
+            errortext={formErrors["networking.services"] ? formErrors["networking.services"][0] : undefined}
             helptext="CIDR notation for service IP addresses. Example: 10.45.0.0/16"
+            maxLength={32}
+          />
+        </FormRow>
+        <FormRow>
+          <TextInput
+            label="Workers CIDR"
+            id="workers"
+            type="text"
+            value={clusterFormData?.infrastructure?.networkWorkers || ""}
+            onChange={(e) =>
+              setClusterFormData((prev) => ({
+                ...prev,
+                infrastructure: {
+                  ...prev.infrastructure,
+                  networkWorkers: e.target.value.trim(),
+                },
+              }))
+            }
+            onBlur={() => validateSingleField("infrastructure.networkWorkers")}
+            errortext={
+              formErrors["infrastructure.networkWorkers"] ? formErrors["infrastructure.networkWorkers"][0] : undefined
+            }
+            helptext="CIDR notation for worker IP addresses. Example: 10.45.0.0/16"
             maxLength={32}
           />
         </FormRow>

@@ -18,14 +18,18 @@ module ServiceLayer
       end
       
       def create_cluster(project_id, cluster_spec)
-        namespace = "garden-#{project_id}"
-        response = elektron_gardener.post("apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots", 
-            headers:{"Content-Type": "application/json"
-          }) do
-          convert_cluster_to_shoot(cluster_spec)
-        end
-        shoot_body = response&.body
-        return convert_shoot_to_cluster(shoot_body)
+        puts "################################"
+        puts convert_cluster_to_shoot(cluster_spec)
+        puts "################################"
+
+        # namespace = "garden-#{project_id}"
+        # response = elektron_gardener.post("apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots", 
+        #     headers:{"Content-Type": "application/json"
+        #   }) do
+        #   convert_cluster_to_shoot(cluster_spec)
+        # end
+        # shoot_body = response&.body
+        # return convert_shoot_to_cluster(shoot_body)
       end
       
       def confirm_cluster_deletion(project_id, cluster_name)
@@ -284,7 +288,8 @@ module ServiceLayer
           spec['cloudProfile'] = { 'name' => cloud_profile_name }
         end
 
-        spec['networking'] = cluster[:networking] if cluster[:networking]
+        # Networking configuration
+        spec['networking'] = cluster[:networking].transform_keys(&:to_s) if cluster[:networking]
         
         # Provider configuration
         if cluster[:infrastructure] || cluster[:workers]&.any?
@@ -317,13 +322,23 @@ module ServiceLayer
           provider['type'] = provider_type
         end        
         
-        if deep_fetch(cluster, :infrastructure, :floatingPoolName)
-          provider['infrastructureConfig']= {
-            'apiVersion' => deep_fetch(cluster, :infrastructure, :apiVersion),
-            'floatingPoolName' => deep_fetch(cluster, :infrastructure, :floatingPoolName)
-          }
+
+        # build infrastructureConfig
+        infrastructureConfig = {}
+        if (api = deep_fetch(cluster, :infrastructure, :apiVersion))
+          infrastructureConfig['apiVersion'] = api
         end
 
+        if (fp = deep_fetch(cluster, :infrastructure, :floatingPoolName))
+          infrastructureConfig['floatingPoolName'] = fp
+        end
+
+        if (nw = deep_fetch(cluster, :infrastructure, :networkWorkers))
+          infrastructureConfig['networks'] = { 'workers' => nw }
+        end
+        provider['infrastructureConfig'] = infrastructureConfig unless infrastructureConfig.empty?
+        
+        # build workers
         if cluster[:workers]&.any?
           provider['workers'] = cluster[:workers].map do |worker|
             build_worker_spec(worker)

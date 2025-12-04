@@ -33,19 +33,22 @@ const validateStep1 = (data: ClusterFormData): ClusterFormErrorsFlat => {
     kubernetesVersion: isRequired(data.kubernetesVersion),
     "infrastructure.floatingPoolName": isRequired(data.infrastructure.floatingPoolName),
     "infrastructure.apiVersion": isRequired(data.infrastructure.apiVersion),
-    "networking.podsCIDR":
-      data?.networking?.podsCIDR && !/^([0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2}$/.test(data.networking.podsCIDR)
+    "networking.pods":
+      data?.networking?.pods && !/^([0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2}$/.test(data.networking.pods)
         ? ["Pods CIDR must be in CIDR notation"]
         : [],
-    "networking.nodesCIDR":
-      data?.networking?.nodesCIDR && !/^([0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2}$/.test(data.networking.nodesCIDR)
+    "networking.nodes":
+      data?.networking?.nodes && !/^([0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2}$/.test(data.networking.nodes)
         ? ["Nodes CIDR must be in CIDR notation"]
         : [],
-    "networking.servicesCIDR":
-      data?.networking?.servicesCIDR &&
-      data?.networking?.nodesCIDR &&
-      !/^([0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2}$/.test(data.networking.nodesCIDR)
-        ? ["Nodes CIDR must be in CIDR notation"]
+    "networking.services":
+      data?.networking?.services && !/^([0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2}$/.test(data.networking.services)
+        ? ["Services CIDR must be in CIDR notation"]
+        : [],
+    "infrastructure.networkWorkers":
+      data?.infrastructure?.networkWorkers &&
+      !/^([0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2}$/.test(data.infrastructure.networkWorkers)
+        ? ["Workers CIDR must be in CIDR notation"]
         : [],
   }
 }
