@@ -61,7 +61,7 @@ jobs:
         env:
           RAILS_ENV: test
         run: |
-          gem install bundler
+          gem install bundler -v 2.6.9
           bundle install --jobs 4 --retry 3 --path vendor/bundle
 
       - name: Setup DB and run Rails tests
