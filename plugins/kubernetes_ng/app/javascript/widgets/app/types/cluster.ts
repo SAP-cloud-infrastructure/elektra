@@ -25,6 +25,20 @@ export const ReadinessConditionSchema = z.object({
   lastUpdateTime: z.string().optional(),
 })
 
+export const LastOperationSchema = z.object({
+  description: z.string(),
+  lastUpdateTime: z.string(),
+  progress: z.number(),
+  state: z.string(),
+  type: z.string(),
+})
+
+export const LastErrorSchema = z.object({
+  description: z.string(),
+  taskID: z.string(),
+  lastUpdateTime: z.string(),
+})
+
 // Define simplified cluster schema for the UI
 export const ClusterSchema = z.object({
   // List view fields
@@ -42,7 +56,6 @@ export const ClusterSchema = z.object({
   purpose: z.string().optional(),
   cloudProfileName: z.string().optional(),
   labels: z.record(z.string(), z.string()).optional(),
-  // New state information fields
   stateDetails: z
     .object({
       state: z.string().optional(),
@@ -53,7 +66,9 @@ export const ClusterSchema = z.object({
     })
     .optional(),
 
-  // Additional detail fields
+  lastOperation: LastOperationSchema.optional(),
+  lastErrors: z.array(LastErrorSchema).optional(),
+
   workers: z.array(workerSchema),
 
   maintenance: z.object({
@@ -78,3 +93,4 @@ export const ClustersSchema = z.array(ClusterSchema)
 export type Worker = z.infer<typeof workerSchema>
 export type Cluster = z.infer<typeof ClusterSchema>
 export type ReadinessCondition = z.infer<typeof ReadinessConditionSchema>
+export type LastError = z.infer<typeof LastErrorSchema>

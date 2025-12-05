@@ -68,16 +68,11 @@ describe("<ClusterDetail />", () => {
     await act(async () => renderComponent())
 
     expect(screen.getByRole("tab", { name: "Overview" })).toBeInTheDocument()
-
-    // test overview tab content basic info
-    expect(screen.getByText("Basic Information")).toBeInTheDocument()
-
-    // test overview tab content cluster labels
-    expect(screen.getByText("Labels")).toBeInTheDocument()
-
-    // test overview tab content readiness conditions
-    const [sectionHeader] = screen.getAllByText("Readiness")
-    expect(sectionHeader).toHaveClass("details-section")
+    expect(screen.getByRole("heading", { level: 2, name: "Basic Information" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { level: 2, name: "Readiness" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { level: 2, name: "Latest Operation & Errors" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { level: 2, name: "Maintenance Window" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { level: 2, name: "Worker Pools" })).toBeInTheDocument()
   })
 
   it("renders JSON tab correctly", async () => {
