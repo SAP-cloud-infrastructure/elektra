@@ -936,15 +936,18 @@ module Compute
                 ) unless subnets[subid]
                 sub = subnets[subid]
                 cidr = NetAddr.parse_net(sub.cidr)
-                if cidr.contains(NetAddr.parse_ip(fip.floating_ip_address))
+                parsed_fip = NetAddr.parse_ip(fip.floating_ip_address)
+                # Check if both are the same IP version before comparing
+                # It can happen that CIDR is IPv4 and IP is IPv6 and vice versa
+                if cidr.version == parsed_fip.version && cidr.contains(parsed_fip)
                   @grouped_fips[sub.name] ||= []
-                  @grouped_fips[sub.name] << fip #[fip.floating_ip_address, fip.id]
+                  @grouped_fips[sub.name] << fip
                   break
                 end
               end
             else
               @grouped_fips[net.name] ||= []
-              @grouped_fips[net.name] << fip #[fip.floating_ip_address, fip.id]
+              @grouped_fips[net.name] << fip
             end
           end
         end
