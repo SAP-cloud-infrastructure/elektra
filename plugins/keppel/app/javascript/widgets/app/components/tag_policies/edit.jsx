@@ -27,7 +27,7 @@ export default class TagPoliciesEditModal extends React.Component {
       return
     }
     if (this.state.policies == null) {
-      const policies = [...(this.props.account.tag_policies || [])]
+      const policies = structuredClone(this.props.account.tag_policies || [])
       for (const policy of policies) {
         policy.ui_hints = {}
         policy.ui_hints.repo_filter =
@@ -76,6 +76,7 @@ export default class TagPoliciesEditModal extends React.Component {
     switch (attr) {
       case "block_delete":
       case "block_overwrite":
+      case "block_push":
       case "match_repository":
       case "except_repository":
       case "match_tag":

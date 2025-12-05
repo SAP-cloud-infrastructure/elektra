@@ -29,7 +29,7 @@ export default class SecurityScanPoliciesEditModal extends React.Component {
       return
     }
     if (this.state.policies == null) {
-      const policies = this.props?.policies?.data || []
+      const policies = structuredClone(this.props?.policies?.data || [])
       for (const policy of policies) {
         policy.ui_hints = {}
         policy.ui_hints.repo_filter =

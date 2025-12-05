@@ -50,6 +50,8 @@ describe("SecurityScanPoliciesEditModal", () => {
     await waitFor(() => {
       expect(defaultProps.putPolicies).toHaveBeenCalled()
     })
+    
+    expect(Object.hasOwn(updatedProps.policies.data[0], "ui_hints")).toBeFalsy()
   })
 
   it("displays loading state when policies are fetching", () => {

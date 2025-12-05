@@ -275,6 +275,25 @@ describe("Form Component", () => {
       })
     })
 
+    it("handles onSubmit functions without a promise return value gracefully", async () => {
+      const mockOnSubmitWithEmptyReturn = vi.fn()
+
+      render(
+        <Form validate={mockValidate} onSubmit={mockOnSubmitWithEmptyReturn}>
+          <TestDisplay />
+          <button type="submit">Submit</button>
+        </Form>
+      )
+
+      const submitButton = screen.getByRole("button", { name: /submit/i })
+      expect(screen.getByTestId("submitting")).toHaveTextContent("false")
+      await user.click(submitButton)
+      expect(mockOnSubmitWithEmptyReturn).toHaveBeenCalledWith({})
+      await waitFor(() => {
+        expect(screen.getByTestId("submitting")).toHaveTextContent("false")
+      })
+    })
+
     it("shows submitting state during form submission", async () => {
       mockValidate.mockReturnValue(true)
       let resolveSubmit: (value: any) => void

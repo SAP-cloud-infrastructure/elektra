@@ -20,6 +20,10 @@ const overwriteOptions = [
   { value: false, label: "Allow overwrite" },
   { value: true, label: "Prevent overwrite" },
 ]
+const blockPush = [
+  { value: false, label: "Allow push" },
+  { value: true, label: "Block push" },
+]
 
 const TagPoliciesEditRow = ({
   index,
@@ -58,6 +62,15 @@ const TagPoliciesEditRow = ({
             options={overwriteOptions}
             value={policy.block_overwrite || false}
             onChange={() => setPolicyAttribute(index, "block_overwrite", !policy.block_overwrite)}
+          />
+        }
+        {
+          <SelectBox
+            testID="blockPushBox"
+            isEditable={isEditable}
+            options={blockPush}
+            value={policy.block_push || false}
+            onChange={() => setPolicyAttribute(index, "block_push", !policy.block_push)}
           />
         }
       </td>

@@ -29,7 +29,7 @@ export default class GCPoliciesEditModal extends React.Component {
       return
     }
     if (this.state.policies == null) {
-      const policies = [...(this.props.account.gc_policies || [])]
+      const policies = structuredClone(this.props.account.gc_policies || [])
       for (const policy of policies) {
         //We cannot derive the full state of the UI out of the policy itself.
         //When adding new matches, the new match will initially be unfilled,
