@@ -227,54 +227,136 @@ class CacheController < ::ScopeController
   end
 
   def users
-    items =
-      ObjectCache.find_objects(
+    # Skip cache for user lookups to prevent reassigning roles to outdated/deleted users.
+    # The ObjectCache may contain stale user records for users that have been deleted
+    # or deactivated in the identity service. By fetching directly from the API, we ensure
+    # only currently active and valid users can be found and assigned roles.
+    skip_cache = !!params[:nocache]
+    term = params[:term]
+    domain_id = params[:domain]
+
+    
+    # Try cache first unless skip_cache is true
+    items = unless skip_cache
+      cached_users = ObjectCache.find_objects(
         type: 'user',
-        term: params[:name] || params[:term] || '',
+        term: params[:name] || term || '',
         include_scope: false,
         paginate: false
       ) do |scope|
-        scope.where(domain_id: params[:domain]).order(:name)
+        scope.where(domain_id: domain_id).order(:name)
       end
+      
+      # Map cached results if found
+      if cached_users.present?
+        cached_users.to_a.map do |u|
+          {
+            id: u.payload['description'],
+            name: u.name,
+            key: u.name,
+            uid: u.id,
+            full_name: u.payload['description'],
+            email: u.payload['email']
+          }
+        end
+      end
+    end
     
-    unless items.nil? || items.empty?
-      items = items.to_a.map do |u|
-        {
-          id: u.payload['description'],
-          name: u.name,
-          key: u.name,
-          uid: u.id,
-          full_name: u.payload['description'],
-          email: u.payload['email']
-        }
+    # If cache didn't return results, fetch from API
+    if items.blank?
+      # Try by ID first if term is provided
+      if term.present?
+        user = service_user.identity.find_user(term, format: :raw)
+        if user
+          items = [format_user(user)]
+          render json: items
+          return
+        end
       end
-    else   
-      # search live against API and then retry
-      filter = {domain_id: params[:domain]}
-      if params[:term]
-        filter[:name__contains] = params[:term]
+      
+      # Build filter for users query
+      filter = { domain_id: domain_id }
+      
+      # If term provided, search by both name and description
+      all_users = if term.present?
+        # Get users matching name
+        items_by_name = service_user.identity.users(
+          filter.merge(name__contains: term),
+          format: :raw
+        )
+        
+        # Get users matching description
+        items_by_description = service_user.identity.users(
+          filter.merge(description__contains: term),
+          format: :raw
+        )
+        
+        # Combine and deduplicate by id
+        (items_by_name + items_by_description).uniq { |u| u['id'] }
+      else
+        # Get all users in domain
+        service_user.identity.users(filter, format: :raw)
       end
-      items = service_user.identity.users(filter, format: :raw)
-
-      if params[:term]
-        # find by id, for the case the term is an id instead of name
-        user = service_user.identity.find_user(params[:term], format: :raw)
-        items << user if user
-      end
-
-      items = items.map do |u|
-        {
-          id: u['description'],
-          name: u['name'],
-          key: u['name'],
-          uid: u['id'],
-          full_name: u['description'],
-          email: u['email']
-        }
-      end
-    end  
+      
+      # Format results
+      items = all_users.map { |u| format_user(u) }
+    end
+    
     render json: items
   end
+
+
+
+
+  # def users
+  #   items =
+  #     ObjectCache.find_objects(
+  #       type: 'user',
+  #       term: params[:name] || params[:term] || '',
+  #       include_scope: false,
+  #       paginate: false
+  #     ) do |scope|
+  #       scope.where(domain_id: params[:domain]).order(:name)
+  #     end
+    
+  #   unless items.nil? || items.empty?
+  #     items = items.to_a.map do |u|
+  #       {
+  #         id: u.payload['description'],
+  #         name: u.name,
+  #         key: u.name,
+  #         uid: u.id,
+  #         full_name: u.payload['description'],
+  #         email: u.payload['email']
+  #       }
+  #     end
+  #   else   
+  #     # search live against API and then retry
+  #     filter = {domain_id: params[:domain]}
+  #     if params[:term]
+  #       filter[:name__contains] = params[:term]
+  #     end
+  #     items = service_user.identity.users(filter, format: :raw)
+
+  #     if params[:term]
+  #       # find by id, for the case the term is an id instead of name
+  #       user = service_user.identity.find_user(params[:term], format: :raw)
+  #       items << user if user
+  #     end
+
+  #     items = items.map do |u|
+  #       {
+  #         id: u['description'],
+  #         name: u['name'],
+  #         key: u['name'],
+  #         uid: u['id'],
+  #         full_name: u['description'],
+  #         email: u['email']
+  #       }
+  #     end
+  #   end  
+  #   render json: items
+  # end
 
   def groups
     items =
@@ -419,5 +501,18 @@ class CacheController < ::ScopeController
     else
       scope.where('domain_id IS NULL OR project_id IS NULL')
     end
+  end
+
+  private 
+
+  def format_user(user)
+    {
+      id: user['description'],
+      name: user['name'],
+      key: user['name'],
+      uid: user['id'],
+      full_name: user['description'],
+      email: user['email']
+    }
   end
 end
