@@ -29,17 +29,15 @@ export default class RBACPoliciesEditModal extends React.Component {
         rule_for_manifest: requiredLabelsStr,
       },
     }
-    return (
-      this.props
-        .putAccount(newAccount)
-        .then(() => this.close())
-        .catch((error) => {
-          this.setState({
-            ...this.state,
-            apiError: error,
-          })
+    this.props
+      .putAccount(newAccount)
+      .then(() => this.close())
+      .catch((error) => {
+        this.setState({
+          ...this.state,
+          apiError: error,
         })
-    )
+      })
   }
 
   render() {
