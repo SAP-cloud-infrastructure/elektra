@@ -80,6 +80,13 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
             'state' => 'Succeeded',
             'type' => 'Reconcile'
           },
+          'lastErrors' => [
+            {
+              'description' => 'Some recoverable error',
+              'taskID' => 'task-1234',
+              'lastUpdateTime' => '2023-05-01T01:00:00Z'
+            }
+          ],
           'conditions' => [
             {
               'type' => 'APIServerAvailable',
@@ -112,6 +119,20 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
         cloudProfileName: shoot_mock['spec']['cloudProfileName'],
         namespace: shoot_mock['metadata']['namespace'],
         secretBindingName: shoot_mock['spec']['secretBindingName'],
+        lastOperation: {
+          description: shoot_mock['status']['lastOperation']['description'],
+          lastUpdateTime: shoot_mock['status']['lastOperation']['lastUpdateTime'],
+          progress: shoot_mock['status']['lastOperation']['progress'],
+          state: shoot_mock['status']['lastOperation']['state'],
+          type: shoot_mock['status']['lastOperation']['type']
+        },
+        lastErrors: [
+          {
+            description: 'Some recoverable error',
+            taskID: 'task-1234',
+            lastUpdateTime: '2023-05-01T01:00:00Z'
+          }
+        ],      
         labels: shoot_mock['metadata']['labels'],
         readiness: {
           conditions: [
@@ -131,13 +152,6 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
             }
           ],
           status: '2/2'
-        },
-        stateDetails: {
-          progress: 100,
-          type: 'Reconcile',
-          state: 'Succeeded',
-          description: 'Cluster is running',
-          lastTransitionTime: '2023-05-01T10:00:00Z'
         },
         raw: shoot_mock
       )
