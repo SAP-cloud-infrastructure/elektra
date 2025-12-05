@@ -71,19 +71,24 @@ describe("<ReadinessConditions />", () => {
       ]
     })
 
-    it("renders only non-True conditions boxes initially", () => {
+    it("displays only non-True conditions boxes initially", () => {
       render(<ReadinessConditions conditions={conditions} showDetails data-testid="readiness-conditions" />)
 
       expect(screen.getByText(ReadinessConditionFalse.type)).toBeInTheDocument()
       expect(screen.getByText(ReadinessConditionUnknown.type)).toBeInTheDocument()
       expect(screen.getByText(ReadinessConditionPending.type)).toBeInTheDocument()
 
-      // True condition should not appear
-      expect(screen.queryByText(ReadinessConditionTrue.type)).not.toBeInTheDocument()
+      // Healthy condition exists in the DOM but is inside collapse
+      const collapse = screen.getByRole("region", { name: /Show full readiness details/i })
+      expect(within(collapse).getByText(ReadinessConditionTrue.type)).toBeInTheDocument()
 
-      expect(
-        within(screen.getByTestId("readiness-conditions")).getByText("Show full readiness details")
-      ).toBeInTheDocument()
+      // Button shows correct text and aria-expanded state
+      const toggleButton = screen.getByRole("button", { name: /show full readiness details/i })
+      expect(toggleButton).toHaveAttribute("aria-expanded", "false")
+
+      // Click to expand
+      fireEvent.click(toggleButton)
+      expect(toggleButton).toHaveAttribute("aria-expanded", "true")
     })
 
     it("shows all conditions after clicking 'Show all'", async () => {
@@ -120,14 +125,16 @@ describe("<ReadinessConditions />", () => {
       expect(screen.getByText(ReadinessConditionFalse.type)).toBeInTheDocument()
       expect(screen.getByText(ReadinessConditionUnknown.type)).toBeInTheDocument()
       expect(screen.getByText(ReadinessConditionPending.type)).toBeInTheDocument()
-      expect(screen.queryByText(ReadinessConditionTrue.type)).not.toBeInTheDocument()
+      // Healthy condition should still be in the DOM but inside collapse
+      const collapse = screen.getByRole("region", { name: /Show full readiness details/i })
+      expect(within(collapse).getByText(ReadinessConditionTrue.type)).toBeInTheDocument()
     })
 
     it("does not render toggle or boxes when showDetails=false", () => {
       render(<ReadinessConditions conditions={conditions} showDetails={false} />)
 
       // Toggle link shouldn't appear
-      expect(screen.queryByRole("button", { name: /show full readiness details/i })).not.toBeInTheDocument()
+      expect(screen.queryByRole("button", { name: /readiness-details/i })).not.toBeInTheDocument()
 
       // No boxes
       expect(screen.queryByText(ReadinessConditionFalse.type)).not.toBeInTheDocument()

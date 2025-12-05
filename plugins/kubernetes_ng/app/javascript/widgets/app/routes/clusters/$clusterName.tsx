@@ -14,6 +14,9 @@ import {
   TabList,
   Tab,
   TabPanel,
+  Grid,
+  GridRow,
+  GridColumn,
 } from "@cloudoperators/juno-ui-components"
 import PageHeader from "../../components/PageHeader"
 import ClipboardText from "../../components/ClipboardText"
@@ -23,6 +26,8 @@ import WorkerList from "./-components/WorkerList"
 import ClusterDetailRow from "./-components/ClusterDetailRow"
 import { ErrorBoundary, FallbackProps } from "react-error-boundary"
 import { RouterContext } from "../__root"
+import LastErrors from "./-components/LastErrors"
+import Box from "../../components/Box"
 
 export const CLUSTER_DETAIL_ROUTE_ID = "/clusters/$clusterName"
 
@@ -131,7 +136,7 @@ function clusterDetailContent({ cluster, updatedAt }: { cluster: Cluster; update
           <TabPanel>
             {/* Basic info */}
             <Container py px={false}>
-              <p className={sectionHeaderStyles}>Basic Information</p>
+              <h2 className={sectionHeaderStyles}>Basic Information</h2>
               <DataGrid columns={2} gridColumnTemplate="50% 50%">
                 <DataGridRow>
                   <div>
@@ -158,7 +163,7 @@ function clusterDetailContent({ cluster, updatedAt }: { cluster: Cluster; update
 
             {/* Readiness Conditions */}
             <Container py px={false}>
-              <p className={sectionHeaderStyles}>Readiness</p>
+              <h2 className={sectionHeaderStyles}>Readiness</h2>
               {cluster?.readiness?.conditions?.length > 0 ? (
                 <DataGrid columns={2} gridColumnTemplate="17.5% auto">
                   <ClusterDetailRow label="Readiness">
@@ -170,27 +175,63 @@ function clusterDetailContent({ cluster, updatedAt }: { cluster: Cluster; update
               )}
             </Container>
 
-            {/* Cluster Labels */}
-            <Container py px={false}>
-              <p className={sectionHeaderStyles}>Labels</p>
-              {cluster.labels && Object.keys(cluster.labels).length > 0 ? (
-                <DataGrid columns={2} minContentColumns={[0]}>
-                  {Object.entries(cluster.labels).map(([key, value]) => (
-                    <ClusterDetailRow key={key} label={key}>
-                      {value}
+            {/* Latest Operation & Errors */}
+            {cluster.lastErrors && cluster.lastErrors.length > 0 && (
+              <Container py px={false}>
+                <h2 className={sectionHeaderStyles}>Latest Operation & Errors</h2>
+                <DataGrid columns={2} gridColumnTemplate="17.5% auto">
+                  <ClusterDetailRow label="Errors">
+                    <LastErrors errors={cluster?.lastErrors} />
+                  </ClusterDetailRow>
+                  {cluster.lastOperation && (
+                    <ClusterDetailRow label="Operation">
+                      <Box variant="default">
+                        <Grid>
+                          <GridRow>
+                            <GridColumn cols={2} className="tw-text-right">
+                              <strong>Description</strong>
+                            </GridColumn>
+                            <GridColumn cols={10}>{cluster.lastOperation?.description}</GridColumn>
+                          </GridRow>
+                          <GridRow>
+                            <GridColumn cols={2} className="tw-text-right">
+                              <strong>Progress</strong>
+                            </GridColumn>
+                            <GridColumn cols={10}>{cluster.lastOperation?.progress}</GridColumn>
+                          </GridRow>
+                          <GridRow>
+                            <GridColumn cols={2} className="tw-text-right">
+                              <strong>State</strong>
+                            </GridColumn>
+                            <GridColumn cols={10}>{cluster.lastOperation?.state}</GridColumn>
+                          </GridRow>
+                          <GridRow>
+                            <GridColumn cols={2} className="tw-text-right">
+                              <strong>Type</strong>
+                            </GridColumn>
+                            <GridColumn cols={10}>{cluster.lastOperation?.type}</GridColumn>
+                          </GridRow>
+                          <GridRow>
+                            <GridColumn cols={2} className="tw-text-right">
+                              <strong>Update Time</strong>
+                            </GridColumn>
+                            <GridColumn cols={10}>
+                              {new Date(cluster.lastOperation?.lastUpdateTime).toLocaleString()}
+                            </GridColumn>
+                          </GridRow>
+                        </Grid>
+                      </Box>
                     </ClusterDetailRow>
-                  ))}
+                  )}
                 </DataGrid>
-              ) : (
-                <p>No labels found.</p>
-              )}
-            </Container>
+              </Container>
+            )}
 
             {/* Maintenance and auto update */}
             <DataGrid columns={2} gridColumnTemplate="50% 50%">
               <DataGridRow>
                 <Container py px={false}>
-                  <p className={sectionHeaderStyles}>Maintenace Window</p>
+                  <h2 className={sectionHeaderStyles}>Maintenance Window</h2>
                   <DataGrid columns={2} gridColumnTemplate="35% auto">
                     <ClusterDetailRow label="Start Time">{cluster.maintenance?.startTime}</ClusterDetailRow>
                     <ClusterDetailRow label="Window Time">{cluster.maintenance?.windowTime}</ClusterDetailRow>
@@ -198,7 +239,7 @@ function clusterDetailContent({ cluster, updatedAt }: { cluster: Cluster; update
                   </DataGrid>
                 </Container>
                 <Container py px={false}>
-                  <p className={sectionHeaderStyles}>Auto Update</p>
+                  <h2 className={sectionHeaderStyles}>Auto Update</h2>
                   <DataGrid columns={2} gridColumnTemplate="35% auto">
                     <ClusterDetailRow label="OS Updates">{cluster.autoUpdate?.os}</ClusterDetailRow>
                     <ClusterDetailRow label="Kubernetes Updates">{cluster.autoUpdate?.kubernetes}</ClusterDetailRow>
@@ -209,7 +250,7 @@ function clusterDetailContent({ cluster, updatedAt }: { cluster: Cluster; update
 
             {/* Workers */}
             <Container py px={false}>
-              <p className={sectionHeaderStyles}>Worker Pools</p>
+              <h2 className={sectionHeaderStyles}>Worker Pools</h2>
               <WorkerList workers={cluster.workers} />
             </Container>
           </TabPanel>

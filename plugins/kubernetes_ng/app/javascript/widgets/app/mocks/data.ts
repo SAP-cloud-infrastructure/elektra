@@ -69,6 +69,17 @@ export const ReadinessConditionUnknown = {
   lastUpdateTime: "2025-10-09T08:00:00Z",
 }
 
+export const lastError1 = {
+  description: "Failed to scale worker group 'worker-a1'",
+  taskID: "task-1234",
+  lastUpdateTime: "2025-10-09T05:30:00Z",
+}
+export const lastError2 = {
+  description: "Failed to update control plane",
+  taskID: "task-5678",
+  lastUpdateTime: "2025-10-09T04:45:00Z",
+}
+
 export const defaultCluster: Cluster = {
   uid: "12345678-1234-1234-1234-1234567890ab",
   name: "test-cluster",
@@ -83,6 +94,14 @@ export const defaultCluster: Cluster = {
   infrastructure: "AWS",
   version: "1.25.0",
   lastMaintenance: { state: "Succeeded" },
+  lastOperation: {
+    description: "Update cluster to version 1.25.0",
+    lastUpdateTime: "2025-10-09T06:00:00Z",
+    progress: 100,
+    state: "Succeeded",
+    type: "Update",
+  },
+  lastErrors: [lastError1, lastError2],
   workers: [worker1, worker2],
   maintenance: {
     startTime: "",
