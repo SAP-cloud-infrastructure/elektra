@@ -18,18 +18,14 @@ module ServiceLayer
       end
       
       def create_cluster(project_id, cluster_spec)
-        puts "################################"
-        puts convert_cluster_to_shoot(cluster_spec)
-        puts "################################"
-
-        # namespace = "garden-#{project_id}"
-        # response = elektron_gardener.post("apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots", 
-        #     headers:{"Content-Type": "application/json"
-        #   }) do
-        #   convert_cluster_to_shoot(cluster_spec)
-        # end
-        # shoot_body = response&.body
-        # return convert_shoot_to_cluster(shoot_body)
+        namespace = "garden-#{project_id}"
+        response = elektron_gardener.post("apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots", 
+            headers:{"Content-Type": "application/json"
+          }) do
+          convert_cluster_to_shoot(cluster_spec)
+        end
+        shoot_body = response&.body
+        return convert_shoot_to_cluster(shoot_body)
       end
       
       def confirm_cluster_deletion(project_id, cluster_name)
@@ -101,10 +97,10 @@ module ServiceLayer
           purpose: spec['purpose'],
           cloudProfileName: spec['cloudProfileName'],
           namespace: metadata.dig('namespace'),
-          secretBindingName: spec['secretBindingName'],
+          secretBindingName: spec['secretBindingName'],          
+          lastOperation: safe_map_last_operation(status['lastOperation']),
+          lastErrors: safe_map_last_errors(status['lastErrors']),
           labels: metadata['labels'] || {},
-          # State details for operations tracking
-          stateDetails: get_state_details(shoot),
           # Worker nodes configuration
           workers: safe_map_workers(deep_fetch(spec, 'provider', 'workers')),
           # Maintenance configuration
@@ -187,22 +183,33 @@ module ServiceLayer
             }
           end
         }
-      end
+      end    
       
-      # Extract detailed state information from last operation
-      def get_state_details(shoot)
-        last_operation = deep_fetch(shoot, 'status', 'lastOperation')
-        return nil unless last_operation
-        
+      def safe_map_last_operation(last_operation)
+        return nil unless last_operation.is_a?(Hash)
+
         {
-          state: last_operation['state'],
-          progress: last_operation['progress'].is_a?(Numeric) ? last_operation['progress'] : nil,
-          type: last_operation['type'],
           description: last_operation['description'],
-          lastTransitionTime: last_operation['lastUpdateTime']
+          lastUpdateTime: last_operation['lastUpdateTime'],
+          progress: last_operation['progress'].is_a?(Numeric) ? last_operation['progress'] : nil,
+          state: last_operation['state'],
+          type: last_operation['type']
         }.compact
       end
-      
+
+      def safe_map_last_errors(last_errors)
+        return [] unless last_errors.is_a?(Array)
+        last_errors.filter_map do |error|
+          next unless error.is_a?(Hash) && error['description'] && error['taskID']
+
+          {
+            description: error['description'],
+            taskID: error['taskID'],
+            lastUpdateTime: error['lastUpdateTime']
+          }.compact
+        end
+      end
+
       # Safely map worker nodes configuration
       def safe_map_workers(workers)
         return [] unless workers.is_a?(Array)
