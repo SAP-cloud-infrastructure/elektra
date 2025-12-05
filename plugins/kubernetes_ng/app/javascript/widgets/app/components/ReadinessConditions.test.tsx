@@ -71,7 +71,7 @@ describe("<ReadinessConditions />", () => {
       ]
     })
 
-    it("displays only non-True conditions boxes initially", async () => {
+    it("displays only non-True conditions boxes initially", () => {
       render(<ReadinessConditions conditions={conditions} showDetails data-testid="readiness-conditions" />)
 
       expect(screen.getByText(ReadinessConditionFalse.type)).toBeInTheDocument()
