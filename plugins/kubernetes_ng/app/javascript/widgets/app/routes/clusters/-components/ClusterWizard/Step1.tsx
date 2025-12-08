@@ -205,7 +205,7 @@ const Step1 = () => {
             errortext={
               formErrors["infrastructure.networkWorkers"] ? formErrors["infrastructure.networkWorkers"][0] : undefined
             }
-            helptext="CIDR notation for worker IP addresses. Example: 10.45.0.0/16"
+            helptext="CIDR notation for worker IP addresses. Example: 10.180.24.0/24"
             maxLength={32}
           />
         </FormRow>

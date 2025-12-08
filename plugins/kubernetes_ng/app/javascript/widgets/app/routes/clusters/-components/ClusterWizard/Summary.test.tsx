@@ -58,10 +58,9 @@ describe("Summary Component", () => {
     const basicInfoSection = screen.getByRole("region", { name: /basic info/i })
     expect(basicInfoSection).toBeInTheDocument()
 
-    const { getByText } = within(basicInfoSection)
-    const title = getByText("Basic Info")
+    const { getByText, getByRole } = within(basicInfoSection)
+    const title = getByRole("heading", { level: 1, name: /basic info/i })
     expect(title).toBeInTheDocument()
-    expect(title.tagName).toBe("H1")
 
     expect(getByText("Name")).toBeInTheDocument()
     expect(getByText(validClusterFormData.name)).toBeInTheDocument()

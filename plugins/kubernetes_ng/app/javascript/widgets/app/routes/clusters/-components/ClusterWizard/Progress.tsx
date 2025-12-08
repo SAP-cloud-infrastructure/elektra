@@ -77,6 +77,7 @@ const StepButton = React.memo(
         disabled={isFuture}
         onClick={() => onClick(step.index)}
         aria-current={!isFuture && status === "none" ? "step" : undefined}
+        aria-label={step.title}
       >
         <Stack alignment="center" gap="2">
           <StepStatusIcon status={status} />
@@ -90,9 +91,19 @@ const StepButton = React.memo(
 const Progress = () => {
   const { handleSetCurrentStep, maxStepReached, steps, currentStep } = useWizard()
   const stepCols = Math.max(Math.floor(12 / steps.length), 1)
+  // compute min and max for accessibility
+  const minStep = Math.min(...steps.map((s) => s.index))
+  const maxStep = Math.max(...steps.map((s) => s.index))
 
   return (
-    <Container px={false} py>
+    <Container
+      px={false}
+      py
+      role="progressbar"
+      aria-valuenow={currentStep}
+      aria-valuemin={minStep}
+      aria-valuemax={maxStep}
+    >
       <Grid>
         <GridRow>
           {steps
