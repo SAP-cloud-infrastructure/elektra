@@ -37,9 +37,9 @@ describe("CreateClusterDialogContent", () => {
 
     const { result } = renderHook(() => useWizard(), { wrapper })
 
-    await act(async () => {
+    await act(() => {
       // step1
-      await result.current.handleSetCurrentStep(0)
+      result.current.handleSetCurrentStep(0)
     })
 
     const title = await screen.findByText(/Basic Information/i, { selector: "h1" })
@@ -58,9 +58,9 @@ describe("CreateClusterDialogContent", () => {
 
     const { result } = renderHook(() => useWizard(), { wrapper })
 
-    await act(async () => {
+    await act(() => {
       // step2
-      await result.current.handleSetCurrentStep(1)
+      result.current.handleSetCurrentStep(1)
     })
 
     const title = await screen.findByText(/Worker Group:/i, { selector: "h1" })
@@ -79,9 +79,9 @@ describe("CreateClusterDialogContent", () => {
 
     const { result } = renderHook(() => useWizard(), { wrapper })
 
-    await act(async () => {
+    await act(() => {
       // summary
-      await result.current.handleSetCurrentStep(2)
+      result.current.handleSetCurrentStep(2)
     })
 
     const title = await screen.findByText(/Summary/i, { selector: "h1" })
