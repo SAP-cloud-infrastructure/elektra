@@ -54,7 +54,7 @@ export default function Collapse({ id, isOpen, children, className, ...props }: 
       role="region"
       {...props}
     >
-      {children}
+      <div className="tw-p-0.5">{children}</div>
     </div>
   )
 }

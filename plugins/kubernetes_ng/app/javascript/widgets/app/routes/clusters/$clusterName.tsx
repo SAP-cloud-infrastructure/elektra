@@ -114,7 +114,6 @@ function ClusterDetailActions({ permissions, disabled = false }: { permissions?:
         variant="primary-danger"
         disabled={disabled || !permissions?.delete}
       />
-      <Button size="small" label="Edit Cluster" disabled={disabled || !permissions?.update} />
     </>
   )
 }
