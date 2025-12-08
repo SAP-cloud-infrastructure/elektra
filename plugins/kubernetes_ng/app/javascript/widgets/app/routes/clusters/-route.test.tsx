@@ -2,7 +2,8 @@ import React from "react"
 import { render, act, screen, within } from "@testing-library/react"
 import { RouterProvider, createMemoryHistory, createRootRouteWithContext, createRoute } from "@tanstack/react-router"
 import { getTestRouter, TestContext } from "../../mocks/TestTools"
-import { CLUSTERS_ROUTE_ID, RouteLoader } from "./route"
+import { CLUSTERS_ROUTE_ID } from "./route"
+import { RouteLoader } from "./-routeLoader"
 import { Root } from "../__root"
 
 const renderComponent = () => {

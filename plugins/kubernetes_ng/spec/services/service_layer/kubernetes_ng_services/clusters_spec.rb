@@ -80,6 +80,13 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
             'state' => 'Succeeded',
             'type' => 'Reconcile'
           },
+          'lastErrors' => [
+            {
+              'description' => 'Some recoverable error',
+              'taskID' => 'task-1234',
+              'lastUpdateTime' => '2023-05-01T01:00:00Z'
+            }
+          ],
           'conditions' => [
             {
               'type' => 'APIServerAvailable',
@@ -112,6 +119,20 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
         cloudProfileName: shoot_mock['spec']['cloudProfileName'],
         namespace: shoot_mock['metadata']['namespace'],
         secretBindingName: shoot_mock['spec']['secretBindingName'],
+        lastOperation: {
+          description: shoot_mock['status']['lastOperation']['description'],
+          lastUpdateTime: shoot_mock['status']['lastOperation']['lastUpdateTime'],
+          progress: shoot_mock['status']['lastOperation']['progress'],
+          state: shoot_mock['status']['lastOperation']['state'],
+          type: shoot_mock['status']['lastOperation']['type']
+        },
+        lastErrors: [
+          {
+            description: 'Some recoverable error',
+            taskID: 'task-1234',
+            lastUpdateTime: '2023-05-01T01:00:00Z'
+          }
+        ],      
         labels: shoot_mock['metadata']['labels'],
         readiness: {
           conditions: [
@@ -131,13 +152,6 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
             }
           ],
           status: '2/2'
-        },
-        stateDetails: {
-          progress: 100,
-          type: 'Reconcile',
-          state: 'Succeeded',
-          description: 'Cluster is running',
-          lastTransitionTime: '2023-05-01T10:00:00Z'
         },
         raw: shoot_mock
       )
@@ -589,9 +603,13 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
         uid: '12345678-1234-1234-1234-123456789012',
         name: 'test-cluster',
         region: 'eu-de',
-        infrastructure: 'openstack',
+        infrastructure: {
+          floatingPoolName: 'public-floating-pool',
+          apiVersion: 'openstack.provider.extensions.gardener.cloud/v1alpha1',
+          networkWorkers: "10.45.0.0/16"
+        },
         cloudProfileName: 'openstack',
-        version: '1.25.4',
+        kubernetesVersion: '1.25.4',
         purpose: 'production',
         metadata: {
           labels: {
@@ -599,6 +617,11 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
             team: 'devops'
           }
         },
+        networking: {
+          pods: "10.45.0.0/16",
+          nodes: "10.45.0.0/16",
+          services: "10.45.0.0/16"
+        },        
         workers: [
           {
             name: 'worker-pool-1',
@@ -609,8 +632,8 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
               version: '20.04'
             },
             containerRuntime: 'containerd',
-            min: 2,
-            max: 5,
+            minimum: 2,
+            maximum: 5,
             maxSurge: 1,
             zones: ['eu-de-1', 'eu-de-2']
           }
@@ -634,8 +657,22 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
         'spec' => {
           'region' => 'eu-de',
           'purpose' => 'production',
-          'cloudProfileName' => 'openstack',
+          'cloudProfile' => {
+            'name' => 'openstack'
+          },
+          'networking' => {
+              'pods' => '10.45.0.0/16',
+              'nodes' => '10.45.0.0/16',
+              'services' => '10.45.0.0/16'
+            },          
           'provider' => {
+            'infrastructureConfig' => {
+              'floatingPoolName' => 'public-floating-pool',
+              'apiVersion' => 'openstack.provider.extensions.gardener.cloud/v1alpha1',
+              'networks' => {
+                'workers' => '10.45.0.0/16'
+              }
+            },
             'type' => 'openstack',
             'workers' => [
               {
@@ -684,17 +721,69 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
     
     it "handles cluster with minimal fields" do
       minimal_cluster = {
-        uid: '12345678-1234-1234-1234-123456789012',
         name: 'minimal-cluster',
         region: 'eu-de',
-        infrastructure: 'openstack',
-        version: '1.25.4'
+        infrastructure: {
+          floatingPoolName: 'public-floating-pool',
+          apiVersion: 'openstack.provider.extensions.gardener.cloud/v1alpha1'
+        },
+        cloudProfileName: 'openstack',
+        kubernetesVersion: '1.25.4',
+        workers: [
+          {
+            name: 'worker-pool-1',
+            machineType: 'm1.large',
+            architecture: 'amd64',
+            machineImage: {
+              name: 'ubuntu',
+              version: '20.04'
+            },
+            minimum: 2,
+            maximum: 5,
+            maxSurge: 1,
+            zones: ['eu-de-1', 'eu-de-2']
+          }
+        ],
       }
       shoot = convert_cluster_to_shoot(minimal_cluster)
-      expect(shoot['metadata']['name']).to eq('minimal-cluster')
-      expect(shoot['spec']['region']).to eq('eu-de')
-      expect(shoot['spec']['provider']['type']).to eq('openstack')
-      expect(shoot['spec']['kubernetes']['version']).to eq('1.25.4')
+            expect(shoot).to eq({
+        'metadata' => {
+          'name' => 'minimal-cluster',
+        },
+        'spec' => {
+          'region' => 'eu-de',
+          'cloudProfile' => {
+            'name' => 'openstack'
+          },
+          'provider' => {
+            'infrastructureConfig' => {
+              'floatingPoolName' => 'public-floating-pool',
+              'apiVersion' => 'openstack.provider.extensions.gardener.cloud/v1alpha1'
+            },
+            'type' => 'openstack',
+            'workers' => [
+              {
+                'name' => 'worker-pool-1',
+                'minimum' => 2,
+                'maximum' => 5,
+                'maxSurge' => 1,
+                'zones' => ['eu-de-1', 'eu-de-2'],
+                'machine' => {
+                  'type' => 'm1.large',
+                  'architecture' => 'amd64',
+                  'image' => {
+                    'name' => 'ubuntu',
+                    'version' => '20.04'
+                  }
+                },
+              }
+            ]
+          },
+          'kubernetes' => {
+            'version' => '1.25.4'
+          },
+        }
+      })
     end
     
     it "handles cluster without optional maintenance settings" do
@@ -702,8 +791,12 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
         uid: '12345678-1234-1234-1234-123456789012',
         name: 'no-maintenance-cluster',
         region: 'eu-de',
-        infrastructure: 'openstack',
-        version: '1.25.4',
+        infrastructure: {
+          floatingPoolName: 'public-floating-pool',
+          apiVersion: 'openstack.provider.extensions.gardener.cloud/v1alpha1'
+        },
+        cloudProfileName: 'openstack',
+        kubernetesVersion: '1.25.4',
         workers: []
       }
       shoot = convert_cluster_to_shoot(cluster_without_maintenance)

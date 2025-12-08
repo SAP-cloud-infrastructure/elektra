@@ -1,16 +1,6 @@
 require "active_support/core_ext/integer/time"
 
 Rails.application.configure do
-
-  # Disable asset digests in development
-  config.assets.digest = false
-
-  # Don't compile assets on every request
-  config.assets.compile = true  # This should already be default
-
-  # Prevent asset recompilation
-  config.assets.check_precompiled_asset = false
-
   # Settings specified here will take precedence over those in config/application.rb.
 
   # In the development environment your application's code is reloaded any time

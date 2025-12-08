@@ -1,7 +1,10 @@
-import { Cluster } from "../types/cluster"
+import { Cluster, Worker } from "../types/cluster"
 import { Permissions } from "../types/permissions"
+import { ExternalNetwork } from "../types/network"
+import { CloudProfile } from "../types/cloudProfiles"
+import { ClusterFormData, WorkerGroup } from "../routes/clusters/-components/ClusterWizard/types"
 
-export const worker1 = {
+export const worker1: Worker = {
   name: "worker-a1",
   architecture: "amd64",
   machineType: "m5.large",
@@ -17,7 +20,7 @@ export const worker1 = {
   zones: ["eu-central-1a"],
 }
 
-export const worker2 = {
+export const worker2: Worker = {
   name: "worker-arm1",
   architecture: "arm64",
   machineType: "c7g.large",
@@ -66,6 +69,17 @@ export const ReadinessConditionUnknown = {
   lastUpdateTime: "2025-10-09T08:00:00Z",
 }
 
+export const lastError1 = {
+  description: "Failed to scale worker group 'worker-a1'",
+  taskID: "task-1234",
+  lastUpdateTime: "2025-10-09T05:30:00Z",
+}
+export const lastError2 = {
+  description: "Failed to update control plane",
+  taskID: "task-5678",
+  lastUpdateTime: "2025-10-09T04:45:00Z",
+}
+
 export const defaultCluster: Cluster = {
   uid: "12345678-1234-1234-1234-1234567890ab",
   name: "test-cluster",
@@ -80,6 +94,14 @@ export const defaultCluster: Cluster = {
   infrastructure: "AWS",
   version: "1.25.0",
   lastMaintenance: { state: "Succeeded" },
+  lastOperation: {
+    description: "Update cluster to version 1.25.0",
+    lastUpdateTime: "2025-10-09T06:00:00Z",
+    progress: 100,
+    state: "Succeeded",
+    type: "Update",
+  },
+  lastErrors: [lastError1, lastError2],
   workers: [worker1, worker2],
   maintenance: {
     startTime: "",
@@ -120,4 +142,64 @@ export const permissionsAllTrue: Permissions = {
   create: true,
   update: true,
   delete: true,
+}
+
+export const externalNetworks: ExternalNetwork[] = [
+  { id: "net1", name: "net1", description: "desc", availability_zones: [], status: "active" },
+]
+
+export const cloudProfiles: CloudProfile[] = [
+  {
+    uid: "cp1",
+    name: "cloud-profile-1",
+    provider: "aws",
+    providerConfig: { apiVersion: "v1" },
+    kubernetesVersions: ["1.27.0", "1.26.5"],
+    machineTypes: [
+      { name: "m5.large", cpu: "2", memory: "8Gi" },
+      { name: "m5.xlarge", cpu: "4", memory: "16Gi", architecture: "x86_64" },
+    ],
+    machineImages: [
+      { name: "ubuntu", versions: ["22.04", "20.04"] },
+      { name: "amazon-linux", versions: ["2.0"] },
+    ],
+    regions: [
+      { name: "us-east-1", zones: ["us-east-1a", "us-east-1b"] },
+      { name: "us-west-1", zones: ["us-west-1a", "us-west-1b"] },
+    ],
+    volumeTypes: ["gp2", "io1"],
+  },
+]
+
+export const validWorkerGroupFormData: WorkerGroup = {
+  name: "worker1",
+  id: "worker-test-1",
+  machineType: "m5.large", // should match one of the machine types in the selected cloud profile
+  machineImage: {
+    name: "ubuntu",
+    version: "20.04",
+  },
+  minimum: 1,
+  maximum: 3,
+  zones: ["us-east-1a"],
+}
+
+export const validClusterFormData: ClusterFormData = {
+  name: "c-test1",
+  cloudProfileName: "cloud-profile-1", // should match one of the cloudProfiles above
+  kubernetesVersion: "1.30.1",
+
+  infrastructure: {
+    floatingPoolName: "pool-1",
+    apiVersion: "v1",
+    networkWorkers: "10.3.0.0/16",
+  },
+
+  networking: {
+    pods: "10.0.0.0/16",
+    nodes: "10.1.0.0/16",
+    services: "10.2.0.0/16",
+  },
+
+  workers: [validWorkerGroupFormData],
 }

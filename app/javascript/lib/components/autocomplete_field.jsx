@@ -37,12 +37,18 @@ export class AutocompleteField extends React.Component {
   // the identity to search for groups or users (ONLY FOR groups or users)
   handleSearch = (searchTerm) => {
     let path
+    let skipCache = false
     switch (this.props.type) {
       case "projects":
         path = "projects"
         break
       case "users":
         path = "users"
+        // Always bypass cache for user lookups (nocache=true).
+        // This prevents outdated or deleted users from appearing in search results
+        // and being reassigned to roles/projects. Only active users from the
+        // Identity API should be selectable.
+        skipCache = true
         break
       case "groups":
         path = "groups"
@@ -51,6 +57,7 @@ export class AutocompleteField extends React.Component {
 
     const params = { term: searchTerm }
     if (this.props.domainId) params["domain"] = this.props.domainId
+    if (skipCache) params["nocache"] = "true"
 
     this.setState({ isLoading: true, options: [] })
     ajaxHelper
