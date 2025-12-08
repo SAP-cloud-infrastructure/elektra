@@ -55,7 +55,6 @@ describe("<ClusterDetail />", () => {
 
     expect(screen.getByText(`Cluster ${defaultCluster.name} Information`)).toBeInTheDocument()
     expect(screen.getByRole("button", { name: /delete cluster/i })).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: /edit cluster/i })).toBeInTheDocument()
   })
 
   it("renders updated at", async () => {
@@ -133,8 +132,6 @@ describe("<ClusterDetail />", () => {
       expect(refreshButton).toBeDisabled()
       const addClusterButton = await screen.findByRole("button", { name: /delete cluster/i })
       expect(addClusterButton).toBeDisabled()
-      const editClusterButton = await screen.findByRole("button", { name: /edit cluster/i })
-      expect(editClusterButton).toBeDisabled()
     })
   })
 
@@ -178,7 +175,6 @@ describe("<ClusterDetail />", () => {
 
       expect(screen.getByRole("button", { name: /refresh/i })).not.toBeDisabled()
       expect(screen.getByRole("button", { name: /delete cluster/i })).toBeDisabled()
-      expect(screen.getByRole("button", { name: /edit cluster/i })).toBeDisabled()
     })
   })
 })
