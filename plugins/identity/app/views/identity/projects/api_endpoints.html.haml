@@ -1,54 +1,101 @@
+- use_app_credentials = @scoped_domain_name&.start_with?('iaas')
+
 .well
   %h4
     Here you can find the parameters needed to access the project with an openstack client.
   %h4
     To install the openstack (cli) client follow the officially provided instructions from the
     %a(title='OpenStack Clients' href='https://docs.openstack.org/newton/user-guide/common/cli-install-openstack-command-line-clients.html' target='blank') OpenStack Documentation
-    How to use the OpenStack CLI (Linux, MacOS)
-  %p
-    The OpenStack RC file contains the necessary environment variables to authenticate for this project to interact with the OpenStack API.
-    <br>
-    To source the OpenStack RC file, use the following command in your terminal:
-    %code
-      source openrc-#{@scoped_domain_name}-#{@scoped_project_name}
-    <br>
-    After sourcing, the environment variables are set, you can run OpenStack CLI commands (e.g. 
-    %code
-      openstack server list, openstack image list
-    )
-.openrc
-  =link_to plugin('identity').projects_download_openrc_path , class:'btn btn-outline' do
-    %span.fa.fa-cloud-download.fa-fw
-    Download Openstack RC File
-  &nbsp;
-  =link_to plugin('identity').projects_download_openrc_ps1_path , class:'btn btn-outline' do
-    %span.fa.fa-cloud-download.fa-fw
-    Download Openstack RC File for Windows PowerShell
+  
+  - if use_app_credentials
+    %h5 How to use the OpenStack CLI with Application Credentials (Linux, MacOS)
+    %p
+      For this project, you must use Application Credentials instead of username/password authentication.
+      %br
+      First, create an application credential using the web interface for  
+      = link_to "App Credentials", plugin('identity').app_credentials_path 
+      or via the OpenStack CLI:
+      %code
+        openstack application credential create my-app-cred
+      %p 
+        Save the returned secret, and set the following environment variables in your terminal:
+      %pre
+        :preserve
+          OS_AUTH_TYPE=v3applicationcredential
+          OS_AUTH_URL=#{@identity_url}
+          OS_APPLICATION_CREDENTIAL_ID="<credential-id>"
+          OS_APPLICATION_CREDENTIAL_SECRET="<credential-secret>"
 
+      %p
+        Or download the Application Credential RC file and source it:
+
+      .openrc
+        =link_to plugin('identity').projects_download_app_cred_path , class:'btn btn-outline' do
+          %span.fa.fa-cloud-download.fa-fw
+          Download Application Credential RC File
+        &nbsp;
+        =link_to plugin('identity').projects_download_app_cred_ps1_path , class:'btn btn-outline' do
+          %span.fa.fa-cloud-download.fa-fw
+          Download Application Credential RC File for Windows PowerShell
+        &nbsp;
+  - else
+    %h5 How to use the OpenStack CLI (Linux, MacOS)
+    %p
+      The OpenStack RC file contains the necessary environment variables to authenticate for this project to interact with the OpenStack API.
+      %br
+      To source the OpenStack RC file, use the following command in your terminal:
+      %code
+        source openrc-#{@scoped_domain_name}-#{@scoped_project_name}
+      %br
+      After sourcing, the environment variables are set, you can run OpenStack CLI commands (e.g. 
+      %code
+        openstack server list, openstack image list
+      )
+
+- unless use_app_credentials
+  .openrc
+    =link_to plugin('identity').projects_download_openrc_path , class:'btn btn-outline' do
+      %span.fa.fa-cloud-download.fa-fw
+      Download Openstack RC File
+    &nbsp;
+    =link_to plugin('identity').projects_download_openrc_ps1_path , class:'btn btn-outline' do
+      %span.fa.fa-cloud-download.fa-fw
+      Download Openstack RC File for Windows PowerShell
 
 %table.table.datatable
   %tbody
     %tr
       %th OS_AUTH_URL
       %td= @identity_url
-    %tr
-      %th OS_IDENTITY_API_VERSION | OS_AUTH_VERSION
-      %td= '3'
-    %tr
-      %th OS_REGION_NAME
-      %td= current_region
-    %tr
-      %th OS_USER_DOMAIN_ID | OS_USER_DOMAIN_NAME
-      %td= "#{@scoped_domain_id} | #{@scoped_domain_name}"
-    %tr
-      %th OS_PROJECT_DOMAIN_ID | OS_PROJECT_DOMAIN_NAME
-      %td= "#{@scoped_domain_id} | #{@scoped_domain_name}"
-    %tr
-      %th OS_PROJECT_ID | OS_PROJECT_NAME
-      %td=  "#{@scoped_project_id} | #{@scoped_project_name}"
-    %tr
-      %th OS_USERNAME
-      %td= '<Your username>'
-    %tr
-      %th OS_PASSWORD
-      %td= '<Your password>'
+    - if use_app_credentials
+      %tr
+        %th OS_AUTH_TYPE
+        %td v3applicationcredential
+      %tr
+        %th OS_APPLICATION_CREDENTIAL_ID
+        %td &lt;Your application credential ID&gt;
+      %tr
+        %th OS_APPLICATION_CREDENTIAL_SECRET
+        %td &lt;Your application credential secret&gt;
+    - else
+      %tr
+        %th OS_IDENTITY_API_VERSION | OS_AUTH_VERSION
+        %td= '3'
+      %tr
+        %th OS_REGION_NAME
+        %td= current_region
+      %tr
+        %th OS_USER_DOMAIN_ID | OS_USER_DOMAIN_NAME
+        %td= "#{@scoped_domain_id} | #{@scoped_domain_name}"
+      %tr
+        %th OS_PROJECT_DOMAIN_ID | OS_PROJECT_DOMAIN_NAME
+        %td= "#{@scoped_domain_id} | #{@scoped_domain_name}"
+      %tr
+        %th OS_PROJECT_ID | OS_PROJECT_NAME
+        %td=  "#{@scoped_project_id} | #{@scoped_project_name}"
+      %tr
+        %th OS_USERNAME
+        %td= '&lt;Your username&gt;'
+      %tr
+        %th OS_PASSWORD
+        %td= '&lt;Your password&gt;'
