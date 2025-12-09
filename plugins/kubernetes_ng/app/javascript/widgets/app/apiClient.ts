@@ -52,6 +52,11 @@ export function createGardenerApi(mountpoint: string) {
         }
         return res.data
       }),
+
+    getKubeconfig: (name: string) =>
+      apiClient.get<{ data: string }>(`/api/clusters/kubeconfig/${name}/`).then((res) => {
+        return res.data
+      }),
   }
 
   const permissionsApi = {

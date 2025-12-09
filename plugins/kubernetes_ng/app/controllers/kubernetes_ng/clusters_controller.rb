@@ -75,6 +75,12 @@ module KubernetesNg
       end
     end
 
+    def kubeconfig
+      handle_api_call do
+        services.kubernetes_ng.admin_kubeconfig_cluster(@scoped_project_id, params[:name])
+      end
+    end
+
     private
 
     def cluster_params

@@ -28,6 +28,8 @@ import { ErrorBoundary, FallbackProps } from "react-error-boundary"
 import { RouterContext } from "../__root"
 import LastErrors from "./-components/LastErrors"
 import Box from "../../components/Box"
+import { GardenerApi } from "../../apiClient"
+import { useMutation } from "@tanstack/react-query"
 
 export const CLUSTER_DETAIL_ROUTE_ID = "/clusters/$clusterName"
 
@@ -53,6 +55,7 @@ export const RouterConfig = {
     LoaderWithCrumb & {
       cluster: Cluster
       permissions: Permissions
+      client: GardenerApi
       updatedAt: number
     }
   > => {
@@ -67,6 +70,7 @@ export const RouterConfig = {
       },
       cluster,
       permissions,
+      client,
       updatedAt: Date.now(),
     }
   },
@@ -97,6 +101,27 @@ function ClusterDetailActions({ permissions, disabled = false }: { permissions?:
   const router = useRouter()
   const match = useMatch({ from: Route.id })
   const isFetching = match.isFetching === "loader"
+  const client = match.context.apiClient
+  const params = useParams({ from: Route.id })
+
+  const kubeconfigMutation = useMutation({
+    mutationFn: async () => {
+      return client.gardener.getKubeconfig(params.clusterName)
+    },
+    mutationKey: ["kubeconfig", params.clusterName],
+    onSuccess: (kubeconfigYaml) => {
+      console.log("Kubeconfig YAML:", kubeconfigYaml)
+
+      // const blob = new Blob([kubeconfigYaml], { type: "text/yaml" })
+      // const url = URL.createObjectURL(blob)
+      // const a = document.createElement("a")
+      // a.href = url
+      // a.download = `${params.clusterName}-kubeconfig.yaml`
+      // a.click()
+      // URL.revokeObjectURL(url)
+    },
+  })
+
   return (
     <>
       <Button
@@ -113,6 +138,14 @@ function ClusterDetailActions({ permissions, disabled = false }: { permissions?:
         label="Delete Cluster"
         variant="primary-danger"
         disabled={disabled || !permissions?.delete}
+      />
+      {/* TODO add permissions or just display the error*/}
+      <Button
+        size="small"
+        label="Kube Config"
+        disabled={disabled || kubeconfigMutation.isPending}
+        progress={kubeconfigMutation.isPending}
+        onClick={() => kubeconfigMutation.mutate()}
       />
     </>
   )
