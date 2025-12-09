@@ -222,6 +222,7 @@ const WorkerGroupSection = ({ workerGroup, index, totalWorkers, onChange, onDele
                   })
                 }
                 onBlur={() => validateSingleField(`workers.${workerGroup.id}.machineImage.version`)}
+                disabled={!workerGroup.machineImage.name}
                 truncateOptions
               >
                 {availableImageVersions.map((opt) => (
