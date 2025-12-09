@@ -3,6 +3,12 @@ import { FormRow, Select, SelectOption, TextInput, FormSection, Stack, Icon } fr
 import Collapse from "../../../../components/Collapse"
 import { useWizard } from "./WizzardProvider"
 
+const sectionHeaderStyle = `
+  tw-text-lg
+  tw-font-bold
+  tw-mb-4
+`
+
 const Step1 = () => {
   const {
     clusterFormData,
@@ -27,8 +33,11 @@ const Step1 = () => {
   const availableKubernetesVersions = selectedCloudProfile?.kubernetesVersions ?? []
 
   return (
-    <>
-      <FormSection title="Basic Information">
+    <div className="cluster-form">
+      <section aria-labelledby="basicInformation">
+        <h1 id="basicInformation" className={sectionHeaderStyle}>
+          Basic Information
+        </h1>
         <FormRow>
           <TextInput
             label="Name"
@@ -96,8 +105,12 @@ const Step1 = () => {
             ))}
           </Select>
         </FormRow>
-      </FormSection>
-      <FormSection title="Infrastructure">
+      </section>
+
+      <section aria-labelledby="infrastructure">
+        <h1 id="infrastructure" className={sectionHeaderStyle}>
+          Infrastructure
+        </h1>
         <FormRow>
           <Select
             required
@@ -130,7 +143,7 @@ const Step1 = () => {
               ))}
           </Select>
         </FormRow>
-      </FormSection>
+      </section>
 
       <Stack className=" tw-mt-4">
         <button
@@ -210,7 +223,7 @@ const Step1 = () => {
           />
         </FormRow>
       </Collapse>
-    </>
+    </div>
   )
 }
 

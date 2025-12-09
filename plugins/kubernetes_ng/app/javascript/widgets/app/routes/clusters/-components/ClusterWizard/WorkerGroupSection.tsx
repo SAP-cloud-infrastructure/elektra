@@ -79,6 +79,7 @@ const WorkerGroupSection = ({ workerGroup, index, totalWorkers, onChange, onDele
                 type="number"
                 value={workerGroup.minimum}
                 onChange={(e) => handleFieldChange("minimum", Number(e.target.value))}
+                helptext="Minimum number of nodes for auto-scaling."
                 errortext={formErrors[`workers.${workerGroup.id}.minimum`]?.[0] || undefined}
                 onBlur={() => validateSingleField(`workers.${workerGroup.id}.minimum`)}
                 maxLength={4}
@@ -97,6 +98,7 @@ const WorkerGroupSection = ({ workerGroup, index, totalWorkers, onChange, onDele
                 loading={cloudProfiles.isLoading}
                 value={workerGroup.machineType}
                 onChange={(e) => handleFieldChange("machineType", e?.toString())}
+                helptext="Select the machine type for the worker nodes."
                 errortext={
                   cloudProfiles.error instanceof Error
                     ? cloudProfiles.error.message
@@ -122,6 +124,7 @@ const WorkerGroupSection = ({ workerGroup, index, totalWorkers, onChange, onDele
                 type="number"
                 value={workerGroup.maximum}
                 onChange={(e) => handleFieldChange("maximum", Number(e.target.value))}
+                helptext="Maximum number of nodes for auto-scaling."
                 errortext={formErrors[`workers.${workerGroup.id}.maximum`]?.[0] || undefined}
                 onBlur={() => validateSingleField(`workers.${workerGroup.id}.maximum`)}
                 maxLength={4}
@@ -138,6 +141,7 @@ const WorkerGroupSection = ({ workerGroup, index, totalWorkers, onChange, onDele
                 id="machineImage"
                 name="machineImage"
                 loading={cloudProfiles.isLoading}
+                helptext="Select the machine image for the worker nodes."
                 errortext={
                   cloudProfiles.error instanceof Error
                     ? cloudProfiles.error.message
@@ -206,6 +210,7 @@ const WorkerGroupSection = ({ workerGroup, index, totalWorkers, onChange, onDele
                 id="imageVersion"
                 name="imageVersion"
                 loading={cloudProfiles.isLoading}
+                helptext="Select the version of the machine image for the chosen image type."
                 errortext={
                   cloudProfiles.error instanceof Error
                     ? cloudProfiles.error.message

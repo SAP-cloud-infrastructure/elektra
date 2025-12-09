@@ -17,6 +17,11 @@ import { StepId } from "./types"
 const sectionStyle = `
   tw-mt-4
 `
+const sectionHeaderStyle = `
+  tw-text-lg
+  tw-font-bold
+  tw-mb-4
+`
 
 function SummaryRow({ label, children, hasError }: { label: string; children?: React.ReactNode; hasError?: boolean }) {
   let value = children
@@ -103,7 +108,7 @@ const Summary = () => {
       </section>
 
       <section aria-labelledby="infrastructure" className={sectionStyle}>
-        <h1 id="infrastructure" className="tw-text-lg tw-font-bold tw-mb-4">
+        <h1 id="infrastructure" className={sectionHeaderStyle}>
           Infrastructure
         </h1>
         <DataGrid columns={1}>
@@ -155,7 +160,7 @@ const Summary = () => {
           className={sectionStyle}
           key={wg.id}
         >
-          <h1 id={`worker-group-${wg.id}`} className="tw-text-lg tw-font-bold tw-m-4">
+          <h1 id={`worker-group-${wg.id}`} className={sectionHeaderStyle}>
             Worker Group {wg.name}
           </h1>
           <DataGrid columns={1}>

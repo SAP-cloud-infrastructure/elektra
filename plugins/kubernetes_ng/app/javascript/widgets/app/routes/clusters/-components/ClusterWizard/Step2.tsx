@@ -52,22 +52,23 @@ const Step2 = () => {
         Configure the worker nodes for your cluster. These settings determine the compute resources available for your
         workloads.
       </Container>
-      {clusterFormData.workers.map((wg, index) => {
-        const showSeparator = clusterFormData.workers.length > 1 && index < clusterFormData.workers.length - 1
-        return (
-          <div key={index}>
-            <WorkerGroupSection
-              workerGroup={wg}
-              index={index}
-              totalWorkers={clusterFormData.workers.length}
-              onChange={(updatedWorkerGroup) => onChangeWorkerGroup(index, updatedWorkerGroup)}
-              onDelete={() => onDeleteWorkerGroup(index)}
-            />
-            {showSeparator && <hr className="tw-border-theme-background-lvl-4 tw-mb-8" />}
-          </div>
-        )
-      })}
-
+      <div className="cluster-form">
+        {clusterFormData.workers.map((wg, index) => {
+          const showSeparator = clusterFormData.workers.length > 1 && index < clusterFormData.workers.length - 1
+          return (
+            <div key={index}>
+              <WorkerGroupSection
+                workerGroup={wg}
+                index={index}
+                totalWorkers={clusterFormData.workers.length}
+                onChange={(updatedWorkerGroup) => onChangeWorkerGroup(index, updatedWorkerGroup)}
+                onDelete={() => onDeleteWorkerGroup(index)}
+              />
+              {showSeparator && <hr className="tw-border-theme-background-lvl-4 tw-mb-8" />}
+            </div>
+          )
+        })}
+      </div>
       <Stack distribution="end">
         <Button label="Add Worker Group" variant="primary" size="small" onClick={onAddWorkerGroup} />
       </Stack>
