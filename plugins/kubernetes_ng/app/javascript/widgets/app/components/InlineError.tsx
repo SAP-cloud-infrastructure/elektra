@@ -14,8 +14,12 @@ export function isSerializedServerError(error: unknown): error is { data: { mess
   return typeof data["message"] === "string"
 }
 
+// Normalize different error types into a consistent structure
+// exported for use in other components like Message component
 export function normalizeError(error: unknown): { title: string; message: string } {
   if (isSerializedServerError(error)) {
+    // remove leading commas and spaces from message
+    // ex: ', , shoots.core.gardener.cloud "shoot" already exists' -> "Some error message"
     const msg = (error?.data?.message ?? "").replace(/^,\s*,\s*/, "") || "Please try again later."
     return {
       title: "API Error: ",
