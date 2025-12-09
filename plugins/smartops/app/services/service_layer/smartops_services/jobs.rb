@@ -126,27 +126,30 @@ module ServiceLayer
     module Jobs
 
       def list_jobs(filter = {})
-        sleep(rand(0..3)) # Simulate random network delay between 0 and 3 seconds
-        jobs = MOCK_DATA # if api is available, fetch data from there
+        #sleep(rand(0..3)) # Simulate random network delay between 0 and 3 seconds
+
+        jobs = elektron_smartops.get("jobs/", filter).body["jobs"]
+        
+        #jobs = MOCK_DATA # if api is available, fetch data from there
 
         # Filter by name (partial match, case-insensitive)
         if filter[:name]
           jobs = jobs.select do |job|
-            job[:name].downcase.include?(filter[:name].downcase)
+            job["name"].downcase.include?(filter[:name].downcase)
           end
         end
 
         # Filter by type (object_type)
         if filter[:type]
           jobs = jobs.select do |job|
-            job[:object_type] == filter[:type]
+            job["object_type"] == filter[type]
           end
         end
 
         # Filter by id (exact match)
         if filter[:id]
           jobs = jobs.select do |job|
-            job[:id] == filter[:id]
+            job["id"] == filter[:id]
           end
         end
 
@@ -154,7 +157,7 @@ module ServiceLayer
         if filter[:scheduled_date]
           filter_date = Time.parse(filter[:scheduled_date])
           jobs = jobs.select do |job|
-            job_date = Time.parse(job[:schedule_date])
+            job_date = Time.parse(job["schedule_date"])
             job_date >= filter_date
           end
         end
@@ -163,20 +166,21 @@ module ServiceLayer
         if filter[:due_date]
           filter_date = Time.parse(filter[:due_date])
           jobs = jobs.select do |job|
-            job_date = Time.parse(job[:due_date])
+            job_date = Time.parse(job["due_date"])
             job_date <= filter_date
           end
         end
-
         jobs
       end
 
       def schedule_job(id, schedule_date)
         puts "Scheduling job in service layer: ID #{id} with schedule_date: #{schedule_date}"
-        job = MOCK_DATA.find { |j| j[:id] == id }
+        job = elektron_smartops.post("jobs/#{id}/schedule") do { schedule_date: schedule_date } end.body['job']
+        
+        #job = MOCK_DATA.find { |j| j[:id] == id }
         raise "Job not found" unless job
 
-        job[:schedule_date] = schedule_date
+        #job[:schedule_date] = schedule_date
         job
       end
 
