@@ -21,7 +21,7 @@ module Identity
     
     # check wizard state and redirect unless finished
     before_action :check_wizard_status, only: [:show]
-    before_action :api_endpoints, only: %i[download_openrc download_openrc_ps1]
+    before_action :api_endpoints, only: %i[download_openrc download_openrc_ps1 download_app_cred download_app_cred_ps1]
     before_action { @scoped_project_fid = params[:project_id] || @project_id }
 
     authorization_required(
