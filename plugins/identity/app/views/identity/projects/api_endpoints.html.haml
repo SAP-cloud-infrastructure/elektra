@@ -27,9 +27,15 @@
           OS_REGION_NAME="#{current_region}"
           OS_APPLICATION_CREDENTIAL_ID="Your application credential ID"
           OS_APPLICATION_CREDENTIAL_SECRET="Your application credential secret"
+      
+      After sourcing, the environment variables are set, you can run OpenStack CLI commands (e.g. 
+      %code
+        openstack server list, openstack image list
+      )
 
       %p
-        Or download the Application Credential RC file and source it:
+        %p
+          You can also download the Application Credential RC file and source it. 
 
       .openrc
         =link_to plugin('identity').projects_download_app_cred_path , class:'btn btn-outline' do
