@@ -90,7 +90,7 @@ const Summary = () => {
           </DataGridRow>
         </DataGrid>
         <Stack distribution="end" className="tw-mt-4">
-          <Button onClick={() => goToStep("step1")} size="small" icon="edit" label="Edit Section" />
+          <Button onClick={() => goToStep("step1")} size="small" icon="edit" label="Edit Basic Info" />
         </Stack>
       </section>
 
@@ -136,7 +136,7 @@ const Summary = () => {
           </DataGridRow>
         </DataGrid>
         <Stack distribution="end" className="tw-mt-4">
-          <Button onClick={() => goToStep("step1")} size="small" icon="edit" label="Edit Section" />
+          <Button onClick={() => goToStep("step1")} size="small" icon="edit" label="Edit Infrastructure" />
         </Stack>
       </section>
 
@@ -205,7 +205,7 @@ const Summary = () => {
         </section>
       ))}
       <Stack distribution="end" className="tw-mt-4">
-        <Button onClick={() => goToStep("step2")} size="small" icon="edit" label="Edit Section" />
+        <Button onClick={() => goToStep("step2")} size="small" icon="edit" label="Edit Worker Groups" />
       </Stack>
     </div>
   )

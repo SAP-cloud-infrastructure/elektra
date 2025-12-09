@@ -1,5 +1,5 @@
 import React from "react"
-import { renderHook, screen, act } from "@testing-library/react"
+import { renderHook, screen, act, within } from "@testing-library/react"
 import { WizardProvider, useWizard } from "./WizzardProvider"
 import CreateClusterDialogContent from "./CreateClusterDialogContent"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
@@ -37,16 +37,20 @@ describe("CreateClusterDialogContent", () => {
 
     const { result } = renderHook(() => useWizard(), { wrapper })
 
-    await act(async () => {
-      await result.current.handleSetCurrentStep(0)
+    await act(() => {
+      // step1
+      result.current.handleSetCurrentStep(0)
     })
 
     const title = await screen.findByText(/Basic Information/i, { selector: "h1" })
     expect(title).toBeInTheDocument()
 
-    expect(screen.getByRole("button", { name: /Basic Info/i })).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: /Worker Groups/i })).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: /Summary/i })).toBeInTheDocument()
+    const progressbar = screen.getByRole("progressbar")
+    const { getByRole } = within(progressbar)
+
+    expect(getByRole("button", { name: /Basic Info/i })).toBeInTheDocument()
+    expect(getByRole("button", { name: /Worker Groups/i })).toBeInTheDocument()
+    expect(getByRole("button", { name: /Summary/i })).toBeInTheDocument()
   })
 
   it("renders Step2 when currentStep is 1", async () => {
@@ -54,16 +58,20 @@ describe("CreateClusterDialogContent", () => {
 
     const { result } = renderHook(() => useWizard(), { wrapper })
 
-    await act(async () => {
-      await result.current.handleSetCurrentStep(1)
+    await act(() => {
+      // step2
+      result.current.handleSetCurrentStep(1)
     })
 
     const title = await screen.findByText(/Worker Group:/i, { selector: "h1" })
     expect(title).toBeInTheDocument()
 
-    expect(screen.getByRole("button", { name: /Basic Info/i })).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: /Worker Groups/i })).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: /Summary/i })).toBeInTheDocument()
+    const progressbar = screen.getByRole("progressbar")
+    const { getByRole } = within(progressbar)
+
+    expect(getByRole("button", { name: /Basic Info/i })).toBeInTheDocument()
+    expect(getByRole("button", { name: /Worker Groups/i })).toBeInTheDocument()
+    expect(getByRole("button", { name: /Summary/i })).toBeInTheDocument()
   })
 
   it("renders Summary when currentStep is 2", async () => {
@@ -71,16 +79,20 @@ describe("CreateClusterDialogContent", () => {
 
     const { result } = renderHook(() => useWizard(), { wrapper })
 
-    await act(async () => {
-      await result.current.handleSetCurrentStep(2)
+    await act(() => {
+      // summary
+      result.current.handleSetCurrentStep(2)
     })
 
     const title = await screen.findByText(/Summary/i, { selector: "h1" })
     expect(title).toBeInTheDocument()
 
+    const progressbar = screen.getByRole("progressbar")
+    const { getByRole } = within(progressbar)
+
     //Progress should still be visible
-    expect(screen.getByRole("button", { name: /Basic Info/i })).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: /Worker Groups/i })).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: /Summary/i })).toBeInTheDocument()
+    expect(getByRole("button", { name: /Basic Info/i })).toBeInTheDocument()
+    expect(getByRole("button", { name: /Worker Groups/i })).toBeInTheDocument()
+    expect(getByRole("button", { name: /Summary/i })).toBeInTheDocument()
   })
 })
