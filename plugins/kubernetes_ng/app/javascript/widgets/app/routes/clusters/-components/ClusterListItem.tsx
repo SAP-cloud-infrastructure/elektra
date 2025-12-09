@@ -3,7 +3,7 @@ import { Cluster } from "../../../types/cluster"
 import { DataGridRow, DataGridCell, Icon, Stack, Button } from "@cloudoperators/juno-ui-components"
 import ReadinessConditions from "../../../components/ReadinessConditions"
 import ClipboardText from "../../../components/ClipboardText"
-import { Link } from "@tanstack/react-router"
+import { Link, useNavigate } from "@tanstack/react-router"
 
 const getStatusStyles = (status: string) => {
   switch (status.toLowerCase()) {
@@ -40,9 +40,21 @@ interface ClusterListItemProps {
 
 const ClusterListItem: React.FC<ClusterListItemProps> = ({ cluster, ...props }) => {
   const statusStyles = getStatusStyles(cluster.status)
+  const navigate = useNavigate()
 
   return (
-    <DataGridRow {...props}>
+    <DataGridRow
+      {...props}
+      tabIndex={0}
+      aria-label={`View details for cluster ${cluster.name}`}
+      className="tw-cursor-pointer hover:tw-underline"
+      onClick={() => {
+        navigate({
+          to: "/clusters/$clusterName",
+          params: { clusterName: cluster.name },
+        })
+      }}
+    >
       <DataGridCell>
         <Icon
           color={statusStyles.color}
@@ -54,10 +66,7 @@ const ClusterListItem: React.FC<ClusterListItemProps> = ({ cluster, ...props }) 
       </DataGridCell>
       <DataGridCell>{cluster.status}</DataGridCell>
       <DataGridCell>
-        <Stack direction="vertical" className="tw-whitespace-nowrap">
-          <p className="tw-font-bold">{cluster.name}</p>
-          <ClipboardText text={cluster.uid} />
-        </Stack>
+        <p className="tw-font-bold">{cluster.name}</p>
       </DataGridCell>
       <DataGridCell>
         <ReadinessConditions conditions={cluster.readiness.conditions} />
