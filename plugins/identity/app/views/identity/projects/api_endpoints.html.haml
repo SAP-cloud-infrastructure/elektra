@@ -23,8 +23,10 @@
         :preserve
           OS_AUTH_TYPE=v3applicationcredential
           OS_AUTH_URL=#{@identity_url}
-          OS_APPLICATION_CREDENTIAL_ID="<credential-id>"
-          OS_APPLICATION_CREDENTIAL_SECRET="<credential-secret>"
+          OS_IDENTITY_API_VERSION=3
+          OS_REGION_NAME="#{current_region}"
+          OS_APPLICATION_CREDENTIAL_ID="credential-id"
+          OS_APPLICATION_CREDENTIAL_SECRET="credential-secret"
 
       %p
         Or download the Application Credential RC file and source it:
@@ -72,6 +74,12 @@
         %th OS_AUTH_TYPE
         %td v3applicationcredential
       %tr
+        %th OS_IDENTITY_API_VERSION | OS_AUTH_VERSION
+        %td= '3'
+      %tr
+        %th OS_REGION_NAME
+        %td= current_region
+      %tr
         %th OS_APPLICATION_CREDENTIAL_ID
         %td &lt;Your application credential ID&gt;
       %tr
@@ -95,7 +103,7 @@
         %td=  "#{@scoped_project_id} | #{@scoped_project_name}"
       %tr
         %th OS_USERNAME
-        %td= '&lt;Your username&gt;'
+        %td= "<Your username>"
       %tr
         %th OS_PASSWORD
-        %td= '&lt;Your password&gt;'
+        %td= "<Your password>"
