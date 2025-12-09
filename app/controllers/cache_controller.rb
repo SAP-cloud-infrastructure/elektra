@@ -305,59 +305,6 @@ class CacheController < ::ScopeController
     render json: items
   end
 
-
-
-
-  # def users
-  #   items =
-  #     ObjectCache.find_objects(
-  #       type: 'user',
-  #       term: params[:name] || params[:term] || '',
-  #       include_scope: false,
-  #       paginate: false
-  #     ) do |scope|
-  #       scope.where(domain_id: params[:domain]).order(:name)
-  #     end
-    
-  #   unless items.nil? || items.empty?
-  #     items = items.to_a.map do |u|
-  #       {
-  #         id: u.payload['description'],
-  #         name: u.name,
-  #         key: u.name,
-  #         uid: u.id,
-  #         full_name: u.payload['description'],
-  #         email: u.payload['email']
-  #       }
-  #     end
-  #   else   
-  #     # search live against API and then retry
-  #     filter = {domain_id: params[:domain]}
-  #     if params[:term]
-  #       filter[:name__contains] = params[:term]
-  #     end
-  #     items = service_user.identity.users(filter, format: :raw)
-
-  #     if params[:term]
-  #       # find by id, for the case the term is an id instead of name
-  #       user = service_user.identity.find_user(params[:term], format: :raw)
-  #       items << user if user
-  #     end
-
-  #     items = items.map do |u|
-  #       {
-  #         id: u['description'],
-  #         name: u['name'],
-  #         key: u['name'],
-  #         uid: u['id'],
-  #         full_name: u['description'],
-  #         email: u['email']
-  #       }
-  #     end
-  #   end  
-  #   render json: items
-  # end
-
   def groups
     items =
       ObjectCache.find_objects(
