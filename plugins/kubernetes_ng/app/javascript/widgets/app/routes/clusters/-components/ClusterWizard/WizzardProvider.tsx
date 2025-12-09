@@ -95,6 +95,11 @@ function validateStep(data: ClusterFormData, stepId: StepId): ClusterFormErrorsF
     case "step2":
       return validateStep2(data)
     case "summary":
+      return {
+        ...validateStep1(data),
+        ...validateStep2(data),
+      }
+    default:
       return {}
   }
 }
@@ -195,11 +200,21 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ client, region, 
 
   const handleSetCurrentStep = useCallback(
     (step: number) => {
-      const newMaxStepReached = Math.max(maxStepReached, step)
-      setMaxStepReached(newMaxStepReached)
+      let newMaxStepReached = Math.max(maxStepReached, step)
+
+      // if user goes back we include the maxStepReached + 1 to validate current step as well
+      if (step < maxStepReached) {
+        newMaxStepReached = Math.min(steps.length - 1, maxStepReached + 1)
+      }
+
+      // if we are in the summary step, validate all steps
+      if (STEP_DEFINITIONS[step].id === "summary") {
+        newMaxStepReached = steps.length
+      }
 
       // define which steps to validate
       const stepsToValidate = STEP_DEFINITIONS.slice(0, newMaxStepReached)
+
       let newFormErrors: Record<string, string[]> = {}
       const newStepErrors: Record<string, { hasError: boolean }> = {}
 
