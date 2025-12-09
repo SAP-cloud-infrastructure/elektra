@@ -13,11 +13,13 @@ export function isSerializedServerError(error: unknown): error is { data: { mess
   if (!isRecord(data)) return false
   return typeof data["message"] === "string"
 }
-function normalizeError(error: unknown): { title: string; message: string } {
+
+export function normalizeError(error: unknown): { title: string; message: string } {
   if (isSerializedServerError(error)) {
+    const msg = (error?.data?.message ?? "").replace(/^,\s*,\s*/, "") || "Please try again later."
     return {
-      title: "Server Error: ",
-      message: error.data?.message.length > 0 ? error.data?.message : "Please try again later.",
+      title: "API Error: ",
+      message: msg,
     }
   }
 
@@ -38,7 +40,6 @@ interface InlineErrorProps {
 
 const InlineError = ({ error, className, ...props }: InlineErrorProps) => {
   const normalizedError = normalizeError(error)
-
   return (
     <Stack gap="2" alignment="center" className={`inline-error ${className}`} {...props}>
       <Icon color="tw-text-theme-danger" icon="danger" />
