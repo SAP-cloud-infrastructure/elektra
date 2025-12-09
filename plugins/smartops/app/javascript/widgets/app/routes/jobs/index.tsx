@@ -5,6 +5,7 @@ import { JobList } from "./-components/JobList"
 import { JobDetails } from "./-components/JobDetails"
 import { IntroBox, Panel, PanelBody, Spinner } from "@cloudoperators/juno-ui-components"
 import { useState, useEffect } from "react"
+import { router } from "../../router"
 
 const STATUS_ORDER = [
   "initial",
@@ -73,6 +74,9 @@ export const Route = createFileRoute("/jobs/")({
       apiClient: client,
     }
   },
+  // only reload when navigating away and back to the route
+  // this is needed otherwise the job list is also loaded when details panel is opened
+  shouldReload: false,
 })
 
 function Jobs() {
@@ -113,6 +117,8 @@ function Jobs() {
     navigate({
       to: "/jobs",
     })
+    // Invalidate the route to refresh data if needed
+    router.invalidate()
   }
 
   return (
