@@ -1,4 +1,4 @@
-- use_app_credentials = @scoped_domain_name&.start_with?('iaas')
+- use_app_credentials = @scoped_domain_name&.start_with?('monsoon')
 
 .well
   %h4
@@ -25,8 +25,8 @@
           OS_AUTH_URL=#{@identity_url}
           OS_IDENTITY_API_VERSION=3
           OS_REGION_NAME="#{current_region}"
-          OS_APPLICATION_CREDENTIAL_ID="credential-id"
-          OS_APPLICATION_CREDENTIAL_SECRET="credential-secret"
+          OS_APPLICATION_CREDENTIAL_ID="Your application credential ID"
+          OS_APPLICATION_CREDENTIAL_SECRET="Your application credential secret"
 
       %p
         Or download the Application Credential RC file and source it:
@@ -81,10 +81,10 @@
         %td= current_region
       %tr
         %th OS_APPLICATION_CREDENTIAL_ID
-        %td &lt;Your application credential ID&gt;
+        %td= "<Your application credential ID>"
       %tr
         %th OS_APPLICATION_CREDENTIAL_SECRET
-        %td &lt;Your application credential secret&gt;
+        %td= "<Your application credential secret>"
     - else
       %tr
         %th OS_IDENTITY_API_VERSION | OS_AUTH_VERSION
