@@ -7,7 +7,6 @@ import {
   Stack,
   DataGrid,
   DataGridRow,
-  DataGridHeadCell,
   DataGridCell,
   DateTimePicker,
   Message,

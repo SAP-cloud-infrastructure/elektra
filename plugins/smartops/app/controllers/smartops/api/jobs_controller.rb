@@ -27,7 +27,7 @@ module Smartops
       private
 
       def build_filter_params
-        filter = { project_id: @scoped_project_id }
+        filter = {}
         [:name, :type, :id, :scheduled_date, :due_date].each do |param|
           filter[param] = params[param] if params[param].present?
         end
