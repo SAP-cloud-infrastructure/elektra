@@ -8,10 +8,15 @@ import {
   DataGridCell,
   Icon,
   Stack,
+  Message,
 } from "@cloudoperators/juno-ui-components"
-import InlineError from "../../../../components/InlineError"
+import { normalizeError } from "../../../../components/InlineError"
 import { STEP_DEFINITIONS } from "./constants"
 import { StepId } from "./types"
+
+const sectionStyle = `
+  tw-mt-4
+`
 
 function SummaryRow({ label, children, hasError }: { label: string; children?: React.ReactNode; hasError?: boolean }) {
   let value = children
@@ -54,15 +59,18 @@ const Summary = () => {
 
   return (
     <div>
-      <h1 className="tw-text-lg tw-font-bold">Summary</h1>
-
       {createMutation.error instanceof Error && (
-        <div className="tw-mt-4">
-          <InlineError error={createMutation.error} />
+        <div className="tw-mb-4">
+          <Message
+            variant="error"
+            text={normalizeError(createMutation.error).title + normalizeError(createMutation.error).message}
+          />
         </div>
       )}
 
-      <section aria-labelledby="basic-info" className="tw-mt-4">
+      <h1 className="tw-text-lg tw-font-bold tw-mb-4">Summary</h1>
+
+      <section aria-labelledby="basic-info" className={sectionStyle}>
         <h1 id="basic-info" className="tw-text-lg tw-font-bold tw-mb-4">
           Basic Info
         </h1>
@@ -94,7 +102,7 @@ const Summary = () => {
         </Stack>
       </section>
 
-      <section aria-labelledby="infrastructure" className="tw-mt-4">
+      <section aria-labelledby="infrastructure" className={sectionStyle}>
         <h1 id="infrastructure" className="tw-text-lg tw-font-bold tw-mb-4">
           Infrastructure
         </h1>
@@ -141,7 +149,12 @@ const Summary = () => {
       </section>
 
       {clusterFormData.workers.map((wg) => (
-        <section aria-labelledby={`worker-group-${wg.id}`} id={`worker-group-${wg.id}`} className="tw-mt-4" key={wg.id}>
+        <section
+          aria-labelledby={`worker-group-${wg.id}`}
+          id={`worker-group-${wg.id}`}
+          className={sectionStyle}
+          key={wg.id}
+        >
           <h1 id={`worker-group-${wg.id}`} className="tw-text-lg tw-font-bold tw-m-4">
             Worker Group {wg.name}
           </h1>
