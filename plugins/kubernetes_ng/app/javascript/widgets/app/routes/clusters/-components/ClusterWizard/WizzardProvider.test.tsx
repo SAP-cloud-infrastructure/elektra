@@ -237,6 +237,21 @@ describe("WizardProvider / useWizard", () => {
       expect(result.current.steps[2].hasError).toBe(true)
     })
 
+    it("validates all steps going back from summary", () => {
+      const wrapper = TestWrapper(queryClient)
+      const { result } = renderHook(() => useWizard(), { wrapper })
+
+      act(() => {
+        result.current.handleSetCurrentStep(2)
+      })
+      act(() => {
+        result.current.handleSetCurrentStep(1)
+      })
+      expect(result.current.steps[0].hasError).toBe(true)
+      expect(result.current.steps[1].hasError).toBe(true)
+      expect(result.current.steps[2].hasError).toBe(true)
+    })
+
     it("updates multiple steps errors correctly", () => {
       const wrapper = TestWrapper(queryClient)
       const { result } = renderHook(() => useWizard(), { wrapper })
