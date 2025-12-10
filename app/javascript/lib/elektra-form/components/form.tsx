@@ -3,7 +3,7 @@ import { FormContext } from "./form_context"
 import makeCancelable from "lib/tools/cancelable_promise"
 
 interface FormValues {
-  [key: string]: any
+  [key: string]: unknown
 }
 
 interface FormProps {
@@ -48,23 +48,13 @@ const Form: React.FC<FormProps> = ({
   }
 
   const updateValue = (name: string | FormValues, value?: any) => {
-    let newValues: FormValues
-
-    if (typeof name === "object") {
-      newValues = { ...values, ...name }
-    } else {
-      newValues = { ...values, [name]: value }
-    }
+    const newValues = typeof name === "object" ? { ...values, ...name } : { ...values, [name]: value }
 
     setValues(newValues)
-    setIsTouched(true) // Mark form as touched when user makes changes
+    setIsTouched(true)
 
-    // Call onValueChange after state update to match original behavior
     if (onValueChange) {
-      // Use setTimeout to match the original class component callback behavior
-      setTimeout(() => {
-        onValueChange(name, newValues)
-      }, 0)
+      onValueChange(name, newValues)
     }
   }
 
