@@ -1,4 +1,3 @@
-import create from "plugins/keppel/app/javascript/widgets/app/containers/accounts/create"
 import { z } from "zod"
 
 // Define simplified worker schema for the UI

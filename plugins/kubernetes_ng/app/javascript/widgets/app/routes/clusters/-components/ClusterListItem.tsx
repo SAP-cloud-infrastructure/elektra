@@ -2,7 +2,6 @@ import React from "react"
 import { Cluster } from "../../../types/cluster"
 import { DataGridRow, DataGridCell, Icon, Stack, Button } from "@cloudoperators/juno-ui-components"
 import ReadinessConditions from "../../../components/ReadinessConditions"
-import ClipboardText from "../../../components/ClipboardText"
 import { Link, useNavigate } from "@tanstack/react-router"
 
 const getStatusStyles = (status: string) => {

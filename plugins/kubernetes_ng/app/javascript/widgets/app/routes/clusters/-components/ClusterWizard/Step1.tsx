@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { FormRow, Select, SelectOption, TextInput, FormSection, Stack, Icon } from "@cloudoperators/juno-ui-components"
+import { FormRow, Select, SelectOption, TextInput, Stack, Icon } from "@cloudoperators/juno-ui-components"
 import Collapse from "../../../../components/Collapse"
 import { useWizard } from "./WizzardProvider"
 
