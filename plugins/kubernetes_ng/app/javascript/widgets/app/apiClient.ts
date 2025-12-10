@@ -18,7 +18,8 @@ export const gardenerTestApi = {
       return Promise.reject(new Error("Cluster not found"))
     }
   },
-  getPermissions: () => Promise.resolve({ list: true, get: true, create: true, update: true, delete: true }),
+  getShootPermissions: () => Promise.resolve({ list: true, get: true, create: true, update: true, delete: true }),
+  getKubeconfigPermission: () => Promise.resolve({ list: true, get: true, create: true, update: true, delete: true }),
 }
 
 export function createGardenerApi(mountpoint: string) {
@@ -60,11 +61,19 @@ export function createGardenerApi(mountpoint: string) {
   }
 
   const permissionsApi = {
-    getPermissions: () =>
+    getShootPermissions: () =>
       apiClient.get<{ data: Permissions }>("/api/permissions/shoots/").then((res) => {
         const parsed = PermissionsSchema.safeParse(res.data)
         if (!parsed.success) {
           throw new Error("Failed to fetch permissions: invalid response")
+        }
+        return res.data
+      }),
+    getKubeconfigPermission: () =>
+      apiClient.get<{ data: Permissions }>("/api/permissions/clusters_admin_kubeconfig/").then((res) => {
+        const parsed = PermissionsSchema.safeParse(res.data)
+        if (!parsed.success) {
+          throw new Error("Failed to fetch kubeconfig permissions: invalid response")
         }
         return res.data
       }),

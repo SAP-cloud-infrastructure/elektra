@@ -12,6 +12,7 @@ import { PortalProvider } from "@cloudoperators/juno-ui-components/index"
 import { render } from "@testing-library/react"
 import { RouterContext } from "../routes/__root"
 import { defaultCluster, permissionsAllTrue, externalNetworks, cloudProfiles } from "./data"
+import { g } from "vitest/dist/chunks/suite.d.FvehnV49.js"
 
 export interface TestContext {
   apiClient: unknown
@@ -73,8 +74,10 @@ export const defaultMockClient = {
     getClusters: () => Promise.resolve([defaultCluster]),
     getClusterByName: () => Promise.resolve(defaultCluster),
     createCluster: () => Promise.resolve(defaultCluster),
+    getKubeconfig: () => Promise.resolve("kubeconfig-data"),
 
-    getPermissions: () => Promise.resolve(permissionsAllTrue),
+    getShootPermissions: () => Promise.resolve(permissionsAllTrue),
+    getKubeconfigPermission: () => Promise.resolve(permissionsAllTrue),
 
     getExternalNetworks: () => Promise.resolve(externalNetworks),
     getCloudProfiles: () => Promise.resolve(cloudProfiles),
