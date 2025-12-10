@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react"
 import { FormContext } from "./form_context"
+import makeCancelable from "lib/tools/cancelable_promise"
 
 interface FormValues {
   [key: string]: any
@@ -75,8 +76,8 @@ const Form: React.FC<FormProps> = ({
 
     // Capture current values to avoid closure issues
     const currentValues = values
-
-    onSubmit(currentValues)
+    const submitPromise = makeCancelable(onSubmit(currentValues))
+    submitPromise.promise
       .then(() => {
         setIsSubmitting(false)
         if (resetForm) {
