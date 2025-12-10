@@ -22,7 +22,7 @@ describe("TagPoliciesEditModal", () => {
     const updatedProps = {
       ...defaultProps,
       account: {
-        tag_policies: [{ match_repository: ".*", match_tag: ".*", block_delete: true, block_overwrite: true }],
+        tag_policies: [{ match_repository: ".*", match_tag: ".*", block_delete: false, block_overwrite: false, block_push: false }],
       },
     }
     render(<TagPoliciesEditModal {...updatedProps} />)
@@ -32,16 +32,33 @@ describe("TagPoliciesEditModal", () => {
 
     // configure policy
     expect(screen.queryByTestId("validationText")).toBeNull()
-    const select = screen.getAllByTestId("deleteBox")[1]
-    fireEvent.change(select, { target: { value: true } })
-    const textArea = screen.getAllByTestId("overwriteBox")[1]
-    fireEvent.change(textArea, { target: { value: true } })
+    const deletion = screen.getAllByTestId("deleteBox")[1]
+    fireEvent.change(deletion, { target: { value: true } })
+    const overwriteBox = screen.getAllByTestId("overwriteBox")[1]
+    fireEvent.change(overwriteBox, { target: { value: true } })
+    const blockPush = screen.getAllByTestId("blockPushBox")[1]
+    fireEvent.change(blockPush, { target: { value: true } })
     expect(screen.queryByTestId("validationText")).toBeNull()
 
     fireEvent.click(screen.getByText("Save"))
     await waitFor(() => {
       expect(defaultProps.putAccount).toHaveBeenCalled()
+      const callArg = defaultProps.putAccount.mock.calls[0][0]
+      expect(callArg).toEqual({
+        tag_policies: [
+          ...updatedProps.account.tag_policies,
+          {
+            match_repository: ".*",
+            match_tag: ".*",
+            block_delete: true,
+            block_overwrite: true,
+            block_push: true,
+          },
+        ],
+      })
     })
+
+    expect(Object.hasOwn(updatedProps.account.tag_policies[0], "ui_hints")).toBeFalsy()
   })
 
   it("displays loading state when policies are fetching", () => {
