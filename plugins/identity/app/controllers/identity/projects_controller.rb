@@ -166,7 +166,7 @@ module Identity
       send_data(
         out_data,
         type: 'text/plain',
-        filename: "app-cred-#{@scoped_domain_name}-#{@scoped_project_name}.ps1",
+        filename: "openrc-app-cred-#{@scoped_domain_name}-#{@scoped_project_name}.ps1",
         dispostion: 'inline',
         status: :ok
       )
@@ -187,7 +187,7 @@ module Identity
       send_data(
         out_data,
         type: 'text/plain',
-        filename: "app-cred-#{@scoped_domain_name}-#{@scoped_project_name}",
+        filename: "openrc-app-cred-#{@scoped_domain_name}-#{@scoped_project_name}",
         dispostion: 'inline',
         status: :ok
       )
