@@ -152,8 +152,8 @@ function clusterDetailContent({ cluster, updatedAt }: { cluster: Cluster; update
                   <div>
                     <DataGrid columns={2} gridColumnTemplate="35% auto">
                       <ClusterDetailRow label="Purpose">{cluster.purpose}</ClusterDetailRow>
-                      <ClusterDetailRow label="Add ons"></ClusterDetailRow>
-                      <ClusterDetailRow label="Created by"></ClusterDetailRow>
+                      <ClusterDetailRow label="Add ons">{cluster.addOns?.join(", ")}</ClusterDetailRow>
+                      <ClusterDetailRow label="Created by">{cluster.createdBy}</ClusterDetailRow>
                     </DataGrid>
                   </div>
                 </DataGridRow>
