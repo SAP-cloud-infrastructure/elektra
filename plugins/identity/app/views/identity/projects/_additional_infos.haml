@@ -47,16 +47,11 @@
         %i.fa.fa-arrow-right.fa-fw
         here
 
-.bs-callout.bs-callout-info-cta.bs-callout-emphasize.u-margin-top-normal
-  = image_tag "sci_logo_external_white.svg", alt: "SAP Cloud Infrastructure", class: "bs-callout-image"
-  %p
-    Your feedback is essential to shaping the future of the SAP Cloud Infrastructure (SCI) platform. This short, confidential survey will help us improve SCI to better meet your needs - let’s get started! 
-  %a{href: "https://employeeexperience.surveys.sap.com/jfe/form/SV_6DtUh3mnElq4i3Q", target: "_blank"} Click here to go to survey
-
--# Customer Survey
--# .bs-callout.bs-callout-info-cta.bs-callout-emphasize.u-margin-top-normal
--#   = image_tag "CCloud_Logo_light.svg", alt: "SAP Cloud Infrastructure", class: "bs-callout-image"
--#   Take our survey now and help us shape the future of SAP Cloud Infrastructure!
--#   %a{href: "https://employeeexperience.surveys.sap.com/jfe/form/SV_80WgMq7WTBJFdP0", target: "_blank"} 
--#     %i.fa.fa-fw.fa-arrow-right
--#     Go to survey
+-# BANNER
+- unless @scoped_domain_name.start_with?("iaas")
+  - if Time.current <= Time.zone.parse("2025-12-19 23:59:59")
+    .bs-callout.bs-callout-info-cta.bs-callout-emphasize.u-margin-top-normal
+      = image_tag "sci_logo_external_white.svg", alt: "SAP Cloud Infrastructure", class: "bs-callout-image"
+      %p
+        Your feedback is essential to shaping the future of the SAP Cloud Infrastructure (SCI) platform. This short, confidential survey will help us improve SCI to better meet your needs - let's get started! 
+      %a{href: "https://employeeexperience.surveys.sap.com/jfe/form/SV_6DtUh3mnElq4i3Q", target: "_blank"} Click here to go to survey
