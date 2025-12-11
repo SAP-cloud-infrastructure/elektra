@@ -79,7 +79,7 @@ const ReadinessConditions: React.FC<ReadinessConditionsProps> = ({ conditions, s
   const unhealthyConditions = conditions.filter((c) => c.status !== "True")
 
   return (
-    <Stack direction="vertical" gap="1" {...props}>
+    <div {...props}>
       <Stack gap="2">
         <Stack gap="1">
           {conditions.map((condition) => (
@@ -116,7 +116,7 @@ const ReadinessConditions: React.FC<ReadinessConditionsProps> = ({ conditions, s
           )}
         </>
       )}
-    </Stack>
+    </div>
   )
 }
 
