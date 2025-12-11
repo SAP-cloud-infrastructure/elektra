@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useState } from "react"
 import { createFileRoute, useParams, useLoaderData, useRouter, useMatch } from "@tanstack/react-router"
 import { Cluster } from "../../types/cluster"
 import { Permissions } from "../../types/permissions"
@@ -17,6 +17,8 @@ import {
   Grid,
   GridRow,
   GridColumn,
+  Icon,
+  Stack,
 } from "@cloudoperators/juno-ui-components"
 import PageHeader from "../../components/PageHeader"
 import ClipboardText from "../../components/ClipboardText"
@@ -28,6 +30,7 @@ import { ErrorBoundary, FallbackProps } from "react-error-boundary"
 import { RouterContext } from "../__root"
 import LastErrors from "./-components/LastErrors"
 import Box from "../../components/Box"
+import Collapse from "../../components/Collapse"
 
 export const CLUSTER_DETAIL_ROUTE_ID = "/clusters/$clusterName"
 
@@ -120,7 +123,8 @@ function ClusterDetailActions({ permissions, disabled = false }: { permissions?:
 
 const sectionHeaderStyles = "details-section tw-text-lg tw-font-bold tw-mb-4"
 
-function clusterDetailContent({ cluster, updatedAt }: { cluster: Cluster; updatedAt?: number }) {
+const ClusterDetailContent = ({ cluster, updatedAt }: { cluster: Cluster; updatedAt?: number }) => {
+  const [showLastOperation, setShowLastOperation] = useState(false)
   return (
     <Container px={false} py>
       <div className="tw-relative">
@@ -136,27 +140,19 @@ function clusterDetailContent({ cluster, updatedAt }: { cluster: Cluster; update
             {/* Basic info */}
             <Container py px={false}>
               <h2 className={sectionHeaderStyles}>Basic Information</h2>
-              <DataGrid columns={2} gridColumnTemplate="50% 50%">
-                <DataGridRow>
-                  <div>
-                    <DataGrid columns={2} gridColumnTemplate="35% auto">
-                      <ClusterDetailRow label="Name">{cluster.name}</ClusterDetailRow>
-                      <ClusterDetailRow label="ID">
-                        <ClipboardText text={cluster.uid} />
-                      </ClusterDetailRow>
-                      <ClusterDetailRow label="Cluster Status">{cluster.status}</ClusterDetailRow>
-                      <ClusterDetailRow label="Kubernetes Version">{cluster.version}</ClusterDetailRow>
-                      <ClusterDetailRow label="Namespace">{cluster.namespace}</ClusterDetailRow>
-                    </DataGrid>
-                  </div>
-                  <div>
-                    <DataGrid columns={2} gridColumnTemplate="35% auto">
-                      <ClusterDetailRow label="Purpose">{cluster.purpose}</ClusterDetailRow>
-                      <ClusterDetailRow label="Add ons">{cluster.addOns?.join(", ")}</ClusterDetailRow>
-                      <ClusterDetailRow label="Created by">{cluster.createdBy}</ClusterDetailRow>
-                    </DataGrid>
-                  </div>
-                </DataGridRow>
+              <DataGrid columns={2} gridColumnTemplate="35% auto">
+                <ClusterDetailRow label="Name">{cluster.name}</ClusterDetailRow>
+                <ClusterDetailRow label="ID">
+                  <ClipboardText text={cluster.uid} />
+                </ClusterDetailRow>
+                <ClusterDetailRow label="Cluster Status">{cluster.status}</ClusterDetailRow>
+                <ClusterDetailRow label="Kubernetes Version">{cluster.version}</ClusterDetailRow>
+                <ClusterDetailRow label="Namespace">
+                  <ClipboardText text={cluster.namespace} />
+                </ClusterDetailRow>
+                <ClusterDetailRow label="Purpose">{cluster.purpose}</ClusterDetailRow>
+                <ClusterDetailRow label="Add ons">{cluster.addOns?.join(", ")}</ClusterDetailRow>
+                <ClusterDetailRow label="Created by">{cluster.createdBy}</ClusterDetailRow>
               </DataGrid>
             </Container>
 
@@ -175,56 +171,83 @@ function clusterDetailContent({ cluster, updatedAt }: { cluster: Cluster; update
             </Container>
 
             {/* Latest Operation & Errors */}
-            {cluster.lastErrors && cluster.lastErrors.length > 0 && (
-              <Container py px={false}>
-                <h2 className={sectionHeaderStyles}>Latest Operation & Errors</h2>
-                <DataGrid columns={2} gridColumnTemplate="17.5% auto">
+            <Container py px={false}>
+              <h2 className={sectionHeaderStyles}>Latest Operation & Errors</h2>
+              <DataGrid columns={2} gridColumnTemplate="17.5% auto">
+                {cluster.lastErrors && cluster.lastErrors.length > 0 && (
                   <ClusterDetailRow label="Errors">
                     <LastErrors errors={cluster?.lastErrors} />
                   </ClusterDetailRow>
-                  {cluster.lastOperation && (
+                )}
+                {cluster.lastOperation && (
+                  <>
                     <ClusterDetailRow label="Operation">
-                      <Box variant="default">
-                        <Grid>
-                          <GridRow>
-                            <GridColumn cols={2} className="tw-text-right">
-                              <strong>Description</strong>
-                            </GridColumn>
-                            <GridColumn cols={10}>{cluster.lastOperation?.description}</GridColumn>
-                          </GridRow>
-                          <GridRow>
-                            <GridColumn cols={2} className="tw-text-right">
-                              <strong>Progress</strong>
-                            </GridColumn>
-                            <GridColumn cols={10}>{cluster.lastOperation?.progress}</GridColumn>
-                          </GridRow>
-                          <GridRow>
-                            <GridColumn cols={2} className="tw-text-right">
-                              <strong>State</strong>
-                            </GridColumn>
-                            <GridColumn cols={10}>{cluster.lastOperation?.state}</GridColumn>
-                          </GridRow>
-                          <GridRow>
-                            <GridColumn cols={2} className="tw-text-right">
-                              <strong>Type</strong>
-                            </GridColumn>
-                            <GridColumn cols={10}>{cluster.lastOperation?.type}</GridColumn>
-                          </GridRow>
-                          <GridRow>
-                            <GridColumn cols={2} className="tw-text-right">
-                              <strong>Update Time</strong>
-                            </GridColumn>
-                            <GridColumn cols={10}>
-                              {new Date(cluster.lastOperation?.lastUpdateTime).toLocaleString()}
-                            </GridColumn>
-                          </GridRow>
-                        </Grid>
-                      </Box>
+                      <Stack direction="vertical" gap="1">
+                        <button
+                          type="button"
+                          onClick={() => setShowLastOperation((prev) => !prev)}
+                          className="tw-cursor-pointer tw-text-theme-link hover:tw-underline tw-inline-flex tw-items-center tw-gap-1 tw-bg-transparent tw-border-none tw-p-0"
+                          aria-expanded={showLastOperation}
+                          aria-controls="last-operation"
+                          id="last-operation-toggle"
+                        >
+                          {showLastOperation ? "Hide last operation" : "Show last operation"}
+                          <Icon color="global-text" icon={showLastOperation ? "expandLess" : "expandMore"} />
+                        </button>
+                        <Collapse
+                          isOpen={showLastOperation}
+                          id="last-operation"
+                          aria-labelledby="last-operation-toggle"
+                        >
+                          <Box variant="default">
+                            <Grid>
+                              <GridRow>
+                                <GridColumn cols={2} className="tw-text-right">
+                                  <strong>Description</strong>
+                                </GridColumn>
+                                <GridColumn cols={10}>{cluster.lastOperation?.description}</GridColumn>
+                              </GridRow>
+                              <GridRow>
+                                <GridColumn cols={2} className="tw-text-right">
+                                  <strong>Progress</strong>
+                                </GridColumn>
+                                <GridColumn cols={10}>{cluster.lastOperation?.progress}</GridColumn>
+                              </GridRow>
+                              <GridRow>
+                                <GridColumn cols={2} className="tw-text-right">
+                                  <strong>State</strong>
+                                </GridColumn>
+                                <GridColumn cols={10}>{cluster.lastOperation?.state}</GridColumn>
+                              </GridRow>
+                              <GridRow>
+                                <GridColumn cols={2} className="tw-text-right">
+                                  <strong>Type</strong>
+                                </GridColumn>
+                                <GridColumn cols={10}>{cluster.lastOperation?.type}</GridColumn>
+                              </GridRow>
+                              <GridRow>
+                                <GridColumn cols={2} className="tw-text-right">
+                                  <strong>Update Time</strong>
+                                </GridColumn>
+                                <GridColumn cols={10}>
+                                  {new Date(cluster.lastOperation?.lastUpdateTime).toLocaleString()}
+                                </GridColumn>
+                              </GridRow>
+                            </Grid>
+                          </Box>
+                        </Collapse>
+                      </Stack>
                     </ClusterDetailRow>
-                  )}
-                </DataGrid>
-              </Container>
-            )}
+                  </>
+                )}
+              </DataGrid>
+            </Container>
+
+            {/* Workers */}
+            <Container py px={false}>
+              <h2 className={sectionHeaderStyles}>Worker Pools</h2>
+              <WorkerList workers={cluster.workers} />
+            </Container>
 
             {/* Maintenance and auto update */}
             <DataGrid columns={2} gridColumnTemplate="50% 50%">
@@ -246,12 +269,6 @@ function clusterDetailContent({ cluster, updatedAt }: { cluster: Cluster; update
                 </Container>
               </DataGridRow>
             </DataGrid>
-
-            {/* Workers */}
-            <Container py px={false}>
-              <h2 className={sectionHeaderStyles}>Worker Pools</h2>
-              <WorkerList workers={cluster.workers} />
-            </Container>
           </TabPanel>
           <TabPanel>
             <Container py px={false}>
@@ -291,7 +308,7 @@ function ClusterDetail({ cluster, permissions, isLoading, error, updatedAt }: Cl
       return <span role="status">Cluster not found</span>
     }
 
-    return clusterDetailContent({ cluster, updatedAt })
+    return <ClusterDetailContent cluster={cluster} updatedAt={updatedAt} />
   }
 
   return (

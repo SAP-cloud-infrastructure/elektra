@@ -177,4 +177,39 @@ describe("<ClusterDetail />", () => {
       expect(screen.getByRole("button", { name: /delete cluster/i })).toBeDisabled()
     })
   })
+
+  describe("Latest Operation & Errors section", () => {
+    it("renders always last operation", async () => {
+      const clusterWithErrors = {
+        ...defaultCluster,
+        lastOperation: {
+          type: "Reconcile",
+          state: "Succeeded",
+          progress: 100,
+          description: "Cluster updated successfully",
+          lastUpdateTime: "2023-10-01T12:34:56Z",
+        },
+      }
+
+      // Render with errors
+      await act(async () =>
+        renderComponent({
+          clusterDetailsPromise: Promise.resolve(clusterWithErrors),
+        })
+      )
+
+      expect(screen.getByRole("heading", { level: 2, name: "Latest Operation & Errors" })).toBeInTheDocument()
+      // expect(screen.getByText("Sample error message")).toBeInTheDocument()
+
+      // // Render without errors
+      // await act(async () =>
+      //   renderComponent({
+      //     clusterDetailsPromise: Promise.resolve(defaultCluster),
+      //   })
+      // )
+
+      // expect(screen.getByRole("heading", { level: 2, name: "Latest Operation & Errors" })).toBeInTheDocument()
+      // expect(screen.queryByText("Sample error message")).not.toBeInTheDocument()
+    })
+  })
 })
