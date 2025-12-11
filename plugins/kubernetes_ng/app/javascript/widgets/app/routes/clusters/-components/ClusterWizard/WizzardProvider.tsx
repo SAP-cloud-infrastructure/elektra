@@ -257,9 +257,7 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ client, region, 
     return {
       ...prev,
       cloudProfileName: newName,
-      // reset to latest kubernetes version of new profile
       kubernetesVersion: latestK8sVersion,
-      // reset infrastructure apiVersion
       infrastructure: {
         ...prev.infrastructure,
         apiVersion: apiVersion,

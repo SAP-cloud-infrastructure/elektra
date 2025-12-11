@@ -8,6 +8,16 @@ const sectionHeaderStyle = `
   tw-font-bold
   tw-mb-4
 `
+// Do not show validation errors if cloud profiles are still loading
+function getErrorText<T extends { error?: unknown; isLoading?: boolean }>(
+  resource: T,
+  fieldError?: string
+): string | undefined {
+  if (resource.error instanceof Error) return resource.error.message
+  // if resource has finished loading, return field error (if any)
+  if (!resource.isLoading) return fieldError
+  return undefined
+}
 
 const Step1 = () => {
   const {
@@ -60,11 +70,7 @@ const Step1 = () => {
             id="cloudProfile"
             name="cloudProfile"
             loading={cloudProfiles.isLoading}
-            errortext={
-              cloudProfiles.error instanceof Error
-                ? cloudProfiles.error.message
-                : formErrors?.cloudProfileName?.[0] || undefined
-            }
+            errortext={getErrorText(cloudProfiles, formErrors?.cloudProfileName?.[0])}
             helptext="Cloud profiles define the infrastructure settings for your cluster. Changing the cloud profile will reset certain fields."
             value={clusterFormData.cloudProfileName}
             onChange={(e) =>
@@ -91,11 +97,7 @@ const Step1 = () => {
             disabled={cloudProfiles.isLoading}
             value={clusterFormData.kubernetesVersion}
             onChange={(e) => setClusterFormData((prev) => ({ ...prev, kubernetesVersion: e?.toString() || "" }))}
-            errortext={
-              cloudProfiles.error instanceof Error
-                ? cloudProfiles.error.message
-                : formErrors?.kubernetesVersion?.[0] || undefined
-            }
+            errortext={getErrorText(cloudProfiles, formErrors?.kubernetesVersion?.[0])}
             truncateOptions
           >
             {availableKubernetesVersions.map((version) => (
@@ -118,11 +120,7 @@ const Step1 = () => {
             label="Floating IP Pool"
             name="floatingPool"
             loading={extNetworks.isLoading}
-            errortext={
-              extNetworks.error instanceof Error
-                ? extNetworks.error.message
-                : formErrors["infrastructure.floatingPoolName"]?.[0] || undefined
-            }
+            errortext={getErrorText(extNetworks, formErrors?.["infrastructure.floatingPoolName"]?.[0])}
             value={clusterFormData.infrastructure?.floatingPoolName}
             onChange={(e) =>
               setClusterFormData((prev) => ({

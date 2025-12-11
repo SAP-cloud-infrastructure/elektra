@@ -29,6 +29,12 @@ const WorkerGroupSection = ({ workerGroup, index, totalWorkers, onChange, onDele
   const selectedImage = availableMachineImages.find((img) => img.name === workerGroup.machineImage.name)
   const availableImageVersions = selectedImage?.versions ?? []
   const availableZones = selectedCloudProfile?.regions?.find((r) => r.name === region)?.zones || []
+  const imageVersionDisabled = !workerGroup.machineImage.name
+  // Do not show error if image version select is disabled
+  const imageVersionErrorText = imageVersionDisabled
+    ? undefined
+    : (cloudProfiles.error instanceof Error && cloudProfiles.error.message) ||
+      formErrors[`workers.${workerGroup.id}.machineImage.version`]?.[0]
 
   const handleFieldChange = (field: string, value: unknown) => {
     onChange({
@@ -211,11 +217,7 @@ const WorkerGroupSection = ({ workerGroup, index, totalWorkers, onChange, onDele
                 name="imageVersion"
                 loading={cloudProfiles.isLoading}
                 helptext="Select the version of the machine image for the chosen image type."
-                errortext={
-                  cloudProfiles.error instanceof Error
-                    ? cloudProfiles.error.message
-                    : formErrors[`workers.${workerGroup.id}.machineImage.version`]?.[0] || undefined
-                }
+                errortext={imageVersionErrorText}
                 value={workerGroup?.machineImage?.version}
                 onChange={(e) =>
                   onChange({
@@ -227,7 +229,7 @@ const WorkerGroupSection = ({ workerGroup, index, totalWorkers, onChange, onDele
                   })
                 }
                 onBlur={() => validateSingleField(`workers.${workerGroup.id}.machineImage.version`)}
-                disabled={!workerGroup.machineImage.name}
+                disabled={imageVersionDisabled}
                 truncateOptions
               >
                 {availableImageVersions.map((opt) => (
