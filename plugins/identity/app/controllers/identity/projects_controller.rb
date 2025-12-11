@@ -21,7 +21,7 @@ module Identity
     
     # check wizard state and redirect unless finished
     before_action :check_wizard_status, only: [:show]
-    before_action :api_endpoints, only: %i[download_openrc download_openrc_ps1]
+    before_action :api_endpoints, only: %i[download_openrc download_openrc_ps1 download_app_cred download_app_cred_ps1]
     before_action { @scoped_project_fid = params[:project_id] || @project_id }
 
     authorization_required(
@@ -148,6 +148,46 @@ module Identity
         out_data,
         type: 'text/plain',
         filename: "openrc-#{@scoped_domain_name}-#{@scoped_project_name}.ps1",
+        dispostion: 'inline',
+        status: :ok
+      )
+    end
+
+    def download_app_cred_ps1
+      out_data =
+        "$env:OS_AUTH_TYPE=\"v3applicationcredential\"\r\n" \
+          "$env:OS_AUTH_URL=\"#{@identity_url}\"\r\n" \
+          "$env:OS_IDENTITY_API_VERSION=\"3\"\r\n" \
+          "$env:OS_REGION_NAME=\"#{current_region}\"\r\n" \
+          "$AppCredId = Read-Host -Prompt \"Please enter your Application Credential ID\"\r\n" \
+          "$env:OS_APPLICATION_CREDENTIAL_ID = $AppCredId\r\n" \
+          "$AppCredSecret = Read-Host -Prompt \"Please enter your Application Credential Secret\" -AsSecureString\r\n" \
+          "$env:OS_APPLICATION_CREDENTIAL_SECRET = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($AppCredSecret))\r\n"
+      send_data(
+        out_data,
+        type: 'text/plain',
+        filename: "openrc-app-cred-#{@scoped_domain_name}-#{@scoped_project_name}.ps1",
+        dispostion: 'inline',
+        status: :ok
+      )
+    end
+
+    def download_app_cred
+      out_data =
+        "export OS_AUTH_TYPE=v3applicationcredential\n" \
+          "export OS_AUTH_URL=#{@identity_url}\n" \
+          "export OS_IDENTITY_API_VERSION=3\n" \
+          "export OS_REGION_NAME=#{current_region}\n" \
+          "echo \"Please enter your Application Credential ID: \"\n" \
+          "read -r OS_APPLICATION_CREDENTIAL_ID_INPUT\n" \
+          "export OS_APPLICATION_CREDENTIAL_ID=$OS_APPLICATION_CREDENTIAL_ID_INPUT\n" \
+          "echo \"Please enter your Application Credential Secret: \"\n" \
+          "read -sr OS_APPLICATION_CREDENTIAL_SECRET_INPUT\n" \
+          "export OS_APPLICATION_CREDENTIAL_SECRET=$OS_APPLICATION_CREDENTIAL_SECRET_INPUT\n"
+      send_data(
+        out_data,
+        type: 'text/plain',
+        filename: "openrc-app-cred-#{@scoped_domain_name}-#{@scoped_project_name}",
         dispostion: 'inline',
         status: :ok
       )
