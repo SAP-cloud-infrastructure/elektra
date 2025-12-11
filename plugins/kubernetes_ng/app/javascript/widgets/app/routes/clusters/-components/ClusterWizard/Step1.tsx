@@ -155,7 +155,7 @@ const Step1 = () => {
           <Icon color="global-text" icon={showAdvanceNetworkSettings ? "expandLess" : "expandMore"} />
         </button>
       </Stack>
-      <Collapse className="tw-mt-2" isOpen={showAdvanceNetworkSettings}>
+      <Collapse className="tw-mt-2" innerClassName="tw-p-0.5" isOpen={showAdvanceNetworkSettings}>
         <FormRow>
           <TextInput
             label="Pods CIDR"
