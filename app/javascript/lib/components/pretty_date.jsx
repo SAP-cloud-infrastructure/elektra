@@ -7,7 +7,7 @@ export const PrettyDate = ({ date }) => {
 
   return (
     <Tooltip content={m.format("LLLL")} placement="top">
-      <span>{m.fromNow()}</span>
+      <span data-testid="pretty-date">{m.fromNow()}</span>
     </Tooltip>
   )
 }

@@ -9,7 +9,7 @@ interface FormValues {
 interface FormProps {
   initialValues?: FormValues
   validate: (values: FormValues) => boolean
-  onSubmit: (values: FormValues) => Promise<any>
+  onSubmit: (values: FormValues) => Promise<unknown>
   resetForm?: boolean
   onValueChange?: (name: string | FormValues, values: FormValues) => void
   className?: string
