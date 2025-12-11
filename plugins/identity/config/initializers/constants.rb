@@ -35,6 +35,7 @@ ALLOWED_ROLES = %w[
   securitygroup_viewer
   securitygroup_admin
   registry_viewer
+  registry_pusher
   registry_admin
   email_admin
   email_user
