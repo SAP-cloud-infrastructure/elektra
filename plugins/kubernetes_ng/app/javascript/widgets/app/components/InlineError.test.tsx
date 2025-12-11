@@ -14,6 +14,18 @@ describe("<InlineError />", () => {
       expect(screen.getByText("CustomError: Something bad happened")).toBeInTheDocument()
     })
 
+    // , , shoots.core.gardener.cloud "shoot" already exists removes the shoots.core.gardener.cloud "shoot" already exists
+    it("handles error messages with ', , ' at the beginning of the message", () => {
+      const error = new Error('shoots.core.gardener.cloud "shoot" already exists')
+      error.name = "ResourceExistsError"
+
+      render(<InlineError error={error} />)
+
+      expect(
+        screen.getByText('ResourceExistsError: shoots.core.gardener.cloud "shoot" already exists')
+      ).toBeInTheDocument()
+    })
+
     it("falls back to 'Error: ' prefix if error.name is missing", () => {
       const error = new Error("Oops")
       error.name = ""
@@ -41,7 +53,7 @@ describe("<InlineError />", () => {
       }
 
       render(<InlineError error={error} />)
-      expect(screen.getByText("Server Error: Server is down")).toBeInTheDocument()
+      expect(screen.getByText("API Error: Server is down")).toBeInTheDocument()
     })
     it("falls back to 'Please try again later.' if error.data.message is empty", () => {
       const error = {
@@ -52,7 +64,7 @@ describe("<InlineError />", () => {
       }
 
       render(<InlineError error={error} />)
-      expect(screen.getByText("Server Error: Please try again later.")).toBeInTheDocument()
+      expect(screen.getByText("API Error: Please try again later.")).toBeInTheDocument()
     })
   })
 

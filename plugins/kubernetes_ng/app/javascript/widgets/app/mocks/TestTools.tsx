@@ -12,6 +12,7 @@ import { PortalProvider } from "@cloudoperators/juno-ui-components/index"
 import { render } from "@testing-library/react"
 import { RouterContext } from "../routes/__root"
 import { defaultCluster, permissionsAllTrue, externalNetworks, cloudProfiles } from "./data"
+import { GardenerApi } from "../apiClient"
 
 export interface TestContext {
   apiClient: unknown
@@ -68,7 +69,7 @@ export const renderComponent = (component: React.ReactNode, path = "/test/") => 
   }
 }
 
-export const defaultMockClient = {
+export const defaultMockClient: GardenerApi = {
   gardener: {
     getClusters: () => Promise.resolve([defaultCluster]),
     getClusterByName: () => Promise.resolve(defaultCluster),
