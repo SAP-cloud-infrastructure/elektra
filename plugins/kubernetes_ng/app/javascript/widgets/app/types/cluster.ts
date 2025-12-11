@@ -44,6 +44,7 @@ export const ClusterSchema = z.object({
   // List view fields
   uid: z.string().uuid(),
   name: z.string(),
+  createdBy: z.string().optional(),
   region: z.string(),
   infrastructure: z.string(),
   status: z.string(),
@@ -54,6 +55,7 @@ export const ClusterSchema = z.object({
     conditions: z.array(ReadinessConditionSchema),
   }),
   purpose: z.string().optional(),
+  addOns: z.array(z.string()).optional(),
   cloudProfileName: z.string().optional(),
   labels: z.record(z.string(), z.string()).optional(),
   stateDetails: z

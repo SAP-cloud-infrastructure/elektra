@@ -3,10 +3,15 @@ import { ModalFooter, ButtonRow, Button } from "@cloudoperators/juno-ui-componen
 import { useWizard } from "./WizzardProvider"
 
 const Actions = ({ onSuccessCreate }: { onSuccessCreate: (clusterName: string) => void }) => {
-  const { currentStep, handleSetCurrentStep, steps, createMutation, clusterFormData } = useWizard()
+  const { currentStep, handleSetCurrentStep, steps, createMutation, clusterFormData, cloudProfiles, extNetworks } =
+    useWizard()
 
   //check if hasError is false for all steps
   const isFormValid = steps.every((step) => !step.hasError)
+
+  // next button disabled if cloud profiles or external networks are loading or fetching
+  const isNextDisabled =
+    cloudProfiles.isLoading || cloudProfiles.isFetching || extNetworks.isLoading || extNetworks.isFetching
 
   const onSubmit = () => {
     return createMutation.mutate(clusterFormData, {
@@ -27,7 +32,11 @@ const Actions = ({ onSuccessCreate }: { onSuccessCreate: (clusterName: string) =
           Back
         </Button>
         {currentStep < steps.length - 1 ? (
-          <Button onClick={() => handleSetCurrentStep(Math.min(currentStep + 1, steps.length - 1))} variant="primary">
+          <Button
+            onClick={() => handleSetCurrentStep(Math.min(currentStep + 1, steps.length - 1))}
+            variant="primary"
+            disabled={isNextDisabled}
+          >
             Next
           </Button>
         ) : (

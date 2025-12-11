@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { Tooltip, TooltipTrigger, TooltipContent, Icon } from "@cloudoperators/juno-ui-components"
+import { Tooltip, TooltipTrigger, TooltipContent, Icon, Stack } from "@cloudoperators/juno-ui-components"
 
 export interface ClipboardTextProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
@@ -35,14 +35,16 @@ const ClipboardText: React.FC<ClipboardTextProps> = ({
     <div {...props} className={combinedClassName}>
       <Tooltip open={open}>
         <TooltipTrigger onClick={handleCopy} aria-label={`Copy ${text} to clipboard`}>
-          {text}
+          <Stack direction="horizontal" gap="1" className="tw-items-center">
+            {text}
+            <Icon
+              icon="contentCopy"
+              size="18"
+              className="tw-opacity-0 group-hover:tw-opacity-100 tw-transition-opacity tw-duration-200 tw-cursor-pointer"
+            />
+          </Stack>
         </TooltipTrigger>
         <TooltipContent>{tooltipContent}</TooltipContent>
-        <Icon
-          icon="contentCopy"
-          size="18"
-          className="tw-ml-1 tw-opacity-0 group-hover:tw-opacity-100 tw-transition-opacity tw-duration-200 tw-cursor-pointer"
-        />
       </Tooltip>
     </div>
   )
