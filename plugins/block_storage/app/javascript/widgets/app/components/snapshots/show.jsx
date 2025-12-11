@@ -1,8 +1,6 @@
 import React from "react"
-import { Modal, Button, Tabs, Tab } from "react-bootstrap"
-import { Link } from "react-router-dom"
+import { Modal, Button } from "react-bootstrap"
 import { PrettyDate } from "lib/components/pretty_date"
-import { PrettySize } from "lib/components/pretty_size"
 
 const Row = ({ label, value, children }) => {
   return (
@@ -56,12 +54,7 @@ export default class ShowModal extends React.Component {
       >
         <Modal.Header closeButton={true}>
           <Modal.Title id="contained-modal-title-lg">
-            Snapshot{" "}
-            {snapshot ? (
-              snapshot.name
-            ) : (
-              <span className="info-text">{this.props.id}</span>
-            )}
+            Snapshot {snapshot ? snapshot.name : <span className="info-text">{this.props.id}</span>}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
@@ -82,10 +75,7 @@ export default class ShowModal extends React.Component {
                 <Row label="Size (GB)" value={snapshot.size} />
                 <Row label="Status" value={snapshot.status} />
 
-                <Row
-                  label="Progress"
-                  value={snapshot["os-extended-snapshot-attributes:progress"]}
-                />
+                <Row label="Progress" value={snapshot["os-extended-snapshot-attributes:progress"]} />
 
                 <Row label="Source Volume">
                   {snapshot.volume_name ? (
@@ -123,7 +113,9 @@ export default class ShowModal extends React.Component {
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button onClick={this.hide}>Close</Button>
+          <Button onClick={this.hide} name="close">
+            Close
+          </Button>
         </Modal.Footer>
       </Modal>
     )
