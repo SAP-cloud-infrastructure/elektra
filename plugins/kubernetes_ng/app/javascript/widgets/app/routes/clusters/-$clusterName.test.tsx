@@ -199,17 +199,7 @@ describe("<ClusterDetail />", () => {
       )
 
       expect(screen.getByRole("heading", { level: 2, name: "Latest Operation & Errors" })).toBeInTheDocument()
-      // expect(screen.getByText("Sample error message")).toBeInTheDocument()
-
-      // // Render without errors
-      // await act(async () =>
-      //   renderComponent({
-      //     clusterDetailsPromise: Promise.resolve(defaultCluster),
-      //   })
-      // )
-
-      // expect(screen.getByRole("heading", { level: 2, name: "Latest Operation & Errors" })).toBeInTheDocument()
-      // expect(screen.queryByText("Sample error message")).not.toBeInTheDocument()
+      expect(screen.getByText("Cluster updated successfully")).toBeInTheDocument()
     })
   })
 })
