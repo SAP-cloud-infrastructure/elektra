@@ -121,7 +121,7 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Permissions do
         # This simulates a user with full access to the resource
         verbs.each do |verb|
           allow(self).to receive(:get_permission_by_project_and_resource_and_verb)
-            .with(project_id, resource, verb)
+            .with(project_id, resource, verb, nil)
             .and_return(true)
         end
       end
@@ -145,15 +145,15 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Permissions do
         # Mock a realistic scenario where user has read permissions but not write permissions
         # This is common in RBAC setups where users have different levels of access
         allow(self).to receive(:get_permission_by_project_and_resource_and_verb)
-          .with(project_id, resource, "list").and_return(true)
+          .with(project_id, resource, "list", nil).and_return(true)
         allow(self).to receive(:get_permission_by_project_and_resource_and_verb)
-          .with(project_id, resource, "get").and_return(true)
+          .with(project_id, resource, "get", nil).and_return(true)
         allow(self).to receive(:get_permission_by_project_and_resource_and_verb)
-          .with(project_id, resource, "create").and_return(false)
+          .with(project_id, resource, "create", nil).and_return(false)
         allow(self).to receive(:get_permission_by_project_and_resource_and_verb)
-          .with(project_id, resource, "update").and_return(false)
+          .with(project_id, resource, "update", nil).and_return(false)
         allow(self).to receive(:get_permission_by_project_and_resource_and_verb)
-          .with(project_id, resource, "delete").and_return(false)
+          .with(project_id, resource, "delete", nil).and_return(false)
       end
 
       it "returns a hash with mixed permissions" do
@@ -176,7 +176,7 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Permissions do
         # This could happen for unauthorized users or misconfigured RBAC
         verbs.each do |verb|
           allow(self).to receive(:get_permission_by_project_and_resource_and_verb)
-            .with(project_id, resource, verb)
+            .with(project_id, resource, verb, nil)
             .and_return(false)
         end
       end
@@ -218,4 +218,27 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Permissions do
       end
     end
   end
+
+  describe "subresource handling" do
+    context "when checking permissions for a subresource" do
+      let(:resource) { "shoots" }
+      let(:subresource) { "adminkubeconfig" } # Example subresource in Gardener
+
+      it "includes subresource in permission checks" do
+        # Mock API response for subresource permission check
+        subresource_response = double("response", body: { "status" => { "allowed" => true } })
+        expect(elektron_gardener_mock).to receive(:post)
+          .with("apis/authorization.k8s.io/v1/selfsubjectaccessreviews")
+          .exactly(5).times # Once for each verb
+          .and_yield
+          .and_return(subresource_response)
+
+        result = list_permissions_by_project_and_resource(project_id, resource, subresource)
+        # Verify that all expected verbs are checked and returned for the subresource
+        expect(result.keys).to match_array(["list", "get", "create", "update", "delete"])
+        expect(result.values).to all(be true)
+      end
+    end
+  end
+
 end

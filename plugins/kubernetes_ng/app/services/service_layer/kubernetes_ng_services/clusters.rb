@@ -63,6 +63,25 @@ module ServiceLayer
         return response&.body
       end
 
+      def admin_kubeconfig_cluster(project_id, cluster_name, expiration_seconds = 600)
+        namespace = "garden-#{project_id}"
+        response = elektron_gardener.post(
+          "apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots/#{cluster_name}/adminkubeconfig",
+          headers: { "Content-Type" => "application/json" }
+        ) do
+          {
+            spec: {
+              expirationSeconds: 28800 # Hardcoded to 8 hours
+            }
+          }
+        end
+
+        # decode kubeconfig from base64
+        kubeconfig_base64 = deep_fetch(response&.body, "status", "kubeconfig")
+        # TODO return error if kubeconfig_base64 is nil
+        return kubeconfig_base64 ? Base64.decode64(kubeconfig_base64) : nil
+      end
+
       private
 
       # Helper method for deep fetching nested hash values
