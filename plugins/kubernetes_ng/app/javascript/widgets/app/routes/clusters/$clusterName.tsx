@@ -153,12 +153,12 @@ function ClusterDetailActions({
         size="small"
         label="Delete Cluster"
         variant="primary-danger"
-        disabled={disabled || !shootPermissions?.delete}
+        disabled={disabled || !shootPermissions?.delete || true}
       />
-      {/* TODO add permissions or just display the error*/}
       <Button
         size="small"
-        label="Download Kube Config"
+        label="Kube Config"
+        icon="download"
         disabled={disabled || kubeconfigMutation.isPending || !kubeconfigPermissions?.get}
         progress={kubeconfigMutation.isPending}
         onClick={() => kubeconfigMutation.mutate()}
