@@ -5,6 +5,7 @@ interface CollapseProps {
   isOpen: boolean
   children: React.ReactNode
   className?: string // optional wrapper classes
+  innerClassName?: string // optional inner classes
 }
 
 /**
@@ -16,8 +17,9 @@ interface CollapseProps {
  * @param {React.ReactNode} children - The content to be collapsed/expanded.
  * @param {string} [id] - Optional id for the collapse container to link with aria-controls.
  * @param {string} [className] - Optional additional class names for styling.
+ * @param {string} [innerClassName] - Optional additional class names for the inner content.
  */
-export default function Collapse({ id, isOpen, children, className, ...props }: CollapseProps) {
+export default function Collapse({ id, isOpen, children, className, innerClassName, ...props }: CollapseProps) {
   const ref = useRef<HTMLDivElement>(null)
   const [height, setHeight] = useState(isOpen ? "auto" : "0px")
 
@@ -54,7 +56,7 @@ export default function Collapse({ id, isOpen, children, className, ...props }: 
       role="region"
       {...props}
     >
-      <div className="tw-p-0.5">{children}</div>
+      <div className={innerClassName}>{children}</div>
     </div>
   )
 }

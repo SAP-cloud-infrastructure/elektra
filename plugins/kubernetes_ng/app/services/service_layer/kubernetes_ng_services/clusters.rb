@@ -89,12 +89,14 @@ module ServiceLayer
           # List view fields
           uid: metadata['uid'],
           name: metadata['name'],
+          createdBy: metadata.dig('annotations', 'gardener.cloud/created-by'),
           region: spec['region'],
           infrastructure: deep_fetch(spec, 'provider', 'type'),
           status: get_cluster_status(shoot),
           version: deep_fetch(spec, 'kubernetes', 'version'),
           readiness: get_cluster_readiness(shoot),
           purpose: spec['purpose'],
+          addOns: get_enabled_add_ons(spec),
           cloudProfileName: spec['cloudProfileName'],
           namespace: metadata.dig('namespace'),
           secretBindingName: spec['secretBindingName'],          
@@ -134,6 +136,14 @@ module ServiceLayer
         }.compact
       end
       
+      def get_enabled_add_ons(spec)
+        add_ons = deep_fetch(spec, 'addons')
+        return [] unless add_ons.is_a?(Hash)
+        add_ons.filter_map do |key, value|
+          key if value['enabled'] == true
+        end
+      end
+
       # convert_shoot_to_cluster -> Helper functions
       # Helper function to determine cluster status from last operation
       def get_cluster_status(shoot)

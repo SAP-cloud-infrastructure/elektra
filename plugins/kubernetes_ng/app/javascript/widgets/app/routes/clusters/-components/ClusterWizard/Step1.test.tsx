@@ -8,13 +8,14 @@ import { defaultMockClient } from "../../../../mocks/TestTools"
 import Step1 from "./Step1"
 import { CloudProfile } from "../../../../types/cloudProfiles"
 import { DEFAULT_CLUSTER_FORM_DATA } from "./defaults"
+import { GardenerApi } from "../../../../apiClient"
 
 const TestWrapper =
-  (queryClient: QueryClient) =>
+  (queryClient: QueryClient, client: GardenerApi = defaultMockClient) =>
   ({ children }: { children: React.ReactNode }) => (
     <PortalProvider>
       <QueryClientProvider client={queryClient}>
-        <WizardProvider client={defaultMockClient} region="us-east-1" formData={DEFAULT_CLUSTER_FORM_DATA}>
+        <WizardProvider client={client} region="us-east-1" formData={DEFAULT_CLUSTER_FORM_DATA}>
           <Step1 />
           {children}
         </WizardProvider>
@@ -33,6 +34,10 @@ describe("Step1 Component", () => {
         mutations: { retry: false },
       },
     })
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
   })
 
   it("renders basic and infrastructure sections", async () => {
@@ -106,7 +111,7 @@ describe("Step1 Component", () => {
     expect(kubeSelect).toBeDisabled()
   })
 
-  it("displays errors for all fields", () => {
+  it("displays errors for all fields", async () => {
     const wrapper = TestWrapper(queryClient)
     const originalUseWizard = wizardHook.useWizard
 
@@ -129,7 +134,7 @@ describe("Step1 Component", () => {
 
     renderHook(() => useWizard(), { wrapper })
     expect(screen.getByText("Name is required")).toBeInTheDocument()
-    expect(screen.getByText("Cloud Profile is required")).toBeInTheDocument()
+    expect(await screen.findByText("Cloud Profile is required")).toBeInTheDocument()
     expect(screen.getByText("Kubernetes Version is required")).toBeInTheDocument()
     expect(screen.getByText("Floating IP Pool is required")).toBeInTheDocument()
     expect(screen.getAllByText("Invalid CIDR").length).toBe(4)

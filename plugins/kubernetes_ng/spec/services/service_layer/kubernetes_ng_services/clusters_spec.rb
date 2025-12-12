@@ -11,6 +11,9 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           'resourceVersion' => '1234567',
           'generation' => 1,
           'creationTimestamp' => Time.now.iso8601,
+          'annotations' => {
+            'gardener.cloud/created-by' => 'admin'
+          },
           'labels' => {
             'environment' => 'production',
             'team' => 'devops'
@@ -111,6 +114,7 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
       expect(cluster).to include(
         uid: shoot_mock['metadata']['uid'],
         name: shoot_mock['metadata']['name'],
+        createdBy: shoot_mock['metadata']['annotations']['gardener.cloud/created-by'],
         region: shoot_mock['spec']['region'],
         infrastructure: shoot_mock['spec']['provider']['type'],
         status: 'Operational',
@@ -237,7 +241,7 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
       }
       cluster = convert_shoot_to_cluster(shoot_with_addons)
       expect(cluster[:name]).to eq('addon-cluster')
-      # Add expectations for how addons are handled in your conversion logic
+      expect(cluster[:addOns]).to include('kubernetesDashboard', 'nginxIngress')
     end
     
     it "handles shoot with DNS configuration" do

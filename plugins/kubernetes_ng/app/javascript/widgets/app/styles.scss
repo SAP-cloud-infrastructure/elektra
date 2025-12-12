@@ -25,3 +25,14 @@ h4 {
     }
   }
 }
+
+// These classes are needed to increase the size of select and textinput components
+// so when an field has an error the input doesn't jump.
+.cluster-form {
+  .juno-select-wrapper {
+    @apply tw-min-h-20;
+  }
+  .juno-textinput-outer-wrapper {
+    @apply tw-min-h-20;
+  }
+}

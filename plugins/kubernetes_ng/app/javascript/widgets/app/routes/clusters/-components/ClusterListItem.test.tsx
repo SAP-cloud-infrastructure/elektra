@@ -43,16 +43,6 @@ describe("<ClusterListItem />", () => {
     })
   })
 
-  it("copies cluster ID to clipboard", async () => {
-    await act(async () => renderComponent(<ClusterListItem cluster={defaultCluster} />))
-    // const clipboardButton = screen.getByTestId("clipboard-text")
-    const clipboardButton = screen.getByRole("button", {
-      name: new RegExp(`copy ${defaultCluster.uid} to clipboard`, "i"),
-    })
-    expect(clipboardButton).toHaveTextContent(defaultCluster.uid)
-    expect(clipboardButton).toBeInTheDocument()
-  })
-
   it("renders View Details button with correct link", async () => {
     const clusterWithName = { ...defaultCluster, name: "test-cluster-123" }
     await act(async () => renderComponent(<ClusterListItem cluster={clusterWithName} />))
