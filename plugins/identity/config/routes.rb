@@ -53,6 +53,8 @@ Identity::Engine.routes.draw do
     get 'api-endpoints'
     get 'download-openrc'
     get 'download-openrc-ps1'
+    get 'download-app-cred'
+    get 'download-app-cred-ps1'
 
     scope :wizard do
       get 'request_project' => 'request_wizard#new'

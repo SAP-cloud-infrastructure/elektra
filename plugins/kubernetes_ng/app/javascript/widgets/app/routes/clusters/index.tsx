@@ -145,7 +145,7 @@ function Clusters(props: ClustersViewProps) {
           isOpen={showWizardModal}
           onSuccessCreate={(clusterName) => {
             router.invalidate()
-            setSuccessMessage(`Cluster ${clusterName} created successfully.`)
+            setSuccessMessage(`Cluster ${clusterName} is being bootstrapped. This may take a few minutes.`)
           }}
           onClose={() => {
             setShowWizardModal(false)

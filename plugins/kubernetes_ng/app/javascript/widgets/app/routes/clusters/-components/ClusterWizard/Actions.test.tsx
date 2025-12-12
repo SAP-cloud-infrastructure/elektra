@@ -3,13 +3,15 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import Actions from "./Actions"
 import { WizardContextProps, WizardProvider } from "./WizzardProvider"
 import { defaultCluster } from "../../../../mocks/data"
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { QueryClient, QueryClientProvider, UseQueryResult } from "@tanstack/react-query"
 import { GardenerApi } from "../../../../apiClient"
 import * as wizardHook from "./WizzardProvider"
 import { STEP_DEFINITIONS } from "./constants"
 import { UseMutationResult } from "@tanstack/react-query"
 import { defaultMockClient } from "../../../../mocks/TestTools"
 import { DEFAULT_CLUSTER_FORM_DATA } from "./defaults"
+import { CloudProfile } from "../../../../types/cloudProfiles"
+import { ExternalNetwork } from "../../../../types/network"
 
 describe("Actions component", () => {
   const onSuccessCreate = vi.fn()
@@ -39,15 +41,17 @@ describe("Actions component", () => {
       </QueryClientProvider>
     )
 
-  it("renders Back and Next buttons on the first step", () => {
+  it("renders Back and Next buttons on the first step", async () => {
     renderComponent()
 
     expect(screen.getByRole("button", { name: /Back/i })).toBeDisabled()
-    expect(screen.getByRole("button", { name: /Next/i })).toBeEnabled()
+    expect(await screen.findByRole("button", { name: /Next/i })).toBeEnabled()
   })
 
   it("enables Back button after clicking Next", async () => {
     renderComponent()
+    // await Next to be enabled
+    expect(await screen.findByRole("button", { name: /Next/i })).toBeEnabled()
 
     const backButton = screen.getByRole("button", { name: /Back/i })
     const nextButton = screen.getByRole("button", { name: /Next/i })
@@ -64,6 +68,9 @@ describe("Actions component", () => {
 
   it("renders Create Cluster button on last step", async () => {
     renderComponent()
+    // await Next to be enabled
+    expect(await screen.findByRole("button", { name: /Next/i })).toBeEnabled()
+
     const nextButton = screen.getByRole("button", { name: /Next/i })
 
     // Click first step → step 1
@@ -80,11 +87,39 @@ describe("Actions component", () => {
     expect(createButton).toBeDisabled()
   })
 
+  it("disables Next button when cloud profiles or external networks are loading", async () => {
+    const newMockClient = {
+      gardener: {
+        ...defaultMockClient.gardener,
+        getCloudProfiles: vi.fn((): Promise<CloudProfile[]> => new Promise(() => {})), // never resolves
+        getExternalNetworks: vi.fn((): Promise<ExternalNetwork[]> => new Promise(() => {})), // never resolves
+      },
+    }
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <WizardProvider client={newMockClient} region="us-east-1" formData={DEFAULT_CLUSTER_FORM_DATA}>
+          <Actions onSuccessCreate={onSuccessCreate} />
+        </WizardProvider>
+      </QueryClientProvider>
+    )
+
+    expect(await screen.findByRole("button", { name: /Next/i })).toBeDisabled()
+  })
+
   it("calls onSuccessCreate after clicking Create Cluster", async () => {
     // Mock useWizard
     const createMutation: Partial<UseMutationResult<typeof defaultCluster>> = {
       mutate: vi.fn((_, { onSuccess }) => onSuccess(defaultCluster)),
       isLoading: false,
+    }
+    const cloudProfiles: Partial<UseQueryResult<CloudProfile[]>> = {
+      isLoading: false,
+      isFetching: false,
+    }
+    const extNetworks: Partial<UseQueryResult<ExternalNetwork[]>> = {
+      isLoading: false,
+      isFetching: false,
     }
 
     vi.spyOn(wizardHook, "useWizard").mockReturnValue({
@@ -92,9 +127,12 @@ describe("Actions component", () => {
       handleSetCurrentStep: vi.fn(),
       steps: STEP_DEFINITIONS.map((s) => ({ ...s, hasError: false })), // no errors
       createMutation: createMutation as UseMutationResult<typeof defaultCluster>,
+      cloudProfiles: cloudProfiles as UseQueryResult<CloudProfile[]>,
+      extNetworks: extNetworks as UseQueryResult<ExternalNetwork[]>,
     } as Partial<WizardContextProps> as WizardContextProps)
 
     renderComponent()
+
     const createButton = screen.getByRole("button", { name: /Create Cluster/i })
     fireEvent.click(createButton)
     // onSuccessCreate should be called with cluster name
