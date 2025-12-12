@@ -748,14 +748,6 @@ module Compute
       execute_instance_action("reboot", "HARD")
     end
 
-    def two_factor_required?
-      if action_name == "console"
-        true
-      else
-        super
-      end
-    end
-
     def edit_securitygroups
       @action_from_show = params[:action_from_show] == "true" || false
       @instance = services.compute.find_server(params[:id])

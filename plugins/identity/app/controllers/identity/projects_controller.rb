@@ -288,6 +288,14 @@ module Identity
 
     private
 
+    def project_id_required
+    
+      return unless params[:project_id].blank?
+
+      raise Core::Error::ProjectNotFound,
+          'The project you have requested was not found.'
+    end
+
     def get_project
       get_project_id
       @project =
