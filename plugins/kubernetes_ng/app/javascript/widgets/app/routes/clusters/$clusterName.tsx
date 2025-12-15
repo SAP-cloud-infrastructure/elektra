@@ -19,11 +19,12 @@ import {
   GridColumn,
   Icon,
   Stack,
+  Message,
 } from "@cloudoperators/juno-ui-components"
 import PageHeader from "../../components/PageHeader"
 import ClipboardText from "../../components/ClipboardText"
 import ReadinessConditions from "../../components/ReadinessConditions"
-import InlineError from "../../components/InlineError"
+import InlineError, { normalizeError } from "../../components/InlineError"
 import WorkerList from "./-components/WorkerList"
 import ClusterDetailRow from "./-components/ClusterDetailRow"
 import { ErrorBoundary, FallbackProps } from "react-error-boundary"
@@ -31,7 +32,7 @@ import { RouterContext } from "../__root"
 import LastErrors from "./-components/LastErrors"
 import Box from "../../components/Box"
 import { GardenerApi } from "../../apiClient"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, UseMutationResult } from "@tanstack/react-query"
 import Collapse from "../../components/Collapse"
 
 export const CLUSTER_DETAIL_ROUTE_ID = "/clusters/$clusterName"
@@ -107,36 +108,16 @@ function ClusterDetailActions({
   shootPermissions,
   kubeconfigPermissions,
   disabled = false,
+  kubeconfigMutation,
 }: {
   shootPermissions?: Permissions
   kubeconfigPermissions?: Permissions
   disabled?: boolean
+  kubeconfigMutation: UseMutationResult<string, Error, void, unknown>
 }) {
   const router = useRouter()
   const match = useMatch({ from: Route.id })
   const isFetching = match.isFetching === "loader"
-  const client = match.context.apiClient
-  const params = useParams({ from: Route.id })
-
-  console.log("permissions:", shootPermissions, kubeconfigPermissions)
-
-  const kubeconfigMutation = useMutation({
-    mutationFn: async () => {
-      return client.gardener.getKubeconfig(params.clusterName)
-    },
-    mutationKey: ["kubeconfig", params.clusterName],
-    onSuccess: (kubeconfigYaml) => {
-      console.log("Kubeconfig YAML:", kubeconfigYaml)
-
-      // const blob = new Blob([kubeconfigYaml], { type: "text/yaml" })
-      // const url = URL.createObjectURL(blob)
-      // const a = document.createElement("a")
-      // a.href = url
-      // a.download = `${params.clusterName}-kubeconfig.yaml`
-      // a.click()
-      // URL.revokeObjectURL(url)
-    },
-  })
 
   return (
     <>
@@ -159,7 +140,8 @@ function ClusterDetailActions({
         size="small"
         label="Kube Config"
         icon="download"
-        disabled={disabled || kubeconfigMutation.isPending || !kubeconfigPermissions?.get}
+        title="Download Kube Config valid for 8 hours"
+        disabled={disabled || kubeconfigMutation.isPending || !kubeconfigPermissions?.create}
         progress={kubeconfigMutation.isPending}
         onClick={() => kubeconfigMutation.mutate()}
       />
@@ -345,6 +327,8 @@ function ClusterDetail({
   updatedAt,
 }: ClusterDetailProps) {
   const params = useParams({ from: Route.id })
+  const match = useMatch({ from: Route.id })
+  const client = match.context.apiClient
 
   const detailsError =
     error ??
@@ -366,13 +350,52 @@ function ClusterDetail({
     return <ClusterDetailContent cluster={cluster} updatedAt={updatedAt} />
   }
 
+  const kubeconfigMutation = useMutation<string, Error, void>({
+    mutationFn: async () => {
+      return client.gardener.getKubeconfig(params.clusterName)
+    },
+
+    onSuccess: (kubeconfigYaml) => {
+      // Create a file-like object in memory from the YAML
+      const blob = new Blob([kubeconfigYaml], {
+        type: "application/x-yaml",
+      })
+
+      // Create a temporary URL pointing to the in-memory file
+      const url = URL.createObjectURL(blob)
+
+      // Create a temporary anchor element to trigger the download
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `${params.clusterName}-kubeconfig.yaml`
+
+      // Required for Safari / Firefox compatibility
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+
+      // Revoke the object URL after the download has been triggered
+      setTimeout(() => URL.revokeObjectURL(url), 0)
+    },
+  })
+
   return (
     <>
+      {kubeconfigMutation.error instanceof Error && (
+        <Container px={false} py>
+          <Message
+            text={normalizeError(kubeconfigMutation.error).title + normalizeError(kubeconfigMutation.error).message}
+            variant="error"
+            dismissible
+          />
+        </Container>
+      )}
       <ClustersDetailPageHeader clusterName={params.clusterName}>
         <ClusterDetailActions
           shootPermissions={shootPermissions}
           kubeconfigPermissions={kubeconfigPermissions}
           disabled={isLoading}
+          kubeconfigMutation={kubeconfigMutation}
         />
       </ClustersDetailPageHeader>
 
