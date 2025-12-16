@@ -177,13 +177,13 @@ module ServiceLayer
         puts "Scheduling job in service layer: ID #{id} with schedule_date: #{schedule_date}"
         # parse it to YEAR-MM-DD HH:MM:SS format
         # schedule_date = Time.parse(schedule_date).utc.strftime("%Y-%m-%d %H:%M:%S")
-        job = elektron_smartops.post("jobs/#{id}/schedule") do { schedule_date_utc: schedule_date } end.body['job']
-        
+        response = elektron_smartops.post("jobs/#{id}/schedule") do { schedule_date_utc: schedule_date } end
         #job = MOCK_DATA.find { |j| j[:id] == id }
-        raise "Job not found" unless job
+        raise "Could not schedule job" if response.header.code.to_i >= 400
 
+        return true
         #job[:schedule_date] = schedule_date
-        job
+        #job
       end
     end
   end

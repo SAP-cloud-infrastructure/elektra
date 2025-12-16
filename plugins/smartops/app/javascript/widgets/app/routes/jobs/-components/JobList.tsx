@@ -20,9 +20,6 @@ const JobsListHeader = () => (
 )
 
 export function JobList({ jobs, isLoading }: JobListProps) {
-  // Remove the search hook since we don't need it here anymore
-  // If you want to highlight selected job, you can pass it as a prop instead
-
   if (isLoading) {
     return (
       <>

@@ -61,8 +61,12 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
       }
 
       setSuccess(true)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An unexpected error occurred")
+    } catch (err: any) {
+      if (err.response?.status === 400) {
+        setError(err.response?.data?.error?.message || "Bad request: Invalid schedule date")
+      } else {
+        setError(err instanceof Error ? err.message : "An unexpected error occurred")
+      }
     } finally {
       setIsLoading(false)
     }
