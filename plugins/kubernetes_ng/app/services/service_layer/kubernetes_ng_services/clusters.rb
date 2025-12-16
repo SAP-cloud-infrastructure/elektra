@@ -78,22 +78,30 @@ module ServiceLayer
           }
         end
 
-        # decode kubeconfig from base64
-        kubeconfig_base64 = deep_fetch(response&.body, "status", "kubeconfig")
+        decode_kubeconfig(response&.body, cluster_name)
+      end
+
+      private
+
+      # Decode the kubeconfig from the API response
+      # Raises KubeconfigGenerationError on failure
+      def decode_kubeconfig(response_body, cluster_name)
+        kubeconfig_base64 = deep_fetch(response_body, "status", "kubeconfig")
+
         unless kubeconfig_base64
           Rails.logger.error("Kubeconfig not found in response for cluster #{cluster_name}")
           raise KubeconfigGenerationError, "Kubeconfig not found in API response"
         end
-        
+
         begin
-          Base64.decode64(kubeconfig_base64)
+          # Base64.decode64 is lenient and won’t raise an exception for most malformed strings
+          # use strict_decode64 to ensure proper error handling
+          Base64.strict_decode64(kubeconfig_base64)
         rescue ArgumentError => e
           Rails.logger.error("Failed to decode kubeconfig for cluster #{cluster_name}: #{e.message}")
           raise KubeconfigGenerationError, "Invalid base64 encoding"
         end
       end
-
-      private
 
       # Helper method for deep fetching nested hash values
       # Usage: deep_fetch(obj, :key1, :key2, :key3)
