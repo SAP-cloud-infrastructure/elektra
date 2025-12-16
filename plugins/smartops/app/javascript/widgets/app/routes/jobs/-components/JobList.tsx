@@ -45,7 +45,7 @@ export function JobList({ jobs, isLoading }: JobListProps) {
           <JobsListHeader />
           <DataGridRow>
             <DataGridCell>
-              <span role="status">No Jobs found, nothing to do �👍</span>
+              <span role="status">No Jobs found, nothing to do 👍</span>
             </DataGridCell>
           </DataGridRow>
         </DataGrid>
