@@ -55,9 +55,21 @@ export function createGardenerApi(mountpoint: string) {
       }),
 
     getKubeconfig: (name: string) =>
-      apiClient.get<{ data: string }>(`/api/clusters/kubeconfig/${name}/`).then((res) => {
-        return res.data
-      }),
+      apiClient
+        .get<{ data: string }>(`/api/clusters/kubeconfig/${name}/`)
+        .then((res) => res.data)
+        .catch((err: unknown) => {
+          // Handle serialized server errors so normalizeError can pick up the proper message
+          if (err && typeof err === "object" && "data" in err) {
+            const data = (err as { data?: Record<string, unknown> }).data
+            if (data?.message && typeof data.message === "string") {
+              throw err // serialized server error
+            }
+          }
+
+          // Fallback to normal Error
+          throw new Error(err instanceof Error ? err.message : "Failed to fetch kubeconfig")
+        }),
   }
 
   const permissionsApi = {

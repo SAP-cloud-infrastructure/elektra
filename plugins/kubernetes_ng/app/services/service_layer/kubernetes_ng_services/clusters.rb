@@ -2,6 +2,8 @@ module ServiceLayer
   module KubernetesNgServices
     # This module implements Openstack Domain API
     module Clusters
+      class KubeconfigGenerationError < StandardError; end
+
       def list_clusters(project_id)
         namespace = "garden-#{project_id}"
         response = elektron_gardener.get("apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots")
@@ -63,7 +65,7 @@ module ServiceLayer
         return response&.body
       end
 
-      def admin_kubeconfig_cluster(project_id, cluster_name, expiration_seconds = 600)
+      def admin_kubeconfig_cluster(project_id, cluster_name, expiration_seconds = 28800)
         namespace = "garden-#{project_id}"
         response = elektron_gardener.post(
           "apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots/#{cluster_name}/adminkubeconfig",
@@ -71,15 +73,24 @@ module ServiceLayer
         ) do
           {
             spec: {
-              expirationSeconds: 28800 # Hardcoded to 8 hours
+              expirationSeconds: expiration_seconds # Hardcoded to 8 hours
             }
           }
         end
 
         # decode kubeconfig from base64
         kubeconfig_base64 = deep_fetch(response&.body, "status", "kubeconfig")
-        # TODO return error if kubeconfig_base64 is nil
-        return kubeconfig_base64 ? Base64.decode64(kubeconfig_base64) : nil
+        unless kubeconfig_base64
+          Rails.logger.error("Kubeconfig not found in response for cluster #{cluster_name}")
+          raise KubeconfigGenerationError, "Kubeconfig not found in API response"
+        end
+        
+        begin
+          Base64.decode64(kubeconfig_base64)
+        rescue ArgumentError => e
+          Rails.logger.error("Failed to decode kubeconfig for cluster #{cluster_name}: #{e.message}")
+          raise KubeconfigGenerationError, "Invalid base64 encoding"
+        end
       end
 
       private
