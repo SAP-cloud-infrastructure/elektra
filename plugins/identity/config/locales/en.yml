@@ -53,6 +53,7 @@ en:
     securitygroup_viewer: Security Group Read-Only
     securitygroup_admin: Security Group Administrator
     registry_viewer: Keppel Read-Only
+    registry_pusher: Keppel Read-Write
     registry_admin: Keppel Administrator
     email_admin: Cronus Administrator
     email_user: Cronus User
