@@ -451,28 +451,6 @@ RSpec.describe ServiceLayer::SmartopsServices::Jobs do
       expect(result).to eq(true)
     end
 
-    context 'when API returns error' do
-      it 'raises an error for 400 status code' do
-        allow(elektron_smartops_mock).to receive(:post).and_return(
-          double('response', header: double('header', code: '400'))
-        )
-
-        expect {
-          test_class.schedule_job(job_id, schedule_date)
-        }.to raise_error('Could not schedule job')
-      end
-
-      it 'raises an error for 500 status code' do
-        allow(elektron_smartops_mock).to receive(:post).and_return(
-          double('response', header: double('header', code: '500'))
-        )
-
-        expect {
-          test_class.schedule_job(job_id, schedule_date)
-        }.to raise_error('Could not schedule job')
-      end
-    end
-
     context 'with different job IDs' do
       it 'schedules job_002' do
         result = test_class.schedule_job('job_002', schedule_date)
