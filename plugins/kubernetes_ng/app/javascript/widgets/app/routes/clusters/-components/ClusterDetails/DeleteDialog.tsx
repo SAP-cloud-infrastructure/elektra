@@ -75,7 +75,7 @@ const DeleteDialog: React.FC<DeleteDialogProps> = ({ clusterName, isOpen, onClos
           type="text"
           onChange={(e) => setInputName(e.target.value)}
           helptext="Name should match the name of the cluster being deleted."
-          invalid={inputName !== clusterName}
+          invalid={inputName.length > 0 && inputName !== clusterName}
           valid={inputName === clusterName}
           maxLength={20}
         />

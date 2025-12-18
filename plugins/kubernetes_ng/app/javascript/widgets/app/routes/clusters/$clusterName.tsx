@@ -112,13 +112,6 @@ function ClusterDetailActions({
       />
       <Button
         size="small"
-        label="Delete Cluster"
-        variant="primary-danger"
-        disabled={disabled || !shootPermissions?.delete}
-        onClick={() => setShowDeleteDialog(true)}
-      />
-      <Button
-        size="small"
         label="Kube Config"
         icon="download"
         title="Download Kube Config valid for 8 hours"
@@ -126,10 +119,19 @@ function ClusterDetailActions({
         progress={kubeconfigMutation.isPending}
         onClick={() => kubeconfigMutation.mutate()}
       />
+      <Button
+        size="small"
+        label="Delete Cluster"
+        variant="primary-danger"
+        disabled={disabled || !shootPermissions?.delete}
+        onClick={() => setShowDeleteDialog(true)}
+      />
       <DeleteDialog
         clusterName={params.clusterName}
         isOpen={showDeleteDialog}
         onClose={() => setShowDeleteDialog(false)}
+        onConfirm={() => {}}
+        isDeleting={false}
       />
     </>
   )
