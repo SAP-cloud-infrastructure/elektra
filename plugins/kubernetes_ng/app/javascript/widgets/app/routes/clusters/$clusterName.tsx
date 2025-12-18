@@ -87,11 +87,13 @@ function ClusterDetailActions({
   kubeconfigPermissions,
   disabled = false,
   kubeconfigMutation,
+  deleteMutation,
 }: {
   shootPermissions?: Permissions
   kubeconfigPermissions?: Permissions
   disabled?: boolean
   kubeconfigMutation: UseMutationResult<string, Error, void, unknown>
+  deleteMutation?: UseMutationResult<Cluster, Error, void, unknown>
 }) {
   const router = useRouter()
   const match = useMatch({ from: Route.id })
@@ -130,7 +132,7 @@ function ClusterDetailActions({
         clusterName={params.clusterName}
         isOpen={showDeleteDialog}
         onClose={() => setShowDeleteDialog(false)}
-        onConfirm={() => {}}
+        onConfirm={() => deleteMutation?.mutate()}
         isDeleting={false}
       />
     </>
