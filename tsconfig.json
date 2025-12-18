@@ -24,6 +24,7 @@
   "include": [
     "config/esbuild/types/**/*",
     "app/javascript/lib",
-    "plugins/**/app/javascript/widgets/app/**/*"
+    "plugins/**/app/javascript/widgets/app/**/*",
+    "app/javascript/react-bootstrap.d.ts"  
   ]
 }
