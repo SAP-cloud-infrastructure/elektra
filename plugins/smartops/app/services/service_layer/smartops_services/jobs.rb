@@ -1,6 +1,7 @@
 module ServiceLayer
   module SmartopsServices
     module Jobs
+      # Note: error handling is done in the api controller
 
       def list_jobs(filter = {})
         jobs = elektron_smartops.get("jobs/", filter).body["jobs"]
@@ -48,8 +49,7 @@ module ServiceLayer
 
       def schedule_job(id, schedule_date)
         Rails.logger.debug "Scheduling job in service layer: ID #{id} with schedule_date: #{schedule_date}"
-        response = elektron_smartops.post("jobs/#{id}/schedule") do { schedule_date_utc: schedule_date } end
-        raise "Could not schedule job" if response.header.code.to_i >= 400
+        elektron_smartops.post("jobs/#{id}/schedule") do { schedule_date_utc: schedule_date } end
         return true
       end
     end

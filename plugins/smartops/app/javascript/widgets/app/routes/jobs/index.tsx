@@ -87,23 +87,23 @@ function Jobs() {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null)
   const [loadingJob, setLoadingJob] = useState(false)
 
-  console.log("Component search:", search)
+  // console.log("Component search:", search)
 
   // Load job when search params change
   useEffect(() => {
     if (search?.jobId && apiClient) {
-      console.log("Loading job for ID:", search.jobId)
+      // console.log("Loading job for ID:", search.jobId)
       setLoadingJob(true)
       apiClient
         .get<ApiResponse>(`/jobs/${search.jobId}`)
         .then((response) => {
-          console.log("Job loaded:", response.data)
+          // console.log("Job loaded:", response.data)
           if (response.data.success && response.data.job) {
             setSelectedJob(response.data.job)
           }
         })
         .catch((error) => {
-          console.error("Failed to load job details:", error)
+          throw new Error("Failed to load job details: " + error)
         })
         .finally(() => {
           setLoadingJob(false)

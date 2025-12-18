@@ -13,8 +13,7 @@ module Smartops
         id = params.require(:id)
         schedule_date = params.require(:schedule_date)
         puts "Scheduling job in controller: ID #{id} with schedule_date: #{schedule_date}"
-        job = services.smartops.schedule_job(id, schedule_date)
-        render json: { success: true, job: job }
+        render json: { success: services.smartops.schedule_job(id, schedule_date) }
       end
 
        def show
@@ -34,7 +33,9 @@ module Smartops
         filter
       end
 
+      # this method handles API errors and returns a standardized JSON response
       def handle_api_error(error)
+        # error = <Elektron::Errors::ApiResponse: ERRORTYPE>
         render json: {
           success: false,
           error: {
@@ -42,7 +43,7 @@ module Smartops
             message: error.message,
             backtrace: Rails.env.production? ? [] : error.backtrace
           }
-        }, status: :bad_request  # 400
+        }, status: error.status || :bad_request  # 400
       end
     end
   end

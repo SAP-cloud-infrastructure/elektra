@@ -61,9 +61,14 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
       }
 
       setSuccess(true)
-    } catch (err: any) {
-      if (err.response?.status === 400) {
-        setError(err.response?.data?.error?.message || "Bad request: Invalid schedule date")
+    } catch (err: unknown) {
+      if (err && typeof err === "object" && "response" in err) {
+        const error = err as { response?: { status?: number; data?: { error?: { message?: string } } } }
+        if (error.response?.status === 400) {
+          setError(error.response?.data?.error?.message || "Bad request: Invalid schedule date")
+        } else {
+          setError(err instanceof Error ? err.message : "An unexpected error occurred")
+        }
       } else {
         setError(err instanceof Error ? err.message : "An unexpected error occurred")
       }
@@ -182,7 +187,7 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
                     onChange={(selectedDate) => {
                       const currentDate = new Date()
                       // Handle both string and array values
-                      console.log("Selected date:", selectedDate) // Debug log
+                      // console.log("Selected date:", selectedDate) // Debug log
                       const dateValue = Array.isArray(selectedDate) ? selectedDate[0] : selectedDate
                       if (!dateValue) {
                         return
@@ -193,7 +198,7 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
                         return
                       } else if (selectedDateTime < currentDate) {
                         setError("Selected date is in the past")
-                        console.log("Selected date is in the past") // Debug log
+                        // console.log("Selected date is in the past") // Debug log
                         return
                       } else if (selectedDateTime > dueDateTime) {
                         setError(
