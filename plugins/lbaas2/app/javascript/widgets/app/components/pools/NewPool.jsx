@@ -9,10 +9,7 @@ import TagsInput from "../shared/TagsInput"
 import { addNotice } from "lib/flashes"
 import useLoadbalancer from "../../lib/hooks/useLoadbalancer"
 import Log from "../shared/logger"
-import {
-  fetchListnersNoDefaultPoolForSelect,
-  fetchSecretsForSelect,
-} from "../../actions/listener"
+import { fetchListnersNoDefaultPoolForSelect, fetchSecretsForSelect } from "../../actions/listener"
 import {
   errorMessage,
   toManySecretsWarning,
@@ -76,7 +73,7 @@ const NewPool = (props) => {
   }, [ciphers.data])
 
   const loadListeners = (lbID) => {
-    return new Promise((handleSuccess, handleErrors) => {
+    return new Promise(() => {
       setListeners({ ...listeners, isLoading: true })
       fetchListnersNoDefaultPoolForSelect(lbID)
         .then((data) => {
@@ -99,7 +96,7 @@ const NewPool = (props) => {
   }
 
   const loadSecrets = (lbID) => {
-    return new Promise((handleSuccess, handleErrors) => {
+    return new Promise(() => {
       setSecrets({ ...secrets, isLoading: true })
       fetchSecretsForSelect(lbID)
         .then((data) => {
@@ -110,7 +107,6 @@ const NewPool = (props) => {
             error: null,
             total: data.total,
           })
-          handleSuccess(data.secrets)
         })
         .catch((error) => {
           setSecrets({
@@ -118,7 +114,6 @@ const NewPool = (props) => {
             isLoading: false,
             error: errorMessage(error),
           })
-          handleErrors(errorMessage(error))
         })
     })
   }
@@ -137,9 +132,7 @@ const NewPool = (props) => {
     if (!show) {
       const params = matchParams(props)
       const lbID = params.loadbalancerID
-      props.history.replace(
-        `/loadbalancers/${lbID}/show?${searchParamsToString(props)}`
-      )
+      props.history.replace(`/loadbalancers/${lbID}/show?${searchParamsToString(props)}`)
     }
   }
 
@@ -267,17 +260,13 @@ const NewPool = (props) => {
       >
         <Modal.Body>
           <div className="bs-callout bs-callout-warning bs-callout-emphasize">
-            <h4>
-              Switched to using PKCS12 for TLS Term certs (New in API version
-              2.8)
-            </h4>
+            <h4>Switched to using PKCS12 for TLS Term certs (New in API version 2.8)</h4>
             <p>
-              For pools with TLS encryption now use the URI of the Key Manager
-              service secret containing a PKCS12 format certificate/key bundle.
+              For pools with TLS encryption now use the URI of the Key Manager service secret containing a PKCS12 format
+              certificate/key bundle.
             </p>
             <p>
-              Please see following examples for creating certs with PKCS12
-              format:{" "}
+              Please see following examples for creating certs with PKCS12 format:{" "}
               <a
                 href="https://github.com/openstack/octavia/blob/master/doc/source/user/guides/basic-cookbook.rst"
                 target="_blank"
@@ -287,10 +276,9 @@ const NewPool = (props) => {
             </p>
           </div>
           <p>
-            Object representing the grouping of members to which the listener
-            forwards client requests. Note that a pool is associated with only
-            one listener, but a listener might refer to several pools (and
-            switch between them using layer 7 policies).
+            Object representing the grouping of members to which the listener forwards client requests. Note that a pool
+            is associated with only one listener, but a listener might refer to several pools (and switch between them
+            using layer 7 policies).
           </p>
           <Form.Errors errors={formErrors} />
 
@@ -302,11 +290,7 @@ const NewPool = (props) => {
             <Form.Input elementType="input" type="text" name="description" />
           </Form.ElementHorizontal>
 
-          <Form.ElementHorizontal
-            label="Lb Algorithm"
-            name="lb_algorithm"
-            required
-          >
+          <Form.ElementHorizontal label="Lb Algorithm" name="lb_algorithm" required>
             <SelectInput name="lb_algorithm" items={lbAlgorithmTypes()} />
             <span className="help-block">
               <i className="fa fa-info-circle"></i>
@@ -327,10 +311,7 @@ const NewPool = (props) => {
             </span>
           </Form.ElementHorizontal>
 
-          <Form.ElementHorizontal
-            label="Session Persistence Type"
-            name="session_persistence_type"
-          >
+          <Form.ElementHorizontal label="Session Persistence Type" name="session_persistence_type">
             <SelectInput
               name="session_persistence_type"
               isClearable
@@ -341,43 +322,29 @@ const NewPool = (props) => {
             <span className="help-block">
               <i className="fa fa-info-circle"></i>
               <span className="help-block-text">
-                Defines the method used for session stickiness. Traffic for a
-                client will be send always to the same member after the session
-                is established.
+                Defines the method used for session stickiness. Traffic for a client will be send always to the same
+                member after the session is established.
               </span>
-              <HelpPopover
-                text={helpBlockTextForSelect(poolPersistenceTypes())}
-              />
+              <HelpPopover text={helpBlockTextForSelect(poolPersistenceTypes())} />
             </span>
           </Form.ElementHorizontal>
 
           <Collapse in={showCookieName}>
             <div className="advanced-options-section">
               <div className="advanced-options">
-                <Form.ElementHorizontal
-                  label="Cookie Name"
-                  name="session_persistence_cookie_name"
-                  required
-                >
-                  <Form.Input
-                    elementType="input"
-                    type="text"
-                    name="session_persistence_cookie_name"
-                  />
+                <Form.ElementHorizontal label="Cookie Name" name="session_persistence_cookie_name" required>
+                  <Form.Input elementType="input" type="text" name="session_persistence_cookie_name" />
                   <span className="help-block">
                     <i className="fa fa-info-circle"></i>
-                    The name of the HTTP cookie defined by your application. The
-                    cookie value will be used for session stickiness.
+                    The name of the HTTP cookie defined by your application. The cookie value will be used for session
+                    stickiness.
                   </span>
                 </Form.ElementHorizontal>
               </div>
             </div>
           </Collapse>
 
-          <Form.ElementHorizontal
-            label="Default Pool for Listener"
-            name="listener_id"
-          >
+          <Form.ElementHorizontal label="Default Pool for Listener" name="listener_id">
             {/* dont remove useFromContext because of validation of protocol when changing the listener */}
             <SelectInput
               name="listener_id"
@@ -389,11 +356,7 @@ const NewPool = (props) => {
               conditionalPlaceholderCondition={protocol == null}
               value={listener}
             />
-            {listeners.error ? (
-              <span className="text-danger">{listeners.error}</span>
-            ) : (
-              ""
-            )}
+            {listeners.error ? <span className="text-danger">{listeners.error}</span> : ""}
             <span className="help-block">
               <i className="fa fa-info-circle"></i>
               The listener for which this pool is set as the default one.
@@ -401,16 +364,10 @@ const NewPool = (props) => {
           </Form.ElementHorizontal>
 
           <Form.ElementHorizontal label="Use TLS" name="tls_enabled">
-            <Form.Input
-              elementType="input"
-              type="checkbox"
-              name="tls_enabled"
-              onClick={onChangedTLS}
-            />
+            <Form.Input elementType="input" type="checkbox" name="tls_enabled" onClick={onChangedTLS} />
             <span className="help-block">
               <i className="fa fa-info-circle"></i>
-              When true connections to backend member servers will use TLS
-              encryption
+              When true connections to backend member servers will use TLS encryption
             </span>
           </Form.ElementHorizontal>
 
@@ -422,17 +379,13 @@ const NewPool = (props) => {
                     <div className="bs-callout bs-callout-warning bs-callout-emphasize">
                       <p>
                         {" "}
-                        TLS-enabled pool can only be attached to a{" "}
-                        <b>TERMINATED_HTTPS</b> type listener!
+                        TLS-enabled pool can only be attached to a <b>TERMINATED_HTTPS</b> type listener!
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <Form.ElementHorizontal
-                  label="Certificate Secret"
-                  name="tls_container_ref"
-                >
+                <Form.ElementHorizontal label="Certificate Secret" name="tls_container_ref">
                   <SelectInputCreatable
                     name="tls_container_ref"
                     isClearable
@@ -441,20 +394,14 @@ const NewPool = (props) => {
                   />
                   <span className="help-block">
                     <i className="fa fa-info-circle"></i>
-                    The reference to the secret containing a PKCS12 format
-                    certificate/key bundle for TLS client authentication to the
-                    member servers.
+                    The reference to the secret containing a PKCS12 format certificate/key bundle for TLS client
+                    authentication to the member servers.
                   </span>
                   {toManySecretsWarning(secrets.total, secrets.items?.length)}
-                  {secrets.error && (
-                    <span className="text-danger">{secrets.error}</span>
-                  )}
+                  {secrets.error && <span className="text-danger">{secrets.error}</span>}
                 </Form.ElementHorizontal>
 
-                <Form.ElementHorizontal
-                  label="Authentication Secret (CA)"
-                  name="ca_tls_container_ref"
-                >
+                <Form.ElementHorizontal label="Authentication Secret (CA)" name="ca_tls_container_ref">
                   <SelectInputCreatable
                     name="ca_tls_container_ref"
                     isClearable
@@ -463,34 +410,26 @@ const NewPool = (props) => {
                   />
                   <span className="help-block">
                     <i className="fa fa-info-circle"></i>
-                    The reference secret containing a PEM format CA certificate
-                    bundle.
+                    The reference secret containing a PEM format CA certificate bundle.
                   </span>
                   {toManySecretsWarning(secrets.total, secrets.items?.length)}
-                  {secrets.error && (
-                    <span className="text-danger">{secrets.error}</span>
-                  )}
+                  {secrets.error && <span className="text-danger">{secrets.error}</span>}
                 </Form.ElementHorizontal>
                 <h4>TLS Ciphers Suites</h4>
                 <div className="row">
                   <div className="col-sm-12">
                     <div className="bs-callout bs-callout-warning bs-callout-emphasize">
                       <p>
-                        This setting is for advanced use cases that require more
-                        control over the network configuration of the listener.{" "}
-                        <br />
-                        The following lists the default cipher suites attached
-                        to a listener. This should only be changed by expert
-                        users who know why they need to make a change. For the
-                        majority of scenarios no change is necessary.
+                        This setting is for advanced use cases that require more control over the network configuration
+                        of the listener. <br />
+                        The following lists the default cipher suites attached to a listener. This should only be
+                        changed by expert users who know why they need to make a change. For the majority of scenarios
+                        no change is necessary.
                       </p>
                     </div>
                   </div>
                 </div>
-                <Form.ElementHorizontal
-                  label="TLS Ciphers Suites"
-                  name="tls_ciphers"
-                >
+                <Form.ElementHorizontal label="TLS Ciphers Suites" name="tls_ciphers">
                   <SelectInput
                     name="tls_ciphers"
                     isLoading={ciphers.isLoading}
@@ -504,9 +443,7 @@ const NewPool = (props) => {
                     <i className="fa fa-info-circle"></i>
                     The TLS cipher suites.
                   </span>
-                  {ciphers.isError && (
-                    <span className="text-danger">{ciphers.error.message}</span>
-                  )}
+                  {ciphers.isError && <span className="text-danger">{ciphers.error.message}</span>}
                 </Form.ElementHorizontal>
               </div>
             </div>
