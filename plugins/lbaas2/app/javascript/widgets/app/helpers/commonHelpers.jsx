@@ -3,14 +3,61 @@ import React from "react"
 import queryString from "query-string"
 import { Highlighter } from "react-bootstrap-typeahead"
 
-export const errorMessage = (error) => {
-  return (
-    error?.data?.errors ||
-    error?.data?.error ||
-    error?.message ||
-    JSON.stringify(error)
-  )
+function isRecord(value) {
+  return typeof value === "object" && value !== null
 }
+
+export function isSerializedServerError(error) {
+  if (!isRecord(error)) return false
+  const data = error.data
+  if (!isRecord(data)) return false
+  return typeof data.message === "string"
+}
+
+// Normalize different error shapes into render-safe strings
+export function normalizeError(error) {
+  if (isSerializedServerError(error)) {
+    return {
+      title: "API Error",
+      message: error.data.message.replace(/^[,\s]+/, "") || "Please try again later.",
+    }
+  }
+
+  if (error && typeof error === "object" && error.data) {
+    const data = error.data
+
+    if (Array.isArray(data.errors)) {
+      const msg = data.errors
+        .map((e) => e?.message || e?.description)
+        .filter(Boolean)
+        .join(", ")
+      if (msg) return { title: "API Error", message: msg }
+    }
+
+    if (data.error && typeof data.error === "object") {
+      const msg = data.error.message || data.error.description || data.error.title
+      if (msg) return { title: "API Error", message: msg }
+    }
+  }
+
+  if (error instanceof Error) {
+    return {
+      title: error.name || "Error",
+      message: error.message.replace(/^[,\s]+/, "") || "An unknown error occurred.",
+    }
+  }
+
+  if (typeof error === "string") {
+    return { title: "Error", message: error }
+  }
+
+  return {
+    title: "Unknown Error",
+    message: "An unexpected error occurred. Please try again.",
+  }
+}
+
+export const errorMessage = (error) => normalizeError(error).message
 
 export const formErrorMessage = (error) => {
   if (error?.data?.errors && Object.keys(error.data.errors).length > 0) {
@@ -41,9 +88,8 @@ export const toManySecretsWarning = (total, length) => {
   if (total > length) {
     return (
       <div className="alert alert-warning">
-        This project has <b>{total}</b> secrets and it is not possible to
-        display all of them. If you don't find the secret you are looking for
-        enter the secret ref manually. <br />
+        This project has <b>{total}</b> secrets and it is not possible to display all of them. If you don't find the
+        secret you are looking for enter the secret ref manually. <br />
         Ex: https://keymanager-3.region.cloud.sap:443/v1/secrets/secretID
       </div>
     )
