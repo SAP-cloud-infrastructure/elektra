@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import React from "react"
 import WorkerList from "./WorkerList"
-import { worker1, worker2 } from "../../../mocks/data"
+import { worker1, worker2 } from "../../../../mocks/data"
 
 describe("WorkerList", () => {
   it("renders without crashing", () => {

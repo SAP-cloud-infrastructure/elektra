@@ -1,8 +1,8 @@
 import React, { useState } from "react"
 import { Badge, Stack, Grid, GridRow, GridColumn, Icon } from "@cloudoperators/juno-ui-components"
-import { LastError } from "../../../types/cluster"
-import Box from "../../../components/Box"
-import Collapse from "../../../components/Collapse"
+import { LastError } from "../../../../types/cluster"
+import Box from "../../../../components/Box"
+import Collapse from "../../../../components/Collapse"
 
 type LastErrorsProps = {
   errors: LastError[]

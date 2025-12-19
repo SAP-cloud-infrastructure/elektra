@@ -1,6 +1,6 @@
 import React from "react"
 import { DataGrid, DataGridRow, DataGridHeadCell, DataGridCell } from "@cloudoperators/juno-ui-components"
-import { Worker } from "../../../types/cluster"
+import { Worker } from "../../../../types/cluster"
 import WorkerListItem from "./WorkerListItem"
 
 const NUMBER_OF_COLUMNS = 5
