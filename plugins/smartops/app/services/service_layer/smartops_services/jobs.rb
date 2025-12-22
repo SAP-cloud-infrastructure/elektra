@@ -5,9 +5,10 @@ module ServiceLayer
 
       def list_jobs(filter = {})
         jobs = elektron_smartops.get("jobs/", filter).body["jobs"]
-        jobs[0]["state"] = "inital"
-        jobs[0]["schedule_date"] = ""
-        jobs[0]["due_date"] = "2025-12-31T11:00:15Z"
+        # for testing purposes, you can uncomment and modify the following lines to simulate different job states
+        #jobs[0]["state"] = "inital"
+        #jobs[0]["schedule_date"] = ""
+        #jobs[0]["due_date"] = "2025-12-31T11:00:15Z"
         
         # Filter by name (partial match, case-insensitive)
         if filter[:name]
