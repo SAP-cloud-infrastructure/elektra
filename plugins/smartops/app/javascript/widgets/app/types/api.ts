@@ -25,7 +25,7 @@ export const JobSchema = z.object({
   id: z.string(),
   created_at: z.string().datetime(), // ISO 8601 datetime string
   name: z.string(),
-  policy: z.string(),
+  policy: z.string().optional(),
   description: z.string().optional(),
   state: JobState.optional(),
   schedule_date: z.string().datetime(),
