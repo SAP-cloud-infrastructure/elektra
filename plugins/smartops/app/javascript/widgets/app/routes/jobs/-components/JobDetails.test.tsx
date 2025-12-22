@@ -5,22 +5,6 @@ import { JobDetails } from "./JobDetails"
 import { Job } from "../../../types/api"
 import { AjaxHelper } from "lib/ajax_helper"
 
-// Mock the jobUtils
-vi.mock("./utils/jobUtils", () => ({
-  getStatusColor: vi.fn((state: string) => {
-    const colors: Record<string, string> = {
-      initial: "info",
-      scheduled: "info",
-      successful: "success",
-      error: "error",
-      unknown: "warning",
-    }
-    return colors[state] || "warning"
-  }),
-  formatDate: vi.fn((dateString: string) => new Date(dateString).toLocaleString()),
-  formatScheduleDate: vi.fn((job: Job) => job.schedule_date || "No schedule date"),
-}))
-
 describe("JobDetails", () => {
   const createMockJob = (overrides?: Partial<Job>): Job => ({
     id: "job-123",
@@ -171,12 +155,21 @@ describe("JobDetails", () => {
 
       expect(screen.getByText("Select the date and time to schedule the job.")).toBeInTheDocument()
     })
+
+    it("should show formatted due_date when it exists", () => {
+      const job = createMockJob({
+        due_date: "2026-01-31T23:59:59Z",
+      })
+      render(<JobDetails job={job} />)
+
+      const expectedDate = new Date("2026-01-31T23:59:59Z").toLocaleString()
+      expect(screen.getByText(expectedDate)).toBeInTheDocument()
+    })
   })
 
   describe("Form submission", () => {
     it("should successfully update job schedule date", async () => {
       const apiClient = createMockApiClient()
-
       // Mock returns the response with data wrapper
       const patchMock = vi.mocked(apiClient.patch).mockResolvedValueOnce({
         data: {
@@ -225,7 +218,6 @@ describe("JobDetails", () => {
       render(<JobDetails job={job} apiClient={undefined} />)
 
       const scheduleButton = screen.getByRole("button", { name: /schedule/i })
-
       fireEvent.click(scheduleButton)
 
       await waitFor(() => {
@@ -235,7 +227,6 @@ describe("JobDetails", () => {
 
     it("should show error when API returns error response", async () => {
       const apiClient = createMockApiClient()
-
       vi.mocked(apiClient.patch).mockResolvedValueOnce({
         data: {
           success: false,
@@ -264,7 +255,6 @@ describe("JobDetails", () => {
 
     it("should handle 400 error from API", async () => {
       const apiClient = createMockApiClient()
-
       vi.mocked(apiClient.patch).mockRejectedValueOnce({
         response: {
           status: 400,
@@ -301,14 +291,19 @@ describe("JobDetails", () => {
           success: true,
         },
       } as any)
+
       const job = createMockJob({
         due_date: "2026-12-31T23:59:59Z",
         schedule_date: "2026-06-15T10:00:00Z",
       })
+
       render(<JobDetails job={job} apiClient={apiClient} />)
+
       const scheduleButton = screen.getByRole("button", { name: /schedule/i })
+
       // Click the button
       fireEvent.click(scheduleButton)
+
       // Button should be disabled while loading
       await waitFor(() => {
         expect(scheduleButton).toBeDisabled()
@@ -336,14 +331,12 @@ describe("JobDetails", () => {
       render(<JobDetails job={job} apiClient={createMockApiClient()} />)
 
       const scheduleButton = screen.getByRole("button", { name: /schedule/i })
-
       // Button should be disabled because date is in the past
       expect(scheduleButton).toBeDisabled()
     })
 
     it("should show loading state during submission", async () => {
       const apiClient = createMockApiClient()
-
       // Create a deferred promise
       let resolvePromise: (value: any) => void
       const promise = new Promise((resolve) => {
@@ -360,7 +353,6 @@ describe("JobDetails", () => {
       render(<JobDetails job={job} apiClient={apiClient} />)
 
       const scheduleButton = screen.getByRole("button", { name: /schedule/i })
-
       fireEvent.click(scheduleButton)
 
       // Button should be disabled while loading

@@ -5,30 +5,11 @@ import userEvent from "@testing-library/user-event"
 import "@testing-library/jest-dom/vitest"
 import { JobItem } from "./JobItem"
 import type { Job } from "../../../types/api"
-import { formatScheduleDate, getStatusColor } from "./utils/jobUtils"
 
 // Mock useNavigate from TanStack Router
 const mockNavigate = vi.fn()
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => mockNavigate,
-}))
-
-// Mock utility functions
-vi.mock("./utils/jobUtils", () => ({
-  getStatusColor: vi.fn((state: string) => {
-    const colors: Record<string, string> = {
-      pending: "warning",
-      completed: "success",
-      failed: "danger",
-      running: "info",
-      unknown: "default",
-    }
-    return colors[state] || "default"
-  }),
-  formatScheduleDate: vi.fn((job: Job) => {
-    if (!job.schedule_date) return "Not scheduled"
-    return new Date(job.schedule_date).toLocaleString()
-  }),
 }))
 
 describe("JobItem", () => {
@@ -51,54 +32,59 @@ describe("JobItem", () => {
   describe("Rendering", () => {
     it("should render job name", () => {
       render(<JobItem job={baseJob} />)
-
       expect(screen.getByText("Test Job")).toBeInTheDocument()
     })
 
     it("should render job state as badge", () => {
       render(<JobItem job={baseJob} />)
-
       expect(screen.getByText("pending")).toBeInTheDocument()
     })
 
     it("should render job description", () => {
       render(<JobItem job={baseJob} />)
-
       expect(screen.getByText("Test job description")).toBeInTheDocument()
     })
 
     it("should render 'No description' when description is empty", () => {
       const jobWithoutDescription = { ...baseJob, description: "" }
       render(<JobItem job={jobWithoutDescription} />)
-
       expect(screen.getByText("No description")).toBeInTheDocument()
     })
 
     it("should render 'No description' when description is undefined", () => {
       const jobWithoutDescription = { ...baseJob, description: undefined }
       render(<JobItem job={jobWithoutDescription} />)
-
       expect(screen.getByText("No description")).toBeInTheDocument()
     })
 
     it("should render Details button", () => {
       render(<JobItem job={baseJob} />)
-
       const button = screen.getByRole("button", { name: "Details" })
       expect(button).toBeInTheDocument()
     })
 
     it("should render due date in locale string format", () => {
       render(<JobItem job={baseJob} />)
-
       const expectedDate = new Date("2024-01-15T10:00:00Z").toLocaleString()
       expect(screen.getByText(expectedDate)).toBeInTheDocument()
     })
 
-    it("should call formatScheduleDate utility", () => {
+    it("should render schedule date in locale string format", () => {
       render(<JobItem job={baseJob} />)
+      const expectedDate = new Date("2024-01-10T08:00:00Z").toLocaleString()
+      expect(screen.getByText(expectedDate)).toBeInTheDocument()
+    })
 
-      expect(formatScheduleDate).toHaveBeenCalledWith(baseJob)
+    it("should render 'Due date has passed' warning when due_date is in the past and no schedule_date", () => {
+      const pastDate = new Date()
+      pastDate.setDate(pastDate.getDate() - 5)
+      const jobWithPastDue = {
+        ...baseJob,
+        due_date: pastDate.toISOString(),
+        schedule_date: "",
+      }
+      render(<JobItem job={jobWithPastDue} />)
+      expect(screen.getByText("Due date has passed")).toBeInTheDocument()
     })
   })
 
@@ -106,42 +92,61 @@ describe("JobItem", () => {
     it("should render pending state correctly", () => {
       const job = { ...baseJob, state: "pending" as const }
       render(<JobItem job={job} />)
-
       expect(screen.getByText("pending")).toBeInTheDocument()
     })
 
-    it("should render completed state correctly", () => {
+    it("should render successful state correctly", () => {
       const job = { ...baseJob, state: "successful" as const }
       render(<JobItem job={job} />)
-
       expect(screen.getByText("successful")).toBeInTheDocument()
     })
 
-    it("should render failed state correctly", () => {
-      const job = { ...baseJob, state: "failed" as const }
+    it("should render error state correctly", () => {
+      const job = { ...baseJob, state: "error" as const }
       render(<JobItem job={job} />)
-
-      expect(screen.getByText("failed")).toBeInTheDocument()
+      expect(screen.getByText("error")).toBeInTheDocument()
     })
 
     it("should render running state correctly", () => {
       const job = { ...baseJob, state: "running" as const }
       render(<JobItem job={job} />)
-
       expect(screen.getByText("running")).toBeInTheDocument()
+    })
+
+    it("should render scheduled state correctly", () => {
+      const job = { ...baseJob, state: "scheduled" as const }
+      render(<JobItem job={job} />)
+      expect(screen.getByText("scheduled")).toBeInTheDocument()
+    })
+
+    it("should render canceled state correctly", () => {
+      const job = { ...baseJob, state: "canceled" as const }
+      render(<JobItem job={job} />)
+      expect(screen.getByText("canceled")).toBeInTheDocument()
+    })
+
+    it("should render initial state correctly", () => {
+      const job = { ...baseJob, state: "initial" as const }
+      render(<JobItem job={job} />)
+      expect(screen.getByText("initial")).toBeInTheDocument()
+    })
+
+    it("should render waiting state correctly", () => {
+      const job = { ...baseJob, state: "waiting" as const }
+      render(<JobItem job={job} />)
+      expect(screen.getByText("waiting")).toBeInTheDocument()
+    })
+
+    it("should render reset state correctly", () => {
+      const job = { ...baseJob, state: "reset" as const }
+      render(<JobItem job={job} />)
+      expect(screen.getByText("reset")).toBeInTheDocument()
     })
 
     it("should handle undefined state as 'unknown'", () => {
       const job = { ...baseJob, state: undefined }
       render(<JobItem job={job} />)
-
       expect(screen.getByText("unknown")).toBeInTheDocument()
-    })
-
-    it("should call getStatusColor with correct state", () => {
-      render(<JobItem job={baseJob} />)
-
-      expect(getStatusColor).toHaveBeenCalledWith("pending")
     })
   })
 
@@ -149,10 +154,8 @@ describe("JobItem", () => {
     it("should navigate when row is clicked", async () => {
       const user = userEvent.setup()
       render(<JobItem job={baseJob} />)
-
       const row = screen.getByRole("row")
       await user.click(row)
-
       expect(mockNavigate).toHaveBeenCalledWith({
         to: "/jobs",
         search: { jobId: "job-123" },
@@ -162,10 +165,8 @@ describe("JobItem", () => {
     it("should navigate when Details button is clicked", async () => {
       const user = userEvent.setup()
       render(<JobItem job={baseJob} />)
-
       const button = screen.getByRole("button", { name: "Details" })
       await user.click(button)
-
       expect(mockNavigate).toHaveBeenCalledWith({
         to: "/jobs",
         search: { jobId: "job-123" },
@@ -175,17 +176,13 @@ describe("JobItem", () => {
     it("should not propagate click event when Details button is clicked", async () => {
       const user = userEvent.setup()
       const rowClickHandler = vi.fn()
-
       const { container } = render(<JobItem job={baseJob} />)
       const row = container.querySelector('[style*="cursor: pointer"]')
-
       if (row) {
         row.addEventListener("click", rowClickHandler)
       }
-
       const button = screen.getByRole("button", { name: "Details" })
       await user.click(button)
-
       // Navigate should be called only once (from button, not row)
       expect(mockNavigate).toHaveBeenCalledTimes(1)
     })
@@ -194,10 +191,8 @@ describe("JobItem", () => {
       const user = userEvent.setup()
       const customJob = { ...baseJob, id: "custom-job-id" }
       render(<JobItem job={customJob} />)
-
       const button = screen.getByRole("button", { name: "Details" })
       await user.click(button)
-
       expect(mockNavigate).toHaveBeenCalledWith({
         to: "/jobs",
         search: { jobId: "custom-job-id" },
@@ -208,14 +203,12 @@ describe("JobItem", () => {
   describe("Styling and UI", () => {
     it("should have pointer cursor on row", () => {
       const { container } = render(<JobItem job={baseJob} />)
-
       const row = container.querySelector('[style*="cursor: pointer"]')
       expect(row).toBeInTheDocument()
     })
 
     it("should render Badge component for status", () => {
       render(<JobItem job={baseJob} />)
-
       // Badge should be rendered with the state text
       const badge = screen.getByText("pending")
       expect(badge).toBeInTheDocument()
@@ -223,7 +216,6 @@ describe("JobItem", () => {
 
     it("should render Button with primary variant", () => {
       render(<JobItem job={baseJob} />)
-
       const button = screen.getByRole("button", { name: "Details" })
       expect(button).toBeInTheDocument()
     })
@@ -233,21 +225,12 @@ describe("JobItem", () => {
     it("should format due date correctly", () => {
       const job = { ...baseJob, due_date: "2024-12-25T15:30:00Z" }
       render(<JobItem job={job} />)
-
       const expectedDate = new Date("2024-12-25T15:30:00Z").toLocaleString()
       expect(screen.getByText(expectedDate)).toBeInTheDocument()
     })
 
-    it("should handle schedule date formatting through utility", () => {
-      render(<JobItem job={baseJob} />)
-
-      // Verify the utility was called
-      expect(formatScheduleDate).toHaveBeenCalled()
-    })
-
     it("should display formatted schedule date", () => {
       render(<JobItem job={baseJob} />)
-
       const expectedDate = new Date("2024-01-10T08:00:00Z").toLocaleString()
       expect(screen.getByText(expectedDate)).toBeInTheDocument()
     })
@@ -256,7 +239,6 @@ describe("JobItem", () => {
   describe("Accessibility", () => {
     it("should have accessible button", () => {
       render(<JobItem job={baseJob} />)
-
       const button = screen.getByRole("button", { name: "Details" })
       expect(button).toBeInTheDocument()
       expect(button).toHaveAccessibleName("Details")
@@ -264,14 +246,12 @@ describe("JobItem", () => {
 
     it("should render as table row", () => {
       render(<JobItem job={baseJob} />)
-
       const row = screen.getByRole("row")
       expect(row).toBeInTheDocument()
     })
 
     it("should have all required cells", () => {
       render(<JobItem job={baseJob} />)
-
       const cells = screen.getAllByRole("gridcell")
       // Name, Status, Description, Due Date, Schedule Date, Button
       expect(cells).toHaveLength(6)
@@ -285,7 +265,6 @@ describe("JobItem", () => {
         name: "A".repeat(200),
       }
       render(<JobItem job={longNameJob} />)
-
       expect(screen.getByText("A".repeat(200))).toBeInTheDocument()
     })
 
@@ -295,7 +274,6 @@ describe("JobItem", () => {
         description: "B".repeat(500),
       }
       render(<JobItem job={longDescJob} />)
-
       expect(screen.getByText("B".repeat(500))).toBeInTheDocument()
     })
 
@@ -305,7 +283,6 @@ describe("JobItem", () => {
         name: "Job <script>alert('test')</script>",
       }
       render(<JobItem job={specialJob} />)
-
       expect(screen.getByText("Job <script>alert('test')</script>")).toBeInTheDocument()
     })
 
@@ -314,9 +291,7 @@ describe("JobItem", () => {
         ...baseJob,
         due_date: "invalid-date",
       }
-
       render(<JobItem job={invalidDateJob} />)
-
       // Should still render, even if date is invalid
       expect(screen.getByText("Test Job")).toBeInTheDocument()
     })
@@ -326,9 +301,7 @@ describe("JobItem", () => {
         id: "minimal-job",
         name: "Minimal",
       } as Job
-
       render(<JobItem job={minimalJob} />)
-
       expect(screen.getByText("Minimal")).toBeInTheDocument()
       expect(screen.getByText("unknown")).toBeInTheDocument()
       expect(screen.getByText("No description")).toBeInTheDocument()
@@ -338,9 +311,7 @@ describe("JobItem", () => {
   describe("Component Structure", () => {
     it("should render all data cells in correct order", () => {
       render(<JobItem job={baseJob} />)
-
       const cells = screen.getAllByRole("gridcell")
-
       // Verify order: Name, Status, Description, Due Date, Schedule Date, Button
       expect(cells[0]).toHaveTextContent("Test Job")
       expect(cells[1]).toHaveTextContent("pending")
@@ -351,7 +322,6 @@ describe("JobItem", () => {
 
     it("should render Stack component for badge", () => {
       render(<JobItem job={baseJob} />)
-
       const badge = screen.getByText("pending")
       expect(badge).toBeInTheDocument()
     })
