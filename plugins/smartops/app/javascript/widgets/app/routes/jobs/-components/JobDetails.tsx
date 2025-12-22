@@ -26,7 +26,7 @@ interface JobDetailsProps {
 }
 
 const objectLink = (job: Job, domainName?: string, projectName?: string) => {
-  if (job.object_type && job.object_id) {
+  if (job.object_type && job.object_id && domainName && projectName) {
     if (job.object_type === "server") {
       return `/${domainName}/${projectName}/compute/instances?overlay=${job.object_id}`
     }
@@ -172,10 +172,8 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
                 <Message variant="error" className="mb-4">
                   Job was scheduled but did not complete successfully before due date!
                 </Message>
-                {formatScheduleDate(job, true)}
+                {formatScheduleDate(job)}
               </>
-            ) : job.state !== "initial" && job.state !== "scheduled" ? (
-              formatScheduleDate(job, true)
             ) : (
               <>
                 <Form onSubmit={handleSubmit}>

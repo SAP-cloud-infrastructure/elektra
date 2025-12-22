@@ -1,5 +1,5 @@
 // utils/jobUtils.ts
-import { Stack, Badge, Icon } from "@cloudoperators/juno-ui-components"
+import { Stack, Badge } from "@cloudoperators/juno-ui-components"
 import { Job } from "../../../../types/api"
 
 export const getStatusColor = (state: string) => {
@@ -27,15 +27,12 @@ export const getStatusColor = (state: string) => {
   }
 }
 
-export const formatScheduleDate = (job: Job, details?: boolean) => {
+export const formatScheduleDate = (job: Job) => {
   // check current data behind due_date than show warning message
   if (new Date(job.due_date) < new Date() && !job.schedule_date) {
     return (
       <Stack gap="2" direction="horizontal">
         <Badge variant="warning">Due date has passed</Badge>
-        {details && (
-          <Icon color="jn-global-text" icon="edit" href={`jobs/${job.id}/edit`} title={`Edit job ${job.name}`} />
-        )}
       </Stack>
     )
   }
@@ -45,9 +42,6 @@ export const formatScheduleDate = (job: Job, details?: boolean) => {
   ) : (
     <Stack gap="2" direction="horizontal">
       <Badge variant="warning">No schedule date</Badge>
-      {details && (
-        <Icon color="jn-global-text" icon="edit" href={`jobs/${job.id}/edit`} title={`Schedule job ${job.name}`} />
-      )}
     </Stack>
   )
 }
