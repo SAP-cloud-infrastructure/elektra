@@ -36,6 +36,9 @@ module Smartops
       # this method handles API errors and returns a standardized JSON response
       def handle_api_error(error)
         # error = <Elektron::Errors::ApiResponse: ERRORTYPE>
+        # Handle errors that have a status method (like Elektron::Errors::ApiResponse)
+        status_code = error.respond_to?(:status) ? error.status : :bad_request
+        
         render json: {
           success: false,
           error: {
@@ -43,7 +46,7 @@ module Smartops
             message: error.message,
             backtrace: Rails.env.production? ? [] : error.backtrace
           }
-        }, status: error.status || :bad_request  # 400
+        }, status: status_code
       end
     end
   end
