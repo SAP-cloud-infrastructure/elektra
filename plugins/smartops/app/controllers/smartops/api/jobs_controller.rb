@@ -12,7 +12,7 @@ module Smartops
       def update
         id = params.require(:id)
         schedule_date = params.require(:schedule_date)
-        puts "Scheduling job in controller: ID #{id} with schedule_date: #{schedule_date}"
+        Rails.logger.info "Scheduling job in controller: ID #{id} with schedule_date: #{schedule_date}"
         render json: { success: services.smartops.schedule_job(id, schedule_date) }
       end
 
