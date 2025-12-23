@@ -134,6 +134,11 @@ PATH
     shared_filesystem_storage (0.0.1)
 
 PATH
+  remote: plugins/smartops
+  specs:
+    smartops (0.0.1)
+
+PATH
   remote: plugins/testikus
   specs:
     testikus (0.0.1)
@@ -697,6 +702,7 @@ DEPENDENCIES
   shared_filesystem_storage!
   simple-navigation
   simple_form
+  smartops!
   spinners
   spring
   testikus!

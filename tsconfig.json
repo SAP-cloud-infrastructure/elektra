@@ -23,7 +23,6 @@
   "exclude": ["node_modules"],
   "include": [
     "config/esbuild/types/**/*",
-    "app/javascript/lib",
-    "plugins/**/app/javascript/widgets/app/**/*"
+    "app/javascript/lib"
   ]
 }

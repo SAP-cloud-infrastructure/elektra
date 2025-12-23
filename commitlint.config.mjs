@@ -36,6 +36,7 @@ export const scopes = [
   "shared-filesystem-storage",
   "tools",
   "webconsole",
+  "smartops",
   /^ISSUE-\d+$/, // Regex pattern for ISSUE-<number>]
 ]
 
