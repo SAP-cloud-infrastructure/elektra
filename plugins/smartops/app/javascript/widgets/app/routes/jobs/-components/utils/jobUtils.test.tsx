@@ -99,20 +99,6 @@ describe("jobUtils", () => {
       expect(container.querySelector('[title*="Schedule"]')).toBeFalsy()
     })
 
-    it("should handle edge case where due_date is exactly now", () => {
-      const now = new Date()
-      const job = createMockJob({
-        schedule_date: "",
-        due_date: now.toISOString(),
-      })
-
-      const result = formatScheduleDate(job)
-      const { container } = render(result as React.ReactElement)
-
-      // Due date exactly now should not trigger "passed" warning
-      expect(container.textContent).toContain("No schedule date")
-    })
-
     it("should return formatted schedule_date even if due_date has passed", () => {
       const job = createMockJob({
         schedule_date: "2024-01-15T10:30:00Z",

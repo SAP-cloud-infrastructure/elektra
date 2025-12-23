@@ -29,7 +29,7 @@ export const getStatusColor = (state: string) => {
 
 export const formatScheduleDate = (job: Job) => {
   // check current data behind due_date than show warning message
-  if (new Date(job.due_date) < new Date() && !job.schedule_date) {
+  if (new Date(job.due_date) <= new Date() && !job.schedule_date) {
     return (
       <Stack gap="2" direction="horizontal">
         <Badge variant="warning">Due date has passed</Badge>
