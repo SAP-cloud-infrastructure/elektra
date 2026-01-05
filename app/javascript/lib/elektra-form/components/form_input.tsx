@@ -1,8 +1,19 @@
-//import React from 'react';
-import React, { useContext } from "react"
+import React, { useContext, ChangeEvent } from "react"
 import { FormContext } from "./form_context"
 
-export const FormInput = ({
+export interface FormInputProps extends React.HTMLAttributes<HTMLElement> {
+  testId?: string
+  elementType: keyof JSX.IntrinsicElements
+  id?: string
+  className?: string
+  required?: boolean
+  name: string
+  type?: string
+  children?: React.ReactNode
+  [key: string]: any // For other props like placeholder, disabled, etc.
+}
+
+export const FormInput: React.FC<FormInputProps> = ({
   testId,
   elementType,
   id,
@@ -14,7 +25,7 @@ export const FormInput = ({
 }) => {
   const context = useContext(FormContext)
 
-  let values = context.formValues || {}
+  const values = context.formValues || {}
   let isValid = true
   if (context.formErrors && typeof context.formErrors === "object" && context.formErrors[name]) {
     isValid = false
@@ -25,16 +36,15 @@ export const FormInput = ({
   newClassName += " " + (required ? "required" : "optional")
   newClassName += " " + (isValid ? "" : "is-invalid")
 
-  const handleChange = (e) => {
-    //e.preventDefault()
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const target = e.target
-    const value = target.type === "checkbox" ? target.checked : target.value
+    const value = (target as HTMLInputElement).type === "checkbox" ? (target as HTMLInputElement).checked : target.value
     const name = target.name
 
-    context.onChange(name, value)
+    context.onChange && context.onChange(name, value)
   }
 
-  let inputProps = {
+  const inputProps: any = {
     "data-testid": testId,
     className: `${newClassName} ${className}`,
     name,
@@ -42,8 +52,12 @@ export const FormInput = ({
     onChange: handleChange,
     ...otherProps,
   }
-  if (type === "checkbox") inputProps.checked = values[name] === true
-  else inputProps.value = values[name] || ""
+
+  if (type === "checkbox") {
+    inputProps.checked = values[name] === true
+  } else {
+    inputProps.value = values[name] || ""
+  }
 
   return React.createElement(elementType, inputProps, children)
 }
