@@ -1,4 +1,3 @@
-// utils/jobUtils.test.ts
 import { describe, it, expect } from "vitest"
 import { getStatusColor, formatScheduleDate, formatDate } from "./jobUtils"
 import { Job } from "../../../../types/api"
