@@ -174,7 +174,7 @@ const DetailsContent = ({ cluster, updatedAt }: { cluster: Cluster; updatedAt?: 
           </TabPanel>
           <TabPanel>
             <Container py px={false}>
-              <JsonViewer expanded={2} data={cluster.raw} toolbar data-testid="json-viewer" />
+              <JsonViewer expanded={2} data={cluster.raw} toolbar />
             </Container>
           </TabPanel>
         </Tabs>

@@ -100,13 +100,14 @@ describe("DetailsContent", () => {
     expect(maintenanceGrid).toBeInTheDocument()
   })
 
-  it("switches to JSON tab and renders JsonViewer", () => {
+  it("switches to JSON tab and renders JsonViewer", async () => {
     render(<DetailsContent cluster={defaultCluster} />)
     const jsonTab = screen.getByText("JSON")
     fireEvent.click(jsonTab)
 
     // Expect JsonViewer to be in the document
-    const jsonViewer = screen.getByTestId("json-viewer")
+    const someKey = Object.keys(defaultCluster.raw)[0]
+    const jsonViewer = await screen.findByText(new RegExp(someKey, "i"))
     expect(jsonViewer).toBeInTheDocument()
   })
 })

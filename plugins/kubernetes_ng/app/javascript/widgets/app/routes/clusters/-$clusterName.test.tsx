@@ -1,5 +1,5 @@
 import React from "react"
-import { render, screen, act, within, waitFor } from "@testing-library/react"
+import { render, screen, act, within, waitFor, fireEvent } from "@testing-library/react"
 import { createRoute, RouterProvider, createMemoryHistory, createRootRouteWithContext } from "@tanstack/react-router"
 import { RouterConfig, CLUSTER_DETAIL_ROUTE_ID } from "./$clusterName"
 import { getTestRouter, deferredPromise } from "../../mocks/TestTools"
@@ -14,6 +14,7 @@ const renderComponent = ({
   clusterDetailsPromise = Promise.resolve(defaultCluster),
   permissionsPromise = Promise.resolve(permissionsAllTrue),
   kubeconfigPromise = Promise.resolve("kubeconfig-data"),
+  deletePromise = Promise.resolve(defaultCluster),
 } = {}) => {
   const rootRoute = createRootRouteWithContext<RouterContext>()({
     component: Root,
@@ -25,9 +26,15 @@ const renderComponent = ({
     ...RouterConfig,
   })
 
-  // the route needs the root route as parent to get the breadcrumb working
-  const routeTree = rootRoute.addChildren([testRoute])
+  // Add the clusters list route so navigation after delete works
+  const clustersRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: "/clusters",
+    component: () => <div>Clusters List Overview Page</div>,
+  })
 
+  // the route needs the root route as parent to get the breadcrumb working
+  const routeTree = rootRoute.addChildren([testRoute, clustersRoute])
   const mockClient: RouterContext = {
     apiClient: {
       gardener: {
@@ -35,7 +42,7 @@ const renderComponent = ({
         getShootPermissions: () => permissionsPromise,
         getKubeconfigPermission: () => permissionsPromise,
         getKubeconfig: () => kubeconfigPromise,
-        confirm_deletion_and_destroy: () => Promise.resolve(defaultCluster),
+        confirm_deletion_and_destroy: () => deletePromise,
         getClusterByName: () => clusterDetailsPromise,
         createCluster: () => Promise.resolve(defaultCluster),
         getCloudProfiles: () => Promise.resolve([]),
@@ -71,38 +78,6 @@ describe("<ClusterDetail />", () => {
 
     expect(screen.getByText(`Cluster ${defaultCluster.name} Information`)).toBeInTheDocument()
     expect(screen.getByRole("button", { name: /delete cluster/i })).toBeInTheDocument()
-  })
-
-  it("renders updated at", async () => {
-    await act(async () => renderComponent())
-
-    expect(screen.getByText(/Last updated:/i)).toBeInTheDocument()
-  })
-
-  it("renders Overview tab correctly", async () => {
-    await act(async () => renderComponent())
-
-    expect(screen.getByRole("tab", { name: "Overview" })).toBeInTheDocument()
-    expect(screen.getByRole("heading", { level: 2, name: "Basic Information" })).toBeInTheDocument()
-    expect(screen.getByRole("heading", { level: 2, name: "Readiness" })).toBeInTheDocument()
-    expect(screen.getByRole("heading", { level: 2, name: "Latest Operation & Errors" })).toBeInTheDocument()
-    expect(screen.getByRole("heading", { level: 2, name: "Maintenance Window" })).toBeInTheDocument()
-    expect(screen.getByRole("heading", { level: 2, name: "Worker Pools" })).toBeInTheDocument()
-  })
-
-  it("renders JSON tab correctly", async () => {
-    await act(async () => renderComponent())
-
-    const jsonTab = screen.getByRole("tab", { name: "JSON" })
-    expect(jsonTab).toBeInTheDocument()
-
-    act(() => {
-      jsonTab.click()
-    })
-
-    const someKey = Object.keys(defaultCluster.raw)[0]
-    const jsonViewer = await screen.findByText(new RegExp(someKey, "i"))
-    expect(jsonViewer).toBeInTheDocument()
   })
 
   describe("Breadcrumb", () => {
@@ -326,6 +301,103 @@ describe("<ClusterDetail />", () => {
       // Since we cannot check the file download directly, we can at least ensure no error is shown
       const errorAlert = screen.queryByRole("alert")
       expect(errorAlert).not.toBeInTheDocument()
+    })
+  })
+
+  describe("delete cluster/", () => {
+    beforeEach(() => {
+      vi.clearAllMocks()
+    })
+
+    it("shows delete button when user has permission", async () => {
+      await act(async () => renderComponent())
+
+      const deleteButton = screen.getByRole("button", { name: /delete cluster/i })
+      expect(deleteButton).toBeInTheDocument()
+      expect(deleteButton).not.toBeDisabled()
+    })
+
+    it("does not show delete button when user lacks permission", async () => {
+      const noDeletePermissions: Permissions = {
+        ...permissionsAllTrue,
+        delete: false,
+      }
+
+      await act(async () =>
+        renderComponent({
+          permissionsPromise: Promise.resolve(noDeletePermissions),
+        })
+      )
+
+      const deleteButton = screen.queryByRole("button", { name: /delete cluster/i })
+      // expect disablded button
+      expect(deleteButton).toBeDisabled()
+    })
+
+    it("opens DeleteDialog when clicking Delete Cluster button", async () => {
+      await act(async () => renderComponent())
+
+      const deleteButton = screen.getByRole("button", { name: /delete cluster/i })
+      expect(deleteButton).toBeInTheDocument()
+
+      act(() => {
+        deleteButton.click()
+      })
+
+      expect(screen.getByRole("dialog", { name: /delete cluster/i })).toBeInTheDocument()
+    })
+
+    it("redirects when confirming deletion", async () => {
+      await act(async () => renderComponent())
+
+      // open dialog
+      const deleteBtn = screen.getByRole("button", { name: /delete cluster/i })
+      fireEvent.click(deleteBtn)
+
+      const input = screen.getByLabelText(/Name/i)
+      expect(input).toBeInTheDocument()
+      fireEvent.change(input, { target: { value: defaultCluster.name } })
+
+      // confirm deletion
+      const confirmBtn = screen.getByRole("button", { name: /Confirm Deletion/i })
+      expect(confirmBtn).toBeInTheDocument()
+      expect(confirmBtn).not.toBeDisabled()
+      fireEvent.click(confirmBtn)
+
+      expect(await screen.findByText("Clusters List Overview Page")).toBeInTheDocument()
+    })
+
+    it("shows error message when deletion fails", async () => {
+      const deleteDeferred = deferredPromise<Cluster>()
+      await act(async () =>
+        renderComponent({
+          deletePromise: deleteDeferred.promise,
+        })
+      )
+
+      // open dialog
+      const deleteBtn = screen.getByRole("button", { name: /delete cluster/i })
+      fireEvent.click(deleteBtn)
+
+      const input = screen.getByLabelText(/Name/i)
+      expect(input).toBeInTheDocument()
+      fireEvent.change(input, { target: { value: defaultCluster.name } })
+
+      // confirm deletion
+      const confirmBtn = screen.getByRole("button", { name: /Confirm Deletion/i })
+      expect(confirmBtn).toBeInTheDocument()
+      expect(confirmBtn).not.toBeDisabled()
+
+      // click confirm and reject deletion
+      fireEvent.click(confirmBtn)
+      const errorMessage = "Failed to delete cluster"
+      await act(async () => {
+        deleteDeferred.reject(new Error(errorMessage))
+      })
+
+      // check for error message
+      const errorAlert = await screen.findByText(new RegExp(errorMessage, "i"))
+      expect(errorAlert).toBeInTheDocument()
     })
   })
 })
