@@ -1,5 +1,7 @@
 module KubernetesNg
   class ClustersController < ApplicationController
+    rescue_from ServiceLayer::KubernetesNgServices::Clusters::KubeconfigGenerationError, with: :render_kubeconfig_error
+
     def index
       handle_api_call do
         services.kubernetes_ng.list_clusters(@scoped_project_id)
@@ -75,7 +77,19 @@ module KubernetesNg
       end
     end
 
+    def kubeconfig
+      handle_api_call do
+        services.kubernetes_ng.admin_kubeconfig_cluster(@scoped_project_id, params[:name])
+      end
+    end
+
     private
+
+    def render_kubeconfig_error(error)
+      render json: {
+          message: "Kubeconfig generation failed: #{error.message}"
+      }, status: :internal_server_error
+    end
 
     def cluster_params
       params.require(:cluster).permit(
