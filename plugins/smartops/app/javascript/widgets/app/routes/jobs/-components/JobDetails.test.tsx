@@ -146,8 +146,10 @@ describe("JobDetails", () => {
     })
 
     it("should render DateTimePicker when job can be scheduled", () => {
+      const today = new Date()
+      const testDueDate = new Date(today.setDate(today.getDate() + 10)).toISOString()
       const job = createMockJob({
-        due_date: "2025-12-31T23:59:59Z",
+        due_date: testDueDate,
         schedule_date: "",
       })
       render(<JobDetails job={job} apiClient={createMockApiClient()} />)
