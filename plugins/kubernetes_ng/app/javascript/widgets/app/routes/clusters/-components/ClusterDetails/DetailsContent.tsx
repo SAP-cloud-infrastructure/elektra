@@ -147,7 +147,7 @@ const DetailsContent = ({ cluster, updatedAt }: { cluster: Cluster; updatedAt?: 
 
             {/* Workers */}
             <Container py px={false}>
-              <h2 className={sectionHeaderStyles}>Worker Pools</h2>
+              <h2 className={sectionHeaderStyles}>Worker Groups</h2>
               <WorkerList workers={cluster.workers} />
             </Container>
 
@@ -174,7 +174,7 @@ const DetailsContent = ({ cluster, updatedAt }: { cluster: Cluster; updatedAt?: 
           </TabPanel>
           <TabPanel>
             <Container py px={false}>
-              <JsonViewer expanded={2} data={cluster.raw} toolbar />
+              <JsonViewer expanded={2} data={cluster.raw} toolbar data-testid="json-viewer" />
             </Container>
           </TabPanel>
         </Tabs>
