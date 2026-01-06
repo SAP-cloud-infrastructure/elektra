@@ -35,6 +35,7 @@ const renderComponent = ({
         getShootPermissions: () => permissionsPromise,
         getKubeconfigPermission: () => permissionsPromise,
         getKubeconfig: () => kubeconfigPromise,
+        confirm_deletion_and_destroy: () => Promise.resolve(defaultCluster),
         getClusterByName: () => clusterDetailsPromise,
         createCluster: () => Promise.resolve(defaultCluster),
         getCloudProfiles: () => Promise.resolve([]),

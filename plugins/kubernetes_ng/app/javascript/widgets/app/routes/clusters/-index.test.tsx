@@ -22,6 +22,7 @@ const renderComponent = ({
         getClusterByName: () => {
           return Promise.resolve(defaultCluster)
         },
+        confirm_deletion_and_destroy: () => Promise.resolve(defaultCluster),
         createCluster: () => Promise.resolve(defaultCluster),
         getCloudProfiles: () => Promise.resolve([]),
         getExternalNetworks: () => Promise.resolve([]),
