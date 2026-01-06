@@ -42,20 +42,16 @@ interface DeleteDialogProps {
 }
 
 const DeleteDialog: React.FC<DeleteDialogProps> = ({ clusterName, isOpen, onClose, onConfirm, isDeleting = false }) => {
-  const [inputName, setInputName] = useState("")
+  const [inputName, setInputName] = useState<string | null>(null)
+  const invalid = inputName !== clusterName
+
   return (
     <Modal
       open={isOpen}
       onCancel={onClose}
       title={`Delete Cluster ${clusterName}`}
       size="large"
-      modalFooter={
-        <FooterActions
-          onCancel={onClose}
-          onConfirm={onConfirm}
-          confirmDisabled={inputName !== clusterName || isDeleting}
-        />
-      }
+      modalFooter={<FooterActions onCancel={onClose} onConfirm={onConfirm} confirmDisabled={invalid || isDeleting} />}
     >
       <Container px={false} py>
         <Message variant="danger">
@@ -75,7 +71,7 @@ const DeleteDialog: React.FC<DeleteDialogProps> = ({ clusterName, isOpen, onClos
           type="text"
           onChange={(e) => setInputName(e.target.value)}
           helptext="Name should match the name of the cluster being deleted."
-          invalid={inputName.length > 0 && inputName !== clusterName}
+          invalid={inputName !== null && invalid}
           valid={inputName === clusterName}
           maxLength={20}
         />
