@@ -9,7 +9,7 @@ import InlineError, { normalizeError } from "../../components/InlineError"
 import { ErrorBoundary, FallbackProps } from "react-error-boundary"
 import { RouterContext } from "../__root"
 import { GardenerApi } from "../../apiClient"
-import { useMutation, UseMutationResult } from "@tanstack/react-query"
+import { useMutation } from "@tanstack/react-query"
 import DetailsContent from "./-components/ClusterDetails/DetailsContent"
 import DeleteDialog from "./-components/ClusterDetails/DeleteDialog"
 
@@ -86,20 +86,79 @@ function ClusterDetailActions({
   shootPermissions,
   kubeconfigPermissions,
   disabled = false,
-  kubeconfigMutation,
-  deleteMutation,
+  client,
+  onError,
 }: {
   shootPermissions?: Permissions
   kubeconfigPermissions?: Permissions
   disabled?: boolean
-  kubeconfigMutation: UseMutationResult<string, Error, void, unknown>
-  deleteMutation?: UseMutationResult<Cluster, Error, void, unknown>
+  client: GardenerApi
+  onError?: (error: Error) => void
 }) {
   const router = useRouter()
   const match = useMatch({ from: Route.id })
   const params = useParams({ from: Route.id })
   const isFetching = match.isFetching === "loader"
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false)
+
+  const kubeconfigMutation = useMutation<string, Error, void>({
+    mutationFn: async () => {
+      return client.gardener.getKubeconfig(params.clusterName)
+    },
+
+    onSuccess: (kubeconfigYaml) => {
+      // Create a file-like object in memory from the YAML
+      const blob = new Blob([kubeconfigYaml], {
+        type: "application/x-yaml",
+      })
+
+      // Create a temporary URL pointing to the in-memory file
+      const url = URL.createObjectURL(blob)
+
+      // Create a temporary anchor element to trigger the download
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `${params.clusterName}-kubeconfig.yaml`
+
+      // Required for Safari / Firefox compatibility
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+
+      // Revoke the object URL after the download has been triggered
+      setTimeout(() => URL.revokeObjectURL(url), 0)
+    },
+    onError: (error) => {
+      if (onError) {
+        onError(error)
+      }
+    },
+  })
+
+  const deleteMutation = useMutation<Cluster, Error, void>({
+    mutationFn: async () => {
+      return client.gardener.confirm_deletion_and_destroy(params.clusterName)
+    },
+    onSuccess: () => {
+      // after deletion, navigate back to the clusters list and use replace to avoid going back to deleted cluster
+      router.navigate({
+        to: "/clusters",
+        replace: true,
+        state: (prev) => ({
+          ...prev,
+          successMessage: `Cluster ${params.clusterName} is being deleted.`,
+        }),
+      })
+      // Invalidate after navigation so the list reloads
+      router.invalidate()
+    },
+    onError: (error) => {
+      if (onError) {
+        setShowDeleteDialog(false)
+        onError(error)
+      }
+    },
+  })
 
   return (
     <>
@@ -129,11 +188,13 @@ function ClusterDetailActions({
         onClick={() => setShowDeleteDialog(true)}
       />
       <DeleteDialog
+        // reset key to remount dialog and reset internal state on open/close
+        key={`delete-dialog-${params.clusterName}-${showDeleteDialog}`}
         clusterName={params.clusterName}
         isOpen={showDeleteDialog}
         onClose={() => setShowDeleteDialog(false)}
         onConfirm={() => deleteMutation?.mutate()}
-        isDeleting={false}
+        isDeleting={deleteMutation?.isPending}
       />
     </>
   )
@@ -159,6 +220,7 @@ function ClusterDetail({
   const params = useParams({ from: Route.id })
   const match = useMatch({ from: Route.id })
   const client = match.context.apiClient
+  const [mutationError, setMutationError] = React.useState<Error | null>(null)
 
   const detailsError =
     error ??
@@ -180,48 +242,18 @@ function ClusterDetail({
     return <DetailsContent cluster={cluster} updatedAt={updatedAt} />
   }
 
-  const deleteMutation = useMutation<Cluster, Error, void>({
-    mutationFn: async () => {
-      return client.gardener.confirm_deletion_and_destroy(params.clusterName)
-    },
-  })
-
-  const kubeconfigMutation = useMutation<string, Error, void>({
-    mutationFn: async () => {
-      return client.gardener.getKubeconfig(params.clusterName)
-    },
-
-    onSuccess: (kubeconfigYaml) => {
-      // Create a file-like object in memory from the YAML
-      const blob = new Blob([kubeconfigYaml], {
-        type: "application/x-yaml",
-      })
-
-      // Create a temporary URL pointing to the in-memory file
-      const url = URL.createObjectURL(blob)
-
-      // Create a temporary anchor element to trigger the download
-      const a = document.createElement("a")
-      a.href = url
-      a.download = `${params.clusterName}-kubeconfig.yaml`
-
-      // Required for Safari / Firefox compatibility
-      document.body.appendChild(a)
-      a.click()
-      a.remove()
-
-      // Revoke the object URL after the download has been triggered
-      setTimeout(() => URL.revokeObjectURL(url), 0)
-    },
-  })
+  const handleError = (error: Error) => {
+    setMutationError(error)
+  }
 
   return (
     <>
-      {kubeconfigMutation.error instanceof Error && (
+      {mutationError && (
         <Container px={false} py>
           <Message
-            text={normalizeError(kubeconfigMutation.error).title + normalizeError(kubeconfigMutation.error).message}
+            text={normalizeError(mutationError).title + normalizeError(mutationError).message}
             variant="error"
+            onDismiss={() => setMutationError(null)}
             dismissible
           />
         </Container>
@@ -231,7 +263,8 @@ function ClusterDetail({
           shootPermissions={shootPermissions}
           kubeconfigPermissions={kubeconfigPermissions}
           disabled={isLoading}
-          kubeconfigMutation={kubeconfigMutation}
+          client={client}
+          onError={handleError}
         />
       </ClustersDetailPageHeader>
 

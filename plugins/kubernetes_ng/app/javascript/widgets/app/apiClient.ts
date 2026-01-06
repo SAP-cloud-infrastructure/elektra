@@ -68,7 +68,7 @@ export function createGardenerApi(mountpoint: string) {
           throw new Error(err instanceof Error ? err.message : "Failed to fetch kubeconfig")
         }),
     confirm_deletion_and_destroy: (name: string) =>
-      apiClient.delete<{ data: Cluster }>(`/api/clusters/destroy_with_confirmation/${name}/`).then((res) => {
+      apiClient.delete<{ data: Cluster }>(`/api/clusters/confirm-deletion-and-destroy/${name}/`).then((res) => {
         const parsed = ClusterSchema.safeParse(res.data)
         if (!parsed.success) {
           throw new Error("Failed to delete cluster: invalid response")

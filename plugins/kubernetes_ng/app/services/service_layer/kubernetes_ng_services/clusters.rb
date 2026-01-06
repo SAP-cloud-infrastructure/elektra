@@ -51,7 +51,8 @@ module ServiceLayer
       def destroy_cluster(project_id, cluster_name)
         namespace = "garden-#{project_id}"
         response = elektron_gardener.delete("apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots/#{cluster_name}")
-        return response&.body
+        shoot_body = response&.body
+        return convert_shoot_to_cluster(shoot_body)
       end
       
       def update_cluster(project_id, cluster_name, cluster_spec)
