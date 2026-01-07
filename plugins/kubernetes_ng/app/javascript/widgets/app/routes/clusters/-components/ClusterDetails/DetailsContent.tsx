@@ -47,7 +47,7 @@ const DetailsContent = ({ cluster, updatedAt }: { cluster: Cluster; updatedAt?: 
                 <ClusterDetailRow label="ID">
                   <ClipboardText text={cluster.uid} />
                 </ClusterDetailRow>
-                <ClusterDetailRow label="Cluster Status">{cluster.status}</ClusterDetailRow>
+                <ClusterDetailRow label="Cluster Status">{`${cluster.status} ${cluster.isDeleted ? "(deleted)" : ""}`}</ClusterDetailRow>
                 <ClusterDetailRow label="Kubernetes Version">{cluster.version}</ClusterDetailRow>
                 <ClusterDetailRow label="Namespace">
                   <ClipboardText text={cluster.namespace} />

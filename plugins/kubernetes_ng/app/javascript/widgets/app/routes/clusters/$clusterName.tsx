@@ -262,7 +262,7 @@ function ClusterDetail({
         <ClusterDetailActions
           shootPermissions={shootPermissions}
           kubeconfigPermissions={kubeconfigPermissions}
-          disabled={isLoading}
+          disabled={isLoading || cluster?.isDeleted}
           client={client}
           onError={handleError}
         />

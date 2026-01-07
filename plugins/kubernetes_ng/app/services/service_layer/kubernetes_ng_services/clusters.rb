@@ -129,9 +129,10 @@ module ServiceLayer
           uid: metadata['uid'],
           name: metadata['name'],
           createdBy: metadata.dig('annotations', 'gardener.cloud/created-by'),
+          isDeleted: get_cluster_deletion_status(metadata),
           region: spec['region'],
           infrastructure: deep_fetch(spec, 'provider', 'type'),
-          status: get_cluster_status(shoot),
+          status: get_cluster_status(shoot),          
           version: deep_fetch(spec, 'kubernetes', 'version'),
           readiness: get_cluster_readiness(shoot),
           purpose: spec['purpose'],
@@ -140,6 +141,7 @@ module ServiceLayer
           namespace: metadata.dig('namespace'),
           secretBindingName: spec['secretBindingName'],          
           lastOperation: safe_map_last_operation(status['lastOperation']),
+          lastOperationSummary: get_last_operation_summary(status['lastOperation']),
           lastErrors: safe_map_last_errors(status['lastErrors']),
           labels: metadata['labels'] || {},
           # Worker nodes configuration
@@ -175,6 +177,26 @@ module ServiceLayer
         }.compact
       end
       
+      def get_cluster_deletion_status(metadata)
+        deletion_timestamp = deep_fetch(metadata, 'deletionTimestamp')
+        !deletion_timestamp.nil?
+      end
+
+      # returns summary of last operation "{type} {state} ({progress})"
+      def get_last_operation_summary(last_operation)
+        return nil unless last_operation.is_a?(Hash)
+        type = last_operation['type']
+        state = last_operation['state']
+        progress = last_operation['progress'].is_a?(Numeric) ? "#{last_operation['progress']}%" : nil
+
+        summary_parts = []
+        summary_parts << type if type
+        summary_parts << state if state
+        summary_parts << "(#{progress})" if progress
+
+        summary_parts.empty? ? nil : summary_parts.join(' ')
+      end
+
       def get_enabled_add_ons(spec)
         add_ons = deep_fetch(spec, 'addons')
         return [] unless add_ons.is_a?(Hash)
@@ -184,23 +206,17 @@ module ServiceLayer
       end
 
       # convert_shoot_to_cluster -> Helper functions
-      # Helper function to determine cluster status from last operation
+      # Shoots will be automatically labeled with the shoot.gardener.cloud/status label. Its value might either be healthy, 
+      # progressing, unhealthy or unknown depending on the .status.conditions, .status.lastOperation, and status.lastErrors 
+      # of the Shoot. This can be used as an easy filter method to find shoots based on their "health" status.
       def get_cluster_status(shoot)
-        last_operation = deep_fetch(shoot, 'status', 'lastOperation')
-        return "Unknown" unless last_operation
-        
-        # Possible states: Aborted, Processing, Succeeded, Error, Failed
-        state = last_operation['state']
-        case state
-        when "Failed"
-          "Error"
-        when "Succeeded"
-          "Operational"
-        when "Processing"
-          "Reconciling"
-        else
-          state || "Unknown"
+        status = deep_fetch(shoot, 'metadata', 'labels', 'shoot.gardener.cloud/status')
+        # ensure we return knowing values only
+        valid_statuses = ['healthy', 'progressing', 'unhealthy', 'unknown']
+        unless valid_statuses.include?(status)
+          status = 'unknown'
         end
+        return status
       end
       
       # Helper function to calculate readiness based on conditions

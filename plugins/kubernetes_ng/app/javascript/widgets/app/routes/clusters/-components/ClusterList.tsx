@@ -12,7 +12,7 @@ import {
 import ClusterListItem from "./ClusterListItem"
 import InlineError from "../../../components/InlineError"
 
-const NUMBER_OF_COLUMNS = 6
+const NUMBER_OF_COLUMNS = 7
 
 const ClusterListHeader = () => (
   <DataGridRow>
@@ -22,6 +22,7 @@ const ClusterListHeader = () => (
     <DataGridHeadCell>Status</DataGridHeadCell>
     <DataGridHeadCell>Name</DataGridHeadCell>
     <DataGridHeadCell>Readiness</DataGridHeadCell>
+    <DataGridHeadCell>Last Operation</DataGridHeadCell>
     <DataGridHeadCell>Version</DataGridHeadCell>
     <DataGridHeadCell />
   </DataGridRow>

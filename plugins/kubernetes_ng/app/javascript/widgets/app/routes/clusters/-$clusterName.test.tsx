@@ -80,6 +80,22 @@ describe("<ClusterDetail />", () => {
     expect(screen.getByRole("button", { name: /delete cluster/i })).toBeInTheDocument()
   })
 
+  it("disables action buttons when cluster is deleted", async () => {
+    const deletedCluster = { ...defaultCluster, isDeleted: true }
+    await act(async () =>
+      renderComponent({
+        clusterDetailsPromise: Promise.resolve(deletedCluster),
+      })
+    )
+
+    const refreshButton = screen.getByRole("button", { name: /Refresh/i })
+    expect(refreshButton).toBeDisabled()
+    const deleteButton = screen.getByRole("button", { name: /delete cluster/i })
+    expect(deleteButton).toBeDisabled()
+    const downloadKubeconfigButton = screen.getByRole("button", { name: /Kube Config/i })
+    expect(downloadKubeconfigButton).toBeDisabled()
+  })
+
   describe("Breadcrumb", () => {
     test("renders cluster name into breadcrumb", async () => {
       await act(async () => renderComponent())

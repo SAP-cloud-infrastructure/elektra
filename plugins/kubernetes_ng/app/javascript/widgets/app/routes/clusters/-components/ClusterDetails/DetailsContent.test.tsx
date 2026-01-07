@@ -18,6 +18,13 @@ describe("DetailsContent", () => {
     expect(screen.getByText(defaultCluster.status)).toBeInTheDocument()
   })
 
+  it("renders status with deleted label if cluster is deleted", () => {
+    const deletedCluster = { ...defaultCluster, isDeleted: true }
+    render(<DetailsContent cluster={deletedCluster} />)
+
+    expect(screen.getByText(`${deletedCluster.status} (deleted)`)).toBeInTheDocument()
+  })
+
   it("renders readiness conditions if present", () => {
     render(<DetailsContent cluster={defaultCluster} />)
 

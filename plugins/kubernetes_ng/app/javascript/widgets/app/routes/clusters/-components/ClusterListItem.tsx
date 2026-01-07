@@ -4,26 +4,29 @@ import { DataGridRow, DataGridCell, Icon, Stack, Button } from "@cloudoperators/
 import ReadinessConditions from "../../../components/ReadinessConditions"
 import { Link, useNavigate } from "@tanstack/react-router"
 
+// Determine status icon and color based on cluster status
+// Possible statuses:'healthy', 'progressing', 'unhealthy', 'unknown'
 const getStatusStyles = (status: string) => {
   switch (status.toLowerCase()) {
-    case "operational":
-    case "running":
+    case "healthy":
       return {
         color: "tw-text-theme-success",
         icon: "checkCircle" as const,
       }
-    case "warning":
-    case "pending":
+    case "progressing":
       return {
         color: "tw-text-theme-warning",
         icon: "warning" as const,
       }
     case "unhealthy":
-    case "error":
-    case "failed":
       return {
         color: "tw-text-theme-error",
         icon: "dangerous" as const,
+      }
+    case "deleted":
+      return {
+        color: "tw-text-theme-light",
+        icon: "checkCircle" as const,
       }
     default:
       return {
@@ -38,7 +41,8 @@ interface ClusterListItemProps {
 }
 
 const ClusterListItem: React.FC<ClusterListItemProps> = ({ cluster, ...props }) => {
-  const statusStyles = getStatusStyles(cluster.status)
+  const status = cluster.isDeleted ? "deleted" : cluster.status
+  const statusStyles = getStatusStyles(status)
   const navigate = useNavigate()
 
   return (
@@ -70,6 +74,7 @@ const ClusterListItem: React.FC<ClusterListItemProps> = ({ cluster, ...props }) 
       <DataGridCell>
         <ReadinessConditions conditions={cluster.readiness.conditions} />
       </DataGridCell>
+      <DataGridCell>{cluster.lastOperationSummary}</DataGridCell>
       <DataGridCell>
         <Stack gap="1">
           {cluster.lastMaintenance.state === "Error" ? <Icon icon="error" color="tw-text-theme-error" /> : null}
