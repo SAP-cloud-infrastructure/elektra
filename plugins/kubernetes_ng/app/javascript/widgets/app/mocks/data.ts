@@ -84,6 +84,7 @@ export const defaultCluster: Cluster = {
   uid: "12345678-1234-1234-1234-1234567890ab",
   name: "test-cluster",
   status: "healthy",
+  isDeleted: false,
   region: "",
   namespace: "garden-dev",
   readiness: {
