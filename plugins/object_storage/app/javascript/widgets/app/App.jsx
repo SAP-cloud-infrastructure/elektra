@@ -15,8 +15,6 @@ const App = (props) => (
             for standard operations, some S3-specific features, such as bucket versioning, object versions, and delete
             markers are not fully visible or manageable through the dashboard.
           </p>
-        </div>
-        <div className="bs-callout bs-callout-warning">
           <p>
             Buckets with S3 versioning enabled cannot be deleted using the dashboard and may only be fully inspected or
             managed via S3 CLI tools. This limitation is due to fundamental differences between the Swift and S3 APIs in
