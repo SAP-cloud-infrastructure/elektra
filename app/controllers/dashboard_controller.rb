@@ -2,25 +2,25 @@ class DashboardController < ::ScopeController
   include UrlHelper
   include AvatarHelper
   include Rescue
-
   prepend_before_action :define_after_login_url
 
-  authentication_required domain: lambda { |c|
-    c.instance_variable_get(:@scoped_domain_id)
-  },
-                          domain_name: lambda { |c|
-                            c.instance_variable_get(:@scoped_domain_name)
-                          },
-                          project: lambda { |c|
-                            c.instance_variable_get(:@scoped_project_id)
-                          },
-                          two_factor: :two_factor_required?
+  authentication_required(
+    domain: lambda { |c| c.instance_variable_get(:@scoped_domain_id)},
+    domain_name: lambda { |c| c.instance_variable_get(:@scoped_domain_name)},
+    project: lambda { |c| c.instance_variable_get(:@scoped_project_id)},
+    two_factor: :two_factor_required?
+  )
 
   before_action { params.delete(:after_login) }                    
   before_action :check_terms_of_use, except: %i[accept_terms_of_use terms_of_use]
   before_action :raven_context, except: [:terms_of_use]
   before_action :load_active_project, except: %i[terms_of_use]
   before_action :set_mailer_host, except: %i[terms_of_use]
+
+  # In your Rescue module (application_controller.rb or concern)
+  rescue_from MonsoonOpenstackAuth::Authentication::NotAuthorized do |exception|
+    render template: 'application/exceptions/unauthorized', status: :unauthorized
+  end
 
   def check_terms_of_use
     @orginal_url = request.original_url
