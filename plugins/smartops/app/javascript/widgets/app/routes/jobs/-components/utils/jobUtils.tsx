@@ -5,7 +5,7 @@ import { Job } from "../../../../types/api"
 export const getStatusColor = (state: string) => {
   switch (state) {
     case "initial":
-      return "info"
+      return "default"
     case "scheduled":
       return "info"
     case "pending":
