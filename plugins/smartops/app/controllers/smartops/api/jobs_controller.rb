@@ -41,11 +41,7 @@ module Smartops
         
         render json: {
           success: false,
-          error: {
-            type: 'API_ERROR',
-            message: error.message,
-            backtrace: Rails.env.production? ? [] : error.backtrace
-          }
+          error: error.message,
         }, status: status_code
       end
     end

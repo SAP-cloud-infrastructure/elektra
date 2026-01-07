@@ -1,5 +1,5 @@
 import { StrictMode } from "react"
-import { AppShellProvider } from "@cloudoperators/juno-ui-components"
+import { AppShellProvider, Message } from "@cloudoperators/juno-ui-components"
 import { RouterProvider } from "@tanstack/react-router"
 import { router } from "./router"
 import styles from "./styles.scss?inline"
@@ -15,7 +15,14 @@ export function App({ basePath, domainName, projectName }: AppProps) {
     <AppShellProvider theme="theme-light">
       <style>{styles}</style>
       <StrictMode>
-        <RouterProvider basepath={basePath} context={{ domainName, projectName }} router={router} />
+        <RouterProvider
+          basepath={basePath}
+          context={{ domainName, projectName }}
+          router={router}
+          defaultErrorComponent={({ error }) => (
+            <Message variant="error" title="Something went wrong" text={error.message} />
+          )}
+        />
       </StrictMode>
     </AppShellProvider>
   )

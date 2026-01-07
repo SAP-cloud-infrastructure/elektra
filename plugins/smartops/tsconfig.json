@@ -1,4 +1,4 @@
 {
   "extends": "../../tsconfig.json",
-  "include": ["./app/javascript/widgets"]
+  "include": ["./app/javascript/widgets","../../config/esbuild/types/**/*"]
 }

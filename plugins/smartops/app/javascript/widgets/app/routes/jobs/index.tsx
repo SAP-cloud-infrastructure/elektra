@@ -3,7 +3,7 @@ import { createFileRoute, useLoaderData, useNavigate, useSearch } from "@tanstac
 import type { Job, ApiResponse } from "../../types/api"
 import { JobList } from "./-components/JobList"
 import { JobDetails } from "./-components/JobDetails"
-import { IntroBox, Panel, PanelBody, Spinner } from "@cloudoperators/juno-ui-components"
+import { IntroBox, Panel, PanelBody, Spinner, Message } from "@cloudoperators/juno-ui-components"
 import { useState, useEffect } from "react"
 import { router } from "../../router"
 
@@ -58,20 +58,27 @@ export const Route = createFileRoute("/jobs/")({
       throw new Error("API client is undefined")
     }
 
-    // Load jobs list
-    const result = await client.get<ApiResponse>("/jobs").then((response) => response.data)
-    if (!result.success || !result.jobs) {
-      throw new Error(result.error?.message || "Failed to fetch jobs")
-    }
+    try {
+      const result = await client.get<ApiResponse>("/jobs").then((response) => response.data)
+      const jobs = result.jobs!
+      const sortedJobs = sortJobsByStatus(jobs)
 
-    const jobs = result.jobs
-    const sortedJobs = sortJobsByStatus(jobs)
-
-    return {
-      jobs: sortedJobs,
-      domainName: context.domainName,
-      projectName: context.projectName,
-      apiClient: client,
+      return {
+        jobs: sortedJobs,
+        domainName: context.domainName,
+        projectName: context.projectName,
+        apiClient: client,
+      }
+    } catch (error) {
+      let message = "Unknown Error"
+      if (error instanceof Error) message = error.message
+      return {
+        jobs: [],
+        domainName: context.domainName,
+        projectName: context.projectName,
+        apiClient: client,
+        error: message,
+      }
     }
   },
   // only reload when navigating away and back to the route
@@ -80,7 +87,7 @@ export const Route = createFileRoute("/jobs/")({
 })
 
 function Jobs() {
-  const { jobs, domainName, projectName, apiClient } = useLoaderData({ from: Route.id })
+  const { jobs, domainName, projectName, apiClient, error } = useLoaderData({ from: Route.id })
   const search = useSearch({ from: Route.id })
   const navigate = useNavigate()
 
@@ -143,7 +150,11 @@ function Jobs() {
 
       <div>
         <IntroBox text="SmartOps helps to manage planned maintenance activities for virtual machines across your infrastructure. Schedule and coordinate planned updates, and maintenance jobs while minimizing service disruption and ensuring business continuity. Manage and monitor your jobs here and set a Schedule date." />
-        <JobList jobs={jobs} isLoading={false} />
+        {error ? (
+          <Message variant="error" title="Failed to load jobs" text={error} />
+        ) : (
+          <JobList jobs={jobs} isLoading={false} />
+        )}
       </div>
     </>
   )
