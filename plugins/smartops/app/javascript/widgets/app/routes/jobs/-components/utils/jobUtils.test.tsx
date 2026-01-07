@@ -6,7 +6,7 @@ import { render } from "@testing-library/react"
 describe("jobUtils", () => {
   describe("getStatusColor", () => {
     it.each([
-      ["initial", "info"],
+      ["initial", "default"],
       ["scheduled", "info"],
       ["pending", "warning"],
       ["waiting", "warning"],
