@@ -89,6 +89,7 @@ export const Route = createFileRoute("/jobs/")({
 function Jobs() {
   const { jobs, domainName, projectName, apiClient, error } = useLoaderData({ from: Route.id })
   const search = useSearch({ from: Route.id })
+  const [detailsError, setDetailsError] = useState<string | null>(null)
   const navigate = useNavigate()
 
   const [selectedJob, setSelectedJob] = useState<Job | null>(null)
@@ -101,6 +102,7 @@ function Jobs() {
     if (search?.jobId && apiClient) {
       // console.log("Loading job for ID:", search.jobId)
       setLoadingJob(true)
+      setDetailsError(null)
       apiClient
         .get<ApiResponse>(`/jobs/${search.jobId}`)
         .then((response) => {
@@ -110,7 +112,7 @@ function Jobs() {
           }
         })
         .catch((error) => {
-          throw new Error("Failed to load job details: " + error)
+          setDetailsError("Failed to load job details: " + error)
         })
         .finally(() => {
           setLoadingJob(false)
@@ -126,6 +128,7 @@ function Jobs() {
     })
     // Invalidate the route to refresh data if needed
     router.invalidate()
+    setDetailsError(null)
   }
 
   return (
@@ -150,6 +153,8 @@ function Jobs() {
 
       <div>
         <IntroBox text="SmartOps helps to manage planned maintenance activities for virtual machines across your infrastructure. Schedule and coordinate planned updates, and maintenance jobs while minimizing service disruption and ensuring business continuity. Manage and monitor your jobs here and set a Schedule date." />
+        {detailsError && <Message variant="error" text={detailsError} />}
+
         {error ? (
           <Message variant="error" title="Failed to load jobs" text={error} />
         ) : (
