@@ -231,11 +231,7 @@ describe("JobDetails", () => {
       vi.mocked(apiClient.patch).mockResolvedValueOnce({
         data: {
           success: false,
-          error: {
-            type: "API_ERROR",
-            message: "Invalid date format",
-            backtrace: [],
-          },
+          error: "Invalid date format",
         },
       } as any)
 

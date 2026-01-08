@@ -36,7 +36,8 @@ const objectLink = (job: Job, domainName?: string, projectName?: string) => {
 
 export function JobDetails({ job, domainName, projectName, apiClient }: JobDetailsProps) {
   const jobState = job.state || "unknown"
-  const [error, setError] = useState<string | null>(null)
+  const [scheduleError, setScheduleError] = useState<string | null>(null)
+  const [detailsError, setDetailsError] = useState<string | null>(null)
   const [scheduleDate, setScheduleDate] = useState(job.schedule_date || "")
   const [success, setSuccess] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -54,14 +55,15 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
     if (isNaN(selectedDateTime.getTime())) {
       return
     } else if (selectedDateTime < currentDate) {
-      setError("Selected date is in the past")
+      setScheduleError("Selected date is in the past")
       // console.log("Selected date is in the past") // Debug log
       return
     } else if (selectedDateTime > dueDateTime) {
-      setError(`Schedule Date not later as for job due by ${new Date(job.due_date).toLocaleDateString()}`)
+      setScheduleError(`Schedule Date not later as for job due by ${new Date(job.due_date).toLocaleDateString()}`)
       return
     } else {
-      setError(null)
+      setScheduleError(null)
+      setDetailsError(null)
       setScheduleDate(selectedDateTime.toISOString())
     }
   }
@@ -69,33 +71,32 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    setError(null)
+    setScheduleError(null)
+    setDetailsError(null)
     setSuccess(false)
 
     try {
       if (!apiClient) {
-        throw new Error("API client is undefined")
+        setDetailsError("API client is undefined")
+      } else {
+        const response = await apiClient.patch<ApiResponse>(`/jobs/${job.id}`, {
+          schedule_date: scheduleDate,
+        })
+        if (!response.data.success) {
+          setDetailsError(response.data?.error || "Failed to update job")
+        }
+        setSuccess(true)
       }
-
-      const response = await apiClient.patch<ApiResponse>(`/jobs/${job.id}`, {
-        schedule_date: scheduleDate,
-      })
-
-      if (!response.data.success) {
-        throw new Error(response.data.error?.message || "Failed to update job")
-      }
-
-      setSuccess(true)
     } catch (err: unknown) {
       if (err && typeof err === "object" && "response" in err) {
         const error = err as { response?: { status?: number; data?: { error?: { message?: string } } } }
         if (error.response?.status === 400) {
-          setError(error.response?.data?.error?.message || "Bad request: Invalid schedule date")
+          setScheduleError(error.response?.data?.error?.message || "Bad request: Invalid schedule date")
         } else {
-          setError(err instanceof Error ? err.message : "An unexpected error occurred")
+          setScheduleError(err instanceof Error ? err.message : "An unexpected error occurred")
         }
       } else {
-        setError(err instanceof Error ? err.message : "An unexpected error occurred")
+        setScheduleError(err instanceof Error ? err.message : "An unexpected error occurred")
       }
     } finally {
       setIsLoading(false)
@@ -107,6 +108,11 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
       {success && (
         <Message variant="success" className="mb-4">
           Job updated successfully!
+        </Message>
+      )}
+      {detailsError && (
+        <Message variant="error" className="mb-4">
+          {detailsError}
         </Message>
       )}
       <DataGrid columns={2}>
@@ -182,9 +188,9 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
             <strong>Schedule Date</strong>
           </DataGridCell>
           <DataGridCell>
-            {error && (
+            {scheduleError && (
               <Message variant="error" className="mb-4">
-                {error}
+                {scheduleError}
               </Message>
             )}
 
@@ -216,7 +222,7 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
                     onClick={handleSubmit}
                     size="small"
                     variant="primary"
-                    disabled={isLoading || !scheduleDate || !!error}
+                    disabled={isLoading || !scheduleDate || !!scheduleError}
                   />
                 </ButtonRow>
               </>

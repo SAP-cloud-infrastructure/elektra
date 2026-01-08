@@ -59,18 +59,12 @@ export const JobFilterSchema = z
 
 export type JobFilter = z.infer<typeof JobFilterSchema>
 
-export const ApiErrorSchema = z.object({
-  type: z.string(),
-  message: z.string(),
-  backtrace: z.array(z.string()),
-})
-
 export const ApiResponseSchema = z.object({
   data: z.object({
     success: z.boolean(),
     jobs: JobsSchema.optional(),
     job: JobSchema.optional(),
-    error: ApiErrorSchema.optional(),
+    error: z.string().optional(),
   }),
 })
 
