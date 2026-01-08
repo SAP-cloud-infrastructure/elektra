@@ -105,28 +105,7 @@ RSpec.describe Smartops::Api::JobsController, type: :controller do
         json_response = JSON.parse(response.body)
         
         expect(json_response['success']).to be false
-        expect(json_response['error']['type']).to eq('API_ERROR')
-        expect(json_response['error']['message']).to eq('Service unavailable')
-        expect(json_response['error']['backtrace']).to be_an(Array)
-      end
-      
-      it 'includes backtrace in non-production environment' do
-        allow(Rails.env).to receive(:production?).and_return(false)
-        
-        get :index, params: default_params
-        
-        json_response = JSON.parse(response.body)
-        expect(json_response['error']['backtrace']).to be_an(Array)
-        expect(json_response['error']['backtrace']).not_to be_empty
-      end
-      
-      it 'excludes backtrace in production environment' do
-        allow(Rails.env).to receive(:production?).and_return(true)
-        
-        get :index, params: default_params
-        
-        json_response = JSON.parse(response.body)
-        expect(json_response['error']['backtrace']).to eq([])
+        expect(json_response['error']).to eq('Service unavailable')
       end
     end
 
@@ -168,8 +147,7 @@ RSpec.describe Smartops::Api::JobsController, type: :controller do
           json_response = JSON.parse(response.body)
           
           expect(json_response['success']).to be false
-          expect(json_response['error']['type']).to eq('API_ERROR')
-          expect(json_response['error']['message']).to match(/schedule_date/)
+          expect(json_response['error']).to match(/schedule_date/)
         end
       end
     end
@@ -186,9 +164,7 @@ RSpec.describe Smartops::Api::JobsController, type: :controller do
         json_response = JSON.parse(response.body)
         
         expect(json_response['success']).to be false
-        expect(json_response['error']['type']).to eq('API_ERROR')
-        expect(json_response['error']['message']).to eq('Job not found')
-        expect(json_response['error']['backtrace']).to be_an(Array)
+        expect(json_response['error']).to eq('Job not found')
       end
     end
   end
@@ -252,9 +228,7 @@ RSpec.describe Smartops::Api::JobsController, type: :controller do
         json_response = JSON.parse(response.body)
         
         expect(json_response['success']).to be false
-        expect(json_response['error']['type']).to eq('API_ERROR')
-        expect(json_response['error']['message']).to eq('Service timeout')
-        expect(json_response['error']['backtrace']).to be_an(Array)
+        expect(json_response['error']).to eq('Service timeout')
       end
     end
   end
@@ -295,7 +269,7 @@ RSpec.describe Smartops::Api::JobsController, type: :controller do
         
         expect(response).to have_http_status(:bad_request)
         json_response = JSON.parse(response.body)
-        expect(json_response['error']['message']).to eq('Runtime error')
+        expect(json_response['error']).to eq('Runtime error')
       end
       
       it 'handles ArgumentError' do
@@ -305,7 +279,7 @@ RSpec.describe Smartops::Api::JobsController, type: :controller do
         
         expect(response).to have_http_status(:bad_request)
         json_response = JSON.parse(response.body)
-        expect(json_response['error']['message']).to eq('Invalid argument')
+        expect(json_response['error']).to eq('Invalid argument')
       end
       
       it 'handles custom errors' do
@@ -316,7 +290,7 @@ RSpec.describe Smartops::Api::JobsController, type: :controller do
         
         expect(response).to have_http_status(:bad_request)
         json_response = JSON.parse(response.body)
-        expect(json_response['error']['message']).to eq('Custom error')
+        expect(json_response['error']).to eq('Custom error')
       end
     end
     
@@ -328,11 +302,6 @@ RSpec.describe Smartops::Api::JobsController, type: :controller do
       json_response = JSON.parse(response.body)
       expect(json_response).to have_key('success')
       expect(json_response).to have_key('error')
-      expect(json_response['success']).to be false
-      expect(json_response['error']).to have_key('type')
-      expect(json_response['error']).to have_key('message')
-      expect(json_response['error']).to have_key('backtrace')
-      expect(json_response['error']['type']).to eq('API_ERROR')
     end
   end
 end
