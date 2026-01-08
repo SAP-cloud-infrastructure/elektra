@@ -110,12 +110,11 @@ function Jobs() {
           if (response.data.success && response.data.job) {
             setSelectedJob(response.data.job)
           }
+          setLoadingJob(false)
         })
         .catch((error) => {
-          setDetailsError("Failed to load job details: " + error)
-        })
-        .finally(() => {
-          setLoadingJob(false)
+          const message = typeof error === "string" ? error : error instanceof Error ? error.message : "Unknown error"
+          setDetailsError("Failed to load job details: " + message)
         })
     } else {
       setSelectedJob(null)
@@ -129,6 +128,7 @@ function Jobs() {
     // Invalidate the route to refresh data if needed
     router.invalidate()
     setDetailsError(null)
+    setLoadingJob(false)
   }
 
   return (
@@ -139,6 +139,7 @@ function Jobs() {
         onClose={handleClosePanel}
       >
         <PanelBody>
+          {detailsError && <Message variant="error" text={detailsError} />}
           {loadingJob ? (
             <>
               <Spinner size="small" aria-label="Loading Jobs" />
@@ -153,7 +154,6 @@ function Jobs() {
 
       <div>
         <IntroBox text="SmartOps helps to manage planned maintenance activities for virtual machines across your infrastructure. Schedule and coordinate planned updates, and maintenance jobs while minimizing service disruption and ensuring business continuity. Manage and monitor your jobs here and set a Schedule date." />
-        {detailsError && <Message variant="error" text={detailsError} />}
 
         {error ? (
           <Message variant="error" title="Failed to load jobs" text={error} />
