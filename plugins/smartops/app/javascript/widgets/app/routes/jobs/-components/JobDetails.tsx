@@ -41,6 +41,31 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
   const [success, setSuccess] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
+  const handleScheduleDateChange = (selectedDate: Date[] | undefined) => {
+    const currentDate = new Date()
+    // Handle both string and array values
+    // console.log("Selected date:", selectedDate) // Debug log
+    const dateValue = Array.isArray(selectedDate) ? selectedDate[0] : selectedDate
+    if (!dateValue) {
+      return
+    }
+    const selectedDateTime = new Date(dateValue)
+    const dueDateTime = new Date(job.due_date)
+    if (isNaN(selectedDateTime.getTime())) {
+      return
+    } else if (selectedDateTime < currentDate) {
+      setError("Selected date is in the past")
+      // console.log("Selected date is in the past") // Debug log
+      return
+    } else if (selectedDateTime > dueDateTime) {
+      setError(`Schedule Date not later as for job due by ${new Date(job.due_date).toLocaleDateString()}`)
+      return
+    } else {
+      setError(null)
+      setScheduleDate(selectedDateTime.toISOString())
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
@@ -182,32 +207,7 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
                     helptext={`Schedule Date not later as for job due by ${new Date(job.due_date).toLocaleDateString()}`}
                     value={scheduleDate}
                     enableTime={true}
-                    onChange={(selectedDate) => {
-                      const currentDate = new Date()
-                      // Handle both string and array values
-                      // console.log("Selected date:", selectedDate) // Debug log
-                      const dateValue = Array.isArray(selectedDate) ? selectedDate[0] : selectedDate
-                      if (!dateValue) {
-                        return
-                      }
-                      const selectedDateTime = new Date(dateValue)
-                      const dueDateTime = new Date(job.due_date)
-                      if (isNaN(selectedDateTime.getTime())) {
-                        return
-                      } else if (selectedDateTime < currentDate) {
-                        setError("Selected date is in the past")
-                        // console.log("Selected date is in the past") // Debug log
-                        return
-                      } else if (selectedDateTime > dueDateTime) {
-                        setError(
-                          `Schedule Date not later as for job due by ${new Date(job.due_date).toLocaleDateString()}`
-                        )
-                        return
-                      } else {
-                        setError(null)
-                        setScheduleDate(selectedDateTime.toISOString())
-                      }
-                    }}
+                    onChange={handleScheduleDateChange}
                   />
                 </Form>
                 <ButtonRow>
