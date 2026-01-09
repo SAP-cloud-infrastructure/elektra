@@ -145,7 +145,7 @@ const GCPoliciesEditRow = ({
                 <>
                   {" but not regex "}
                   <TextInput
-                    value={policy.match_tag}
+                    value={policy.except_tag}
                     isEditable={isEditable}
                     onChange={(e) => {
                       setPolicyAttribute(index, "except_tag", e.target.value)
