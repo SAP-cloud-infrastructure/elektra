@@ -15,6 +15,7 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
             'gardener.cloud/created-by' => 'admin'
           },
           'labels' => {
+            'shoot.gardener.cloud/status' => 'healthy',
             'environment' => 'production',
             'team' => 'devops'
           }
@@ -115,9 +116,10 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
         uid: shoot_mock['metadata']['uid'],
         name: shoot_mock['metadata']['name'],
         createdBy: shoot_mock['metadata']['annotations']['gardener.cloud/created-by'],
+        isDeleted: false,
         region: shoot_mock['spec']['region'],
         infrastructure: shoot_mock['spec']['provider']['type'],
-        status: 'Operational',
+        status: 'healthy',
         version: shoot_mock['spec']['kubernetes']['version'],
         purpose: shoot_mock['spec']['purpose'],
         cloudProfileName: shoot_mock['spec']['cloudProfileName'],
@@ -130,6 +132,7 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           state: shoot_mock['status']['lastOperation']['state'],
           type: shoot_mock['status']['lastOperation']['type']
         },
+        lastOperationSummary: "#{shoot_mock['status']['lastOperation']['type']} #{shoot_mock['status']['lastOperation']['state']} (#{shoot_mock['status']['lastOperation']['progress']}%)",
         lastErrors: [
           {
             description: 'Some recoverable error',
@@ -198,6 +201,42 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
       expect(cluster[:infrastructure]).to eq('openstack')
     end
     
+    it "handles shoot with deletionTimestamp set" do
+      shoot_with_deletion = {
+        'metadata' => {
+          'name' => 'deleting-cluster',
+          'namespace' => 'garden-test',
+          'uid' => '12345678-1234-1234-1234-123456789012',
+          'resourceVersion' => '1234567',
+          'generation' => 1,
+          'creationTimestamp' => Time.now.iso8601,
+          'deletionTimestamp' => Time.now.iso8601
+        },
+        'spec' => {
+          'cloudProfileName' => 'openstack',
+          'kubernetes' => {
+            'version' => '1.25.4'
+          },
+          'networking' => {
+            'type' => 'calico',
+            'pods' => '100.96.0.0/11',
+            'nodes' => '10.250.0.0/16',
+            'services' => '100.64.0.0/13',
+            'ipFamilies' => ['IPv4']
+          },
+          'provider' => {
+            'type' => 'openstack',
+            'controlPlaneConfig' => {},
+            'infrastructureConfig' => {},
+            'workers' => []
+          },
+          'region' => 'eu-de'
+        }
+      }
+      cluster = convert_shoot_to_cluster(shoot_with_deletion)
+      expect(cluster[:isDeleted]).to eq(true)
+    end
+
     it "handles shoot with optional addons" do
       shoot_with_addons = {
         'metadata' => {

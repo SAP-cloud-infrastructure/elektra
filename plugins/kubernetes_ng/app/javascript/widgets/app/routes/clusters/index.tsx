@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { createFileRoute, useLoaderData, useRouter, useMatch } from "@tanstack/react-router"
+import { createFileRoute, useLoaderData, useRouter, useMatch, useLocation } from "@tanstack/react-router"
 import { Container, Button, Message } from "@cloudoperators/juno-ui-components"
 import ClusterList from "./-components/ClusterList"
 import PageHeader from "../../components/PageHeader"
@@ -121,14 +121,31 @@ function ClusterContent({ clusters = [], permissions, error, isLoading = false, 
 function Clusters(props: ClustersViewProps) {
   const { permissions, isLoading = false, client, region } = props
   const [showWizardModal, setShowWizardModal] = useState(false)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const location = useLocation()
+  const [successMessage, setSuccessMessage] = useState(location.state?.successMessage ?? null)
   const router = useRouter()
+
+  const cleanupSuccessMessage = () => {
+    // clear location state to avoid showing the message again on remount
+    setSuccessMessage(null)
+    // clear successMessage from location state to prevent it from reappearing on remount
+    if (location.state?.successMessage) {
+      router.navigate({
+        to: location.pathname,
+        replace: true,
+        state: (prev) => ({
+          ...prev,
+          successMessage: undefined,
+        }),
+      })
+    }
+  }
 
   return (
     <>
       <Container px={false} py>
         {successMessage && (
-          <Message onDismiss={() => setSuccessMessage(null)} text={successMessage} variant="success" autoDismiss />
+          <Message onDismiss={cleanupSuccessMessage} text={successMessage} variant="success" autoDismiss dismissible />
         )}
       </Container>
 

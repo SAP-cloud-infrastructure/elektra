@@ -10,11 +10,12 @@ const expectClusterListHeaders = () => {
   expect(screen.getByText("Status")).toBeInTheDocument()
   expect(screen.getByText("Name")).toBeInTheDocument()
   expect(screen.getByText("Readiness")).toBeInTheDocument()
+  expect(screen.getByText("Last Operation")).toBeInTheDocument()
   expect(screen.getByText("Version")).toBeInTheDocument()
 
   // check number of columns
   const columnHeaders = screen.getAllByRole("columnheader")
-  expect(columnHeaders).toHaveLength(6)
+  expect(columnHeaders).toHaveLength(7)
 
   // check the first header contains the icon
   const icon = within(columnHeaders[0]).getByRole("img")

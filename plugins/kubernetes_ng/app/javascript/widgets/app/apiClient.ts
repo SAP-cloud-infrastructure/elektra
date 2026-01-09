@@ -35,7 +35,6 @@ export function createGardenerApi(mountpoint: string) {
         }
         return res.data
       }),
-
     getClusterByName: (name: string) =>
       apiClient.get<{ data: Cluster }>(`/api/clusters/${name}/`).then((res) => {
         const parsed = ClusterSchema.safeParse(res.data)
@@ -44,7 +43,6 @@ export function createGardenerApi(mountpoint: string) {
         }
         return res.data
       }),
-
     createCluster: (clusterData: ClusterFormData) =>
       apiClient.post<{ data: Cluster }>("/api/clusters/", clusterData).then((res) => {
         const parsed = ClusterSchema.safeParse(res.data)
@@ -53,7 +51,6 @@ export function createGardenerApi(mountpoint: string) {
         }
         return res.data
       }),
-
     getKubeconfig: (name: string) =>
       apiClient
         .get<{ data: string }>(`/api/clusters/kubeconfig/${name}/`)
@@ -70,6 +67,14 @@ export function createGardenerApi(mountpoint: string) {
           // Fallback to normal Error
           throw new Error(err instanceof Error ? err.message : "Failed to fetch kubeconfig")
         }),
+    confirm_deletion_and_destroy: (name: string) =>
+      apiClient.delete<{ data: Cluster }>(`/api/clusters/confirm-deletion-and-destroy/${name}/`).then((res) => {
+        const parsed = ClusterSchema.safeParse(res.data)
+        if (!parsed.success) {
+          throw new Error("Failed to delete cluster: invalid response")
+        }
+        return res.data
+      }),
   }
 
   const permissionsApi = {
