@@ -1,0 +1,7 @@
+{
+  "smartops:entry_list": "@",
+  "smartops:entry_get": "@",
+  "smartops:entry_create": "@",
+  "smartops:entry_delete": "@",
+  "smartops:entry_update": "@"
+}

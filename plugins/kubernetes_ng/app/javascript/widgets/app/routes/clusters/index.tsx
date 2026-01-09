@@ -26,7 +26,10 @@ export const Route = createFileRoute(CLUSTERS_ROUTE_ID)({
   ),
   loader: async ({ context }) => {
     const client = context.apiClient
-    const [clusters, permissions] = await Promise.all([client.gardener.getClusters(), client.gardener.getPermissions()])
+    const [clusters, permissions] = await Promise.all([
+      client.gardener.getClusters(),
+      client.gardener.getShootPermissions(),
+    ])
     return {
       clusters,
       permissions,

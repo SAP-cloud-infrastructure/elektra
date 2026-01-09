@@ -18,9 +18,9 @@ export function isSerializedServerError(error: unknown): error is { data: { mess
 // exported for use in other components like Message component
 export function normalizeError(error: unknown): { title: string; message: string } {
   if (isSerializedServerError(error)) {
-    // remove leading commas and spaces from message
-    // ex: ', , shoots.core.gardener.cloud "shoot" already exists' -> "Some error message"
-    const msg = (error?.data?.message ?? "").replace(/^,\s*,\s*/, "") || "Please try again later."
+    // remove one or more leading commas plus any whitespace after them
+    // ex: ', , shoots.core.gardener.cloud "shoot" already exists' or ', Invalid value: []core.ShootAdvertisedAddress(nil)'
+    const msg = (error?.data?.message ?? "").replace(/^[,\s]+/, "") || "Please try again later."
     return {
       title: "API Error: ",
       message: msg,
@@ -30,7 +30,7 @@ export function normalizeError(error: unknown): { title: string; message: string
   if (error instanceof Error) {
     return {
       title: error.name ? `${error.name}: ` : "Error: ",
-      message: error.message || "An unknown error occurred. Try again.",
+      message: error.message.replace(/^[,\s]+/, "") || "An unknown error occurred. Try again.",
     }
   }
 

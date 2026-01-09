@@ -294,7 +294,7 @@ const EditListener = (props) => {
   }
 
   const loadPools = (lbID) => {
-    return new Promise((handleSuccess, handleErrors) => {
+    return new Promise(() => {
       setPools({ ...pools, isLoading: true })
       fetchPoolsForSelect(lbID)
         .then((data) => {
@@ -304,17 +304,15 @@ const EditListener = (props) => {
             items: data.pools,
             error: null,
           })
-          handleSuccess(data.pools)
         })
         .catch((error) => {
           setPools({ ...pools, isLoading: false, error: errorMessage(error) })
-          handleErrors(errorMessage(error))
         })
     })
   }
 
   const loadSecrets = (lbID) => {
-    return new Promise((handleSuccess, handleErrors) => {
+    return new Promise(() => {
       setSecrets({ ...secrets, isLoading: true })
       fetchSecretsForSelect(lbID)
         .then((data) => {
@@ -325,7 +323,6 @@ const EditListener = (props) => {
             error: null,
             total: data.total,
           })
-          handleSuccess(data.secrets)
         })
         .catch((error) => {
           setSecrets({
@@ -333,7 +330,6 @@ const EditListener = (props) => {
             isLoading: false,
             error: errorMessage(error),
           })
-          handleErrors(errorMessage(error))
         })
     })
   }
