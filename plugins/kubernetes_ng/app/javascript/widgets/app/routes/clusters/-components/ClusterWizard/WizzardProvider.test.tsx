@@ -169,20 +169,21 @@ describe("WizardProvider / useWizard", () => {
       expect(result.current.maxStepReached).toBe(1)
     })
 
-    it("does not decrease maxStepReached when going backward", () => {
+    it("does not decrease maxStepReached when going backward and includes current step in validation", () => {
       const wrapper = TestWrapper(queryClient)
       const { result } = renderHook(() => useWizard(), { wrapper })
 
       act(() => {
-        result.current.handleSetCurrentStep(2)
-      })
-      expect(result.current.maxStepReached).toBe(2)
-
-      act(() => {
         result.current.handleSetCurrentStep(1)
       })
+      expect(result.current.maxStepReached).toBe(1)
+
+      act(() => {
+        result.current.handleSetCurrentStep(0)
+      })
+      // maxStepReached increased to 2 to include current step in validation when going back
       expect(result.current.maxStepReached).toBe(2)
-      expect(result.current.currentStep).toBe(1)
+      expect(result.current.currentStep).toBe(0)
     })
 
     it("validates all steps up to maxStepReached and updates formErrors", () => {
@@ -194,11 +195,61 @@ describe("WizardProvider / useWizard", () => {
         result.current.handleSetCurrentStep(1)
       })
 
-      // step 0 = step1, hasError should be true
+      // step 0 => step1, hasError should be true
       expect(result.current.steps[0].hasError).toBe(true)
 
-      // formErrors contains errors for required fields
+      // formErrors contains errors for required fields from step1
       expect(result.current.formErrors.name).toContain("This field is required")
+    })
+
+    it("validates the maxStepReached when going back", () => {
+      const wrapper = TestWrapper(queryClient)
+      const { result } = renderHook(() => useWizard(), { wrapper })
+
+      act(() => {
+        result.current.handleSetCurrentStep(1)
+      })
+
+      // going back to step 0 and validating step 1
+      act(() => {
+        result.current.handleSetCurrentStep(0)
+      })
+
+      // formErrors contains errors for required fields from step1
+      expect(result.current.formErrors.name).toContain("This field is required")
+      expect(result.current.steps[0].hasError).toBe(true)
+      // formErrors contains errors for required fields from step2
+      const worker = result.current.clusterFormData.workers[0]
+      expect(result.current.formErrors["workers." + worker.id + ".machineType"]).toContain("Machine type is required")
+      expect(result.current.steps[1].hasError).toBe(true)
+    })
+
+    it("validates all steps when summary (included summary) step is reached", () => {
+      const wrapper = TestWrapper(queryClient)
+      const { result } = renderHook(() => useWizard(), { wrapper })
+
+      act(() => {
+        result.current.handleSetCurrentStep(2)
+      })
+
+      expect(result.current.steps[0].hasError).toBe(true)
+      expect(result.current.steps[1].hasError).toBe(true)
+      expect(result.current.steps[2].hasError).toBe(true)
+    })
+
+    it("validates all steps going back from summary", () => {
+      const wrapper = TestWrapper(queryClient)
+      const { result } = renderHook(() => useWizard(), { wrapper })
+
+      act(() => {
+        result.current.handleSetCurrentStep(2)
+      })
+      act(() => {
+        result.current.handleSetCurrentStep(1)
+      })
+      expect(result.current.steps[0].hasError).toBe(true)
+      expect(result.current.steps[1].hasError).toBe(true)
+      expect(result.current.steps[2].hasError).toBe(true)
     })
 
     it("updates multiple steps errors correctly", () => {

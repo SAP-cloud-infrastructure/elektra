@@ -2,6 +2,8 @@ module ServiceLayer
   module KubernetesNgServices
     # This module implements Openstack Domain API
     module Clusters
+      class KubeconfigGenerationError < StandardError; end
+
       def list_clusters(project_id)
         namespace = "garden-#{project_id}"
         response = elektron_gardener.get("apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots")
@@ -63,7 +65,43 @@ module ServiceLayer
         return response&.body
       end
 
+      def admin_kubeconfig_cluster(project_id, cluster_name, expiration_seconds = 28800)
+        namespace = "garden-#{project_id}"
+        response = elektron_gardener.post(
+          "apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots/#{cluster_name}/adminkubeconfig",
+          headers: { "Content-Type" => "application/json" }
+        ) do
+          {
+            spec: {
+              expirationSeconds: expiration_seconds # Hardcoded to 8 hours
+            }
+          }
+        end
+
+        decode_kubeconfig(response&.body, cluster_name)
+      end
+
       private
+
+      # Decode the kubeconfig from the API response
+      # Raises KubeconfigGenerationError on failure
+      def decode_kubeconfig(response_body, cluster_name)
+        kubeconfig_base64 = deep_fetch(response_body, "status", "kubeconfig")
+
+        unless kubeconfig_base64
+          Rails.logger.error("Kubeconfig not found in response for cluster #{cluster_name}")
+          raise KubeconfigGenerationError, "Kubeconfig not found in API response"
+        end
+
+        begin
+          # Base64.decode64 is lenient and won’t raise an exception for most malformed strings
+          # use strict_decode64 to ensure proper error handling
+          Base64.strict_decode64(kubeconfig_base64)
+        rescue ArgumentError => e
+          Rails.logger.error("Failed to decode kubeconfig for cluster #{cluster_name}: #{e.message}")
+          raise KubeconfigGenerationError, "Invalid base64 encoding"
+        end
+      end
 
       # Helper method for deep fetching nested hash values
       # Usage: deep_fetch(obj, :key1, :key2, :key3)
@@ -89,12 +127,14 @@ module ServiceLayer
           # List view fields
           uid: metadata['uid'],
           name: metadata['name'],
+          createdBy: metadata.dig('annotations', 'gardener.cloud/created-by'),
           region: spec['region'],
           infrastructure: deep_fetch(spec, 'provider', 'type'),
           status: get_cluster_status(shoot),
           version: deep_fetch(spec, 'kubernetes', 'version'),
           readiness: get_cluster_readiness(shoot),
           purpose: spec['purpose'],
+          addOns: get_enabled_add_ons(spec),
           cloudProfileName: spec['cloudProfileName'],
           namespace: metadata.dig('namespace'),
           secretBindingName: spec['secretBindingName'],          
@@ -134,6 +174,14 @@ module ServiceLayer
         }.compact
       end
       
+      def get_enabled_add_ons(spec)
+        add_ons = deep_fetch(spec, 'addons')
+        return [] unless add_ons.is_a?(Hash)
+        add_ons.filter_map do |key, value|
+          key if value['enabled'] == true
+        end
+      end
+
       # convert_shoot_to_cluster -> Helper functions
       # Helper function to determine cluster status from last operation
       def get_cluster_status(shoot)

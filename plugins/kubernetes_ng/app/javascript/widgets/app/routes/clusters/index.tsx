@@ -26,7 +26,10 @@ export const Route = createFileRoute(CLUSTERS_ROUTE_ID)({
   ),
   loader: async ({ context }) => {
     const client = context.apiClient
-    const [clusters, permissions] = await Promise.all([client.gardener.getClusters(), client.gardener.getPermissions()])
+    const [clusters, permissions] = await Promise.all([
+      client.gardener.getClusters(),
+      client.gardener.getShootPermissions(),
+    ])
     return {
       clusters,
       permissions,
@@ -142,7 +145,7 @@ function Clusters(props: ClustersViewProps) {
           isOpen={showWizardModal}
           onSuccessCreate={(clusterName) => {
             router.invalidate()
-            setSuccessMessage(`Cluster ${clusterName} created successfully.`)
+            setSuccessMessage(`Cluster ${clusterName} is being bootstrapped. This may take a few minutes.`)
           }}
           onClose={() => {
             setShowWizardModal(false)

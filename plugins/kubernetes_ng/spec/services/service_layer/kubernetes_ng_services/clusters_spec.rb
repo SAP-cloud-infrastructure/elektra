@@ -11,6 +11,9 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           'resourceVersion' => '1234567',
           'generation' => 1,
           'creationTimestamp' => Time.now.iso8601,
+          'annotations' => {
+            'gardener.cloud/created-by' => 'admin'
+          },
           'labels' => {
             'environment' => 'production',
             'team' => 'devops'
@@ -111,6 +114,7 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
       expect(cluster).to include(
         uid: shoot_mock['metadata']['uid'],
         name: shoot_mock['metadata']['name'],
+        createdBy: shoot_mock['metadata']['annotations']['gardener.cloud/created-by'],
         region: shoot_mock['spec']['region'],
         infrastructure: shoot_mock['spec']['provider']['type'],
         status: 'Operational',
@@ -237,7 +241,7 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
       }
       cluster = convert_shoot_to_cluster(shoot_with_addons)
       expect(cluster[:name]).to eq('addon-cluster')
-      # Add expectations for how addons are handled in your conversion logic
+      expect(cluster[:addOns]).to include('kubernetesDashboard', 'nginxIngress')
     end
     
     it "handles shoot with DNS configuration" do
@@ -816,4 +820,85 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
       expect(shoot['spec']['hibernation']).to be_nil
     end
   end
+
+  describe "kube config generation" do
+    let(:project_id) { "test" }
+    let(:namespace) { "garden-#{project_id}" }
+    let(:cluster_name) { "test-cluster" }
+
+    let(:mock_response) do
+      double(
+        'response',
+        body: {
+          'metadata' => {
+            'name' => cluster_name,
+            'namespace' => namespace
+          },
+          'spec' => {},
+          'status' => {
+            'kubeconfig' => Base64.strict_encode64(
+              <<~KUBECONFIG
+              apiVersion: v1
+              clusters:
+              - cluster:
+                  certificate-authority-data: xxx
+                  server: https://api.test-cluster.garden-test.example.com
+                name: test-cluster
+              contexts:
+              - context:
+                  cluster: test-cluster
+                  user: test-cluster-user
+                name: test-cluster-context
+              current-context: test-cluster-context
+              kind: Config
+              preferences: {}
+              users:
+              - name: test-cluster-user
+                user:
+                  token: yyy
+              KUBECONFIG
+            )
+          }
+        }
+      )
+    end
+
+    it "generates a valid kubeconfig for a given shoot" do
+      # Stub the API call on the subject
+      allow(self).to receive(:elektron_gardener).and_return(double('elektron_gardener'))
+      allow(elektron_gardener)
+        .to receive(:post)
+        .with("apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots/#{cluster_name}/adminkubeconfig", {headers: {"Content-Type" => "application/json"}})
+        .and_return(mock_response)
+
+      kubeconfig = admin_kubeconfig_cluster(project_id, cluster_name)
+
+      expect(kubeconfig).to be_a(String)
+      expect(kubeconfig).to include("apiVersion: v1")
+      expect(kubeconfig).to include("clusters:")
+      expect(kubeconfig).to include("users:")
+    end
+
+    it "raises an error if kubeconfig is missing" do
+      allow(self).to receive(:elektron_gardener).and_return(double('elektron_gardener'))
+      allow(elektron_gardener).to receive(:post)
+        .and_return(double(body: { 'status' => {} }))
+
+      expect {
+        admin_kubeconfig_cluster(project_id, cluster_name)
+      }.to raise_error(/not found/)
+    end
+
+
+    it "raises an error if kubeconfig is invalid base64" do
+      allow(self).to receive(:elektron_gardener).and_return(double('elektron_gardener'))
+      allow(elektron_gardener).to receive(:post)
+        .and_return(double(body: { 'status' => { 'kubeconfig' => "invalid-base64" } }))
+
+      expect {
+        admin_kubeconfig_cluster(project_id, cluster_name)
+      }.to raise_error(/Invalid base64/)
+    end
+  end
+      
 end

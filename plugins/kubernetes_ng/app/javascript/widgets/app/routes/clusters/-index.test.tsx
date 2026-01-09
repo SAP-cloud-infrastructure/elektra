@@ -16,7 +16,9 @@ const renderComponent = ({
     apiClient: {
       gardener: {
         getClusters: () => clustersPromise,
-        getPermissions: () => permissionsPromise,
+        getShootPermissions: () => permissionsPromise,
+        getKubeconfigPermission: () => permissionsPromise,
+        getKubeconfig: () => Promise.resolve("kubeconfig-data"),
         getClusterByName: () => {
           return Promise.resolve(defaultCluster)
         },
