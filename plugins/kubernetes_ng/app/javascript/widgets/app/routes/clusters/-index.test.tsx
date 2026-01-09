@@ -1,7 +1,7 @@
 import { render, screen, act, within } from "@testing-library/react"
 import { RouterProvider, createMemoryHistory } from "@tanstack/react-router"
 import { Route as ClustersRoute, CLUSTERS_ROUTE_ID } from "./index"
-import { getTestRouter, deferredPromise } from "../../mocks/TestTools"
+import { getTestRouter, deferredPromise, defaultMockClient } from "../../mocks/TestTools"
 import { defaultCluster, permissionsAllTrue } from "../../mocks/data"
 import { Cluster } from "../../types/cluster"
 import { Permissions } from "../../types/permissions"
@@ -15,16 +15,9 @@ const renderComponent = ({
   const mockClient: RouterContext = {
     apiClient: {
       gardener: {
+        ...defaultMockClient.gardener,
         getClusters: () => clustersPromise,
         getShootPermissions: () => permissionsPromise,
-        getKubeconfigPermission: () => permissionsPromise,
-        getKubeconfig: () => Promise.resolve("kubeconfig-data"),
-        getClusterByName: () => {
-          return Promise.resolve(defaultCluster)
-        },
-        createCluster: () => Promise.resolve(defaultCluster),
-        getCloudProfiles: () => Promise.resolve([]),
-        getExternalNetworks: () => Promise.resolve([]),
       },
     },
     region: "qa-de-1",
@@ -64,6 +57,28 @@ describe("<Clusters />", () => {
 
     const list = screen.getByRole("grid", { name: /cluster list/i })
     expect(list).toBeInTheDocument()
+  })
+
+  it("displays a message if location.state has a successMessage", async () => {
+    const successMessage = "Cluster created successfully"
+
+    const router = getTestRouter({
+      routeTree: ClustersRoute,
+      context: {
+        apiClient: defaultMockClient,
+        region: "qa-de-1",
+      },
+      history: createMemoryHistory({ initialEntries: [CLUSTERS_ROUTE_ID] }),
+    })
+
+    router.navigate({
+      to: "/clusters",
+      state: { successMessage },
+    })
+
+    render(<RouterProvider router={router} />)
+
+    expect(await screen.findByText(successMessage)).toBeInTheDocument()
   })
 
   describe("Loading", () => {

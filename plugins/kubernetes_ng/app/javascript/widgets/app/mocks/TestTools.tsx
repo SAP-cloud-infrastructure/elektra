@@ -75,6 +75,7 @@ export const defaultMockClient: GardenerApi = {
     getClusterByName: () => Promise.resolve(defaultCluster),
     createCluster: () => Promise.resolve(defaultCluster),
     getKubeconfig: () => Promise.resolve("kubeconfig-data"),
+    confirm_deletion_and_destroy: () => Promise.resolve(defaultCluster),
 
     getShootPermissions: () => Promise.resolve(permissionsAllTrue),
     getKubeconfigPermission: () => Promise.resolve(permissionsAllTrue),

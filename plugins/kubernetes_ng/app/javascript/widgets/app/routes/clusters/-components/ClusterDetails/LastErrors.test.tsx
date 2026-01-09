@@ -2,7 +2,7 @@ import React from "react"
 import { render, screen, fireEvent, within } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import LastErrors from "./LastErrors"
-import { lastError1, lastError2 } from "../../../mocks/data"
+import { lastError1, lastError2 } from "../../../../mocks/data"
 
 describe("LastErrors component", () => {
   it("renders nothing if errors is empty", () => {

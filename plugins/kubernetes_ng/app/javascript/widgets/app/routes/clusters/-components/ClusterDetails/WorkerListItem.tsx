@@ -1,5 +1,5 @@
 import React from "react"
-import { Worker } from "../../../types/cluster"
+import { Worker } from "../../../../types/cluster"
 import { DataGridRow, DataGridCell, Stack } from "@cloudoperators/juno-ui-components"
 
 interface WorkerListItemProps {
