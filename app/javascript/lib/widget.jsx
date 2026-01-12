@@ -67,11 +67,11 @@ class Widget {
     setPolicy(policy)
   }
 
-  render(container) {
+  render(container, props = {}) {
     // const Container = React.createElement(container, this.config.params)
     for (let reactContainer of this.reactContainers) {
       let dataset = getDataset(reactContainer)
-      let wrappedComponent = React.createElement(container, Object.assign({}, dataset, this.config.params))
+      let wrappedComponent = React.createElement(container, Object.assign({}, dataset, this.config.params, props))
 
       if (!reactContainer) continue
       if (this.store) {
