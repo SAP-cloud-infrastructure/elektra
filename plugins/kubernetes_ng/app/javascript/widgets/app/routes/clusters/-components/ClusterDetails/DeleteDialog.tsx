@@ -60,7 +60,7 @@ const DeleteDialog: React.FC<DeleteDialogProps> = ({ clusterName, isOpen, onClos
       </Container>
       <p className="tw-font-bold tw-mb-4">Do you really want to remove the cluster {clusterName} from your project?</p>
       <p className="tw-mb-4">
-        After continuing you project will no longer have access to the cluster <b>{clusterName}</b> resources.
+        After continuing your project will no longer have access to the cluster <b>{clusterName}</b> resources.
       </p>
       <p className="tw-mb-4">Type in the name of the cluster to delete.</p>
       <FormRow>
