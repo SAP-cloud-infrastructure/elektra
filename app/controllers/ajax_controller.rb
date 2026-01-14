@@ -6,7 +6,7 @@
 class AjaxController < ::ScopeController
   include Rescue
 
-  authentication_required domain: lambda { |c|
+  api_authentication_required domain: lambda { |c|
                                     c.instance_variable_get(:@scoped_domain_id)
                                   },
                           domain_name: lambda { |c|
