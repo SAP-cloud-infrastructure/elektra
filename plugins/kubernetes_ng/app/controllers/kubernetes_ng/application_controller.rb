@@ -19,6 +19,12 @@ module KubernetesNg
           code: e.code,
           message: e.message
         }, status: e.code
+      rescue Elektron::Errors::Request => e
+        render json: { 
+          error: "Request Error", 
+          code: 500,
+          message: "Service temporarily unavailable. Please try again later.", 
+        }, status: 500
       rescue Net::HTTPError => e
         render json: { 
           error: "Network Error",
