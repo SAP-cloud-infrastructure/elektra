@@ -6,6 +6,7 @@ import { JobDetails } from "./-components/JobDetails"
 import { IntroBox, Panel, PanelBody, Spinner, Message } from "@cloudoperators/juno-ui-components"
 import { useState, useEffect } from "react"
 import { router } from "../../router"
+import { useRef } from "react"
 
 const STATUS_ORDER = [
   "initial",
@@ -91,33 +92,37 @@ function Jobs() {
   const search = useSearch({ from: Route.id })
   const [detailsError, setDetailsError] = useState<string | null>(null)
   const navigate = useNavigate()
-
   const [selectedJob, setSelectedJob] = useState<Job | null>(null)
   const [loadingJob, setLoadingJob] = useState(false)
-
-  // console.log("Component search:", search)
+  // handle job panel state to know if it's open or closed
+  const [panelOpen, setPanelOpen] = useState(false)
+  const currentJobIdRef = useRef<string | undefined>(undefined)
 
   // Load job when search params change
   useEffect(() => {
     if (search?.jobId && apiClient) {
-      // console.log("Loading job for ID:", search.jobId)
       setLoadingJob(true)
       setDetailsError(null)
+      setPanelOpen(true)
+
       apiClient
         .get<ApiResponse>(`/jobs/${search.jobId}`)
         .then((response) => {
-          // console.log("Job loaded:", response.data)
           if (response.data.success && response.data.job) {
             setSelectedJob(response.data.job)
           }
           setLoadingJob(false)
+          currentJobIdRef.current = search.jobId
         })
         .catch((error) => {
           const message = typeof error === "string" ? error : error instanceof Error ? error.message : "Unknown error"
           setDetailsError("Failed to load job details: " + message)
+          setLoadingJob(false)
         })
     } else {
       setSelectedJob(null)
+      setPanelOpen(false)
+      currentJobIdRef.current = undefined
     }
   }, [search?.jobId, apiClient])
 
@@ -125,25 +130,38 @@ function Jobs() {
     navigate({
       to: "/jobs",
     })
-    // Invalidate the route to refresh data if needed
-    router.invalidate()
+    setPanelOpen(false)
     setDetailsError(null)
     setLoadingJob(false)
+    currentJobIdRef.current = undefined
+    router.invalidate()
+  }
+
+  const handleJobSelect = (jobId: string) => {
+    // If clicking the same job that's currently open, close it
+    // this is used in JobItem component
+    if (jobId === currentJobIdRef.current && panelOpen) {
+      handleClosePanel()
+    } else {
+      // Navigate to the job
+      navigate({
+        to: "/jobs",
+        search: { jobId },
+      })
+    }
   }
 
   return (
     <>
       <Panel
         heading={selectedJob ? `Job: ${selectedJob.name}` : "Loading Job Details..."}
-        opened={!!selectedJob || loadingJob}
+        opened={panelOpen}
         onClose={handleClosePanel}
       >
         <PanelBody>
           {detailsError && <Message variant="error" text={detailsError} />}
           {loadingJob ? (
-            <>
-              <Spinner size="small" aria-label="Loading Jobs" />
-            </>
+            <Spinner size="small" aria-label="Loading Jobs" />
           ) : (
             selectedJob && (
               <JobDetails job={selectedJob} domainName={domainName} projectName={projectName} apiClient={apiClient} />
@@ -151,14 +169,12 @@ function Jobs() {
           )}
         </PanelBody>
       </Panel>
-
       <div>
-        <IntroBox text="SmartOps helps to manage planned maintenance activities for virtual machines across your infrastructure. Schedule and coordinate planned updates, and maintenance jobs while minimizing service disruption and ensuring business continuity. Manage and monitor your jobs here and set a Schedule date." />
-
+        <IntroBox text="SmartOps helps to manage planned maintenance activities..." />
         {error ? (
           <Message variant="error" title="Failed to load jobs" text={error} />
         ) : (
-          <JobList jobs={jobs} isLoading={false} />
+          <JobList jobs={jobs} isLoading={false} onJobSelect={handleJobSelect} />
         )}
       </div>
     </>
