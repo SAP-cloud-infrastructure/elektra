@@ -8,7 +8,7 @@
     "@nivo/tooltip": "^0.99.0",
     "@popperjs/core": "^2.11.6",
     "@rails/actioncable": "^7",
-    "@sapcc/limes-ui": "1.12.6",
+    "@sapcc/limes-ui": "1.13.1",
     "@sapcc/maillog-ui": "^1.0.25",
     "@tanstack/react-query": "^4.28.0",
     "@tanstack/react-router": "1.131.25",
