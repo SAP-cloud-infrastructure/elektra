@@ -88,16 +88,7 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
         setSuccess(true)
       }
     } catch (err: unknown) {
-      if (err && typeof err === "object" && "response" in err) {
-        const error = err as { response?: { status?: number; data?: { error?: { message?: string } } } }
-        if (error.response?.status === 400) {
-          setScheduleError(error.response?.data?.error?.message || "Bad request: Invalid schedule date")
-        } else {
-          setScheduleError(err instanceof Error ? err.message : "An unexpected error occurred")
-        }
-      } else {
-        setScheduleError(err instanceof Error ? err.message : "An unexpected error occurred")
-      }
+      setScheduleError(err instanceof Error ? err.message : "An unexpected error occurred")
     } finally {
       setIsLoading(false)
     }

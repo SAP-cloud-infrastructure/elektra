@@ -252,19 +252,11 @@ describe("JobDetails", () => {
 
     it("should handle 400 error from API", async () => {
       const apiClient = createMockApiClient()
-      vi.mocked(apiClient.patch).mockRejectedValueOnce({
-        response: {
-          status: 400,
-          data: {
-            success: false,
-            error: {
-              type: "API_ERROR",
-              message: "Bad request: Invalid schedule date",
-              backtrace: [],
-            },
-          },
-        },
-      })
+
+      // Create an Error with the message you want to display
+      const error = new Error("Bad request: Invalid schedule date")
+
+      vi.mocked(apiClient.patch).mockRejectedValueOnce(error)
 
       const job = createMockJob({
         due_date: "2026-12-31T23:59:59Z",
@@ -272,7 +264,6 @@ describe("JobDetails", () => {
       })
 
       render(<JobDetails job={job} apiClient={apiClient} />)
-
       const scheduleButton = screen.getByRole("button", { name: /schedule/i })
       fireEvent.click(scheduleButton)
 
