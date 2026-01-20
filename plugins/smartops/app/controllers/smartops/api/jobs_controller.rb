@@ -43,7 +43,7 @@ module Smartops
         # and needs that structure to be properly handled
         error_response = {
           success: false,
-          error: error.response.body || error.message || "An unexpected error occurred", # this will be the error.message on js side
+          error: error.message || error.response.body || "An unexpected error occurred", # this will be the error.message on js side
         }
         render json: error_response , status: status_code
       end
