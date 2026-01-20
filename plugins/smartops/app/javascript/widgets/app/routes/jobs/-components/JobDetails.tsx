@@ -1,4 +1,3 @@
-// components/JobDetails.tsx
 import type { Job } from "../../../types/api"
 import type { ApiResponse } from "../../../types/api"
 import { getStatusColor, formatDate, formatScheduleDate } from "./utils/jobUtils"

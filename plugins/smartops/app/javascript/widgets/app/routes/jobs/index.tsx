@@ -1,4 +1,3 @@
-// jobs/index.tsx
 import { createFileRoute, useLoaderData, useNavigate, useSearch } from "@tanstack/react-router"
 import type { Job, ApiResponse } from "../../types/api"
 import { JobList } from "./-components/JobList"
