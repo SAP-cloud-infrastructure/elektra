@@ -43,7 +43,6 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
   const [isLoading, setIsLoading] = useState(false)
 
   const handleScheduleDateChange = (selectedDate: Date[] | undefined) => {
-    const currentDate = new Date()
     // Handle both string and array values
     // console.log("Selected date:", selectedDate) // Debug log
     const dateValue = Array.isArray(selectedDate) ? selectedDate[0] : selectedDate
@@ -52,9 +51,6 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
     }
     const selectedDateTime = new Date(dateValue)
     if (isNaN(selectedDateTime.getTime())) {
-      return
-    } else if (selectedDateTime < currentDate) {
-      setScheduleError("The task is not done and the Schedule date is in the past, please check the task status!")
       return
     } else {
       setScheduleError(null)
@@ -105,6 +101,13 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
         <>
           <Message variant="error" className="mb-4">
             Job was scheduled but did not complete successfully before due date!
+          </Message>
+        </>
+      )}
+      {new Date(job.schedule_date) < new Date() && job.state != "successful" && job.state != "failed" && (
+        <>
+          <Message variant="warning" className="mb-4">
+            The task is not done and the Schedule date is in the past, please check the task status!
           </Message>
         </>
       )}
@@ -191,11 +194,7 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
             <strong>Schedule Date</strong>
           </DataGridCell>
           <DataGridCell>
-            {new Date(job.due_date) < new Date() && job.schedule_date && job.state != "successful" ? (
-              <>{formatScheduleDate(job)}</>
-            ) : new Date(job.due_date) < new Date() && job.state === "successful" ? (
-              formatScheduleDate(job)
-            ) : (
+            {job.state === "initial" || job.state === "scheduled" ? (
               <>
                 <Form onSubmit={handleSubmit}>
                   <DateTimePicker
@@ -218,6 +217,8 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
                   />
                 </ButtonRow>
               </>
+            ) : (
+              <>{formatScheduleDate(job)}</>
             )}
           </DataGridCell>
         </DataGridRow>
