@@ -51,15 +51,10 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
       return
     }
     const selectedDateTime = new Date(dateValue)
-    const dueDateTime = new Date(job.due_date)
     if (isNaN(selectedDateTime.getTime())) {
       return
     } else if (selectedDateTime < currentDate) {
-      setScheduleError("Selected date is in the past")
-      // console.log("Selected date is in the past") // Debug log
-      return
-    } else if (selectedDateTime > dueDateTime) {
-      setScheduleError(`Schedule Date not later as for job due by ${new Date(job.due_date).toLocaleDateString()}`)
+      setScheduleError("The task is not done and the Schedule date is in the past, please check the task status!")
       return
     } else {
       setScheduleError(null)
@@ -101,9 +96,26 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
           Job updated successfully!
         </Message>
       )}
+      {new Date(job.due_date) < new Date() && !job.schedule_date && (
+        <Message variant="error" className="mb-4">
+          Job missed its scheduled time and can no longer be scheduled
+        </Message>
+      )}
+      {new Date(job.due_date) < new Date() && job.schedule_date && job.state != "successful" && (
+        <>
+          <Message variant="error" className="mb-4">
+            Job was scheduled but did not complete successfully before due date!
+          </Message>
+        </>
+      )}
       {detailsError && (
         <Message variant="error" className="mb-4">
           {detailsError}
+        </Message>
+      )}
+      {scheduleError && (
+        <Message variant="error" className="mb-4">
+          {scheduleError}
         </Message>
       )}
       <DataGrid columns={2}>
@@ -179,23 +191,10 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
             <strong>Schedule Date</strong>
           </DataGridCell>
           <DataGridCell>
-            {scheduleError && (
-              <Message variant="error" className="mb-4">
-                {scheduleError}
-              </Message>
-            )}
-
-            {new Date(job.due_date) < new Date() && !job.schedule_date ? (
-              <Message variant="error" className="mb-4">
-                Job missed its scheduled time and can no longer be scheduled
-              </Message>
-            ) : new Date(job.due_date) < new Date() && job.schedule_date && job.state != "successful" ? (
-              <>
-                <Message variant="error" className="mb-4">
-                  Job was scheduled but did not complete successfully before due date!
-                </Message>
-                {formatScheduleDate(job)}
-              </>
+            {new Date(job.due_date) < new Date() && job.schedule_date && job.state != "successful" ? (
+              <>{formatScheduleDate(job)}</>
+            ) : new Date(job.due_date) < new Date() && job.state === "successful" ? (
+              formatScheduleDate(job)
             ) : (
               <>
                 <Form onSubmit={handleSubmit}>
@@ -203,6 +202,8 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
                     label="Select the date and time to schedule the job."
                     helptext={`Schedule Date not later as for job due by ${new Date(job.due_date).toLocaleDateString()}`}
                     value={scheduleDate}
+                    maxDate={new Date(job.due_date)}
+                    minDate={job.schedule_date ? new Date(job.schedule_date) : new Date()}
                     enableTime={true}
                     onChange={handleScheduleDateChange}
                   />

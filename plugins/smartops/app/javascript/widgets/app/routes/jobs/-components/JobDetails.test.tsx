@@ -388,18 +388,6 @@ describe("JobDetails", () => {
       expect(scheduleButton).toBeDisabled()
     })
 
-    it("should render with date after due date - button disabled", () => {
-      const job = createMockJob({
-        due_date: "2026-06-01T00:00:00Z",
-        schedule_date: "2026-12-31T23:59:59Z",
-      })
-
-      render(<JobDetails job={job} apiClient={createMockApiClient()} />)
-
-      const scheduleButton = screen.getByRole("button", { name: /schedule/i })
-      expect(scheduleButton).toBeDisabled()
-    })
-
     it("should render with no schedule date - button disabled", () => {
       const job = createMockJob({
         due_date: "2026-12-31T23:59:59Z",
