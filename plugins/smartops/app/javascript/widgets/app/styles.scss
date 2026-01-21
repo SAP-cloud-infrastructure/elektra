@@ -9,3 +9,19 @@
 h4 {
   font-size: 2rem;
 }
+
+// These classes are needed to highlight the datagrid
+// until we are able to upgrade juno-ui-components.
+.datagrid-hover {
+  .juno-datagrid-row:hover {
+    .juno-datagrid-cell {
+      @apply tw-bg-theme-background-lvl-1;
+    }
+  }
+
+  .juno-datagrid-row.active {
+    .juno-datagrid-cell {
+      @apply tw-bg-theme-background-lvl-1;
+    }
+  }
+}

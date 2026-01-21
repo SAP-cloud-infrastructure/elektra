@@ -121,6 +121,8 @@
   },
   "scripts": {
     "test": "vitest run",
+    "test-verbose": "vitest run -- --reporter=verbose",
+    "test-watch": "vitest watch --reporter=verbose",
     "build": "node ./config/esbuild/build.js",
     "format": "prettier --log-level warn --write \"**/*.{js,jsx,ts,tsx,md}\"",
     "check-format": "prettier --config ./.prettierrc --check \"**/*.{js,jsx,ts,tsx,md}\" ",

@@ -22,7 +22,8 @@
   },
   "exclude": ["node_modules"],
   "include": [
-    "config/esbuild/types/**/*",
-    "app/javascript/lib"
-  ]
+      "config/esbuild/types/**/*",
+      "app/javascript/lib",
+      "app/javascript/react-bootstrap.d.ts"
+    ]
 }

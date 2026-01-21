@@ -1,4 +1,3 @@
-// components/JobDetails.tsx
 import type { Job } from "../../../types/api"
 import type { ApiResponse } from "../../../types/api"
 import { getStatusColor, formatDate, formatScheduleDate } from "./utils/jobUtils"
@@ -43,7 +42,6 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
   const [isLoading, setIsLoading] = useState(false)
 
   const handleScheduleDateChange = (selectedDate: Date[] | undefined) => {
-    const currentDate = new Date()
     // Handle both string and array values
     // console.log("Selected date:", selectedDate) // Debug log
     const dateValue = Array.isArray(selectedDate) ? selectedDate[0] : selectedDate
@@ -51,15 +49,7 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
       return
     }
     const selectedDateTime = new Date(dateValue)
-    const dueDateTime = new Date(job.due_date)
     if (isNaN(selectedDateTime.getTime())) {
-      return
-    } else if (selectedDateTime < currentDate) {
-      setScheduleError("Selected date is in the past")
-      // console.log("Selected date is in the past") // Debug log
-      return
-    } else if (selectedDateTime > dueDateTime) {
-      setScheduleError(`Schedule Date not later as for job due by ${new Date(job.due_date).toLocaleDateString()}`)
       return
     } else {
       setScheduleError(null)
@@ -88,16 +78,7 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
         setSuccess(true)
       }
     } catch (err: unknown) {
-      if (err && typeof err === "object" && "response" in err) {
-        const error = err as { response?: { status?: number; data?: { error?: { message?: string } } } }
-        if (error.response?.status === 400) {
-          setScheduleError(error.response?.data?.error?.message || "Bad request: Invalid schedule date")
-        } else {
-          setScheduleError(err instanceof Error ? err.message : "An unexpected error occurred")
-        }
-      } else {
-        setScheduleError(err instanceof Error ? err.message : "An unexpected error occurred")
-      }
+      setScheduleError(err instanceof Error ? err.message : "An unexpected error occurred")
     } finally {
       setIsLoading(false)
     }
@@ -110,9 +91,33 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
           Job updated successfully!
         </Message>
       )}
+      {new Date(job.due_date) < new Date() && !job.schedule_date && (
+        <Message variant="error" className="mb-4">
+          Job missed its scheduled time and can no longer be scheduled
+        </Message>
+      )}
+      {new Date(job.due_date) < new Date() && job.schedule_date && job.state != "successful" && (
+        <>
+          <Message variant="error" className="mb-4">
+            Job was scheduled but did not complete successfully before due date!
+          </Message>
+        </>
+      )}
+      {new Date(job.schedule_date) < new Date() && job.state != "successful" && job.state != "failed" && (
+        <>
+          <Message variant="warning" className="mb-4">
+            The task is not done and the Schedule date is in the past, please check the task status!
+          </Message>
+        </>
+      )}
       {detailsError && (
         <Message variant="error" className="mb-4">
           {detailsError}
+        </Message>
+      )}
+      {scheduleError && (
+        <Message variant="error" className="mb-4">
+          {scheduleError}
         </Message>
       )}
       <DataGrid columns={2}>
@@ -188,30 +193,15 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
             <strong>Schedule Date</strong>
           </DataGridCell>
           <DataGridCell>
-            {scheduleError && (
-              <Message variant="error" className="mb-4">
-                {scheduleError}
-              </Message>
-            )}
-
-            {new Date(job.due_date) < new Date() && !job.schedule_date ? (
-              <Message variant="error" className="mb-4">
-                Job missed its scheduled time and can no longer be scheduled
-              </Message>
-            ) : new Date(job.due_date) < new Date() && job.schedule_date && job.state != "successful" ? (
-              <>
-                <Message variant="error" className="mb-4">
-                  Job was scheduled but did not complete successfully before due date!
-                </Message>
-                {formatScheduleDate(job)}
-              </>
-            ) : (
+            {job.state === "initial" || job.state === "scheduled" ? (
               <>
                 <Form onSubmit={handleSubmit}>
                   <DateTimePicker
                     label="Select the date and time to schedule the job."
                     helptext={`Schedule Date not later as for job due by ${new Date(job.due_date).toLocaleDateString()}`}
                     value={scheduleDate}
+                    maxDate={new Date(job.due_date)}
+                    minDate={job.schedule_date ? new Date(job.schedule_date) : new Date()}
                     enableTime={true}
                     onChange={handleScheduleDateChange}
                   />
@@ -226,6 +216,8 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
                   />
                 </ButtonRow>
               </>
+            ) : (
+              <>{formatScheduleDate(job)}</>
             )}
           </DataGridCell>
         </DataGridRow>
