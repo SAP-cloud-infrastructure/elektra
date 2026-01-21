@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
-import ClusterDetailRow from "./ClusterDetailRow"
+import ClusterDetailRow from "./DetailRow"
 
 describe("ClusterDetailRow", () => {
   it("renders the label and value", () => {

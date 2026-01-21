@@ -7,6 +7,9 @@ declare module "@tanstack/react-router" {
   interface Register {
     router: ReturnType<typeof createAppRouter>
   }
+  interface HistoryState {
+    successMessage?: string
+  }
 }
 
 export function createAppRouter(mountpoint: string, region: string) {

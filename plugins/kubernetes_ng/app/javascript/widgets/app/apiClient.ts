@@ -18,7 +18,8 @@ export const gardenerTestApi = {
       return Promise.reject(new Error("Cluster not found"))
     }
   },
-  getPermissions: () => Promise.resolve({ list: true, get: true, create: true, update: true, delete: true }),
+  getShootPermissions: () => Promise.resolve({ list: true, get: true, create: true, update: true, delete: true }),
+  getKubeconfigPermission: () => Promise.resolve({ list: true, get: true, create: true, update: true, delete: true }),
 }
 
 export function createGardenerApi(mountpoint: string) {
@@ -34,7 +35,6 @@ export function createGardenerApi(mountpoint: string) {
         }
         return res.data
       }),
-
     getClusterByName: (name: string) =>
       apiClient.get<{ data: Cluster }>(`/api/clusters/${name}/`).then((res) => {
         const parsed = ClusterSchema.safeParse(res.data)
@@ -43,7 +43,6 @@ export function createGardenerApi(mountpoint: string) {
         }
         return res.data
       }),
-
     createCluster: (clusterData: ClusterFormData) =>
       apiClient.post<{ data: Cluster }>("/api/clusters/", clusterData).then((res) => {
         const parsed = ClusterSchema.safeParse(res.data)
@@ -52,14 +51,46 @@ export function createGardenerApi(mountpoint: string) {
         }
         return res.data
       }),
+    getKubeconfig: (name: string) =>
+      apiClient
+        .get<{ data: string }>(`/api/clusters/kubeconfig/${name}/`)
+        .then((res) => res.data)
+        .catch((err: unknown) => {
+          // Handle serialized server errors so normalizeError can pick up the proper message
+          if (err && typeof err === "object" && "data" in err) {
+            const data = (err as { data?: Record<string, unknown> }).data
+            if (data?.message && typeof data.message === "string") {
+              throw err // serialized server error
+            }
+          }
+
+          // Fallback to normal Error
+          throw new Error(err instanceof Error ? err.message : "Failed to fetch kubeconfig")
+        }),
+    confirm_deletion_and_destroy: (name: string) =>
+      apiClient.delete<{ data: Cluster }>(`/api/clusters/confirm-deletion-and-destroy/${name}/`).then((res) => {
+        const parsed = ClusterSchema.safeParse(res.data)
+        if (!parsed.success) {
+          throw new Error("Failed to delete cluster: invalid response")
+        }
+        return res.data
+      }),
   }
 
   const permissionsApi = {
-    getPermissions: () =>
+    getShootPermissions: () =>
       apiClient.get<{ data: Permissions }>("/api/permissions/shoots/").then((res) => {
         const parsed = PermissionsSchema.safeParse(res.data)
         if (!parsed.success) {
           throw new Error("Failed to fetch permissions: invalid response")
+        }
+        return res.data
+      }),
+    getKubeconfigPermission: () =>
+      apiClient.get<{ data: Permissions }>("/api/permissions/clusters_admin_kubeconfig/").then((res) => {
+        const parsed = PermissionsSchema.safeParse(res.data)
+        if (!parsed.success) {
+          throw new Error("Failed to fetch kubeconfig permissions: invalid response")
         }
         return res.data
       }),

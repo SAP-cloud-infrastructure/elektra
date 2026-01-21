@@ -83,7 +83,8 @@ export const lastError2 = {
 export const defaultCluster: Cluster = {
   uid: "12345678-1234-1234-1234-1234567890ab",
   name: "test-cluster",
-  status: "Operational",
+  status: "healthy",
+  isDeleted: false,
   region: "",
   namespace: "garden-dev",
   readiness: {
@@ -116,7 +117,7 @@ export const errorCluster: Cluster = {
   ...defaultCluster,
   uid: "12345678-1234-1234-1234-1234567890abc",
   name: "test-cluster2",
-  status: "Error",
+  status: "unhealthy",
   readiness: {
     status: "",
     conditions: [ReadinessConditionFalse, ReadinessConditionUnknown],
@@ -128,7 +129,7 @@ export const unknownStatusCluster: Cluster = {
   ...defaultCluster,
   uid: "12345678-1234-1234-1234-1234567890abc",
   name: "test-cluster-3",
-  status: "Unknown",
+  status: "unknown",
   readiness: {
     status: "",
     conditions: [ReadinessConditionUnknown, ReadinessConditionPending],

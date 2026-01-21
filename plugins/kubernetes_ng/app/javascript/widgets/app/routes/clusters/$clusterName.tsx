@@ -3,31 +3,15 @@ import { createFileRoute, useParams, useLoaderData, useRouter, useMatch } from "
 import { Cluster } from "../../types/cluster"
 import { Permissions } from "../../types/permissions"
 import { LoaderWithCrumb } from "../-types"
-import {
-  JsonViewer,
-  Button,
-  Container,
-  DataGrid,
-  DataGridRow,
-  Spinner,
-  Tabs,
-  TabList,
-  Tab,
-  TabPanel,
-  Grid,
-  GridRow,
-  GridColumn,
-} from "@cloudoperators/juno-ui-components"
+import { Button, Container, Spinner, Message } from "@cloudoperators/juno-ui-components"
 import PageHeader from "../../components/PageHeader"
-import ClipboardText from "../../components/ClipboardText"
-import ReadinessConditions from "../../components/ReadinessConditions"
-import InlineError from "../../components/InlineError"
-import WorkerList from "./-components/WorkerList"
-import ClusterDetailRow from "./-components/ClusterDetailRow"
+import InlineError, { normalizeError } from "../../components/InlineError"
 import { ErrorBoundary, FallbackProps } from "react-error-boundary"
 import { RouterContext } from "../__root"
-import LastErrors from "./-components/LastErrors"
-import Box from "../../components/Box"
+import { GardenerApi } from "../../apiClient"
+import { useMutation } from "@tanstack/react-query"
+import DetailsContent from "./-components/ClusterDetails/DetailsContent"
+import DeleteDialog from "./-components/ClusterDetails/DeleteDialog"
 
 export const CLUSTER_DETAIL_ROUTE_ID = "/clusters/$clusterName"
 
@@ -52,21 +36,26 @@ export const RouterConfig = {
   }): Promise<
     LoaderWithCrumb & {
       cluster: Cluster
-      permissions: Permissions
+      shootPermissions: Permissions
+      kubeconfigPermissions: Permissions
+      client: GardenerApi
       updatedAt: number
     }
   > => {
     const client = context.apiClient
-    const [cluster, permissions] = await Promise.all([
+    const [cluster, shootPermissions, kubeconfigPermissions] = await Promise.all([
       client.gardener.getClusterByName(params.clusterName),
-      client.gardener.getPermissions(),
+      client.gardener.getShootPermissions(),
+      client.gardener.getKubeconfigPermission(),
     ])
     return {
       crumb: {
         label: `${params.clusterName}`,
       },
       cluster,
-      permissions,
+      shootPermissions,
+      kubeconfigPermissions,
+      client,
       updatedAt: Date.now(),
     }
   },
@@ -93,10 +82,84 @@ function ClusterDetailErrorBoundary({ children }: { children?: React.ReactNode }
   )
 }
 
-function ClusterDetailActions({ permissions, disabled = false }: { permissions?: Permissions; disabled?: boolean }) {
+function ClusterDetailActions({
+  shootPermissions,
+  kubeconfigPermissions,
+  disabled = false,
+  client,
+  onError,
+}: {
+  shootPermissions?: Permissions
+  kubeconfigPermissions?: Permissions
+  disabled?: boolean
+  client: GardenerApi
+  onError?: (error: Error) => void
+}) {
   const router = useRouter()
   const match = useMatch({ from: Route.id })
+  const params = useParams({ from: Route.id })
   const isFetching = match.isFetching === "loader"
+  const [showDeleteDialog, setShowDeleteDialog] = React.useState(false)
+
+  const kubeconfigMutation = useMutation<string, Error, void>({
+    mutationFn: async () => {
+      return client.gardener.getKubeconfig(params.clusterName)
+    },
+
+    onSuccess: (kubeconfigYaml) => {
+      // Create a file-like object in memory from the YAML
+      const blob = new Blob([kubeconfigYaml], {
+        type: "application/x-yaml",
+      })
+
+      // Create a temporary URL pointing to the in-memory file
+      const url = URL.createObjectURL(blob)
+
+      // Create a temporary anchor element to trigger the download
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `${params.clusterName}-kubeconfig.yaml`
+
+      // Required for Safari / Firefox compatibility
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+
+      // Revoke the object URL after the download has been triggered
+      setTimeout(() => URL.revokeObjectURL(url), 0)
+    },
+    onError: (error) => {
+      if (onError) {
+        onError(error)
+      }
+    },
+  })
+
+  const deleteMutation = useMutation<Cluster, Error, void>({
+    mutationFn: async () => {
+      return client.gardener.confirm_deletion_and_destroy(params.clusterName)
+    },
+    onSuccess: () => {
+      // after deletion, navigate back to the clusters list and use replace to avoid going back to deleted cluster
+      router.navigate({
+        to: "/clusters",
+        replace: true,
+        state: (prev) => ({
+          ...prev,
+          successMessage: `Cluster ${params.clusterName} is being deleted.`,
+        }),
+      })
+      // Invalidate after navigation so the list reloads
+      router.invalidate()
+    },
+    onError: (error) => {
+      if (onError) {
+        setShowDeleteDialog(false)
+        onError(error)
+      }
+    },
+  })
+
   return (
     <>
       <Button
@@ -110,173 +173,58 @@ function ClusterDetailActions({ permissions, disabled = false }: { permissions?:
       />
       <Button
         size="small"
+        label="Kube Config"
+        icon="download"
+        title="Download Kube Config valid for 8 hours"
+        disabled={disabled || kubeconfigMutation.isPending || !kubeconfigPermissions?.create}
+        progress={kubeconfigMutation.isPending}
+        onClick={() => kubeconfigMutation.mutate()}
+      />
+      <Button
+        size="small"
         label="Delete Cluster"
         variant="primary-danger"
-        disabled={disabled || !permissions?.delete}
+        disabled={disabled || !shootPermissions?.delete}
+        onClick={() => setShowDeleteDialog(true)}
+      />
+      <DeleteDialog
+        // reset key to remount dialog and reset internal state on open/close
+        key={`delete-dialog-${params.clusterName}-${showDeleteDialog}`}
+        clusterName={params.clusterName}
+        isOpen={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        onConfirm={() => deleteMutation?.mutate()}
+        isDeleting={deleteMutation?.isPending}
       />
     </>
   )
 }
 
-const sectionHeaderStyles = "details-section tw-text-lg tw-font-bold tw-mb-4"
-
-function clusterDetailContent({ cluster, updatedAt }: { cluster: Cluster; updatedAt?: number }) {
-  return (
-    <Container px={false} py>
-      <div className="tw-relative">
-        <div className="tw-absolute tw-right-0 tw-top-6 tw-text-sm">
-          {updatedAt && <span>Last updated: {new Date(updatedAt).toLocaleString()}</span>}
-        </div>
-        <Tabs>
-          <TabList>
-            <Tab>Overview</Tab>
-            <Tab>JSON</Tab>
-          </TabList>
-          <TabPanel>
-            {/* Basic info */}
-            <Container py px={false}>
-              <h2 className={sectionHeaderStyles}>Basic Information</h2>
-              <DataGrid columns={2} gridColumnTemplate="50% 50%">
-                <DataGridRow>
-                  <div>
-                    <DataGrid columns={2} gridColumnTemplate="35% auto">
-                      <ClusterDetailRow label="Name">{cluster.name}</ClusterDetailRow>
-                      <ClusterDetailRow label="ID">
-                        <ClipboardText text={cluster.uid} />
-                      </ClusterDetailRow>
-                      <ClusterDetailRow label="Cluster Status">{cluster.status}</ClusterDetailRow>
-                      <ClusterDetailRow label="Kubernetes Version">{cluster.version}</ClusterDetailRow>
-                      <ClusterDetailRow label="Namespace">{cluster.namespace}</ClusterDetailRow>
-                    </DataGrid>
-                  </div>
-                  <div>
-                    <DataGrid columns={2} gridColumnTemplate="35% auto">
-                      <ClusterDetailRow label="Purpose">{cluster.purpose}</ClusterDetailRow>
-                      <ClusterDetailRow label="Add ons"></ClusterDetailRow>
-                      <ClusterDetailRow label="Created by"></ClusterDetailRow>
-                    </DataGrid>
-                  </div>
-                </DataGridRow>
-              </DataGrid>
-            </Container>
-
-            {/* Readiness Conditions */}
-            <Container py px={false}>
-              <h2 className={sectionHeaderStyles}>Readiness</h2>
-              {cluster?.readiness?.conditions?.length > 0 ? (
-                <DataGrid columns={2} gridColumnTemplate="17.5% auto">
-                  <ClusterDetailRow label="Readiness">
-                    <ReadinessConditions conditions={cluster?.readiness?.conditions} showDetails />
-                  </ClusterDetailRow>
-                </DataGrid>
-              ) : (
-                <p>No readiness conditions found.</p>
-              )}
-            </Container>
-
-            {/* Latest Operation & Errors */}
-            {cluster.lastErrors && cluster.lastErrors.length > 0 && (
-              <Container py px={false}>
-                <h2 className={sectionHeaderStyles}>Latest Operation & Errors</h2>
-                <DataGrid columns={2} gridColumnTemplate="17.5% auto">
-                  <ClusterDetailRow label="Errors">
-                    <LastErrors errors={cluster?.lastErrors} />
-                  </ClusterDetailRow>
-                  {cluster.lastOperation && (
-                    <ClusterDetailRow label="Operation">
-                      <Box variant="default">
-                        <Grid>
-                          <GridRow>
-                            <GridColumn cols={2} className="tw-text-right">
-                              <strong>Description</strong>
-                            </GridColumn>
-                            <GridColumn cols={10}>{cluster.lastOperation?.description}</GridColumn>
-                          </GridRow>
-                          <GridRow>
-                            <GridColumn cols={2} className="tw-text-right">
-                              <strong>Progress</strong>
-                            </GridColumn>
-                            <GridColumn cols={10}>{cluster.lastOperation?.progress}</GridColumn>
-                          </GridRow>
-                          <GridRow>
-                            <GridColumn cols={2} className="tw-text-right">
-                              <strong>State</strong>
-                            </GridColumn>
-                            <GridColumn cols={10}>{cluster.lastOperation?.state}</GridColumn>
-                          </GridRow>
-                          <GridRow>
-                            <GridColumn cols={2} className="tw-text-right">
-                              <strong>Type</strong>
-                            </GridColumn>
-                            <GridColumn cols={10}>{cluster.lastOperation?.type}</GridColumn>
-                          </GridRow>
-                          <GridRow>
-                            <GridColumn cols={2} className="tw-text-right">
-                              <strong>Update Time</strong>
-                            </GridColumn>
-                            <GridColumn cols={10}>
-                              {new Date(cluster.lastOperation?.lastUpdateTime).toLocaleString()}
-                            </GridColumn>
-                          </GridRow>
-                        </Grid>
-                      </Box>
-                    </ClusterDetailRow>
-                  )}
-                </DataGrid>
-              </Container>
-            )}
-
-            {/* Maintenance and auto update */}
-            <DataGrid columns={2} gridColumnTemplate="50% 50%">
-              <DataGridRow>
-                <Container py px={false}>
-                  <h2 className={sectionHeaderStyles}>Maintenance Window</h2>
-                  <DataGrid columns={2} gridColumnTemplate="35% auto">
-                    <ClusterDetailRow label="Start Time">{cluster.maintenance?.startTime}</ClusterDetailRow>
-                    <ClusterDetailRow label="Window Time">{cluster.maintenance?.windowTime}</ClusterDetailRow>
-                    <ClusterDetailRow label="Timezone">{cluster.maintenance?.timezone}</ClusterDetailRow>
-                  </DataGrid>
-                </Container>
-                <Container py px={false}>
-                  <h2 className={sectionHeaderStyles}>Auto Update</h2>
-                  <DataGrid columns={2} gridColumnTemplate="35% auto">
-                    <ClusterDetailRow label="OS Updates">{cluster.autoUpdate?.os}</ClusterDetailRow>
-                    <ClusterDetailRow label="Kubernetes Updates">{cluster.autoUpdate?.kubernetes}</ClusterDetailRow>
-                  </DataGrid>
-                </Container>
-              </DataGridRow>
-            </DataGrid>
-
-            {/* Workers */}
-            <Container py px={false}>
-              <h2 className={sectionHeaderStyles}>Worker Pools</h2>
-              <WorkerList workers={cluster.workers} />
-            </Container>
-          </TabPanel>
-          <TabPanel>
-            <Container py px={false}>
-              <JsonViewer expanded={2} data={cluster.raw} toolbar />
-            </Container>
-          </TabPanel>
-        </Tabs>
-      </div>
-    </Container>
-  )
-}
-
 interface ClusterDetailProps {
   cluster?: Cluster
-  permissions?: Permissions
+  shootPermissions?: Permissions
+  kubeconfigPermissions?: Permissions
   isLoading?: boolean
   error?: Error
   updatedAt?: number
 }
 
-function ClusterDetail({ cluster, permissions, isLoading, error, updatedAt }: ClusterDetailProps) {
+function ClusterDetail({
+  cluster,
+  shootPermissions,
+  kubeconfigPermissions,
+  isLoading,
+  error,
+  updatedAt,
+}: ClusterDetailProps) {
   const params = useParams({ from: Route.id })
+  const match = useMatch({ from: Route.id })
+  const client = match.context.apiClient
+  const [mutationError, setMutationError] = React.useState<Error | null>(null)
 
   const detailsError =
-    error ?? (permissions?.get === false ? new Error("You do not have permission to view cluster details.") : undefined)
+    error ??
+    (shootPermissions?.get === false ? new Error("You do not have permission to view cluster details.") : undefined)
 
   const renderContent = () => {
     if (isLoading) {
@@ -291,13 +239,33 @@ function ClusterDetail({ cluster, permissions, isLoading, error, updatedAt }: Cl
       return <span role="status">Cluster not found</span>
     }
 
-    return clusterDetailContent({ cluster, updatedAt })
+    return <DetailsContent cluster={cluster} updatedAt={updatedAt} />
+  }
+
+  const handleError = (error: Error) => {
+    setMutationError(error)
   }
 
   return (
     <>
+      {mutationError && (
+        <Container px={false} py>
+          <Message
+            text={normalizeError(mutationError).title + normalizeError(mutationError).message}
+            variant="error"
+            onDismiss={() => setMutationError(null)}
+            dismissible
+          />
+        </Container>
+      )}
       <ClustersDetailPageHeader clusterName={params.clusterName}>
-        <ClusterDetailActions permissions={permissions} disabled={isLoading} />
+        <ClusterDetailActions
+          shootPermissions={shootPermissions}
+          kubeconfigPermissions={kubeconfigPermissions}
+          disabled={isLoading || cluster?.isDeleted}
+          client={client}
+          onError={handleError}
+        />
       </ClustersDetailPageHeader>
 
       {renderContent()}

@@ -170,7 +170,7 @@ export default function ProjectResourceCheck({ opened, onClose }) {
     }
 
     if (!typeHref) return <div className="tw-text-gray-400">n/a</div>
-    typeHref = `/_/${window.scopedProjectId}${typeHref}`
+    typeHref = `/${window.scopedDomainFid}/${window.scopedProjectFid}${typeHref}`
     return (
       <Icon color="jn-global-text" icon="openInNew" href={typeHref} target="_blank" title={`Jump to ${serviceType}`} />
     )

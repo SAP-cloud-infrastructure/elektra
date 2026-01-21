@@ -1,7 +1,7 @@
 import React from "react"
 import { DataGridRow, DataGridHeadCell, DataGridCell } from "@cloudoperators/juno-ui-components"
 
-function ClusterDetailRow({ label, children }: { label: string; children?: React.ReactNode }) {
+function DetailRow({ label, children }: { label: string; children?: React.ReactNode }) {
   let value = children
 
   // Normalize booleans
@@ -26,4 +26,4 @@ function ClusterDetailRow({ label, children }: { label: string; children?: React
   )
 }
 
-export default ClusterDetailRow
+export default DetailRow
