@@ -1,4 +1,3 @@
-// jobs/-components/JobList.tsx
 import type { Job } from "../../../types/api"
 import { JobItem } from "./JobItem"
 import { DataGrid, DataGridRow, DataGridHeadCell, DataGridCell, Spinner } from "@cloudoperators/juno-ui-components"
@@ -6,6 +5,7 @@ import { DataGrid, DataGridRow, DataGridHeadCell, DataGridCell, Spinner } from "
 interface JobListProps {
   jobs: Job[]
   isLoading?: boolean
+  onJobSelect?: (jobId: string) => void
 }
 
 const JobsListHeader = () => (
@@ -19,7 +19,7 @@ const JobsListHeader = () => (
   </DataGridRow>
 )
 
-export function JobList({ jobs, isLoading }: JobListProps) {
+export function JobList({ jobs, isLoading, onJobSelect }: JobListProps) {
   if (isLoading) {
     return (
       <>
@@ -51,13 +51,13 @@ export function JobList({ jobs, isLoading }: JobListProps) {
   }
 
   return (
-    <>
+    <div className="datagrid-hover">
       <DataGrid columns={6} minContentColumns={[6]}>
         <JobsListHeader />
         {jobs.map((job) => (
-          <JobItem key={job.id} job={job} />
+          <JobItem key={job.id} job={job} onSelect={onJobSelect} />
         ))}
       </DataGrid>
-    </>
+    </div>
   )
 }

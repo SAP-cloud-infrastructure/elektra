@@ -1,21 +1,17 @@
-// jobs/-components/JobItem.tsx
-import { useNavigate } from "@tanstack/react-router"
 import type { Job } from "../../../types/api"
 import { getStatusColor, formatScheduleDate } from "./utils/jobUtils"
 import { DataGridRow, DataGridCell, Badge, Stack, Button } from "@cloudoperators/juno-ui-components"
 
 interface JobItemProps {
   job: Job
+  onSelect?: (jobId: string) => void //to handle select and onClose if job is already selected
 }
 
-export function JobItem({ job }: JobItemProps) {
-  const navigate = useNavigate()
-
+export function JobItem({ job, onSelect }: JobItemProps) {
   const handleJobClick = () => {
-    navigate({
-      to: "/jobs",
-      search: { jobId: job.id },
-    })
+    if (onSelect) {
+      onSelect(job.id)
+    }
   }
 
   const jobState = job.state || "unknown"
