@@ -47,7 +47,7 @@ module Identity
             cloud_admin.identity.find_user(user_id) ||
               cloud_admin
                 .identity
-                .users(name: user_id, domain_id: @scoped_domain_id)
+                .users({name: user_id, domain_id: @scoped_domain_id})
                 .first
           unless user
             render json: { errors: "Could not find user with id #{user_id}" }
