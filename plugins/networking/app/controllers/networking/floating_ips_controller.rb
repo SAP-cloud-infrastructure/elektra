@@ -12,7 +12,13 @@ module Networking
     def index
       per_page = params[:per_page] || 20
       @fip_ptr_records = []
-      @fip_ptr_records = services.dns_service.list_floating_ips_ptr_records
+      @fip_ptr_records = begin 
+        services.dns_service.list_floating_ips_ptr_records 
+      rescue StandardError => e
+        logger.error("Error fetching floating IP PTR records: #{e.message}")
+        []
+      end
+      
       @floating_ips =
         paginatable(per_page: per_page) do |pagination_options|
           services.networking.project_floating_ips(
