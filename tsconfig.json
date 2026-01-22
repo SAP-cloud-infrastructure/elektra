@@ -17,13 +17,9 @@
     "types": ["vitest/globals"],
     "baseUrl": ".",
     "paths": {
-      "lib/*": ["app/javascript/lib/*"],
+      "lib/*": ["app/javascript/lib/*"]
     }
   },
   "exclude": ["node_modules"],
-  "include": [
-      "config/esbuild/types/**/*",
-      "app/javascript/lib",
-      "app/javascript/react-bootstrap.d.ts"
-    ]
+  "include": ["config/esbuild/types/**/*", "app/javascript/lib", "app/javascript/react-bootstrap.d.ts"]
 }
