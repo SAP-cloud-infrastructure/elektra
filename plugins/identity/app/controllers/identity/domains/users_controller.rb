@@ -6,7 +6,7 @@ module Identity
     class UsersController < DashboardController
       def index
         enforce_permissions("identity:user_list", domain_id: @scoped_domain_id)
-        @users = services.identity.users(domain_id: @scoped_domain_id)
+        @users = services.identity.users({domain_id: @scoped_domain_id})
 
         respond_to do |format|
           format.html { render :index } # or whatever to simply render html
