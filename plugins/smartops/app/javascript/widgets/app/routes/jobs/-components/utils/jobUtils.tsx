@@ -1,4 +1,3 @@
-// utils/jobUtils.ts
 import { Stack, Badge } from "@cloudoperators/juno-ui-components"
 import { Job } from "../../../../types/api"
 
