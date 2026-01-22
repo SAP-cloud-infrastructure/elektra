@@ -37,7 +37,7 @@ module Identity
           begin
             service_user
               .identity
-              .users(domain_id: @scoped_domain_id, name: params[:user_name])
+              .users({domain_id: @scoped_domain_id, name: params[:user_name]})
               .first
           rescue StandardError
             service_user.identity.find_user(params[:user_name])
