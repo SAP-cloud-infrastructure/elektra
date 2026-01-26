@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react"
 // @ts-expect-error no types
 import { Modal, Button } from "react-bootstrap"
 // @ts-expect-error no types
-import { Form, FormValues as FormValues } from "lib/elektra-form"
+import { Form, FormValues } from "lib/elektra-form"
 
 interface Snapshot {
   id: string
