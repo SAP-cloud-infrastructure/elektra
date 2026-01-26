@@ -53,12 +53,13 @@ const List: React.FC<ListProps> = ({
   const filterItems = useMemo(() => {
     const { items = [], searchTerm } = snapshots
     if (!searchTerm) return items
-
-    // filter items
-    const regex = new RegExp(searchTerm.trim(), "i")
-    return items.filter(
-      (i) => `${i.id} ${i.name} ${i.description} ${i.volume_id} ${i.size} ${i.status}`.search(regex) >= 0
-    )
+    
+    // filter items using case-insensitive string matching
+    const lowerSearch = searchTerm.trim().toLowerCase()
+    return items.filter((i) => {
+      const searchableText = `${i.id} ${i.name} ${i.description} ${i.volume_id} ${i.size} ${i.status}`.toLowerCase()
+      return searchableText.includes(lowerSearch)
+    })
   }, [snapshots])
 
   const { hasNext, isFetching, searchTerm, items } = snapshots
