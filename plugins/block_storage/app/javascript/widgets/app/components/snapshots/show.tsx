@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react"
+// @ts-expect-error no types
 import { Modal, Button } from "react-bootstrap"
+// @ts-expect-error no types
 import { PrettyDate } from "lib/components/pretty_date"
 
 // Types
@@ -64,7 +66,8 @@ const ShowModal: React.FC<ShowModalProps> = ({ id, snapshot, history, loadSnapsh
     if (id != null && !snapshot) {
       loadSnapshot().catch((error) => {
         if (!snapshot) {
-          setLoadError(error)
+          const message = error instanceof Error ? error.message : "An unknown error occurred."
+          setLoadError(message)
         }
       })
     }
