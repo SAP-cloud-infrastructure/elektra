@@ -95,8 +95,9 @@ const ShowModal: React.FC<ShowModalProps> = ({ id, volume, history, location, lo
   useEffect(() => {
     if (id != null && !volume) {
       loadVolume().catch((error) => {
+        const message = error instanceof Error ? error.message : "An unknown error occurred."
         if (!volume) {
-          setLoadError(error)
+          setLoadError(message)
         }
       })
     }
