@@ -134,7 +134,7 @@ describe("ShowModal", () => {
 
     it("displays error message when loading fails", async () => {
       const errorMessage = "Failed to load snapshot"
-      mockLoadSnapshot.mockRejectedValue(errorMessage)
+      mockLoadSnapshot.mockRejectedValue(new Error(errorMessage))
 
       renderComponent({ id: "snapshot-123", snapshot: null })
 
@@ -146,7 +146,7 @@ describe("ShowModal", () => {
 
     it("does not show error when snapshot eventually loads", async () => {
       const errorMessage = "Failed to load snapshot"
-      mockLoadSnapshot.mockRejectedValue(errorMessage)
+      mockLoadSnapshot.mockRejectedValue(new Error(errorMessage))
 
       const { rerender } = renderComponent({ id: "snapshot-123", snapshot: null })
 

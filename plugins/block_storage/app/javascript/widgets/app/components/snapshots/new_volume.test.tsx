@@ -47,7 +47,7 @@ describe("NewVolumeForm Component", () => {
       render(<NewVolumeForm {...defaultProps} />, { wrapper: RouterWrapper })
     })
 
-    expect(screen.getByText("New Volume From Snpashot")).toBeInTheDocument()
+    expect(screen.getByText("New Volume From Snapshot")).toBeInTheDocument()
   })
 
   it("renders form with snapshot information", () => {
@@ -424,6 +424,6 @@ describe("NewVolumeForm Component", () => {
     })
 
     // Modal should still be open after error
-    expect(screen.getByText("New Volume From Snpashot")).toBeInTheDocument()
+    expect(screen.getByText("New Volume From Snapshot")).toBeInTheDocument()
   })
 })

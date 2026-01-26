@@ -143,7 +143,7 @@ const NewVolumeForm: React.FC<NewVolumeFormProps> = ({
       aria-labelledby="contained-modal-title-lg"
     >
       <Modal.Header closeButton>
-        <Modal.Title id="contained-modal-title-lg">New Volume Form Snpashot</Modal.Title>
+        <Modal.Title id="contained-modal-title-lg">New Volume From Snapshot</Modal.Title>
       </Modal.Header>
 
       <Form className="form form-horizontal" validate={validate} onSubmit={onSubmit} initialValues={initialValues}>
