@@ -1,14 +1,11 @@
 import React, { useEffect, useMemo } from "react"
-import { CSSTransition } from "react-transition-group"
+
+// @ts-expect-error no types
 import { SearchField } from "lib/components/search_field"
 import Item from "./item"
+// @ts-expect-error no types
 import { AjaxPaginate } from "lib/components/ajax_paginate"
 
-const TableRowFadeTransition = ({ children, ...props }: any) => (
-  <CSSTransition {...props} timeout={200} classNames="css-transition-fade">
-    {children}
-  </CSSTransition>
-)
 
 interface Snapshot {
   id: string
@@ -70,7 +67,7 @@ const List: React.FC<ListProps> = ({
       {items.length > 5 && (
         <div className="toolbar">
           <SearchField
-            onChange={(term) => search(term)}
+            onChange={(term: string) => search(term)}
             placeholder="name, ID, format or status"
             text="Searches by name, ID, format or status in visible snapshots list only.
               Entering a search term will automatically start loading the next pages
