@@ -1,9 +1,11 @@
 /* eslint-disable no-undef */
 import React, { useState, useEffect } from "react"
+// @ts-expect-error: expect missing react-bootstrap types
 import { Modal, Button } from "react-bootstrap"
 import { CSSTransition, TransitionGroup } from "react-transition-group"
 import ImageMemberItem from "./image_member_item"
 import ImageMemberForm from "./image_member_form"
+// @ts-expect-error: Ignore missing type definitions for policy
 import { FormErrors } from "lib/elektra-form/components/form_errors"
 
 // TypeScript Interfaces
@@ -91,7 +93,6 @@ const ImageMembersModal: React.FC<ImageMembersModalProps> = ({
   }
 
   // Effect to load dependencies on mount and when props change
-  // Replaces componentDidMount and UNSAFE_componentWillReceiveProps
   useEffect(() => {
     if (!image || image.visibility !== "shared") return
 
@@ -102,7 +103,6 @@ const ImageMembersModal: React.FC<ImageMembersModalProps> = ({
   }, [image, loadMembersOnce])
 
   // Effect to cleanup on unmount
-  // Replaces componentWillUnmount
   useEffect(() => {
     return () => {
       if (image?.id) {

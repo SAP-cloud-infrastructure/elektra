@@ -127,7 +127,7 @@ const Cluster: React.FC<ClusterProps> = ({
     }
   }
 
-  // Handle polling lifecycle - replaces UNSAFE_componentWillReceiveProps
+  // Handle polling lifecycle
   useEffect(() => {
     // Stop polling if both cluster and nodepool states are "ready"
     if (clusterReady(cluster) && nodePoolsReady(cluster)) {
@@ -144,13 +144,13 @@ const Cluster: React.FC<ClusterProps> = ({
     cluster.isPolling,
   ])
 
-  // Handle component mount - replaces componentDidMount
+  // Handle component mount 
   useEffect(() => {
     if (!clusterReady(cluster) || !nodePoolsReady(cluster)) {
       startPolling()
     }
 
-    // Cleanup on unmount - replaces componentWillUnmount
+    // Cleanup on unmount
     return () => {
       stopPolling()
     }
@@ -268,27 +268,27 @@ export default connect(
     const cluster = state.clusters.items.find((item) => item.name === ownProps.cluster.name)
     return { cluster: cluster || ownProps.cluster }
   },
-  (dispatch) => ({
+  (dispatch: (arg: unknown) => unknown) => ({
     handleEditCluster(cluster: ClusterData) {
-      return dispatch(openEditClusterDialog(cluster) as any)
+      return dispatch(openEditClusterDialog(cluster))
     },
     handleClusterDelete(clusterName: string) {
-      return dispatch(requestDeleteCluster(clusterName) as any)
+      return dispatch(requestDeleteCluster(clusterName))
     },
     handleGetCredentials(clusterName: string) {
-      return dispatch(getCredentials(clusterName) as any)
+      return dispatch(getCredentials(clusterName))
     },
     handleGetSetupInfo(clusterName: string, kubernikusBaseUrl?: string) {
-      return dispatch(getSetupInfo(clusterName, kubernikusBaseUrl) as any)
+      return dispatch(getSetupInfo(clusterName, kubernikusBaseUrl))
     },
     reloadCluster(clusterName: string) {
-      return dispatch(loadCluster(clusterName) as any)
+      return dispatch(loadCluster(clusterName))
     },
     handlePollingStart(clusterName: string) {
-      return dispatch(startPollingCluster(clusterName) as any)
+      return dispatch(startPollingCluster(clusterName))
     },
     handlePollingStop(clusterName: string) {
-      return dispatch(stopPollingCluster(clusterName) as any)
+      return dispatch(stopPollingCluster(clusterName))
     },
   })
 )(Cluster)

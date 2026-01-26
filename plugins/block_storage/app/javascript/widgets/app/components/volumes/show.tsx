@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react"
 // @ts-expect-error - react-bootstrap v0.33.1 types are incomplete
 import { Modal, Button, Tabs, Tab } from "react-bootstrap"
+// @ts-expect-error - pretty_date has no types
 import { PrettyDate } from "lib/components/pretty_date"
 
 // Types
