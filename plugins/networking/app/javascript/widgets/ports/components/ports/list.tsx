@@ -6,7 +6,7 @@ import { SearchField } from "lib/components/search_field"
 import PortItem from "./item"
 // @ts-expect-error - ajax_paginate has no types
 import { AjaxPaginate } from "lib/components/ajax_paginate"
-import React, { useState, useCallback, useEffect } from "react"
+import React, { useState, useCallback, useEffect, useMemo } from "react"
 
 // Global policy object
 declare const policy: {
@@ -66,31 +66,46 @@ interface ListProps {
   loadNext: () => void
 }
 
+const FILTERS = ["fixed ip ports", "other ports"] as const
+
 const List: React.FC<ListProps> = (props) => {
-  const filters = ["fixed ip ports", "other ports"]
   const [activeFilter, setActiveFilter] = useState<string>(() => {
     // Initialize with "fixed ip ports" (index 0) or first filter
-    const index = filters.indexOf("fixed ip ports")
-    return filters[index >= 0 ? index : 0]
+    const index = FILTERS.indexOf("fixed ip ports")
+    return FILTERS[index >= 0 ? index : 0]
   })
 
-  const loadDependencies = useCallback(() => {
+  // Mount: load dependencies
+  useEffect(() => {
     props.loadPortsOnce()
     props.loadNetworksOnce()
     props.loadSubnetsOnce()
     props.loadSecurityGroupsOnce()
   }, [props.loadPortsOnce, props.loadNetworksOnce, props.loadSubnetsOnce, props.loadSecurityGroupsOnce])
 
-  // Mount and props changes: load dependencies
-  useEffect(() => {
-    loadDependencies()
-  }, [loadDependencies])
-
   const changeActiveFilter = useCallback((name: string) => {
     setActiveFilter(name)
   }, [])
 
-  const filterPorts = useCallback(() => {
+  // Memoize network and subnet maps for efficient lookup
+  const networksMap = useMemo(() => {
+    const networksObj: Record<string, Network> = {}
+    for (const network of props.networks.items) {
+      networksObj[network.id] = network
+    }
+    return networksObj
+  }, [props.networks.items])
+
+  const subnetsMap = useMemo(() => {
+    const subnetsObj: Record<string, Subnet> = {}
+    for (const subnet of props.subnets.items) {
+      subnetsObj[subnet.id] = subnet
+    }
+    return subnetsObj
+  }, [props.subnets.items])
+
+  // Filter ports based on active filter and search term
+  const filteredPorts = useMemo(() => {
     let items = props.items.filter(
       (i) =>
         (activeFilter === "other ports" && i.name !== "fixed_ip_allocation") ||
@@ -103,13 +118,12 @@ const List: React.FC<ListProps> = (props) => {
     const regex = new RegExp(props.searchTerm.trim(), "i")
 
     return items.filter((i) => {
-      const network = props.networks.items.find((n) => n.id === i.network_id)
+      const network = networksMap[i.network_id]
       const values = { network: network ? network.name : "", subnet: "", ip: "" }
 
       const fixed_ips = i.fixed_ips || []
-      for (const index in fixed_ips) {
-        const ip = fixed_ips[index]
-        const subnet = props.subnets.items.find((s) => s.id === ip.subnet_id)
+      for (const ip of fixed_ips) {
+        const subnet = subnetsMap[ip.subnet_id]
         values.subnet = `${values.subnet} ${subnet ? subnet.name : ""}`
         values.ip = `${values.ip} ${ip.ip_address}`
       }
@@ -119,35 +133,16 @@ const List: React.FC<ListProps> = (props) => {
         ) >= 0
       )
     })
-  }, [props.items, props.searchTerm, props.networks.items, props.subnets.items, activeFilter])
+  }, [props.items, props.searchTerm, networksMap, subnetsMap, activeFilter])
 
-  const networks = useCallback(() => {
-    const networksObj: Record<string, Network> = {}
-    for (const i in props.networks.items) {
-      const network = props.networks.items[i]
-      networksObj[network.id] = network
-    }
-    return networksObj
-  }, [props.networks.items])
-
-  const subnets = useCallback(() => {
-    const subnetsObj: Record<string, Subnet> = {}
-    for (const i in props.subnets.items) {
-      const subnet = props.subnets.items[i]
-      subnetsObj[subnet.id] = subnet
-    }
-    return subnetsObj
-  }, [props.subnets.items])
-
-  const toolbar = useCallback(() => {
+  const toolbar = useMemo(() => {
     // return null if no items available
     if (props.items.length <= 0) return null
 
     return (
       <div className="toolbar">
-        TEST
         <SearchField
-          onChange={(term:string) => props.searchPorts(term)}
+          onChange={(term: string) => props.searchPorts(term)}
           placeholder="ID, IP, network, subnet or description"
           text="Searches by ID, IP, network, subnet or description in visible IP list only.
                 Entering a search term will automatically start loading the next pages
@@ -155,12 +150,12 @@ const List: React.FC<ListProps> = (props) => {
                 input field will show all currently loaded items."
         />
 
-        {filters.length > 1 && ( // show filter checkboxes
+        {FILTERS.length > 1 && ( // show filter checkboxes
           <>
             <span className="toolbar-input-divider"></span>
             <label>Show:</label>
-            {filters.map((name, index) => (
-              <label className="radio-inline" key={index}>
+            {FILTERS.map((name) => (
+              <label className="radio-inline" key={name}>
                 <input type="radio" onChange={() => changeActiveFilter(name)} checked={activeFilter === name} />
                 {name}
               </label>
@@ -176,81 +171,58 @@ const List: React.FC<ListProps> = (props) => {
         )}
       </div>
     )
-  }, [props.items.length, props.searchPorts, filters, activeFilter, changeActiveFilter])
-
-  const renderTable = useCallback(() => {
-    const items = filterPorts()
-    const networksObj = networks()
-    const subnetsObj = subnets()
-    const securityGroups = props.securityGroups
-
-    return (
-      <div>
-        <table className="table shares">
-          <thead>
-            <tr>
-              <th className="snug"></th>
-              <th>Port ID / Name</th>
-              <th>Description</th>
-              <th>Network</th>
-              <th>Fixed IPs / Subnet</th>
-              <th>Device Owner / ID</th>
-              <th>Status</th>
-              <th></th>
-            </tr>
-          </thead>
-          <TransitionGroup component="tbody">
-            {items && items.length > 0 ? (
-              items.map(
-                (port, index) =>
-                  !port.isHidden && (
-                    <TableRowFadeTransition key={index}>
-                      <PortItem
-                        port={port}
-                        instancesPath={props.instancesPath}
-                        handleDelete={props.handleDelete}
-                        isFetchingNetworks={props.networks.isFetching}
-                        isFetchingSubnets={props.subnets.isFetching}
-                        network={networksObj[port.network_id]}
-                        subnets={subnetsObj}
-                      />
-                    </TableRowFadeTransition>
-                  )
-              )
-            ) : (
-              <TableRowFadeTransition>
-                <tr>
-                  <td colSpan={6}>{props.isFetching ? <span className="spinner" /> : "No IPs found."}</td>
-                </tr>
-              </TableRowFadeTransition>
-            )}
-          </TransitionGroup>
-        </table>
-
-        <AjaxPaginate hasNext={props.hasNext} isFetching={props.isFetching} onLoadNext={props.loadNext} />
-      </div>
-    )
-  }, [
-    filterPorts,
-    networks,
-    subnets,
-    props.securityGroups,
-    props.instancesPath,
-    props.handleDelete,
-    props.networks.isFetching,
-    props.subnets.isFetching,
-    props.isFetching,
-    props.hasNext,
-    props.loadNext,
-  ])
+  }, [props.items.length, props.searchPorts, activeFilter, changeActiveFilter])
 
   return (
     <div>
-      {toolbar()}
+      {toolbar}
       {!policy.isAllowed("shared_filesystem_storage:share_list") ? (
         <span>You are not allowed to see this page</span>
       ) : (
-        renderTable()
+        <div>
+          <table className="table shares">
+            <thead>
+              <tr>
+                <th className="snug"></th>
+                <th>Port ID / Name</th>
+                <th>Description</th>
+                <th>Network</th>
+                <th>Fixed IPs / Subnet</th>
+                <th>Device Owner / ID</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <TransitionGroup component="tbody">
+              {filteredPorts && filteredPorts.length > 0 ? (
+                filteredPorts.map(
+                  (port) =>
+                    !port.isHidden && (
+                      <TableRowFadeTransition key={port.id}>
+                        <PortItem
+                          port={port}
+                          instancesPath={props.instancesPath}
+                          handleDelete={props.handleDelete}
+                          isFetchingNetworks={props.networks.isFetching}
+                          isFetchingSubnets={props.subnets.isFetching}
+                          network={networksMap[port.network_id]}
+                          subnets={subnetsMap}
+                        />
+                      </TableRowFadeTransition>
+                    )
+                )
+              ) : (
+                <TableRowFadeTransition key="no-items">
+                  <tr>
+                    <td colSpan={8}>{props.isFetching ? <span className="spinner" /> : "No IPs found."}</td>
+                  </tr>
+                </TableRowFadeTransition>
+              )}
+            </TransitionGroup>
+          </table>
+
+          <AjaxPaginate hasNext={props.hasNext} isFetching={props.isFetching} onLoadNext={props.loadNext} />
+        </div>
       )}
     </div>
   )

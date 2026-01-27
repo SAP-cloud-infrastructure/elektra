@@ -1,10 +1,58 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import { render, screen, waitFor, within } from "@testing-library/react"
+import { render, screen, waitFor, RenderResult } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
+import type { UserEvent } from "@testing-library/user-event"
 import "@testing-library/jest-dom/vitest"
 import React from "react"
 import { BrowserRouter } from "react-router-dom"
-import List from "./list.tsx"
+import List from "./list"
+
+// Types
+interface Port {
+  id: string
+  name: string
+  description?: string
+  network_id: string
+  status: string
+  fixed_ips?: Array<{ subnet_id: string; ip_address: string }>
+  device_owner?: string
+  device_id?: string
+  isHidden?: boolean
+}
+
+interface Network {
+  id: string
+  name: string
+}
+
+interface Subnet {
+  id: string
+  name: string
+  cidr?: string
+}
+
+interface SecurityGroup {
+  id: string
+  name: string
+}
+
+interface ListProps {
+  items: Port[]
+  networks: { items: Network[]; isFetching: boolean }
+  subnets: { items: Subnet[]; isFetching: boolean }
+  securityGroups: { items: SecurityGroup[] }
+  isFetching: boolean
+  hasNext: boolean
+  searchTerm: string
+  instancesPath: string
+  loadPortsOnce: () => void
+  loadNetworksOnce: () => void
+  loadSubnetsOnce: () => void
+  loadSecurityGroupsOnce: () => void
+  searchPorts: (term: string) => void
+  handleDelete: (portId: string) => void
+  loadNext: () => void
+}
 
 // Mock global policy object
 global.policy = {
@@ -13,7 +61,7 @@ global.policy = {
 
 // Mock PortItem component
 vi.mock("./item", () => ({
-  default: ({ port, network, subnets }) => (
+  default: ({ port, network }: { port: Port; network?: Network; subnets?: Record<string, Subnet> }) => (
     <tr data-testid={`port-item-${port.id}`}>
       <td>{port.id}</td>
       <td>{port.name}</td>
@@ -25,7 +73,7 @@ vi.mock("./item", () => ({
 }))
 
 // Mock data helpers
-const createPort = (overrides = {}) => ({
+const createPort = (overrides: Partial<Port> = {}): Port => ({
   id: "port-1",
   name: "test-port",
   description: "Test port description",
@@ -38,34 +86,34 @@ const createPort = (overrides = {}) => ({
   ...overrides,
 })
 
-const createNetwork = (overrides = {}) => ({
+const createNetwork = (overrides: Partial<Network> = {}): Network => ({
   id: "network-1",
   name: "test-network",
   ...overrides,
 })
 
-const createSubnet = (overrides = {}) => ({
+const createSubnet = (overrides: Partial<Subnet> = {}): Subnet => ({
   id: "subnet-1",
   name: "test-subnet",
   cidr: "192.168.1.0/24",
   ...overrides,
 })
 
-const createSecurityGroup = (overrides = {}) => ({
+const createSecurityGroup = (overrides: Partial<SecurityGroup> = {}): SecurityGroup => ({
   id: "sg-1",
   name: "default",
   ...overrides,
 })
 
 describe("List (Ports)", () => {
-  let mockLoadPortsOnce
-  let mockLoadNetworksOnce
-  let mockLoadSubnetsOnce
-  let mockLoadSecurityGroupsOnce
-  let mockSearchPorts
-  let mockHandleDelete
-  let mockLoadNext
-  let user
+  let mockLoadPortsOnce: ReturnType<typeof vi.fn>
+  let mockLoadNetworksOnce: ReturnType<typeof vi.fn>
+  let mockLoadSubnetsOnce: ReturnType<typeof vi.fn>
+  let mockLoadSecurityGroupsOnce: ReturnType<typeof vi.fn>
+  let mockSearchPorts: ReturnType<typeof vi.fn>
+  let mockHandleDelete: ReturnType<typeof vi.fn>
+  let mockLoadNext: ReturnType<typeof vi.fn>
+  let user: UserEvent
 
   beforeEach(() => {
     user = userEvent.setup()
@@ -82,8 +130,8 @@ describe("List (Ports)", () => {
     vi.clearAllMocks()
   })
 
-  const renderComponent = (props = {}) => {
-    const defaultProps = {
+  const renderComponent = (props: Partial<ListProps> = {}): RenderResult => {
+    const defaultProps: ListProps = {
       items: [],
       networks: { items: [], isFetching: false },
       subnets: { items: [], isFetching: false },
@@ -215,7 +263,7 @@ describe("List (Ports)", () => {
 
       renderComponent({ items: [fixedIpPort, otherPort] })
 
-      const fixedIpRadio = screen.getByLabelText("fixed ip ports")
+      const fixedIpRadio = screen.getByLabelText("fixed ip ports") as HTMLInputElement
       expect(fixedIpRadio).toBeChecked()
     })
 
@@ -272,7 +320,7 @@ describe("List (Ports)", () => {
       const fixedIpPort = createPort({ id: "fixed-1", name: "fixed_ip_allocation" })
       const { rerender } = renderComponent({ items: [fixedIpPort] })
 
-      const fixedIpRadio = screen.getByLabelText("fixed ip ports")
+      const fixedIpRadio = screen.getByLabelText("fixed ip ports") as HTMLInputElement
       expect(fixedIpRadio).toBeChecked()
 
       // Simulate receiving new props
