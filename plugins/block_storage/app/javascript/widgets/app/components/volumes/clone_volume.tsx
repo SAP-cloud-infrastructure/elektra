@@ -104,7 +104,7 @@ const CloneVolumeForm: React.FC<CloneVolumeFormProps> = ({
   const [show, setShow] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
 
-  // Load dependencies (replaces componentDidMount and UNSAFE_componentWillReceiveProps)
+  // Load dependencies
   const loadDependencies = useCallback(() => {
     loadAvailabilityZonesOnce()
   }, [loadAvailabilityZonesOnce])
@@ -117,7 +117,7 @@ const CloneVolumeForm: React.FC<CloneVolumeFormProps> = ({
     loadDependencies()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Load dependencies when props change (replaces UNSAFE_componentWillReceiveProps)
+  // Load dependencies when props change
   useEffect(() => {
     loadDependencies()
   }, [loadDependencies])

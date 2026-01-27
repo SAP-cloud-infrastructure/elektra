@@ -57,7 +57,7 @@ const ProjectRoleAssignmentsInlineForm: React.FC<ProjectRoleAssignmentsInlineFor
     })
   }, [])
 
-  // Initialize state on mount (replaces componentDidMount)
+  // Initialize state on mount
   useEffect(() => {
     const roleIDs = memberRoles.map((r) => r.id)
     setCurrentMemberRoleIDs(roleIDs)
@@ -71,7 +71,7 @@ const ProjectRoleAssignmentsInlineForm: React.FC<ProjectRoleAssignmentsInlineFor
     loadRolesOnce()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Update available roles when they become available (replaces UNSAFE_componentWillReceiveProps)
+  // Update available roles when they become available
   useEffect(() => {
     if (sortedAvailableRoles.length === 0 && availableRoles) {
       setSortedAvailableRoles(sortRoles(availableRoles.items))

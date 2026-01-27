@@ -429,7 +429,7 @@ describe("List Component", () => {
     })
   })
 
-  describe("Props Updates (UNSAFE_componentWillReceiveProps)", () => {
+  describe("Props Updates", () => {
     it("rebuilds hierarchy when items prop changes", () => {
       const initialProjects = [createProject("proj-1", "Project 1", "Desc 1", "domain-1", "domain-1")]
 
