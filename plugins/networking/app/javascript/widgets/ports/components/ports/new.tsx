@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react"
 import { Modal, Button } from "react-bootstrap"
+// @ts-expect-error - elektra-form has no types
 import { Form } from "lib/elektra-form"
 import ipRangeCheck from "ip-range-check"
 
