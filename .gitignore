@@ -71,3 +71,5 @@ config/support/domain_config.local.yaml
 
 .out-of-code-insights
 .pnpm-store
+
+AGENTS.md
