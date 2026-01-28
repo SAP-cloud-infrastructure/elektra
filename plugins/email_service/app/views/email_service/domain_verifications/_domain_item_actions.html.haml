@@ -1,5 +1,0 @@
-- id = domain_item[:id]
-- identity = domain_item[:identity_name]
-- if current_user.is_allowed?('email_service:domain_verification_delete')
-  = link_to plugin('email_service').domain_verification_path(id: id, identity_name: identity), class: 'btn btn-default btn-sm', :method => 'delete', data: { confirm: "Are you sure you want to remove the domain #{identity}?", ok: "Yes, remove it", confirmed: :loading_status} do
-    %i.fa.fa-trash.fa-fw

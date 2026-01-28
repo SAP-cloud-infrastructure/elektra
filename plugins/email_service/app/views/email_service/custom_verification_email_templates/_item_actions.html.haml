@@ -1,8 +1,0 @@
-.btn-group
-  %button.btn.btn-default.btn-sm.dropdown-toggle{ type: "button", data: { toggle: "dropdown"}, aria: { expanded: true } }
-    %span.fa.fa-cog
-  %ul.dropdown-menu.dropdown-menu-right{ role:"menu" }
-    - if current_user.is_allowed?("email_service:custom_verification_email_template_update", {target: { project: @active_project, scoped_domain_name: @scoped_domain_name}})
-      %li= link_to 'Edit', plugin('email_service').edit_custom_verification_email_template_path(id: item[:id], template_name: item[:template_name]),data: {modal: true}
-    - if current_user.is_allowed?("email_service:custom_verification_email_template_delete", {target: { project: @active_project, scoped_domain_name: @scoped_domain_name}})
-      %li= link_to 'Delete', plugin('email_service').custom_verification_email_template_path(id: item[:id], template_name: item[:template_name], action_from_show: show_view), method: :delete, data: { confirm: "Are you sure you want to remove this template '#{item[:template_name]}'?", ok: "Yes, remove it", confirmed: :loading_status}

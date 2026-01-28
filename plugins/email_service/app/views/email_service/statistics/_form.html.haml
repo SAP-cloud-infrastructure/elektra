@@ -1,6 +1,0 @@
-- domain_source_hint = 'Choose a verified domain to generate report for'
-- start_date_hint = 'Pick a start date'
-- end_date_hint = 'Pick an end date'
-  = f.input :source_domain, required: true, label: "Choose domain" , collection: domains_collection, as: :select, icon_hint: domain_source_hint
-  = f.input :start_date, class: 'form-control', data: { behavior: 'daterangepicker' } , icon_hint: start_date_hint
-  = f.input :end_date, class: 'form-control', data: { behavior: 'daterangepicker' } , icon_hint: end_date_hint
