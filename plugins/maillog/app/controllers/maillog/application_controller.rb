@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-module EmailService
-  # EmailService ApplicationController
+module Maillog
+  # Maillog ApplicationController
   class ApplicationController < ::DashboardController
-    authorization_context "email_service"
+    authorization_context "maillog"
     authorization_required
 
-    protected
-    
+    def index
+    end
   end
 end
