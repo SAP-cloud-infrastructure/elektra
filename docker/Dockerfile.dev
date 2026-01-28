@@ -69,7 +69,8 @@ ENV PGDATA="/app/tmp/postgresql/data"
 
 RUN echo -e '#!/bin/bash\n\n\
   set -e \n\
-  bundle install && bundle config set --local path 'vendor/bundle' \n\
+  bundle config set --local path 'vendor/bundle' && \n\
+  bundle install \n\
   pnpm i \n\
   mkdir -p "$PGDATA" && chown -R postgres:postgres "$PGDATA"\n\
   PGDATA_FILES=$(ls -A $PGDATA)\n\
