@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react"
-// @ts-expect-error - react-bootstrap has no types
+// @ts-expect-error - bootstrap has no types
 import { Modal, Button } from "react-bootstrap"
 // @ts-expect-error - elektra-form has no types
 import { Form } from "lib/elektra-form"
@@ -130,7 +130,7 @@ const EditPortForm: React.FC<EditPortFormProps> = ({
 }) => {
   const [show, setShow] = useState(true)
 
-  // Load dependencies (replaces componentDidMount and UNSAFE_componentWillReceiveProps)
+  // Load dependencies
   const loadDependencies = useCallback(() => {
     loadNetworksOnce()
     loadSubnetsOnce()
@@ -142,7 +142,7 @@ const EditPortForm: React.FC<EditPortFormProps> = ({
     loadDependencies()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Load dependencies when props change (replaces UNSAFE_componentWillReceiveProps)
+  // Load dependencies when props change 
   useEffect(() => {
     loadDependencies()
   }, [loadDependencies])

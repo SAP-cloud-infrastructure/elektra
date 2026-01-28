@@ -473,7 +473,7 @@ describe("ProjectRoleAssignmentsInlineForm", () => {
     })
   })
 
-  describe("Props Updates (UNSAFE_componentWillReceiveProps)", () => {
+  describe("Props Updates", () => {
     it("updates available roles when they become available", () => {
       const { rerender } = renderComponent({
         availableRoles: null,

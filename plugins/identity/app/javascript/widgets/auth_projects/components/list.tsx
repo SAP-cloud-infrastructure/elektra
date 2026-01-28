@@ -5,7 +5,7 @@ interface Project {
   name: string
   description: string
   domain_id: string
-  parent_id: string
+  parent_id: string | null
 }
 
 interface HierarchicalProject {
@@ -13,7 +13,7 @@ interface HierarchicalProject {
   name: string
   description: string
   domain_id: string
-  parent_id: string
+  parent_id: string | null
   children?: HierarchicalProject[]
 }
 
