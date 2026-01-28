@@ -1,0 +1,2 @@
+%ul.nav.nav-tabs
+  %li{class: ('active' if pane == 'maillog'), role: "presentation"}= link_to 'Maillog', plugin('maillog').maillog_path, aria: {controls:"maillog-pane"}, role: "tab"
