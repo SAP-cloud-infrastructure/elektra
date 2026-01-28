@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react"
 // @ts-expect-error – missing types for react-bootstrap
-import { Modal, Button, Tabs, Tab } from "react-bootstrap"
-import { Link } from "react-router-dom"
+import { Modal, Button} from "react-bootstrap"
 
 interface RowProps {
   label: string
