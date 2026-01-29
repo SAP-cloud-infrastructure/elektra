@@ -32,7 +32,7 @@ export const FormatRequestData = (options: Record<string, unknown>): string => {
             ;(acc[key + "[]"] as string[]).push(String(item))
           }
         })
-      } else if (value !== null && value !== "") {
+      } else if (value !== null && value !== "" && value !== undefined) {
         acc[key] = String(value)
       }
       return acc
