@@ -6,11 +6,9 @@ import { MailLogEntry } from "../actions"
 
 interface ItemDetailsProps {
   data: MailLogEntry
-  children?: React.ReactNode
-  className?: string
 }
 
-const ItemDetails: React.FC<ItemDetailsProps> = ({ data, children, className, ...props }) => {
+const ItemDetails: React.FC<ItemDetailsProps> = ({ data }) => {
   const BlockStyle: React.CSSProperties = { display: "flex", flexDirection: "column" }
   const RowStyle: React.CSSProperties = { display: "flex", flexDirection: "row" }
   const [showJson, setShowJson] = useState(false)

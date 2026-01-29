@@ -14,11 +14,9 @@ import { MailLogEntry } from "../actions"
 
 interface ItemProps {
   data: MailLogEntry
-  children?: React.ReactNode
-  className?: string
 }
 
-const Item: React.FC<ItemProps> = ({ data, children, className, ...props }) => {
+const Item: React.FC<ItemProps> = ({ data }) => {
   const [showDetails, setShowDetails] = useState(false)
 
   const toggleDetails = () => {
