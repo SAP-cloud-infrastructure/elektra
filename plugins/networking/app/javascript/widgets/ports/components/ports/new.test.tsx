@@ -85,7 +85,7 @@ vi.mock("lib/elektra-form", () => {
     }
 
     return (
-      <FormContext.Provider value={{ values, handleChange, errors }}>
+      <FormContext.Provider value={{ formValues: values, onChange: handleChange, formErrors: errors }}>
         <form onSubmit={handleSubmit} data-testid="form">
           {children}
         </form>
@@ -93,14 +93,10 @@ vi.mock("lib/elektra-form", () => {
     )
   }
 
-  // Hook to access form values from context
-  MockForm.useFormValues = () => {
-    const context = React.useContext(FormContext)
-    return context?.values || {}
-  }
-
   return {
+    FormContext,
     Form: Object.assign(MockForm, {
+      Context: FormContext,
       Errors: () => <div data-testid="form-errors"></div>,
       ElementHorizontal: ({ label, name, required, children }: any) => {
         return (
@@ -115,8 +111,8 @@ vi.mock("lib/elektra-form", () => {
       },
       Input: ({ elementType, name, type, className, children }: any) => {
         const context = React.useContext(FormContext)
-        const values = context?.values || {}
-        const handleChange = context?.handleChange
+        const values = context?.formValues || {}
+        const handleChange = context?.onChange
         const value = values?.[name] || ""
 
         if (elementType === "select") {
@@ -164,8 +160,8 @@ vi.mock("lib/elektra-form", () => {
       },
       FormMultiselect: ({ name, options }: any) => {
         const context = React.useContext(FormContext)
-        const values = context?.values || {}
-        const handleChange = context?.handleChange
+        const values = context?.formValues || {}
+        const handleChange = context?.onChange
         const selectedValues = values?.[name] || []
 
         return (

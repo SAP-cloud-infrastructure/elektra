@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react"
+import React, { useState, useEffect, useMemo, useContext } from "react"
 import { Modal, Button } from "react-bootstrap"
 // @ts-expect-error - elektra-form has no types
 import { Form } from "lib/elektra-form"
@@ -59,7 +59,8 @@ interface FormBodyProps {
 }
 
 const FormBody: React.FC<FormBodyProps> = ({ networks, subnets, securityGroups }) => {
-  const values = Form.useFormValues?.() || {}
+  const context = useContext(Form.Context) as any
+  const values = context.formValues || {}
   const networkSubnets: Subnet[] = useMemo(() => {
     if (!values.network_id || !subnets.items || subnets.items.length === 0) {
       return []
