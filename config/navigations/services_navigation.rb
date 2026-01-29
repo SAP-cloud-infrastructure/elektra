@@ -483,10 +483,10 @@ SimpleNavigation::Configuration.run do |navigation|
                           services.available?(:maillog) &&
                           plugin_available?(:maillog) },
                         highlights_on: lambda {
-                          params[:controller][%r{/?.*}]
+                          params[:controller][%r{maillog/?.*}]
                         }
       services_nav.item :smartops,
-                          'SmartOps',
+                          'Smart Ops',
                           lambda {
                             plugin('smartops').start_path
                           },
@@ -494,8 +494,7 @@ SimpleNavigation::Configuration.run do |navigation|
                             services.available?(:smartops) &&
                               plugin_available?(:smartops)
                           },
-                          highlights_on:
-                            proc {
+                          highlights_on: lambda {
                               params[:controller][%r{smartops/.*}]
                             }
     end
