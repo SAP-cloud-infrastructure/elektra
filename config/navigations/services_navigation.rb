@@ -480,7 +480,7 @@ SimpleNavigation::Configuration.run do |navigation|
                         'Mail Log',
                         -> { plugin('maillog').maillog_path },
                         if: -> { 
-                          services.available?(:email_service) ||
+                          services.available?(:maillog) &&
                           plugin_available?(:maillog) },
                         highlights_on: lambda {
                           params[:controller][%r{/?.*}]
