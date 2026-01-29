@@ -17,7 +17,7 @@ export const scopes = [
   "cloudops",
   "compute",
   "dns-service",
-  "email-service",
+  "maillog",
   "identity",
   "image",
   "inquiry",

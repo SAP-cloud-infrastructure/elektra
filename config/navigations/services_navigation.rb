@@ -473,7 +473,7 @@ SimpleNavigation::Configuration.run do |navigation|
                  },
                  if:
                    lambda {
-                     plugin_available?(:email_service) ||
+                     plugin_available?(:maillog) ||
                       plugin_available?(:smartops)
                    } do |services_nav|
       services_nav.item :maillog,
