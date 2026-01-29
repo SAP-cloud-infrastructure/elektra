@@ -41,8 +41,45 @@ export interface MailSearchResponse {
   hits: number
 }
 
+export interface Recipient {
+  rcpt: string
+  relay: string
+  response?: {
+    code?: string
+    ext?: string
+    msg?: string
+  }
+}
+
+export interface Attempt {
+  date: string
+  hostname: string
+  dialog: {
+    mailFrom?: {
+      response?: {
+        code?: string
+        msg?: string
+      }
+    }
+    data?: {
+      response?: {
+        code?: string
+        msg?: string
+      }
+    }
+  }
+}
+
 export interface MailLogEntry {
   id: string
+  date: string
+  from: string
+  headerFrom: string
+  subject: string
+  messageId: string
+  rcpts: Recipient[]
+  attempts?: Attempt[]
+  summary: Record<string, number>
   [key: string]: unknown
 }
 
