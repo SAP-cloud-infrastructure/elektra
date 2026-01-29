@@ -3,7 +3,14 @@ import { useAuthData, useAuthProject, useGlobalsEndpoint } from "./StoreProvider
 import { useGetData } from "../queries"
 import { MailSearchOptions, MailLogEntry, HTTPError, NetworkError } from "../actions"
 import Pagination from "./Pagination"
-import { Container, DataGrid, DataGridCell, DataGridHeadCell, DataGridRow } from "@cloudoperators/juno-ui-components"
+import {
+  Container,
+  DataGrid,
+  DataGridCell,
+  DataGridHeadCell,
+  DataGridRow,
+  Spinner,
+} from "@cloudoperators/juno-ui-components"
 import HintLoading from "./HintLoading"
 import Item from "./Item"
 import SearchBar from "./SearchBar"
@@ -124,6 +131,25 @@ const EventList: React.FC<EventListProps> = ({ props }) => {
               isFetching={tableData.isFetching}
               disabled={!!tableData.error}
             />
+            {/* Loading indicator overlay */}
+            {tableData.isFetching && tableData.data && (
+              <div
+                style={{
+                  position: "relative",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "1rem",
+                  backgroundColor: "rgba(255, 255, 255, 0.9)",
+                  borderRadius: "4px",
+                  marginBottom: "1rem",
+                  border: "1px solid #e0e0e0",
+                }}
+              >
+                <Spinner size="small" />
+                <span style={{ marginLeft: "0.5rem", fontSize: "0.9rem", color: "#666" }}>Loading...</span>
+              </div>
+            )}
             <DataGrid columns={6}>
               <DataGridRow>
                 <DataGridHeadCell></DataGridHeadCell>

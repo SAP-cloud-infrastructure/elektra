@@ -227,4 +227,45 @@ describe("EventList", () => {
       expect(screen.getByTestId("pagination")).toHaveTextContent("Hits: 1")
     })
   })
+
+  it("should show loading indicator when isFetching is true with existing data", async () => {
+    const mockData = {
+      data: [{ id: "1", subject: "Test" }],
+      hits: 1,
+    }
+
+    vi.mocked(useGetData).mockReturnValue({
+      data: mockData,
+      isLoading: false,
+      isError: false,
+      isFetching: true,
+      error: null,
+    } as any)
+
+    render(<EventList />)
+
+    await waitFor(() => {
+      // Should show the loading overlay with spinner
+      expect(screen.getByText("Loading...")).toBeInTheDocument()
+      // Should still show the existing data
+      expect(screen.getByTestId("item")).toBeInTheDocument()
+    })
+  })
+
+  it("should not show loading indicator when isFetching is true but no data exists", async () => {
+    vi.mocked(useGetData).mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      isError: false,
+      isFetching: true,
+      error: null,
+    } as any)
+
+    render(<EventList />)
+
+    // Should show initial loading state instead
+    expect(screen.getByTestId("loading")).toBeInTheDocument()
+    // Should not show "Loading..." text from the overlay
+    expect(screen.queryByText("Loading...")).not.toBeInTheDocument()
+  })
 })
