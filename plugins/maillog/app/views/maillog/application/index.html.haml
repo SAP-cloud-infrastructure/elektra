@@ -1,9 +1,8 @@
 =content_for :main_toolbar do
   Maillog
 
-= javascript_include_tag 'maillog_maillog-ui_widget', data: { props: { |
-  embedded: true,                                                    |
-  theme: 'theme-light',                                              |  
+= javascript_include_tag 'maillog_app_widget', data: {               |
   endpoint: "https://maillog.#{current_region}.cloud.sap",           |
   "project": "#{@scoped_project_id}",                                |
-  "getTokenFuncName": "_getCurrentToken" } }
+  "getTokenFuncName": "_getCurrentToken" } 
+  
