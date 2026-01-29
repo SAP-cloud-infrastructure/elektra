@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react"
 import { useAuthData, useAuthProject, useGlobalsEndpoint } from "./StoreProvider"
 import { useGetData } from "../queries"
+import { MailSearchOptions, MailLogEntry, HTTPError, NetworkError } from "../actions"
 import Pagination from "./Pagination"
 import { Container, DataGrid, DataGridCell, DataGridHeadCell, DataGridRow } from "@cloudoperators/juno-ui-components"
 import HintLoading from "./HintLoading"
@@ -9,12 +10,45 @@ import SearchBar from "./SearchBar"
 
 const ITEMS_PER_PAGE = 15
 
-const EventList = ({ props }) => {
-  const [paginationOptions, setPaginationOptions] = useState({
+interface PaginationOptions {
+  pageSize: number
+  page: number
+}
+
+interface SearchOptions {
+  from: string
+  subject: string
+  rcpt: string[]
+  id: string
+  messageId: string
+  headerFrom: string
+  relay: string
+}
+
+interface DateOptions {
+  start: Date | null
+  end: Date | null
+}
+
+interface TableData {
+  data: MailLogEntry[] | null
+  hits: number | null
+  isLoading: boolean
+  isError: boolean
+  isFetching: boolean
+  error: (HTTPError | NetworkError | Error) | null
+}
+
+interface EventListProps {
+  props?: Record<string, unknown>
+}
+
+const EventList: React.FC<EventListProps> = ({ props }) => {
+  const [paginationOptions, setPaginationOptions] = useState<PaginationOptions>({
     pageSize: ITEMS_PER_PAGE,
     page: 1,
   })
-  const [searchOptions, setSearchOptions] = useState({
+  const [searchOptions, setSearchOptions] = useState<SearchOptions>({
     from: "",
     subject: "",
     rcpt: [],
@@ -24,19 +58,21 @@ const EventList = ({ props }) => {
     relay: "",
     // IncludeAttempts: true,
   })
-  const [dateOptions, setDateOptions] = useState({ start: null, end: null })
+  const [dateOptions, setDateOptions] = useState<DateOptions>({ start: null, end: null })
   const endpoint = useGlobalsEndpoint()
   const token = useAuthData()
   const project = useAuthProject()
 
-  const fetchedData = useGetData(token, endpoint, {
+  const mailSearchOptions: MailSearchOptions = {
     ...paginationOptions,
     ...searchOptions,
     ...dateOptions,
     project: project,
-  })
+  }
 
-  const [tableData, setTableData] = useState({
+  const fetchedData = useGetData(token, endpoint, mailSearchOptions)
+
+  const [tableData, setTableData] = useState<TableData>({
     data: null,
     hits: null,
     isLoading: true,
@@ -45,7 +81,7 @@ const EventList = ({ props }) => {
     error: null,
   })
 
-  const setDate = (date) => {
+  const setDate = (date: DateOptions) => {
     setDateOptions({ ...date })
   }
 
@@ -63,12 +99,14 @@ const EventList = ({ props }) => {
       })
     }
   }, [fetchedData.data, fetchedData.isLoading, fetchedData.isError, fetchedData.isFetching, fetchedData.error])
+
   return useMemo(() => {
     return (
       <Container style={{ height: "100%" }}>
+        {/* @ts-expect-error - SearchBar is a JSX component without proper TypeScript definitions */}
         <SearchBar
-          onChange={setSearchOptions}
-          onPageChange={setPaginationOptions}
+          onChange={setSearchOptions as any}
+          onPageChange={setPaginationOptions as any}
           searchOptions={searchOptions}
           dateOptions={dateOptions}
           pageOptions={paginationOptions}
@@ -121,12 +159,12 @@ const EventList = ({ props }) => {
                     >
                       <h3 style={{ marginTop: 0, color: "#c00" }}>Unable to Load Mail Logs</h3>
                       <p style={{ margin: "1rem 0" }}>{tableData.error.message || tableData.error.toString()}</p>
-                      {tableData.error.statusCode >= 500 && (
+                      {(tableData.error as HTTPError).statusCode >= 500 && (
                         <p style={{ fontSize: "0.9rem", color: "#666" }}>
                           The server is experiencing issues. Please try again in a few moments.
                         </p>
                       )}
-                      {tableData.error.statusCode === 401 && (
+                      {(tableData.error as HTTPError).statusCode === 401 && (
                         <p style={{ fontSize: "0.9rem", color: "#666" }}>
                           Your session may have expired. Please refresh the page to re-authenticate.
                         </p>
@@ -135,7 +173,10 @@ const EventList = ({ props }) => {
                   </DataGridCell>
                 </DataGridRow>
               ) : tableData.data && tableData.data.length > 0 ? (
-                tableData.data.map((itemData) => <Item data={itemData} key={itemData.id} />)
+                tableData.data.map((itemData) => (
+                  // @ts-expect-error - Item is a JSX component without proper TypeScript definitions
+                  <Item data={itemData as any} key={itemData.id} />
+                ))
               ) : (
                 // Your no events found message here
                 <DataGridRow>

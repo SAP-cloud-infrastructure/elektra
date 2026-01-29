@@ -1,45 +1,77 @@
 import { FormatRequestData } from "./helper"
 
-class HTTPError extends Error {
-  constructor(code, message, isNetworkError = false) {
-    super(message || code)
+export class HTTPError extends Error {
+  public readonly statusCode: number
+  public readonly isNetworkError: boolean
+
+  constructor(code: number, message: string, isNetworkError = false) {
+    super(message || String(code))
     this.name = "HTTPError"
     this.statusCode = code
     this.isNetworkError = isNetworkError
   }
 }
 
-class NetworkError extends Error {
-  constructor(message) {
+export class NetworkError extends Error {
+  public readonly isNetworkError = true
+
+  constructor(message: string) {
     super(message)
     this.name = "NetworkError"
-    this.isNetworkError = true
   }
 }
 
-export const encodeUrlParamsFromObject = (options) => {
+export interface MailSearchOptions {
+  from?: string
+  subject?: string
+  rcpt?: string[]
+  id?: string
+  messageId?: string
+  headerFrom?: string
+  relay?: string
+  project?: string
+  pageSize?: number
+  page?: number
+  start?: Date | null
+  end?: Date | null
+}
+
+export interface MailSearchResponse {
+  data: MailLogEntry[]
+  hits: number
+}
+
+export interface MailLogEntry {
+  id: string
+  [key: string]: unknown
+}
+
+export interface QueryKeyParams {
+  queryKey: [string, string, string, MailSearchOptions]
+}
+
+export const encodeUrlParamsFromObject = (options: Record<string, unknown>): string => {
   if (!options) return ""
-  let encodedOptions = Object.keys(options)
+  const encodedOptions = Object.keys(options)
     .map((k) => {
-      if (typeof options[k] === "object") {
-        const childOption = options[k]
+      if (typeof options[k] === "object" && options[k] !== null && !Array.isArray(options[k])) {
+        const childOption = options[k] as Record<string, unknown>
         return Object.keys(childOption).map(
-          (childKey) => `${encodeURIComponent(childKey)}=${encodeURIComponent(childOption[childKey])}`
+          (childKey) => `${encodeURIComponent(childKey)}=${encodeURIComponent(String(childOption[childKey]))}`
         )
       }
-      return `${encodeURIComponent(k)}=${encodeURIComponent(options[k])}`
+      return `${encodeURIComponent(k)}=${encodeURIComponent(String(options[k]))}`
     })
     .join("&")
   return `&${encodedOptions}`
 }
 
-const checkStatus = (response) => {
+const checkStatus = (response: Response): Promise<Response> => {
   if (response.status < 400) {
-    return response
+    return Promise.resolve(response)
   } else {
     return response.text().then((message) => {
-      var error = new HTTPError(response.status, message || response.statusText)
-      error.statusCode = response.status
+      const error = new HTTPError(response.status, message || response.statusText)
       return Promise.reject(error)
     })
   }
@@ -49,7 +81,7 @@ const checkStatus = (response) => {
 // SERVICES
 //
 
-export const dataFn = ({ queryKey }) => {
+export const dataFn = ({ queryKey }: QueryKeyParams): Promise<MailSearchResponse> => {
   const [_key, bearerToken, endpoint, options] = queryKey
   const requestData = FormatRequestData(options)
   return fetchFromAPI(bearerToken, endpoint, "/v1/mails/search", requestData)
@@ -59,7 +91,12 @@ export const dataFn = ({ queryKey }) => {
 // COMMONS
 //
 
-const fetchFromAPI = async (bearerToken, endpoint, path, queryParams) => {
+const fetchFromAPI = async (
+  bearerToken: string,
+  endpoint: string,
+  path: string,
+  queryParams: string
+): Promise<MailSearchResponse> => {
   const url = `${endpoint}${path}?${queryParams}`
 
   try {
@@ -80,16 +117,16 @@ const fetchFromAPI = async (bearerToken, endpoint, path, queryParams) => {
 
     // Check if the request was successful (status code 2xx)
     if (response.ok) {
-      const jsonResponse = await response.json()
+      const jsonResponse = (await response.json()) as MailSearchResponse
       return jsonResponse
     } else {
       // If the response status is not in the 2xx range, throw an error with proper categorization
       let errorMessage = ""
-      let errorDetails = null
+      let errorDetails: { message?: string; error?: string } | null = null
 
       try {
         errorDetails = await response.json()
-        errorMessage = errorDetails.message || errorDetails.error || response.statusText
+        errorMessage = errorDetails?.message || errorDetails?.error || response.statusText
       } catch (e) {
         // If response is not JSON, try to get text
         try {
@@ -128,7 +165,7 @@ const fetchFromAPI = async (bearerToken, endpoint, path, queryParams) => {
     }
   } catch (error) {
     // Handle network errors (connection issues, timeouts, CORS, etc.)
-    if (error.name === "AbortError") {
+    if (error instanceof Error && error.name === "AbortError") {
       const timeoutError = new NetworkError(
         "Request timeout. The API is taking too long to respond. Please check your connection and try again."
       )
@@ -159,7 +196,8 @@ const fetchFromAPI = async (bearerToken, endpoint, path, queryParams) => {
     }
 
     // Handle any other unexpected errors
-    console.error("Unexpected error during fetch:", url, error.message)
-    throw new NetworkError(`An unexpected error occurred: ${error.message}`)
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.error("Unexpected error during fetch:", url, errorMessage)
+    throw new NetworkError(`An unexpected error occurred: ${errorMessage}`)
   }
 }
