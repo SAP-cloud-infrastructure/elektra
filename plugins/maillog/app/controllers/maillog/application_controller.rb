@@ -8,5 +8,6 @@ module Maillog
 
     def index
     end
+
   end
 end
