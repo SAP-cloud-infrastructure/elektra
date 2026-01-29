@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import { dataFn, HTTPError, NetworkError, QueryKeyParams } from "./actions"
+import { dataFn, HTTPError, NetworkError, QueryKeyParams, encodeUrlParamsFromObject } from "./actions"
 
 // Mock FormatRequestData
 vi.mock("./helper", () => ({
@@ -35,6 +35,27 @@ describe("NetworkError", () => {
     expect(error.message).toBe("Connection failed")
     expect(error.name).toBe("NetworkError")
     expect(error.isNetworkError).toBe(true)
+  })
+})
+
+describe("encodeUrlParamsFromObject", () => {
+  it("should return empty string if no object given", () => {
+    expect(encodeUrlParamsFromObject(undefined as any)).toEqual("")
+  })
+
+  it("should return url params when object given", () => {
+    expect(encodeUrlParamsFromObject({ limit: 10, offset: 0 })).toEqual("&limit=10&offset=0")
+  })
+
+  it("should return url param also when object value has an object", () => {
+    expect(
+      encodeUrlParamsFromObject({
+        obj1: { operators: "arturo" },
+        obj2: { operators: "michi" },
+        limit: 10,
+        offset: 0,
+      })
+    ).toEqual("&operators=arturo&operators=michi&limit=10&offset=0")
   })
 })
 
