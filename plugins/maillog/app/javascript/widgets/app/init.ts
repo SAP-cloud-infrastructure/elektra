@@ -1,3 +1,4 @@
+// @ts-expect-error - lib/widget doesn't have TypeScript types
 import { createWidget } from "lib/widget"
 import App from "./App"
 

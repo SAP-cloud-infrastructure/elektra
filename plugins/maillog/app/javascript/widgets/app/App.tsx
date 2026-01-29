@@ -3,13 +3,38 @@ import { AppShell, AppShellProvider } from "@cloudoperators/juno-ui-components"
 import StoreProvider, { useAuthActions, useGlobalsActions } from "./components/StoreProvider"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import AppContent from "./AppContent"
+// @ts-expect-error - styles.scss doesn't have TypeScript types
 import styles from "./styles.scss?inline"
 
 /* IMPORTANT: Replace this with your app's name */
 const URL_STATE_KEY = "maillog"
 /* --------------------------- */
 
-const App = ({ props }) => {
+interface AppProps {
+  props: {
+    endpoint?: string
+    project?: string
+    currentHost?: string
+    embedded?: boolean | string
+    theme?: string
+  }
+}
+
+interface Token {
+  authToken: string
+  project: {
+    id: string
+  }
+  expires_at: string
+}
+
+declare global {
+  interface Window {
+    _getCurrentToken(): Promise<Token>
+  }
+}
+
+const App: React.FC<AppProps> = ({ props }) => {
   const { setEndpoint, setUrlStateKey, setEmbedded } = useGlobalsActions()
   const { setAuthData } = useAuthActions()
 
@@ -17,10 +42,11 @@ const App = ({ props }) => {
     setEndpoint(props.endpoint)
   }
   if (props.project) {
-    setAuthData({ project: props.project })
+    setAuthData({ project: props.project, token: null })
   }
+
   React.useEffect(() => {
-    let timer
+    let timer: NodeJS.Timeout | undefined
     const getToken = () => {
       window
         ._getCurrentToken()
@@ -51,7 +77,9 @@ const App = ({ props }) => {
     }
     getToken()
 
-    return () => clearTimeout(timer)
+    return () => {
+      if (timer) clearTimeout(timer)
+    }
   }, [setAuthData])
 
   // Create query client which it can be used from overall in the app
@@ -86,14 +114,14 @@ const App = ({ props }) => {
   )
 }
 
-const StyledApp = (props) => {
+const StyledApp: React.FC<AppProps["props"]> = (props) => {
+  const theme = props.theme === "theme-dark" ? "theme-dark" : "theme-light"
   return (
-    <AppShellProvider theme={`${props.theme ? props.theme : "theme-light"}`}>
+    <AppShellProvider theme={theme}>
       {/* load styles inside the shadow dom */}
 
       <style>{styles.toString()}</style>
       <StoreProvider>
-        {/* <GetToken/> */}
         <App props={props} />
       </StoreProvider>
     </AppShellProvider>
