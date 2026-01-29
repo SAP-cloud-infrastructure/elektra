@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect } from "react"
-import { Stack, Button, Select, SelectOption } from "@cloudoperators/juno-ui-components"
+import { Stack, Button, Select, SelectOption, Spinner } from "@cloudoperators/juno-ui-components"
 
 interface PageOptions {
   page: number
