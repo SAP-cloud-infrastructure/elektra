@@ -1,17 +1,17 @@
 # frozen_string_literal: true
 
 # rspec does not load sassc gem. I don't why, but this hack helps!
-require File.join(Gem.loaded_specs["sassc"].full_gem_path, "lib/sassc")
+require File.join(Gem.loaded_specs['sassc'].full_gem_path, 'lib/sassc')
 
 # This file is copied to spec/ when you run 'rails generate rspec:install'
-ENV["RAILS_ENV"] ||= "test"
-require File.expand_path("../config/environment", __dir__)
-require "rspec/rails"
+ENV['RAILS_ENV'] ||= 'test'
+require File.expand_path('../config/environment', __dir__)
+require 'rspec/rails'
 
 require File.join(
-          Gem.loaded_specs["monsoon-openstack-auth"].full_gem_path,
-          "spec/support/authentication_stub",
-        )
+  Gem.loaded_specs['monsoon-openstack-auth'].full_gem_path,
+  'spec/support/authentication_stub'
+)
 
 # Requires supporting ruby files with custom matchers and macros, etc, in
 # spec/support/ and its subdirectories. Files matching `spec/**/*_spec.rb` are
@@ -20,7 +20,7 @@ require File.join(
 # run twice. It is recommended that you do not name files matching this glob to
 # end with _spec.rb. You can configure this pattern with with the --pattern
 # option on the command line or in ~/.rspec, .rspec or `.rspec-local`.
-Dir[Rails.root.join("spec/support/**/*.rb")].each { |f| require f }
+Dir[Rails.root.join('spec/support/**/*.rb')].each { |f| require f }
 
 # Checks for pending migrations before tests are run.
 # If you are not using ActiveRecord, you can remove this line.
@@ -31,7 +31,7 @@ module AuthFirstOrdering
   def self.order(examples)
     auth_examples = []
     other_examples = []
-    
+
     examples.each do |example|
       file_path = example.metadata[:example_group][:file_path]
       if file_path.include?('plugins/monsoon-openstack-auth')
@@ -40,14 +40,13 @@ module AuthFirstOrdering
         other_examples << example
       end
     end
-    
+
     puts "Auth plugin tests: #{auth_examples.length}, Other tests: #{other_examples.length}"
-    
+
     # Return auth tests first, then others
     auth_examples + other_examples
   end
 end
-
 
 RSpec.configure do |config|
   config.full_backtrace = false
@@ -61,7 +60,7 @@ RSpec.configure do |config|
   # config.mock_with :rr
 
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
-  config.fixture_path = "#{::Rails.root}/spec/fixtures"
+  config.fixture_paths = ["#{::Rails.root}/spec/fixtures"]
 
   # If you're not using ActiveRecord, or you'd prefer not to run each of your
   # examples within a transaction, remove the following line or assign false
@@ -78,9 +77,9 @@ RSpec.configure do |config|
   # the seed, which is printed after each run.
   #     --seed 1234
 
-  # Custom order: Run monsoon-openstack-auth tests first to prevent authentication 
+  # Custom order: Run monsoon-openstack-auth tests first to prevent authentication
   # stub pollution. Other plugins (lbaas2, email) modify authentication_stub data,
-  # but random order can cause auth tests to reset stubs mid-execution, leading 
+  # but random order can cause auth tests to reset stubs mid-execution, leading
   # to flaky tests and state pollution between plugins.
   config.register_ordering :auth_first do |examples|
     auth_tests, other_tests = examples.partition do |example|
@@ -115,11 +114,11 @@ RSpec.configure do |config|
 
     # set test config variables
     Rails.configuration.keystone_endpoint =
-      "http://localhost:8183/v3/auth/tokens"
-    Rails.configuration.default_region = "europe"
-    Rails.configuration.service_user_id = "test"
-    Rails.configuration.service_user_password = "test"
-    Rails.configuration.service_user_domain_name = "test"
+      'http://localhost:8183/v3/auth/tokens'
+    Rails.configuration.default_region = 'europe'
+    Rails.configuration.service_user_id = 'test'
+    Rails.configuration.service_user_password = 'test'
+    Rails.configuration.service_user_domain_name = 'test'
   end
   config.after(:all) { DatabaseCleaner.clean }
 
@@ -128,35 +127,33 @@ RSpec.configure do |config|
 
     # stub region detection
     region =
-      (
-        AuthenticationStub.test_token["catalog"].first["endpoints"].first[
-          "region"
+      AuthenticationStub.test_token['catalog'].first['endpoints'].first[
+          'region'
         ] ||
-          AuthenticationStub.test_token["catalog"].first["endpoints"].first[
-            "region_id"
-          ]
-      )
+      AuthenticationStub.test_token['catalog'].first['endpoints'].first[
+        'region_id'
+      ]
     allow(Core).to receive(:locate_region).and_return(region)
 
     # stub service user and cloud admin
     service_user =
       double(
-        "service_user",
-        id: "123",
-        name: "service_user_name",
-        email: "service_user_email",
-        full_name: "service_user_fullname",
+        'service_user',
+        id: '123',
+        name: 'service_user_name',
+        email: 'service_user_email',
+        full_name: 'service_user_fullname'
       ).as_null_object
-    cloud_admin = double("cloud_admin").as_null_object
+    cloud_admin = double('cloud_admin').as_null_object
 
     # allow_any_instance_of(ServiceLayer::IdentityService)
     #   .to receive(:has_domain_access).and_return true
     # allow_any_instance_of(ServiceLayer::IdentityService)
     #   .to receive(:has_project_access).and_return true
 
-    user_identity = double("user identity service").as_null_object
+    user_identity = double('user identity service').as_null_object
     allow_any_instance_of(::ApplicationController).to receive(
-      :services,
+      :services
     ).and_wrap_original do |m|
       services = m.call
       allow(services).to receive(:identity).and_return user_identity
@@ -167,20 +164,20 @@ RSpec.configure do |config|
     allow(user_identity).to receive(:has_project_access).and_return true
 
     allow_any_instance_of(::ApplicationController).to receive(
-      :service_user,
+      :service_user
     ).and_return(service_user)
     allow_any_instance_of(::ApplicationController).to receive(
-      :cloud_admin,
+      :cloud_admin
     ).and_return(cloud_admin)
 
     # stub user_projects which is called in each request
     allow_any_instance_of(::DashboardController).to receive(
-      :load_active_project,
+      :load_active_project
     ).and_return([])
 
     # stub check_terms_of_use which is called in each request
     allow_any_instance_of(::DashboardController).to receive(
-      :check_terms_of_use,
+      :check_terms_of_use
     ).and_return(true)
   end
 end

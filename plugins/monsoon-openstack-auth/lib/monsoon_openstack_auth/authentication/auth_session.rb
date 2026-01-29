@@ -76,8 +76,6 @@ module MonsoonOpenstackAuth
                     { domain: domain_id }
                   elsif domain_name && !domain_name.empty?
                     { domain_name: domain_name }
-                  else
-                    nil
                   end
 
           # reset session-id for Session Fixation
@@ -123,7 +121,7 @@ module MonsoonOpenstackAuth
           return unless token_store
 
           dump = token_store.dump
-          controller.send('reset_session')
+          controller.send(:reset_session)
           token_store.restore(dump)
         end
 
@@ -146,7 +144,7 @@ module MonsoonOpenstackAuth
         def two_factor_cookie_valid?(controller)
           return false unless controller.request.cookies[TWO_FACTOR_AUTHENTICATION]
 
-          crypt = ActiveSupport::MessageEncryptor.new(Rails.application.secrets.secret_key_base[0..31])
+          crypt = ActiveSupport::MessageEncryptor.new(Rails.application.secret_key_base[0..31])
           value = begin
             crypt.decrypt_and_verify(controller.request.cookies[TWO_FACTOR_AUTHENTICATION])
           rescue StandardError
@@ -157,7 +155,7 @@ module MonsoonOpenstackAuth
 
         # set cookie for two factor authentication
         def set_two_factor_cookie(controller)
-          crypt = ActiveSupport::MessageEncryptor.new(Rails.application.secrets.secret_key_base[0..31])
+          crypt = ActiveSupport::MessageEncryptor.new(Rails.application.secret_key_base[0..31])
           value = crypt.encrypt_and_sign('valid')
           controller.response.set_cookie(TWO_FACTOR_AUTHENTICATION,
                                          { value: value, expires: Time.now + 4.hours, path: '/', domain: '.cloud.sap' })
@@ -190,7 +188,7 @@ module MonsoonOpenstackAuth
         return unless token
 
         # token = @session_store.token
-        domain =  token[:domain]
+        domain = token[:domain]
         project = token[:project]
 
         if requested_scope[:project]
@@ -283,7 +281,7 @@ module MonsoonOpenstackAuth
           # end
         rescue StandardError => e
           class_name = e.class.name
-          if class_name.start_with?('Excon') or class_name.start_with?('Fog')
+          if class_name.start_with?('Excon', 'Fog')
             MonsoonOpenstackAuth.logger.error "token validation failed #{e}."
           else
             MonsoonOpenstackAuth.logger.error "unknown error #{e}."
@@ -305,7 +303,6 @@ module MonsoonOpenstackAuth
         # basic auth is allowed
         begin
           basic_auth_presented = false
-          user = nil
           @controller.authenticate_with_http_basic do |username, password|
             # basic auth is presented
             basic_auth_presented = true
@@ -425,8 +422,6 @@ module MonsoonOpenstackAuth
           return false
         end
 
-        user = nil
-
         access_key = params[:access_key] || params[:rails_auth_token]
         if access_key
           token = @api_client.authenticate_with_access_key(access_key)
@@ -494,6 +489,7 @@ module MonsoonOpenstackAuth
         end
 
         return false unless auth_token
+
         begin
           # create auth token
           token = @api_client.authenticate_with_token(auth_token)
