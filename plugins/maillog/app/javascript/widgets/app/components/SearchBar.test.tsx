@@ -1,6 +1,6 @@
 import { render, screen, waitFor, act } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { describe, it, expect, vi, beforeEach } from "vitest"
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import SearchBar from "./SearchBar"
 
 // Mock moment
@@ -133,10 +133,23 @@ describe("SearchBar", () => {
   }
 
   beforeEach(() => {
+    vi.useFakeTimers()
     mockOnChange.mockClear()
     mockOnPageChange.mockClear()
     mockOnDateChange.mockClear()
   })
+
+  afterEach(() => {
+    vi.runOnlyPendingTimers()
+    vi.useRealTimers()
+  })
+
+  // Helper to advance timers after text input (for debouncing)
+  const advanceTimersForDebounce = async () => {
+    await act(async () => {
+      vi.advanceTimersByTime(500)
+    })
+  }
 
   describe("Basic Rendering", () => {
     it("should render all search input fields", () => {
@@ -262,7 +275,7 @@ describe("SearchBar", () => {
 
   describe("Input Field Changes", () => {
     it("should call onChange and reset page to 1 when from field changes", async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup({ delay: null })
       render(
         <SearchBar
           onChange={mockOnChange}
@@ -277,12 +290,17 @@ describe("SearchBar", () => {
       const input = screen.getByTestId("input-from")
       await user.type(input, "test@example.com")
 
+      // Advance timers to trigger debounced callback
+      await act(async () => {
+        vi.advanceTimersByTime(500)
+      })
+
       expect(mockOnChange).toHaveBeenCalled()
       expect(mockOnPageChange).toHaveBeenCalledWith({ page: 1, pageSize: 15 })
     })
 
     it("should call onChange when headerFrom field changes", async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup({ delay: null })
       render(
         <SearchBar
           onChange={mockOnChange}
@@ -297,16 +315,16 @@ describe("SearchBar", () => {
       const input = screen.getByTestId("input-headerFrom")
       await user.type(input, "test")
 
+      await advanceTimersForDebounce()
+
       expect(mockOnChange).toHaveBeenCalled()
-      // userEvent.type types one character at a time, check that onChange is called with accumulated value
-      expect(mockOnChange.mock.calls.length).toBeGreaterThan(0)
       // Check that the last call includes the full typed value
       const lastCall = mockOnChange.mock.calls[mockOnChange.mock.calls.length - 1][0]
-      expect(lastCall.headerFrom).toContain("t")
+      expect(lastCall.headerFrom).toBe("test")
     })
 
     it("should handle recipients as comma-separated values", async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup({ delay: null })
       render(
         <SearchBar
           onChange={mockOnChange}
@@ -320,6 +338,8 @@ describe("SearchBar", () => {
 
       const input = screen.getByTestId("input-rcpt")
       await user.type(input, "a,b")
+
+      await advanceTimersForDebounce()
 
       expect(mockOnChange).toHaveBeenCalled()
       const lastCall = mockOnChange.mock.calls[mockOnChange.mock.calls.length - 1][0]
@@ -349,7 +369,7 @@ describe("SearchBar", () => {
     })
 
     it("should call onChange when subject field changes", async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup({ delay: null })
       render(
         <SearchBar
           onChange={mockOnChange}
@@ -364,13 +384,15 @@ describe("SearchBar", () => {
       const input = screen.getByTestId("input-subject")
       await user.type(input, "Test")
 
+      await advanceTimersForDebounce()
+
       expect(mockOnChange).toHaveBeenCalled()
       const lastCall = mockOnChange.mock.calls[mockOnChange.mock.calls.length - 1][0]
-      expect(lastCall.subject).toContain("t")
+      expect(lastCall.subject).toBe("Test")
     })
 
     it("should trim and call onChange when messageId field changes", async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup({ delay: null })
       render(
         <SearchBar
           onChange={mockOnChange}
@@ -385,16 +407,18 @@ describe("SearchBar", () => {
       const input = screen.getByTestId("input-messageId")
       await user.type(input, "  <message-id>  ")
 
+      await advanceTimersForDebounce()
+
       expect(mockOnChange).toHaveBeenCalled()
       // Check that trimming happens
       const calls = mockOnChange.mock.calls
       const lastCall = calls[calls.length - 1][0]
-      // The component trims the value, so the last character call would have trimmed value
-      expect(lastCall.messageId).toBeDefined()
+      // The component trims the value
+      expect(lastCall.messageId).toBe("<message-id>")
     })
 
     it("should call onChange when id field changes", async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup({ delay: null })
       render(
         <SearchBar
           onChange={mockOnChange}
@@ -409,13 +433,15 @@ describe("SearchBar", () => {
       const input = screen.getByTestId("input-id")
       await user.type(input, "123")
 
+      await advanceTimersForDebounce()
+
       expect(mockOnChange).toHaveBeenCalled()
       const lastCall = mockOnChange.mock.calls[mockOnChange.mock.calls.length - 1][0]
-      expect(lastCall.id).toContain("3")
+      expect(lastCall.id).toBe("123")
     })
 
     it("should reset page to 1 for all input changes", async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup({ delay: null })
       const pageOptions = { page: 5, pageSize: 30 }
 
       render(
@@ -432,13 +458,15 @@ describe("SearchBar", () => {
       const input = screen.getByTestId("input-subject")
       await user.type(input, "test")
 
+      await advanceTimersForDebounce()
+
       expect(mockOnPageChange).toHaveBeenCalledWith({ page: 1, pageSize: 30 })
     })
   })
 
   describe("Relay Select", () => {
     it("should call onChange when relay is selected", async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup({ delay: null })
       render(
         <SearchBar
           onChange={mockOnChange}
@@ -453,6 +481,8 @@ describe("SearchBar", () => {
       const select = screen.getByTestId("select-input-relay")
       await user.selectOptions(select, "aws")
 
+      await advanceTimersForDebounce()
+
       expect(mockOnChange).toHaveBeenCalledWith(
         {
           ...defaultSearchOptions,
@@ -463,7 +493,7 @@ describe("SearchBar", () => {
     })
 
     it("should call onChange when different relay options are selected", async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup({ delay: null })
       render(
         <SearchBar
           onChange={mockOnChange}
@@ -478,6 +508,7 @@ describe("SearchBar", () => {
       const select = screen.getByTestId("select-input-relay")
 
       await user.selectOptions(select, "esa")
+      await advanceTimersForDebounce()
       expect(mockOnChange).toHaveBeenCalledWith(
         {
           ...defaultSearchOptions,
@@ -487,6 +518,7 @@ describe("SearchBar", () => {
       )
 
       await user.selectOptions(select, "postfix")
+      await advanceTimersForDebounce()
       expect(mockOnChange).toHaveBeenCalledWith(
         {
           ...defaultSearchOptions,
@@ -497,7 +529,7 @@ describe("SearchBar", () => {
     })
 
     it("should reset page to 1 when relay changes", async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup({ delay: null })
       render(
         <SearchBar
           onChange={mockOnChange}
@@ -512,11 +544,13 @@ describe("SearchBar", () => {
       const select = screen.getByTestId("select-input-relay")
       await user.selectOptions(select, "aws")
 
+      await advanceTimersForDebounce()
+
       expect(mockOnPageChange).toHaveBeenCalledWith({ page: 1, pageSize: 15 })
     })
 
     it("should handle selecting empty relay (All Relays)", async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup({ delay: null })
       render(
         <SearchBar
           onChange={mockOnChange}
@@ -531,6 +565,8 @@ describe("SearchBar", () => {
       const select = screen.getByTestId("select-input-relay")
       await user.selectOptions(select, "")
 
+      await advanceTimersForDebounce()
+
       expect(mockOnChange).toHaveBeenCalledWith(
         {
           ...defaultSearchOptions,
@@ -543,7 +579,7 @@ describe("SearchBar", () => {
 
   describe("Date Pickers", () => {
     it("should call onDateChange when start date is selected", async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup({ delay: null })
       render(
         <SearchBar
           onChange={mockOnChange}
@@ -564,7 +600,7 @@ describe("SearchBar", () => {
     })
 
     it("should call onDateChange when end date is selected", async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup({ delay: null })
       render(
         <SearchBar
           onChange={mockOnChange}
@@ -585,7 +621,7 @@ describe("SearchBar", () => {
     })
 
     it("should handle clearing start date", async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup({ delay: null })
       render(
         <SearchBar
           onChange={mockOnChange}
@@ -610,7 +646,7 @@ describe("SearchBar", () => {
     })
 
     it("should handle clearing end date", async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup({ delay: null })
       render(
         <SearchBar
           onChange={mockOnChange}
@@ -635,7 +671,7 @@ describe("SearchBar", () => {
     })
 
     it("should handle invalid date input for start date", async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup({ delay: null })
       render(
         <SearchBar
           onChange={mockOnChange}
@@ -656,7 +692,7 @@ describe("SearchBar", () => {
     })
 
     it("should handle invalid date input for end date", async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup({ delay: null })
       render(
         <SearchBar
           onChange={mockOnChange}
@@ -679,7 +715,7 @@ describe("SearchBar", () => {
 
   describe("Clear All Filters", () => {
     it("should reset all search fields when Clear All Filters is clicked", async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup({ delay: null })
       const searchOptions = {
         from: "sender@example.com",
         subject: "Test Subject",
@@ -727,7 +763,7 @@ describe("SearchBar", () => {
     })
 
     it("should reset page to 1 when Clear All Filters is clicked", async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup({ delay: null })
       render(
         <SearchBar
           onChange={mockOnChange}
@@ -749,7 +785,7 @@ describe("SearchBar", () => {
     })
 
     it("should trigger re-render when Clear All Filters is clicked", async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup({ delay: null })
       const { container } = render(
         <SearchBar
           onChange={mockOnChange}
@@ -807,7 +843,7 @@ describe("SearchBar", () => {
     })
 
     it("should handle recipients with spaces in comma separation", async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup({ delay: null })
       render(
         <SearchBar
           onChange={mockOnChange}
@@ -822,15 +858,16 @@ describe("SearchBar", () => {
       const input = screen.getByTestId("input-rcpt")
       await user.type(input, "a, b")
 
+      await advanceTimersForDebounce()
+
       const lastCall = mockOnChange.mock.calls[mockOnChange.mock.calls.length - 1][0]
       // Should split by comma, even with spaces
       expect(Array.isArray(lastCall.rcpt)).toBe(true)
-      // After typing "a, b", the last character is 'b', so we have ["a", " b"] (space included in second)
-      expect(lastCall.rcpt.length).toBeGreaterThan(0)
+      expect(lastCall.rcpt).toEqual(["a", " b"])
     })
 
     it("should handle special characters in search fields", async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup({ delay: null })
       render(
         <SearchBar
           onChange={mockOnChange}
@@ -845,11 +882,13 @@ describe("SearchBar", () => {
       const input = screen.getByTestId("input-subject")
       await user.type(input, "Test: & < > @#$%")
 
+      await advanceTimersForDebounce()
+
       expect(mockOnChange).toHaveBeenCalled()
     })
 
     it("should handle very long input values", async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup({ delay: null })
       const longString = "a".repeat(1000)
 
       render(
@@ -865,6 +904,8 @@ describe("SearchBar", () => {
 
       const input = screen.getByTestId("input-from")
       await user.type(input, longString)
+
+      await advanceTimersForDebounce()
 
       expect(mockOnChange).toHaveBeenCalled()
     })
@@ -906,7 +947,7 @@ describe("SearchBar", () => {
 
   describe("Integration Scenarios", () => {
     it("should handle multiple field changes in sequence", async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup({ delay: null })
       render(
         <SearchBar
           onChange={mockOnChange}
@@ -920,6 +961,7 @@ describe("SearchBar", () => {
 
       await user.type(screen.getByTestId("input-from"), "sender@example.com")
       await user.type(screen.getByTestId("input-subject"), "Test")
+      await advanceTimersForDebounce()
       await user.selectOptions(screen.getByTestId("select-input-relay"), "aws")
 
       expect(mockOnChange.mock.calls.length).toBeGreaterThan(0)
@@ -927,7 +969,7 @@ describe("SearchBar", () => {
     })
 
     it("should maintain page size when resetting page", async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup({ delay: null })
       render(
         <SearchBar
           onChange={mockOnChange}
@@ -941,6 +983,8 @@ describe("SearchBar", () => {
 
       await user.type(screen.getByTestId("input-from"), "test")
 
+      await advanceTimersForDebounce()
+
       const pageChangeCalls = mockOnPageChange.mock.calls
       pageChangeCalls.forEach((call) => {
         expect(call[0].pageSize).toBe(100)
@@ -949,7 +993,7 @@ describe("SearchBar", () => {
     })
 
     it("should handle rapid successive changes", async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup({ delay: null })
       render(
         <SearchBar
           onChange={mockOnChange}
@@ -964,11 +1008,14 @@ describe("SearchBar", () => {
       const input = screen.getByTestId("input-from")
       await user.type(input, "abc")
 
-      expect(mockOnChange.mock.calls.length).toBeGreaterThanOrEqual(3)
+      await advanceTimersForDebounce()
+
+      // With debouncing, onChange is only called once after the delay
+      expect(mockOnChange.mock.calls.length).toBeGreaterThanOrEqual(1)
     })
 
     it("should preserve other search options when one field changes", async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup({ delay: null })
       const searchOptions = {
         from: "existing@example.com",
         subject: "Existing Subject",
@@ -993,6 +1040,8 @@ describe("SearchBar", () => {
       )
 
       await user.type(screen.getByTestId("input-subject"), " Updated")
+
+      await advanceTimersForDebounce()
 
       const lastCall = mockOnChange.mock.calls[mockOnChange.mock.calls.length - 1][0]
       expect(lastCall.from).toBe("existing@example.com")
