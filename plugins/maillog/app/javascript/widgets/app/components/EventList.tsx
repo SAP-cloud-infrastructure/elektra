@@ -48,9 +48,10 @@ interface TableData {
 
 interface EventListProps {
   props?: Record<string, unknown>
+  onDataFetched?: (data: MailLogEntry[]) => void
 }
 
-const EventList: React.FC<EventListProps> = ({ props }) => {
+const EventList: React.FC<EventListProps> = ({ props, onDataFetched }) => {
   const [paginationOptions, setPaginationOptions] = useState<PaginationOptions>({
     pageSize: ITEMS_PER_PAGE,
     page: 1,
@@ -96,16 +97,28 @@ const EventList: React.FC<EventListProps> = ({ props }) => {
     // Always update table data state to reflect current fetch status
     // This ensures error states and loading states are properly handled
     if (fetchedData) {
+      const data = fetchedData.data?.data || null
       setTableData({
-        data: fetchedData.data?.data || null,
+        data,
         hits: fetchedData.data?.hits || null,
         isLoading: fetchedData.isLoading,
         isError: fetchedData.isError,
         isFetching: fetchedData.isFetching,
         error: fetchedData.error,
       })
+      // Notify parent component about the fetched data
+      if (data && onDataFetched) {
+        onDataFetched(data)
+      }
     }
-  }, [fetchedData.data, fetchedData.isLoading, fetchedData.isError, fetchedData.isFetching, fetchedData.error])
+  }, [
+    fetchedData.data,
+    fetchedData.isLoading,
+    fetchedData.isError,
+    fetchedData.isFetching,
+    fetchedData.error,
+    onDataFetched,
+  ])
 
   return useMemo(() => {
     return (

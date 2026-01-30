@@ -1,5 +1,5 @@
 import moment from "moment"
-import React, { useState } from "react"
+import React from "react"
 import {
   DataGridCell,
   DataGridRow,
@@ -8,7 +8,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@cloudoperators/juno-ui-components"
-import ItemDetails from "./ItemDetails"
+import { Link } from "react-router-dom"
 import CopyableText from "./CopyableText"
 import { MailLogEntry } from "../actions"
 
@@ -17,12 +17,6 @@ interface ItemProps {
 }
 
 const Item: React.FC<ItemProps> = ({ data }) => {
-  const [showDetails, setShowDetails] = useState(false)
-
-  const toggleDetails = () => {
-    setShowDetails(!showDetails)
-  }
-
   const downloadJsonFile = () => {
     const jsonString = JSON.stringify(data, null, 2) // The third parameter (2) adds indentation for better readability
     const blob = new Blob([jsonString], { type: "application/json" })
@@ -34,53 +28,48 @@ const Item: React.FC<ItemProps> = ({ data }) => {
 
   const rcpts = data.rcpts?.map((item) => item.rcpt).join(", ") || ""
 
+  const handleJobClick = (id: string) => {
+    console.log("Row clicked with id:", id)
+    // render details view
+  }
+
   return (
-    <>
-      <DataGridRow>
-        <DataGridCell>
-          <Tooltip triggerEvent="hover">
-            <TooltipTrigger asChild>
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault()
-                  toggleDetails()
-                }}
-              >
-                <Icon icon={showDetails ? "expandLess" : "expandMore"}></Icon>
-              </a>
-            </TooltipTrigger>
-            <TooltipContent>{showDetails ? "Hide details" : "Show details"}</TooltipContent>
-          </Tooltip>
-        </DataGridCell>
-        <DataGridCell>
-          {moment(data.date).format("YYYY-MM-DD, HH:mm:ss")}
-          <p style={{ fontSize: "0.8rem" }}>UTC: {moment(data.date).utc().format("YYYY-MM-DD, HH:mm:ss")}</p>
-        </DataGridCell>
-        <DataGridCell>
-          <CopyableText text={data.from}>{data.from}</CopyableText>
-        </DataGridCell>
+    <DataGridRow onClick={() => handleJobClick(data.id)} style={{ cursor: "pointer" }}>
+      <DataGridCell>
+        <Tooltip triggerEvent="hover">
+          <TooltipTrigger asChild>
+            <Link to={`/${data.id}/show`}>
+              <Icon icon="openInNew"></Icon>
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent>Show details</TooltipContent>
+        </Tooltip>
+      </DataGridCell>
+      <DataGridCell>
+        {moment(data.date).format("YYYY-MM-DD, HH:mm:ss")}
+        <p style={{ fontSize: "0.8rem" }}>UTC: {moment(data.date).utc().format("YYYY-MM-DD, HH:mm:ss")}</p>
+      </DataGridCell>
+      <DataGridCell>
+        <CopyableText text={data.from}>{data.from}</CopyableText>
+      </DataGridCell>
 
-        <DataGridCell>
-          <CopyableText text={rcpts}>{rcpts}</CopyableText>
-        </DataGridCell>
+      <DataGridCell>
+        <CopyableText text={rcpts}>{rcpts}</CopyableText>
+      </DataGridCell>
 
-        <DataGridCell>
-          <CopyableText text={data.subject || ""}>{data.subject || ""}</CopyableText>
-        </DataGridCell>
+      <DataGridCell>
+        <CopyableText text={data.subject || ""}>{data.subject || ""}</CopyableText>
+      </DataGridCell>
 
-        <DataGridCell>
-          <Tooltip triggerEvent="hover">
-            <TooltipTrigger asChild>
-              <Icon color="jn-text-theme-info" onClick={downloadJsonFile} icon="download"></Icon>
-            </TooltipTrigger>
-            <TooltipContent>Download JSON File</TooltipContent>
-          </Tooltip>
-        </DataGridCell>
-      </DataGridRow>
-
-      {showDetails && <ItemDetails data={data} />}
-    </>
+      <DataGridCell>
+        <Tooltip triggerEvent="hover">
+          <TooltipTrigger asChild>
+            <Icon color="jn-text-theme-info" onClick={downloadJsonFile} icon="download"></Icon>
+          </TooltipTrigger>
+          <TooltipContent>Download JSON File</TooltipContent>
+        </Tooltip>
+      </DataGridCell>
+    </DataGridRow>
   )
 }
 

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import "@testing-library/jest-dom/vitest"
+import { BrowserRouter } from "react-router-dom"
 import Item from "./Item"
 import { MailLogEntry } from "../actions"
 
@@ -30,6 +31,11 @@ vi.mock("moment", () => ({
 // Mock URL.createObjectURL
 global.URL.createObjectURL = vi.fn(() => "blob:mock-url")
 
+// Helper function to render with Router
+const renderWithRouter = (ui: React.ReactElement) => {
+  return render(<BrowserRouter>{ui}</BrowserRouter>)
+}
+
 describe("Item", () => {
   const mockData: MailLogEntry = {
     id: "test-id-123",
@@ -50,7 +56,7 @@ describe("Item", () => {
   })
 
   it("should render all mail log data", () => {
-    render(<Item data={mockData} />)
+    renderWithRouter(<Item data={mockData} />)
 
     expect(screen.getByText("2024-01-15, 14:30:00")).toBeInTheDocument()
     expect(screen.getByText(/UTC: 2024-01-15, 13:30:00/)).toBeInTheDocument()
@@ -59,36 +65,27 @@ describe("Item", () => {
   })
 
   it("should render recipients as comma-separated list", () => {
-    render(<Item data={mockData} />)
+    renderWithRouter(<Item data={mockData} />)
 
     expect(screen.getByText("recipient1@example.com, recipient2@example.com")).toBeInTheDocument()
   })
 
-  it("should not show ItemDetails initially", () => {
-    render(<Item data={mockData} />)
+  it("should render link to details view", () => {
+    renderWithRouter(<Item data={mockData} />)
 
+    const detailsLink = screen.getByRole("link")
+    expect(detailsLink).toHaveAttribute("href", "/test-id-123/show")
+  })
+
+  it("should not show ItemDetails initially (now uses panel view)", () => {
+    renderWithRouter(<Item data={mockData} />)
+
+    // ItemDetails should not be shown inline anymore - it's in a panel now
     expect(screen.queryByTestId("item-details")).not.toBeInTheDocument()
   })
 
-  it("should toggle ItemDetails when expand/collapse icon is clicked", () => {
-    render(<Item data={mockData} />)
-
-    const expandLink = screen.getByRole("link")
-
-    // Initially details should not be shown
-    expect(screen.queryByTestId("item-details")).not.toBeInTheDocument()
-
-    // Click to expand
-    fireEvent.click(expandLink)
-    expect(screen.getByTestId("item-details")).toBeInTheDocument()
-
-    // Click to collapse
-    fireEvent.click(expandLink)
-    expect(screen.queryByTestId("item-details")).not.toBeInTheDocument()
-  })
-
-  it("should prevent default action on expand/collapse link click", () => {
-    render(<Item data={mockData} />)
+  it("should render a link for showing details", () => {
+    renderWithRouter(<Item data={mockData} />)
 
     const expandLink = screen.getByRole("link")
     const event = new MouseEvent("click", { bubbles: true, cancelable: true })
@@ -96,11 +93,13 @@ describe("Item", () => {
 
     expandLink.dispatchEvent(event)
 
-    expect(preventDefaultSpy).toHaveBeenCalled()
+    // The link now navigates instead of toggling
+    const detailsLink = screen.getByRole("link")
+    expect(detailsLink).toHaveAttribute("href", "/test-id-123/show")
   })
 
   it("should render CopyableText components for from, rcpts, and subject", () => {
-    render(<Item data={mockData} />)
+    renderWithRouter(<Item data={mockData} />)
 
     const copyableTexts = screen.getAllByTestId("copyable-text")
     expect(copyableTexts).toHaveLength(3)
@@ -117,7 +116,7 @@ describe("Item", () => {
       rcpts: [],
     }
 
-    render(<Item data={dataWithNoRecipients} />)
+    renderWithRouter(<Item data={dataWithNoRecipients} />)
 
     const copyableTexts = screen.getAllByTestId("copyable-text")
     expect(copyableTexts[1]).toHaveAttribute("data-text", "")
@@ -129,7 +128,7 @@ describe("Item", () => {
       rcpts: undefined as any,
     }
 
-    render(<Item data={dataWithUndefinedRecipients} />)
+    renderWithRouter(<Item data={dataWithUndefinedRecipients} />)
 
     const copyableTexts = screen.getAllByTestId("copyable-text")
     expect(copyableTexts[1]).toHaveAttribute("data-text", "")
@@ -141,7 +140,7 @@ describe("Item", () => {
       subject: "",
     }
 
-    render(<Item data={dataWithEmptySubject} />)
+    renderWithRouter(<Item data={dataWithEmptySubject} />)
 
     const copyableTexts = screen.getAllByTestId("copyable-text")
     expect(copyableTexts[2]).toHaveAttribute("data-text", "")
@@ -153,7 +152,7 @@ describe("Item", () => {
       subject: null as any,
     }
 
-    render(<Item data={dataWithNullSubject} />)
+    renderWithRouter(<Item data={dataWithNullSubject} />)
 
     const copyableTexts = screen.getAllByTestId("copyable-text")
     expect(copyableTexts[2]).toHaveAttribute("data-text", "")
@@ -162,7 +161,7 @@ describe("Item", () => {
   it("should download JSON file when download icon is clicked", () => {
     const createElementSpy = vi.spyOn(document, "createElement")
 
-    render(<Item data={mockData} />)
+    renderWithRouter(<Item data={mockData} />)
 
     // Find the download button by its aria-label
     const downloadButton = screen.getByRole("button", { name: "download" })
@@ -194,7 +193,7 @@ describe("Item", () => {
       return element
     })
 
-    render(<Item data={mockData} />)
+    renderWithRouter(<Item data={mockData} />)
 
     const downloadButton = screen.getByRole("button", { name: "download" })
     fireEvent.click(downloadButton)
@@ -222,7 +221,7 @@ describe("Item", () => {
       return element
     })
 
-    render(<Item data={dataWithoutId} />)
+    renderWithRouter(<Item data={dataWithoutId} />)
 
     const downloadButton = screen.getByRole("button", { name: "download" })
     fireEvent.click(downloadButton)
@@ -234,7 +233,7 @@ describe("Item", () => {
     // Spy on URL.createObjectURL instead of Blob to avoid constructor issues
     const createObjectURLSpy = vi.spyOn(URL, "createObjectURL").mockReturnValue("mock-url")
 
-    render(<Item data={mockData} />)
+    renderWithRouter(<Item data={mockData} />)
 
     const downloadButton = screen.getByRole("button", { name: "download" })
     fireEvent.click(downloadButton)
@@ -244,16 +243,16 @@ describe("Item", () => {
   })
 
   it("should render all DataGridCell components", () => {
-    const { container } = render(<Item data={mockData} />)
+    const { container } = renderWithRouter(<Item data={mockData} />)
 
-    // There should be 6 cells: expand icon, date, from, rcpts, subject, download icon
+    // There should be 6 cells: details link icon, date, from, rcpts, subject, download icon
     const cells = container.querySelectorAll('[class*="DataGridCell"]')
     // Since we're mocking, we might not have the exact class, but we can check structure
     expect(container.firstChild).toBeInTheDocument()
   })
 
   it("should format date correctly in local and UTC time", () => {
-    render(<Item data={mockData} />)
+    renderWithRouter(<Item data={mockData} />)
 
     // Check local time
     expect(screen.getByText("2024-01-15, 14:30:00")).toBeInTheDocument()
@@ -272,25 +271,15 @@ describe("Item", () => {
       ],
     }
 
-    render(<Item data={dataWithManyRecipients} />)
+    renderWithRouter(<Item data={dataWithManyRecipients} />)
 
     expect(screen.getByText("user1@example.com, user2@test.com, user3@demo.com")).toBeInTheDocument()
   })
 
-  it("should pass correct data to ItemDetails when expanded", () => {
-    render(<Item data={mockData} />)
-
-    const expandLink = screen.getByRole("link")
-    fireEvent.click(expandLink)
-
-    const itemDetails = screen.getByTestId("item-details")
-    expect(itemDetails).toHaveTextContent(`Item Details for ${mockData.id}`)
-  })
-
   it("should render DataGridRow as root element", () => {
-    const { container } = render(<Item data={mockData} />)
+    const { container } = renderWithRouter(<Item data={mockData} />)
 
-    // The first child should be a fragment, containing DataGridRow
+    // DataGridRow should be rendered
     expect(container.firstChild).toBeTruthy()
   })
 
@@ -300,7 +289,7 @@ describe("Item", () => {
       subject: 'Test: Special chars & symbols <> "quotes"',
     }
 
-    render(<Item data={dataWithSpecialChars} />)
+    renderWithRouter(<Item data={dataWithSpecialChars} />)
 
     expect(screen.getByText('Test: Special chars & symbols <> "quotes"')).toBeInTheDocument()
   })
@@ -311,13 +300,13 @@ describe("Item", () => {
       from: "user+tag@example.com",
     }
 
-    render(<Item data={dataWithSpecialFrom} />)
+    renderWithRouter(<Item data={dataWithSpecialFrom} />)
 
     expect(screen.getByText("user+tag@example.com")).toBeInTheDocument()
   })
 
   it("should render UTC time with correct styling", () => {
-    const { container } = render(<Item data={mockData} />)
+    const { container } = renderWithRouter(<Item data={mockData} />)
 
     // Find the paragraph containing UTC time text
     const utcParagraph = screen.getByText(/UTC:/).closest("p")
