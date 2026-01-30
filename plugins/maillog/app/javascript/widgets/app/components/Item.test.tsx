@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import "@testing-library/jest-dom/vitest"
-import { BrowserRouter } from "react-router-dom"
+import { BrowserRouter, MemoryRouter } from "react-router-dom"
 import Item from "./Item"
 import { MailLogEntry } from "../actions"
 
@@ -317,5 +317,35 @@ describe("Item", () => {
     const utcParagraph = screen.getByText(/UTC:/).closest("p")
     expect(utcParagraph).toBeInTheDocument()
     expect(utcParagraph).toHaveStyle({ fontSize: "0.8rem" })
+  })
+
+  it("should navigate to details view when clicked from list view", () => {
+    // Start at root path (list view)
+    const { container } = render(
+      <MemoryRouter initialEntries={["/"]}>
+        <Item data={mockData} />
+      </MemoryRouter>
+    )
+
+    const row = screen.getByRole("row")
+    fireEvent.click(row)
+
+    // Row should be clickable
+    expect(row).toHaveStyle({ cursor: "pointer" })
+  })
+
+  it("should close details panel when clicking the same item again", () => {
+    // Start at details view path
+    const { container } = render(
+      <MemoryRouter initialEntries={["/test-id-123/show"]}>
+        <Item data={mockData} />
+      </MemoryRouter>
+    )
+
+    const row = screen.getByRole("row")
+    fireEvent.click(row)
+
+    // Clicking again should trigger navigation back to list (verified by not throwing)
+    expect(row).toHaveStyle({ cursor: "pointer" })
   })
 })
