@@ -147,7 +147,7 @@ describe("SearchBar", () => {
   // Helper to advance timers after text input (for debouncing)
   const advanceTimersForDebounce = async () => {
     await act(async () => {
-      vi.advanceTimersByTime(500)
+      await vi.advanceTimersByTimeAsync(500)
     })
   }
 
@@ -291,9 +291,7 @@ describe("SearchBar", () => {
       await user.type(input, "test@example.com")
 
       // Advance timers to trigger debounced callback
-      await act(async () => {
-        vi.advanceTimersByTime(500)
-      })
+      await advanceTimersForDebounce()
 
       expect(mockOnChange).toHaveBeenCalled()
       expect(mockOnPageChange).toHaveBeenCalledWith({ page: 1, pageSize: 15 })

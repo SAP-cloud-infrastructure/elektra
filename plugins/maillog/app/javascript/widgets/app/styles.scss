@@ -3,11 +3,6 @@
 @tailwind components;
 @tailwind utilities;
 
-.copyableText {
-  display: inline-block;
-  margin-left: 5px;
-}
-
 .juno-tooltip {
   z-index: 20 !important;
 }

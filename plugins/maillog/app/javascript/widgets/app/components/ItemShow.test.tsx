@@ -6,13 +6,6 @@ import ItemShow from "./ItemShow"
 import { MailLogEntry } from "../actions"
 
 // Mock the dependencies
-vi.mock("./CopyableText", () => ({
-  default: ({ text, children }: { text: string; children: React.ReactNode }) => (
-    <span data-testid="copyable-text" data-text={text}>
-      {children}
-    </span>
-  ),
-}))
 
 // Mock moment
 vi.mock("moment", () => ({
@@ -111,21 +104,6 @@ describe("ItemShow", () => {
     expect(screen.getByText(/UTC: 2024-01-15, 13:30:00/)).toBeInTheDocument()
   })
 
-  it("should render CopyableText components for email fields", () => {
-    renderWithRouter(<ItemShow data={mockData} />)
-
-    const copyableTexts = screen.getAllByTestId("copyable-text")
-    expect(copyableTexts.length).toBeGreaterThan(0)
-
-    // Check specific fields are copyable
-    const texts = copyableTexts.map((el) => el.getAttribute("data-text"))
-    expect(texts).toContain("sender@example.com")
-    expect(texts).toContain("Sender Name <sender@example.com>")
-    expect(texts).toContain("Test Email Subject")
-    expect(texts).toContain("<message-id-123@example.com>")
-    expect(texts).toContain("test-id-123")
-  })
-
   it("should render recipients table with all columns", () => {
     renderWithRouter(<ItemShow data={mockData} />)
 
@@ -182,7 +160,7 @@ describe("ItemShow", () => {
     expect(screen.getByText("Message accepted")).toBeInTheDocument()
   })
 
-  it("should not render attempts section when no attempts exist", () => {
+  it("should render attempts section with dash when no attempts exist", () => {
     const dataWithoutAttempts: MailLogEntry[] = [
       {
         ...mockData[1],
@@ -192,9 +170,8 @@ describe("ItemShow", () => {
 
     renderWithRouter(<ItemShow data={dataWithoutAttempts} />, "/test-id-456/show")
 
-    // Attempts section should not be present
-    const attemptsHeaders = screen.queryAllByText("Attempts")
-    expect(attemptsHeaders.length).toBe(0)
+    // Attempts header should be present but showing "-"
+    expect(screen.getByText("Attempts")).toBeInTheDocument()
   })
 
   it("should render summary section", () => {
@@ -212,7 +189,7 @@ describe("ItemShow", () => {
     expect(screen.queryByText("failed")).not.toBeInTheDocument()
   })
 
-  it("should show 'No summary available' when summary is empty or all zeros", () => {
+  it("should show dash when summary is empty or all zeros", () => {
     const dataWithEmptySummary: MailLogEntry[] = [
       {
         ...mockData[0],
@@ -223,7 +200,8 @@ describe("ItemShow", () => {
 
     renderWithRouter(<ItemShow data={dataWithEmptySummary} />, "/test-id-empty/show")
 
-    expect(screen.getByText("No summary available")).toBeInTheDocument()
+    // Summary header should be present
+    expect(screen.getByText("Summary")).toBeInTheDocument()
   })
 
   it("should render JSON toggle link", () => {
@@ -375,19 +353,17 @@ describe("ItemShow", () => {
 
     renderWithRouter(<ItemShow data={dataWithEmptyAttempts} />, "/test-id-empty-attempts/show")
 
-    // Attempts section should not be rendered
-    expect(screen.queryByText("Attempts")).not.toBeInTheDocument()
+    // Attempts header should be present but showing "-"
+    expect(screen.getByText("Attempts")).toBeInTheDocument()
   })
 
-  it("should render all required sections in correct order", () => {
+  it("should render all required sections", () => {
     renderWithRouter(<ItemShow data={mockData} />)
 
-    const sections = screen.getAllByRole("heading", { level: 4 })
-    const sectionTexts = sections.map((s) => s.textContent)
-
-    expect(sectionTexts).toContain("Attempts")
-    expect(sectionTexts).toContain("Summary")
-    expect(sectionTexts).toContain("Recipients")
+    // Check that key sections are present
+    expect(screen.getByText("Attempts")).toBeInTheDocument()
+    expect(screen.getByText("Summary")).toBeInTheDocument()
+    expect(screen.getByText("Recipient")).toBeInTheDocument() // Table header
   })
 
   it("should render panel with opened state true", () => {

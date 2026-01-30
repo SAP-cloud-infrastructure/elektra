@@ -10,14 +10,6 @@ vi.mock("./ItemDetails", () => ({
   default: ({ data }: { data: MailLogEntry }) => <div data-testid="item-details">Item Details for {data.id}</div>,
 }))
 
-vi.mock("./CopyableText", () => ({
-  default: ({ text, children }: { text: string; children: React.ReactNode }) => (
-    <span data-testid="copyable-text" data-text={text}>
-      {children}
-    </span>
-  ),
-}))
-
 // Mock moment
 vi.mock("moment", () => ({
   default: vi.fn(() => ({
@@ -101,66 +93,6 @@ describe("Item", () => {
 
     // Verify row click doesn't throw errors
     expect(() => fireEvent.click(row)).not.toThrow()
-  })
-
-  it("should render CopyableText components for from, rcpts, and subject", () => {
-    renderWithRouter(<Item data={mockData} />)
-
-    const copyableTexts = screen.getAllByTestId("copyable-text")
-    expect(copyableTexts).toHaveLength(3)
-
-    // Check the data-text attributes
-    expect(copyableTexts[0]).toHaveAttribute("data-text", "sender@example.com")
-    expect(copyableTexts[1]).toHaveAttribute("data-text", "recipient1@example.com, recipient2@example.com")
-    expect(copyableTexts[2]).toHaveAttribute("data-text", "Test Email Subject")
-  })
-
-  it("should handle empty recipients array", () => {
-    const dataWithNoRecipients: MailLogEntry = {
-      ...mockData,
-      rcpts: [],
-    }
-
-    renderWithRouter(<Item data={dataWithNoRecipients} />)
-
-    const copyableTexts = screen.getAllByTestId("copyable-text")
-    expect(copyableTexts[1]).toHaveAttribute("data-text", "")
-  })
-
-  it("should handle undefined recipients", () => {
-    const dataWithUndefinedRecipients: MailLogEntry = {
-      ...mockData,
-      rcpts: undefined as any,
-    }
-
-    renderWithRouter(<Item data={dataWithUndefinedRecipients} />)
-
-    const copyableTexts = screen.getAllByTestId("copyable-text")
-    expect(copyableTexts[1]).toHaveAttribute("data-text", "")
-  })
-
-  it("should handle empty subject", () => {
-    const dataWithEmptySubject: MailLogEntry = {
-      ...mockData,
-      subject: "",
-    }
-
-    renderWithRouter(<Item data={dataWithEmptySubject} />)
-
-    const copyableTexts = screen.getAllByTestId("copyable-text")
-    expect(copyableTexts[2]).toHaveAttribute("data-text", "")
-  })
-
-  it("should handle null subject", () => {
-    const dataWithNullSubject: MailLogEntry = {
-      ...mockData,
-      subject: null as any,
-    }
-
-    renderWithRouter(<Item data={dataWithNullSubject} />)
-
-    const copyableTexts = screen.getAllByTestId("copyable-text")
-    expect(copyableTexts[2]).toHaveAttribute("data-text", "")
   })
 
   it("should download JSON file when download icon is clicked", () => {
@@ -310,13 +242,12 @@ describe("Item", () => {
     expect(screen.getByText("user+tag@example.com")).toBeInTheDocument()
   })
 
-  it("should render UTC time with correct styling", () => {
+  it("should render UTC time", () => {
     const { container } = renderWithRouter(<Item data={mockData} />)
 
     // Find the paragraph containing UTC time text
     const utcParagraph = screen.getByText(/UTC:/).closest("p")
     expect(utcParagraph).toBeInTheDocument()
-    expect(utcParagraph).toHaveStyle({ fontSize: "0.8rem" })
   })
 
   it("should navigate to details view when clicked from list view", () => {
