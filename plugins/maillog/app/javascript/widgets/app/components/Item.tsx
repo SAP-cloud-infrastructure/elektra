@@ -8,8 +8,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@cloudoperators/juno-ui-components"
-import { Link, useHistory, useLocation } from "react-router-dom"
-import CopyableText from "./CopyableText"
+import { useHistory, useLocation } from "react-router-dom"
 import { MailLogEntry } from "../actions"
 
 interface ItemProps {
@@ -50,20 +49,11 @@ const Item: React.FC<ItemProps> = ({ data }) => {
     <DataGridRow onClick={() => handleJobClick(data.id)} style={{ cursor: "pointer" }}>
       <DataGridCell>
         {moment(data.date).format("YYYY-MM-DD, HH:mm:ss")}
-        <p style={{ fontSize: "0.8rem" }}>UTC: {moment(data.date).utc().format("YYYY-MM-DD, HH:mm:ss")}</p>
+        <p>UTC: {moment(data.date).utc().format("YYYY-MM-DD, HH:mm:ss") || "-"}</p>
       </DataGridCell>
-      <DataGridCell>
-        <CopyableText text={data.from}>{data.from}</CopyableText>
-      </DataGridCell>
-
-      <DataGridCell>
-        <CopyableText text={rcpts}>{rcpts}</CopyableText>
-      </DataGridCell>
-
-      <DataGridCell>
-        <CopyableText text={data.subject || ""}>{data.subject || ""}</CopyableText>
-      </DataGridCell>
-
+      <DataGridCell>{data.from || "-"}</DataGridCell>
+      <DataGridCell>{rcpts || "-"}</DataGridCell>
+      <DataGridCell>{data.subject || "-"}</DataGridCell>
       <DataGridCell onClick={(e) => e.stopPropagation()}>
         <Tooltip triggerEvent="hover">
           <TooltipTrigger asChild>

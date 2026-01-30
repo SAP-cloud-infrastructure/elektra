@@ -12,7 +12,6 @@ import {
 } from "@cloudoperators/juno-ui-components"
 import { useParams, useHistory, useLocation } from "react-router-dom"
 import moment from "moment"
-import CopyableText from "./CopyableText"
 import { MailLogEntry } from "../actions"
 
 interface ItemShowProps {
@@ -66,17 +65,17 @@ const ItemShow: React.FC<ItemShowProps> = ({ data }) => {
     attempts = (
       <div style={{ ...BlockStyle, marginLeft: "15px" }}>
         <span>
-          <b>Date:</b> {moment(d.date).format("YYYY-MM-DD, HH:mm:ss")}
+          <b>Date:</b> {moment(d.date).format("YYYY-MM-DD, HH:mm:ss") || "-"}
         </span>
         <span>
           <b>Hostname Relay:</b>
-          <CopyableText text={d.hostname}>{d.hostname}</CopyableText>
+          {d.hostname || "-"}
         </span>
         <span>
-          <b>Response Code:</b> <CopyableText text={code}>{code}</CopyableText>
+          <b>Response Code:</b> {code || "-"}
         </span>
         <span>
-          <b>Message:</b> <CopyableText text={msg}>{msg}</CopyableText>
+          <b>Message:</b> {msg || "-"}
         </span>
       </div>
     )
@@ -112,11 +111,7 @@ const ItemShow: React.FC<ItemShowProps> = ({ data }) => {
   const summary = Object.entries(item.summary)
     .map(([key, value]) => {
       if (value != 0) {
-        return (
-          <span key={key} style={{ marginLeft: "15px" }}>
-            {key}
-          </span>
-        )
+        return key
       }
       return null
     })
@@ -136,52 +131,37 @@ const ItemShow: React.FC<ItemShowProps> = ({ data }) => {
             </DataGridRow>
             <DataGridRow>
               <DataGridHeadCell>Envelope From</DataGridHeadCell>
-              <DataGridCell className="tw-break-all">
-                <CopyableText text={item.from}>{item.from}</CopyableText>
-              </DataGridCell>
+              <DataGridCell className="tw-break-all">{item.from || "-"}</DataGridCell>
             </DataGridRow>
             <DataGridRow>
               <DataGridHeadCell>Header From</DataGridHeadCell>
-              <DataGridCell className="tw-break-all">
-                <CopyableText text={item.headerFrom}>{item.headerFrom}</CopyableText>
-              </DataGridCell>
+              <DataGridCell className="tw-break-all">{item.headerFrom || "-"}</DataGridCell>
             </DataGridRow>
             <DataGridRow>
               <DataGridHeadCell>Subject</DataGridHeadCell>
-              <DataGridCell className="tw-break-all">
-                <CopyableText text={item.subject || ""}>{item.subject || "-"}</CopyableText>
-              </DataGridCell>
+              <DataGridCell className="tw-break-all">{item.subject || "-"}</DataGridCell>
             </DataGridRow>
             <DataGridRow>
               <DataGridHeadCell>Message ID</DataGridHeadCell>
-              <DataGridCell className="tw-break-all">
-                <CopyableText text={item.messageId}>{item.messageId}</CopyableText>
-              </DataGridCell>
+              <DataGridCell className="tw-break-all">{item.messageId || "-"}</DataGridCell>
             </DataGridRow>
             <DataGridRow>
               <DataGridHeadCell>Request ID</DataGridHeadCell>
-              <DataGridCell className="tw-break-all">
-                <CopyableText text={item.id}>{item.id}</CopyableText>
-              </DataGridCell>
+              <DataGridCell className="tw-break-all">{item.id || "-"}</DataGridCell>
+            </DataGridRow>
+            <DataGridRow>
+              <DataGridHeadCell>Attempts</DataGridHeadCell>
+              <DataGridCell>{attempts || "-"}</DataGridCell>
+            </DataGridRow>
+            <DataGridRow>
+              <DataGridHeadCell>Summary</DataGridHeadCell>
+              <DataGridCell>{summary || "-"}</DataGridCell>
             </DataGridRow>
           </DataGrid>
 
-          {attempts && (
-            <div style={BlockStyle}>
-              <h4 style={{ margin: "1rem 0 0.5rem 0" }}>Attempts</h4>
-              {attempts}
-            </div>
-          )}
-
-          <div style={BlockStyle}>
-            <h4 style={{ margin: "1rem 0 0.5rem 0" }}>Summary</h4>
-            {summary.length > 0 ? <div style={BlockStyle}>{summary}</div> : <span>No summary available</span>}
-          </div>
-
-          <div style={BlockStyle}>
-            <h4 style={{ margin: "1rem 0 0.5rem 0" }}>Recipients</h4>
-            {recipientsTable()}
-          </div>
+          <hr style={{ border: "1px solid #ddd" }} />
+          {recipientsTable()}
+          <hr style={{ border: "1px solid #ddd" }} />
 
           <div style={BlockStyle}>
             <a
