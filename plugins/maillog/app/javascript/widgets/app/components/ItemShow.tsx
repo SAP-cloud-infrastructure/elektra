@@ -109,16 +109,18 @@ const ItemShow: React.FC<ItemShowProps> = ({ data }) => {
     )
   }
 
-  const summary = Object.entries(item.summary).map(([key, value]) => {
-    if (value != 0) {
-      return (
-        <span key={key} style={{ marginLeft: "15px" }}>
-          {key}
-        </span>
-      )
-    }
-    return null
-  })
+  const summary = Object.entries(item.summary)
+    .map(([key, value]) => {
+      if (value != 0) {
+        return (
+          <span key={key} style={{ marginLeft: "15px" }}>
+            {key}
+          </span>
+        )
+      }
+      return null
+    })
+    .filter((item) => item !== null)
 
   return (
     <Panel opened={true} onClose={close} heading="Mail Log Details">
