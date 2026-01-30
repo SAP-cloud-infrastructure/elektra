@@ -1,0 +1,1 @@
+class EmailDeliveryError < StandardError; end
