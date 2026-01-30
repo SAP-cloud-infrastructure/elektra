@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { render, screen, fireEvent, waitFor } from "@testing-library/react"
+import { render, screen, fireEvent } from "@testing-library/react"
 import "@testing-library/jest-dom/vitest"
-import { BrowserRouter, MemoryRouter, Route } from "react-router-dom"
+import { MemoryRouter, Route } from "react-router-dom"
 import ItemShow from "./ItemShow"
 import { MailLogEntry } from "../actions"
 
