@@ -137,17 +137,6 @@ describe("CopyableText", () => {
     expect(clipboardWriteTextMock).not.toHaveBeenCalledWith("Different Display Text")
   })
 
-  it("should support copying empty strings", async () => {
-    render(<CopyableText text="">Empty Text</CopyableText>)
-
-    const element = screen.getByText("Empty Text")
-    await act(async () => {
-      fireEvent.click(element)
-    })
-
-    expect(clipboardWriteTextMock).toHaveBeenCalledWith("")
-  })
-
   it("should support copying special characters and multiline text", async () => {
     const specialText = "Line 1\nLine 2\nSpecial: !@#$%^&*()"
     render(<CopyableText text={specialText}>Copy Special Text</CopyableText>)

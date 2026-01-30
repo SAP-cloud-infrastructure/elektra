@@ -1,4 +1,5 @@
 import { Icon, Tooltip, TooltipContent, TooltipTrigger } from "@cloudoperators/juno-ui-components"
+import { te } from "date-fns/locale"
 import React, { useState } from "react"
 
 const COPY_ICON = <Icon size="15" icon="contentCopy" />
@@ -10,6 +11,9 @@ interface CopyableTextProps {
 
 // CopyableText component
 const CopyableText: React.FC<CopyableTextProps> = ({ text, children }) => {
+  if (text === undefined || text === null || text === "") {
+    return <>{children}</>
+  }
   const [tooltipContent, setTooltipContent] = useState<React.ReactNode>(COPY_ICON)
 
   const copyToClipboard = async (textToCopy: string) => {
