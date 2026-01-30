@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import AppContent from "./AppContent"
 // @ts-expect-error - styles.scss doesn't have TypeScript types
 import styles from "./styles.scss?inline"
+import { IntroBox } from "@cloudoperators/juno-ui-components/index"
 
 /* IMPORTANT: Replace this with your app's name */
 const URL_STATE_KEY = "maillog"
@@ -107,7 +108,8 @@ const App: React.FC<AppProps> = ({ props }) => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AppShell pageHeader="Converged Cloud | Maillog" embedded={true}>
+      <AppShell embedded={true}>
+        <IntroBox text="For documentation on configuring, using, and getting support for the Cronus Email Service, please visit: https://documentation.global.cloud.sap/docs/customer/services/email-service" />
         <AppContent props={props} />
       </AppShell>
     </QueryClientProvider>
