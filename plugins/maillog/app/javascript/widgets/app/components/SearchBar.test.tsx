@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, waitFor, act } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import SearchBar from "./SearchBar"
@@ -13,20 +13,18 @@ vi.mock("moment", () => {
   }
 })
 
-// Mock TooltipedInput component
-vi.mock("./TooltipedInput", () => ({
-  default: ({ id, label, value, onChange }: any) => (
-    <div data-testid={`tooltipped-input-${id}`}>
-      <label htmlFor={id}>{label}</label>
-      <input id={id} value={value} onChange={onChange} data-testid={`input-${id}`} />
-    </div>
-  ),
-}))
-
 // Mock Juno UI components
 vi.mock("@cloudoperators/juno-ui-components", () => ({
   Button: ({ onClick, children, ...props }: any) => (
-    <button onClick={onClick} data-testid="clear-button" {...props}>
+    <button
+      onClick={(e) => {
+        e.preventDefault()
+        if (onClick) onClick(e)
+      }}
+      data-testid="clear-button"
+      type="button"
+      {...props}
+    >
       {children}
     </button>
   ),
@@ -35,7 +33,23 @@ vi.mock("@cloudoperators/juno-ui-components", () => ({
       {children}
     </form>
   ),
-  DateTimePicker: ({ id, label, onChange, ...props }: any) => (
+  FormRow: ({ children, ...props }: any) => (
+    <div data-testid="form-row" {...props}>
+      {children}
+    </div>
+  ),
+  ButtonRow: ({ children, ...props }: any) => (
+    <div data-testid="button-row" {...props}>
+      {children}
+    </div>
+  ),
+  TextInput: ({ id, label, value, onChange, helptext, ...props }: any) => (
+    <div data-testid={`text-input-${id}`}>
+      <label htmlFor={id}>{label}</label>
+      <input id={id} value={value} onChange={onChange} data-testid={`input-${id}`} {...props} />
+    </div>
+  ),
+  DateTimePicker: ({ id, label, onChange, enableTime, time_24hr, helptext, ...props }: any) => (
     <div data-testid={`date-picker-${id}`}>
       <label htmlFor={id}>{label}</label>
       <input
@@ -54,11 +68,12 @@ vi.mock("@cloudoperators/juno-ui-components", () => ({
       />
     </div>
   ),
-  Select: ({ id, children, onChange, onValueChange, placeholder, ...props }: any) => (
+  Select: ({ id, children, onChange, onValueChange, placeholder, value, label, width, helptext, ...props }: any) => (
     <div data-testid={`select-${id}`}>
       <select
         id={id}
         data-testid={`select-input-${id}`}
+        value={value}
         onChange={(e) => {
           if (onChange) onChange(e.target.value)
           if (onValueChange) onValueChange(e.target.value)
@@ -75,9 +90,21 @@ vi.mock("@cloudoperators/juno-ui-components", () => ({
       {label || value}
     </option>
   ),
-  TooltipTrigger: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-  Tooltip: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-  TooltipContent: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+  Grid: ({ children, ...props }: any) => (
+    <div data-testid="grid" {...props}>
+      {children}
+    </div>
+  ),
+  GridRow: ({ children, ...props }: any) => (
+    <div data-testid="grid-row" {...props}>
+      {children}
+    </div>
+  ),
+  GridColumn: ({ children, cols, ...props }: any) => (
+    <div data-testid="grid-column" data-cols={cols} {...props}>
+      {children}
+    </div>
+  ),
 }))
 
 describe("SearchBar", () => {
@@ -93,8 +120,6 @@ describe("SearchBar", () => {
     messageId: "",
     headerFrom: "",
     relay: "",
-    start: null,
-    end: null,
   }
 
   const defaultPageOptions = {
@@ -126,12 +151,12 @@ describe("SearchBar", () => {
         />
       )
 
-      expect(screen.getByTestId("tooltipped-input-from")).toBeInTheDocument()
-      expect(screen.getByTestId("tooltipped-input-headerFrom")).toBeInTheDocument()
-      expect(screen.getByTestId("tooltipped-input-rcpt")).toBeInTheDocument()
-      expect(screen.getByTestId("tooltipped-input-subject")).toBeInTheDocument()
-      expect(screen.getByTestId("tooltipped-input-messageId")).toBeInTheDocument()
-      expect(screen.getByTestId("tooltipped-input-id")).toBeInTheDocument()
+      expect(screen.getByTestId("text-input-from")).toBeInTheDocument()
+      expect(screen.getByTestId("text-input-headerFrom")).toBeInTheDocument()
+      expect(screen.getByTestId("text-input-rcpt")).toBeInTheDocument()
+      expect(screen.getByTestId("text-input-subject")).toBeInTheDocument()
+      expect(screen.getByTestId("text-input-messageId")).toBeInTheDocument()
+      expect(screen.getByTestId("text-input-id")).toBeInTheDocument()
     })
 
     it("should render relay select dropdown", () => {
@@ -193,12 +218,12 @@ describe("SearchBar", () => {
         />
       )
 
-      expect(screen.getByText("aws")).toBeInTheDocument()
-      expect(screen.getByText("esa")).toBeInTheDocument()
-      expect(screen.getByText("esa_bulk")).toBeInTheDocument()
-      expect(screen.getByText("int")).toBeInTheDocument()
-      expect(screen.getByText("postfix")).toBeInTheDocument()
-      expect(screen.getByText("null")).toBeInTheDocument()
+      expect(screen.getByText("AWS")).toBeInTheDocument()
+      expect(screen.getByText("ESA")).toBeInTheDocument()
+      expect(screen.getByText("ESA Bulk")).toBeInTheDocument()
+      expect(screen.getByText("INT")).toBeInTheDocument()
+      expect(screen.getByText("Postfix")).toBeInTheDocument()
+      expect(screen.getByText("Null")).toBeInTheDocument()
       expect(screen.getByText("All Relays")).toBeInTheDocument()
     })
 
@@ -651,8 +676,6 @@ describe("SearchBar", () => {
         messageId: "<message-id>",
         headerFrom: "header@example.com",
         relay: "aws",
-        start: new Date("2024-01-15"),
-        end: new Date("2024-01-20"),
       }
 
       render(
@@ -667,7 +690,10 @@ describe("SearchBar", () => {
       )
 
       const clearButton = screen.getByTestId("clear-button")
-      await user.click(clearButton)
+
+      await act(async () => {
+        await user.click(clearButton)
+      })
 
       expect(mockOnChange).toHaveBeenCalledWith({
         from: "",
@@ -677,6 +703,9 @@ describe("SearchBar", () => {
         messageId: "",
         headerFrom: "",
         relay: "",
+      })
+
+      expect(mockOnDateChange).toHaveBeenCalledWith({
         start: null,
         end: null,
       })
@@ -696,7 +725,10 @@ describe("SearchBar", () => {
       )
 
       const clearButton = screen.getByTestId("clear-button")
-      await user.click(clearButton)
+
+      await act(async () => {
+        await user.click(clearButton)
+      })
 
       expect(mockOnPageChange).toHaveBeenCalledWith({ page: 1, pageSize: 50 })
     })
@@ -718,7 +750,10 @@ describe("SearchBar", () => {
       const keyBefore = formBefore?.getAttribute("key")
 
       const clearButton = screen.getByTestId("clear-button")
-      await user.click(clearButton)
+
+      await act(async () => {
+        await user.click(clearButton)
+      })
 
       // Component should re-render with new key
       expect(mockOnChange).toHaveBeenCalled()
