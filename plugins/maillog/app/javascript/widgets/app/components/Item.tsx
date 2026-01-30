@@ -8,7 +8,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@cloudoperators/juno-ui-components"
-import { Link, useHistory } from "react-router-dom"
+import { Link, useHistory, useLocation } from "react-router-dom"
 import CopyableText from "./CopyableText"
 import { MailLogEntry } from "../actions"
 
@@ -18,6 +18,7 @@ interface ItemProps {
 
 const Item: React.FC<ItemProps> = ({ data }) => {
   const history = useHistory()
+  const location = useLocation()
 
   const downloadJsonFile = (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent row click when downloading
@@ -32,8 +33,17 @@ const Item: React.FC<ItemProps> = ({ data }) => {
   const rcpts = data.rcpts?.map((item) => item.rcpt).join(", ") || ""
 
   const handleJobClick = (id: string) => {
-    // Navigate to the details view panel
-    history.push(`/${id}/show`)
+    // Check if we're already viewing this item's details
+    const currentPath = location.pathname
+    const detailsPath = `/${id}/show`
+
+    if (currentPath.endsWith(detailsPath)) {
+      // If clicking the same item, close the panel by navigating back to list
+      history.push("/")
+    } else {
+      // Navigate to the details view panel
+      history.push(detailsPath)
+    }
   }
 
   return (
