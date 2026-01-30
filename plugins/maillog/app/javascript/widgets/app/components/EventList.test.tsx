@@ -27,6 +27,14 @@ vi.mock("./SearchBar", () => ({
   default: () => <div data-testid="search-bar">Search Bar</div>,
 }))
 
+vi.mock("@cloudoperators/juno-ui-components", async () => {
+  const actual = await vi.importActual("@cloudoperators/juno-ui-components")
+  return {
+    ...actual,
+    LoadingIndicator: () => <div data-testid="loading-indicator">Loading...</div>,
+  }
+})
+
 import { useGetData } from "../queries"
 
 describe("EventList", () => {
@@ -46,7 +54,7 @@ describe("EventList", () => {
     render(<EventList />)
 
     await waitFor(() => {
-      expect(screen.getByText("Loading mail events...")).toBeInTheDocument()
+      expect(screen.getByTestId("loading-indicator")).toBeInTheDocument()
     })
   })
 
@@ -205,7 +213,7 @@ describe("EventList", () => {
 
     // Verify loading state is displayed
     await waitFor(() => {
-      expect(screen.getByText("Loading mail events...")).toBeInTheDocument()
+      expect(screen.getByTestId("loading-indicator")).toBeInTheDocument()
     })
 
     // Update to success state
@@ -264,7 +272,7 @@ describe("EventList", () => {
 
     // Should show loading state
     await waitFor(() => {
-      expect(screen.getByText("Loading mail events...")).toBeInTheDocument()
+      expect(screen.getByTestId("loading-indicator")).toBeInTheDocument()
     })
   })
 })
