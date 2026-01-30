@@ -46,6 +46,7 @@ const Pagination: React.FC<PaginationProps> = ({ hits, onChanged, isFetching, pa
   return (
     <>
       <Stack alignment="center" className="mt-4" distribution="end" style={{ marginBottom: "15px" }}>
+        {isFetching && <Spinner size="small" />}
         <Button className="ml-4" disabled={page === 1 || disabled} label="<" onClick={onPrevChanged} size="small" />
         <p className="ml-4">
           {page} / {totalPages}
