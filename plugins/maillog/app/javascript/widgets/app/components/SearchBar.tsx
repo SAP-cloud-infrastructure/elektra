@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect, useRef } from "react"
 import {
   Button,
   Form,
@@ -48,10 +48,29 @@ interface SearchBarProps {
 const SearchBar: React.FC<SearchBarProps> = ({ onChange, searchOptions, onPageChange, onDateChange, pageOptions }) => {
   const isValidDate = (date: string | Date) => date != "" && !moment(date).isAfter()
   const [formKey, setFormKey] = React.useState(0)
+  const [localSearchOptions, setLocalSearchOptions] = React.useState<SearchOptions>(searchOptions)
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Update local state when searchOptions prop changes (e.g., from clear)
+  useEffect(() => {
+    setLocalSearchOptions(searchOptions)
+  }, [searchOptions])
 
   const handleSearchChanges = (newOptions: Partial<SearchOptions>) => {
-    onChange({ ...searchOptions, ...newOptions }, true)
-    onPageChange({ ...pageOptions, page: 1 })
+    // Update local state immediately for responsive UI
+    const updatedOptions = { ...localSearchOptions, ...newOptions }
+    setLocalSearchOptions(updatedOptions)
+
+    // Clear existing timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+
+    // Set new timer to trigger actual search after 500ms
+    debounceTimerRef.current = setTimeout(() => {
+      onChange({ ...searchOptions, ...newOptions }, true)
+      onPageChange({ ...pageOptions, page: 1 })
+    }, 500)
   }
 
   const handleDate = (date: DateOptions) => {
@@ -59,7 +78,12 @@ const SearchBar: React.FC<SearchBarProps> = ({ onChange, searchOptions, onPageCh
   }
 
   const handleClear = () => {
-    handleSearchChanges({
+    // Clear debounce timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+
+    const clearedOptions = {
       from: "",
       subject: "",
       rcpt: [],
@@ -67,11 +91,24 @@ const SearchBar: React.FC<SearchBarProps> = ({ onChange, searchOptions, onPageCh
       headerFrom: "",
       id: "",
       relay: "",
-    })
+    }
+
+    setLocalSearchOptions(clearedOptions)
+    onChange({ ...searchOptions, ...clearedOptions }, true)
+    onPageChange({ ...pageOptions, page: 1 })
     handleDate({ start: null, end: null })
     // Force form re-render to clear all inputs
     setFormKey((prev) => prev + 1)
   }
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+    }
+  }, [])
 
   return (
     <Form key={formKey}>
@@ -83,7 +120,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onChange, searchOptions, onPageCh
                 id="from"
                 label="From"
                 helptext="Search by sender email address"
-                value={searchOptions.from}
+                value={localSearchOptions.from}
                 onChange={(e) => handleSearchChanges({ from: e.target.value })}
               />
             </FormRow>
@@ -94,7 +131,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onChange, searchOptions, onPageCh
                 id="headerFrom"
                 label="Header From"
                 helptext="Search by header from field"
-                value={searchOptions.headerFrom}
+                value={localSearchOptions.headerFrom}
                 onChange={(e) => handleSearchChanges({ headerFrom: e.target.value })}
               />
             </FormRow>
@@ -105,7 +142,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onChange, searchOptions, onPageCh
                 id="rcpt"
                 label="Recipients"
                 helptext="Search by recipients, separated by ','"
-                value={searchOptions.rcpt.join(",")}
+                value={localSearchOptions.rcpt.join(",")}
                 onChange={(e) => handleSearchChanges({ rcpt: e.target.value.split(",") })}
               />
             </FormRow>
@@ -119,7 +156,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onChange, searchOptions, onPageCh
                 id="subject"
                 label="Subject"
                 helptext="Search by subject"
-                value={searchOptions.subject}
+                value={localSearchOptions.subject}
                 onChange={(e) => handleSearchChanges({ subject: e.target.value })}
               />
             </FormRow>
@@ -130,7 +167,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onChange, searchOptions, onPageCh
                 id="messageId"
                 label="Message ID"
                 helptext="Search by message ID, must be written as <MessageID>"
-                value={searchOptions.messageId}
+                value={localSearchOptions.messageId}
                 onChange={(e) => {
                   let messageId = e.target.value.trim()
                   handleSearchChanges({ messageId })
@@ -144,7 +181,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onChange, searchOptions, onPageCh
                 id="id"
                 label="Request ID"
                 helptext="Search by request ID"
-                value={searchOptions.id}
+                value={localSearchOptions.id}
                 onChange={(e) => handleSearchChanges({ id: e.target.value })}
               />
             </FormRow>
@@ -159,7 +196,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onChange, searchOptions, onPageCh
                 label="Relay"
                 placeholder="Select Relay"
                 width="full"
-                value={searchOptions.relay}
+                value={localSearchOptions.relay}
                 onChange={(value) => handleSearchChanges({ relay: String(value) })}
                 onValueChange={(value) => handleSearchChanges({ relay: String(value) })}
                 helptext="Search By Relay"
