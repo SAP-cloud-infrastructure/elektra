@@ -143,103 +143,85 @@ const EventList: React.FC<EventListProps> = ({ props, onDataFetched }) => {
               onChanged={setPaginationOptions}
               isFetching={tableData.isFetching}
               disabled={!!tableData.error}
-            />
-            {/* Loading indicator overlay */}
-            {tableData.isFetching && tableData.data && (
-              <div
-                style={{
-                  position: "relative",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: "1rem",
-                  backgroundColor: "rgba(255, 255, 255, 0.9)",
-                  borderRadius: "4px",
-                  marginBottom: "1rem",
-                  border: "1px solid #e0e0e0",
-                }}
-              >
-                <Spinner size="small" />
-                <span style={{ marginLeft: "0.5rem", fontSize: "0.9rem", color: "#666" }}>Loading...</span>
-              </div>
-            )}
-            <DataGrid columns={6}>
-              <DataGridRow>
-                <DataGridHeadCell></DataGridHeadCell>
-                <DataGridHeadCell>Time</DataGridHeadCell>
-                <DataGridHeadCell>Envelope From</DataGridHeadCell>
-                <DataGridHeadCell>Recipients</DataGridHeadCell>
-                <DataGridHeadCell>Subject</DataGridHeadCell>
-                <DataGridHeadCell></DataGridHeadCell>
-              </DataGridRow>
-              {tableData.error ? (
-                // Error handling with user-friendly messages
+            ></Pagination>
+            <div className="datagrid-hover">
+              <DataGrid columns={5}>
                 <DataGridRow>
-                  <DataGridCell
-                    style={{
-                      alignItems: "center",
-                      gridColumn: "span 6 / span 6",
-                      height: "50vh",
-                      fontSize: "1rem",
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "center",
-                      gap: "1rem",
-                    }}
-                  >
-                    <div
+                  <DataGridHeadCell>Time</DataGridHeadCell>
+                  <DataGridHeadCell>Envelope From</DataGridHeadCell>
+                  <DataGridHeadCell>Recipients</DataGridHeadCell>
+                  <DataGridHeadCell>Subject</DataGridHeadCell>
+                  <DataGridHeadCell></DataGridHeadCell>
+                </DataGridRow>
+                {tableData.error ? (
+                  // Error handling with user-friendly messages
+                  <DataGridRow>
+                    <DataGridCell
                       style={{
-                        padding: "2rem",
-                        backgroundColor: "#fee",
-                        border: "1px solid #fcc",
-                        borderRadius: "4px",
-                        maxWidth: "600px",
+                        alignItems: "center",
+                        gridColumn: "span 5 / span 5",
+                        height: "50vh",
+                        fontSize: "1rem",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
+                        gap: "1rem",
                       }}
                     >
-                      <h3 style={{ marginTop: 0, color: "#c00" }}>Unable to Load Mail Logs</h3>
-                      <p style={{ margin: "1rem 0" }}>{tableData.error.message || tableData.error.toString()}</p>
-                      {(tableData.error as HTTPError).statusCode >= 500 && (
-                        <p style={{ fontSize: "0.9rem", color: "#666" }}>
-                          The server is experiencing issues. Please try again in a few moments.
-                        </p>
-                      )}
-                      {(tableData.error as HTTPError).statusCode === 401 && (
-                        <p style={{ fontSize: "0.9rem", color: "#666" }}>
-                          Your session may have expired. Please refresh the page to re-authenticate.
-                        </p>
-                      )}
-                    </div>
-                  </DataGridCell>
-                </DataGridRow>
-              ) : tableData.data && tableData.data.length > 0 ? (
-                tableData.data.map((itemData) => (
-                  // @ts-expect-error - Item is a JSX component without proper TypeScript definitions
-                  <Item data={itemData as any} key={itemData.id} />
-                ))
-              ) : (
-                // Your no events found message here
-                <DataGridRow>
-                  <DataGridCell
-                    style={{
-                      alignItems: "center",
-                      gridColumn: "span 6 / span 6",
-                      height: "100vh",
-                      fontSize: "1.2rem",
-                    }}
-                  >
-                    No events found
-                  </DataGridCell>
-                </DataGridRow>
-              )}
-              {tableData.isFetching && !tableData.data && (
-                // Your loading spinner here
-                <DataGridRow>
-                  <DataGridCell>
-                    <span className="spinner" />
-                  </DataGridCell>
-                </DataGridRow>
-              )}
-            </DataGrid>
+                      <div
+                        style={{
+                          padding: "2rem",
+                          backgroundColor: "#fee",
+                          border: "1px solid #fcc",
+                          borderRadius: "4px",
+                          maxWidth: "600px",
+                        }}
+                      >
+                        <h3 style={{ marginTop: 0, color: "#c00" }}>Unable to Load Mail Logs</h3>
+                        <p style={{ margin: "1rem 0" }}>{tableData.error.message || tableData.error.toString()}</p>
+                        {(tableData.error as HTTPError).statusCode >= 500 && (
+                          <p style={{ fontSize: "0.9rem", color: "#666" }}>
+                            The server is experiencing issues. Please try again in a few moments.
+                          </p>
+                        )}
+                        {(tableData.error as HTTPError).statusCode === 401 && (
+                          <p style={{ fontSize: "0.9rem", color: "#666" }}>
+                            Your session may have expired. Please refresh the page to re-authenticate.
+                          </p>
+                        )}
+                      </div>
+                    </DataGridCell>
+                  </DataGridRow>
+                ) : tableData.data && tableData.data.length > 0 ? (
+                  tableData.data.map((itemData) => (
+                    // @ts-expect-error - Item is a JSX component without proper TypeScript definitions
+                    <Item data={itemData as any} key={itemData.id} />
+                  ))
+                ) : (
+                  // Your no events found message here
+                  <DataGridRow>
+                    <DataGridCell
+                      style={{
+                        alignItems: "center",
+                        gridColumn: "span 5 / span 5 ",
+                        height: "100vh",
+                        fontSize: "1.2rem",
+                      }}
+                    >
+                      No events found
+                    </DataGridCell>
+                  </DataGridRow>
+                )}
+                {tableData.isFetching && !tableData.data && (
+                  // Your loading spinner here
+                  <DataGridRow>
+                    <DataGridCell>
+                      <span className="spinner" />
+                    </DataGridCell>
+                  </DataGridRow>
+                )}
+              </DataGrid>
+            </div>
           </>
         )}
       </Container>

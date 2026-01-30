@@ -8,7 +8,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@cloudoperators/juno-ui-components"
-import { Link } from "react-router-dom"
+import { Link, useHistory } from "react-router-dom"
 import CopyableText from "./CopyableText"
 import { MailLogEntry } from "../actions"
 
@@ -17,7 +17,10 @@ interface ItemProps {
 }
 
 const Item: React.FC<ItemProps> = ({ data }) => {
-  const downloadJsonFile = () => {
+  const history = useHistory()
+
+  const downloadJsonFile = (e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent row click when downloading
     const jsonString = JSON.stringify(data, null, 2) // The third parameter (2) adds indentation for better readability
     const blob = new Blob([jsonString], { type: "application/json" })
     const link = document.createElement("a")
@@ -29,22 +32,12 @@ const Item: React.FC<ItemProps> = ({ data }) => {
   const rcpts = data.rcpts?.map((item) => item.rcpt).join(", ") || ""
 
   const handleJobClick = (id: string) => {
-    console.log("Row clicked with id:", id)
-    // render details view
+    // Navigate to the details view panel
+    history.push(`/${id}/show`)
   }
 
   return (
     <DataGridRow onClick={() => handleJobClick(data.id)} style={{ cursor: "pointer" }}>
-      <DataGridCell>
-        <Tooltip triggerEvent="hover">
-          <TooltipTrigger asChild>
-            <Link to={`/${data.id}/show`}>
-              <Icon icon="openInNew"></Icon>
-            </Link>
-          </TooltipTrigger>
-          <TooltipContent>Show details</TooltipContent>
-        </Tooltip>
-      </DataGridCell>
       <DataGridCell>
         {moment(data.date).format("YYYY-MM-DD, HH:mm:ss")}
         <p style={{ fontSize: "0.8rem" }}>UTC: {moment(data.date).utc().format("YYYY-MM-DD, HH:mm:ss")}</p>
@@ -61,7 +54,7 @@ const Item: React.FC<ItemProps> = ({ data }) => {
         <CopyableText text={data.subject || ""}>{data.subject || ""}</CopyableText>
       </DataGridCell>
 
-      <DataGridCell>
+      <DataGridCell onClick={(e) => e.stopPropagation()}>
         <Tooltip triggerEvent="hover">
           <TooltipTrigger asChild>
             <Icon color="jn-text-theme-info" onClick={downloadJsonFile} icon="download"></Icon>
