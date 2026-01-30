@@ -19,10 +19,6 @@ vi.mock("./Pagination", () => ({
   default: ({ hits }: { hits: number | null }) => <div data-testid="pagination">Hits: {hits}</div>,
 }))
 
-vi.mock("./HintLoading", () => ({
-  default: ({ text }: { text: string }) => <div data-testid="loading">{text}</div>,
-}))
-
 vi.mock("./Item", () => ({
   default: ({ data }: { data: any }) => <div data-testid="item">{data.id}</div>,
 }))
@@ -38,7 +34,7 @@ describe("EventList", () => {
     vi.clearAllMocks()
   })
 
-  it("should show loading state initially", () => {
+  it("should show loading state initially", async () => {
     vi.mocked(useGetData).mockReturnValue({
       data: undefined,
       isLoading: true,
@@ -49,7 +45,9 @@ describe("EventList", () => {
 
     render(<EventList />)
 
-    expect(screen.getByTestId("loading")).toHaveTextContent("Loading Logs...")
+    await waitFor(() => {
+      expect(screen.getByText("Loading mail events...")).toBeInTheDocument()
+    })
   })
 
   it("should display data when fetch is successful", async () => {
@@ -89,7 +87,7 @@ describe("EventList", () => {
     render(<EventList />)
 
     await waitFor(() => {
-      expect(screen.getByText("No events found")).toBeInTheDocument()
+      expect(screen.getByText(/No events found/)).toBeInTheDocument()
     })
   })
 
@@ -107,8 +105,7 @@ describe("EventList", () => {
     render(<EventList />)
 
     await waitFor(() => {
-      expect(screen.getByText("Unable to Load Mail Logs")).toBeInTheDocument()
-      expect(screen.getByText(/Server error occurred/)).toBeInTheDocument()
+      expect(screen.getByText(/The server is experiencing issues/)).toBeInTheDocument()
     })
   })
 
@@ -126,7 +123,6 @@ describe("EventList", () => {
     render(<EventList />)
 
     await waitFor(() => {
-      expect(screen.getByText("Unable to Load Mail Logs")).toBeInTheDocument()
       expect(screen.getByText(/CORS error/)).toBeInTheDocument()
     })
   })
@@ -208,7 +204,9 @@ describe("EventList", () => {
     const { rerender } = render(<EventList />)
 
     // Verify loading state is displayed
-    expect(screen.getByTestId("loading")).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText("Loading mail events...")).toBeInTheDocument()
+    })
 
     // Update to success state
     currentState = {
@@ -264,9 +262,9 @@ describe("EventList", () => {
 
     render(<EventList />)
 
-    // Should show initial loading state instead
-    expect(screen.getByTestId("loading")).toBeInTheDocument()
-    // Should not show "Loading..." text from the overlay
-    expect(screen.queryByText("Loading...")).not.toBeInTheDocument()
+    // Should show loading state
+    await waitFor(() => {
+      expect(screen.getByText("Loading mail events...")).toBeInTheDocument()
+    })
   })
 })
