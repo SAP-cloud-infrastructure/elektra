@@ -453,10 +453,13 @@ describe("SearchBar", () => {
       const select = screen.getByTestId("select-input-relay")
       await user.selectOptions(select, "aws")
 
-      expect(mockOnChange).toHaveBeenCalledWith({
-        ...defaultSearchOptions,
-        relay: "aws",
-      })
+      expect(mockOnChange).toHaveBeenCalledWith(
+        {
+          ...defaultSearchOptions,
+          relay: "aws",
+        },
+        true
+      )
     })
 
     it("should call onChange when different relay options are selected", async () => {
@@ -475,16 +478,22 @@ describe("SearchBar", () => {
       const select = screen.getByTestId("select-input-relay")
 
       await user.selectOptions(select, "esa")
-      expect(mockOnChange).toHaveBeenCalledWith({
-        ...defaultSearchOptions,
-        relay: "esa",
-      })
+      expect(mockOnChange).toHaveBeenCalledWith(
+        {
+          ...defaultSearchOptions,
+          relay: "esa",
+        },
+        true
+      )
 
       await user.selectOptions(select, "postfix")
-      expect(mockOnChange).toHaveBeenCalledWith({
-        ...defaultSearchOptions,
-        relay: "postfix",
-      })
+      expect(mockOnChange).toHaveBeenCalledWith(
+        {
+          ...defaultSearchOptions,
+          relay: "postfix",
+        },
+        true
+      )
     })
 
     it("should reset page to 1 when relay changes", async () => {
@@ -522,10 +531,13 @@ describe("SearchBar", () => {
       const select = screen.getByTestId("select-input-relay")
       await user.selectOptions(select, "")
 
-      expect(mockOnChange).toHaveBeenCalledWith({
-        ...defaultSearchOptions,
-        relay: "",
-      })
+      expect(mockOnChange).toHaveBeenCalledWith(
+        {
+          ...defaultSearchOptions,
+          relay: "",
+        },
+        true
+      )
     })
   })
 
@@ -695,15 +707,18 @@ describe("SearchBar", () => {
         await user.click(clearButton)
       })
 
-      expect(mockOnChange).toHaveBeenCalledWith({
-        from: "",
-        subject: "",
-        rcpt: [],
-        id: "",
-        messageId: "",
-        headerFrom: "",
-        relay: "",
-      })
+      expect(mockOnChange).toHaveBeenCalledWith(
+        {
+          from: "",
+          subject: "",
+          rcpt: [],
+          id: "",
+          messageId: "",
+          headerFrom: "",
+          relay: "",
+        },
+        true
+      )
 
       expect(mockOnDateChange).toHaveBeenCalledWith({
         start: null,
