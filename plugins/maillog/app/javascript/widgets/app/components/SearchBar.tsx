@@ -36,7 +36,7 @@ interface DateOptions {
 
 interface SearchBarProps {
   children?: React.ReactNode
-  onChange: (options: Partial<SearchOptions>) => void
+  onChange: (options: Partial<SearchOptions>, resetPage?: boolean) => void
   searchOptions: SearchOptions
   onPageChange: (options: PageOptions) => void
   onDateChange: (date: DateOptions) => void
@@ -50,12 +50,12 @@ const SearchBar: React.FC<SearchBarProps> = ({ onChange, searchOptions, onPageCh
   const [formKey, setFormKey] = React.useState(0)
 
   const handleSearchChanges = (newOptions: Partial<SearchOptions>) => {
-    onChange({ ...searchOptions, ...newOptions })
+    onChange({ ...searchOptions, ...newOptions }, true)
     onPageChange({ ...pageOptions, page: 1 })
   }
 
   const handleDate = (date: DateOptions) => {
-    onDateChange({ ...date })
+    onDateChange(date)
   }
 
   const handleClear = () => {

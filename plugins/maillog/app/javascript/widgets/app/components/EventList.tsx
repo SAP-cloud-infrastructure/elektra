@@ -34,8 +34,8 @@ interface SearchOptions {
 }
 
 interface DateOptions {
-  start: Date | null
-  end: Date | null
+  start?: Date | null
+  end?: Date | null
 }
 
 interface TableData {
@@ -72,14 +72,26 @@ const EventList: React.FC<EventListProps> = ({ props, onDataFetched }) => {
   const token = useAuthData()
   const project = useAuthProject()
 
+  const handleSearchChange = React.useCallback((options: Partial<SearchOptions>, resetPage?: boolean) => {
+    if (resetPage) {
+      // Batch both updates together to avoid double render and duplicate API calls
+      React.startTransition(() => {
+        setSearchOptions((prev) => ({ ...prev, ...options }))
+        setPaginationOptions((prev) => ({ ...prev, page: 1 }))
+      })
+    } else {
+      setSearchOptions((prev) => ({ ...prev, ...options }))
+    }
+  }, [])
+
   const mailSearchOptions: MailSearchOptions = {
     ...paginationOptions,
     ...searchOptions,
     ...dateOptions,
-    project: project,
+    project: project || undefined,
   }
 
-  const fetchedData = useGetData(token, endpoint, mailSearchOptions)
+  const fetchedData = useGetData(token || "", endpoint || "", mailSearchOptions)
 
   const [tableData, setTableData] = useState<TableData>({
     data: null,
@@ -91,7 +103,7 @@ const EventList: React.FC<EventListProps> = ({ props, onDataFetched }) => {
   })
 
   const setDate = (date: DateOptions) => {
-    setDateOptions({ ...date })
+    setDateOptions((prev) => ({ ...prev, ...date }))
   }
 
   useEffect(() => {
@@ -125,7 +137,7 @@ const EventList: React.FC<EventListProps> = ({ props, onDataFetched }) => {
     return (
       <Container style={{ height: "100%" }}>
         <SearchBar
-          onChange={setSearchOptions as any}
+          onChange={handleSearchChange}
           onPageChange={setPaginationOptions as any}
           searchOptions={searchOptions}
           dateOptions={dateOptions}
@@ -150,7 +162,7 @@ const EventList: React.FC<EventListProps> = ({ props, onDataFetched }) => {
           )}
 
           <Pagination
-            hits={tableData.hits}
+            hits={tableData.hits || 0}
             pageOptions={paginationOptions}
             onChanged={setPaginationOptions}
             isFetching={tableData.isFetching}
