@@ -10,6 +10,8 @@ import {
   DataGridCell,
   DataGridHeadCell,
   DataGridRow,
+  LoadingIndicator,
+  Stack,
 } from "@cloudoperators/juno-ui-components"
 import Item from "./Item"
 import SearchBar from "./SearchBar"
@@ -167,11 +169,19 @@ const EventList: React.FC<EventListProps> = ({ props, onDataFetched }) => {
                 tableData.data.map((itemData) => <Item data={itemData as any} key={itemData.id} />)
               ) : tableData.isLoading || tableData.isFetching ? (
                 <DataGridRow>
-                  <DataGridCell>Loading mail events...</DataGridCell>
+                  <DataGridCell colSpan={5}>
+                    <Stack alignment="center" distribution="center" style={{ minHeight: "200px", width: "100%" }}>
+                      <LoadingIndicator />
+                    </Stack>
+                  </DataGridCell>
                 </DataGridRow>
               ) : (
                 <DataGridRow>
-                  <DataGridCell>No events found 🙂</DataGridCell>
+                  <DataGridCell colSpan={5}>
+                    <Stack alignment="center" distribution="center" style={{ minHeight: "200px", width: "100%" }}>
+                      No events found 🙂
+                    </Stack>
+                  </DataGridCell>
                 </DataGridRow>
               )}
             </DataGrid>
