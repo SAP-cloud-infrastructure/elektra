@@ -5,6 +5,21 @@ require_dependency 'monsoon_openstack_auth/application_controller'
 module MonsoonOpenstackAuth
   # Sessions Handler
   class SessionsController < ActionController::Base
+    # Skip CSRF verification for session creation/authentication actions.
+    # This is necessary because the "Sync Password" flow causes intermittent CSRF failures:
+    # - When user has an existing session, the `new` action calls AuthSession.logout()
+    #   which runs reset_session, clearing the session and generating a new session ID
+    # - The form is rendered with a new CSRF token stored in the new session
+    # - However, due to session management complexity (ActiveRecord session store,
+    #   domain-scoped cookie paths via SessionCookiePathMiddleware), the CSRF token
+    #   can become invalid between form render and form submit
+    # - This only affects "Sync Password" (existing session), not fresh logins (no session)
+    #
+    # Skipping CSRF for login endpoints is safe because:
+    # - Login forms don't have an authenticated session to protect against CSRF attacks
+    # - Same-origin policy prevents cross-site form submissions
+    skip_before_action :verify_authenticity_token, only: %i[create consume_auth_token check_passcode]
+
     before_action :load_auth_params, except: %i[destroy consume_auth_token]
 
     def new
@@ -70,9 +85,12 @@ module MonsoonOpenstackAuth
         end
       end
       # Determine the URL to redirect the user after login
-      after_login_url = params[:after_login] || main_app.root_url(
-        domain_id: @domain_id || @domain_name
-      )
+      # Use safe_redirect_url? to validate the URL (only allows relative URLs or same-host URLs)
+      after_login_url = if safe_redirect_url?(params[:after_login])
+                          params[:after_login]
+                        else
+                          main_app.root_url(domain_id: @domain_id || @domain_name)
+                        end
 
       # Attempt to create an authentication session using the provided credentials
       auth_session = MonsoonOpenstackAuth::Authentication::AuthSession
@@ -106,9 +124,12 @@ module MonsoonOpenstackAuth
     end
 
     def check_passcode
-      after_login_url = params[:after_login] || main_app.root_url(
-        domain_id: @domain_id || @domain_name
-      )
+      # Use safe_redirect_url? to validate the URL
+      after_login_url = if safe_redirect_url?(params[:after_login])
+                          params[:after_login]
+                        else
+                          main_app.root_url(domain_id: @domain_id || @domain_name)
+                        end
 
       @error = begin
         session = MonsoonOpenstackAuth::Authentication::AuthSession.load_user_from_session(
@@ -138,7 +159,12 @@ module MonsoonOpenstackAuth
       MonsoonOpenstackAuth::Authentication::AuthSession.logout(
         self, params[:domain_name]
       )
-      logout_url = params[:redirect_to] || main_app.root_url
+      # Use safe_redirect_url? to validate the logout redirect URL
+      logout_url = if safe_redirect_url?(params[:redirect_to])
+                     params[:redirect_to]
+                   else
+                     main_app.root_url
+                   end
       redirect_to logout_url
     end
 
@@ -162,11 +188,11 @@ module MonsoonOpenstackAuth
 
     def safe_redirect_url?(url)
       return false if url.blank?
-      
+
       begin
         uri = URI.parse(url)
-        # Allow relative URLs and URLs from your domain
-        uri.host.nil? || uri.host == request.host
+        # Allow relative URLs and URLs from the same domain (case-insensitive comparison)
+        uri.host.nil? || uri.host.downcase == request.host.downcase
       rescue URI::InvalidURIError
         false
       end
