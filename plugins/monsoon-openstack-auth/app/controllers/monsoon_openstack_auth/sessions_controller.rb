@@ -18,8 +18,6 @@ module MonsoonOpenstackAuth
     # Skipping CSRF for login endpoints is safe because:
     # - Login forms don't have an authenticated session to protect against CSRF attacks
     # - Same-origin policy prevents cross-site form submissions
-    # - This is a common pattern for login endpoints in Rails applications
-    # See also: PR #1837 which fixed a similar CSRF issue caused by session rescoping
     skip_before_action :verify_authenticity_token, only: %i[create consume_auth_token check_passcode]
 
     before_action :load_auth_params, except: %i[destroy consume_auth_token]
