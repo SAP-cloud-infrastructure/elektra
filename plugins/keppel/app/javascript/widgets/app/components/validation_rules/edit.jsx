@@ -1,6 +1,5 @@
 import { Modal, Button } from "react-bootstrap"
 import { Form } from "lib/elektra-form"
-import { FormErrors } from "lib/elektra-form/components/form_errors"
 import React from "react"
 import { apiStateIsDeleting } from "../utils"
 
@@ -79,7 +78,11 @@ export default class RBACPoliciesEditModal extends React.Component {
           initialValues={initialValues}
         >
           <Modal.Body>
-            {this.state.apiError && <FormErrors errors={this.state.apiError} />}
+            {this.state.apiError && (
+              <pre className="alert alert-error" style={{ scrollbarWidth: "thin" }}>
+                {this.state.apiError.errors}
+              </pre>
+            )}
             <Form.ElementHorizontal label="Rule" labelWidth={1} name="rule_for_manifest">
               <Form.Input elementType="input" type="text" name="rule_for_manifest" readOnly={!isAdmin} />
               <div className="form-control-static tw-mt-2">
