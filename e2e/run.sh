@@ -7,7 +7,7 @@ fi
 
 function help_me() {
 
-  echo "Usage: run.sh --host|-h HOST --profile|-p admin|folder --e2e-path|-e2e  --record|-r --browser|-b chrome|firefox|electron* --debug|-d CYPRESS-DEBUG-FLAG* TESTNAME* "
+  echo "Usage: run.sh --host|-h HOST --profile|-p admin|member|smoke --e2e-path|-e2e  --record|-r --browser|-b chrome|firefox|electron* --debug|-d CYPRESS-DEBUG-FLAG* TESTNAME* "
   echo "       run.sh --help                                                   # will print out this message"
   echo "       run.sh --info                                                   # prints info about used cypress"
   echo "       run.sh --host http://localhost:3000 landingpage                 # will only run landingpage tests"
@@ -143,42 +143,52 @@ if [[ -z "${HOST}" ]]; then
   help_me
 fi
 
-# get test user and password
+# get test user and password (not required for smoke profile)
 set -o allexport
 source ../.env
 set +o allexport
 
-TEST_USER=$TEST_MEMBER_USER
-TEST_PASSWORD=$TEST_MEMBER_PASSWORD
-
-if [[ "${PROFILE}" == "admin" ]]; then
-  TEST_USER=$TEST_ADMIN_USER
-  TEST_PASSWORD=$TEST_ADMIN_PASSWORD
-
-  if [[ -z "${TEST_ADMIN_USER}" ]]; then
-    echo "ERROR: no TEST_ADMIN_USER found please check .env"
-    exit 1
-  fi
-
-  if [[ -z "${TEST_ADMIN_PASSWORD}" ]]; then
-    echo "ERROR: no TEST_ADMIN_PASSWORD found please check .env"
-    exit 1
+# smoke profile does not require authentication
+if [[ "${PROFILE}" == "smoke" ]]; then
+  TEST_USER=""
+  TEST_PASSWORD=""
+  # TEST_DOMAIN is optional for smoke tests, default to cc3test if not set
+  if [[ -z "${TEST_DOMAIN}" ]]; then
+    TEST_DOMAIN="cc3test"
   fi
 else
-  if [[ -z "${TEST_MEMBER_USER}" ]]; then
-    echo "ERROR: no TEST_MEMBER_USER found please check .env"
-    exit 1
+  TEST_USER=$TEST_MEMBER_USER
+  TEST_PASSWORD=$TEST_MEMBER_PASSWORD
+
+  if [[ "${PROFILE}" == "admin" ]]; then
+    TEST_USER=$TEST_ADMIN_USER
+    TEST_PASSWORD=$TEST_ADMIN_PASSWORD
+
+    if [[ -z "${TEST_ADMIN_USER}" ]]; then
+      echo "ERROR: no TEST_ADMIN_USER found please check .env"
+      exit 1
+    fi
+
+    if [[ -z "${TEST_ADMIN_PASSWORD}" ]]; then
+      echo "ERROR: no TEST_ADMIN_PASSWORD found please check .env"
+      exit 1
+    fi
+  else
+    if [[ -z "${TEST_MEMBER_USER}" ]]; then
+      echo "ERROR: no TEST_MEMBER_USER found please check .env"
+      exit 1
+    fi
+
+    if [[ -z "${TEST_MEMBER_PASSWORD}" ]]; then
+      echo "ERROR: no TEST_MEMBER_PASSWORD found please check .env"
+      exit 1
+    fi
   fi
 
-  if [[ -z "${TEST_MEMBER_PASSWORD}" ]]; then
-    echo "ERROR: no TEST_MEMBER_PASSWORD found please check .env"
+  if [[ -z "${TEST_DOMAIN}" ]]; then
+    echo "ERROR: no TEST_DOMAIN found please check .env"
     exit 1
   fi
-fi
-
-if [[ -z "${TEST_DOMAIN}" ]]; then
-  echo "ERROR: no TEST_DOMAIN found please check .env"
-  exit 1
 fi
 
 # show all hidden chars for debugging
@@ -197,8 +207,13 @@ if [[ -n "$DEBUG" ]]; then
   echo "DEBUG:        => $DEBUG"
 fi
 echo ""
-echo "Please Note: the e2e tests run only with QA-DE-1, (your local elektra that is configured for qa-de-1"
-echo "or https://dashboard-e2e.qa-de-1.cloud.sap) because the Test-User,Domain and Project is only configured there."
+if [[ "${PROFILE}" == "smoke" ]]; then
+  echo "Running SMOKE tests - no authentication required."
+  echo "These tests verify that plugins are loaded and basic pages render correctly."
+else
+  echo "Please Note: the e2e tests run only with QA-DE-1, (your local elektra that is configured for qa-de-1"
+  echo "or https://dashboard-e2e.qa-de-1.cloud.sap) because the Test-User,Domain and Project is only configured there."
+fi
 echo ""
 
 docker run --rm -it \
