@@ -5,16 +5,13 @@ describe("domain landing page", () => {
   })
 
   it("open domain landing page and check user profile", () => {
-    cy.contains("a.navbar-identity", "Technical User").click()
+    cy.contains("a.navbar-identity", "Technical Team User").click()
     cy.contains("a", "Profile").click()
-    // check not in one string because it can be different order
-    cy.contains("td", "member")
-    cy.contains("td", "reader")
-    cy.contains("td", "admin")
+    cy.contains("td", "TC3_OBS_TA1")
   })
 
   it("open domain landing page and check logout button", () => {
-    cy.contains("a.navbar-identity", "Technical User").click()
+    cy.contains("a.navbar-identity", "Technical Team User").click()
     cy.contains("a", "Log out").click()
     // eslint-disable-next-line cypress/no-unnecessary-waiting
     cy.wait(500)
