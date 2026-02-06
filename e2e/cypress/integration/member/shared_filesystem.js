@@ -1,10 +1,12 @@
+const TEST_DOMAIN = Cypress.expose("TEST_DOMAIN")
+
 describe("shared filesystem", () => {
   beforeEach(() => {
-    cy.elektraLogin(Cypress.env("TEST_DOMAIN"), Cypress.env("TEST_USER"), Cypress.env("TEST_PASSWORD"))
+    cy.elektraLoginWithEnv()
   })
 
   it("open shared file system storage page and check for new button", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/test/shared-filesystem-storage/?r=/shares`)
+    cy.visit(`/${TEST_DOMAIN}/test/shared-filesystem-storage/?r=/shares`)
     cy.contains("[data-test=page-title]", "File System Storage")
     cy.contains("Create New")
   })

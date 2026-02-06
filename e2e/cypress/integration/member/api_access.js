@@ -1,7 +1,9 @@
+const TEST_DOMAIN = Cypress.expose("TEST_DOMAIN")
+
 describe("api endpoints", () => {
   beforeEach(() => {
-    cy.elektraLogin(Cypress.env("TEST_DOMAIN"), Cypress.env("TEST_USER"), Cypress.env("TEST_PASSWORD"))
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/test/identity/projects/api-endpoints`)
+    cy.elektraLoginWithEnv()
+    cy.visit(`/${TEST_DOMAIN}/test/identity/projects/api-endpoints`)
   })
 
   it("the api endpoints for clients page reachable", () => {
@@ -12,16 +14,16 @@ describe("api endpoints", () => {
 
 describe("web shell", () => {
   beforeEach(() => {
-    cy.elektraLogin(Cypress.env("TEST_DOMAIN"), Cypress.env("TEST_USER"), Cypress.env("TEST_PASSWORD"))
+    cy.elektraLoginWithEnv()
   })
 
   it("open web shell", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/test/webconsole/`)
+    cy.visit(`/${TEST_DOMAIN}/test/webconsole/`)
     cy.contains("[data-test=page-title]", "Web Shell")
   })
 
   it("open web shell on toolbar", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/test/identity/project/home`)
+    cy.visit(`/${TEST_DOMAIN}/test/identity/project/home`)
     cy.get('[data-trigger="webconsole:open"]').click()
     cy.contains("div.toolbar", "Web Shell")
   })

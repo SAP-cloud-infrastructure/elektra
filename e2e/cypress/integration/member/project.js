@@ -1,16 +1,18 @@
+const TEST_DOMAIN = Cypress.expose("TEST_DOMAIN")
+
 describe("project landing page", () => {
   beforeEach(() => {
-    cy.elektraLogin(Cypress.env("TEST_DOMAIN"), Cypress.env("TEST_USER"), Cypress.env("TEST_PASSWORD"))
+    cy.elektraLoginWithEnv()
   })
 
   it("open project landing page and cannot see edit project button", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/test/identity/project/home`)
+    cy.visit(`/${TEST_DOMAIN}/test/identity/project/home`)
     cy.contains("Test Project")
     cy.get("div.dropdown.header-action").should("not.exist")
   })
 
   it("open project landing page and check user profile and SSH keys", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/test/identity/project/home`)
+    cy.visit(`/${TEST_DOMAIN}/test/identity/project/home`)
     cy.contains("a.navbar-identity", "Technical Team User").click()
     cy.contains("a", "Profile").click()
     cy.contains("td", "TC3_OBS_TM1")
@@ -22,7 +24,7 @@ describe("project landing page", () => {
   })
 
   it("open project landing page and check app credentials", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/test/identity/project/home`)
+    cy.visit(`/${TEST_DOMAIN}/test/identity/project/home`)
     cy.contains("a.navbar-identity", "Technical Team User").click()
     cy.contains("a", "App Credentials").click()
     cy.contains("No application credentials found. Create a new one")
@@ -33,7 +35,7 @@ describe("project landing page", () => {
   })
 
   it("open project landing page and check logout button", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/test/identity/project/home`)
+    cy.visit(`/${TEST_DOMAIN}/test/identity/project/home`)
     cy.contains("a.navbar-identity", "Technical Team User").click()
     cy.contains("a", "Log out").click()
     // eslint-disable-next-line cypress/no-unnecessary-waiting

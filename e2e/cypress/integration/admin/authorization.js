@@ -1,10 +1,12 @@
+const TEST_DOMAIN = Cypress.expose("TEST_DOMAIN")
+
 describe("user role assignments", () => {
   beforeEach(() => {
-    cy.elektraLogin(Cypress.env("TEST_DOMAIN"), Cypress.env("TEST_USER"), Cypress.env("TEST_PASSWORD"))
+    cy.elektraLoginWithEnv()
   })
 
   it("open user role assignments page and check role options", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/identity/projects/role-assignments`)
+    cy.visit(`/${TEST_DOMAIN}/admin/identity/projects/role-assignments`)
     cy.contains("[data-test=page-title]", "Authorizations")
     cy.get("[data-test=search]").eq(0).type("TC3_OBS_TM")
     cy.contains("TC3_OBS_TM")
@@ -14,7 +16,7 @@ describe("user role assignments", () => {
   })
 
   it("open user role assignments page and check new member button", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/identity/projects/role-assignments`)
+    cy.visit(`/${TEST_DOMAIN}/admin/identity/projects/role-assignments`)
     cy.contains("[data-test=page-title]", "Authorizations")
     cy.contains("button", "Add New Member").click()
     cy.get('input[placeholder*="User name or ID"]').type("TC3_OBS_TM")
@@ -24,11 +26,11 @@ describe("user role assignments", () => {
 
 describe("group role assignments", () => {
   beforeEach(() => {
-    cy.elektraLogin(Cypress.env("TEST_DOMAIN"), Cypress.env("TEST_USER"), Cypress.env("TEST_PASSWORD"))
+    cy.elektraLoginWithEnv()
   })
 
   it("open group role assignments page", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/identity/projects/role-assignments?active_tab=groupRoles`)
+    cy.visit(`/${TEST_DOMAIN}/admin/identity/projects/role-assignments?active_tab=groupRoles`)
     cy.contains("[data-test=page-title]", "Authorizations")
   })
 })

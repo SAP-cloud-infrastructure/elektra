@@ -1,7 +1,9 @@
+const TEST_DOMAIN = Cypress.expose("TEST_DOMAIN")
+
 describe("domain landing page", () => {
   beforeEach(() => {
-    cy.elektraLogin(Cypress.env("TEST_DOMAIN"), Cypress.env("TEST_USER"), Cypress.env("TEST_PASSWORD"))
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/home`)
+    cy.elektraLoginWithEnv()
+    cy.visit(`/${TEST_DOMAIN}/home`)
   })
 
   it("open domain landing page and check user profile", () => {

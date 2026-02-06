@@ -1,10 +1,12 @@
+const TEST_DOMAIN = Cypress.expose("TEST_DOMAIN")
+
 describe("key manager", () => {
   beforeEach(() => {
-    cy.elektraLogin(Cypress.env("TEST_DOMAIN"), Cypress.env("TEST_USER"), Cypress.env("TEST_PASSWORD"))
+    cy.elektraLoginWithEnv()
   })
 
   it("open key manager page and see it is loading", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/test/keymanager/secrets`)
+    cy.visit(`/${TEST_DOMAIN}/test/keymanager/secrets`)
     cy.contains("[data-test=page-title]", "Key Manager")
   })
 })

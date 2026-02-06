@@ -5,7 +5,7 @@
  * No actual login is performed - we only test the UI elements.
  */
 
-const TEST_DOMAIN = Cypress.env("TEST_DOMAIN") || "cc3test"
+const TEST_DOMAIN = Cypress.expose("TEST_DOMAIN") || "cc3test"
 
 describe("authentication pages", () => {
   describe("login page", () => {

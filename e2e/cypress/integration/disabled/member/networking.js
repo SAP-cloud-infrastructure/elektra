@@ -1,14 +1,12 @@
+const TEST_DOMAIN = Cypress.expose("TEST_DOMAIN")
+
 describe("networking", () => {
   beforeEach(() => {
-    cy.elektraLogin(
-      Cypress.env("TEST_DOMAIN"),
-      Cypress.env("TEST_USER"),
-      Cypress.env("TEST_PASSWORD")
-    )
+    cy.elektraLoginWithEnv()
   })
 
   it("open floating ip page and check allocate new dialog", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/test/networking/floating_ips`)
+    cy.visit(`/${TEST_DOMAIN}/test/networking/floating_ips`)
     cy.contains("[data-test=page-title]", "Floating IPs")
     cy.contains("a", "Allocate new").click()
     cy.contains("label", "Dns domain").should("not.exist")
@@ -18,29 +16,27 @@ describe("networking", () => {
   })
 
   it("open external networks page", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/test/networking/networks/external`)
+    cy.visit(`/${TEST_DOMAIN}/test/networking/networks/external`)
     cy.contains("[data-test=page-title]", "Networks & Routers")
     cy.contains("th", "Subnets Associated")
   })
 
   it("open private networks page", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/test/networking/networks/private`)
+    cy.visit(`/${TEST_DOMAIN}/test/networking/networks/private`)
     cy.contains("[data-test=page-title]", "Networks & Routers")
     cy.contains("a", "Create new").should("not.exist")
     cy.contains("th", "Subnets Associated")
   })
 
   it("open routers page", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/test/networking/routers`)
+    cy.visit(`/${TEST_DOMAIN}/test/networking/routers`)
     cy.contains("[data-test=page-title]", "Networks & Routers")
     cy.contains("a", "Create new").should("not.exist")
     cy.contains("th", "External Subnet")
   })
 
   it("open bgp vpns page", () => {
-    cy.visit(
-      `/${Cypress.env("TEST_DOMAIN")}/test/networking/widget/bgp-vpns/?r=/`
-    )
+    cy.visit(`/${TEST_DOMAIN}/test/networking/widget/bgp-vpns/?r=/`)
     cy.contains("[data-test=page-title]", "Networks & Routers")
     cy.contains("a", "New BGP VPN").click()
     cy.contains("button", "Save").should("be.disabled")
@@ -50,11 +46,7 @@ describe("networking", () => {
   })
 
   it("open securtiy groups page", () => {
-    cy.visit(
-      `/${Cypress.env(
-        "TEST_DOMAIN"
-      )}/test/networking/widget/security-groups/?r=`
-    )
+    cy.visit(`/${TEST_DOMAIN}/test/networking/widget/security-groups/?r=`)
     cy.contains("[data-test=page-title]", "Security Groups")
     cy.contains("a", "New Security Group").should("not.exist")
     cy.contains("a", "default").click()
@@ -64,7 +56,7 @@ describe("networking", () => {
 
   it("open fixed ips and ports and get unauthorized", () => {
     cy.request({
-      url: `/${Cypress.env("TEST_DOMAIN")}/test/networking/widget/ports`,
+      url: `/${TEST_DOMAIN}/test/networking/widget/ports`,
       failOnStatusCode: false,
     }).should((response) => {
       expect(response.status).to.eq(403)

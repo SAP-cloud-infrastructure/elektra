@@ -1,11 +1,9 @@
+const TEST_DOMAIN = Cypress.expose("TEST_DOMAIN")
+
 describe("volumes", () => {
   beforeEach(() => {
-    cy.elektraLogin(
-      Cypress.env("TEST_DOMAIN"),
-      Cypress.env("TEST_USER"),
-      Cypress.env("TEST_PASSWORD")
-    )
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/test/block-storage/?r=/volumes`)
+    cy.elektraLoginWithEnv()
+    cy.visit(`/${TEST_DOMAIN}/test/block-storage/?r=/volumes`)
   })
 
   it("the volumes page is reachable", () => {
@@ -28,20 +26,14 @@ describe("volumes", () => {
 
 describe("snapshots", () => {
   beforeEach(() => {
-    cy.elektraLogin(
-      Cypress.env("TEST_DOMAIN"),
-      Cypress.env("TEST_USER"),
-      Cypress.env("TEST_PASSWORD")
-    )
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/test/block-storage/?r=/snapshots`)
+    cy.elektraLoginWithEnv()
+    cy.visit(`/${TEST_DOMAIN}/test/block-storage/?r=/snapshots`)
   })
 
   it("the snapshots page is reachable", () => {
     cy.contains("[data-test=page-title]", "Volumes & Snapshots")
     cy.get(".table.snapshots")
-    cy.request(
-      `/${Cypress.env("TEST_DOMAIN")}/test/block-storage/?r=/snapshots`
-    ).should((response) => {
+    cy.request(`/${TEST_DOMAIN}/test/block-storage/?r=/snapshots`).should((response) => {
       expect(response.status).to.eq(200)
     })
   })
@@ -49,14 +41,8 @@ describe("snapshots", () => {
 
 describe("deep links", () => {
   it("opens the new volume modal window", () => {
-    cy.elektraLogin(
-      Cypress.env("TEST_DOMAIN"),
-      Cypress.env("TEST_USER"),
-      Cypress.env("TEST_PASSWORD")
-    )
-    cy.visit(
-      `/${Cypress.env("TEST_DOMAIN")}/test/block-storage/?r=/volumes/new`
-    )
+    cy.elektraLoginWithEnv()
+    cy.visit(`/${TEST_DOMAIN}/test/block-storage/?r=/volumes/new`)
     cy.contains("[data-test=page-title]", "Volumes & Snapshots")
     cy.contains("New Volume")
     cy.contains("Save")

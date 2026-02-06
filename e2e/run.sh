@@ -9,7 +9,6 @@ function help_me() {
 
   echo "Usage: run.sh --host|-h HOST --profile|-p admin|member|smoke --e2e-path|-e2e  --record|-r --browser|-b chrome|firefox|electron* --debug|-d CYPRESS-DEBUG-FLAG* TESTNAME* "
   echo "       run.sh --help                                                   # will print out this message"
-  echo "       run.sh --info                                                   # prints info about used cypress"
   echo "       run.sh --host http://localhost:3000 landingpage                 # will only run landingpage tests"
   echo "       run.sh --host http://localhost:3000 --debug 'cypress:network:*' # will show debug information about the networking"
   echo "       run.sh --e2e_path                                               # this optional if not set \$PWD is used"
@@ -71,10 +70,6 @@ else
       shift # past argument
       shift # past value
       ;;
-    -i | --info)
-      docker run -it --rm --entrypoint=cypress keppel.eu-de-1.cloud.sap/ccloud/cypress-client:latest info
-      exit
-      ;;
     -r | --record)
       hostname=$(hostname)
       CI_BUID_ID="$(date) - DEV - $hostname"
@@ -98,7 +93,7 @@ if [[ -z "${CYPRESS_BROWSER}" ]]; then
 fi
 
 echo "check for latest cypress image"
-docker pull keppel.eu-de-1.cloud.sap/ccloud/cypress-client:latest
+docker pull keppel.eu-de-1.cloud.sap/ccloud-dockerhub-mirror/cypress/included:15.10.0
 
 # https://docs.cypress.io/guides/guides/command-line#cypress-run
 # --ci-build-id https://docs.cypress.io/guides/guides/command-line#cypress-run-ci-build-id-lt-id-gt
@@ -226,6 +221,7 @@ docker run --rm -it \
   --env CYPRESS_TEST_DOMAIN="$TEST_DOMAIN" \
   --entrypoint $CY_CMD \
   --network=host \
-  keppel.eu-de-1.cloud.sap/ccloud-dockerhub-mirror/cypress/included:12.17.3 run "${CY_OPTIONS[@]}" --spec "$SPECS_FOLDER" --browser "$CYPRESS_BROWSER"
+  keppel.eu-de-1.cloud.sap/ccloud-dockerhub-mirror/cypress/included:15.10.0 run "${CY_OPTIONS[@]}" --spec "$SPECS_FOLDER" --browser "$CYPRESS_BROWSER"
 # NOTE: for testing and debug inside the container use --entrypoint /bin/bash
-# https://hub.docker.com/r/cypress/included/tags?name=12.17.3
+# https://hub.docker.com/r/cypress/included/tags
+# cypress/included:15.10.0

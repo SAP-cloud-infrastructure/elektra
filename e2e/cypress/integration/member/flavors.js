@@ -1,10 +1,12 @@
+const TEST_DOMAIN = Cypress.expose("TEST_DOMAIN")
+
 describe("flavors", () => {
   beforeEach(() => {
-    cy.elektraLogin(Cypress.env("TEST_DOMAIN"), Cypress.env("TEST_USER"), Cypress.env("TEST_PASSWORD"))
+    cy.elektraLoginWithEnv()
   })
 
   it("open flavors page and see it is loading", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/test/compute/flavors`)
+    cy.visit(`/${TEST_DOMAIN}/test/compute/flavors`)
     cy.contains("[data-test=page-title]", "Flavors")
   })
 })

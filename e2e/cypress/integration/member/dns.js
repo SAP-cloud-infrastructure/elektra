@@ -1,10 +1,12 @@
+const TEST_DOMAIN = Cypress.expose("TEST_DOMAIN")
+
 describe("dns", () => {
   beforeEach(() => {
-    cy.elektraLogin(Cypress.env("TEST_DOMAIN"), Cypress.env("TEST_USER"), Cypress.env("TEST_PASSWORD"))
+    cy.elektraLoginWithEnv()
   })
 
   it("open dns page and test Request New Zone dialog", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/test/dns-service/zones`)
+    cy.visit(`/${TEST_DOMAIN}/test/dns-service/zones`)
     cy.contains("[data-test=page-title]", "DNS")
     cy.contains("Request New Zone").click()
     cy.contains("Request New Domain")
@@ -12,7 +14,7 @@ describe("dns", () => {
   })
 
   it("open dns page and test Request New Zone with Internal SAP Hosted Zone", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/test/dns-service/zones`)
+    cy.visit(`/${TEST_DOMAIN}/test/dns-service/zones`)
     cy.contains("[data-test=page-title]", "DNS")
     cy.contains("Request New Zone").click()
     cy.contains("Request New Domain")

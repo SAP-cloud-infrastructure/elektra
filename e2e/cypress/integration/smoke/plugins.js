@@ -13,7 +13,7 @@
  * - Missing JavaScript bundles
  */
 
-const TEST_DOMAIN = Cypress.env("TEST_DOMAIN") || "cc3test"
+const TEST_DOMAIN = Cypress.expose("TEST_DOMAIN") || "cc3test"
 const TEST_PROJECT = "test"
 
 // List of all plugins and their mount points

@@ -1,3 +1,5 @@
+const TEST_DOMAIN = Cypress.expose("TEST_DOMAIN")
+
 describe("keymanager", () => {
   let randomNum
   let secretName
@@ -27,14 +29,14 @@ describe("keymanager", () => {
   }
 
   beforeEach(() => {
-    cy.elektraLogin(Cypress.env("TEST_DOMAIN"), Cypress.env("TEST_USER"), Cypress.env("TEST_PASSWORD"))
+    cy.elektraLoginWithEnv()
     randomNum = Cypress._.random(0, 1e6)
     secretName = `test-pass-phrase-secret-${randomNum}`
     secretPayload = "test secret"
   })
 
   it("create and delete a 'Passphrase' secret", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/keymanager/secrets`)
+    cy.visit(`/${TEST_DOMAIN}/admin/keymanager/secrets`)
 
     // Verify validation errors
     cy.contains("New Secret").click()

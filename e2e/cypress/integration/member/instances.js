@@ -1,10 +1,12 @@
+const TEST_DOMAIN = Cypress.expose("TEST_DOMAIN")
+
 describe("instances", () => {
   beforeEach(() => {
-    cy.elektraLogin(Cypress.env("TEST_DOMAIN"), Cypress.env("TEST_USER"), Cypress.env("TEST_PASSWORD"))
+    cy.elektraLoginWithEnv()
   })
 
   it("in test project the instances page is reachable and you can search for VM with title 'elektra-test-vm' and show it's details", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/compute/instances`)
+    cy.visit(`/${TEST_DOMAIN}/admin/compute/instances`)
     cy.contains("[data-test=page-title]", "Servers")
     cy.get("#search").should("be.visible").type("elektra{enter}")
 
@@ -14,7 +16,7 @@ describe("instances", () => {
   })
 
   it("click on 'Create New' button in test project opens a modal window and check form", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/test/compute/instances`)
+    cy.visit(`/${TEST_DOMAIN}/test/compute/instances`)
     cy.contains("[data-test=page-title]", "Servers")
 
     cy.contains("Create New")
@@ -28,7 +30,7 @@ describe("instances", () => {
   })
 
   it("in test project the dropdown menu for 'elektra-test-vm' is available and menus are working", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/compute/instances?searchfor=Name&search=elektra`)
+    cy.visit(`/${TEST_DOMAIN}/admin/compute/instances?searchfor=Name&search=elektra`)
     cy.contains("[data-test=page-title]", "Servers")
 
     cy.get("button.dropdown-toggle").click()
@@ -96,7 +98,7 @@ describe("instances", () => {
   })
 
   it("in test project rename 'elektra-test-vm' and show it's details", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/compute/instances?searchfor=Name&search=elektra`)
+    cy.visit(`/${TEST_DOMAIN}/admin/compute/instances?searchfor=Name&search=elektra`)
     cy.contains("[data-test=page-title]", "Servers")
 
     cy.get("button.dropdown-toggle").click()
@@ -110,7 +112,7 @@ describe("instances", () => {
     cy.get("input#server_name").type(
       `{selectall}elektra-test-vm (do not delete) added by e2e test ${currenDate}{enter}`
     )
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/compute/instances?searchfor=Name&search=elektra`)
+    cy.visit(`/${TEST_DOMAIN}/admin/compute/instances?searchfor=Name&search=elektra`)
     cy.contains("elektra-test-vm").click()
     cy.contains(`added by e2e test ${currenDate}`)
   })
