@@ -24,15 +24,4 @@ describe("dns", () => {
 
     cy.contains("button", "Cancel").click()
   })
-
-  // Internal SAP Hosted Zone on F5 is no longer available
-  /*it("open dns page and test Request New Zone with Internal SAP Hosted Zone on F5", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/test/dns-service/zones`)
-    cy.contains('[data-test=page-title]','DNS')
-    cy.contains('Request New Zone').click()
-    cy.contains('Request New Domain')
-    cy.get('#zone_request_domain_pool').select('Internal SAP Hosted Zone on F5')
-    cy.get('input#zone_request_name').should('be.visible')
-    cy.contains('button','Cancel').click()
-  })*/
 })
