@@ -21,6 +21,17 @@ describe("project landing page", () => {
     cy.contains("health")
   })
 
+  it("open project landing page and check app credentials", () => {
+    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/test/identity/project/home`)
+    cy.contains("a.navbar-identity", "Technical Team User").click()
+    cy.contains("a", "App Credentials").click()
+    cy.contains("No application credentials found. Create a new one")
+    cy.contains("button", "Create").click()
+    cy.contains("Create New Application Credentials")
+    cy.contains("button", "Save").click()
+    cy.contains("div", "Name are required.")
+  })
+
   it("open project landing page and check logout button", () => {
     cy.visit(`/${Cypress.env("TEST_DOMAIN")}/test/identity/project/home`)
     cy.contains("a.navbar-identity", "Technical Team User").click()

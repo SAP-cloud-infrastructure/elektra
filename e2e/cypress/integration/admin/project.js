@@ -21,4 +21,11 @@ describe("project landing page", () => {
     // check not in one string because it can be different order
     cy.contains("button", "Enter CC3TEST")
   })
+
+  it("open project landing page and check delete project panel is loading", () => {
+    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/test/identity/project/home`)
+    cy.contains("th", "Delete Project")
+    cy.contains("a", "Check").click()
+    cy.contains("Prodel Service found")
+  })
 })
