@@ -111,6 +111,16 @@ class Snowfall {
           display: none;
         }
       }
+
+      @media (prefers-reduced-motion: reduce) {
+        .snowflake {
+          animation: none;
+          opacity: 0;
+        }
+        .snowfall-container {
+          display: none;
+        }
+      }
     `
     document.head.appendChild(this.styleElement)
 

@@ -1,0 +1,70 @@
+#!/bin/bash
+set -e
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Get the project root (parent of bin directory)
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+CONTAINER_NAME="elektra-dev"
+IMAGE_NAME="elektra-dev"
+DOCKERFILE="${PROJECT_ROOT}/docker/Dockerfile.dev"
+PORT=8180
+
+# Handle special commands
+case "$1" in
+  cleanup|stop)
+    echo "Cleaning up container ${CONTAINER_NAME}..."
+    docker stop "${CONTAINER_NAME}" 2>/dev/null || true
+    docker rm "${CONTAINER_NAME}" 2>/dev/null || true
+    echo "Cleanup complete."
+    exit 0
+    ;;  
+  rebuild)
+    echo "Rebuilding image ${IMAGE_NAME}..."
+    echo "Using Dockerfile: ${DOCKERFILE}"
+    echo "Build context: ${PROJECT_ROOT}"
+    docker stop "${CONTAINER_NAME}" 2>/dev/null || true
+    docker rm "${CONTAINER_NAME}" 2>/dev/null || true
+    docker build -t "${IMAGE_NAME}" -f "${DOCKERFILE}" "${PROJECT_ROOT}"
+    echo "Rebuild complete. Start container with: $0"
+    exit 0
+    ;;
+  help|--help|-h)
+    echo "Usage: $0 [COMMAND]"
+    echo ""
+    echo "Special commands:"
+    echo "  cleanup, stop     Stop and remove the container"
+    echo "  rebuild           Rebuild the image and remove container"
+    echo "  help              Show this help message"
+    echo ""
+    echo "Without arguments: Start container or attach if running"
+    echo "With command: Execute command in container"
+    echo ""
+    echo "Examples:"
+    echo "  $0                    # Interactive bash session"
+    echo "  $0 start-rails        # Run start-rails command"
+    echo "  $0 cleanup            # Stop and remove container"
+    echo "  $0 rebuild            # Rebuild image"
+    exit 0
+    ;;
+esac
+
+# Get the command to run (defaults to /bin/bash --login if none provided)
+COMMAND="${@:-/bin/bash --login}"
+
+# Check if container exists (running or stopped)
+if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+  # Check if it's running
+  if docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+    echo "Container ${CONTAINER_NAME} is running. Executing command..."
+    docker exec -it "${CONTAINER_NAME}" ${COMMAND}
+  else
+    echo "Container ${CONTAINER_NAME} exists but is stopped. Starting..."
+    docker start "${CONTAINER_NAME}" > /dev/null
+    docker exec -it "${CONTAINER_NAME}" ${COMMAND}
+  fi
+else
+  echo "Starting new container ${CONTAINER_NAME}..."
+  docker run -it --name "${CONTAINER_NAME}" -v "${PROJECT_ROOT}:/app" -p "${PORT}:${PORT}" -e "APP_PORT=${PORT}" "${IMAGE_NAME}" ${COMMAND}
+fi

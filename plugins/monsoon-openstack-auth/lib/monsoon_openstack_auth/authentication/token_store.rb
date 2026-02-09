@@ -130,7 +130,7 @@ module MonsoonOpenstackAuth
       end
 
       def token_valid?(token)
-        token[:expires_at] and DateTime.parse(token[:expires_at]) > Time.now
+        !!token[:expires_at] and DateTime.parse(token[:expires_at]) > Time.now
       end
 
       def delete_token(token)

@@ -37,13 +37,15 @@ module Smartops
       def handle_api_error(error)
         # error = <Elektron::Errors::ApiResponse: ERRORTYPE>
         # Handle errors that have a status method (like Elektron::Errors::ApiResponse)
+
         status_code = error.respond_to?(:status) ? error.status : :bad_request
         # Note this error is swallowed by the the ajax_helper -> elektra/app/javascript/lib/ajax_helper.js -> if (!response.ok)
         # and needs that structure to be properly handled
-        render json: {
+        error_response = {
           success: false,
-          error: error.message,
-        }, status: status_code
+          error: error.message || error.response.body || "An unexpected error occurred", # this will be the error.message on js side
+        }
+        render json: error_response , status: status_code
       end
     end
   end

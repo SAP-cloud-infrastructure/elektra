@@ -150,52 +150,67 @@ describe("JobItem", () => {
   })
 
   describe("Navigation", () => {
-    it("should navigate when row is clicked", async () => {
+    it("should call onSelect when row is clicked", async () => {
+      const mockOnSelect = vi.fn()
       const user = userEvent.setup()
-      render(<JobItem job={baseJob} />)
+      render(<JobItem job={baseJob} onSelect={mockOnSelect} />)
+
       const row = screen.getByRole("row")
       await user.click(row)
-      expect(mockNavigate).toHaveBeenCalledWith({
-        to: "/jobs",
-        search: { jobId: "job-123" },
-      })
+
+      expect(mockOnSelect).toHaveBeenCalledWith("job-123")
     })
 
-    it("should navigate when Details button is clicked", async () => {
+    it("should call onSelect when Details button is clicked", async () => {
+      const mockOnSelect = vi.fn()
       const user = userEvent.setup()
-      render(<JobItem job={baseJob} />)
+      render(<JobItem job={baseJob} onSelect={mockOnSelect} />)
+
       const button = screen.getByRole("button", { name: "Details" })
       await user.click(button)
-      expect(mockNavigate).toHaveBeenCalledWith({
-        to: "/jobs",
-        search: { jobId: "job-123" },
-      })
+
+      expect(mockOnSelect).toHaveBeenCalledWith("job-123")
     })
 
     it("should not propagate click event when Details button is clicked", async () => {
+      const mockOnSelect = vi.fn()
       const user = userEvent.setup()
-      const rowClickHandler = vi.fn()
-      const { container } = render(<JobItem job={baseJob} />)
+      const { container } = render(<JobItem job={baseJob} onSelect={mockOnSelect} />)
+
       const row = container.querySelector('[style*="cursor: pointer"]')
+      const rowClickHandler = vi.fn()
       if (row) {
         row.addEventListener("click", rowClickHandler)
       }
+
       const button = screen.getByRole("button", { name: "Details" })
       await user.click(button)
-      // Navigate should be called only once (from button, not row)
-      expect(mockNavigate).toHaveBeenCalledTimes(1)
+
+      // onSelect should be called only once (from button, not row)
+      expect(mockOnSelect).toHaveBeenCalledTimes(1)
     })
 
-    it("should navigate with correct job id", async () => {
+    it("should call onSelect with correct job id", async () => {
+      const mockOnSelect = vi.fn()
       const user = userEvent.setup()
       const customJob = { ...baseJob, id: "custom-job-id" }
-      render(<JobItem job={customJob} />)
+      render(<JobItem job={customJob} onSelect={mockOnSelect} />)
+
       const button = screen.getByRole("button", { name: "Details" })
       await user.click(button)
-      expect(mockNavigate).toHaveBeenCalledWith({
-        to: "/jobs",
-        search: { jobId: "custom-job-id" },
-      })
+
+      expect(mockOnSelect).toHaveBeenCalledWith("custom-job-id")
+    })
+
+    it("should do nothing when row is clicked without onSelect prop", async () => {
+      const user = userEvent.setup()
+      render(<JobItem job={baseJob} />)
+
+      const row = screen.getByRole("row")
+      await user.click(row)
+
+      // Should not throw an error
+      expect(mockNavigate).not.toHaveBeenCalled()
     })
   })
 
