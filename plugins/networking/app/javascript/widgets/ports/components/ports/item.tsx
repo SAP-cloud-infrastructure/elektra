@@ -1,9 +1,58 @@
 /* eslint-disable no-undef */
-import { Link } from "react-router-dom"
-import { truncate } from "lib/tools/helpers"
-import { Tooltip } from "lib/components/Overlay"
 import React from "react"
-export const AttachedIcon = ({ port }) => {
+import { Link } from "react-router-dom"
+// @ts-expect-error - lib/tools/helpers has no types
+import { truncate } from "lib/tools/helpers"
+// @ts-expect-error - lib/components/Overlay has no types
+import { Tooltip } from "lib/components/Overlay"
+
+// Types
+interface FixedIP {
+  ip_address: string
+  subnet_id: string
+}
+
+interface Port {
+  id: string
+  name?: string
+  description?: string
+  network_id: string
+  device_id?: string
+  device_owner?: string
+  status?: string
+  fixed_ips?: FixedIP[]
+  isDeleting?: boolean
+}
+
+interface Network {
+  id: string
+  name: string
+}
+
+interface Subnet {
+  id: string
+  name: string
+}
+
+interface SubnetsMap {
+  [key: string]: Subnet
+}
+
+interface AttachedIconProps {
+  port: Port
+}
+
+interface ItemProps {
+  port: Port
+  instancesPath?: string
+  network: Network | null
+  isFetchingNetworks: boolean
+  subnets: SubnetsMap
+  isFetchingSubnets: boolean
+  handleDelete: (portId: string) => void
+}
+
+export const AttachedIcon: React.FC<AttachedIconProps> = ({ port }) => {
   if (!port.device_id) return null
 
   return (
@@ -13,7 +62,7 @@ export const AttachedIcon = ({ port }) => {
   )
 }
 
-const Item = ({
+const Item: React.FC<ItemProps> = ({
   port,
   instancesPath,
   network,
@@ -24,8 +73,7 @@ const Item = ({
 }) => {
   const FIXED = "fixed_ip_allocation"
   const canDelete =
-    policy.isAllowed("networking:port_delete", { port: port }) &&
-    (!port.device_id || port.name == FIXED)
+    policy.isAllowed("networking:port_delete", { port: port }) && (!port.device_id || port.name == FIXED)
   const canUpdate = policy.isAllowed("networking:port_update", { port: port })
 
   return (
@@ -35,9 +83,7 @@ const Item = ({
       </td>
       <td>
         {policy.isAllowed("networking:port_get", { port: port }) ? (
-          <Link to={`/ports/${port.id}/show`}>
-            {port.description || truncate(port.id, 20)}
-          </Link>
+          <Link to={`/ports/${port.id}/show`}>{port.description || truncate(port.id, 20)}</Link>
         ) : (
           port.name || truncate(port.id, 20)
         )}
@@ -55,10 +101,7 @@ const Item = ({
             {isFetchingSubnets ? (
               <span className="spinner"></span>
             ) : (
-              <span className="info-text">
-                {(subnets[ip.subnet_id] || {}).name ||
-                  truncate(ip.subnet_id, 20)}
-              </span>
+              <span className="info-text">{(subnets[ip.subnet_id] || {}).name || truncate(ip.subnet_id, 20)}</span>
             )}
           </div>
         ))}
@@ -69,12 +112,8 @@ const Item = ({
           <>
             <br />
             <span className="info-text">
-              {port.device_owner &&
-              port.device_owner.indexOf("compute:") >= 0 ? (
-                <a
-                  href={`${instancesPath}/${port.device_id}`}
-                  data-modal="true"
-                >
+              {port.device_owner && port.device_owner.indexOf("compute:") >= 0 ? (
+                <a href={`${instancesPath}/${port.device_id}`} data-modal="true">
                   {truncate(port.device_id, 20)}
                 </a>
               ) : (
