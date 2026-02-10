@@ -9,6 +9,7 @@ import { ErrorBoundary, FallbackProps } from "react-error-boundary"
 import InlineError from "../../components/InlineError"
 import CreateClusterWizard from "./-components/CreateClusterWizard"
 import { GardenerApi } from "../../apiClient"
+import MonacoEditor from "../../components/MonacoEditor"
 
 export const CLUSTERS_ROUTE_ID = "/clusters/"
 
@@ -97,6 +98,58 @@ function ClusterActions({
   )
 }
 
+const testKubernetesResource = {
+  apiVersion: "apps/v1",
+  kind: "Deployment",
+  metadata: {
+    name: "nginx-deployment",
+    namespace: "default",
+    labels: {
+      app: "nginx",
+      environment: "production",
+    },
+  },
+  spec: {
+    replicas: 3,
+    selector: {
+      matchLabels: {
+        app: "nginx",
+      },
+    },
+    template: {
+      metadata: {
+        labels: {
+          app: "nginx",
+        },
+      },
+      spec: {
+        containers: [
+          {
+            name: "nginx",
+            image: "nginx:1.24",
+            ports: [
+              {
+                containerPort: 80,
+                protocol: "TCP",
+              },
+            ],
+            resources: {
+              requests: {
+                memory: "64Mi",
+                cpu: "250m",
+              },
+              limits: {
+                memory: "128Mi",
+                cpu: "500m",
+              },
+            },
+          },
+        ],
+      },
+    },
+  },
+}
+
 interface ClustersViewProps {
   clusters?: Cluster[]
   permissions?: Permissions
@@ -114,6 +167,7 @@ function ClusterContent({ clusters = [], permissions, error, isLoading = false, 
   return (
     <Container py px={false}>
       <ClusterList clusters={listError ? [] : clusters} isLoading={isLoading} error={listError} updatedAt={updatedAt} />
+      <MonacoEditor jsonValue={testKubernetesResource} />
     </Container>
   )
 }
