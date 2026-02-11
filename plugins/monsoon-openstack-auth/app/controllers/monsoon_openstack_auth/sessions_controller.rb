@@ -70,9 +70,11 @@ module MonsoonOpenstackAuth
         end
       end
       # Determine the URL to redirect the user after login
-      after_login_url = params[:after_login] || main_app.root_url(
-        domain_id: @domain_id || @domain_name
-      )
+      after_login_url = if safe_redirect_url?(params[:after_login])
+        params[:after_login]
+      else
+        main_app.root_url(domain_id: @domain_id || @domain_name)
+      end
 
       # Attempt to create an authentication session using the provided credentials
       auth_session = MonsoonOpenstackAuth::Authentication::AuthSession

@@ -335,4 +335,803 @@ describe MonsoonOpenstackAuth::SessionsController, type: :controller do
       end
     end
   end
+
+  describe 'GET #new' do
+    let(:domain_name) { 'test_domain' }
+
+    before do
+      allow(MonsoonOpenstackAuth.configuration).to receive(:form_auth_allowed?).and_return(true)
+      allow(controller.main_app).to receive(:root_path).and_return('/dashboard')
+    end
+
+    context 'when form auth is allowed' do
+      it 'renders the login form' do
+        expect(MonsoonOpenstackAuth::Authentication::AuthSession)
+          .to receive(:logout).with(controller, domain_id)
+        
+        get :new, params: { domain_fid: domain_id, domain_id: domain_id }
+        
+        expect(response).to have_http_status(:success)
+      end
+
+      it 'logs out existing session by domain_id' do
+        expect(MonsoonOpenstackAuth::Authentication::AuthSession)
+          .to receive(:logout).with(controller, domain_id)
+        
+        get :new, params: { domain_fid: domain_id, domain_id: domain_id }
+      end
+
+      it 'logs out existing session by domain_name' do
+        expect(MonsoonOpenstackAuth::Authentication::AuthSession)
+          .to receive(:logout).with(controller, domain_name)
+        
+        get :new, params: { domain_fid: domain_id, domain_name: domain_name }
+      end
+
+      it 'handles missing domain parameters' do
+        expect(MonsoonOpenstackAuth::Authentication::AuthSession)
+          .to receive(:logout).with(controller, nil)
+        
+        get :new, params: { domain_fid: domain_id }
+      end
+    end
+
+    context 'when form auth is not allowed' do
+      before do
+        allow(MonsoonOpenstackAuth.configuration).to receive(:form_auth_allowed?).and_return(false)
+      end
+
+      it 'redirects to root path with alert' do
+        get :new, params: { domain_fid: domain_id, domain_id: domain_id }
+        
+        expect(response).to redirect_to(controller.main_app.root_path)
+        expect(flash[:alert]).to eq('Not allowed!')
+      end
+
+      it 'does not call logout' do
+        expect(MonsoonOpenstackAuth::Authentication::AuthSession)
+          .not_to receive(:logout)
+        
+        get :new, params: { domain_fid: domain_id, domain_id: domain_id }
+      end
+    end
+  end
+
+  describe 'POST #create' do
+    let(:username) { 'testuser' }
+    let(:password) { 'password123' }
+    let(:domain_name) { 'test_domain' }
+
+    before do
+      allow(MonsoonOpenstackAuth.configuration).to receive(:form_auth_allowed?).and_return(true)
+      allow(MonsoonOpenstackAuth.configuration).to receive(:enforce_natural_user).and_return(false)
+    end
+
+    context 'when form auth is allowed' do
+      context 'with valid credentials' do
+        before do
+          allow(MonsoonOpenstackAuth::Authentication::AuthSession)
+            .to receive(:create_from_login_form)
+            .and_return(mock_auth_session)
+        end
+
+        it 'creates auth session and redirects to after_login url' do
+          post :create, params: {
+            domain_fid: domain_id,
+            username: username,
+            password: password,
+            domain_id: domain_id,
+            after_login: after_login_url
+          }
+
+          expect(response).to redirect_to(after_login_url)
+          expect(flash[:alert]).to be_nil
+        end
+
+        it 'redirects to root url when after_login not provided' do
+          expected_url = "http://test.host/#{domain_id}"
+          allow(controller.main_app).to receive(:root_url)
+            .with(domain_id: domain_id)
+            .and_return(expected_url)
+
+          post :create, params: {
+            domain_fid: domain_id,
+            username: username,
+            password: password,
+            domain_id: domain_id
+          }
+
+          expect(response).to redirect_to(expected_url)
+        end
+
+        it 'calls create_from_login_form with correct parameters' do
+          expect(MonsoonOpenstackAuth::Authentication::AuthSession)
+            .to receive(:create_from_login_form)
+            .with(controller, username, password, domain_id: domain_id, domain_name: nil)
+            .and_return(mock_auth_session)
+
+          post :create, params: {
+            domain_fid: domain_id,
+            username: username,
+            password: password,
+            domain_id: domain_id
+          }
+        end
+
+        it 'handles domain_name instead of domain_id' do
+          expect(MonsoonOpenstackAuth::Authentication::AuthSession)
+            .to receive(:create_from_login_form)
+            .with(controller, username, password, domain_id: nil, domain_name: domain_name)
+            .and_return(mock_auth_session)
+
+          post :create, params: {
+            domain_fid: domain_id,
+            username: username,
+            password: password,
+            domain_name: domain_name
+          }
+        end
+      end
+
+      context 'with invalid credentials' do
+        before do
+          allow(MonsoonOpenstackAuth::Authentication::AuthSession)
+            .to receive(:create_from_login_form)
+            .and_return(nil)
+        end
+
+        it 'renders login form with error message' do
+          post :create, params: {
+            domain_fid: domain_id,
+            username: username,
+            password: 'wrong_password',
+            domain_id: domain_id
+          }
+
+          expect(response).to render_template(:new)
+          expect(flash[:alert]).to eq('Invalid username/password combination.')
+          expect(assigns(:error)).to eq('Invalid username/password combination.')
+        end
+      end
+
+      context 'when authentication raises exception' do
+        before do
+          allow(MonsoonOpenstackAuth::Authentication::AuthSession)
+            .to receive(:create_from_login_form)
+            .and_raise(StandardError.new('Keystone unavailable'))
+        end
+
+        it 'renders login form with error message' do
+          post :create, params: {
+            domain_fid: domain_id,
+            username: username,
+            password: password,
+            domain_id: domain_id
+          }
+
+          expect(response).to render_template(:new)
+          expect(flash[:alert]).to eq('Keystone unavailable')
+          expect(assigns(:error)).to eq('Keystone unavailable')
+        end
+      end
+
+      context 'with two-factor authentication' do
+        before do
+          allow(MonsoonOpenstackAuth::Authentication::AuthSession)
+            .to receive(:create_from_login_form)
+            .and_return(mock_auth_session)
+        end
+
+        context 'when two-factor is required and not validated' do
+          it 'renders two_factor form' do
+            allow(MonsoonOpenstackAuth::Authentication::AuthSession)
+              .to receive(:two_factor_cookie_valid?)
+              .and_return(false)
+
+            post :create, params: {
+              domain_fid: domain_id,
+              username: username,
+              password: password,
+              domain_id: domain_id,
+              two_factor: 'true'
+            }
+
+            expect(response).to render_template(:two_factor)
+          end
+        end
+
+        context 'when two-factor is required and validated' do
+          it 'redirects to after_login url' do
+            allow(MonsoonOpenstackAuth::Authentication::AuthSession)
+              .to receive(:two_factor_cookie_valid?)
+              .and_return(true)
+
+            post :create, params: {
+              domain_fid: domain_id,
+              username: username,
+              password: password,
+              domain_id: domain_id,
+              after_login: after_login_url,
+              two_factor: 'true'
+            }
+
+            expect(response).to redirect_to(after_login_url)
+          end
+        end
+
+        context 'when two-factor is not required' do
+          it 'redirects to after_login url' do
+            post :create, params: {
+              domain_fid: domain_id,
+              username: username,
+              password: password,
+              domain_id: domain_id,
+              after_login: after_login_url
+            }
+
+            expect(response).to redirect_to(after_login_url)
+          end
+        end
+      end
+    end
+
+    context 'when form auth is not allowed' do
+      before do
+        allow(MonsoonOpenstackAuth.configuration).to receive(:form_auth_allowed?).and_return(false)
+        allow(controller.main_app).to receive(:root_path).and_return('/dashboard')
+      end
+
+      it 'redirects to root path with alert' do
+        post :create, params: {
+          domain_fid: domain_id,
+          username: username,
+          password: password,
+          domain_id: domain_id
+        }
+
+        expect(response).to redirect_to('/dashboard')
+        expect(flash[:alert]).to eq('Not allowed!')
+      end
+    end
+
+    context 'with natural user enforcement' do
+      before do
+        allow(MonsoonOpenstackAuth.configuration).to receive(:enforce_natural_user).and_return(true)
+        allow(MonsoonOpenstackAuth.configuration).to receive(:natural_user_name_pattern).and_return(nil)
+      end
+
+      context 'with technical user (invalid)' do
+        it 'rejects technical user and renders error' do
+          post :create, params: {
+            domain_fid: domain_id,
+            username: 'technical_user',
+            password: password,
+            domain_id: domain_id
+          }
+
+          expect(response).to render_template(:new)
+          expect(flash[:alert]).to eq('Only natural users are allowed to login to the dashboard!')
+          expect(assigns(:error)).to eq('Only natural users are allowed to login to the dashboard!')
+        end
+
+        it 'does not call create_from_login_form for technical users' do
+          expect(MonsoonOpenstackAuth::Authentication::AuthSession)
+            .not_to receive(:create_from_login_form)
+
+          post :create, params: {
+            domain_fid: domain_id,
+            username: 'technical_user',
+            password: password,
+            domain_id: domain_id
+          }
+        end
+      end
+
+      context 'with natural user (valid D-number)' do
+        it 'accepts D-number user' do
+          allow(MonsoonOpenstackAuth::Authentication::AuthSession)
+            .to receive(:create_from_login_form)
+            .and_return(mock_auth_session)
+
+          post :create, params: {
+            domain_fid: domain_id,
+            username: 'D123456',
+            password: password,
+            domain_id: domain_id
+          }
+
+          expect(response).to redirect_to(controller.main_app.root_url(domain_id: domain_id))
+        end
+
+        it 'accepts d-number user (lowercase)' do
+          allow(MonsoonOpenstackAuth::Authentication::AuthSession)
+            .to receive(:create_from_login_form)
+            .and_return(mock_auth_session)
+
+          post :create, params: {
+            domain_fid: domain_id,
+            username: 'd987654',
+            password: password,
+            domain_id: domain_id
+          }
+
+          expect(response).to redirect_to(controller.main_app.root_url(domain_id: domain_id))
+        end
+
+        it 'accepts C-number user' do
+          allow(MonsoonOpenstackAuth::Authentication::AuthSession)
+            .to receive(:create_from_login_form)
+            .and_return(mock_auth_session)
+
+          post :create, params: {
+            domain_fid: domain_id,
+            username: 'C555555',
+            password: password,
+            domain_id: domain_id
+          }
+
+          expect(response).to redirect_to(controller.main_app.root_url(domain_id: domain_id))
+        end
+
+        it 'accepts I-number user' do
+          allow(MonsoonOpenstackAuth::Authentication::AuthSession)
+            .to receive(:create_from_login_form)
+            .and_return(mock_auth_session)
+
+          post :create, params: {
+            domain_fid: domain_id,
+            username: 'I111111',
+            password: password,
+            domain_id: domain_id
+          }
+
+          expect(response).to redirect_to(controller.main_app.root_url(domain_id: domain_id))
+        end
+      end
+
+      context 'with custom natural user pattern' do
+        before do
+          # Custom pattern: allows users starting with "EMP-"
+          allow(MonsoonOpenstackAuth.configuration)
+            .to receive(:natural_user_name_pattern)
+            .and_return(/\AEMP-\d+\z/)
+        end
+
+        it 'accepts user matching custom pattern' do
+          allow(MonsoonOpenstackAuth::Authentication::AuthSession)
+            .to receive(:create_from_login_form)
+            .and_return(mock_auth_session)
+
+          post :create, params: {
+            domain_fid: domain_id,
+            username: 'EMP-12345',
+            password: password,
+            domain_id: domain_id
+          }
+
+          expect(response).to redirect_to(controller.main_app.root_url(domain_id: domain_id))
+        end
+
+        it 'rejects user not matching custom pattern' do
+          post :create, params: {
+            domain_fid: domain_id,
+            username: 'CONTRACTOR-123',
+            password: password,
+            domain_id: domain_id
+          }
+
+          expect(response).to render_template(:new)
+          expect(flash[:alert]).to eq('Only natural users are allowed to login to the dashboard!')
+        end
+
+        it 'still accepts default pattern (D-number)' do
+          allow(MonsoonOpenstackAuth::Authentication::AuthSession)
+            .to receive(:create_from_login_form)
+            .and_return(mock_auth_session)
+
+          post :create, params: {
+            domain_fid: domain_id,
+            username: 'D123456',
+            password: password,
+            domain_id: domain_id
+          }
+
+          expect(response).to redirect_to(controller.main_app.root_url(domain_id: domain_id))
+        end
+      end
+
+      context 'with invalid regex pattern' do
+        before do
+          allow(MonsoonOpenstackAuth.configuration)
+            .to receive(:enforce_natural_user)
+            .and_return(true)
+          
+          # Create a regex that will raise RegexpError when used for matching
+          invalid_regex = /(?<foo>bar)(?<foo>baz)/ # duplicate named capture group
+          allow(MonsoonOpenstackAuth.configuration)
+            .to receive(:natural_user_name_pattern)
+            .and_return(invalid_regex)
+        end
+
+        it 'handles regex error gracefully and rejects user' do
+          post :create, params: {
+            domain_fid: domain_id,
+            username: 'anyuser',
+            password: password,
+            domain_id: domain_id
+          }
+
+          expect(response).to render_template(:new)
+          expect(flash[:alert]).to eq('Only natural users are allowed to login to the dashboard!')
+        end
+      end
+
+        it 'handles regex error gracefully and rejects user' do
+          post :create, params: {
+            domain_fid: domain_id,
+            username: 'anyuser',
+            password: password,
+            domain_id: domain_id
+          }
+
+          expect(response).to render_template(:new)
+          expect(flash[:alert]).to eq('Only natural users are allowed to login to the dashboard!')
+        end
+      end
+    end
+  end
+
+  describe 'GET #two_factor' do
+    let(:domain_name) { 'test_domain' }
+    let(:mock_user) { double('user', name: 'testuser') }
+    let(:mock_session) { double('session', user: mock_user) }
+
+    before do
+      allow(MonsoonOpenstackAuth::Authentication::AuthSession)
+        .to receive(:load_user_from_session)
+        .and_return(mock_session)
+    end
+
+    it 'loads user from session' do
+      expect(MonsoonOpenstackAuth::Authentication::AuthSession)
+        .to receive(:load_user_from_session)
+        .with(controller, domain: domain_id, domain_name: nil)
+
+      get :two_factor, params: { domain_fid: domain_id, domain_id: domain_id }
+    end
+
+    it 'sets username from session user' do
+      get :two_factor, params: { domain_fid: domain_id, domain_id: domain_id }
+
+      expect(assigns(:username)).to eq('testuser')
+    end
+
+    it 'handles domain_name parameter' do
+      expect(MonsoonOpenstackAuth::Authentication::AuthSession)
+        .to receive(:load_user_from_session)
+        .with(controller, domain: nil, domain_name: domain_name)
+
+      get :two_factor, params: { domain_fid: domain_id, domain_name: domain_name }
+    end
+
+    it 'handles nil session gracefully' do
+      allow(MonsoonOpenstackAuth::Authentication::AuthSession)
+        .to receive(:load_user_from_session)
+        .and_return(nil)
+
+      get :two_factor, params: { domain_fid: domain_id, domain_id: domain_id }
+
+      expect(assigns(:username)).to be_nil
+    end
+
+    it 'handles session without user gracefully' do
+      session_without_user = double('session', user: nil)
+      allow(MonsoonOpenstackAuth::Authentication::AuthSession)
+        .to receive(:load_user_from_session)
+        .and_return(session_without_user)
+
+      get :two_factor, params: { domain_fid: domain_id, domain_id: domain_id }
+
+      expect(assigns(:username)).to be_nil
+    end
+
+    it 'renders two_factor template' do
+      get :two_factor, params: { domain_fid: domain_id, domain_id: domain_id }
+
+      expect(response).to have_http_status(:success)
+    end
+  end
+
+  describe 'POST #check_passcode' do
+    let(:username) { 'testuser' }
+    let(:passcode) { '123456' }
+    let(:mock_user) { double('user', name: username) }
+    let(:mock_session) { double('session', user: mock_user) }
+
+    before do
+      allow(MonsoonOpenstackAuth::Authentication::AuthSession)
+        .to receive(:load_user_from_session)
+        .and_return(mock_session)
+    end
+
+    context 'with valid passcode' do
+      before do
+        allow(MonsoonOpenstackAuth::Authentication::AuthSession)
+          .to receive(:check_two_factor)
+          .and_return(true)
+      end
+
+      it 'redirects to after_login url' do
+        post :check_passcode, params: {
+          domain_fid: domain_id,
+          domain_id: domain_id,
+          username: username,
+          passcode: passcode,
+          after_login: after_login_url
+        }
+
+        expect(response).to redirect_to(after_login_url)
+        expect(flash[:alert]).to be_nil
+      end
+
+      it 'redirects to root url when after_login not provided' do
+        expected_url = "http://test.host/#{domain_id}"
+        allow(controller.main_app).to receive(:root_url)
+          .with(domain_id: domain_id)
+          .and_return(expected_url)
+
+        post :check_passcode, params: {
+          domain_fid: domain_id,
+          domain_id: domain_id,
+          username: username,
+          passcode: passcode
+        }
+
+        expect(response).to redirect_to(expected_url)
+      end
+
+      it 'calls check_two_factor with correct parameters' do
+        expect(MonsoonOpenstackAuth::Authentication::AuthSession)
+          .to receive(:check_two_factor)
+          .with(controller, username, passcode)
+          .and_return(true)
+
+        post :check_passcode, params: {
+          domain_fid: domain_id,
+          domain_id: domain_id,
+          username: username,
+          passcode: passcode
+        }
+      end
+    end
+
+    context 'with invalid passcode' do
+      before do
+        allow(MonsoonOpenstackAuth::Authentication::AuthSession)
+          .to receive(:check_two_factor)
+          .and_return(false)
+      end
+
+      it 'renders two_factor form with error' do
+        post :check_passcode, params: {
+          domain_fid: domain_id,
+          domain_id: domain_id,
+          username: username,
+          passcode: 'wrong_passcode'
+        }
+
+        expect(response).to render_template(:two_factor)
+        expect(flash[:alert]).to eq('Invalid user or SecurID passcode.')
+        expect(assigns(:error)).to eq('Invalid user or SecurID passcode.')
+      end
+    end
+
+    context 'when username mismatch' do
+      it 'renders error when provided username differs from session' do
+        post :check_passcode, params: {
+          domain_fid: domain_id,
+          domain_id: domain_id,
+          username: 'different_user',
+          passcode: passcode
+        }
+
+        expect(response).to render_template(:two_factor)
+        expect(flash[:alert]).to eq("Provided user doesn't match logged in user")
+        expect(assigns(:error)).to eq("Provided user doesn't match logged in user")
+      end
+
+      it 'does not call check_two_factor when username mismatches' do
+        expect(MonsoonOpenstackAuth::Authentication::AuthSession)
+          .not_to receive(:check_two_factor)
+
+        post :check_passcode, params: {
+          domain_fid: domain_id,
+          domain_id: domain_id,
+          username: 'different_user',
+          passcode: passcode
+        }
+      end
+    end
+
+    context 'when exception occurs' do
+      before do
+        allow(MonsoonOpenstackAuth::Authentication::AuthSession)
+          .to receive(:load_user_from_session)
+          .and_raise(StandardError.new('Session expired'))
+      end
+
+      it 'renders two_factor form with error message' do
+        post :check_passcode, params: {
+          domain_fid: domain_id,
+          domain_id: domain_id,
+          username: username,
+          passcode: passcode
+        }
+
+        expect(response).to render_template(:two_factor)
+        expect(flash[:alert]).to eq('Session expired')
+        expect(assigns(:error)).to eq('Session expired')
+      end
+    end
+
+    context 'with domain_name instead of domain_id' do
+      let(:domain_name) { 'test_domain' }
+
+      it 'handles domain_name parameter' do
+        allow(MonsoonOpenstackAuth::Authentication::AuthSession)
+          .to receive(:check_two_factor)
+          .and_return(true)
+
+        post :check_passcode, params: {
+          domain_fid: domain_id,
+          domain_name: domain_name,
+          username: username,
+          passcode: passcode
+        }
+
+        expect(response).to redirect_to(controller.main_app.root_url(domain_id: domain_name))
+      end
+    end
+  end
+
+  describe 'GET #destroy' do
+    let(:domain_name) { 'test_domain' }
+
+    before do
+      allow(MonsoonOpenstackAuth::Authentication::AuthSession)
+        .to receive(:logout)
+      # The logout route doesn't require domain_fid, so we don't need special routing setup
+    end
+
+    it 'calls logout with domain_name parameter' do
+      expect(MonsoonOpenstackAuth::Authentication::AuthSession)
+        .to receive(:logout)
+        .with(controller, domain_name)
+
+      get :destroy, params: { domain_fid: domain_id, domain_name: domain_name }
+    end
+
+    it 'redirects to custom redirect_to url when provided' do
+      custom_url = 'http://test.host/custom-logout'
+
+      get :destroy, params: {
+        domain_fid: domain_id,
+        domain_name: domain_name,
+        redirect_to: custom_url
+      }
+
+      expect(response).to redirect_to(custom_url)
+    end
+
+    it 'redirects to root url when redirect_to not provided' do
+      expected_url = 'http://test.host/'
+      allow(controller.main_app).to receive(:root_url).and_return(expected_url)
+
+      get :destroy, params: { domain_fid: domain_id, domain_name: domain_name }
+
+      expect(response).to redirect_to(expected_url)
+    end
+
+    it 'handles logout without domain_name' do
+      expect(MonsoonOpenstackAuth::Authentication::AuthSession)
+        .to receive(:logout)
+        .with(controller, nil)
+
+      get :destroy, params: { domain_fid: domain_id }
+    end
+
+    it 'clears session' do
+      get :destroy, params: { domain_fid: domain_id, domain_name: domain_name }
+
+      expect(MonsoonOpenstackAuth::Authentication::AuthSession)
+        .to have_received(:logout)
+    end
+  end
+
+  describe 'safe_redirect_url?' do
+    let(:username) { 'testuser' }
+    let(:password) { 'password123' }
+
+    before do
+      allow(MonsoonOpenstackAuth.configuration).to receive(:form_auth_allowed?).and_return(true)
+      allow(MonsoonOpenstackAuth::Authentication::AuthSession)
+        .to receive(:create_from_login_form)
+        .and_return(mock_auth_session)
+    end
+
+    context 'with safe relative URLs' do
+      it 'accepts relative URL' do
+        post :create, params: {
+          domain_fid: domain_id,
+          username: username,
+          password: password,
+          domain_id: domain_id,
+          after_login: '/dashboard/projects'
+        }
+
+        expect(response).to redirect_to('/dashboard/projects')
+      end
+    end
+
+    context 'with same-host URLs' do
+      it 'accepts URL from same host' do
+        allow(controller.request).to receive(:host).and_return('test.host')
+
+        post :create, params: {
+          domain_fid: domain_id,
+          username: username,
+          password: password,
+          domain_id: domain_id,
+          after_login: 'http://test.host/dashboard'
+        }
+
+        expect(response).to redirect_to('http://test.host/dashboard')
+      end
+    end
+
+    context 'with unsafe URLs' do
+      it 'rejects URL from different host' do
+        allow(controller.request).to receive(:host).and_return('test.host')
+
+        post :create, params: {
+          domain_fid: domain_id,
+          username: username,
+          password: password,
+          domain_id: domain_id,
+          after_login: 'http://evil.com/phishing'
+        }
+
+        # Should redirect to the safe default (root_url with domain_id)
+        expect(response).to redirect_to(controller.main_app.root_url(domain_id: domain_id))
+      end
+
+      it 'rejects blank URL' do
+        post :create, params: {
+          domain_fid: domain_id,
+          username: username,
+          password: password,
+          domain_id: domain_id,
+          after_login: ''
+        }
+
+        # Should redirect to the safe default (root_url with domain_id)
+        expect(response).to redirect_to(controller.main_app.root_url(domain_id: domain_id))
+      end
+
+      it 'rejects malformed URL' do
+        allow(controller.request).to receive(:host).and_return('test.host')
+
+        post :create, params: {
+          domain_fid: domain_id,
+          username: username,
+          password: password,
+          domain_id: domain_id,
+          after_login: 'ht!tp://invalid url with spaces'
+        }
+
+        # Should redirect to the safe default (root_url with domain_id)
+        expect(response).to redirect_to(controller.main_app.root_url(domain_id: domain_id))
+      end
+    end
+  end
 end
