@@ -765,19 +765,6 @@ describe MonsoonOpenstackAuth::SessionsController, type: :controller do
           expect(flash[:alert]).to eq('Only natural users are allowed to login to the dashboard!')
         end
       end
-
-        it 'handles regex error gracefully and rejects user' do
-          post :create, params: {
-            domain_fid: domain_id,
-            username: 'anyuser',
-            password: password,
-            domain_id: domain_id
-          }
-
-          expect(response).to render_template(:new)
-          expect(flash[:alert]).to eq('Only natural users are allowed to login to the dashboard!')
-        end
-      end
     end
   end
 
