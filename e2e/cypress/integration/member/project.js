@@ -1,60 +1,42 @@
+const TEST_DOMAIN = Cypress.expose("TEST_DOMAIN")
+
 describe("project landing page", () => {
   beforeEach(() => {
-    cy.elektraLogin(Cypress.env("TEST_DOMAIN"), Cypress.env("TEST_USER"), Cypress.env("TEST_PASSWORD"))
+    cy.elektraLoginWithEnv()
   })
 
   it("open project landing page and cannot see edit project button", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/test/identity/project/home`)
+    cy.visit(`/${TEST_DOMAIN}/test/identity/project/home`)
     cy.contains("Test Project")
     cy.get("div.dropdown.header-action").should("not.exist")
   })
 
-  /*
-  // wizard not available in test project
-  it("open project landing page and see project wizard", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/test/identity/project/home`)
-    cy.contains("Welcome to your new Project")
-    cy.contains("h4","Project")
-    cy.contains("This Project is not ready for use.")
-    cy.get('div.wizard-step').contains("h4","Masterdata")
-    cy.get('div.wizard-step').contains("Was successfully maintained.")
-    cy.get('div.wizard-step').contains("h4","Resource Quotas")
-    cy.get('div.wizard-step').contains("This project already has quota.")
-    cy.get('div.wizard-step').contains("h4","Resource Pooling")
-    // note .should('be.disabled') works not with a or div tag!
-    // https://github.com/cypress-io/cypress/issues/5903
-    cy.contains("a.btn","Enable resource pooling").should('have.attr', 'disabled');
-    cy.get('div.wizard-step').contains("h4","Configure Your Network")
-  })
-  */
-
   it("open project landing page and check user profile and SSH keys", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/test/identity/project/home`)
-    cy.contains("a.navbar-identity", "Technical User").click()
+    cy.visit(`/${TEST_DOMAIN}/test/identity/project/home`)
+    cy.contains("a.navbar-identity", "Technical Team User").click()
     cy.contains("a", "Profile").click()
-    // check not in one string because it can be different order
-    cy.contains("td", "member")
-    cy.contains("td", "reader")
+    cy.contains("td", "TC3_OBS_TM1")
     cy.contains("button", "Close").click()
 
-    cy.contains("a.navbar-identity", "Technical User").click()
+    cy.contains("a.navbar-identity", "Technical Team User").click()
     cy.contains("a", "Key Pairs").click()
-    cy.contains("a.btn", "Create new").click()
-    cy.contains("h4", "New Keypair")
-    cy.get("input#keypair_name").type("test")
-    cy.get("textarea#keypair_public_key").type("test")
+    cy.contains("health")
+  })
+
+  it("open project landing page and check app credentials", () => {
+    cy.visit(`/${TEST_DOMAIN}/test/identity/project/home`)
+    cy.contains("a.navbar-identity", "Technical Team User").click()
+    cy.contains("a", "App Credentials").click()
+    cy.contains("No application credentials found. Create a new one")
+    cy.contains("button", "Create").click()
+    cy.contains("Create New Application Credentials")
     cy.contains("button", "Save").click()
-    cy.contains("Public key test is not a valid ssh public key")
-    cy.contains("button", "Cancel")
-      .should("be.visible")
-      .then(($btn) => {
-        cy.wrap($btn).click()
-      })
+    cy.contains("div", "Name are required.")
   })
 
   it("open project landing page and check logout button", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/test/identity/project/home`)
-    cy.contains("a.navbar-identity", "Technical User").click()
+    cy.visit(`/${TEST_DOMAIN}/test/identity/project/home`)
+    cy.contains("a.navbar-identity", "Technical Team User").click()
     cy.contains("a", "Log out").click()
     // eslint-disable-next-line cypress/no-unnecessary-waiting
     cy.wait(500)

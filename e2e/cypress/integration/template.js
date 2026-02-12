@@ -1,15 +1,12 @@
+const TEST_DOMAIN = Cypress.expose("TEST_DOMAIN")
+
 describe("template", () => {
   beforeEach(() => {
-    cy.elektraLogin(
-      Cypress.env("TEST_DOMAIN"),
-      Cypress.env("TEST_USER"),
-      Cypress.env("TEST_PASSWORD")
-    )
+    cy.elektraLoginWithEnv()
   })
 
   it("open template page", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/template`)
-    cy.contains('[data-test=page-title]','Template')
+    cy.visit(`/${TEST_DOMAIN}/template`)
+    cy.contains("[data-test=page-title]", "Template")
   })
-
 })
