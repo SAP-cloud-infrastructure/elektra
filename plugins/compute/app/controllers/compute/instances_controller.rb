@@ -74,6 +74,14 @@ module Compute
     end
 
     def console
+      # Prevent browser caching - console URLs contain tokens that expire
+      # this is important especially for the reload console button in the console layout, 
+      # because otherwise the browser would cache the console url and after token expiration 
+      # the console would not work anymore until the user reloads the page
+      response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+      response.headers["Pragma"] = "no-cache"
+      response.headers["Expires"] = "0"
+
       @instance = services.compute.find_server(params[:id])
       hypervisor = @instance.attributes["OS-EXT-SRV-ATTR:host"] || ""
       begin
