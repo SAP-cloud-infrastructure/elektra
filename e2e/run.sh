@@ -7,9 +7,8 @@ fi
 
 function help_me() {
 
-  echo "Usage: run.sh --host|-h HOST --profile|-p admin|folder --e2e-path|-e2e  --record|-r --browser|-b chrome|firefox|electron* --debug|-d CYPRESS-DEBUG-FLAG* TESTNAME* "
+  echo "Usage: run.sh --host|-h HOST --profile|-p admin|member|smoke --e2e-path|-e2e  --record|-r --browser|-b chrome|firefox|electron* --debug|-d CYPRESS-DEBUG-FLAG* TESTNAME* "
   echo "       run.sh --help                                                   # will print out this message"
-  echo "       run.sh --info                                                   # prints info about used cypress"
   echo "       run.sh --host http://localhost:3000 landingpage                 # will only run landingpage tests"
   echo "       run.sh --host http://localhost:3000 --debug 'cypress:network:*' # will show debug information about the networking"
   echo "       run.sh --e2e_path                                               # this optional if not set \$PWD is used"
@@ -71,10 +70,6 @@ else
       shift # past argument
       shift # past value
       ;;
-    -i | --info)
-      docker run -it --rm --entrypoint=cypress keppel.eu-de-1.cloud.sap/ccloud/cypress-client:latest info
-      exit
-      ;;
     -r | --record)
       hostname=$(hostname)
       CI_BUID_ID="$(date) - DEV - $hostname"
@@ -98,7 +93,7 @@ if [[ -z "${CYPRESS_BROWSER}" ]]; then
 fi
 
 echo "check for latest cypress image"
-docker pull keppel.eu-de-1.cloud.sap/ccloud/cypress-client:latest
+docker pull keppel.eu-de-1.cloud.sap/ccloud-dockerhub-mirror/cypress/included:15.10.0
 
 # https://docs.cypress.io/guides/guides/command-line#cypress-run
 # --ci-build-id https://docs.cypress.io/guides/guides/command-line#cypress-run-ci-build-id-lt-id-gt
@@ -143,42 +138,52 @@ if [[ -z "${HOST}" ]]; then
   help_me
 fi
 
-# get test user and password
+# get test user and password (not required for smoke profile)
 set -o allexport
 source ../.env
 set +o allexport
 
-TEST_USER=$TEST_MEMBER_USER
-TEST_PASSWORD=$TEST_MEMBER_PASSWORD
-
-if [[ "${PROFILE}" == "admin" ]]; then
-  TEST_USER=$TEST_ADMIN_USER
-  TEST_PASSWORD=$TEST_ADMIN_PASSWORD
-
-  if [[ -z "${TEST_ADMIN_USER}" ]]; then
-    echo "ERROR: no TEST_ADMIN_USER found please check .env"
-    exit 1
-  fi
-
-  if [[ -z "${TEST_ADMIN_PASSWORD}" ]]; then
-    echo "ERROR: no TEST_ADMIN_PASSWORD found please check .env"
-    exit 1
+# smoke profile does not require authentication
+if [[ "${PROFILE}" == "smoke" ]]; then
+  TEST_USER=""
+  TEST_PASSWORD=""
+  # TEST_DOMAIN is optional for smoke tests, default to cc3test if not set
+  if [[ -z "${TEST_DOMAIN}" ]]; then
+    TEST_DOMAIN="cc3test"
   fi
 else
-  if [[ -z "${TEST_MEMBER_USER}" ]]; then
-    echo "ERROR: no TEST_MEMBER_USER found please check .env"
-    exit 1
+  TEST_USER=$TEST_MEMBER_USER
+  TEST_PASSWORD=$TEST_MEMBER_PASSWORD
+
+  if [[ "${PROFILE}" == "admin" ]]; then
+    TEST_USER=$TEST_ADMIN_USER
+    TEST_PASSWORD=$TEST_ADMIN_PASSWORD
+
+    if [[ -z "${TEST_ADMIN_USER}" ]]; then
+      echo "ERROR: no TEST_ADMIN_USER found please check .env"
+      exit 1
+    fi
+
+    if [[ -z "${TEST_ADMIN_PASSWORD}" ]]; then
+      echo "ERROR: no TEST_ADMIN_PASSWORD found please check .env"
+      exit 1
+    fi
+  else
+    if [[ -z "${TEST_MEMBER_USER}" ]]; then
+      echo "ERROR: no TEST_MEMBER_USER found please check .env"
+      exit 1
+    fi
+
+    if [[ -z "${TEST_MEMBER_PASSWORD}" ]]; then
+      echo "ERROR: no TEST_MEMBER_PASSWORD found please check .env"
+      exit 1
+    fi
   fi
 
-  if [[ -z "${TEST_MEMBER_PASSWORD}" ]]; then
-    echo "ERROR: no TEST_MEMBER_PASSWORD found please check .env"
+  if [[ -z "${TEST_DOMAIN}" ]]; then
+    echo "ERROR: no TEST_DOMAIN found please check .env"
     exit 1
   fi
-fi
-
-if [[ -z "${TEST_DOMAIN}" ]]; then
-  echo "ERROR: no TEST_DOMAIN found please check .env"
-  exit 1
 fi
 
 # show all hidden chars for debugging
@@ -197,8 +202,13 @@ if [[ -n "$DEBUG" ]]; then
   echo "DEBUG:        => $DEBUG"
 fi
 echo ""
-echo "Please Note: the e2e tests run only with QA-DE-1, (your local elektra that is configured for qa-de-1"
-echo "or https://dashboard-e2e.qa-de-1.cloud.sap) because the Test-User,Domain and Project is only configured there."
+if [[ "${PROFILE}" == "smoke" ]]; then
+  echo "Running SMOKE tests - no authentication required."
+  echo "These tests verify that plugins are loaded and basic pages render correctly."
+else
+  echo "Please Note: the e2e tests run only with QA-DE-1, (your local elektra that is configured for qa-de-1"
+  echo "or https://dashboard-e2e.qa-de-1.cloud.sap) because the Test-User,Domain and Project is only configured there."
+fi
 echo ""
 
 docker run --rm -it \
@@ -211,6 +221,7 @@ docker run --rm -it \
   --env CYPRESS_TEST_DOMAIN="$TEST_DOMAIN" \
   --entrypoint $CY_CMD \
   --network=host \
-  keppel.eu-de-1.cloud.sap/ccloud-dockerhub-mirror/cypress/included:12.17.3 run "${CY_OPTIONS[@]}" --spec "$SPECS_FOLDER" --browser "$CYPRESS_BROWSER"
+  keppel.eu-de-1.cloud.sap/ccloud-dockerhub-mirror/cypress/included:15.10.0 run "${CY_OPTIONS[@]}" --spec "$SPECS_FOLDER" --browser "$CYPRESS_BROWSER"
 # NOTE: for testing and debug inside the container use --entrypoint /bin/bash
-# https://hub.docker.com/r/cypress/included/tags?name=12.17.3
+# https://hub.docker.com/r/cypress/included/tags
+# cypress/included:15.10.0

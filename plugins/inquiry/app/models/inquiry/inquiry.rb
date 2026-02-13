@@ -395,7 +395,6 @@ module Inquiry
       end
     end
 
-    # Note: for testing use 'deliver_now'
     def notify_requester
       # puts "######### NOTIFY REQUESTER #########"
       begin
@@ -404,8 +403,8 @@ module Inquiry
           self.requester.full_name,
           self,
           self.process_steps.last,
-        ).deliver_later
-      rescue Net::SMTPError => e
+        )
+      rescue EmailDeliveryError => e
         Rails.logger.error "InquiryMailer: Could not send email to requester #{@user_email}. Exception: #{e.message}"
       end
     end
@@ -420,8 +419,8 @@ module Inquiry
             inform_new_project_dl,
             self,
             self.requester.full_name,
-          ).deliver_later
-        rescue Net::SMTPError => e
+          )
+        rescue EmailDeliveryError => e
           Rails.logger.error "InquiryMailer: Could not send email to #{inform_new_project_dl} Exception: #{e.message}"
         end
       end
@@ -436,20 +435,9 @@ module Inquiry
           self,
           self.process_steps.last,
           self.requester,
-        ).deliver_later
-      rescue Net::SMTPError => e
-        emails.each do |email|
-          begin
-            InquiryMailer.notification_email_additional_recipients(
-              [email],
-              self,
-              self.process_steps.last,
-              self.requester,
-            ).deliver_later
-          rescue Net::SMTPError => ex
-            Rails.logger.error "InquiryMailer: Could not send email to #{email} Exception: #{e.message}"
-          end
-        end
+        )
+      rescue EmailDeliveryError => e
+        Rails.logger.error "InquiryMailer: Could not send email to additional recipients #{self.additional_recipients}. Exception: #{e.message}"
       end
     end
 
@@ -461,20 +449,9 @@ module Inquiry
           self,
           self.process_steps.last,
           self.requester,
-        ).deliver_later
-      rescue Net::SMTPError => e
-        self.processors.each do |p|
-          begin
-            InquiryMailer.notification_email_processors(
-              [p.email],
-              self,
-              self.process_steps.last,
-              self.requester,
-            ).deliver_later
-          rescue Net::SMTPError => ex
-            Rails.logger.error "InquiryMailer: Could not send email to requester #{p.email}. Exception: #{ex.message}"
-          end
-        end
+        )
+      rescue EmailDeliveryError => e
+        Rails.logger.error "InquiryMailer: Could not send email to processors #{(self.processors.map { |p| p.email }).compact}. Exception: #{e.message}"
       end
     end
 

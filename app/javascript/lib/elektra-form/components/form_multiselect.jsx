@@ -34,7 +34,6 @@ export class FormMultiselect extends React.Component {
   render() {
     const values = this.context.formValues[this.props.name] || []
 
-    console.log(this.context.formValues, this.props.name, values)
     const selectedIds = []
     const selectedNames = []
     let selectedLabel = ""

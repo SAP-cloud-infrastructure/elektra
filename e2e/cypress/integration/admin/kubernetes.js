@@ -1,14 +1,12 @@
+const TEST_DOMAIN = Cypress.expose("TEST_DOMAIN")
+
 describe("kubernetes", () => {
   beforeEach(() => {
-    cy.elektraLogin(
-      Cypress.env("TEST_DOMAIN"),
-      Cypress.env("TEST_USER"),
-      Cypress.env("TEST_PASSWORD")
-    )
+    cy.elektraLoginWithEnv()
   })
 
   it("open kubernetes page in admin project and test create dialog", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/kubernetes/`)
+    cy.visit(`/${TEST_DOMAIN}/admin/kubernetes/`)
     cy.contains("[data-test=page-title]", "Kubernetes as a Service")
     cy.contains("button", "Create Cluster").click()
     // eslint-disable-next-line cypress/no-unnecessary-waiting
