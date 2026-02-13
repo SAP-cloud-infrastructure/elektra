@@ -24,6 +24,33 @@
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
+/**
+ * Custom command to perform login using credentials from environment.
+ * Uses cy.env() to securely access TEST_USER and TEST_PASSWORD.
+ * Uses Cypress.expose() to access TEST_DOMAIN (public configuration).
+ *
+ * @example
+ * // Login with environment credentials
+ * cy.elektraLoginWithEnv()
+ *
+ * // Login with custom domain but env credentials
+ * cy.elektraLoginWithEnv({ domain: 'customdomain' })
+ */
+Cypress.Commands.add("elektraLoginWithEnv", (options = {}) => {
+  const domain = options.domain || Cypress.expose("TEST_DOMAIN")
+
+  cy.env(["TEST_USER", "TEST_PASSWORD"]).then(({ TEST_USER, TEST_PASSWORD }) => {
+    cy.elektraLogin(domain, TEST_USER, TEST_PASSWORD)
+  })
+})
+
+/**
+ * Custom command to perform login with explicit credentials.
+ *
+ * @param {string} domain - The domain to login to
+ * @param {string} user - The username
+ * @param {string} password - The password
+ */
 Cypress.Commands.add("elektraLogin", (domain, user, password) => {
   cy.visit(`/${domain}/auth/login/${domain}`)
   cy.get("#username").type(user)
@@ -37,8 +64,7 @@ Cypress.Commands.add("elektraLogin", (domain, user, password) => {
   // delete the profile with "UserProfile.second.domain_profiles.delete_all"
   cy.get("body").then(($body) => {
     // return if login failed
-    if ($body.html().indexOf("Invalid username/password combination.") >= 0)
-      return
+    if ($body.html().indexOf("Invalid username/password combination.") >= 0) return
 
     // go to domain home page
     cy.visit(`/${domain}/home`)

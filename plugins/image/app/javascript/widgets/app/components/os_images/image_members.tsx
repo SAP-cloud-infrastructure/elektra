@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 import React, { useState, useEffect } from "react"
-// @ts-expect-error: expect missing react-bootstrap types
+// @ts-expect-error: Ignore missing type definitions for policy
 import { Modal, Button } from "react-bootstrap"
 import { CSSTransition, TransitionGroup } from "react-transition-group"
 import ImageMemberItem from "./image_member_item"

@@ -1,14 +1,12 @@
+const TEST_DOMAIN = Cypress.expose("TEST_DOMAIN")
+
 describe("shared object storage", () => {
   beforeEach(() => {
-    cy.elektraLogin(
-      Cypress.env("TEST_DOMAIN"),
-      Cypress.env("TEST_USER"),
-      Cypress.env("TEST_PASSWORD")
-    )
+    cy.elektraLoginWithEnv()
   })
 
   it("open object storage and check create container button", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/object-storage/swift/`)
+    cy.visit(`/${TEST_DOMAIN}/admin/object-storage/swift/`)
     cy.contains("[data-test=page-title]", "Object Storage")
     cy.contains("a", "Create container").click()
     cy.contains(
@@ -18,18 +16,14 @@ describe("shared object storage", () => {
   })
 
   it("open object storage and check capabilities dialog", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/object-storage/swift/`)
+    cy.visit(`/${TEST_DOMAIN}/admin/object-storage/swift/`)
     cy.contains("[data-test=page-title]", "Object Storage")
     cy.get("i.fa-info-circle").click()
     cy.contains("Capabilities")
   })
 
   it("check with deep link the container access control dialog and check ACLs button for elektra-test container", () => {
-    cy.visit(
-      `/${Cypress.env(
-        "TEST_DOMAIN"
-      )}/admin/object-storage/swift/containers/elektra-test/access-control`
-    )
+    cy.visit(`/${TEST_DOMAIN}/admin/object-storage/swift/containers/elektra-test/access-control`)
     // eslint-disable-next-line cypress/no-unnecessary-waiting
     cy.wait(3000)
     // need to wait until loading is done otherwise it is not possible to access the check acls button and will end
@@ -44,35 +38,23 @@ describe("shared object storage", () => {
   })
 
   it("check with deep link container properties for elektra-test and test edit metadata", () => {
-    cy.visit(
-      `/${Cypress.env(
-        "TEST_DOMAIN"
-      )}/admin/object-storage/swift/containers/elektra-test/properties`
-    )
+    cy.visit(`/${TEST_DOMAIN}/admin/object-storage/swift/containers/elektra-test/properties`)
     cy.get('[data-test="metaDataKey_0"]').type("{selectAll}footestkey")
     cy.get('[data-test="metaDataValue_0"]').type("{selectAll}footestvalue")
     cy.get('[data-test="Update container"]').click()
 
     // reload view to check that tags are written
-    cy.visit(
-      `/${Cypress.env(
-        "TEST_DOMAIN"
-      )}/admin/object-storage/swift/containers/elektra-test/properties`
-    )
+    cy.visit(`/${TEST_DOMAIN}/admin/object-storage/swift/containers/elektra-test/properties`)
     // check value and delete
-    cy.get('[data-test="metaDataValue_0"]')
-      .should("have.value", "footestvalue")
-      .type("{selectAll}{backspace}")
-    cy.get('[data-test="metaDataKey_0"]')
-      .should("have.value", "footestkey")
-      .type("{selectAll}{backspace}")
+    cy.get('[data-test="metaDataValue_0"]').should("have.value", "footestvalue").type("{selectAll}{backspace}")
+    cy.get('[data-test="metaDataKey_0"]').should("have.value", "footestkey").type("{selectAll}{backspace}")
     cy.get('[data-test="Update container"]').click()
     // eslint-disable-next-line cypress/no-unnecessary-waiting
     cy.wait(1000) // this is only for cosmetic reason to see that the window was closed in the video
   })
 
   it("open object storage and elektra-test container and check action buttons", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/object-storage/swift/`)
+    cy.visit(`/${TEST_DOMAIN}/admin/object-storage/swift/`)
     cy.contains("[data-test=page-title]", "Object Storage")
     cy.contains("a", "elektra-test").click()
     cy.contains("a", "Create folder").click()
@@ -84,65 +66,39 @@ describe("shared object storage", () => {
   })
 
   it("check with deep link object properties for amiga.jpg and test edit metadata", () => {
-    cy.visit(
-      `/${Cypress.env(
-        "TEST_DOMAIN"
-      )}/admin/object-storage/swift/containers/elektra-test/objects/X18kPQ%3D%3D/amiga.jpg/show`
-    )
+    cy.visit(`/${TEST_DOMAIN}/admin/object-storage/swift/containers/elektra-test/objects/X18kPQ%3D%3D/amiga.jpg/show`)
     cy.get('[data-test="metaDataKey_0"]').type("{selectAll}footestkey")
     cy.get('[data-test="metaDataValue_0"]').type("{selectAll}footestvalue")
     cy.get('[data-test="Update object"]').click()
 
     // reload view to check that tags are written
-    cy.visit(
-      `/${Cypress.env(
-        "TEST_DOMAIN"
-      )}/admin/object-storage/swift/containers/elektra-test/objects/X18kPQ%3D%3D/amiga.jpg/show`
-    )
+    cy.visit(`/${TEST_DOMAIN}/admin/object-storage/swift/containers/elektra-test/objects/X18kPQ%3D%3D/amiga.jpg/show`)
     // check value and delete
-    cy.get('[data-test="metaDataValue_0"]')
-      .should("have.value", "footestvalue")
-      .type("{selectAll}{backspace}")
-    cy.get('[data-test="metaDataKey_0"]')
-      .should("have.value", "footestkey")
-      .type("{selectAll}{backspace}")
+    cy.get('[data-test="metaDataValue_0"]').should("have.value", "footestvalue").type("{selectAll}{backspace}")
+    cy.get('[data-test="metaDataKey_0"]').should("have.value", "footestkey").type("{selectAll}{backspace}")
     cy.get('[data-test="Update object"]').click()
     // eslint-disable-next-line cypress/no-unnecessary-waiting
     cy.wait(1000) // this is only for cosmetic reason to see that the window was closed in the video
   })
 
   it("open elektra-test container directly with deep link and check item copy dialog", () => {
-    cy.visit(
-      `/${Cypress.env(
-        "TEST_DOMAIN"
-      )}/admin/object-storage/swift/containers/elektra-test/objects/X18kPQ%3D%3D/amiga.jpg/copy`
-    )
+    cy.visit(`/${TEST_DOMAIN}/admin/object-storage/swift/containers/elektra-test/objects/X18kPQ%3D%3D/amiga.jpg/copy`)
     cy.contains("Target container")
     cy.contains("Target path")
     cy.contains("button", "Cancel").click()
   })
 
   it("open elektra-test container directly with deep link and check item move dialog", () => {
-    cy.visit(
-      `/${Cypress.env(
-        "TEST_DOMAIN"
-      )}/admin/object-storage/swift/containers/elektra-test/objects/X18kPQ%3D%3D/amiga.jpg/move`
-    )
+    cy.visit(`/${TEST_DOMAIN}/admin/object-storage/swift/containers/elektra-test/objects/X18kPQ%3D%3D/amiga.jpg/move`)
     cy.contains("Target container")
     cy.contains("Target path")
     cy.contains("button", "Cancel").click()
   })
 
   it("check with deep link the empty container dialog that is not empty", () => {
-    cy.visit(
-      `/${Cypress.env(
-        "TEST_DOMAIN"
-      )}/admin/object-storage/swift/containers/elektra-test/empty`
-    )
+    cy.visit(`/${TEST_DOMAIN}/admin/object-storage/swift/containers/elektra-test/empty`)
     cy.contains("button", "Empty").should("be.disabled")
-    cy.contains(
-      "Are you sure? All objects in the container will be deleted. This cannot be undone."
-    )
+    cy.contains("Are you sure? All objects in the container will be deleted. This cannot be undone.")
     cy.get("i.fa.fa-clone").click()
     cy.get('input[name="confirmation"]').should("have.value", "elektra-test")
     cy.contains("button", "Empty").should("be.enabled")
@@ -150,47 +106,28 @@ describe("shared object storage", () => {
   })
 
   it("check with deep link the empty container dialog that is empty", () => {
-    cy.visit(
-      `/${Cypress.env(
-        "TEST_DOMAIN"
-      )}/admin/object-storage/swift/containers/elektra-test-empty/empty`
-    )
+    cy.visit(`/${TEST_DOMAIN}/admin/object-storage/swift/containers/elektra-test-empty/empty`)
     cy.contains("Nothing to do. Container is already empty.").click()
   })
 
   it("check with deep link the delete container dialog that is not empty", () => {
-    cy.visit(
-      `/${Cypress.env(
-        "TEST_DOMAIN"
-      )}/admin/object-storage/swift/containers/elektra-test/delete`
-    )
-    cy.contains(
-      "Cannot delete Container contains objects. Please empty it first."
-    )
+    cy.visit(`/${TEST_DOMAIN}/admin/object-storage/swift/containers/elektra-test/delete`)
+    cy.contains("Cannot delete Container contains objects. Please empty it first.")
     cy.contains("button", "Got it!").click()
   })
 
   it("check with deep link the delete container dialog that is empty", () => {
-    cy.visit(
-      `/${Cypress.env(
-        "TEST_DOMAIN"
-      )}/admin/object-storage/swift/containers/elektra-test-empty/delete`
-    )
+    cy.visit(`/${TEST_DOMAIN}/admin/object-storage/swift/containers/elektra-test-empty/delete`)
     cy.contains("button", "Delete").should("be.disabled")
-    cy.contains(
-      "Are you sure? The container will be deleted. This cannot be undone."
-    )
+    cy.contains("Are you sure? The container will be deleted. This cannot be undone.")
     cy.get("i.fa.fa-clone").click()
-    cy.get('input[name="confirmation"]').should(
-      "have.value",
-      "elektra-test-empty"
-    )
+    cy.get('input[name="confirmation"]').should("have.value", "elektra-test-empty")
     cy.contains("button", "Delete").should("be.enabled")
     cy.contains("button", "Cancel").click()
   })
 
   it("open object storage and elektra-test container and check download big files dialog", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/object-storage/swift/`)
+    cy.visit(`/${TEST_DOMAIN}/admin/object-storage/swift/`)
     cy.contains("[data-test=page-title]", "Object Storage")
     cy.contains("a", "elektra-test").click()
     // force: true prevents this error:
@@ -201,7 +138,7 @@ describe("shared object storage", () => {
 
   // this is not working because popper is not rendering correctly
   // it("open object storage and search elektra-test to test dialogs", () => {
-  //   cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/object-storage/swift/`)
+  //   cy.visit(`/${TEST_DOMAIN}/admin/object-storage/swift/`)
   //   cy.get('[data-test="search"]').type("elektra-test-empty")
   //   cy.get('[data-test="dropdown"]').click()
   //   cy.contains("a", "Empty").click()

@@ -1,3 +1,5 @@
+const TEST_DOMAIN = Cypress.expose("TEST_DOMAIN")
+
 describe("landing page", () => {
   it("loads content", () => {
     // content is loaded if children of root element exists.
@@ -8,7 +10,7 @@ describe("landing page", () => {
   })
 
   it("user is not logged, tries to visit domain", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}`)
+    cy.visit(`/${TEST_DOMAIN}`)
     // eslint-disable-next-line cypress/no-unnecessary-waiting
     cy.wait(500)
     cy.contains("button", "Log in")

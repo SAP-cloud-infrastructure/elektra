@@ -1,20 +1,19 @@
+const TEST_DOMAIN = Cypress.expose("TEST_DOMAIN")
+
 describe("domain landing page", () => {
   beforeEach(() => {
-    cy.elektraLogin(Cypress.env("TEST_DOMAIN"), Cypress.env("TEST_USER"), Cypress.env("TEST_PASSWORD"))
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/home`)
+    cy.elektraLoginWithEnv()
+    cy.visit(`/${TEST_DOMAIN}/home`)
   })
 
   it("open domain landing page and check user profile", () => {
-    cy.contains("a.navbar-identity", "Technical User").click()
+    cy.contains("a.navbar-identity", "Technical Team User").click()
     cy.contains("a", "Profile").click()
-    // check not in one string because it can be different order
-    cy.contains("td", "member")
-    cy.contains("td", "reader")
-    cy.contains("td", "admin")
+    cy.contains("td", "TC3_OBS_TA1")
   })
 
   it("open domain landing page and check logout button", () => {
-    cy.contains("a.navbar-identity", "Technical User").click()
+    cy.contains("a.navbar-identity", "Technical Team User").click()
     cy.contains("a", "Log out").click()
     // eslint-disable-next-line cypress/no-unnecessary-waiting
     cy.wait(500)

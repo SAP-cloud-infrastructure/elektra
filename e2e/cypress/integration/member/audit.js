@@ -1,15 +1,13 @@
+const TEST_DOMAIN = Cypress.expose("TEST_DOMAIN")
+
 describe("audit", () => {
   beforeEach(() => {
-    cy.elektraLogin(
-      Cypress.env("TEST_DOMAIN"),
-      Cypress.env("TEST_USER"),
-      Cypress.env("TEST_PASSWORD")
-    )
+    cy.elektraLoginWithEnv()
   })
 
   it("open audit and should see unauthorized", () => {
     cy.request({
-      url: `/${Cypress.env("TEST_DOMAIN")}/test/audit/`,
+      url: `/${TEST_DOMAIN}/test/audit/`,
       failOnStatusCode: false,
     }).should((response) => {
       expect(response.status).to.eq(403)
