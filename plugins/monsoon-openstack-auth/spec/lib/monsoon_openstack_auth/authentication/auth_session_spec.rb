@@ -93,9 +93,9 @@ describe MonsoonOpenstackAuth::Authentication::AuthSession do
 
   context 'included in controller', type: :controller do
     before do
-      controller.main_app.stub(:root_path).and_return('/')
-      controller.monsoon_openstack_auth.stub(:new_session_path).and_return('/auth/sessions/new')
-      controller.monsoon_openstack_auth.stub(:login_path).and_return('/auth/sessions/new')
+      allow(controller.main_app).to receive(:root_path).and_return('/')
+      allow(controller.monsoon_openstack_auth).to receive(:new_session_path).and_return('/auth/sessions/new')
+      allow(controller.monsoon_openstack_auth).to receive(:login_path).and_return('/auth/sessions/new')
     end
 
     controller(ActionController::Base) do # anonymous subclass of ActionController::Base
@@ -108,11 +108,11 @@ describe MonsoonOpenstackAuth::Authentication::AuthSession do
 
     context 'token auth is allowed' do
       before :each do
-        MonsoonOpenstackAuth.configuration.stub(:token_auth_allowed?) { true  }
-        MonsoonOpenstackAuth.configuration.stub(:basic_auth_allowed?) { false }
-        MonsoonOpenstackAuth.configuration.stub(:sso_auth_allowed?)  { false }
-        MonsoonOpenstackAuth.configuration.stub(:form_auth_allowed?) { false }
-        MonsoonOpenstackAuth.configuration.stub(:access_key_auth_allowed?) { false }
+        allow(MonsoonOpenstackAuth.configuration).to receive(:token_auth_allowed?) { true  }
+        allow(MonsoonOpenstackAuth.configuration).to receive(:basic_auth_allowed?) { false }
+        allow(MonsoonOpenstackAuth.configuration).to receive(:sso_auth_allowed?)  { false }
+        allow(MonsoonOpenstackAuth.configuration).to receive(:form_auth_allowed?) { false }
+        allow(MonsoonOpenstackAuth.configuration).to receive(:access_key_auth_allowed?) { false }
       end
 
       context 'no auth token presented' do
@@ -157,11 +157,11 @@ describe MonsoonOpenstackAuth::Authentication::AuthSession do
 
     context 'basic auth is allowed' do
       before :each do
-        MonsoonOpenstackAuth.configuration.stub(:token_auth_allowed?) { false }
-        MonsoonOpenstackAuth.configuration.stub(:basic_auth_allowed?) { true }
-        MonsoonOpenstackAuth.configuration.stub(:sso_auth_allowed?)  { false }
-        MonsoonOpenstackAuth.configuration.stub(:form_auth_allowed?) { false }
-        MonsoonOpenstackAuth.configuration.stub(:access_key_auth_allowed?) { false }
+        allow(MonsoonOpenstackAuth.configuration).to receive(:token_auth_allowed?) { false }
+        allow(MonsoonOpenstackAuth.configuration).to receive(:basic_auth_allowed?) { true }
+        allow(MonsoonOpenstackAuth.configuration).to receive(:sso_auth_allowed?)  { false }
+        allow(MonsoonOpenstackAuth.configuration).to receive(:form_auth_allowed?) { false }
+        allow(MonsoonOpenstackAuth.configuration).to receive(:access_key_auth_allowed?) { false }
       end
 
       context 'no basic auth presented' do
@@ -193,11 +193,11 @@ describe MonsoonOpenstackAuth::Authentication::AuthSession do
 
     context 'sso auth is allowed' do
       before :each do
-        MonsoonOpenstackAuth.configuration.stub(:token_auth_allowed?) { false }
-        MonsoonOpenstackAuth.configuration.stub(:basic_auth_allowed?) { false }
-        MonsoonOpenstackAuth.configuration.stub(:sso_auth_allowed?)  { true }
-        MonsoonOpenstackAuth.configuration.stub(:form_auth_allowed?) { false }
-        MonsoonOpenstackAuth.configuration.stub(:access_key_auth_allowed?) { false }
+        allow(MonsoonOpenstackAuth.configuration).to receive(:token_auth_allowed?) { false }
+        allow(MonsoonOpenstackAuth.configuration).to receive(:basic_auth_allowed?) { false }
+        allow(MonsoonOpenstackAuth.configuration).to receive(:sso_auth_allowed?)  { true }
+        allow(MonsoonOpenstackAuth.configuration).to receive(:form_auth_allowed?) { false }
+        allow(MonsoonOpenstackAuth.configuration).to receive(:access_key_auth_allowed?) { false }
       end
 
       context 'no sso header presented' do
@@ -224,11 +224,11 @@ describe MonsoonOpenstackAuth::Authentication::AuthSession do
 
     context 'acccess_key auth is allowed' do
       before :each do
-        MonsoonOpenstackAuth.configuration.stub(:token_auth_allowed?) { false }
-        MonsoonOpenstackAuth.configuration.stub(:basic_auth_allowed?) { false }
-        MonsoonOpenstackAuth.configuration.stub(:sso_auth_allowed?) { false }
-        MonsoonOpenstackAuth.configuration.stub(:access_key_auth_allowed?) { true }
-        MonsoonOpenstackAuth.configuration.stub(:form_auth_allowed?) { false }
+        allow(MonsoonOpenstackAuth.configuration).to receive(:token_auth_allowed?) { false }
+        allow(MonsoonOpenstackAuth.configuration).to receive(:basic_auth_allowed?) { false }
+        allow(MonsoonOpenstackAuth.configuration).to receive(:sso_auth_allowed?) { false }
+        allow(MonsoonOpenstackAuth.configuration).to receive(:access_key_auth_allowed?) { true }
+        allow(MonsoonOpenstackAuth.configuration).to receive(:form_auth_allowed?) { false }
       end
 
       context 'no access key param presented' do
@@ -276,11 +276,11 @@ describe MonsoonOpenstackAuth::Authentication::AuthSession do
 
     context 'form auth is allowed' do
       before :each do
-        MonsoonOpenstackAuth.configuration.stub(:token_auth_allowed?) { false }
-        MonsoonOpenstackAuth.configuration.stub(:basic_auth_allowed?) { false }
-        MonsoonOpenstackAuth.configuration.stub(:sso_auth_allowed?)  { false }
-        MonsoonOpenstackAuth.configuration.stub(:form_auth_allowed?) { true }
-        MonsoonOpenstackAuth.configuration.stub(:access_key_auth_allowed?)  { false }
+        allow(MonsoonOpenstackAuth.configuration).to receive(:token_auth_allowed?) { false }
+        allow(MonsoonOpenstackAuth.configuration).to receive(:basic_auth_allowed?) { false }
+        allow(MonsoonOpenstackAuth.configuration).to receive(:sso_auth_allowed?)  { false }
+        allow(MonsoonOpenstackAuth.configuration).to receive(:form_auth_allowed?) { true }
+        allow(MonsoonOpenstackAuth.configuration).to receive(:access_key_auth_allowed?)  { false }
       end
 
       context 'session token not presented' do
@@ -311,11 +311,11 @@ describe MonsoonOpenstackAuth::Authentication::AuthSession do
 
     context 'all auth methods are allowed' do
       before :each do
-        MonsoonOpenstackAuth.configuration.stub(:token_auth_allowed?) { true }
-        MonsoonOpenstackAuth.configuration.stub(:basic_auth_allowed?) { true }
-        MonsoonOpenstackAuth.configuration.stub(:sso_auth_allowed?)  { true }
-        MonsoonOpenstackAuth.configuration.stub(:form_auth_allowed?) { true }
-        MonsoonOpenstackAuth.configuration.stub(:access_key_auth_allowed?)  { true }
+        allow(MonsoonOpenstackAuth.configuration).to receive(:token_auth_allowed?) { true }
+        allow(MonsoonOpenstackAuth.configuration).to receive(:basic_auth_allowed?) { true }
+        allow(MonsoonOpenstackAuth.configuration).to receive(:sso_auth_allowed?)  { true }
+        allow(MonsoonOpenstackAuth.configuration).to receive(:form_auth_allowed?) { true }
+        allow(MonsoonOpenstackAuth.configuration).to receive(:access_key_auth_allowed?)  { true }
       end
 
       it 'authenticates from session' do
@@ -360,7 +360,7 @@ describe MonsoonOpenstackAuth::Authentication::AuthSession do
 
       it 'authenticates from sso' do
         domain = double('domain')
-        domain.stub(:id).and_return('o-default')
+        allow(domain).to receive(:id).and_return('o-default')
 
         allow_any_instance_of(MonsoonOpenstackAuth::ApiClient).to receive(:domain_by_name).with('default').and_return(domain)
 
@@ -389,7 +389,7 @@ describe MonsoonOpenstackAuth::Authentication::AuthSession do
 
       it 'authenticate from sso ignoring domain' do
         domain = double('domain')
-        domain.stub(:id).and_return('o-default')
+        allow(domain).to receive(:id).and_return('o-default')
 
         allow_any_instance_of(MonsoonOpenstackAuth::ApiClient).to receive(
           :domain_by_name

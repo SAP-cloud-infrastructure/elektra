@@ -42,7 +42,18 @@ class CoreApplicationMailer < ActionMailer::Base
     # Make the request and handle the response
     response = http.request(request)
 
+    unless response.is_a?(Net::HTTPSuccess)
+      raise EmailDeliveryError,
+            "Email API failed (#{response.code}): #{response.body}"
+    end
+
     Rails.logger.info "Email API Response: #{response.code} - #{response.body}"
+  rescue Net::OpenTimeout, Net::ReadTimeout => e
+    raise EmailDeliveryError, "Email API timeout: #{e.message}"
+  rescue SocketError, Errno::ECONNREFUSED => e
+    raise EmailDeliveryError, "Email API connection error: #{e.message}" 
+  rescue JSON::ParserError => e
+    raise EmailDeliveryError, "Email API response parsing error: #{e.message}"
   end
 
   private

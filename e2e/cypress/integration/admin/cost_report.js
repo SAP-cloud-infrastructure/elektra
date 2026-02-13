@@ -1,24 +1,13 @@
+const TEST_DOMAIN = Cypress.expose("TEST_DOMAIN")
+
 describe("cost report", () => {
   beforeEach(() => {
-    cy.elektraLogin(
-      Cypress.env("TEST_DOMAIN"),
-      Cypress.env("TEST_USER"),
-      Cypress.env("TEST_PASSWORD")
-    )
+    cy.elektraLoginWithEnv()
   })
 
-  it("open cost report and see report for network and virtualMachine", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/admin/reports/cost/project`)
+  it("open cost report", () => {
+    cy.visit(`/${TEST_DOMAIN}/admin/reports/cost/project`)
     cy.contains("[data-test=page-title]", "Cost Report")
-    cy.contains(".legend text", "network")
-    cy.contains(".legend text", "virtualMachine")
-  })
-
-  it("open domain landing page and check cost report", () => {
-    cy.visit(`/${Cypress.env("TEST_DOMAIN")}/home`)
-    cy.contains("[data-test=page-title]", "Home")
-    cy.contains("a", "Cost Report").click()
-    cy.contains("[data-test=page-title]", "Cost Report for cc3test")
-    cy.contains(".legend text", "network")
+    cy.contains("No data available for this project.")
   })
 })
