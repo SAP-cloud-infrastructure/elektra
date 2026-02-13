@@ -1,9 +1,0 @@
-- id = configset[:id]
-- name = configset[:name]
-.btn-group
-  %button.btn.btn-default.btn-sm.dropdown-toggle{ type: "button", data: { toggle: "dropdown"}, aria: { expanded: true } }
-    %span.fa.fa-cog
-  %ul.dropdown-menu.dropdown-menu-right{ role:"menu" }
-    - if current_user.is_allowed?('email_service:configset_delete')
-      %li= link_to('Edit', plugin('email_service').edit_configset_path(id: id, name: name), data: {modal: true})
-      %li= link_to 'Delete', plugin('email_service').configset_path(id: id, name: name), method: :delete, data: { confirm: "Are you sure to delete the Configuration set #{configset[:name]}", ok: "Yes, delete it", confirmed: :loading_status}
