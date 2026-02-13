@@ -30,7 +30,7 @@ const NewOrder = () => {
       variant: "success",
       text: `The order ${orderUuid} is successfully created.`,
     })
-  }, [history])
+  }, [])
 
   useEffect(() => {
     setShowNewOrder(true)
