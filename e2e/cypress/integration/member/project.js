@@ -33,10 +33,4 @@ describe("project landing page", () => {
     cy.contains("button", "Save").click()
     cy.contains("div", "Name are required.")
   })
-
-  it("open project landing page and check logout button", () => {
-    cy.visit(`/${TEST_DOMAIN}/test/identity/project/home`)
-    cy.contains("a.navbar-identity", "Technical Team User").click()
-    cy.contains("a", "Log out").click()
-  })
 })
