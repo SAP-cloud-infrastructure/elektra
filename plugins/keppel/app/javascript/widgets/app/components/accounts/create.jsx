@@ -287,10 +287,10 @@ export default class AccountCreateModal extends React.Component {
         return invalid("role", "is missing")
     }
 
-    if (/[^a-z0-9-]/.test(newAccount.name)) {
+    if (!/^[a-z0-9][a-z0-9-]*$/.test(newAccount.name)) {
       return invalid(
         "name",
-        "may only contain lowercase letters, digits and dashes"
+        "must start with a lowercase letter or digit and may then only contain lowercase letters, digits, and dashes"
       )
     }
     if (newAccount.name.length > 48) {
