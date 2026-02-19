@@ -1,4 +1,3 @@
-!!!
 %html.compute
   %head
     %meta(http-equiv="X-UA-Compatible" content="IE=edge")
@@ -21,7 +20,10 @@
     .toolbar.toolbar-with-h
       %h5
         Web Console
-        %small (Click the blue bar to focus the console for keyboard input)
+        %small (Click on the console area to focus for keyboard input)
+        %small.text-warning{style: 'margin-left: 10px;'}
+          %i.fa.fa-exclamation-triangle
+          Session may expire. Click "Reload Console" if connection is lost.
       .main-buttons
         - if !hypervisor.to_s.include?('nova-compute-ironic') && current_user.is_allowed?("compute:instance_hard_reset",{target: { project: @active_project, scoped_domain_name: @scoped_domain_name}})
           .verticalLine
@@ -35,4 +37,6 @@
         = link_to 'Close', 'javascript: window.close();', class: 'btn btn-default'
     .console{style: 'position: relative; height: 100%; width: 100%;'}
       #console
+        -# check compute/instances/console.html.haml and the content that gets yielded there 
+        -# to understand how the console is rendered in this layout
         = yield
