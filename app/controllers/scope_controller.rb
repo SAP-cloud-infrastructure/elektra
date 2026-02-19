@@ -22,17 +22,15 @@ class ScopeController < ::ApplicationController
   def load_scoped_objects
     # initialize scoped domain's and project's friendly id
     # use existing, user's or default domain
-    domain_id =
-      params[:domain_id] || Rails.application.config.service_user_domain_name
+    domain_id = params[:domain_id] #|| Rails.application.config.service_user_domain_name
     project_id = params[:project_id]
-
+    
     @scoped_domain_fid = @scoped_domain_id = domain_id
     @scoped_project_fid = @scoped_project_id = project_id
-
+    
     # try to find or create friendly_id entry for domain
     rescoping_service = Dashboard::RescopingService.new(service_user)
-    domain_friendly_id =
-      rescoping_service.domain_friendly_id(@scoped_domain_fid)
+    domain_friendly_id = rescoping_service.domain_friendly_id(@scoped_domain_fid)
     raise Core::Error::DomainNotFound, "Domain #{domain_id} not found!" unless domain_friendly_id
 
     # set scoped domain parameters
@@ -55,10 +53,6 @@ class ScopeController < ::ApplicationController
       @scoped_project_fid = project_friendly_id.slug
       @scoped_project_name = project_friendly_id.name
     end
-
-    # puts "SCOPED CONTROLLER"
-    # puts @scoped_domain_id
-    # puts @scoped_project_id
 
     # url_for does not work for plugins. Use path instead!
     if (domain_id != @scoped_domain_fid || project_id != @scoped_project_fid) && @scoped_domain_id
