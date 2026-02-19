@@ -82,7 +82,7 @@ Dir.glob('plugins/*').each do |plugin_path|
   gemspec path: plugin_path unless black_list.include?(plugin_path.gsub('plugins/', ''))
 end
 
-# email_service
+# maillog
 gem 'aws-sdk-cloudwatch'
 gem 'aws-sdk-ses'
 gem 'aws-sdk-sesv2'

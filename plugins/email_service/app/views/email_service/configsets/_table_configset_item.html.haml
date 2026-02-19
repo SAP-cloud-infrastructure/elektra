@@ -1,5 +1,0 @@
-%tr
-  %td
-    = link_to(configset[:name],  plugin('email_service').configset_path(id: configset[:id], name: configset[:name]), data: {modal: true})
-  %td.snug
-    = render partial: 'item_configset_actions', locals: { configset: configset, show_view: false }

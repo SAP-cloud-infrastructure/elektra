@@ -1,7 +1,0 @@
-%tr
-  %td
-    = link_to item[:template_name], plugin('email_service').custom_verification_email_template_path(id: item[:id], template_name: item[:template_name]), data: {modal: true}
-  %td
-    = item[:template_subject]
-  %td.snug
-    = render partial: 'item_actions', locals: { item: item, show_view: false }
