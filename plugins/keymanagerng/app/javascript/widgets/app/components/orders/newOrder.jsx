@@ -23,7 +23,9 @@ const NewOrder = () => {
   }, [])
 
   const onSuccessfullyCloseForm = useCallback((orderUuid) => {
-    close()
+    setShowNewOrder(false)
+    // Navigate to the order details page
+    history.push(`/orders/${orderUuid}/show`)
     addMessage({
       variant: "success",
       text: `The order ${orderUuid} is successfully created.`,
