@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.homepage = ""
   s.summary = "Summary of Compute."
   s.description = "Description of Compute."
-  s.license = "MIT"
+  s.license = "Apache License 2.0"
 
   s.files = Dir["{app,config,db,lib}/**/*", "README.rdoc"]
   s.test_files = Dir["spec/**/*"]

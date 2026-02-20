@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.homepage = ""
   spec.summary = " Summary of Lbaas2."
   spec.description = " Description of Lbaas2."
-  spec.license = "MIT"
+  spec.license = "Apache License 2.0"
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
   # to allow pushing to a single host or delete this section to allow pushing to any host.
@@ -21,7 +21,7 @@ Gem::Specification.new do |spec|
   end
 
   spec.files =
-    Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
+    Dir["{app,config,db,lib}/**/*", "Apache License 2.0", "Rakefile", "README.md"]
 
   spec.add_dependency "rails"
 end
