@@ -1,6 +1,5 @@
 import React, { useState } from "react"
 import {
-  JsonViewer,
   Container,
   DataGrid,
   DataGridRow,
@@ -22,6 +21,7 @@ import LastErrors from "./LastErrors"
 import Collapse from "../../../../components/Collapse"
 import Box from "../../../../components/Box"
 import WorkerList from "./WorkerList"
+import YamlEditor from "../../../../components/YamlEditor"
 
 const sectionHeaderStyles = "details-section tw-text-lg tw-font-bold tw-mb-4"
 
@@ -36,7 +36,7 @@ const DetailsContent = ({ cluster, updatedAt }: { cluster: Cluster; updatedAt?: 
         <Tabs>
           <TabList>
             <Tab>Overview</Tab>
-            <Tab>JSON</Tab>
+            <Tab>YAML</Tab>
           </TabList>
           <TabPanel>
             {/* Basic info */}
@@ -174,7 +174,7 @@ const DetailsContent = ({ cluster, updatedAt }: { cluster: Cluster; updatedAt?: 
           </TabPanel>
           <TabPanel>
             <Container py px={false}>
-              <JsonViewer expanded={2} data={cluster.raw} toolbar />
+              <YamlEditor value={cluster.raw} />
             </Container>
           </TabPanel>
         </Tabs>
