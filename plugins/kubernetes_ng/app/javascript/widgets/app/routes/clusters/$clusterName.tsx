@@ -239,11 +239,15 @@ function ClusterDetail({
       return <span role="status">Cluster not found</span>
     }
 
-    return <DetailsContent cluster={cluster} updatedAt={updatedAt} />
+    return <DetailsContent cluster={cluster} updatedAt={updatedAt} client={client} onError={handleError} onSuccess={handleSuccess} />
   }
 
   const handleError = (error: Error) => {
     setMutationError(error)
+  }
+
+  const handleSuccess = () => {
+    setMutationError(null)
   }
 
   return (

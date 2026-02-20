@@ -51,6 +51,14 @@ export function createGardenerApi(mountpoint: string) {
         }
         return res.data
       }),
+    replaceCluster: (name: string, rawResource: object) =>
+      apiClient.put<{ data: Cluster }>(`/api/clusters/${name}/replace/`, rawResource).then((res) => {
+        const parsed = ClusterSchema.safeParse(res.data)
+        if (!parsed.success) {
+          throw new Error("Failed to replace cluster: invalid response")
+        }
+        return res.data
+      }),
     getKubeconfig: (name: string) =>
       apiClient
         .get<{ data: string }>(`/api/clusters/kubeconfig/${name}/`)

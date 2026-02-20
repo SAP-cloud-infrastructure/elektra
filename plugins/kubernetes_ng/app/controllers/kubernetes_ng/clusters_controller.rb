@@ -66,6 +66,15 @@ module KubernetesNg
       end
     end
 
+    def replace_cluster
+      # Get the raw request body as JSON
+      raw_resource = JSON.parse(request.body.read)
+
+      handle_api_call do
+        services.kubernetes_ng.replace_cluster(@scoped_project_id, params[:name], raw_resource)
+      end
+    end
+
     def external_networks
       handle_api_call do
         services.networking

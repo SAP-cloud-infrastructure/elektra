@@ -57,13 +57,37 @@ module ServiceLayer
       
       def update_cluster(project_id, cluster_name, cluster_spec)
         namespace = "garden-#{project_id}"
-        response = elektron_gardener.patch("apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots/#{cluster_name}", 
+        response = elektron_gardener.patch("apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots/#{cluster_name}",
             headers:{
               "Content-Type": "application/json-patch+json",
             }) do
           convert_cluster_to_shoot(cluster_spec)
         end
         return response&.body
+      end
+
+      def replace_cluster(project_id, cluster_name, raw_resource)
+        namespace = "garden-#{project_id}"
+
+        # Avoid conflict errors from Kubernetes. It happens when the resource has been modified since you loaded it, and Kubernetes requires you to work with the latest version to prevent overwriting changes.
+        # First, fetch the current resource to get the latest resourceVersion
+        current_response = elektron_gardener.get("apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots/#{cluster_name}")
+        current_resource = current_response&.body
+        # Merge the current resourceVersion into the raw_resource to avoid conflicts
+        if current_resource && current_resource['metadata'] && current_resource['metadata']['resourceVersion']
+          raw_resource = raw_resource.deep_dup if raw_resource.frozen?
+          raw_resource['metadata'] ||= {}
+          raw_resource['metadata']['resourceVersion'] = current_resource['metadata']['resourceVersion']
+        end
+
+        response = elektron_gardener.put("apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots/#{cluster_name}",
+            headers:{
+              "Content-Type": "application/json",
+            }) do
+          raw_resource
+        end
+        shoot_body = response&.body
+        return convert_shoot_to_cluster(shoot_body)
       end
 
       def admin_kubeconfig_cluster(project_id, cluster_name, expiration_seconds = 28800)
