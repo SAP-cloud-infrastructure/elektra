@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/sapcc/elektra.svg?branch=master)](https://travis-ci.org/sapcc/elektra)
+[![Build Status](https://travis-ci.org/SAP-cloud-infrastructure/elektra.svg?branch=master)](https://travis-ci.org/SAP-cloud-infrastructure/elektra)
 
 # Elektra
 
@@ -170,7 +170,7 @@ Alternatively, we use NVM to manage Node versions — please ensure you’re usi
 6.  Clone this repository to your machine.
 
     ```bash
-    git clone https://github.com/sapcc/elektra.git
+    git clone https://github.com/SAP-cloud-infrastructure/elektra.git
     ```
 
 7.  Install **bundler**
@@ -224,7 +224,7 @@ Alternatively, we use NVM to manage Node versions — please ensure you’re usi
 
 ### Linux
 
-1. Clone the repository with `git clone https://github.com/sapcc/elektra.git`
+1. Clone the repository with `git clone https://github.com/SAP-cloud-infrastructure/elektra.git`
 2. Install Yarn and PostgreSQL via package manager
 3. Check if the ruby version in your package manager matches the version number in `.ruby-version`.
    If yes then install ruby via your package manager. If no then follow the extra steps:
@@ -477,7 +477,7 @@ From 19.08.2022 Elektra is using our own email service (Cronus) to send emails w
 
 ## Support, Feedback, Contributing
 
-This project is open to feature requests/suggestions, bug reports etc. via [GitHub issues](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/creating-an-issue). Contribution and feedback are encouraged and always welcome. For more information about how to contribute, please read [CONTRIBUTING.md](https://github.com/sapcc/elektra/blob/master/CONTRIBUTING.md) for details and the process for submitting pull requests to us.
+This project is open to feature requests/suggestions, bug reports etc. via [GitHub issues](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/creating-an-issue). Contribution and feedback are encouraged and always welcome. For more information about how to contribute, please read [CONTRIBUTING.md](https://github.com/SAP-cloud-infrastructure/elektra/blob/master/CONTRIBUTING.md) for details and the process for submitting pull requests to us.
 
 ## Tailwind CSS Support
 
@@ -497,4 +497,4 @@ We as members, contributors, and leaders pledge to make participation in our com
 
 ## Licensing
 
-Copyright 2015-2025 SAP SE or an SAP affiliate company and elektra contributors. Please see our [LICENSE](LICENSE) for copyright and license information. Detailed information including third-party components and their licensing/copyright information is available [via the REUSE tool](https://api.reuse.software/info/github.com/sapcc/elektra).
+Copyright 2015-2025 SAP SE or an SAP affiliate company and elektra contributors. Please see our [LICENSE](LICENSE) for copyright and license information. Detailed information including third-party components and their licensing/copyright information is available [via the REUSE tool](https://api.reuse.software/info/github.com/SAP-cloud-infrastructure/elektra).
