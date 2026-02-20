@@ -13,20 +13,37 @@ export default function YamlEditor({ value, ...props }: YamlEditorProps) {
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const updateHeight = () => {
-      if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect()
-        const viewportHeight = window.innerHeight
-        const bottomMargin = 6
-        const availableHeight = viewportHeight - rect.top - bottomMargin
-        setEditorHeight(`${availableHeight}px`)
-      }
+    const container = containerRef.current
+    if (!container) return
+
+    const calculateHeight = () => {
+      const rect = container.getBoundingClientRect()
+      const viewportHeight = window.innerHeight
+      const bottomMargin = 6
+      const availableHeight = viewportHeight - rect.top - bottomMargin
+      setEditorHeight(`${Math.max(availableHeight, 100)}px`)
     }
 
-    updateHeight()
-    window.addEventListener("resize", updateHeight)
+    calculateHeight()
 
-    return () => window.removeEventListener("resize", updateHeight)
+    // Use ResizeObserver to detect when the layout changes
+    const resizeObserver = new ResizeObserver(() => {
+      calculateHeight()
+    })
+
+    // Observe the container itself
+    resizeObserver.observe(container)
+
+    // Also observe the document body for overall layout changes
+    resizeObserver.observe(document.body)
+
+    // Fallback for window resize (for viewport changes)
+    window.addEventListener("resize", calculateHeight)
+
+    return () => {
+      resizeObserver.disconnect()
+      window.removeEventListener("resize", calculateHeight)
+    }
   }, [])
 
   const { yamlContent, error } = useMemo(() => {
