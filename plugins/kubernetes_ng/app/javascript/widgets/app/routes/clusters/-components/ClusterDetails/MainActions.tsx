@@ -1,0 +1,123 @@
+import React from "react"
+import { Button } from "@cloudoperators/juno-ui-components"
+import { useMutation } from "@tanstack/react-query"
+import { useRouter, useMatch, useParams } from "@tanstack/react-router"
+import { Permissions } from "../../../../types/permissions"
+import { Cluster } from "../../../../types/cluster"
+import { GardenerApi } from "../../../../apiClient"
+import DeleteDialog from "./DeleteDialog"
+import { CLUSTER_DETAIL_ROUTE_ID } from "../../$clusterName"
+import { useNotification } from "../../../../components/NotificationProvider"
+
+interface MainActionsProps {
+  shootPermissions?: Permissions
+  kubeconfigPermissions?: Permissions
+  disabled?: boolean
+  client: GardenerApi
+}
+
+function MainActions({ shootPermissions, kubeconfigPermissions, disabled = false, client }: MainActionsProps) {
+  const router = useRouter()
+  const match = useMatch({ from: CLUSTER_DETAIL_ROUTE_ID })
+  const params = useParams({ from: CLUSTER_DETAIL_ROUTE_ID })
+  const isFetching = match.isFetching === "loader"
+  const [showDeleteDialog, setShowDeleteDialog] = React.useState(false)
+  const { showError } = useNotification()
+
+  const kubeconfigMutation = useMutation<string, Error, void>({
+    mutationFn: async () => {
+      throw new Error("Test error for layout")
+      // return client.gardener.getKubeconfig(params.clusterName)
+    },
+
+    onSuccess: (kubeconfigYaml) => {
+      // Create a file-like object in memory from the YAML
+      const blob = new Blob([kubeconfigYaml], {
+        type: "application/x-yaml",
+      })
+
+      // Create a temporary URL pointing to the in-memory file
+      const url = URL.createObjectURL(blob)
+
+      // Create a temporary anchor element to trigger the download
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `${params.clusterName}-kubeconfig.yaml`
+
+      // Required for Safari / Firefox compatibility
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+
+      // Revoke the object URL after the download has been triggered
+      setTimeout(() => URL.revokeObjectURL(url), 0)
+    },
+    onError: (error) => {
+      showError(error)
+    },
+  })
+
+  const deleteMutation = useMutation<Cluster, Error, void>({
+    mutationFn: async () => {
+      return client.gardener.confirm_deletion_and_destroy(params.clusterName)
+    },
+    onSuccess: () => {
+      // after deletion, navigate back to the clusters list and use replace to avoid going back to deleted cluster
+      router.navigate({
+        to: "/clusters",
+        replace: true,
+        state: (prev) => ({
+          ...prev,
+          successMessage: `Cluster ${params.clusterName} is being deleted.`,
+        }),
+      })
+      // Invalidate after navigation so the list reloads
+      router.invalidate()
+    },
+    onError: (error) => {
+      setShowDeleteDialog(false)
+      showError(error)
+    },
+  })
+
+  return (
+    <>
+      <Button
+        size="small"
+        label="Refresh"
+        progress={isFetching && !disabled}
+        onClick={() => {
+          router.invalidate()
+        }}
+        disabled={disabled}
+      />
+      <Button
+        size="small"
+        label="Kube Config"
+        icon="download"
+        title="Download Kube Config valid for 8 hours"
+        disabled={disabled || kubeconfigMutation.isPending || !kubeconfigPermissions?.create}
+        progress={kubeconfigMutation.isPending}
+        onClick={() => kubeconfigMutation.mutate()}
+      />
+      <Button
+        size="small"
+        label="Delete Cluster"
+        variant="primary-danger"
+        disabled={disabled || !shootPermissions?.delete}
+        onClick={() => setShowDeleteDialog(true)}
+      />
+      <DeleteDialog
+        // reset key to remount dialog and reset internal state on open/close
+        key={`delete-dialog-${params.clusterName}-${showDeleteDialog}`}
+        clusterName={params.clusterName}
+        isOpen={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        onConfirm={() => deleteMutation?.mutate()}
+        isDeleting={deleteMutation?.isPending}
+      />
+    </>
+  )
+}
+
+export default MainActions

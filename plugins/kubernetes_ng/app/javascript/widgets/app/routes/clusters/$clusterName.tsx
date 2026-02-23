@@ -3,15 +3,16 @@ import { createFileRoute, useParams, useLoaderData, useRouter, useMatch } from "
 import { Cluster } from "../../types/cluster"
 import { Permissions } from "../../types/permissions"
 import { LoaderWithCrumb } from "../-types"
-import { Button, Container, Spinner, Message } from "@cloudoperators/juno-ui-components"
+import { Spinner } from "@cloudoperators/juno-ui-components"
 import PageHeader from "../../components/PageHeader"
-import InlineError, { normalizeError } from "../../components/InlineError"
+import InlineError from "../../components/InlineError"
 import { ErrorBoundary, FallbackProps } from "react-error-boundary"
 import { RouterContext } from "../__root"
 import { GardenerApi } from "../../apiClient"
 import { useMutation } from "@tanstack/react-query"
 import DetailsContent from "./-components/ClusterDetails/DetailsContent"
-import DeleteDialog from "./-components/ClusterDetails/DeleteDialog"
+import MainActions from "./-components/ClusterDetails/MainActions"
+import { NotificationProvider, useNotification } from "../../components/NotificationProvider"
 
 export const CLUSTER_DETAIL_ROUTE_ID = "/clusters/$clusterName"
 
@@ -82,124 +83,6 @@ function ClusterDetailErrorBoundary({ children }: { children?: React.ReactNode }
   )
 }
 
-function ClusterDetailActions({
-  shootPermissions,
-  kubeconfigPermissions,
-  disabled = false,
-  client,
-  onError,
-}: {
-  shootPermissions?: Permissions
-  kubeconfigPermissions?: Permissions
-  disabled?: boolean
-  client: GardenerApi
-  onError?: (error: Error) => void
-}) {
-  const router = useRouter()
-  const match = useMatch({ from: Route.id })
-  const params = useParams({ from: Route.id })
-  const isFetching = match.isFetching === "loader"
-  const [showDeleteDialog, setShowDeleteDialog] = React.useState(false)
-
-  const kubeconfigMutation = useMutation<string, Error, void>({
-    mutationFn: async () => {
-      return client.gardener.getKubeconfig(params.clusterName)
-    },
-
-    onSuccess: (kubeconfigYaml) => {
-      // Create a file-like object in memory from the YAML
-      const blob = new Blob([kubeconfigYaml], {
-        type: "application/x-yaml",
-      })
-
-      // Create a temporary URL pointing to the in-memory file
-      const url = URL.createObjectURL(blob)
-
-      // Create a temporary anchor element to trigger the download
-      const a = document.createElement("a")
-      a.href = url
-      a.download = `${params.clusterName}-kubeconfig.yaml`
-
-      // Required for Safari / Firefox compatibility
-      document.body.appendChild(a)
-      a.click()
-      a.remove()
-
-      // Revoke the object URL after the download has been triggered
-      setTimeout(() => URL.revokeObjectURL(url), 0)
-    },
-    onError: (error) => {
-      if (onError) {
-        onError(error)
-      }
-    },
-  })
-
-  const deleteMutation = useMutation<Cluster, Error, void>({
-    mutationFn: async () => {
-      return client.gardener.confirm_deletion_and_destroy(params.clusterName)
-    },
-    onSuccess: () => {
-      // after deletion, navigate back to the clusters list and use replace to avoid going back to deleted cluster
-      router.navigate({
-        to: "/clusters",
-        replace: true,
-        state: (prev) => ({
-          ...prev,
-          successMessage: `Cluster ${params.clusterName} is being deleted.`,
-        }),
-      })
-      // Invalidate after navigation so the list reloads
-      router.invalidate()
-    },
-    onError: (error) => {
-      if (onError) {
-        setShowDeleteDialog(false)
-        onError(error)
-      }
-    },
-  })
-
-  return (
-    <>
-      <Button
-        size="small"
-        label="Refresh"
-        progress={isFetching && !disabled}
-        onClick={() => {
-          router.invalidate()
-        }}
-        disabled={disabled}
-      />
-      <Button
-        size="small"
-        label="Kube Config"
-        icon="download"
-        title="Download Kube Config valid for 8 hours"
-        disabled={disabled || kubeconfigMutation.isPending || !kubeconfigPermissions?.create}
-        progress={kubeconfigMutation.isPending}
-        onClick={() => kubeconfigMutation.mutate()}
-      />
-      <Button
-        size="small"
-        label="Delete Cluster"
-        variant="primary-danger"
-        disabled={disabled || !shootPermissions?.delete}
-        onClick={() => setShowDeleteDialog(true)}
-      />
-      <DeleteDialog
-        // reset key to remount dialog and reset internal state on open/close
-        key={`delete-dialog-${params.clusterName}-${showDeleteDialog}`}
-        clusterName={params.clusterName}
-        isOpen={showDeleteDialog}
-        onClose={() => setShowDeleteDialog(false)}
-        onConfirm={() => deleteMutation?.mutate()}
-        isDeleting={deleteMutation?.isPending}
-      />
-    </>
-  )
-}
-
 interface ClusterDetailProps {
   cluster?: Cluster
   shootPermissions?: Permissions
@@ -220,19 +103,20 @@ function ClusterDetail({
   const params = useParams({ from: Route.id })
   const match = useMatch({ from: Route.id })
   const client = match.context.apiClient
+  const { showSuccess, showError, clearErrorNotification } = useNotification()
   const router = useRouter()
-  const [mutationError, setMutationError] = React.useState<Error | null>(null)
 
   const replaceClusterMutation = useMutation<Cluster, Error, object>({
     mutationFn: async (rawResource: object) => {
       return client.gardener.replaceCluster(params.clusterName, rawResource)
     },
     onSuccess: () => {
-      setMutationError(null)
+      clearErrorNotification()
+      showSuccess("Cluster updated successfully")
       router.invalidate()
     },
     onError: (error) => {
-      setMutationError(error)
+      showError(error)
     },
   })
 
@@ -258,40 +142,21 @@ function ClusterDetail({
         cluster={cluster}
         updatedAt={updatedAt}
         onYamlSave={(newValue) => replaceClusterMutation.mutate(newValue)}
+        isReplacingCluster={replaceClusterMutation.isPending}
       />
     )
   }
 
-  const handleError = (error: Error) => {
-    setMutationError(error)
-  }
-
-  const handleSuccess = () => {
-    setMutationError(null)
-  }
-
   return (
     <>
-      {mutationError && (
-        <Container px={false} py>
-          <Message
-            text={normalizeError(mutationError).title + normalizeError(mutationError).message}
-            variant="error"
-            onDismiss={() => setMutationError(null)}
-            dismissible
-          />
-        </Container>
-      )}
       <ClustersDetailPageHeader clusterName={params.clusterName}>
-        <ClusterDetailActions
+        <MainActions
           shootPermissions={shootPermissions}
           kubeconfigPermissions={kubeconfigPermissions}
           disabled={isLoading || cluster?.isDeleted}
           client={client}
-          onError={handleError}
         />
       </ClustersDetailPageHeader>
-
       {renderContent()}
     </>
   )
@@ -301,7 +166,9 @@ function ClusterDetailLoader() {
   const props = useLoaderData({ from: Route.id })
   return (
     <ClusterDetailErrorBoundary>
-      <ClusterDetail {...props} />
+      <NotificationProvider>
+        <ClusterDetail {...props} />
+      </NotificationProvider>
     </ClusterDetailErrorBoundary>
   )
 }

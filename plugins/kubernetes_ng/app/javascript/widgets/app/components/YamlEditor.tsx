@@ -8,9 +8,10 @@ import InlineError from "./InlineError"
 interface YamlEditorProps extends Omit<ReactCodeMirrorProps, "value" | "height" | "extensions" | "editable"> {
   value: object
   onSave?: (newValue: object) => void
+  isLoading?: boolean
 }
 
-export default function YamlEditor({ value, onSave, ...props }: YamlEditorProps) {
+export default function YamlEditor({ value, onSave, isLoading = false, ...props }: YamlEditorProps) {
   const [editorHeight, setEditorHeight] = useState<string>("100%")
   const [isEditable, setIsEditable] = useState<boolean>(false)
   const [editedYaml, setEditedYaml] = useState<string>("")
@@ -136,6 +137,7 @@ export default function YamlEditor({ value, onSave, ...props }: YamlEditorProps)
                   label={isEditable ? "Cancel" : "Edit"}
                   onClick={handleEditClick}
                   variant="subdued"
+                  disabled={isLoading}
                 />
                 {isEditable && (
                   <Button
@@ -143,7 +145,8 @@ export default function YamlEditor({ value, onSave, ...props }: YamlEditorProps)
                     label="Save"
                     onClick={handleSaveClick}
                     variant="primary"
-                    disabled={!hasChanges}
+                    disabled={!hasChanges || isLoading}
+                    progress={isLoading}
                   />
                 )}
               </Stack>

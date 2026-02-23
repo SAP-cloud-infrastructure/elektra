@@ -29,10 +29,12 @@ const DetailsContent = ({
   cluster,
   updatedAt,
   onYamlSave,
+  isReplacingCluster,
 }: {
   cluster: Cluster
   updatedAt?: number
   onYamlSave?: (newValue: object) => void
+  isReplacingCluster?: boolean
 }) => {
   const [showLastOperation, setShowLastOperation] = useState(false)
 
@@ -183,7 +185,7 @@ const DetailsContent = ({
           </TabPanel>
           <TabPanel>
             <Container py px={false}>
-              <YamlEditor value={cluster.raw} onSave={onYamlSave} />
+              <YamlEditor value={cluster.raw} onSave={onYamlSave} isLoading={isReplacingCluster} />
             </Container>
           </TabPanel>
         </Tabs>
