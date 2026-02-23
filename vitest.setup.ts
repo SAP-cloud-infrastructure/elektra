@@ -25,3 +25,46 @@ global.ResizeObserver = class {
 global.jQuery = global.$
 window.$ = global.$
 window.jQuery = global.$
+
+// Mock DOM Range API for CodeMirror
+if (typeof document !== "undefined") {
+  // Mock createRange for CodeMirror
+  document.createRange = () => {
+    const range = new Range()
+
+    range.getBoundingClientRect = vi.fn(() => ({
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0,
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+      toJSON: () => {},
+    }))
+
+    range.getClientRects = vi.fn(() => ({
+      length: 0,
+      item: () => null,
+      [Symbol.iterator]: function* () {},
+    }))
+
+    return range
+  }
+
+  // Mock getBoundingClientRect for all elements
+  if (!Element.prototype.getBoundingClientRect) {
+    Element.prototype.getBoundingClientRect = vi.fn(() => ({
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0,
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+      toJSON: () => {},
+    }))
+  }
+}

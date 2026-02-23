@@ -220,7 +220,21 @@ function ClusterDetail({
   const params = useParams({ from: Route.id })
   const match = useMatch({ from: Route.id })
   const client = match.context.apiClient
+  const router = useRouter()
   const [mutationError, setMutationError] = React.useState<Error | null>(null)
+
+  const replaceClusterMutation = useMutation<Cluster, Error, object>({
+    mutationFn: async (rawResource: object) => {
+      return client.gardener.replaceCluster(params.clusterName, rawResource)
+    },
+    onSuccess: () => {
+      setMutationError(null)
+      router.invalidate()
+    },
+    onError: (error) => {
+      setMutationError(error)
+    },
+  })
 
   const detailsError =
     error ??
@@ -239,7 +253,13 @@ function ClusterDetail({
       return <span role="status">Cluster not found</span>
     }
 
-    return <DetailsContent cluster={cluster} updatedAt={updatedAt} client={client} onError={handleError} onSuccess={handleSuccess} />
+    return (
+      <DetailsContent
+        cluster={cluster}
+        updatedAt={updatedAt}
+        onYamlSave={(newValue) => replaceClusterMutation.mutate(newValue)}
+      />
+    )
   }
 
   const handleError = (error: Error) => {

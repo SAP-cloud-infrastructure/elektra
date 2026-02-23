@@ -9,6 +9,7 @@ import { Permissions } from "../../types/permissions"
 import type { MockInstance } from "vitest"
 import { Root, RouterContext } from "../__root"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { PortalProvider } from "@cloudoperators/juno-ui-components"
 
 const renderComponent = ({
   clusterDetailsPromise = Promise.resolve(defaultCluster),
@@ -67,7 +68,9 @@ const renderComponent = ({
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
+      <PortalProvider>
+        <RouterProvider router={router} />
+      </PortalProvider>
     </QueryClientProvider>
   )
 }

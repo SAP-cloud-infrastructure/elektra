@@ -22,50 +22,19 @@ import Collapse from "../../../../components/Collapse"
 import Box from "../../../../components/Box"
 import WorkerList from "./WorkerList"
 import YamlEditor from "../../../../components/YamlEditor"
-import { useMutation } from "@tanstack/react-query"
-import { GardenerApi } from "../../../../apiClient"
-import { useRouter } from "@tanstack/react-router"
 
 const sectionHeaderStyles = "details-section tw-text-lg tw-font-bold tw-mb-4"
 
 const DetailsContent = ({
   cluster,
   updatedAt,
-  client,
-  onError,
-  onSuccess,
+  onYamlSave,
 }: {
   cluster: Cluster
   updatedAt?: number
-  client: GardenerApi
-  onError?: (error: Error) => void
-  onSuccess?: () => void
+  onYamlSave?: (newValue: object) => void
 }) => {
   const [showLastOperation, setShowLastOperation] = useState(false)
-  const router = useRouter()
-
-  const replaceClusterMutation = useMutation<Cluster, Error, object>({
-    mutationFn: async (rawResource: object) => {
-      return client.gardener.replaceCluster(cluster.name, rawResource)
-    },
-    onSuccess: () => {
-      // Clear any previous errors
-      if (onSuccess) {
-        onSuccess()
-      }
-      // Invalidate the router to refresh the cluster data
-      router.invalidate()
-    },
-    onError: (error) => {
-      if (onError) {
-        onError(error)
-      }
-    },
-  })
-
-  const handleYamlSave = (newValue: object) => {
-    replaceClusterMutation.mutate(newValue)
-  }
 
   return (
     <Container px={false} py>
@@ -214,7 +183,7 @@ const DetailsContent = ({
           </TabPanel>
           <TabPanel>
             <Container py px={false}>
-              <YamlEditor value={cluster.raw} onSave={handleYamlSave} />
+              <YamlEditor value={cluster.raw} onSave={onYamlSave} />
             </Container>
           </TabPanel>
         </Tabs>

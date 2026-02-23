@@ -107,14 +107,13 @@ describe("DetailsContent", () => {
     expect(maintenanceGrid).toBeInTheDocument()
   })
 
-  it("switches to JSON tab and renders JsonViewer", async () => {
+  it("switches to YAML tab and renders YamlEditor", async () => {
     render(<DetailsContent cluster={defaultCluster} />)
-    const jsonTab = screen.getByText("JSON")
-    fireEvent.click(jsonTab)
+    const yamlTab = screen.getByText("YAML")
+    fireEvent.click(yamlTab)
 
-    // Expect JsonViewer to be in the document
-    const someKey = Object.keys(defaultCluster.raw)[0]
-    const jsonViewer = await screen.findByText(new RegExp(someKey, "i"))
-    expect(jsonViewer).toBeInTheDocument()
+    // Expect YamlEditor to be in the document - look for the Edit button
+    const editButton = await screen.findByRole("button", { name: /edit/i })
+    expect(editButton).toBeInTheDocument()
   })
 })
