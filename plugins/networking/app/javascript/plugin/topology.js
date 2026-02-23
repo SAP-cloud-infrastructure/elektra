@@ -6,7 +6,9 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-import * as d3 from "d3"
+// D3 v3 is loaded globally from vendor/assets/javascripts/d3.v3.min.js
+// Access it from window object to avoid bundling issues with 'this' context
+const d3 = window.d3
 
 var Topology = (function () {
   let defaults = undefined

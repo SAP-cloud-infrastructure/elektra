@@ -4,10 +4,21 @@
 .modal-body.networking
   #graph
 
+  / Load D3 v3 from vendor directory since it requires global context
+  = javascript_include_tag "d3.v3.min"
   :javascript
-    try {
-      new networking.Topology("#graph",#{sanitize(@topology_graph.to_json)}, {details_url: "#{plugin('networking').router_node_details_path(@router.id)}"});                 
-    } catch(e) {console.log('Error in Topology',e)}
+    // Wait for D3 to load before initializing topology
+    (function checkD3() {
+      if (typeof d3 !== 'undefined') {
+        try {
+          new networking.Topology("#graph",#{sanitize(@topology_graph.to_json)}, {details_url: "#{plugin('networking').router_node_details_path(@router.id)}"});
+        } catch(e) {
+          console.log('Error in Topology',e)
+        }
+      } else {
+        setTimeout(checkD3, 50);
+      }
+    })();
 
 - if modal?
   .modal-footer
