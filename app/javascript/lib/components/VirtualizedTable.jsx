@@ -257,6 +257,7 @@ Header.propTypes = {
 const VirtualizedTable = ({
   width: initialWidth,
   height: initialHeight,
+  minHeight,
   columns,
   data,
   rowHeight,
@@ -295,6 +296,7 @@ const VirtualizedTable = ({
     if (!initialHeight || initialHeight === "auto")
       setHeight(holderElement.current.offsetHeight)
     if (initialHeight === "max") setHeight(maxHeight)
+    if(minHeight && height < minHeight) setHeight(minHeight)
   }, [])
 
   const [sort, updateSort] = React.useState({ direction: "asc" })

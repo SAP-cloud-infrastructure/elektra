@@ -55,7 +55,7 @@ const Routes = ({ projectPath, resourcesPath }) => {
         <Redirect to="/containers" />
       </Route>
 
-      <Switch>
+      <Switch >
         <Route path="/containers/:name/objects/:objectPath?">
           <Objects />
         </Route>
