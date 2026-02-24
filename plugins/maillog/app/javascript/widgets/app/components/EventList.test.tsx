@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { render, screen, waitFor } from "@testing-library/react"
+import { render, screen, waitFor, act } from "@testing-library/react"
 import "@testing-library/jest-dom/vitest"
 import EventList from "./EventList"
 import { HTTPError, NetworkError } from "../actions"
@@ -51,7 +51,9 @@ describe("EventList", () => {
       error: null,
     } as any)
 
-    render(<EventList />)
+    await act(async () => {
+      render(<EventList />)
+    })
 
     await waitFor(() => {
       expect(screen.getByTestId("loading-indicator")).toBeInTheDocument()
@@ -75,7 +77,9 @@ describe("EventList", () => {
       error: null,
     } as any)
 
-    render(<EventList />)
+    await act(async () => {
+      render(<EventList />)
+    })
 
     await waitFor(() => {
       expect(screen.getByTestId("pagination")).toHaveTextContent("Hits: 2")
@@ -92,7 +96,9 @@ describe("EventList", () => {
       error: null,
     } as any)
 
-    render(<EventList />)
+    await act(async () => {
+      render(<EventList />)
+    })
 
     await waitFor(() => {
       expect(screen.getByText(/No events found/)).toBeInTheDocument()
@@ -110,7 +116,9 @@ describe("EventList", () => {
       error: error,
     } as any)
 
-    render(<EventList />)
+    await act(async () => {
+      render(<EventList />)
+    })
 
     await waitFor(() => {
       expect(screen.getByText(/The server is experiencing issues/)).toBeInTheDocument()
@@ -128,7 +136,9 @@ describe("EventList", () => {
       error: error,
     } as any)
 
-    render(<EventList />)
+    await act(async () => {
+      render(<EventList />)
+    })
 
     await waitFor(() => {
       expect(screen.getByText(/CORS error/)).toBeInTheDocument()

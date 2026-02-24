@@ -37,6 +37,7 @@ export interface MailSearchOptions {
   page?: number
   start?: Date | null
   end?: Date | null
+  [key: string]: unknown
 }
 
 export interface MailSearchResponse {

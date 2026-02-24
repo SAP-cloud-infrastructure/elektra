@@ -1,5 +1,6 @@
 import { render, screen, waitFor, act } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
+import "@testing-library/jest-dom/vitest"
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import SearchBar from "./SearchBar"
 
@@ -132,7 +133,16 @@ describe("SearchBar", () => {
     end: null,
   }
 
+  // Suppress act() warnings from async state updates
+  let consoleErrorSpy: ReturnType<typeof vi.spyOn>
+
   beforeEach(() => {
+    consoleErrorSpy = vi.spyOn(console, "error").mockImplementation((...args) => {
+      const message = args[0]?.toString() || ""
+      if (message.includes("was not wrapped in act")) {
+        return
+      }
+    })
     vi.useFakeTimers()
     mockOnChange.mockClear()
     mockOnPageChange.mockClear()
@@ -140,6 +150,7 @@ describe("SearchBar", () => {
   })
 
   afterEach(() => {
+    consoleErrorSpy.mockRestore()
     vi.runOnlyPendingTimers()
     vi.useRealTimers()
   })
@@ -153,16 +164,18 @@ describe("SearchBar", () => {
 
   describe("Basic Rendering", () => {
     it("should render all search input fields", () => {
-      render(
-        <SearchBar
-          onChange={mockOnChange}
-          searchOptions={defaultSearchOptions}
-          onPageChange={mockOnPageChange}
-          onDateChange={mockOnDateChange}
-          pageOptions={defaultPageOptions}
-          dateOptions={defaultDateOptions}
-        />
-      )
+      act(() => {
+        render(
+          <SearchBar
+            onChange={mockOnChange}
+            searchOptions={defaultSearchOptions}
+            onPageChange={mockOnPageChange}
+            onDateChange={mockOnDateChange}
+            pageOptions={defaultPageOptions}
+            dateOptions={defaultDateOptions}
+          />
+        )
+      })
 
       expect(screen.getByTestId("text-input-from")).toBeInTheDocument()
       expect(screen.getByTestId("text-input-headerFrom")).toBeInTheDocument()
@@ -173,31 +186,35 @@ describe("SearchBar", () => {
     })
 
     it("should render relay select dropdown", () => {
-      render(
-        <SearchBar
-          onChange={mockOnChange}
-          searchOptions={defaultSearchOptions}
-          onPageChange={mockOnPageChange}
-          onDateChange={mockOnDateChange}
-          pageOptions={defaultPageOptions}
-          dateOptions={defaultDateOptions}
-        />
-      )
+      act(() => {
+        render(
+          <SearchBar
+            onChange={mockOnChange}
+            searchOptions={defaultSearchOptions}
+            onPageChange={mockOnPageChange}
+            onDateChange={mockOnDateChange}
+            pageOptions={defaultPageOptions}
+            dateOptions={defaultDateOptions}
+          />
+        )
+      })
 
       expect(screen.getByTestId("select-relay")).toBeInTheDocument()
     })
 
     it("should render start and end date pickers", () => {
-      render(
-        <SearchBar
-          onChange={mockOnChange}
-          searchOptions={defaultSearchOptions}
-          onPageChange={mockOnPageChange}
-          onDateChange={mockOnDateChange}
-          pageOptions={defaultPageOptions}
-          dateOptions={defaultDateOptions}
-        />
-      )
+      act(() => {
+        render(
+          <SearchBar
+            onChange={mockOnChange}
+            searchOptions={defaultSearchOptions}
+            onPageChange={mockOnPageChange}
+            onDateChange={mockOnDateChange}
+            pageOptions={defaultPageOptions}
+            dateOptions={defaultDateOptions}
+          />
+        )
+      })
 
       expect(screen.getByTestId("date-picker-start")).toBeInTheDocument()
       expect(screen.getByTestId("date-picker-end")).toBeInTheDocument()

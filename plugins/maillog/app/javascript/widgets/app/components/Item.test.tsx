@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render, screen, fireEvent } from "@testing-library/react"
 import "@testing-library/jest-dom/vitest"
-import { BrowserRouter, MemoryRouter } from "react-router-dom"
+import { MemoryRouter } from "react-router-dom"
 import Item from "./Item"
 import { MailLogEntry } from "../actions"
 
@@ -23,9 +23,19 @@ vi.mock("moment", () => ({
 // Mock URL.createObjectURL
 global.URL.createObjectURL = vi.fn(() => "blob:mock-url")
 
+// Mock link.click to prevent JSDOM navigation errors
+const originalCreateElement = document.createElement.bind(document)
+document.createElement = ((tagName: string) => {
+  const element = originalCreateElement(tagName)
+  if (tagName === "a") {
+    element.click = vi.fn()
+  }
+  return element
+}) as typeof document.createElement
+
 // Helper function to render with Router
 const renderWithRouter = (ui: React.ReactElement) => {
-  return render(<BrowserRouter>{ui}</BrowserRouter>)
+  return render(<MemoryRouter>{ui}</MemoryRouter>)
 }
 
 describe("Item", () => {

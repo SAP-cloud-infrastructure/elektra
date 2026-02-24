@@ -26,8 +26,12 @@ describe("queries.ts", () => {
   describe("useGetData", () => {
     let queryClient: QueryClient
     let wrapper: React.FC<{ children: React.ReactNode }>
+    let consoleErrorSpy: ReturnType<typeof vi.spyOn>
 
     beforeEach(() => {
+      // Suppress console.error for intentional test errors
+      consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
+
       queryClient = new QueryClient({
         defaultOptions: {
           queries: {
@@ -41,6 +45,7 @@ describe("queries.ts", () => {
     })
 
     afterEach(() => {
+      consoleErrorSpy.mockRestore()
       queryClient.clear()
     })
 

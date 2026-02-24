@@ -1,11 +1,50 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { render, screen, fireEvent } from "@testing-library/react"
+import { render, screen, fireEvent, act } from "@testing-library/react"
 import "@testing-library/jest-dom/vitest"
 import { MemoryRouter, Route } from "react-router-dom"
 import ItemShow from "./ItemShow"
 import { MailLogEntry } from "../actions"
 
-// Mock the dependencies
+// Mock the Juno UI components to avoid PortalProvider warnings
+vi.mock("@cloudoperators/juno-ui-components", () => ({
+  Panel: ({ children, heading, onClose, opened }: any) => (
+    <div data-testid="panel" data-opened={opened}>
+      <div data-testid="panel-heading">{heading}</div>
+      <button onClick={onClose} data-testid="panel-close">
+        Close
+      </button>
+      {children}
+    </div>
+  ),
+  PanelBody: ({ children }: any) => <div data-testid="panel-body">{children}</div>,
+  Stack: ({ children, direction, gap }: any) => (
+    <div data-testid="stack" data-direction={direction} data-gap={gap}>
+      {children}
+    </div>
+  ),
+  DataGrid: ({ children, columns }: any) => (
+    <div data-testid="datagrid" data-columns={columns}>
+      {children}
+    </div>
+  ),
+  DataGridRow: ({ children }: any) => <div data-testid="datagrid-row">{children}</div>,
+  DataGridHeadCell: ({ children }: any) => <div data-testid="datagrid-head-cell">{children}</div>,
+  DataGridCell: ({ children, className }: any) => (
+    <div data-testid="datagrid-cell" className={className}>
+      {children}
+    </div>
+  ),
+  JsonViewer: ({ data, expanded }: any) => (
+    <div data-testid="json-viewer" data-expanded={expanded}>
+      {JSON.stringify(data)}
+    </div>
+  ),
+  Icon: ({ icon, onClick }: any) => (
+    <span data-testid={`icon-${icon}`} onClick={onClick}>
+      {icon}
+    </span>
+  ),
+}))
 
 // Mock moment
 vi.mock("moment", () => ({
@@ -24,6 +63,13 @@ const renderWithRouter = (component: React.ReactElement, initialRoute = "/test-i
       <Route path="/:id/show">{component}</Route>
     </MemoryRouter>
   )
+}
+
+// Helper to wrap fireEvent in act for state updates
+const clickElement = (element: HTMLElement) => {
+  act(() => {
+    fireEvent.click(element)
+  })
 }
 
 describe("ItemShow", () => {
@@ -215,7 +261,7 @@ describe("ItemShow", () => {
     renderWithRouter(<ItemShow data={mockData} />)
 
     const jsonLink = screen.getByText("Show JSON")
-    fireEvent.click(jsonLink)
+    clickElement(jsonLink)
 
     // After clicking, the text should change to "Hide JSON"
     expect(screen.getByText("Hide JSON")).toBeInTheDocument()
@@ -226,11 +272,11 @@ describe("ItemShow", () => {
 
     // Show JSON
     const showLink = screen.getByText("Show JSON")
-    fireEvent.click(showLink)
+    clickElement(showLink)
 
     // Hide JSON
     const hideLink = screen.getByText("Hide JSON")
-    fireEvent.click(hideLink)
+    clickElement(hideLink)
 
     // Should be back to "Show JSON"
     expect(screen.getByText("Show JSON")).toBeInTheDocument()
@@ -243,7 +289,9 @@ describe("ItemShow", () => {
     const clickEvent = new MouseEvent("click", { bubbles: true, cancelable: true })
     const preventDefaultSpy = vi.spyOn(clickEvent, "preventDefault")
 
-    jsonLink.dispatchEvent(clickEvent)
+    act(() => {
+      jsonLink.dispatchEvent(clickEvent)
+    })
 
     expect(preventDefaultSpy).toHaveBeenCalled()
   })

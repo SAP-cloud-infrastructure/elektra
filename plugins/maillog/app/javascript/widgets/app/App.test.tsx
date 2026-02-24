@@ -3,11 +3,50 @@ import { render } from "@testing-library/react"
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest"
 import App from "./App"
 
+// Mock Juno UI components to prevent navigation and portal errors in JSDOM
+vi.mock("@cloudoperators/juno-ui-components", async (importOriginal) => {
+  const actual = (await importOriginal()) as any
+  return {
+    ...actual,
+    AppShell: ({ children, embedded }: any) => (
+      <div data-testid="app-shell" data-embedded={embedded}>
+        {children}
+      </div>
+    ),
+    AppShellProvider: ({ children, theme }: any) => (
+      <div data-testid="app-shell-provider" data-theme={theme}>
+        {children}
+      </div>
+    ),
+    IntroBox: ({ text }: any) => <div data-testid="intro-box">{text}</div>,
+  }
+})
+
 // Mock the getCurrentToken function on window
 const mockGetCurrentToken = vi.fn()
 
+// Suppress act() warnings and usePortalRef warnings
+let consoleErrorSpy: ReturnType<typeof vi.spyOn>
+let consoleWarnSpy: ReturnType<typeof vi.spyOn>
+
 describe("App Component", () => {
   beforeEach(() => {
+    // Suppress React act() warnings for async state updates
+    consoleErrorSpy = vi.spyOn(console, "error").mockImplementation((...args) => {
+      const message = args[0]?.toString() || ""
+      if (message.includes("was not wrapped in act")) {
+        return
+      }
+    })
+
+    // Suppress usePortalRef warnings from Juno UI components
+    consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation((...args) => {
+      const message = args[0]?.toString() || ""
+      if (message.includes("usePortalRef must be called inside a PortalProvider")) {
+        return
+      }
+    })
+
     // Setup mock for window._getCurrentToken
     window._getCurrentToken = mockGetCurrentToken
 
@@ -22,6 +61,8 @@ describe("App Component", () => {
   })
 
   afterEach(() => {
+    consoleErrorSpy.mockRestore()
+    consoleWarnSpy.mockRestore()
     vi.clearAllMocks()
   })
 
