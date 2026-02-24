@@ -1,4 +1,4 @@
 {
-  "reports:cost_project": "not(project_id:nil)",
+  "reports:cost_project": "role:admin or role:resource_admin or role:resource_viewer",
   "reports:cost_domain": "rule:domain_admin"
 }
