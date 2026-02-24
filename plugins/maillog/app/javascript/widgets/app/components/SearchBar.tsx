@@ -46,19 +46,28 @@ interface SearchBarProps {
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({ onChange, searchOptions, onPageChange, onDateChange, pageOptions }) => {
-  const isValidDate = (date: string | Date) => date != "" && !moment(date).isAfter()
   const [formKey, setFormKey] = React.useState(0)
   const [localSearchOptions, setLocalSearchOptions] = React.useState<SearchOptions>(searchOptions)
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   // Update local state when searchOptions prop changes (e.g., from clear)
+  // Use a ref to track if we initiated the change to prevent circular updates
+  const isInternalUpdate = useRef(false)
+
   useEffect(() => {
-    setLocalSearchOptions(searchOptions)
+    // Only sync from props if this wasn't an internal update
+    if (!isInternalUpdate.current) {
+      setLocalSearchOptions(searchOptions)
+    }
+    isInternalUpdate.current = false
   }, [searchOptions])
 
   const handleSearchChanges = (newOptions: Partial<SearchOptions>) => {
     // Update local state immediately for responsive UI
     const updatedOptions = { ...localSearchOptions, ...newOptions }
+
+    // Mark this as an internal update to prevent useEffect sync
+    isInternalUpdate.current = true
     setLocalSearchOptions(updatedOptions)
 
     // Clear existing timer
@@ -197,8 +206,9 @@ const SearchBar: React.FC<SearchBarProps> = ({ onChange, searchOptions, onPageCh
                 placeholder="Select Relay"
                 width="full"
                 value={localSearchOptions.relay}
-                onChange={(value) => handleSearchChanges({ relay: String(value) })}
-                onValueChange={(value) => handleSearchChanges({ relay: String(value) })}
+                onChange={(value) => {
+                  handleSearchChanges({ relay: String(value || "") })
+                }}
                 helptext="Search By Relay"
               >
                 <SelectOption value="aws" label="AWS" />
