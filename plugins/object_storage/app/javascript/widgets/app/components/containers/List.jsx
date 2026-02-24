@@ -91,7 +91,7 @@ const Table = ({ data, onMenuAction }) => {
   return (
     <VirtualizedTable
       height="max"
-      minHeight={500}
+      minHeight={300}
       rowHeight={50}
       columns={columns}
       data={data || []}
