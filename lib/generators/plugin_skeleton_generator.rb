@@ -88,7 +88,6 @@ class PluginSkeletonGenerator
     # Update the license reference in README.md
     readme_path = "#{plugin_path}/#{name}/README.md"
     gsub_file readme_path, 
-      "The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).",
       "The gem is available as open source under the terms of the [Apache License 2.0](https://opensource.org/licenses/Apache-2.0)."
   end
 

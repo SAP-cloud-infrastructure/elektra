@@ -9,8 +9,8 @@ Gem::Specification.new do |s|
   s.homepage = ""
   s.summary = " Summary of Reports."
   s.description = " Description of Reports."
-  s.license = "MIT"
+  s.license = "Apache License 2.0"
 
   s.files =
-    Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
+    Dir["{app,config,db,lib}/**/*", "Apache License 2.0", "Rakefile", "README.md"]
 end
