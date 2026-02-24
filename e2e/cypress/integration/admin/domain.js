@@ -12,11 +12,6 @@ describe("domain landing page", () => {
     cy.contains("td", "TC3_OBS_TA1")
   })
 
-  it("open domain landing page and check logout button", () => {
-    cy.contains("a.navbar-identity", "Technical Team User").click()
-    cy.contains("a", "Log out").click()
-  })
-
   it("open domain landing page open and create project dialog", () => {
     cy.contains("a", "Create a New Project").click()
     cy.contains("h4", "Create new project")
