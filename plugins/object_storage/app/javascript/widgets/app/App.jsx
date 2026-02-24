@@ -25,7 +25,9 @@ const App = (props) => (
         </div>
       </>
     )}
+
     <Router baseName={props.baseName} resourcesPath={props.resourcesPath} projectPath={props.projectPath} />
+    
   </StateProvider>
 )
 
