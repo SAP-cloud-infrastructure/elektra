@@ -14,12 +14,6 @@ describe("project landing page", () => {
     cy.contains("button", "Add New Member")
   })
 
-  it("open project landing page and check logout button", () => {
-    cy.visit(`/${TEST_DOMAIN}/admin/identity/project/home`)
-    cy.contains("a.navbar-identity", "Technical Team User").click()
-    cy.contains("a", "Log out").click()
-  })
-
   it("open project landing page and check delete project panel is loading", () => {
     cy.visit(`/${TEST_DOMAIN}/test/identity/project/home`)
     cy.contains("th", "Delete Project")

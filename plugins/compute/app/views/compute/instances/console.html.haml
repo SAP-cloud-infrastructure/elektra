@@ -1,7 +1,6 @@
 = content_for :title do
   %i.fa.fa-terminal
   Web Console
-
 - if modal?
   .modal-body.console
     %iframe{src: @console.url, width: '100%', height: '650px'}
@@ -13,6 +12,10 @@
     .alert.alert-warning
       The console is not available 🙄
   - else
+    -# check the layout for in layouts/compute/console.html.haml
+    -# where yield is used to render the console content
+    -# the only content that gets yielded is what's outside the content_for and modal? blocks 
+    -# which is just the iframe
     %iframe{src: @console.url, width: '100%', height: '850px'}
 
 - if modal?
