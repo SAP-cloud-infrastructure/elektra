@@ -4,10 +4,21 @@
 .modal-body.networking
   #graph
 
-  :javascript
-    try {
-      new networking.Topology("#graph",#{sanitize(@topology_graph.to_json)}, {details_url: "#{plugin('networking').router_node_details_path(@router.id)}"});                 
-    } catch(e) {console.log('Error in Topology',e)}
+/ Load D3 v3 from vendor directory since it requires global context
+%script{src: asset_path("d3.v3.min.js")}
+:javascript
+  // Wait for both D3 and networking.Topology to be available
+  (function initTopology() {
+    if (typeof window.d3 !== 'undefined' && window.networking && window.networking.Topology) {
+      try {
+        new networking.Topology("#graph",#{sanitize(@topology_graph.to_json)}, {details_url: "#{plugin('networking').router_node_details_path(@router.id)}"});
+      } catch(e) {
+        console.log('Error in Topology',e)
+      }
+    } else {
+      setTimeout(initTopology, 50);
+    }
+  })();
 
 - if modal?
   .modal-footer
