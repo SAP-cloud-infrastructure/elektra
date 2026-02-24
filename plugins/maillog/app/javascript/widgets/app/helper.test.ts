@@ -54,14 +54,12 @@ describe("helper.ts", () => {
         const error = new Error("Network timeout")
         const result = parseError(error)
         expect(result).toBe("Network timeout")
-        expect(consoleLogSpy).toHaveBeenCalledWith("Error parsing error message::object")
       })
 
       it("extracts message from custom error object", () => {
         const error = { message: "Custom error occurred" }
         const result = parseError(error)
         expect(result).toBe("Custom error occurred")
-        expect(consoleLogSpy).toHaveBeenCalledWith("Error parsing error message::object")
       })
 
       it("parses JSON message within error object", () => {
@@ -74,14 +72,12 @@ describe("helper.ts", () => {
         const error = { status: 500, statusText: "Internal Server Error" }
         const result = parseError(error)
         expect(result).toBe("[object Object]")
-        expect(consoleLogSpy).toHaveBeenCalledWith("Error parsing error message::object")
       })
 
       it("handles object with non-string message property", () => {
         const error = { message: 12345 }
         const result = parseError(error)
         expect(result).toBe("[object Object]")
-        expect(consoleLogSpy).toHaveBeenCalledWith("Error parsing error message::object")
       })
 
       it("handles nested error objects", () => {
@@ -122,7 +118,6 @@ describe("helper.ts", () => {
       it("handles empty object", () => {
         const result = parseError({})
         expect(result).toBe("[object Object]")
-        expect(consoleLogSpy).toHaveBeenCalledWith("Error parsing error message::object")
       })
 
       it("handles object with empty string message", () => {

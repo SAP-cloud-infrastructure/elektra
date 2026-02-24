@@ -97,7 +97,7 @@ const App: React.FC<AppProps> = ({ props }) => {
 
   React.useEffect(() => {
     setEmbedded(props?.embedded === true || props?.embedded === "true")
-  }, [props])
+  }, [props?.embedded, setEmbedded])
 
   // on app initial load save Endpoint and URL_STATE_KEY so it can be
   // used from overall in the application

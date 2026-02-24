@@ -76,8 +76,13 @@ const SearchBar: React.FC<SearchBarProps> = ({ onChange, searchOptions, onPageCh
     }
 
     // Set new timer to trigger actual search after 500ms
+    // Apply trim and filter to recipients when sending to parent
     debounceTimerRef.current = setTimeout(() => {
-      onChange({ ...searchOptions, ...newOptions }, true)
+      const cleanedOptions = { ...newOptions }
+      if (newOptions.rcpt) {
+        cleanedOptions.rcpt = newOptions.rcpt.map((r) => r.trim()).filter((r) => r !== "")
+      }
+      onChange({ ...searchOptions, ...cleanedOptions }, true)
       onPageChange({ ...pageOptions, page: 1 })
     }, 500)
   }

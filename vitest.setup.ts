@@ -5,6 +5,29 @@ import { vi } from "vitest"
 // Manually extend expect with jest-dom matchers
 expect.extend(matchers)
 
+// Suppress uncaught error logs from intentional test errors
+// These are expected when testing error handling and retry logic
+const originalConsoleError = console.error
+beforeEach(() => {
+  console.error = (...args: any[]) => {
+    const message = args[0]?.toString() || ""
+    // Suppress stack traces from intentional test errors
+    if (
+      message.includes("HTTPError:") ||
+      message.includes("NetworkError:") ||
+      message.includes("Uncaught") ||
+      message.includes("statusCode:")
+    ) {
+      return
+    }
+    originalConsoleError(...args)
+  }
+})
+
+afterEach(() => {
+  console.error = originalConsoleError
+})
+
 // Mock jQuery
 global.$ = vi.fn(() => ({
   popover: vi.fn(),

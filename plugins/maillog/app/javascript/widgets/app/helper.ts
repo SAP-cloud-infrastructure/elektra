@@ -8,7 +8,6 @@ export const parseError = (error: unknown): string => {
 
   // check if the error is a object containing message
   if (typeof error === "object" && error !== null) {
-    console.log("Error parsing error message::object")
     if ("message" in error && typeof error.message === "string") {
       errMsg = parseMessage(error.message)
     }

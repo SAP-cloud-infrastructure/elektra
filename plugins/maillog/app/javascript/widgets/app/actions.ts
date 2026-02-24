@@ -1,5 +1,8 @@
 import { FormatRequestData } from "./helper"
 
+// API request timeout in milliseconds
+const API_TIMEOUT_MS = 30000
+
 export class HTTPError extends Error {
   public readonly statusCode: number
   public readonly isNetworkError: boolean
@@ -138,13 +141,12 @@ const fetchFromAPI = async (
 
   try {
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS)
 
     const response = await fetch(url, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        // "Authorization": `Bearer ${bearerToken}`, // Uncomment if needed
         "X-Auth-Token": bearerToken,
       },
       signal: controller.signal,
@@ -206,7 +208,6 @@ const fetchFromAPI = async (
       const timeoutError = new NetworkError(
         "Request timeout. The API is taking too long to respond. Please check your connection and try again."
       )
-      console.error("Request timeout:", url)
       throw timeoutError
     }
 
@@ -223,7 +224,6 @@ const fetchFromAPI = async (
           ? "CORS error. Unable to connect to the mail log service. This could be due to CORS restrictions, network connectivity issues, or the service being unavailable."
           : "Network error. Unable to connect to the API. The service may be down or unreachable. Please check your connection and try again."
       )
-      console.error("Network error:", url, error.message)
       throw networkError
     }
 
@@ -234,7 +234,6 @@ const fetchFromAPI = async (
 
     // Handle any other unexpected errors
     const errorMessage = error instanceof Error ? error.message : String(error)
-    console.error("Unexpected error during fetch:", url, errorMessage)
     throw new NetworkError(`An unexpected error occurred: ${errorMessage}`)
   }
 }

@@ -4,6 +4,7 @@ import { BrowserRouter, Route } from "react-router-dom"
 import { widgetBasePath } from "lib/widget"
 import EventList from "./components/EventList"
 import ItemShow from "./components/ItemShow"
+import { MailLogEntry } from "./actions"
 
 interface AppContentProps {
   props?: Record<string, unknown>
@@ -15,7 +16,7 @@ const baseName = widgetBasePath("maillog")
 // see several examples in the exampleApp
 const AppContent: React.FC<AppContentProps> = ({ props }) => {
   // State to hold the fetched data to share between EventList and ItemShow
-  const [mailLogData, setMailLogData] = useState<any[]>([])
+  const [mailLogData, setMailLogData] = useState<MailLogEntry[]>([])
 
   return (
     <BrowserRouter basename={baseName}>

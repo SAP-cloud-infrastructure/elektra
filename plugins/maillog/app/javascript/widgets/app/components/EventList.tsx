@@ -138,7 +138,7 @@ const EventList: React.FC<EventListProps> = ({ props, onDataFetched }) => {
       <Container style={{ height: "100%" }}>
         <SearchBar
           onChange={handleSearchChange}
-          onPageChange={setPaginationOptions as any}
+          onPageChange={setPaginationOptions}
           searchOptions={searchOptions}
           dateOptions={dateOptions}
           pageOptions={paginationOptions}
@@ -178,7 +178,7 @@ const EventList: React.FC<EventListProps> = ({ props, onDataFetched }) => {
                 <DataGridHeadCell></DataGridHeadCell>
               </DataGridRow>
               {tableData.data && tableData.data.length > 0 ? (
-                tableData.data.map((itemData) => <Item data={itemData as any} key={itemData.id} />)
+                tableData.data.map((itemData) => <Item data={itemData} key={itemData.id} />)
               ) : tableData.isLoading || tableData.isFetching ? (
                 <DataGridRow>
                   <DataGridCell colSpan={5}>
@@ -201,6 +201,6 @@ const EventList: React.FC<EventListProps> = ({ props, onDataFetched }) => {
         </>
       </Container>
     )
-  }, [tableData, paginationOptions, searchOptions])
+  }, [tableData, paginationOptions, searchOptions, dateOptions, handleSearchChange, setDate])
 }
 export default EventList

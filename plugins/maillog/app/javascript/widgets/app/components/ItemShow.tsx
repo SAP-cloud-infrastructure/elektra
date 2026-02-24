@@ -110,7 +110,7 @@ const ItemShow: React.FC<ItemShowProps> = ({ data }) => {
 
   const summary = Object.entries(item.summary)
     .map(([key, value]) => {
-      if (value != 0) {
+      if (value !== 0) {
         return key
       }
       return null

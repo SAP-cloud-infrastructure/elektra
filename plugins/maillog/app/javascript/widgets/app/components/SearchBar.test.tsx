@@ -859,9 +859,9 @@ describe("SearchBar", () => {
       await advanceTimersForDebounce()
 
       const lastCall = mockOnChange.mock.calls[mockOnChange.mock.calls.length - 1][0]
-      // Should split by comma, even with spaces
+      // Should split by comma and trim spaces
       expect(Array.isArray(lastCall.rcpt)).toBe(true)
-      expect(lastCall.rcpt).toEqual(["a", " b"])
+      expect(lastCall.rcpt).toEqual(["a", "b"])
     })
 
     it("should handle special characters in search fields", async () => {
