@@ -29,6 +29,7 @@ export default function YamlEditor({ resource, onSave, onError, onEdit, ...props
         lineWidth: -1,
         noRefs: true,
         sortKeys: false,
+        schema: yamlParser.JSON_SCHEMA, // Use JSON schema for pure JSON compatibility
       })
       return { yamlContent: yamlString, error: "" }
     } catch (err) {
@@ -124,7 +125,8 @@ export default function YamlEditor({ resource, onSave, onError, onEdit, ...props
   const handleSaveClick = () => {
     try {
       // Check for multi-document YAML (multiple documents separated by ---)
-      const documents = yamlParser.loadAll(editedYaml)
+      // Use JSON_SCHEMA to only parse JSON-compatible YAML (no custom types, dates, etc.)
+      const documents = yamlParser.loadAll(editedYaml, undefined, { schema: yamlParser.JSON_SCHEMA })
 
       if (documents.length > 1) {
         onError?.(new Error("Invalid YAML: multi-document YAML is not supported. Please provide a single document."))
@@ -137,6 +139,15 @@ export default function YamlEditor({ resource, onSave, onError, onEdit, ...props
       // Reject null, undefined, non-objects, or arrays
       if (!parsedObject || typeof parsedObject !== "object" || Array.isArray(parsedObject)) {
         onError?.(new Error("Invalid YAML: document must be a valid object, not an array or primitive"))
+        return
+      }
+
+      // Validate it's a plain object (not Date, Map, Set, etc.)
+      const isPlainObject = Object.prototype.toString.call(parsedObject) === "[object Object]"
+      if (!isPlainObject) {
+        onError?.(
+          new Error("Invalid YAML: document must be a plain object compatible with JSON (no custom types like Date, Map, etc.)")
+        )
         return
       }
 
