@@ -1,5 +1,5 @@
 import React from "react"
-import { createFileRoute, useParams, useLoaderData, useMatch } from "@tanstack/react-router"
+import { createFileRoute, useParams, useLoaderData } from "@tanstack/react-router"
 import { Cluster } from "../../types/cluster"
 import { Permissions } from "../../types/permissions"
 import { LoaderWithCrumb } from "../-types"
