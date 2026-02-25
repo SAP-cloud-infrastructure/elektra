@@ -98,7 +98,7 @@
     "autoprefixer": "^10.4.12",
     "babel-plugin-transform-import-meta": "^2.2.0",
     "chokidar": "^3.5.3",
-    "cypress": "15.5.0",
+    "cypress": "15.10.0",
     "eslint": "^9.37.0",
     "eslint-plugin-cypress": "^2.12.1",
     "eslint-plugin-import": "^2.32.0",
@@ -140,5 +140,11 @@
   "engines": {
     "node": ">=16.14.0",
     "pnpm": ">=8.0.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "@isaacs/brace-expansion": ">=5.0.1",
+      "minimatch": ">=10.0.0"
+    }
   }
 }
