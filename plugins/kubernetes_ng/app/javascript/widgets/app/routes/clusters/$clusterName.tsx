@@ -99,8 +99,6 @@ function ClusterDetail({
   updatedAt,
 }: ClusterDetailProps) {
   const params = useParams({ from: Route.id })
-  const match = useMatch({ from: Route.id })
-  const client = match.context.apiClient
 
   const detailsError =
     error ??

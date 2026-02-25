@@ -2,7 +2,7 @@ import React from "react"
 import { render, act, screen } from "@testing-library/react"
 import { createRootRoute, RouterProvider, createMemoryHistory, createRoute } from "@tanstack/react-router"
 import { getTestRouter } from "../mocks/TestTools"
-import { MessagesProvider, Messages } from "@cloudoperators/juno-messages-provider"
+import { MessagesProvider } from "@cloudoperators/juno-messages-provider"
 
 import { Root } from "./__root"
 

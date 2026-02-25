@@ -9,7 +9,7 @@ const TOOLBAR_HEIGHT = 50
 
 interface YamlEditorProps {
   resource: object
-  onSave: (resource: object) => Promise<any>
+  onSave: (resource: object) => Promise<void>
   onError?: (error: Error) => void
   onEdit?: () => void
 }
