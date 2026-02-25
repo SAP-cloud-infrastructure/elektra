@@ -1,5 +1,5 @@
 import React from "react"
-import { createFileRoute, useParams, useLoaderData, useRouter, useMatch } from "@tanstack/react-router"
+import { createFileRoute, useParams, useLoaderData, useMatch } from "@tanstack/react-router"
 import { Cluster } from "../../types/cluster"
 import { Permissions } from "../../types/permissions"
 import { LoaderWithCrumb } from "../-types"
@@ -9,10 +9,8 @@ import InlineError from "../../components/InlineError"
 import { ErrorBoundary, FallbackProps } from "react-error-boundary"
 import { RouterContext } from "../__root"
 import { GardenerApi } from "../../apiClient"
-import { useMutation } from "@tanstack/react-query"
 import DetailsContent from "./-components/ClusterDetails/DetailsContent"
 import MainActions from "./-components/ClusterDetails/MainActions"
-import { NotificationProvider, useNotification } from "../../components/NotificationProvider"
 
 export const CLUSTER_DETAIL_ROUTE_ID = "/clusters/$clusterName"
 
@@ -103,22 +101,6 @@ function ClusterDetail({
   const params = useParams({ from: Route.id })
   const match = useMatch({ from: Route.id })
   const client = match.context.apiClient
-  const { showSuccess, showError, clearErrorNotification } = useNotification()
-  const router = useRouter()
-
-  const replaceClusterMutation = useMutation<Cluster, Error, object>({
-    mutationFn: async (rawResource: object) => {
-      return client.gardener.replaceCluster(params.clusterName, rawResource)
-    },
-    onSuccess: () => {
-      clearErrorNotification()
-      showSuccess("Cluster updated successfully")
-      router.invalidate()
-    },
-    onError: (error) => {
-      showError(error)
-    },
-  })
 
   const detailsError =
     error ??
@@ -137,14 +119,7 @@ function ClusterDetail({
       return <span role="status">Cluster not found</span>
     }
 
-    return (
-      <DetailsContent
-        cluster={cluster}
-        updatedAt={updatedAt}
-        onYamlSave={(newValue) => replaceClusterMutation.mutate(newValue)}
-        isReplacingCluster={replaceClusterMutation.isPending}
-      />
-    )
+    return <DetailsContent cluster={cluster} updatedAt={updatedAt} />
   }
 
   return (
@@ -154,7 +129,6 @@ function ClusterDetail({
           shootPermissions={shootPermissions}
           kubeconfigPermissions={kubeconfigPermissions}
           disabled={isLoading || cluster?.isDeleted}
-          client={client}
         />
       </ClustersDetailPageHeader>
       {renderContent()}
@@ -166,9 +140,7 @@ function ClusterDetailLoader() {
   const props = useLoaderData({ from: Route.id })
   return (
     <ClusterDetailErrorBoundary>
-      <NotificationProvider>
-        <ClusterDetail {...props} />
-      </NotificationProvider>
+      <ClusterDetail {...props} />
     </ClusterDetailErrorBoundary>
   )
 }

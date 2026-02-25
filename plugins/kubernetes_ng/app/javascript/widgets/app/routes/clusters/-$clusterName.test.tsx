@@ -1,5 +1,5 @@
 import React from "react"
-import { render, screen, act, within, waitFor, fireEvent } from "@testing-library/react"
+import { render, screen, act, within } from "@testing-library/react"
 import { createRoute, RouterProvider, createMemoryHistory, createRootRouteWithContext } from "@tanstack/react-router"
 import { RouterConfig, CLUSTER_DETAIL_ROUTE_ID } from "./$clusterName"
 import { getTestRouter, deferredPromise } from "../../mocks/TestTools"
@@ -10,6 +10,8 @@ import type { MockInstance } from "vitest"
 import { Root, RouterContext } from "../__root"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { PortalProvider } from "@cloudoperators/juno-ui-components"
+import { defaultMockClient } from "../../mocks/TestTools"
+import { MessagesProvider } from "@cloudoperators/juno-messages-provider"
 
 const renderComponent = ({
   clusterDetailsPromise = Promise.resolve(defaultCluster),
@@ -36,26 +38,21 @@ const renderComponent = ({
 
   // the route needs the root route as parent to get the breadcrumb working
   const routeTree = rootRoute.addChildren([testRoute, clustersRoute])
-  const mockClient: RouterContext = {
-    apiClient: {
-      gardener: {
-        getClusters: () => Promise.resolve([defaultCluster]),
-        getShootPermissions: () => permissionsPromise,
-        getKubeconfigPermission: () => permissionsPromise,
-        getKubeconfig: () => kubeconfigPromise,
-        confirm_deletion_and_destroy: () => deletePromise,
-        getClusterByName: () => clusterDetailsPromise,
-        createCluster: () => Promise.resolve(defaultCluster),
-        getCloudProfiles: () => Promise.resolve([]),
-        getExternalNetworks: () => Promise.resolve([]),
-      },
-    },
-    region: "qa-de-1",
-  }
-
   const router = getTestRouter({
     routeTree: routeTree,
-    context: mockClient,
+    context: {
+      apiClient: {
+        ...defaultMockClient,
+        gardener: {
+          getClusterByName: () => clusterDetailsPromise,
+          getShootPermissions: () => permissionsPromise,
+          getKubeconfigPermission: () => permissionsPromise,
+          getKubeconfig: () => kubeconfigPromise,
+          confirm_deletion_and_destroy: () => deletePromise,
+        },
+      },
+      region: "qa-de-1",
+    },
     history: createMemoryHistory({ initialEntries: [`/clusters/${defaultCluster.name}`] }),
   })
 
@@ -68,9 +65,11 @@ const renderComponent = ({
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <PortalProvider>
-        <RouterProvider router={router} />
-      </PortalProvider>
+      <MessagesProvider>
+        <PortalProvider>
+          <RouterProvider router={router} />
+        </PortalProvider>
+      </MessagesProvider>
     </QueryClientProvider>
   )
 }
@@ -210,213 +209,6 @@ describe("<ClusterDetail />", () => {
 
       expect(screen.getByRole("heading", { level: 2, name: "Latest Operation & Errors" })).toBeInTheDocument()
       expect(screen.getByText("Cluster updated successfully")).toBeInTheDocument()
-    })
-  })
-
-  describe("Kubeconfig download", () => {
-    let consoleErrorSpy: ReturnType<typeof vi.spyOn>
-    let clickMock: ReturnType<typeof vi.fn>
-    let originalCreateElement: typeof document.createElement
-
-    // Mocks browser download behavior in JSDOM: It suppresses console errors for cleaner test output,
-    // defines missing JSDOM APIs (URL.createObjectURL / URL.revokeObjectURL), and intercepts anchor
-    // creation to spy on click() while still returning real DOM elements so React can append them normally.
-    beforeEach(() => {
-      // Silence console.error during tests
-      consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
-
-      clickMock = vi.fn()
-
-      // Save original implementation
-      originalCreateElement = document.createElement.bind(document)
-
-      // JSDOM does not implement these
-      Object.defineProperty(URL, "createObjectURL", {
-        writable: true,
-        value: vi.fn(() => "blob:mock-url"),
-      })
-
-      Object.defineProperty(URL, "revokeObjectURL", {
-        writable: true,
-        value: vi.fn(),
-      })
-
-      // Mock only what we need, but keep REAL DOM elements
-      vi.spyOn(document, "createElement").mockImplementation((tagName) => {
-        const element = originalCreateElement(tagName)
-
-        if (tagName === "a") {
-          // Spy on click, but keep the real element
-          element.click = clickMock as unknown as typeof element.click
-        }
-
-        return element
-      })
-    })
-
-    afterEach(() => {
-      consoleErrorSpy.mockRestore()
-      vi.restoreAllMocks()
-    })
-
-    it("shows error message when kubeconfig download fails", async () => {
-      const clusterDetailsPromise = Promise.resolve(defaultCluster)
-      const permissionsPromise = Promise.resolve(permissionsAllTrue)
-      const kubeconfigDeferred = deferredPromise<string>()
-
-      await act(async () =>
-        renderComponent({
-          clusterDetailsPromise,
-          permissionsPromise,
-          kubeconfigPromise: kubeconfigDeferred.promise,
-        })
-      )
-
-      const downloadButton = screen.getByRole("button", { name: /Kube Config/i })
-      expect(downloadButton).toBeInTheDocument()
-
-      // // Mock the API call to fail
-      const errorMessage = "Failed to download kubeconfig"
-
-      // Click the download button and reject the promise
-      await act(async () => {
-        downloadButton.click()
-        kubeconfigDeferred.reject(new Error(errorMessage))
-      })
-
-      // Check for error message
-      const errorAlert = await screen.findByText(new RegExp(errorMessage, "i"))
-      expect(errorAlert).toBeInTheDocument()
-    })
-
-    it("downloads kubeconfig successfully", async () => {
-      const clusterDetailsPromise = Promise.resolve(defaultCluster)
-      const permissionsPromise = Promise.resolve(permissionsAllTrue)
-      const kubeconfigData =
-        "apiVersion: v1\nclusters: []\ncontexts: []\ncurrent-context: ''\nkind: Config\npreferences: {}\nusers: []"
-      const kubeconfigDeferred = deferredPromise<string>()
-
-      await act(async () =>
-        renderComponent({
-          clusterDetailsPromise,
-          permissionsPromise,
-          kubeconfigPromise: kubeconfigDeferred.promise,
-        })
-      )
-
-      const downloadButton = screen.getByRole("button", { name: /Kube Config/i })
-      expect(downloadButton).toBeInTheDocument()
-
-      // Click the download button and resolve the promise
-      await act(async () => {
-        downloadButton.click()
-        kubeconfigDeferred.resolve(kubeconfigData)
-      })
-
-      await waitFor(() => {
-        expect(clickMock).toHaveBeenCalledTimes(1)
-      })
-
-      // Since we cannot check the file download directly, we can at least ensure no error is shown
-      const errorAlert = screen.queryByRole("alert")
-      expect(errorAlert).not.toBeInTheDocument()
-    })
-  })
-
-  describe("delete cluster/", () => {
-    beforeEach(() => {
-      vi.clearAllMocks()
-    })
-
-    it("shows delete button when user has permission", async () => {
-      await act(async () => renderComponent())
-
-      const deleteButton = screen.getByRole("button", { name: /delete cluster/i })
-      expect(deleteButton).toBeInTheDocument()
-      expect(deleteButton).not.toBeDisabled()
-    })
-
-    it("does not show delete button when user lacks permission", async () => {
-      const noDeletePermissions: Permissions = {
-        ...permissionsAllTrue,
-        delete: false,
-      }
-
-      await act(async () =>
-        renderComponent({
-          permissionsPromise: Promise.resolve(noDeletePermissions),
-        })
-      )
-
-      const deleteButton = screen.queryByRole("button", { name: /delete cluster/i })
-      // expect disablded button
-      expect(deleteButton).toBeDisabled()
-    })
-
-    it("opens DeleteDialog when clicking Delete Cluster button", async () => {
-      await act(async () => renderComponent())
-
-      const deleteButton = screen.getByRole("button", { name: /delete cluster/i })
-      expect(deleteButton).toBeInTheDocument()
-
-      act(() => {
-        deleteButton.click()
-      })
-
-      expect(screen.getByRole("dialog", { name: /delete cluster/i })).toBeInTheDocument()
-    })
-
-    it("redirects when confirming deletion", async () => {
-      await act(async () => renderComponent())
-
-      // open dialog
-      const deleteBtn = screen.getByRole("button", { name: /delete cluster/i })
-      fireEvent.click(deleteBtn)
-
-      const input = screen.getByLabelText(/Name/i)
-      expect(input).toBeInTheDocument()
-      fireEvent.change(input, { target: { value: defaultCluster.name } })
-
-      // confirm deletion
-      const confirmBtn = screen.getByRole("button", { name: /Confirm Deletion/i })
-      expect(confirmBtn).toBeInTheDocument()
-      expect(confirmBtn).not.toBeDisabled()
-      fireEvent.click(confirmBtn)
-
-      expect(await screen.findByText("Clusters List Overview Page")).toBeInTheDocument()
-    })
-
-    it("shows error message when deletion fails", async () => {
-      const deleteDeferred = deferredPromise<Cluster>()
-      await act(async () =>
-        renderComponent({
-          deletePromise: deleteDeferred.promise,
-        })
-      )
-
-      // open dialog
-      const deleteBtn = screen.getByRole("button", { name: /delete cluster/i })
-      fireEvent.click(deleteBtn)
-
-      const input = screen.getByLabelText(/Name/i)
-      expect(input).toBeInTheDocument()
-      fireEvent.change(input, { target: { value: defaultCluster.name } })
-
-      // confirm deletion
-      const confirmBtn = screen.getByRole("button", { name: /Confirm Deletion/i })
-      expect(confirmBtn).toBeInTheDocument()
-      expect(confirmBtn).not.toBeDisabled()
-
-      // click confirm and reject deletion
-      fireEvent.click(confirmBtn)
-      const errorMessage = "Failed to delete cluster"
-      await act(async () => {
-        deleteDeferred.reject(new Error(errorMessage))
-      })
-
-      // check for error message
-      const errorAlert = await screen.findByText(new RegExp(errorMessage, "i"))
-      expect(errorAlert).toBeInTheDocument()
     })
   })
 })

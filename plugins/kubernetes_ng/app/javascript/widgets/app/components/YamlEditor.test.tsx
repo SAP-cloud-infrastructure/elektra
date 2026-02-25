@@ -1,10 +1,10 @@
 import React from "react"
 import { render, screen, fireEvent, waitFor } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import "@testing-library/jest-dom"
 import YamlEditor from "./YamlEditor"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { act } from "react-dom/test-utils"
 
 // Helper to render YamlEditor with QueryClientProvider
 const renderYamlEditor = ({
@@ -71,8 +71,10 @@ describe("<YamlEditor />", () => {
     vi.restoreAllMocks()
   })
 
-  it("renders in read-only mode by default", () => {
-    renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+  it("renders in read-only mode by default", async () => {
+    await act(async () =>
+      renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+    )
 
     const editButton = screen.getByRole("button", { name: /edit/i })
     expect(editButton).toBeInTheDocument()
@@ -86,7 +88,9 @@ describe("<YamlEditor />", () => {
   })
 
   it("converts object to YAML and displays it", async () => {
-    renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+    await act(async () =>
+      renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+    )
 
     // Wait for CodeMirror to render content
     await waitFor(() => {
@@ -102,7 +106,14 @@ describe("<YamlEditor />", () => {
       invalidFunction: () => {},
     }
 
-    renderYamlEditor({ resource: invalidData, onSave: mockOnSave, onError: mockOnError, "data-testid": "yaml-editor" })
+    await act(async () =>
+      renderYamlEditor({
+        resource: invalidData,
+        onSave: mockOnSave,
+        onError: mockOnError,
+        "data-testid": "yaml-editor",
+      })
+    )
 
     await waitFor(() => {
       expect(mockOnError).toHaveBeenCalledWith(
@@ -114,10 +125,14 @@ describe("<YamlEditor />", () => {
   })
 
   it("enters edit mode when Edit button is clicked", async () => {
-    renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+    await act(async () =>
+      renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+    )
 
     const editButton = screen.getByRole("button", { name: /edit/i })
-    fireEvent.click(editButton)
+    act(() => {
+      editButton.click()
+    })
 
     // Button label changes to Cancel
     expect(screen.getByRole("button", { name: /cancel/i })).toBeInTheDocument()
@@ -134,24 +149,34 @@ describe("<YamlEditor />", () => {
   })
 
   it("calls onEdit callback when Edit button is clicked", async () => {
-    renderYamlEditor({ resource: mockResource, onSave: mockOnSave, onEdit: mockOnEdit, "data-testid": "yaml-editor" })
+    await act(async () =>
+      renderYamlEditor({ resource: mockResource, onSave: mockOnSave, onEdit: mockOnEdit, "data-testid": "yaml-editor" })
+    )
 
     const editButton = screen.getByRole("button", { name: /edit/i })
-    fireEvent.click(editButton)
+    act(() => {
+      editButton.click()
+    })
 
     expect(mockOnEdit).toHaveBeenCalledTimes(1)
   })
 
-  it("exits edit mode when Cancel button is clicked", () => {
-    renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+  it("exits edit mode when Cancel button is clicked", async () => {
+    await act(async () =>
+      renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+    )
 
     // Enter edit mode
     const editButton = screen.getByRole("button", { name: /edit/i })
-    fireEvent.click(editButton)
+    act(() => {
+      editButton.click()
+    })
 
     // Click Cancel
     const cancelButton = screen.getByRole("button", { name: /cancel/i })
-    fireEvent.click(cancelButton)
+    act(() => {
+      cancelButton.click()
+    })
 
     // Back to read-only mode
     expect(screen.getByRole("button", { name: /edit/i })).toBeInTheDocument()
@@ -164,12 +189,16 @@ describe("<YamlEditor />", () => {
     expect(editor).toHaveAttribute("aria-readonly", "true")
   })
 
-  it("disables Save button when there are no changes", () => {
-    renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+  it("disables Save button when there are no changes", async () => {
+    await act(async () =>
+      renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+    )
 
     // Enter edit mode
     const editButton = screen.getByRole("button", { name: /edit/i })
-    fireEvent.click(editButton)
+    act(() => {
+      editButton.click()
+    })
 
     // Save button should be disabled (no changes yet)
     const saveButton = screen.getByRole("button", { name: /save/i })
@@ -177,12 +206,15 @@ describe("<YamlEditor />", () => {
   })
 
   it("enables Save button when changes are made", async () => {
-    const user = userEvent.setup()
-    renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+    await act(async () =>
+      renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+    )
 
     // Enter edit mode
     const editButton = screen.getByRole("button", { name: /edit/i })
-    await user.click(editButton)
+    act(() => {
+      editButton.click()
+    })
 
     // Get the CodeMirror editor element
     const editor = screen.getByTestId("yaml-editor")
@@ -191,10 +223,11 @@ describe("<YamlEditor />", () => {
     const editorContent = editor.querySelector(".cm-content")
     expect(editorContent).toBeInTheDocument()
 
-    // Simulate typing in the editor
+    // Simulate typing in the editor - wrap in act
     if (editorContent) {
-      // Trigger a change by dispatching an input event
-      fireEvent.input(editorContent, { target: { textContent: "name: modified-cluster\nversion: 2.0.0" } })
+      await act(async () => {
+        fireEvent.input(editorContent, { target: { textContent: "name: modified-cluster\nversion: 2.0.0" } })
+      })
     }
 
     // Wait for the Save button to be enabled
@@ -204,14 +237,16 @@ describe("<YamlEditor />", () => {
     })
   })
 
-  it("calculates editor height on mount", () => {
-    renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+  it("calculates editor height on mount", async () => {
+    await act(async () =>
+      renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+    )
 
     // Verify ResizeObserver was instantiated
     expect(global.ResizeObserver).toHaveBeenCalled()
   })
 
-  it("cleans up ResizeObserver and event listeners on unmount", () => {
+  it("cleans up ResizeObserver and event listeners on unmount", async () => {
     const disconnectSpy = vi.fn()
     const removeEventListenerSpy = vi.spyOn(window, "removeEventListener")
 
@@ -221,7 +256,9 @@ describe("<YamlEditor />", () => {
       disconnect: disconnectSpy,
     }))
 
-    const { unmount } = renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+    const { unmount } = await act(async () =>
+      renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+    )
 
     unmount()
 
@@ -230,7 +267,9 @@ describe("<YamlEditor />", () => {
   })
 
   it("initializes with correct YAML content from resource prop", async () => {
-    renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+    await act(async () =>
+      renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+    )
 
     await waitFor(() => {
       const editor = screen.getByTestId("yaml-editor")
@@ -245,12 +284,20 @@ describe("<YamlEditor />", () => {
   })
 
   it("calls onError for invalid YAML when saving", async () => {
-    const user = userEvent.setup()
-    renderYamlEditor({ resource: mockResource, onSave: mockOnSave, onError: mockOnError, "data-testid": "yaml-editor" })
+    await act(async () =>
+      renderYamlEditor({
+        resource: mockResource,
+        onSave: mockOnSave,
+        onError: mockOnError,
+        "data-testid": "yaml-editor",
+      })
+    )
 
     // Enter edit mode
     const editButton = screen.getByRole("button", { name: /edit/i })
-    await user.click(editButton)
+    act(() => {
+      editButton.click()
+    })
 
     // Get the CodeMirror editor element
     const editor = screen.getByTestId("yaml-editor")
@@ -258,7 +305,9 @@ describe("<YamlEditor />", () => {
 
     // Enter invalid YAML
     if (editorContent) {
-      fireEvent.input(editorContent, { target: { textContent: "invalid: [yaml: syntax" } })
+      await act(async () => {
+        fireEvent.input(editorContent, { target: { textContent: "invalid: [yaml: syntax" } })
+      })
     }
 
     // Wait for Save button to be enabled and click it
@@ -268,7 +317,9 @@ describe("<YamlEditor />", () => {
     })
 
     const saveButton = screen.getByRole("button", { name: /save/i })
-    await user.click(saveButton)
+    act(() => {
+      saveButton.click()
+    })
 
     // Verify onError was called with validation error
     await waitFor(() => {
@@ -284,12 +335,20 @@ describe("<YamlEditor />", () => {
   })
 
   it("calls onError for empty YAML when saving", async () => {
-    const user = userEvent.setup()
-    renderYamlEditor({ resource: mockResource, onSave: mockOnSave, onError: mockOnError, "data-testid": "yaml-editor" })
+    await act(async () =>
+      renderYamlEditor({
+        resource: mockResource,
+        onSave: mockOnSave,
+        onError: mockOnError,
+        "data-testid": "yaml-editor",
+      })
+    )
 
     // Enter edit mode
     const editButton = screen.getByRole("button", { name: /edit/i })
-    await user.click(editButton)
+    act(() => {
+      editButton.click()
+    })
 
     // Get the CodeMirror editor element
     const editor = screen.getByTestId("yaml-editor")
@@ -297,7 +356,9 @@ describe("<YamlEditor />", () => {
 
     // Enter empty content
     if (editorContent) {
-      fireEvent.input(editorContent, { target: { textContent: "" } })
+      await act(async () => {
+        fireEvent.input(editorContent, { target: { textContent: "" } })
+      })
     }
 
     // Wait for Save button to be enabled and click it
@@ -307,7 +368,9 @@ describe("<YamlEditor />", () => {
     })
 
     const saveButton = screen.getByRole("button", { name: /save/i })
-    await user.click(saveButton)
+    act(() => {
+      saveButton.click()
+    })
 
     // Verify onError was called with empty document error
     await waitFor(() => {
@@ -323,12 +386,15 @@ describe("<YamlEditor />", () => {
   })
 
   it("calls onSave with parsed object when Save button is clicked", async () => {
-    const user = userEvent.setup()
-    renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+    await act(async () =>
+      renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+    )
 
     // Enter edit mode
     const editButton = screen.getByRole("button", { name: /edit/i })
-    await user.click(editButton)
+    act(() => {
+      editButton.click()
+    })
 
     // Get the CodeMirror editor element
     const editor = screen.getByTestId("yaml-editor")
@@ -336,7 +402,9 @@ describe("<YamlEditor />", () => {
 
     // Enter valid YAML with changes
     if (editorContent) {
-      fireEvent.input(editorContent, { target: { textContent: "name: modified-cluster\nversion: 2.0.0" } })
+      await act(async () => {
+        fireEvent.input(editorContent, { target: { textContent: "name: modified-cluster\nversion: 2.0.0" } })
+      })
     }
 
     // Wait for Save button to be enabled and click it
@@ -346,7 +414,9 @@ describe("<YamlEditor />", () => {
     })
 
     const saveButton = screen.getByRole("button", { name: /save/i })
-    await user.click(saveButton)
+    act(() => {
+      saveButton.click()
+    })
 
     // Verify onSave was called with parsed object
     await waitFor(() => {
@@ -358,18 +428,23 @@ describe("<YamlEditor />", () => {
   })
 
   it("exits edit mode on successful save", async () => {
-    const user = userEvent.setup()
-    renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+    await act(async () =>
+      renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+    )
 
     // Enter edit mode
     const editButton = screen.getByRole("button", { name: /edit/i })
-    await user.click(editButton)
+    act(() => {
+      editButton.click()
+    })
 
     // Make changes
     const editor = screen.getByTestId("yaml-editor")
     const editorContent = editor.querySelector(".cm-content")
     if (editorContent) {
-      fireEvent.input(editorContent, { target: { textContent: "name: modified-cluster\nversion: 2.0.0" } })
+      await act(async () => {
+        fireEvent.input(editorContent, { target: { textContent: "name: modified-cluster\nversion: 2.0.0" } })
+      })
     }
 
     // Click Save
@@ -379,7 +454,9 @@ describe("<YamlEditor />", () => {
     })
 
     const saveButton = screen.getByRole("button", { name: /save/i })
-    await user.click(saveButton)
+    act(() => {
+      saveButton.click()
+    })
 
     // Wait for mutation to complete and verify we exited edit mode
     await waitFor(() => {
@@ -389,20 +466,25 @@ describe("<YamlEditor />", () => {
   })
 
   it("disables buttons when save is pending", async () => {
-    const user = userEvent.setup()
     // Create onSave that never resolves to keep mutation pending
     const pendingOnSave = vi.fn(() => new Promise(() => {}))
-    renderYamlEditor({ resource: mockResource, onSave: pendingOnSave, "data-testid": "yaml-editor" })
+    await act(async () =>
+      renderYamlEditor({ resource: mockResource, onSave: pendingOnSave, "data-testid": "yaml-editor" })
+    )
 
     // Enter edit mode
     const editButton = screen.getByRole("button", { name: /edit/i })
-    await user.click(editButton)
+    act(() => {
+      editButton.click()
+    })
 
     // Make changes
     const editor = screen.getByTestId("yaml-editor")
     const editorContent = editor.querySelector(".cm-content")
     if (editorContent) {
-      fireEvent.input(editorContent, { target: { textContent: "name: modified-cluster" } })
+      await act(async () => {
+        fireEvent.input(editorContent, { target: { textContent: "name: modified-cluster" } })
+      })
     }
 
     // Click Save
@@ -412,7 +494,9 @@ describe("<YamlEditor />", () => {
     })
 
     const saveButton = screen.getByRole("button", { name: /save/i })
-    await user.click(saveButton)
+    act(() => {
+      saveButton.click()
+    })
 
     // Verify buttons are disabled while pending
     await waitFor(() => {
@@ -427,7 +511,14 @@ describe("<YamlEditor />", () => {
       invalidFunction: () => {},
     }
 
-    renderYamlEditor({ resource: invalidData, onSave: mockOnSave, onError: mockOnError, "data-testid": "yaml-editor" })
+    await act(async () =>
+      renderYamlEditor({
+        resource: invalidData,
+        onSave: mockOnSave,
+        onError: mockOnError,
+        "data-testid": "yaml-editor",
+      })
+    )
 
     await waitFor(() => {
       const editButton = screen.getByRole("button", { name: /edit/i })

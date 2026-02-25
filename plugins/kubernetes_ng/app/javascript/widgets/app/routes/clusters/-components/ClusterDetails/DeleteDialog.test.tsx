@@ -1,6 +1,12 @@
-import { describe, it, expect, vi } from "vitest"
+import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render, screen, fireEvent } from "@testing-library/react"
 import DeleteDialog from "./DeleteDialog"
+import { PortalProvider } from "@cloudoperators/juno-ui-components"
+
+// Helper component to wrap tests with PortalProvider
+const renderWithPortal = (component: React.ReactElement) => {
+  return render(<PortalProvider>{component}</PortalProvider>)
+}
 
 describe("DeleteDialog", () => {
   const clusterName = "test-cluster"
@@ -12,7 +18,7 @@ describe("DeleteDialog", () => {
   })
 
   it("renders the modal with correct title and message", () => {
-    render(<DeleteDialog clusterName={clusterName} isOpen={true} onClose={onClose} onConfirm={onConfirm} />)
+    renderWithPortal(<DeleteDialog clusterName={clusterName} isOpen={true} onClose={onClose} onConfirm={onConfirm} />)
 
     expect(screen.getByText(`Delete Cluster ${clusterName}`)).toBeInTheDocument()
     expect(screen.getByText(/Destructive action which cannot be undone/i)).toBeInTheDocument()
@@ -20,7 +26,7 @@ describe("DeleteDialog", () => {
   })
 
   it("renders the input field without errors initially", () => {
-    render(<DeleteDialog clusterName={clusterName} isOpen={true} onClose={onClose} onConfirm={onConfirm} />)
+    renderWithPortal(<DeleteDialog clusterName={clusterName} isOpen={true} onClose={onClose} onConfirm={onConfirm} />)
 
     const input = screen.getByRole("textbox", { name: /Name/i })
     expect(input).toBeInTheDocument()
@@ -28,7 +34,7 @@ describe("DeleteDialog", () => {
   })
 
   it("renders the input field with invalid state when input is incorrect", () => {
-    render(<DeleteDialog clusterName={clusterName} isOpen={true} onClose={onClose} onConfirm={onConfirm} />)
+    renderWithPortal(<DeleteDialog clusterName={clusterName} isOpen={true} onClose={onClose} onConfirm={onConfirm} />)
 
     const input = screen.getByRole("textbox", { name: /Name/i })
     fireEvent.change(input, { target: { value: "wrong-name" } })
@@ -36,14 +42,14 @@ describe("DeleteDialog", () => {
   })
 
   it("disables the confirm button initially", () => {
-    render(<DeleteDialog clusterName={clusterName} isOpen={true} onClose={onClose} onConfirm={onConfirm} />)
+    renderWithPortal(<DeleteDialog clusterName={clusterName} isOpen={true} onClose={onClose} onConfirm={onConfirm} />)
 
     const confirmButton = screen.getByRole("button", { name: /Confirm Deletion/i })
     expect(confirmButton).toBeDisabled()
   })
 
   it("enables the confirm button when input matches cluster name", () => {
-    render(<DeleteDialog clusterName={clusterName} isOpen={true} onClose={onClose} onConfirm={onConfirm} />)
+    renderWithPortal(<DeleteDialog clusterName={clusterName} isOpen={true} onClose={onClose} onConfirm={onConfirm} />)
 
     const input = screen.getByLabelText(/Name/i)
     const confirmButton = screen.getByRole("button", { name: /Confirm Deletion/i })
@@ -53,7 +59,7 @@ describe("DeleteDialog", () => {
   })
 
   it("keeps confirm button disabled when input does not match", () => {
-    render(<DeleteDialog clusterName={clusterName} isOpen={true} onClose={onClose} onConfirm={onConfirm} />)
+    renderWithPortal(<DeleteDialog clusterName={clusterName} isOpen={true} onClose={onClose} onConfirm={onConfirm} />)
 
     const input = screen.getByLabelText(/Name/i)
     const confirmButton = screen.getByRole("button", { name: /Confirm Deletion/i })
@@ -63,7 +69,7 @@ describe("DeleteDialog", () => {
   })
 
   it("calls onCancel when cancel button is clicked", () => {
-    render(<DeleteDialog clusterName={clusterName} isOpen={true} onClose={onClose} onConfirm={onConfirm} />)
+    renderWithPortal(<DeleteDialog clusterName={clusterName} isOpen={true} onClose={onClose} onConfirm={onConfirm} />)
 
     const cancelButton = screen.getByRole("button", { name: /Cancel/i })
     fireEvent.click(cancelButton)
@@ -71,7 +77,7 @@ describe("DeleteDialog", () => {
   })
 
   it("calls onConfirm when confirm button is clicked with valid input", () => {
-    render(<DeleteDialog clusterName={clusterName} isOpen={true} onClose={onClose} onConfirm={onConfirm} />)
+    renderWithPortal(<DeleteDialog clusterName={clusterName} isOpen={true} onClose={onClose} onConfirm={onConfirm} />)
 
     const input = screen.getByLabelText(/Name/i)
     const confirmButton = screen.getByRole("button", { name: /Confirm Deletion/i })

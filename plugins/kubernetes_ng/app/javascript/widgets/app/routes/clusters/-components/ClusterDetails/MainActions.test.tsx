@@ -278,16 +278,19 @@ describe("<MainActions />", () => {
     })
 
     it("closes delete dialog when cancel is clicked", async () => {
-      const user = userEvent.setup()
-      renderMainActions()
+      await act(async () => renderMainActions())
 
       // Open dialog
       const deleteButton = await screen.findByRole("button", { name: /delete cluster/i })
-      await user.click(deleteButton)
+      act(() => {
+        deleteButton.click()
+      })
 
       // Close dialog
       const cancelButton = await screen.findByRole("button", { name: /cancel/i })
-      await user.click(cancelButton)
+      act(() => {
+        cancelButton.click()
+      })
 
       // Verify dialog is closed
       await waitFor(() => {

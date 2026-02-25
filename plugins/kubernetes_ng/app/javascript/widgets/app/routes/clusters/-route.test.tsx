@@ -5,6 +5,7 @@ import { getTestRouter, TestContext } from "../../mocks/TestTools"
 import { CLUSTERS_ROUTE_ID } from "./route"
 import { RouteLoader } from "./-routeLoader"
 import { Root } from "../__root"
+import { MessagesProvider } from "@cloudoperators/juno-messages-provider"
 
 const renderComponent = () => {
   const rootRoute = createRootRouteWithContext<TestContext>()({
@@ -25,7 +26,11 @@ const renderComponent = () => {
     history: createMemoryHistory({ initialEntries: [CLUSTERS_ROUTE_ID] }),
   })
 
-  return render(<RouterProvider router={router} />)
+  return render(
+    <MessagesProvider>
+      <RouterProvider router={router} />
+    </MessagesProvider>
+  )
 }
 
 describe("Clusters Route", () => {
