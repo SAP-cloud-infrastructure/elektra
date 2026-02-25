@@ -123,8 +123,16 @@ export default function YamlEditor({ resource, onSave, onError, onEdit, ...props
 
   const handleSaveClick = () => {
     try {
+      // Check for multi-document YAML (multiple documents separated by ---)
+      const documents = yamlParser.loadAll(editedYaml)
+
+      if (documents.length > 1) {
+        onError?.(new Error("Invalid YAML: multi-document YAML is not supported. Please provide a single document."))
+        return
+      }
+
       // Parse the edited YAML to validate it and convert to object
-      const parsedObject = yamlParser.load(editedYaml)
+      const parsedObject = documents[0]
 
       // Reject null, undefined, non-objects, or arrays
       if (!parsedObject || typeof parsedObject !== "object" || Array.isArray(parsedObject)) {

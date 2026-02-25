@@ -436,6 +436,59 @@ describe("<YamlEditor />", () => {
     expect(mockOnSave).not.toHaveBeenCalled()
   })
 
+  it("calls onError when YAML contains multiple documents", async () => {
+    await act(async () =>
+      renderYamlEditor({
+        resource: mockResource,
+        onSave: mockOnSave,
+        onError: mockOnError,
+        "data-testid": "yaml-editor",
+      })
+    )
+
+    // Enter edit mode
+    const editButton = screen.getByRole("button", { name: /edit/i })
+    act(() => {
+      editButton.click()
+    })
+
+    // Get the CodeMirror editor element
+    const editor = screen.getByTestId("yaml-editor")
+    const editorContent = editor.querySelector(".cm-content")
+
+    // Enter multi-document YAML
+    if (editorContent) {
+      await act(async () => {
+        fireEvent.input(editorContent, {
+          target: { textContent: "name: doc1\nversion: 1.0.0\n---\nname: doc2\nversion: 2.0.0" }
+        })
+      })
+    }
+
+    // Wait for Save button to be enabled and click it
+    await waitFor(() => {
+      const saveButton = screen.getByRole("button", { name: /save/i })
+      expect(saveButton).not.toBeDisabled()
+    })
+
+    const saveButton = screen.getByRole("button", { name: /save/i })
+    act(() => {
+      saveButton.click()
+    })
+
+    // Verify onError was called with multi-document error
+    await waitFor(() => {
+      expect(mockOnError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining("multi-document YAML is not supported"),
+        })
+      )
+    })
+
+    // Verify onSave was not called
+    expect(mockOnSave).not.toHaveBeenCalled()
+  })
+
   it("calls onSave with parsed object when Save button is clicked", async () => {
     await act(async () =>
       renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
