@@ -376,7 +376,58 @@ describe("<YamlEditor />", () => {
     await waitFor(() => {
       expect(mockOnError).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: expect.stringContaining("document must not be empty"),
+          message: expect.stringContaining("must be a valid object"),
+        })
+      )
+    })
+
+    // Verify onSave was not called
+    expect(mockOnSave).not.toHaveBeenCalled()
+  })
+
+  it("calls onError when YAML contains an array", async () => {
+    await act(async () =>
+      renderYamlEditor({
+        resource: mockResource,
+        onSave: mockOnSave,
+        onError: mockOnError,
+        "data-testid": "yaml-editor",
+      })
+    )
+
+    // Enter edit mode
+    const editButton = screen.getByRole("button", { name: /edit/i })
+    act(() => {
+      editButton.click()
+    })
+
+    // Get the CodeMirror editor element
+    const editor = screen.getByTestId("yaml-editor")
+    const editorContent = editor.querySelector(".cm-content")
+
+    // Enter YAML array
+    if (editorContent) {
+      await act(async () => {
+        fireEvent.input(editorContent, { target: { textContent: "- item1\n- item2\n- item3" } })
+      })
+    }
+
+    // Wait for Save button to be enabled and click it
+    await waitFor(() => {
+      const saveButton = screen.getByRole("button", { name: /save/i })
+      expect(saveButton).not.toBeDisabled()
+    })
+
+    const saveButton = screen.getByRole("button", { name: /save/i })
+    act(() => {
+      saveButton.click()
+    })
+
+    // Verify onError was called with array error
+    await waitFor(() => {
+      expect(mockOnError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining("must be a valid object, not an array"),
         })
       )
     })

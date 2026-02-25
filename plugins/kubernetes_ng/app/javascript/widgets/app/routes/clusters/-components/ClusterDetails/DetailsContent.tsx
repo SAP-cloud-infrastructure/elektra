@@ -35,7 +35,7 @@ const DetailsContent = ({ cluster, updatedAt }: { cluster: Cluster; updatedAt?: 
   const router = useRouter()
   const { addMessage, resetMessages } = useActions()
 
-  const handleSaveCluster = async (resource: object) => {
+  const handleSaveCluster = async (resource: Record<string, unknown>) => {
     return apiClient.gardener
       .replaceCluster(cluster.name, resource)
       .then((result) => {

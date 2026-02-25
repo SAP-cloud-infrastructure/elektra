@@ -8,8 +8,8 @@ import { useMutation } from "@tanstack/react-query"
 const TOOLBAR_HEIGHT = 50
 
 interface YamlEditorProps {
-  resource: object
-  onSave: (resource: object) => Promise<void>
+  resource: Record<string, unknown>
+  onSave: (resource: Record<string, unknown>) => Promise<any>
   onError?: (error: Error) => void
   onEdit?: () => void
 }
@@ -126,14 +126,14 @@ export default function YamlEditor({ resource, onSave, onError, onEdit, ...props
       // Parse the edited YAML to validate it and convert to object
       const parsedObject = yamlParser.load(editedYaml)
 
-      // Reject null or undefined parsed objects
-      if (!parsedObject || typeof parsedObject !== "object") {
-        onError?.(new Error("Invalid YAML: document must not be empty"))
+      // Reject null, undefined, non-objects, or arrays
+      if (!parsedObject || typeof parsedObject !== "object" || Array.isArray(parsedObject)) {
+        onError?.(new Error("Invalid YAML: document must be a valid object, not an array or primitive"))
         return
       }
 
-      // Call the mutation
-      mutation.mutate(parsedObject)
+      // Call the mutation with the validated object
+      mutation.mutate(parsedObject as Record<string, unknown>)
     } catch (err) {
       // Show error if YAML is invalid
       onError?.(new Error(`Invalid YAML: ${(err as Error).message}`))
