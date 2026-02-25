@@ -629,4 +629,34 @@ describe("<YamlEditor />", () => {
       expect(editButton).toBeDisabled()
     })
   })
+
+  it("disables Edit button when disabled prop is true", async () => {
+    await act(async () =>
+      renderYamlEditor({
+        resource: mockResource,
+        onSave: mockOnSave,
+        disabled: true,
+        "data-testid": "yaml-editor",
+      })
+    )
+
+    const editButton = screen.getByRole("button", { name: /edit/i })
+    expect(editButton).toBeDisabled()
+  })
+
+  it("sets title attribute on buttons when disabled with message", async () => {
+    const disabledMessage = "Editing is not allowed"
+    await act(async () =>
+      renderYamlEditor({
+        resource: mockResource,
+        onSave: mockOnSave,
+        disabled: true,
+        disabledMessage,
+        "data-testid": "yaml-editor",
+      })
+    )
+
+    const editButton = screen.getByRole("button", { name: /edit/i })
+    expect(editButton).toHaveAttribute("title", disabledMessage)
+  })
 })

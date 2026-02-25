@@ -35,14 +35,13 @@ const DetailsContent = ({ cluster, updatedAt }: { cluster: Cluster; updatedAt?: 
   const router = useRouter()
   const { addMessage, resetMessages } = useActions()
 
-  const handleSaveCluster = async (resource: Record<string, unknown>) => {
+  const handleSaveCluster = async (resource: Record<string, unknown>): Promise<void> => {
     return apiClient.gardener
       .replaceCluster(cluster.name, resource)
       .then((result) => {
         router.invalidate()
         resetMessages()
         addMessage({ text: "Cluster updated successfully", variant: "success" })
-        return result
       })
       .catch((error) => {
         resetMessages()
@@ -213,6 +212,8 @@ const DetailsContent = ({ cluster, updatedAt }: { cluster: Cluster; updatedAt?: 
                 onSave={handleSaveCluster}
                 onError={handleYamlError}
                 onEdit={handleEditClick}
+                disabled={cluster.isDeleted}
+                disabledMessage="Editing is disabled for deleted clusters."
               />
             </Container>
           </TabPanel>

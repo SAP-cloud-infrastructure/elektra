@@ -12,9 +12,19 @@ interface YamlEditorProps {
   onSave: (resource: Record<string, unknown>) => Promise<void>
   onError?: (error: Error) => void
   onEdit?: () => void
+  disabled?: boolean
+  disabledMessage?: string
 }
 
-export default function YamlEditor({ resource, onSave, onError, onEdit, ...props }: YamlEditorProps) {
+export default function YamlEditor({
+  resource,
+  onSave,
+  onError,
+  onEdit,
+  disabled = false,
+  disabledMessage,
+  ...props
+}: YamlEditorProps) {
   const [editorHeight, setEditorHeight] = useState<string>("100%")
   const [isEditable, setIsEditable] = useState<boolean>(false)
   const [editedYaml, setEditedYaml] = useState<string>("")
@@ -184,7 +194,8 @@ export default function YamlEditor({ resource, onSave, onError, onEdit, ...props
               label={isEditable ? "Cancel" : "Edit"}
               onClick={handleEditClick}
               variant="subdued"
-              disabled={isLoading || !!error}
+              disabled={disabled || isLoading || !!error}
+              title={disabled && disabledMessage ? disabledMessage : undefined}
             />
             {isEditable && (
               <Button
@@ -192,8 +203,9 @@ export default function YamlEditor({ resource, onSave, onError, onEdit, ...props
                 label="Save"
                 onClick={handleSaveClick}
                 variant="primary"
-                disabled={!hasChanges || isLoading || !!error}
+                disabled={disabled || !hasChanges || isLoading || !!error}
                 progress={isLoading}
+                title={disabled && disabledMessage ? disabledMessage : undefined}
               />
             )}
           </Stack>
