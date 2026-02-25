@@ -22,21 +22,44 @@ import Collapse from "../../../../components/Collapse"
 import Box from "../../../../components/Box"
 import WorkerList from "./WorkerList"
 import YamlEditor from "../../../../components/YamlEditor"
+import { useRouteContext, useRouter } from "@tanstack/react-router"
+import { RouterContext } from "../../../__root"
+import { useActions } from "@cloudoperators/juno-messages-provider"
+import { normalizeError } from "../../../../components/InlineError"
 
 const sectionHeaderStyles = "details-section tw-text-lg tw-font-bold tw-mb-4"
 
-const DetailsContent = ({
-  cluster,
-  updatedAt,
-  onYamlSave,
-  isReplacingCluster,
-}: {
-  cluster: Cluster
-  updatedAt?: number
-  onYamlSave?: (newValue: object) => void
-  isReplacingCluster?: boolean
-}) => {
+const DetailsContent = ({ cluster, updatedAt }: { cluster: Cluster; updatedAt?: number }) => {
   const [showLastOperation, setShowLastOperation] = useState(false)
+  const { apiClient } = useRouteContext({ strict: false }) as RouterContext
+  const router = useRouter()
+  const { addMessage, resetMessages } = useActions()
+
+  const handleSaveCluster = async (resource: object) => {
+    return apiClient.gardener
+      .replaceCluster(cluster.name, resource)
+      .then((result) => {
+        router.invalidate()
+        resetMessages()
+        addMessage({ text: "Cluster updated successfully", variant: "success" })
+        return result
+      })
+      .catch((error) => {
+        resetMessages()
+        const errText = normalizeError(error)
+        addMessage({ text: `${errText.title}: ${errText.message}`, variant: "danger" })
+      })
+  }
+
+  const handleYamlError = (error: Error) => {
+    resetMessages()
+    const errText = normalizeError(error)
+    addMessage({ text: `${errText.title}: ${errText.message}`, variant: "danger" })
+  }
+
+  const handleEditClick = () => {
+    resetMessages()
+  }
 
   return (
     <Container px={false} py>
@@ -185,7 +208,12 @@ const DetailsContent = ({
           </TabPanel>
           <TabPanel>
             <Container py px={false}>
-              <YamlEditor value={cluster.raw} onSave={onYamlSave} isLoading={isReplacingCluster} />
+              <YamlEditor
+                resource={cluster.raw}
+                onSave={handleSaveCluster}
+                onError={handleYamlError}
+                onEdit={handleEditClick}
+              />
             </Container>
           </TabPanel>
         </Tabs>
