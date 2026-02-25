@@ -1,42 +1,73 @@
 import React, { useMemo, useRef, useState, useEffect } from "react"
-import CodeMirror, { EditorView, highlightWhitespace, ReactCodeMirrorProps } from "@uiw/react-codemirror"
-import { DataGridToolbar, Stack, Button, Message } from "@cloudoperators/juno-ui-components"
+import CodeMirror, { EditorView, highlightWhitespace, ReactCodeMirrorRef } from "@uiw/react-codemirror"
+import { Stack, Button } from "@cloudoperators/juno-ui-components"
 import { yaml } from "@codemirror/lang-yaml"
 import yamlParser from "js-yaml"
-import InlineError from "./InlineError"
+import { useMutation } from "@tanstack/react-query"
 
-interface YamlEditorProps extends Omit<ReactCodeMirrorProps, "value" | "height" | "extensions" | "editable"> {
-  value: object
-  onSave?: (newValue: object) => void
-  isLoading?: boolean
+const TOOLBAR_HEIGHT = 50
+
+interface YamlEditorProps {
+  resource: object
+  onSave: (resource: object) => Promise<any>
+  onError?: (error: Error) => void
+  onEdit?: () => void
 }
 
-export default function YamlEditor({ value, onSave, isLoading = false, ...props }: YamlEditorProps) {
+export default function YamlEditor({ resource, onSave, onError, onEdit, ...props }: YamlEditorProps) {
   const [editorHeight, setEditorHeight] = useState<string>("100%")
   const [isEditable, setIsEditable] = useState<boolean>(false)
   const [editedYaml, setEditedYaml] = useState<string>("")
-  const [saveError, setSaveError] = useState<string>("")
   const containerRef = useRef<HTMLDivElement>(null)
+  const codeMirrorRef = useRef<ReactCodeMirrorRef>(null)
+  const timeoutIdRef = useRef<number | undefined>(undefined)
+
+  const { yamlContent, error } = useMemo(() => {
+    try {
+      const yamlString = yamlParser.dump(resource, {
+        indent: 2,
+        lineWidth: -1,
+        noRefs: true,
+        sortKeys: false,
+      })
+      return { yamlContent: yamlString, error: "" }
+    } catch (err) {
+      return { yamlContent: "", error: `Failed to serialize object to YAML: ${(err as Error).message}` }
+    }
+  }, [resource])
+
+  // Notify parent when YAML serialization fails.
+  useEffect(() => {
+    if (error) {
+      onError?.(new Error(error))
+    }
+  }, [error, onError])
+
+  const mutation = useMutation({
+    mutationFn: onSave,
+    onSuccess: () => {
+      setIsEditable(false)
+      setEditedYaml("")
+    },
+  })
 
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
 
-    let timeoutId: number | undefined
-
     const calculateHeight = () => {
       const rect = container.getBoundingClientRect()
       const viewportHeight = window.innerHeight
-      const bottomMargin = 6
-      const availableHeight = viewportHeight - rect.top - bottomMargin
+      const bottomMargin = 12
+      const availableHeight = viewportHeight - rect.top - TOOLBAR_HEIGHT - bottomMargin
       setEditorHeight(`${Math.max(availableHeight, 100)}px`)
     }
 
     const debouncedCalculateHeight = () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId)
+      if (timeoutIdRef.current) {
+        clearTimeout(timeoutIdRef.current)
       }
-      timeoutId = window.setTimeout(calculateHeight, 100)
+      timeoutIdRef.current = window.setTimeout(calculateHeight, 100)
     }
 
     // Initial calculation without debounce
@@ -54,8 +85,8 @@ export default function YamlEditor({ value, onSave, isLoading = false, ...props 
     window.addEventListener("resize", debouncedCalculateHeight)
 
     return () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId)
+      if (timeoutIdRef.current) {
+        clearTimeout(timeoutIdRef.current)
       }
       if (resizeObserver) {
         resizeObserver.disconnect()
@@ -64,40 +95,30 @@ export default function YamlEditor({ value, onSave, isLoading = false, ...props 
     }
   }, [])
 
-  const { yamlContent, error } = useMemo(() => {
-    try {
-      const yamlString = yamlParser.dump(value, {
-        indent: 2,
-        lineWidth: -1,
-        noRefs: true,
-        sortKeys: false,
-      })
-      return { yamlContent: yamlString, error: "" }
-    } catch (err) {
-      return {
-        yamlContent: "",
-        error: `Failed to serialize object to YAML: ${(err as Error).message}`,
-      }
+  // Focus the CodeMirror editor when entering edit mode.
+  // This must be done in a useEffect because setting isEditable triggers a re-render,
+  // and the editor ref is only available after the component updates.
+  useEffect(() => {
+    if (isEditable) {
+      codeMirrorRef.current?.view?.focus()
     }
-  }, [value])
+  }, [isEditable])
 
   const handleEditClick = () => {
+    onEdit?.()
     if (!isEditable) {
-      // Entering edit mode
       setEditedYaml(yamlContent)
-      setSaveError("")
+      mutation.reset()
       setIsEditable(true)
     } else {
-      // Exiting edit mode (Cancel)
       setIsEditable(false)
       setEditedYaml("")
-      setSaveError("")
+      mutation.reset()
     }
   }
 
   const handleYamlChange = (newValue: string) => {
     setEditedYaml(newValue)
-    setSaveError("")
   }
 
   const handleSaveClick = () => {
@@ -105,83 +126,79 @@ export default function YamlEditor({ value, onSave, isLoading = false, ...props 
       // Parse the edited YAML to validate it and convert to object
       const parsedObject = yamlParser.load(editedYaml)
 
-      // Call the onSave callback if provided
-      if (onSave && parsedObject) {
-        onSave(parsedObject)
+      // Reject null or undefined parsed objects
+      if (!parsedObject || typeof parsedObject !== "object") {
+        onError?.(new Error("Invalid YAML: document must not be empty"))
+        return
       }
 
-      // Exit edit mode on successful save
-      setIsEditable(false)
-      setEditedYaml("")
-      setSaveError("")
+      // Call the mutation
+      mutation.mutate(parsedObject)
     } catch (err) {
       // Show error if YAML is invalid
-      setSaveError(`Invalid YAML: ${(err as Error).message}`)
+      onError?.(new Error(`Invalid YAML: ${(err as Error).message}`))
     }
   }
 
-  // Check if there are any changes
   const hasChanges = isEditable && editedYaml !== yamlContent
+  const isLoading = mutation.isPending || false
 
   return (
     <div ref={containerRef}>
-      {error ? (
-        <InlineError error={new Error(error)} />
-      ) : (
-        <>
-          <DataGridToolbar>
-            <Stack>
-              <Stack alignment="center" gap="2">
-                <Button
-                  size="small"
-                  label={isEditable ? "Cancel" : "Edit"}
-                  onClick={handleEditClick}
-                  variant="subdued"
-                  disabled={isLoading}
-                />
-                {isEditable && (
-                  <Button
-                    size="small"
-                    label="Save"
-                    onClick={handleSaveClick}
-                    variant="primary"
-                    disabled={!hasChanges || isLoading}
-                    progress={isLoading}
-                  />
-                )}
-              </Stack>
-            </Stack>
-          </DataGridToolbar>
-          {saveError && (
-            <Message variant="danger" title="Failed to save changes." text={saveError} className="tw-mb-0" />
-          )}
-          <CodeMirror
-            value={isEditable ? editedYaml : yamlContent}
-            onChange={isEditable ? handleYamlChange : undefined}
-            theme="light"
-            height={editorHeight}
-            extensions={[
-              yaml(),
-              highlightWhitespace(),
-              EditorView.lineWrapping,
-              EditorView.theme({
-                ".cm-highlightSpace": {
-                  backgroundImage:
-                    "url(\"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='6' height='6'><circle cx='3' cy='3' r='1' fill='%23cccccc' /></svg>\")",
-                  backgroundRepeat: "no-repeat",
-                  backgroundPosition: "center",
-                  backgroundSize: "contain",
-                  opacity: 0.1,
-                },
-              }),
-            ]}
-            editable={isEditable}
-            aria-label={isEditable ? "YAML data editor" : "YAML data viewer (read-only)"}
-            aria-readonly={!isEditable}
-            {...props}
-          />
-        </>
-      )}
+      <div
+        className="tw-flex tw-items-center tw-bg-theme-background-lvl-1 tw-py-3 tw-px-6 tw-mb-px"
+        style={{ height: `${TOOLBAR_HEIGHT}px` }}
+      >
+        <div className="tw-ml-auto">
+          <Stack alignment="center" gap="2">
+            <Button
+              size="small"
+              label={isEditable ? "Cancel" : "Edit"}
+              onClick={handleEditClick}
+              variant="subdued"
+              disabled={isLoading || !!error}
+            />
+            {isEditable && (
+              <Button
+                size="small"
+                label="Save"
+                onClick={handleSaveClick}
+                variant="primary"
+                disabled={!hasChanges || isLoading || !!error}
+                progress={isLoading}
+              />
+            )}
+          </Stack>
+        </div>
+      </div>
+      <div className="tw-border tw-border-theme-box-default">
+        <CodeMirror
+          ref={codeMirrorRef}
+          value={isEditable ? editedYaml : yamlContent}
+          onChange={isEditable ? handleYamlChange : undefined}
+          theme="light"
+          height={editorHeight}
+          extensions={[
+            yaml(),
+            highlightWhitespace(),
+            EditorView.lineWrapping,
+            EditorView.theme({
+              ".cm-highlightSpace": {
+                backgroundImage:
+                  "url(\"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='6' height='6'><circle cx='3' cy='3' r='1' fill='%23cccccc' /></svg>\")",
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "center",
+                backgroundSize: "contain",
+                opacity: 0.1,
+              },
+            }),
+          ]}
+          editable={!error && isEditable}
+          aria-label={isEditable ? "YAML data editor" : "YAML data viewer (read-only)"}
+          aria-readonly={!isEditable}
+          {...props}
+        />
+      </div>
     </div>
   )
 }
