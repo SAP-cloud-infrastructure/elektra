@@ -1,33 +1,33 @@
 import React from "react"
 import { Button } from "@cloudoperators/juno-ui-components"
 import { useMutation } from "@tanstack/react-query"
-import { useRouter, useMatch, useParams } from "@tanstack/react-router"
+import { useRouter, useMatch, useParams, useRouteContext } from "@tanstack/react-router"
 import { Permissions } from "../../../../types/permissions"
 import { Cluster } from "../../../../types/cluster"
-import { GardenerApi } from "../../../../apiClient"
 import DeleteDialog from "./DeleteDialog"
 import { CLUSTER_DETAIL_ROUTE_ID } from "../../$clusterName"
-import { useNotification } from "../../../../components/NotificationProvider"
+import { useActions } from "@cloudoperators/juno-messages-provider"
+import { normalizeError } from "../../../../components/InlineError"
+import { RouterContext } from "../../../__root"
 
 interface MainActionsProps {
   shootPermissions?: Permissions
   kubeconfigPermissions?: Permissions
   disabled?: boolean
-  client: GardenerApi
 }
 
-function MainActions({ shootPermissions, kubeconfigPermissions, disabled = false, client }: MainActionsProps) {
+function MainActions({ shootPermissions, kubeconfigPermissions, disabled = false }: MainActionsProps) {
   const router = useRouter()
   const match = useMatch({ from: CLUSTER_DETAIL_ROUTE_ID })
   const params = useParams({ from: CLUSTER_DETAIL_ROUTE_ID })
   const isFetching = match.isFetching === "loader"
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false)
-  const { showError } = useNotification()
+  const { addMessage, resetMessages } = useActions()
+  const { apiClient } = useRouteContext({ strict: false }) as RouterContext
 
   const kubeconfigMutation = useMutation<string, Error, void>({
     mutationFn: async () => {
-      throw new Error("Test error for layout")
-      // return client.gardener.getKubeconfig(params.clusterName)
+      return apiClient.gardener.getKubeconfig(params.clusterName)
     },
 
     onSuccess: (kubeconfigYaml) => {
@@ -53,13 +53,15 @@ function MainActions({ shootPermissions, kubeconfigPermissions, disabled = false
       setTimeout(() => URL.revokeObjectURL(url), 0)
     },
     onError: (error) => {
-      showError(error)
+      resetMessages()
+      const errText = normalizeError(error)
+      addMessage({ text: `${errText.title}: ${errText.message}`, variant: "danger" })
     },
   })
 
   const deleteMutation = useMutation<Cluster, Error, void>({
     mutationFn: async () => {
-      return client.gardener.confirm_deletion_and_destroy(params.clusterName)
+      return apiClient.gardener.confirm_deletion_and_destroy(params.clusterName)
     },
     onSuccess: () => {
       // after deletion, navigate back to the clusters list and use replace to avoid going back to deleted cluster
@@ -76,7 +78,9 @@ function MainActions({ shootPermissions, kubeconfigPermissions, disabled = false
     },
     onError: (error) => {
       setShowDeleteDialog(false)
-      showError(error)
+      resetMessages()
+      const errText = normalizeError(error)
+      addMessage({ text: `${errText.title}: ${errText.message}`, variant: "danger" })
     },
   })
 
