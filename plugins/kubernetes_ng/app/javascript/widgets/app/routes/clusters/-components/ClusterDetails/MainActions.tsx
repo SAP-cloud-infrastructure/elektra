@@ -1,5 +1,4 @@
 import React from "react"
-import { Button } from "@cloudoperators/juno-ui-components"
 import { useMutation } from "@tanstack/react-query"
 import { useRouter, useMatch, useParams, useRouteContext } from "@tanstack/react-router"
 import { Permissions } from "../../../../types/permissions"
@@ -9,14 +8,16 @@ import { CLUSTER_DETAIL_ROUTE_ID } from "../../$clusterName"
 import { useActions } from "@cloudoperators/juno-messages-provider"
 import { normalizeError } from "../../../../components/InlineError"
 import { RouterContext } from "../../../__root"
+import DisableableButton from "../../../../components/DisableableButton"
 
 interface MainActionsProps {
   shootPermissions?: Permissions
   kubeconfigPermissions?: Permissions
   disabled?: boolean
+  disabledMessage?: string
 }
 
-function MainActions({ shootPermissions, kubeconfigPermissions, disabled = false }: MainActionsProps) {
+function MainActions({ shootPermissions, kubeconfigPermissions, disabled = false, disabledMessage }: MainActionsProps) {
   const router = useRouter()
   const match = useMatch({ from: CLUSTER_DETAIL_ROUTE_ID })
   const params = useParams({ from: CLUSTER_DETAIL_ROUTE_ID })
@@ -86,7 +87,7 @@ function MainActions({ shootPermissions, kubeconfigPermissions, disabled = false
 
   return (
     <>
-      <Button
+      <DisableableButton
         size="small"
         label="Refresh"
         progress={isFetching && !disabled}
@@ -94,8 +95,9 @@ function MainActions({ shootPermissions, kubeconfigPermissions, disabled = false
           router.invalidate()
         }}
         disabled={disabled}
+        disabledMessage={disabledMessage}
       />
-      <Button
+      <DisableableButton
         size="small"
         label="Kube Config"
         icon="download"
@@ -103,13 +105,15 @@ function MainActions({ shootPermissions, kubeconfigPermissions, disabled = false
         disabled={disabled || kubeconfigMutation.isPending || !kubeconfigPermissions?.create}
         progress={kubeconfigMutation.isPending}
         onClick={() => kubeconfigMutation.mutate()}
+        disabledMessage={disabledMessage}
       />
-      <Button
+      <DisableableButton
         size="small"
         label="Delete Cluster"
         variant="primary-danger"
         disabled={disabled || !shootPermissions?.delete}
         onClick={() => setShowDeleteDialog(true)}
+        disabledMessage={disabledMessage}
       />
       <DeleteDialog
         // reset key to remount dialog and reset internal state on open/close

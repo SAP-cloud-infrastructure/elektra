@@ -1,9 +1,10 @@
 import React, { useMemo, useRef, useState, useEffect } from "react"
 import CodeMirror, { EditorView, highlightWhitespace, ReactCodeMirrorRef } from "@uiw/react-codemirror"
-import { Stack, Button } from "@cloudoperators/juno-ui-components"
+import { Stack } from "@cloudoperators/juno-ui-components"
 import { yaml } from "@codemirror/lang-yaml"
 import yamlParser from "js-yaml"
 import { useMutation } from "@tanstack/react-query"
+import DisableableButton from "./DisableableButton"
 
 const TOOLBAR_HEIGHT = 50
 
@@ -189,23 +190,23 @@ export default function YamlEditor({
       >
         <div className="tw-ml-auto">
           <Stack alignment="center" gap="2">
-            <Button
+            <DisableableButton
               size="small"
               label={isEditable ? "Cancel" : "Edit"}
               onClick={handleEditClick}
               variant="subdued"
               disabled={disabled || isLoading || !!error}
-              title={disabled && disabledMessage ? disabledMessage : undefined}
+              disabledMessage={disabledMessage}
             />
             {isEditable && (
-              <Button
+              <DisableableButton
                 size="small"
                 label="Save"
                 onClick={handleSaveClick}
                 variant="primary"
                 disabled={disabled || !hasChanges || isLoading || !!error}
                 progress={isLoading}
-                title={disabled && disabledMessage ? disabledMessage : undefined}
+                disabledMessage={disabledMessage}
               />
             )}
           </Stack>

@@ -213,7 +213,7 @@ const DetailsContent = ({ cluster, updatedAt }: { cluster: Cluster; updatedAt?: 
                 onError={handleYamlError}
                 onEdit={handleEditClick}
                 disabled={cluster.isDeleted}
-                disabledMessage="Editing is disabled for deleted clusters."
+                disabledMessage={cluster.isDeleted ? "Cluster is deleted and cannot be edited" : undefined}
               />
             </Container>
           </TabPanel>

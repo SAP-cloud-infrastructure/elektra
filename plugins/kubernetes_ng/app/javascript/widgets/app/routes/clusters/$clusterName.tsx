@@ -127,6 +127,7 @@ function ClusterDetail({
           shootPermissions={shootPermissions}
           kubeconfigPermissions={kubeconfigPermissions}
           disabled={isLoading || cluster?.isDeleted}
+          disabledMessage={cluster?.isDeleted ? "Cluster is deleted and actions are disabled" : undefined}
         />
       </ClustersDetailPageHeader>
       {renderContent()}

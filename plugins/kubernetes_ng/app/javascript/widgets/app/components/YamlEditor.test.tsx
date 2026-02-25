@@ -460,7 +460,7 @@ describe("<YamlEditor />", () => {
     if (editorContent) {
       await act(async () => {
         fireEvent.input(editorContent, {
-          target: { textContent: "name: doc1\nversion: 1.0.0\n---\nname: doc2\nversion: 2.0.0" }
+          target: { textContent: "name: doc1\nversion: 1.0.0\n---\nname: doc2\nversion: 2.0.0" },
         })
       })
     }
@@ -642,21 +642,5 @@ describe("<YamlEditor />", () => {
 
     const editButton = screen.getByRole("button", { name: /edit/i })
     expect(editButton).toBeDisabled()
-  })
-
-  it("sets title attribute on buttons when disabled with message", async () => {
-    const disabledMessage = "Editing is not allowed"
-    await act(async () =>
-      renderYamlEditor({
-        resource: mockResource,
-        onSave: mockOnSave,
-        disabled: true,
-        disabledMessage,
-        "data-testid": "yaml-editor",
-      })
-    )
-
-    const editButton = screen.getByRole("button", { name: /edit/i })
-    expect(editButton).toHaveAttribute("title", disabledMessage)
   })
 })
