@@ -5,6 +5,7 @@ import "@testing-library/jest-dom"
 import YamlEditor from "./YamlEditor"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { act } from "react-dom/test-utils"
+import { PortalProvider } from "@cloudoperators/juno-ui-components"
 
 // Helper to render YamlEditor with QueryClientProvider
 const renderYamlEditor = ({
@@ -22,7 +23,9 @@ const renderYamlEditor = ({
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <YamlEditor resource={resource} onSave={onSave} onRefresh={onRefresh} {...props} />
+      <PortalProvider>
+        <YamlEditor resource={resource} onSave={onSave} onRefresh={onRefresh} {...props} />
+      </PortalProvider>
     </QueryClientProvider>
   )
 }
