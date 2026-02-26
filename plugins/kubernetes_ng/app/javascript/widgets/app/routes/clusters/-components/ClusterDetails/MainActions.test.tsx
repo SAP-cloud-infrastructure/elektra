@@ -76,13 +76,12 @@ describe("<MainActions />", () => {
     vi.clearAllMocks()
   })
 
-  it("renders all three buttons", async () => {
+  it("renders two buttons", async () => {
     renderMainActions()
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: /refresh/i })).toBeInTheDocument()
+      expect(screen.getByRole("button", { name: /kube config/i })).toBeInTheDocument()
     })
-    expect(screen.getByRole("button", { name: /kube config/i })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: /delete cluster/i })).toBeInTheDocument()
   })
 
@@ -90,9 +89,8 @@ describe("<MainActions />", () => {
     renderMainActions({ disabled: true })
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: /refresh/i })).toBeDisabled()
+      expect(screen.getByRole("button", { name: /kube config/i })).toBeDisabled()
     })
-    expect(screen.getByRole("button", { name: /refresh/i })).toBeDisabled()
     expect(screen.getByRole("button", { name: /kube config/i })).toBeDisabled()
     expect(screen.getByRole("button", { name: /delete cluster/i })).toBeDisabled()
   })

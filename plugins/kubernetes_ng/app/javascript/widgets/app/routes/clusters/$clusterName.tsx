@@ -3,14 +3,13 @@ import { createFileRoute, useParams, useLoaderData } from "@tanstack/react-route
 import { Cluster } from "../../types/cluster"
 import { Permissions } from "../../types/permissions"
 import { LoaderWithCrumb } from "../-types"
-import { Spinner } from "@cloudoperators/juno-ui-components"
 import PageHeader from "../../components/PageHeader"
-import InlineError from "../../components/InlineError"
 import { ErrorBoundary, FallbackProps } from "react-error-boundary"
 import { RouterContext } from "../__root"
 import { GardenerApi } from "../../apiClient"
 import DetailsContent from "./-components/ClusterDetails/DetailsContent"
 import MainActions from "./-components/ClusterDetails/MainActions"
+import InlineError from "../../components/InlineError"
 
 export const CLUSTER_DETAIL_ROUTE_ID = "/clusters/$clusterName"
 
@@ -100,24 +99,13 @@ function ClusterDetail({
 }: ClusterDetailProps) {
   const params = useParams({ from: Route.id })
 
-  const detailsError =
-    error ??
-    (shootPermissions?.get === false ? new Error("You do not have permission to view cluster details.") : undefined)
-
-  const renderContent = () => {
-    if (isLoading) {
-      return <Spinner size="small" aria-label="Loading cluster details" />
-    }
-
-    if (detailsError) {
-      return <InlineError error={detailsError} />
-    }
-
-    if (!cluster) {
-      return <span role="status">Cluster not found</span>
-    }
-
-    return <DetailsContent cluster={cluster} updatedAt={updatedAt} shootPermissions={shootPermissions} />
+  // Determine the error to display
+  const getError = () => {
+    if (error) return error
+    if (shootPermissions?.get === false) return new Error("You do not have permission to view cluster details.")
+    if (!isLoading && !cluster) return new Error("Cluster not found")
+    if (!isLoading && !shootPermissions) return new Error("Permissions failed to load")
+    return undefined
   }
 
   return (
@@ -130,7 +118,13 @@ function ClusterDetail({
           disabledMessage={cluster?.isDeleted ? "Cluster is deleted and actions are disabled" : undefined}
         />
       </ClustersDetailPageHeader>
-      {renderContent()}
+      <DetailsContent
+        cluster={cluster}
+        updatedAt={updatedAt}
+        shootPermissions={shootPermissions}
+        error={getError()}
+        isLoading={isLoading}
+      />
     </>
   )
 }

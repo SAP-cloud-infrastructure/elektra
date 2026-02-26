@@ -1,6 +1,6 @@
 import React, { useState } from "react"
-import { createFileRoute, useLoaderData, useRouter, useMatch, useLocation } from "@tanstack/react-router"
-import { Container, Message } from "@cloudoperators/juno-ui-components"
+import { createFileRoute, useLoaderData, useRouter, useMatch } from "@tanstack/react-router"
+import { Container } from "@cloudoperators/juno-ui-components"
 import ClusterList from "./-components/ClusterList"
 import PageHeader from "../../components/PageHeader"
 import { Permissions } from "../../types/permissions"
@@ -10,6 +10,7 @@ import InlineError from "../../components/InlineError"
 import CreateClusterWizard from "./-components/CreateClusterWizard"
 import { GardenerApi } from "../../apiClient"
 import DisableableButton from "../../components/DisableableButton"
+import { useActions } from "@cloudoperators/juno-messages-provider"
 
 export const CLUSTERS_ROUTE_ID = "/clusters/"
 
@@ -73,27 +74,15 @@ function ClusterActions({
   disabled?: boolean
   onAddCluster?: () => void
 }) {
-  const router = useRouter()
-  const match = useMatch({ from: Route.id })
-  const isFetching = match.isFetching === "loader"
-
   // Determine the disabled message for Add Cluster button
   const getAddClusterDisabledMessage = () => {
-    if (!permissions?.create) return "You don't have permission to create clusters"
+    if (!permissions) return "Permissions are not available"
+    if (!permissions.create) return "You don't have permission to create clusters"
     return undefined
   }
 
   return (
     <>
-      <DisableableButton
-        size="small"
-        label="Refresh"
-        progress={isFetching && !disabled}
-        onClick={() => {
-          router.invalidate()
-        }}
-        disabled={disabled}
-      />
       <DisableableButton
         variant="primary"
         size="small"
@@ -117,12 +106,23 @@ interface ClustersViewProps {
 }
 
 function ClusterContent({ clusters = [], permissions, error, isLoading = false, updatedAt }: ClustersViewProps) {
+  const router = useRouter()
+  const match = useMatch({ from: Route.id })
+  const isFetching = match.isFetching === "loader"
+
   const listError =
     error ?? (permissions?.list === false ? new Error("You do not have permission to view clusters.") : undefined)
 
   return (
     <Container py px={false}>
-      <ClusterList clusters={listError ? [] : clusters} isLoading={isLoading} error={listError} updatedAt={updatedAt} />
+      <ClusterList
+        clusters={listError ? [] : clusters}
+        isLoading={isLoading}
+        error={listError}
+        updatedAt={updatedAt}
+        isFetching={isFetching}
+        onRefresh={() => router.invalidate()}
+      />
     </Container>
   )
 }
@@ -130,34 +130,11 @@ function ClusterContent({ clusters = [], permissions, error, isLoading = false, 
 function Clusters(props: ClustersViewProps) {
   const { permissions, isLoading = false, client, region } = props
   const [showWizardModal, setShowWizardModal] = useState(false)
-  const location = useLocation()
-  const [successMessage, setSuccessMessage] = useState(location.state?.successMessage ?? null)
   const router = useRouter()
-
-  const cleanupSuccessMessage = () => {
-    // clear location state to avoid showing the message again on remount
-    setSuccessMessage(null)
-    // clear successMessage from location state to prevent it from reappearing on remount
-    if (location.state?.successMessage) {
-      router.navigate({
-        to: location.pathname,
-        replace: true,
-        state: (prev) => ({
-          ...prev,
-          successMessage: undefined,
-        }),
-      })
-    }
-  }
+  const { addMessage, resetMessages } = useActions()
 
   return (
     <>
-      <Container px={false} py>
-        {successMessage && (
-          <Message onDismiss={cleanupSuccessMessage} text={successMessage} variant="success" autoDismiss dismissible />
-        )}
-      </Container>
-
       <ClustersPageHeader>
         <ClusterActions permissions={permissions} disabled={isLoading} onAddCluster={() => setShowWizardModal(true)} />
       </ClustersPageHeader>
@@ -171,7 +148,11 @@ function Clusters(props: ClustersViewProps) {
           isOpen={showWizardModal}
           onSuccessCreate={(clusterName) => {
             router.invalidate()
-            setSuccessMessage(`Cluster ${clusterName} is being bootstrapped. This may take a few minutes.`)
+            resetMessages()
+            addMessage({
+              text: `Cluster ${clusterName} is being bootstrapped. This may take a few minutes.`,
+              variant: "success",
+            })
           }}
           onClose={() => {
             setShowWizardModal(false)

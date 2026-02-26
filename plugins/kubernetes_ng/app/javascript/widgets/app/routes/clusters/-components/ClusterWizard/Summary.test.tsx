@@ -8,16 +8,19 @@ import { defaultMockClient } from "../../../../mocks/TestTools"
 import Summary from "./Summary"
 import { validClusterFormData } from "../../../../mocks/data"
 import { DEFAULT_CLUSTER_FORM_DATA } from "./defaults"
+import { MessagesProvider } from "@cloudoperators/juno-messages-provider"
 
 const TestWrapper =
   (queryClient: QueryClient) =>
   ({ children }: { children: React.ReactNode }) => (
     <PortalProvider>
       <QueryClientProvider client={queryClient}>
-        <WizardProvider client={defaultMockClient} region="us-east-1" formData={DEFAULT_CLUSTER_FORM_DATA}>
-          <Summary />
-          {children}
-        </WizardProvider>
+        <MessagesProvider>
+          <WizardProvider client={defaultMockClient} region="us-east-1" formData={DEFAULT_CLUSTER_FORM_DATA}>
+            <Summary />
+            {children}
+          </WizardProvider>
+        </MessagesProvider>
       </QueryClientProvider>
     </PortalProvider>
   )

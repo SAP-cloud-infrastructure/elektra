@@ -1,6 +1,6 @@
 import React from "react"
 import { useMutation } from "@tanstack/react-query"
-import { useRouter, useMatch, useParams, useRouteContext } from "@tanstack/react-router"
+import { useRouter, useParams, useRouteContext } from "@tanstack/react-router"
 import { Permissions } from "../../../../types/permissions"
 import { Cluster } from "../../../../types/cluster"
 import DeleteDialog from "./DeleteDialog"
@@ -19,9 +19,7 @@ interface MainActionsProps {
 
 function MainActions({ shootPermissions, kubeconfigPermissions, disabled = false, disabledMessage }: MainActionsProps) {
   const router = useRouter()
-  const match = useMatch({ from: CLUSTER_DETAIL_ROUTE_ID })
   const params = useParams({ from: CLUSTER_DETAIL_ROUTE_ID })
-  const isFetching = match.isFetching === "loader"
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false)
   const { addMessage, resetMessages } = useActions()
   const { apiClient } = useRouteContext({ strict: false }) as RouterContext
@@ -29,14 +27,16 @@ function MainActions({ shootPermissions, kubeconfigPermissions, disabled = false
   // Helper to determine the disabled message for Kube Config button
   const getKubeconfigDisabledMessage = () => {
     if (disabled && disabledMessage) return disabledMessage
-    if (!kubeconfigPermissions?.create) return "You don't have permission to download kubeconfig"
+    if (!kubeconfigPermissions) return "Permissions are not available"
+    if (!kubeconfigPermissions.create) return "You don't have permission to download kubeconfig"
     return undefined
   }
 
   // Helper to determine the disabled message for Delete button
   const getDeleteDisabledMessage = () => {
     if (disabled && disabledMessage) return disabledMessage
-    if (!shootPermissions?.delete) return "You don't have permission to delete this cluster"
+    if (!shootPermissions) return "Permissions are not available"
+    if (!shootPermissions.delete) return "You don't have permission to delete this cluster"
     return undefined
   }
 
@@ -101,16 +101,6 @@ function MainActions({ shootPermissions, kubeconfigPermissions, disabled = false
 
   return (
     <>
-      <DisableableButton
-        size="small"
-        label="Refresh"
-        progress={isFetching && !disabled}
-        onClick={() => {
-          router.invalidate()
-        }}
-        disabled={disabled}
-        disabledMessage={disabledMessage}
-      />
       <DisableableButton
         size="small"
         label="Kube Config"

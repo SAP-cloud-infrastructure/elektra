@@ -6,16 +6,19 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { PortalProvider } from "@cloudoperators/juno-ui-components"
 import { defaultMockClient } from "../../../../mocks/TestTools"
 import { DEFAULT_CLUSTER_FORM_DATA } from "./defaults"
+import { MessagesProvider } from "@cloudoperators/juno-messages-provider"
 
 const TestWrapper =
   (queryClient: QueryClient) =>
   ({ children }: { children: React.ReactNode }) => (
     <PortalProvider>
       <QueryClientProvider client={queryClient}>
-        <WizardProvider client={defaultMockClient} region="us-east-1" formData={DEFAULT_CLUSTER_FORM_DATA}>
-          <CreateClusterDialogContent />
-          {children}
-        </WizardProvider>
+        <MessagesProvider>
+          <WizardProvider client={defaultMockClient} region="us-east-1" formData={DEFAULT_CLUSTER_FORM_DATA}>
+            <CreateClusterDialogContent />
+            {children}
+          </WizardProvider>
+        </MessagesProvider>
       </QueryClientProvider>
     </PortalProvider>
   )

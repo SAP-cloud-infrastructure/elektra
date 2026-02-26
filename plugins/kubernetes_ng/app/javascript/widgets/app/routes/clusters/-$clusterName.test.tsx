@@ -42,8 +42,8 @@ const renderComponent = ({
     routeTree: routeTree,
     context: {
       apiClient: {
-        ...defaultMockClient,
         gardener: {
+          ...defaultMockClient.gardener,
           getClusterByName: () => clusterDetailsPromise,
           getShootPermissions: () => permissionsPromise,
           getKubeconfigPermission: () => permissionsPromise,
@@ -90,8 +90,6 @@ describe("<ClusterDetail />", () => {
       })
     )
 
-    const refreshButton = screen.getByRole("button", { name: /Refresh/i })
-    expect(refreshButton).toBeDisabled()
     const deleteButton = screen.getByRole("button", { name: /delete cluster/i })
     expect(deleteButton).toBeDisabled()
     const downloadKubeconfigButton = screen.getByRole("button", { name: /Kube Config/i })
@@ -123,8 +121,8 @@ describe("<ClusterDetail />", () => {
       expect(spinner).toBeInTheDocument()
 
       // Ensure tabs are not rendered yet
-      expect(screen.queryByRole("tab", { name: "JSON" })).not.toBeInTheDocument()
-      expect(screen.queryByRole("tab", { name: "Overview" })).not.toBeInTheDocument()
+      expect(screen.queryByRole("tab", { name: "YAML" })).toBeInTheDocument()
+      expect(screen.queryByRole("tab", { name: "Overview" })).toBeInTheDocument()
     })
 
     it("disables action buttons when loading", async () => {
@@ -137,8 +135,6 @@ describe("<ClusterDetail />", () => {
         permissionsPromise: permissionsDeferred.promise,
       })
 
-      const refreshButton = await screen.findByRole("button", { name: /Refresh/i })
-      expect(refreshButton).toBeDisabled()
       const addClusterButton = await screen.findByRole("button", { name: /delete cluster/i })
       expect(addClusterButton).toBeDisabled()
     })
@@ -167,8 +163,8 @@ describe("<ClusterDetail />", () => {
       )
 
       expect(screen.getByText("Error: Failed to load cluster details")).toBeInTheDocument()
-      expect(screen.queryByRole("tab", { name: "JSON" })).not.toBeInTheDocument()
-      expect(screen.queryByRole("tab", { name: "Overview" })).not.toBeInTheDocument()
+      expect(screen.queryByRole("tab", { name: "YAML" })).toBeInTheDocument()
+      expect(screen.queryByRole("tab", { name: "Overview" })).toBeInTheDocument()
     })
 
     it("disables action buttons when cluster details fail to load", async () => {
