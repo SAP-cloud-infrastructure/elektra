@@ -3,6 +3,7 @@
 export const types = ["build", "chore", "fix", "feat", "refactor", "research", "style", "test"]
 export const scopes = [
   "build",
+  "depth",
   "config",
   "ci",
   "core",
@@ -17,7 +18,7 @@ export const scopes = [
   "cloudops",
   "compute",
   "dns-service",
-  "email-service",
+  "maillog",
   "identity",
   "image",
   "inquiry",

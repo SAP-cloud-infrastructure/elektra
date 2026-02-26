@@ -73,3 +73,7 @@ config/support/domain_config.local.yaml
 .pnpm-store
 
 AGENTS.md
+CLAUDE.md
+*playground*
+*claude
+

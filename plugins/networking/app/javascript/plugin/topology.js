@@ -6,7 +6,9 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-import * as d3 from "d3"
+// D3 v3 is loaded globally from vendor/assets/javascripts/d3.v3.min.js
+// Access it from window object to avoid bundling issues with 'this' context
+// Note: d3 is accessed dynamically via window.d3 throughout this file
 
 var Topology = (function () {
   let defaults = undefined
@@ -73,7 +75,7 @@ var Topology = (function () {
         .attr("height", this.height)
         .style("cursor", "move")
       // zoom feature
-      const zoom = d3.behavior
+      const zoom = window.d3.behavior
         .zoom()
         .scaleExtent([this.options.minZoom, this.options.maxZoom])
       // create graph container
@@ -81,7 +83,7 @@ var Topology = (function () {
 
       // convert data to nodes and links
       const nodes = flatten(data)
-      const links = d3.layout.tree().links(nodes)
+      const links = window.d3.layout.tree().links(nodes)
 
       this.linksedByIndex = {}
       links.forEach((d) => {
@@ -89,7 +91,7 @@ var Topology = (function () {
       })
 
       // create force layout
-      this.layout = d3.layout
+      this.layout = window.d3.layout
         .force()
         .linkDistance(80)
         .charge(-400)
@@ -161,7 +163,7 @@ var Topology = (function () {
         .on("mouseover", (d) => this.setHighlight(d))
         .on("mousedown", (d) => {
           this.dragFlag = false
-          d3.event.stopPropagation()
+          window.d3.event.stopPropagation()
           this.focusNode = d
           this.setFocus(d)
           if (this.heightighlightNode === null) {
@@ -218,7 +220,7 @@ var Topology = (function () {
           }
         })
 
-      d3.select(window).on("mouseup", () => {
+      window.d3.select(window).on("mouseup", () => {
         if (this.focusNode !== null) {
           this.focusNode = null
           this.graph.selectAll(".node text").style("opacity", 1)
@@ -266,16 +268,16 @@ var Topology = (function () {
         return this.graph
           .attr(
             "transform",
-            `translate(${d3.event.translate})scale(${d3.event.scale})`
+            `translate(${window.d3.event.translate})scale(${window.d3.event.scale})`
           )
-          .attr("dx", d3.event.translate[0])
-          .attr("dy", d3.event.translate[1])
+          .attr("dx", window.d3.event.translate[0])
+          .attr("dy", window.d3.event.translate[1])
           .attr("scale", zoom.scale())
       })
 
       this.canvas.call(zoom)
 
-      d3.select(window).on("resize", this.resize)
+      window.d3.select(window).on("resize", this.resize)
 
       this.layout.on("tick", () => {
         this.nodes.attr("transform", (d) => `translate(${d.x},${d.y})`)

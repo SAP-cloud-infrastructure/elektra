@@ -9,10 +9,10 @@ Gem::Specification.new do |s|
   s.homepage = ""
   s.summary = "Summary of Inquiry."
   s.description = "Description of Inquiry."
-  s.license = "MIT"
+  s.license = "Apache License 2.0"
 
   s.files =
-    Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.rdoc"]
+    Dir["{app,config,db,lib}/**/*", "Apache License 2.0", "Rakefile", "README.rdoc"]
 
   s.add_runtime_dependency "aasm"
   s.add_runtime_dependency "kaminari"

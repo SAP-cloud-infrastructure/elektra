@@ -6,13 +6,22 @@ import { vi } from "vitest"
 expect.extend(matchers)
 
 // Mock jQuery
-global.$ = vi.fn(() => ({
+const jqueryMock = vi.fn(() => ({
   popover: vi.fn(),
   tooltip: vi.fn(),
   modal: vi.fn(),
   dropdown: vi.fn(),
   // Add other jQuery methods your code might use
 }))
+
+declare global {
+  var $: typeof jqueryMock
+  var jQuery: typeof jqueryMock
+  interface Window {
+    $: typeof jqueryMock
+    jQuery: typeof jqueryMock
+  }
+}
 
 // Global mocks that apply to all tests
 // ResizeObserver is needed for testing some JunoUI-Components like Select
@@ -21,10 +30,6 @@ global.ResizeObserver = class {
   unobserve = vi.fn()
   disconnect = vi.fn()
 }
-
-global.jQuery = global.$
-window.$ = global.$
-window.jQuery = global.$
 
 // Mock DOM Range API for CodeMirror
 if (typeof document !== "undefined") {
@@ -68,3 +73,8 @@ if (typeof document !== "undefined") {
     }))
   }
 }
+
+globalThis.$ = jqueryMock
+globalThis.jQuery = jqueryMock
+window.$ = jqueryMock
+window.jQuery = jqueryMock

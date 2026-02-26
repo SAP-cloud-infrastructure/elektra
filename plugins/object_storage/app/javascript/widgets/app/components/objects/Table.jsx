@@ -116,6 +116,7 @@ const Table = ({
   return (
     <VirtualizedTable
       height="max"
+      minHeight={300}
       rowHeight={50}
       columns={columns}
       data={data || []}

@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.summary     = "Authenticate against Openstack Keystone."
   s.description = "This gem enables authentication for Ruby on Rails applications against Openstack Keystone Service using the Identity API v3."
 
-  s.files = Dir["{app,config,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.rdoc"]
+  s.files = Dir["{app,config,lib}/**/*", "Apache License 2.0", "Rakefile", "README.rdoc"]
   s.test_files = Dir["spec/**/*"]
 
   s.add_dependency 'hashie'
