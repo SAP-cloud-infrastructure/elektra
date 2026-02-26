@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest"
+import { describe, it, expect } from "vitest"
 import { render, screen, fireEvent, within, waitFor } from "@testing-library/react"
 import { act } from "react-dom/test-utils"
 import userEvent from "@testing-library/user-event"
@@ -10,7 +10,6 @@ import { createRouter, createMemoryHistory, createRootRoute, createRoute, Router
 import { MessagesProvider } from "@cloudoperators/juno-messages-provider"
 import { CLUSTER_DETAIL_ROUTE_ID } from "../../$clusterName"
 import { PortalProvider } from "@cloudoperators/juno-ui-components"
-import { ref } from "process"
 
 // Helper to render DetailsContent with QueryClientProvider
 const renderDetailsContent = ({
