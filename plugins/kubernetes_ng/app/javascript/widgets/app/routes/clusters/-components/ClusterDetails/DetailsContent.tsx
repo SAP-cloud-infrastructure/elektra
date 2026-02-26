@@ -22,11 +22,10 @@ import Collapse from "../../../../components/Collapse"
 import Box from "../../../../components/Box"
 import WorkerList from "./WorkerList"
 import YamlEditor from "../../../../components/YamlEditor"
-import { useRouteContext, useRouter, useParams } from "@tanstack/react-router"
+import { useRouteContext, useRouter } from "@tanstack/react-router"
 import { RouterContext } from "../../../__root"
 import { useActions } from "@cloudoperators/juno-messages-provider"
 import { normalizeError } from "../../../../components/InlineError"
-import { CLUSTER_DETAIL_ROUTE_ID } from "../../$clusterName"
 
 const sectionHeaderStyles = "details-section tw-text-lg tw-font-bold tw-mb-4"
 
@@ -34,7 +33,6 @@ const DetailsContent = ({ cluster, updatedAt }: { cluster: Cluster; updatedAt?: 
   const [showLastOperation, setShowLastOperation] = useState(false)
   const { apiClient } = useRouteContext({ strict: false }) as RouterContext
   const router = useRouter()
-  const params = useParams({ from: CLUSTER_DETAIL_ROUTE_ID })
   const { addMessage, resetMessages } = useActions()
 
   const handleSaveCluster = async (resource: Record<string, unknown>): Promise<void> => {
@@ -66,7 +64,7 @@ const DetailsContent = ({ cluster, updatedAt }: { cluster: Cluster; updatedAt?: 
     // Invalidate the router to update the UI
     router.invalidate()
     // Fetch the latest cluster resource directly from the API to not watch resource changes
-    const latestCluster = await apiClient.gardener.getClusterByName(params.clusterName)
+    const latestCluster = await apiClient.gardener.getClusterByName(cluster.name)
     // Return the raw cluster resource
     return latestCluster.raw
   }

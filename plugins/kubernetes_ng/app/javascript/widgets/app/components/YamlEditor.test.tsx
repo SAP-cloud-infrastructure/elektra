@@ -10,8 +10,9 @@ import { act } from "react-dom/test-utils"
 const renderYamlEditor = ({
   resource = {},
   onSave = () => Promise.resolve(),
+  onRefresh = () => Promise.resolve({}),
   ...props
-}: { resource?: any; onSave?: () => Promise<any>; [key: string]: any } = {}) => {
+}: { resource?: any; onSave?: () => Promise<any>; onRefresh?: () => Promise<any>; [key: string]: any } = {}) => {
   const queryClient: QueryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
@@ -21,7 +22,7 @@ const renderYamlEditor = ({
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <YamlEditor resource={resource} onSave={onSave} {...props} />
+      <YamlEditor resource={resource} onSave={onSave} onRefresh={onRefresh} {...props} />
     </QueryClientProvider>
   )
 }
