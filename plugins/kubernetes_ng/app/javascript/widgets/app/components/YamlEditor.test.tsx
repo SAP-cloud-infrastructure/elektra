@@ -1,5 +1,5 @@
 import React from "react"
-import { render, screen, fireEvent, waitFor } from "@testing-library/react"
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react"
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import "@testing-library/jest-dom"
 import YamlEditor from "./YamlEditor"
@@ -774,6 +774,291 @@ describe("<YamlEditor />", () => {
     await waitFor(() => {
       expect(screen.getByRole("button", { name: /cancel/i })).toBeInTheDocument()
       expect(screen.queryByText(/discard unsaved changes/i)).not.toBeInTheDocument()
+    })
+  })
+
+  describe("resourceVersion conflict detection", () => {
+    it("saves successfully when resourceVersion hasn't changed", async () => {
+      const mockResourceWithVersion = {
+        name: "test-cluster",
+        metadata: {
+          resourceVersion: "12345",
+        },
+      }
+
+      const mockOnRefresh = vi.fn(() =>
+        Promise.resolve({
+          name: "test-cluster",
+          metadata: {
+            resourceVersion: "12345", // Same version
+          },
+        })
+      )
+
+      await act(async () =>
+        renderYamlEditor({
+          resource: mockResourceWithVersion,
+          onSave: mockOnSave,
+          onRefresh: mockOnRefresh,
+          "data-testid": "yaml-editor",
+        })
+      )
+
+      // Enter edit mode
+      const editButton = screen.getByRole("button", { name: /edit/i })
+      act(() => {
+        editButton.click()
+      })
+
+      // Make changes
+      const editor = screen.getByTestId("yaml-editor")
+      const editorContent = editor.querySelector(".cm-content")
+      if (editorContent) {
+        await act(async () => {
+          fireEvent.input(editorContent, {
+            target: { textContent: 'name: modified-cluster\nmetadata:\n  resourceVersion: "12345"' },
+          })
+        })
+      }
+
+      // Click Save
+      await waitFor(() => {
+        const saveButton = screen.getByRole("button", { name: /save/i })
+        expect(saveButton).not.toBeDisabled()
+      })
+
+      const saveButton = screen.getByRole("button", { name: /save/i })
+      await act(async () => {
+        saveButton.click()
+      })
+
+      // Verify onRefresh was called to check for conflicts
+      await waitFor(() => {
+        expect(mockOnRefresh).toHaveBeenCalled()
+      })
+
+      // Verify onSave was called (no conflict)
+      await waitFor(() => {
+        expect(mockOnSave).toHaveBeenCalled()
+      })
+
+      // Verify no conflict dialog appeared
+      expect(screen.queryByText(/resource has been modified/i)).not.toBeInTheDocument()
+    })
+
+    it("shows conflict dialog when resourceVersion has changed", async () => {
+      const mockResourceWithVersion = {
+        name: "test-cluster",
+        metadata: {
+          resourceVersion: "12345",
+        },
+      }
+
+      const mockOnRefresh = vi.fn(() =>
+        Promise.resolve({
+          name: "test-cluster",
+          metadata: {
+            resourceVersion: "67890", // Different version - conflict!
+          },
+        })
+      )
+
+      await act(async () =>
+        renderYamlEditor({
+          resource: mockResourceWithVersion,
+          onSave: mockOnSave,
+          onRefresh: mockOnRefresh,
+          "data-testid": "yaml-editor",
+        })
+      )
+
+      // Enter edit mode
+      const editButton = screen.getByRole("button", { name: /edit/i })
+      act(() => {
+        editButton.click()
+      })
+
+      // Make changes
+      const editor = screen.getByTestId("yaml-editor")
+      const editorContent = editor.querySelector(".cm-content")
+      if (editorContent) {
+        await act(async () => {
+          fireEvent.input(editorContent, {
+            target: { textContent: 'name: modified-cluster\nmetadata:\n  resourceVersion: "12345"' },
+          })
+        })
+      }
+
+      // Click Save
+      await waitFor(() => {
+        const saveButton = screen.getByRole("button", { name: /save/i })
+        expect(saveButton).not.toBeDisabled()
+      })
+
+      const saveButton = screen.getByRole("button", { name: /save/i })
+      await act(async () => {
+        saveButton.click()
+      })
+
+      // Verify conflict dialog appeared
+      await waitFor(() => {
+        expect(screen.getByText(/ resource has been modified by someone else/i)).toBeInTheDocument()
+      })
+
+      // Verify onSave was NOT called yet (waiting for user confirmation)
+      expect(mockOnSave).not.toHaveBeenCalled()
+    })
+
+    it("merges latest resourceVersion when conflict is confirmed", async () => {
+      const mockResourceWithVersion = {
+        name: "test-cluster",
+        metadata: {
+          resourceVersion: "12345",
+        },
+      }
+
+      let refreshCallCount = 0
+      const mockOnRefresh = vi.fn(() => {
+        refreshCallCount++
+        // First call: return different version (conflict detected)
+        // Second call (on confirm): return even newer version
+        return Promise.resolve({
+          name: "test-cluster",
+          metadata: {
+            resourceVersion: refreshCallCount === 1 ? "67890" : "99999",
+          },
+        })
+      })
+
+      await act(async () =>
+        renderYamlEditor({
+          resource: mockResourceWithVersion,
+          onSave: mockOnSave,
+          onRefresh: mockOnRefresh,
+          "data-testid": "yaml-editor",
+        })
+      )
+
+      // Enter edit mode
+      const editButton = screen.getByRole("button", { name: /edit/i })
+      act(() => {
+        editButton.click()
+      })
+
+      // Make changes
+      const editor = screen.getByTestId("yaml-editor")
+      const editorContent = editor.querySelector(".cm-content")
+      if (editorContent) {
+        await act(async () => {
+          fireEvent.input(editorContent, {
+            target: { textContent: 'name: modified-cluster\nmetadata:\n  resourceVersion: "12345"' },
+          })
+        })
+      }
+
+      // Click Save
+      const saveButton = await screen.findByRole("button", { name: /save/i })
+      await act(async () => {
+        saveButton.click()
+      })
+
+      // Wait for conflict dialog to appear
+      const conflictDialog = await screen.findByRole("dialog", { name: /resource has been modified/i })
+      expect(conflictDialog).toBeInTheDocument()
+
+      // Confirm the conflict dialog - find button within the dialog
+      const confirmButton = await screen.findByRole("button", { name: /update and continue/i })
+      await act(async () => {
+        confirmButton.click()
+      })
+
+      // Verify onRefresh was called twice (once on save, once on confirm)
+      await waitFor(() => {
+        expect(mockOnRefresh).toHaveBeenCalledTimes(2)
+      })
+
+      // Verify onSave was called with the merged resourceVersion
+      await waitFor(() => {
+        expect(mockOnSave).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: "modified-cluster",
+            metadata: expect.objectContaining({
+              resourceVersion: "99999", // Latest version from second refresh
+            }),
+          })
+        )
+      })
+    })
+
+    it("closes conflict dialog when cancel is clicked", async () => {
+      const mockResourceWithVersion = {
+        name: "test-cluster",
+        metadata: {
+          resourceVersion: "12345",
+        },
+      }
+
+      const mockOnRefresh = vi.fn(() =>
+        Promise.resolve({
+          name: "test-cluster",
+          metadata: {
+            resourceVersion: "67890", // Different version
+          },
+        })
+      )
+
+      await act(async () =>
+        renderYamlEditor({
+          resource: mockResourceWithVersion,
+          onSave: mockOnSave,
+          onRefresh: mockOnRefresh,
+          "data-testid": "yaml-editor",
+        })
+      )
+
+      // Enter edit mode
+      const editButton = screen.getByRole("button", { name: /edit/i })
+      act(() => {
+        editButton.click()
+      })
+
+      // Make changes
+      const editor = screen.getByTestId("yaml-editor")
+      const editorContent = editor.querySelector(".cm-content")
+      if (editorContent) {
+        await act(async () => {
+          fireEvent.input(editorContent, {
+            target: { textContent: 'name: modified-cluster\nmetadata:\n  resourceVersion: "12345"' },
+          })
+        })
+      }
+
+      // Click Save
+      const saveButton = await screen.findByRole("button", { name: /save/i })
+      await act(async () => {
+        saveButton.click()
+      })
+
+      // Wait for conflict dialog to appear
+      const conflictDialog = await screen.findByRole("dialog", { name: /resource has been modified/i })
+      expect(conflictDialog).toBeInTheDocument()
+
+      // Click Cancel in conflict dialog - find button within the dialog
+      const cancelButton = within(conflictDialog).getByRole("button", { name: /cancel/i })
+      await act(async () => {
+        cancelButton.click()
+      })
+
+      // Verify dialog is closed
+      await waitFor(() => {
+        expect(screen.queryByText(/resource has been modified by someone else/i)).not.toBeInTheDocument()
+      })
+
+      // Verify onSave was NOT called
+      expect(mockOnSave).not.toHaveBeenCalled()
+
+      // Verify we're still in edit mode (look for the editor's Cancel button)
+      expect(screen.getByRole("button", { name: /cancel/i })).toBeInTheDocument()
     })
   })
 })

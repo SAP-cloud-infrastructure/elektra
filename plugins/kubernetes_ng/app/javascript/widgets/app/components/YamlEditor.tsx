@@ -55,11 +55,7 @@ const ResourceVersionConflictDialog = ({
         <strong>The resource has been modified by someone else while you were editing.</strong>
       </p>
       <p className="tw-mb-4">
-        If you continue, your changes will be applied to the latest version of the resource. The resourceVersion will be
-        updated automatically.
-      </p>
-      <p>
-        <strong>Do you want to continue with your changes?</strong>
+        If you save your changes you will overwrite their changes. <strong>Are you sure you want to proceed?</strong>
       </p>
     </Modal>
   )
