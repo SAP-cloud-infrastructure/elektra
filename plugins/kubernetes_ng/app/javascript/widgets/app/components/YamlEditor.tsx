@@ -32,11 +32,45 @@ const CancelConfirmDialog = ({
   )
 }
 
+// Confirm dialog for resource version conflict
+const ResourceVersionConflictDialog = ({
+  isOpen,
+  onCancel,
+  onConfirm,
+}: {
+  isOpen: boolean
+  onCancel: () => void
+  onConfirm: () => void
+}) => {
+  return (
+    <Modal
+      open={isOpen}
+      onCancel={onCancel}
+      onConfirm={onConfirm}
+      title="Resource Has Been Modified"
+      cancelButtonLabel="Cancel"
+      confirmButtonLabel="Update and Continue"
+    >
+      <p className="tw-mb-4">
+        <strong>The resource has been modified by someone else while you were editing.</strong>
+      </p>
+      <p className="tw-mb-4">
+        If you continue, your changes will be applied to the latest version of the resource. The resourceVersion will be
+        updated automatically.
+      </p>
+      <p>
+        <strong>Do you want to continue with your changes?</strong>
+      </p>
+    </Modal>
+  )
+}
+
 interface YamlEditorProps {
   resource: Record<string, unknown>
   onSave: (resource: Record<string, unknown>) => Promise<void>
   onError?: (error: Error) => void
   onEdit?: () => void
+  onRefresh: () => Promise<Record<string, unknown>>
   disabled?: boolean
   disabledMessage?: string
 }
@@ -46,6 +80,7 @@ export default function YamlEditor({
   onSave,
   onError,
   onEdit,
+  onRefresh,
   disabled = false,
   disabledMessage,
   ...props
@@ -54,9 +89,12 @@ export default function YamlEditor({
   const [isEditable, setIsEditable] = useState<boolean>(false)
   const [editedYaml, setEditedYaml] = useState<string>("")
   const [showCancelDialog, setShowCancelDialog] = useState<boolean>(false)
+  const [showVersionConflictDialog, setShowVersionConflictDialog] = useState<boolean>(false)
+  const [pendingSaveData, setPendingSaveData] = useState<Record<string, unknown> | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const codeMirrorRef = useRef<ReactCodeMirrorRef>(null)
   const timeoutIdRef = useRef<number | undefined>(undefined)
+  const initialResourceVersionRef = useRef<string | undefined>(undefined)
 
   const { yamlContent, error } = useMemo(() => {
     try {
@@ -154,6 +192,9 @@ export default function YamlEditor({
       setEditedYaml(yamlContent)
       mutation.reset()
       setIsEditable(true)
+      // Capture initial resourceVersion when entering edit mode
+      const metadata = resource.metadata as Record<string, unknown> | undefined
+      initialResourceVersionRef.current = metadata?.resourceVersion as string | undefined
     } else {
       // Check if there are unsaved changes
       const hasChanges = editedYaml !== yamlContent
@@ -174,11 +215,50 @@ export default function YamlEditor({
     setShowCancelDialog(false)
   }
 
+  const handleVersionConflictConfirm = async () => {
+    setShowVersionConflictDialog(false)
+
+    if (!pendingSaveData) return
+
+    try {
+      // Fetch the latest resource again to ensure we have the most up-to-date resourceVersion
+      // (in case more changes happened while the dialog was open)
+      const latestResource = await onRefresh()
+
+      // Get the latest resourceVersion from the fetched resource
+      const metadata = latestResource.metadata as Record<string, unknown> | undefined
+      const latestResourceVersion = metadata?.resourceVersion
+
+      if (latestResourceVersion) {
+        // Merge user's changes with the latest resourceVersion
+        const updatedData = {
+          ...pendingSaveData,
+          metadata: {
+            ...(pendingSaveData.metadata as Record<string, unknown>),
+            resourceVersion: latestResourceVersion,
+          },
+        }
+        mutation.mutate(updatedData)
+      } else {
+        mutation.mutate(pendingSaveData)
+      }
+      setPendingSaveData(null)
+    } catch (error) {
+      onError?.(new Error(`Failed to fetch latest resource: ${(error as Error).message}`))
+      setPendingSaveData(null)
+    }
+  }
+
+  const handleVersionConflictCancel = () => {
+    setShowVersionConflictDialog(false)
+    setPendingSaveData(null)
+  }
+
   const handleYamlChange = (newValue: string) => {
     setEditedYaml(newValue)
   }
 
-  const handleSaveClick = () => {
+  const handleSaveClick = async () => {
     try {
       // Check for multi-document YAML (multiple documents separated by ---)
       // Use JSON_SCHEMA to only parse JSON-compatible YAML (no custom types, dates, etc.)
@@ -216,8 +296,36 @@ export default function YamlEditor({
         return
       }
 
-      // Call the mutation with the validated object
-      mutation.mutate(parsedObject as Record<string, unknown>)
+      const validatedObject = parsedObject as Record<string, unknown>
+
+      // Refresh the resource to get the latest resourceVersion before saving
+      if (onRefresh) {
+        try {
+          const latestResource = await onRefresh()
+
+          // Check if resourceVersion has changed since we entered edit mode
+          const latestMetadata = latestResource.metadata as Record<string, unknown> | undefined
+          const latestResourceVersion = latestMetadata?.resourceVersion as string | undefined
+
+          const hasResourceVersionChanged =
+            initialResourceVersionRef.current &&
+            latestResourceVersion &&
+            initialResourceVersionRef.current !== latestResourceVersion
+
+          if (hasResourceVersionChanged) {
+            // Show conflict dialog and store the pending save data
+            setPendingSaveData(validatedObject)
+            setShowVersionConflictDialog(true)
+            return
+          }
+        } catch (error) {
+          onError?.(new Error(`Failed to fetch latest resource: ${(error as Error).message}`))
+          return
+        }
+      }
+
+      // No conflict - proceed with save
+      mutation.mutate(validatedObject)
     } catch (err) {
       // Show error if YAML is invalid
       onError?.(new Error(`Invalid YAML: ${(err as Error).message}`))
@@ -289,6 +397,11 @@ export default function YamlEditor({
         isOpen={showCancelDialog}
         onCancel={handleCancelDialogClose}
         onConfirm={handleCancelConfirm}
+      />
+      <ResourceVersionConflictDialog
+        isOpen={showVersionConflictDialog}
+        onCancel={handleVersionConflictCancel}
+        onConfirm={handleVersionConflictConfirm}
       />
     </div>
   )

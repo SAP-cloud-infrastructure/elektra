@@ -69,17 +69,6 @@ module ServiceLayer
       def replace_cluster(project_id, cluster_name, raw_resource)
         namespace = "garden-#{project_id}"
 
-        # Avoid conflict errors from Kubernetes. It happens when the resource has been modified since you loaded it, and Kubernetes requires you to work with the latest version to prevent overwriting changes.
-        # First, fetch the current resource to get the latest resourceVersion
-        current_response = elektron_gardener.get("apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots/#{cluster_name}")
-        current_resource = current_response&.body
-        # Merge the current resourceVersion into the raw_resource to avoid conflicts
-        if current_resource && current_resource['metadata'] && current_resource['metadata']['resourceVersion']
-          raw_resource = raw_resource.deep_dup if raw_resource.frozen?
-          raw_resource['metadata'] ||= {}
-          raw_resource['metadata']['resourceVersion'] = current_resource['metadata']['resourceVersion']
-        end
-
         response = elektron_gardener.put("apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots/#{cluster_name}",
             headers:{
               "Content-Type": "application/json",
