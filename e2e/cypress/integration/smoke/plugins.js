@@ -22,7 +22,7 @@ const plugins = [
   { name: "block_storage", path: `/${TEST_DOMAIN}/${TEST_PROJECT}/block-storage` },
   { name: "compute", path: `/${TEST_DOMAIN}/${TEST_PROJECT}/compute/instances` },
   { name: "dns_service", path: `/${TEST_DOMAIN}/${TEST_PROJECT}/dns-service/zones` },
-  { name: "email_service", path: `/${TEST_DOMAIN}/${TEST_PROJECT}/email-service` },
+  { name: "maillog", path: `/${TEST_DOMAIN}/${TEST_PROJECT}/maillog` },
   { name: "identity", path: `/${TEST_DOMAIN}/${TEST_PROJECT}/identity` },
   { name: "image", path: `/${TEST_DOMAIN}/${TEST_PROJECT}/image` },
   { name: "keppel", path: `/${TEST_DOMAIN}/${TEST_PROJECT}/keppel` },
