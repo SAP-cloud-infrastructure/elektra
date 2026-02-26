@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { createFileRoute, useLoaderData, useRouter, useMatch, useLocation } from "@tanstack/react-router"
-import { Container, Button, Message } from "@cloudoperators/juno-ui-components"
+import { Container, Message } from "@cloudoperators/juno-ui-components"
 import ClusterList from "./-components/ClusterList"
 import PageHeader from "../../components/PageHeader"
 import { Permissions } from "../../types/permissions"
@@ -9,6 +9,7 @@ import { ErrorBoundary, FallbackProps } from "react-error-boundary"
 import InlineError from "../../components/InlineError"
 import CreateClusterWizard from "./-components/CreateClusterWizard"
 import { GardenerApi } from "../../apiClient"
+import DisableableButton from "../../components/DisableableButton"
 
 export const CLUSTERS_ROUTE_ID = "/clusters/"
 
@@ -75,9 +76,16 @@ function ClusterActions({
   const router = useRouter()
   const match = useMatch({ from: Route.id })
   const isFetching = match.isFetching === "loader"
+
+  // Determine the disabled message for Add Cluster button
+  const getAddClusterDisabledMessage = () => {
+    if (!permissions?.create) return "You don't have permission to create clusters"
+    return undefined
+  }
+
   return (
     <>
-      <Button
+      <DisableableButton
         size="small"
         label="Refresh"
         progress={isFetching && !disabled}
@@ -86,12 +94,13 @@ function ClusterActions({
         }}
         disabled={disabled}
       />
-      <Button
+      <DisableableButton
         variant="primary"
         size="small"
         label="Add Cluster"
         disabled={disabled || !permissions?.create}
         onClick={onAddCluster}
+        disabledMessage={getAddClusterDisabledMessage()}
       />
     </>
   )
