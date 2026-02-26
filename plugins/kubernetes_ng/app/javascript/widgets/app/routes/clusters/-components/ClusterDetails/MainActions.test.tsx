@@ -22,6 +22,7 @@ const renderMainActions = ({
   shootPermissions = permissionsAllTrue,
   kubeconfigPermissions = permissionsAllTrue,
   disabled = false,
+  disabledMessage = "",
   apiClient = defaultMockClient,
   clusterName = defaultCluster.name,
   isFetching = false,
@@ -40,6 +41,7 @@ const renderMainActions = ({
         shootPermissions={shootPermissions}
         kubeconfigPermissions={kubeconfigPermissions}
         disabled={disabled}
+        disabledMessage={disabledMessage}
       />
     ),
   })
@@ -102,11 +104,82 @@ describe("<MainActions />", () => {
     })
   })
 
+  it("shows permission message when Delete button is disabled due to permissions", async () => {
+    const user = userEvent.setup()
+    renderMainActions({ shootPermissions: { ...permissionsAllTrue, delete: false } })
+
+    const deleteButton = await screen.findByRole("button", { name: /delete cluster/i })
+    expect(deleteButton).toBeDisabled()
+
+    // Hover to show tooltip
+    act(() => {
+      user.hover(deleteButton)
+    })
+
+    // Check for permission message in tooltip
+    expect(await screen.findByText(/you don't have permission to delete this cluster/i)).toBeInTheDocument()
+  })
+
   it("disables Kube Config button when no create permission", async () => {
     renderMainActions({ kubeconfigPermissions: { ...permissionsAllTrue, create: false } })
     await waitFor(() => {
       expect(screen.getByRole("button", { name: /kube config/i })).toBeDisabled()
     })
+  })
+
+  it("shows permission message when Kube Config button is disabled due to permissions", async () => {
+    const user = userEvent.setup()
+    renderMainActions({ kubeconfigPermissions: { ...permissionsAllTrue, create: false } })
+
+    const kubeConfigButton = await screen.findByRole("button", { name: /kube config/i })
+    expect(kubeConfigButton).toBeDisabled()
+
+    // Hover to show tooltip
+    act(() => {
+      user.hover(kubeConfigButton)
+    })
+
+    // Check for permission message in tooltip
+    expect(await screen.findByText(/you don't have permission to download kubeconfig/i)).toBeInTheDocument()
+  })
+
+  it("shows external disabled message when disabled prop is true", async () => {
+    const user = userEvent.setup()
+    const disabledMessage = "Action disabled for deleted clusters"
+    renderMainActions({ disabled: true, disabledMessage })
+
+    const deleteButton = await screen.findByRole("button", { name: /delete cluster/i })
+    expect(deleteButton).toBeDisabled()
+
+    // Hover to show tooltip
+    act(() => {
+      user.hover(deleteButton)
+    })
+
+    // Check for external message in tooltip
+    expect(await screen.findByText(disabledMessage)).toBeInTheDocument()
+  })
+
+  it("prioritizes external disabled message over permission message", async () => {
+    const user = userEvent.setup()
+    const disabledMessage = "Action disabled for deleted clusters"
+    renderMainActions({
+      disabled: true,
+      disabledMessage,
+      shootPermissions: { ...permissionsAllTrue, delete: false },
+    })
+
+    const deleteButton = await screen.findByRole("button", { name: /delete cluster/i })
+    expect(deleteButton).toBeDisabled()
+
+    // Hover to show tooltip
+    act(() => {
+      user.hover(deleteButton)
+    })
+
+    // Should show external message, not permission message
+    expect(await screen.findByText(disabledMessage)).toBeInTheDocument()
+    expect(screen.queryByText(/you don't have permission/i)).not.toBeInTheDocument()
   })
 
   describe("Kubeconfig download", () => {

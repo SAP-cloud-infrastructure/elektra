@@ -26,6 +26,20 @@ function MainActions({ shootPermissions, kubeconfigPermissions, disabled = false
   const { addMessage, resetMessages } = useActions()
   const { apiClient } = useRouteContext({ strict: false }) as RouterContext
 
+  // Helper to determine the disabled message for Kube Config button
+  const getKubeconfigDisabledMessage = () => {
+    if (disabled && disabledMessage) return disabledMessage
+    if (!kubeconfigPermissions?.create) return "You don't have permission to download kubeconfig"
+    return undefined
+  }
+
+  // Helper to determine the disabled message for Delete button
+  const getDeleteDisabledMessage = () => {
+    if (disabled && disabledMessage) return disabledMessage
+    if (!shootPermissions?.delete) return "You don't have permission to delete this cluster"
+    return undefined
+  }
+
   const kubeconfigMutation = useMutation<string, Error, void>({
     mutationFn: async () => {
       return apiClient.gardener.getKubeconfig(params.clusterName)
@@ -105,7 +119,7 @@ function MainActions({ shootPermissions, kubeconfigPermissions, disabled = false
         disabled={disabled || kubeconfigMutation.isPending || !kubeconfigPermissions?.create}
         progress={kubeconfigMutation.isPending}
         onClick={() => kubeconfigMutation.mutate()}
-        disabledMessage={disabledMessage}
+        disabledMessage={getKubeconfigDisabledMessage()}
       />
       <DisableableButton
         size="small"
@@ -113,7 +127,7 @@ function MainActions({ shootPermissions, kubeconfigPermissions, disabled = false
         variant="primary-danger"
         disabled={disabled || !shootPermissions?.delete}
         onClick={() => setShowDeleteDialog(true)}
-        disabledMessage={disabledMessage}
+        disabledMessage={getDeleteDisabledMessage()}
       />
       <DeleteDialog
         // reset key to remount dialog and reset internal state on open/close

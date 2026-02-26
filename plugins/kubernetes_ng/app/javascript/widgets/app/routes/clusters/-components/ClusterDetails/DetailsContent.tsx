@@ -38,7 +38,7 @@ const DetailsContent = ({ cluster, updatedAt }: { cluster: Cluster; updatedAt?: 
   const handleSaveCluster = async (resource: Record<string, unknown>): Promise<void> => {
     return apiClient.gardener
       .replaceCluster(cluster.name, resource)
-      .then((result) => {
+      .then(() => {
         router.invalidate()
         resetMessages()
         addMessage({ text: "Cluster updated successfully", variant: "success" })
