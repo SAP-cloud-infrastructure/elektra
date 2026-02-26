@@ -1,12 +1,36 @@
 import React, { useMemo, useRef, useState, useEffect } from "react"
 import CodeMirror, { EditorView, highlightWhitespace, ReactCodeMirrorRef } from "@uiw/react-codemirror"
-import { Stack } from "@cloudoperators/juno-ui-components"
+import { Stack, Modal } from "@cloudoperators/juno-ui-components"
 import { yaml } from "@codemirror/lang-yaml"
 import yamlParser from "js-yaml"
 import { useMutation } from "@tanstack/react-query"
 import DisableableButton from "./DisableableButton"
 
 const TOOLBAR_HEIGHT = 50
+
+// Confirm dialog for canceling unsaved changes
+const CancelConfirmDialog = ({
+  isOpen,
+  onCancel,
+  onConfirm,
+}: {
+  isOpen: boolean
+  onCancel: () => void
+  onConfirm: () => void
+}) => {
+  return (
+    <Modal
+      open={isOpen}
+      onCancel={onCancel}
+      onConfirm={onConfirm}
+      title="Discard Unsaved Changes?"
+      cancelButtonLabel="Keep Editing"
+      confirmButtonLabel="Discard Changes"
+    >
+      <p>You have unsaved changes in the YAML editor. Are you sure you want to discard them?</p>
+    </Modal>
+  )
+}
 
 interface YamlEditorProps {
   resource: Record<string, unknown>
@@ -29,6 +53,7 @@ export default function YamlEditor({
   const [editorHeight, setEditorHeight] = useState<string>("100%")
   const [isEditable, setIsEditable] = useState<boolean>(false)
   const [editedYaml, setEditedYaml] = useState<string>("")
+  const [showCancelDialog, setShowCancelDialog] = useState<boolean>(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const codeMirrorRef = useRef<ReactCodeMirrorRef>(null)
   const timeoutIdRef = useRef<number | undefined>(undefined)
@@ -62,6 +87,13 @@ export default function YamlEditor({
       setEditedYaml("")
     },
   })
+
+  // Helper to exit edit mode and reset state
+  const exitEditMode = () => {
+    setIsEditable(false)
+    setEditedYaml("")
+    mutation.reset()
+  }
 
   useEffect(() => {
     const container = containerRef.current
@@ -123,10 +155,23 @@ export default function YamlEditor({
       mutation.reset()
       setIsEditable(true)
     } else {
-      setIsEditable(false)
-      setEditedYaml("")
-      mutation.reset()
+      // Check if there are unsaved changes
+      const hasChanges = editedYaml !== yamlContent
+      if (hasChanges) {
+        setShowCancelDialog(true)
+      } else {
+        exitEditMode()
+      }
     }
+  }
+
+  const handleCancelConfirm = () => {
+    setShowCancelDialog(false)
+    exitEditMode()
+  }
+
+  const handleCancelDialogClose = () => {
+    setShowCancelDialog(false)
   }
 
   const handleYamlChange = (newValue: string) => {
@@ -240,6 +285,11 @@ export default function YamlEditor({
           {...props}
         />
       </div>
+      <CancelConfirmDialog
+        isOpen={showCancelDialog}
+        onCancel={handleCancelDialogClose}
+        onConfirm={handleCancelConfirm}
+      />
     </div>
   )
 }

@@ -643,4 +643,136 @@ describe("<YamlEditor />", () => {
     const editButton = screen.getByRole("button", { name: /edit/i })
     expect(editButton).toBeDisabled()
   })
+
+  it("does not show cancel confirmation dialog when canceling without changes", async () => {
+    await act(async () =>
+      renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+    )
+
+    // Enter edit mode
+    const editButton = screen.getByRole("button", { name: /edit/i })
+    act(() => {
+      editButton.click()
+    })
+
+    // Click Cancel without making changes
+    const cancelButton = screen.getByRole("button", { name: /cancel/i })
+    act(() => {
+      cancelButton.click()
+    })
+
+    // Dialog should not appear
+    expect(screen.queryByText(/discard unsaved changes/i)).not.toBeInTheDocument()
+
+    // Should exit edit mode directly
+    expect(screen.getByRole("button", { name: /edit/i })).toBeInTheDocument()
+  })
+
+  it("shows cancel confirmation dialog when canceling with unsaved changes", async () => {
+    await act(async () =>
+      renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+    )
+
+    // Enter edit mode
+    const editButton = screen.getByRole("button", { name: /edit/i })
+    act(() => {
+      editButton.click()
+    })
+
+    // Make changes
+    const editor = screen.getByTestId("yaml-editor")
+    const editorContent = editor.querySelector(".cm-content")
+    if (editorContent) {
+      await act(async () => {
+        fireEvent.input(editorContent, { target: { textContent: "name: modified\nversion: 2.0.0" } })
+      })
+    }
+
+    // Click Cancel with changes
+    const cancelButton = await screen.findByRole("button", { name: /cancel/i })
+    act(() => {
+      cancelButton.click()
+    })
+
+    // Dialog should appear
+    expect(await screen.findByText(/discard unsaved changes/i)).toBeInTheDocument()
+  })
+
+  it("discards changes when confirming in cancel dialog", async () => {
+    await act(async () =>
+      renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+    )
+
+    // Enter edit mode
+    const editButton = screen.getByRole("button", { name: /edit/i })
+    act(() => {
+      editButton.click()
+    })
+
+    // Make changes
+    const editor = screen.getByTestId("yaml-editor")
+    const editorContent = editor.querySelector(".cm-content")
+    if (editorContent) {
+      await act(async () => {
+        fireEvent.input(editorContent, { target: { textContent: "name: modified\nversion: 2.0.0" } })
+      })
+    }
+
+    // Click Cancel
+    const cancelButton = await screen.findByRole("button", { name: /cancel/i })
+    act(() => {
+      cancelButton.click()
+    })
+
+    // Click "Discard Changes" in dialog
+    const discardButton = await screen.findByRole("button", { name: /discard changes/i })
+    act(() => {
+      discardButton.click()
+    })
+
+    // Should exit edit mode and close dialog
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /edit/i })).toBeInTheDocument()
+      expect(screen.queryByText(/discard unsaved changes/i)).not.toBeInTheDocument()
+    })
+  })
+
+  it("keeps editing when clicking Keep Editing in cancel dialog", async () => {
+    await act(async () =>
+      renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+    )
+
+    // Enter edit mode
+    const editButton = screen.getByRole("button", { name: /edit/i })
+    act(() => {
+      editButton.click()
+    })
+
+    // Make changes
+    const editor = screen.getByTestId("yaml-editor")
+    const editorContent = editor.querySelector(".cm-content")
+    if (editorContent) {
+      await act(async () => {
+        fireEvent.input(editorContent, { target: { textContent: "name: modified\nversion: 2.0.0" } })
+      })
+    }
+
+    // Click Cancel
+    const cancelButton = await screen.findByRole("button", { name: /cancel/i })
+    act(() => {
+      cancelButton.click()
+    })
+
+    // Click "Keep Editing" in dialog
+    const keepEditingButton = await screen.findByRole("button", { name: /keep editing/i })
+    act(() => {
+      keepEditingButton.click()
+    })
+
+    // Should stay in edit mode and close dialog
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /cancel/i })).toBeInTheDocument()
+      expect(screen.queryByText(/discard unsaved changes/i)).not.toBeInTheDocument()
+    })
+  })
 })
