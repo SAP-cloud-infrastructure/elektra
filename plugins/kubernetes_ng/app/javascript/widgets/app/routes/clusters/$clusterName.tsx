@@ -117,7 +117,7 @@ function ClusterDetail({
       return <span role="status">Cluster not found</span>
     }
 
-    return <DetailsContent cluster={cluster} updatedAt={updatedAt} />
+    return <DetailsContent cluster={cluster} updatedAt={updatedAt} shootPermissions={shootPermissions} />
   }
 
   return (

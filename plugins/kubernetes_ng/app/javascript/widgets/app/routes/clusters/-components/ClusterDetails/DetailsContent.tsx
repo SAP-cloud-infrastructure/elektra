@@ -15,6 +15,7 @@ import {
 } from "@cloudoperators/juno-ui-components"
 import ClusterDetailRow from "./DetailRow"
 import { Cluster } from "../../../../types/cluster"
+import { Permissions } from "../../../../types/permissions"
 import ClipboardText from "../../../../components/ClipboardText"
 import ReadinessConditions from "../../../../components/ReadinessConditions"
 import LastErrors from "./LastErrors"
@@ -29,7 +30,15 @@ import { normalizeError } from "../../../../components/InlineError"
 
 const sectionHeaderStyles = "details-section tw-text-lg tw-font-bold tw-mb-4"
 
-const DetailsContent = ({ cluster, updatedAt }: { cluster: Cluster; updatedAt?: number }) => {
+const DetailsContent = ({
+  cluster,
+  updatedAt,
+  shootPermissions,
+}: {
+  cluster: Cluster
+  updatedAt?: number
+  shootPermissions?: Permissions
+}) => {
   const [showLastOperation, setShowLastOperation] = useState(false)
   const { apiClient } = useRouteContext({ strict: false }) as RouterContext
   const router = useRouter()
@@ -68,6 +77,28 @@ const DetailsContent = ({ cluster, updatedAt }: { cluster: Cluster; updatedAt?: 
     // Return the raw cluster resource
     return latestCluster.raw
   }
+
+  // Determine disabled state and message for YamlEditor
+  const getYamlEditorDisabledState = () => {
+    if (cluster.isDeleted) {
+      return {
+        disabled: true,
+        disabledMessage: "Cluster is deleted and cannot be edited",
+      }
+    }
+    if (!shootPermissions?.update) {
+      return {
+        disabled: true,
+        disabledMessage: "You don't have permission to edit this cluster",
+      }
+    }
+    return {
+      disabled: false,
+      disabledMessage: undefined,
+    }
+  }
+
+  const yamlEditorState = getYamlEditorDisabledState()
 
   return (
     <Container px={false} py>
@@ -222,8 +253,8 @@ const DetailsContent = ({ cluster, updatedAt }: { cluster: Cluster; updatedAt?: 
                 onError={handleYamlError}
                 onEdit={handleEditClick}
                 onRefresh={handleRefreshCluster}
-                disabled={cluster.isDeleted}
-                disabledMessage={cluster.isDeleted ? "Cluster is deleted and cannot be edited" : undefined}
+                disabled={yamlEditorState.disabled}
+                disabledMessage={yamlEditorState.disabledMessage}
               />
             </Container>
           </TabPanel>

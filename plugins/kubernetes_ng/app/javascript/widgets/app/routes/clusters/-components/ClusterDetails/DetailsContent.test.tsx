@@ -1,14 +1,21 @@
 import { describe, it, expect } from "vitest"
 import { render, screen, fireEvent, within, waitFor } from "@testing-library/react"
+import { act } from "react-dom/test-utils"
+import userEvent from "@testing-library/user-event"
 import DetailsContent from "./DetailsContent"
-import { defaultCluster } from "../../../../mocks/data"
+import { defaultCluster, permissionsAllTrue } from "../../../../mocks/data"
 import { defaultMockClient } from "../../../../mocks/TestTools"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { createRouter, createMemoryHistory, createRootRoute, createRoute, RouterProvider } from "@tanstack/react-router"
 import { MessagesProvider } from "@cloudoperators/juno-messages-provider"
 
 // Helper to render DetailsContent with QueryClientProvider
-const renderDetailsContent = ({ cluster = defaultCluster, updatedAt = Date.now(), ...props } = {}) => {
+const renderDetailsContent = ({
+  cluster = defaultCluster,
+  updatedAt = Date.now(),
+  shootPermissions = permissionsAllTrue,
+  ...props
+} = {}) => {
   let queryClient: QueryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
@@ -17,7 +24,7 @@ const renderDetailsContent = ({ cluster = defaultCluster, updatedAt = Date.now()
   })
 
   const rootRoute = createRootRoute({
-    component: () => <DetailsContent cluster={cluster} updatedAt={updatedAt} {...props} />,
+    component: () => <DetailsContent cluster={cluster} updatedAt={updatedAt} shootPermissions={shootPermissions} {...props} />,
   })
   const indexRoute = createRoute({
     getParentRoute: () => rootRoute,
@@ -28,7 +35,7 @@ const renderDetailsContent = ({ cluster = defaultCluster, updatedAt = Date.now()
   const router = createRouter({
     routeTree: rootRoute.addChildren([indexRoute]),
     history: createMemoryHistory({ initialEntries: ["/"] }),
-    context: { defaultMockClient },
+    context: { apiClient: defaultMockClient },
   })
 
   return render(
@@ -140,5 +147,98 @@ describe("DetailsContent", () => {
     // Expect YamlEditor to be in the document - look for the Edit button
     const editButton = await screen.findByRole("button", { name: /edit/i })
     expect(editButton).toBeInTheDocument()
+  })
+
+  describe("YamlEditor disabled states", () => {
+    it("disables YamlEditor when cluster is deleted", async () => {
+      const user = userEvent.setup()
+      const deletedCluster = { ...defaultCluster, isDeleted: true }
+      await act(async () => renderDetailsContent({ cluster: deletedCluster }))
+
+      // Switch to YAML tab
+      const yamlTab = await screen.findByText("YAML")
+      fireEvent.click(yamlTab)
+
+      // Find Edit button
+      const editButton = await screen.findByRole("button", { name: /edit/i })
+      expect(editButton).toBeDisabled()
+
+      // Hover to show tooltip with disabled message
+      act(() => {
+        user.hover(editButton)
+      })
+
+      // Check for deleted cluster message
+      expect(await screen.findByText(/cluster is deleted and cannot be edited/i)).toBeInTheDocument()
+    })
+
+    it("disables YamlEditor when user has no update permission", async () => {
+      const user = userEvent.setup()
+      await act(async () =>
+        renderDetailsContent({
+          shootPermissions: { ...permissionsAllTrue, update: false },
+        })
+      )
+
+      // Switch to YAML tab
+      const yamlTab = await screen.findByText("YAML")
+      fireEvent.click(yamlTab)
+
+      // Find Edit button
+      const editButton = await screen.findByRole("button", { name: /edit/i })
+      expect(editButton).toBeDisabled()
+
+      // Hover to show tooltip with disabled message
+      act(() => {
+        user.hover(editButton)
+      })
+
+      // Check for permission message
+      expect(await screen.findByText(/you don't have permission to edit this cluster/i)).toBeInTheDocument()
+    })
+
+    it("enables YamlEditor when cluster is not deleted and user has update permission", async () => {
+      await act(async () =>
+        renderDetailsContent({
+          shootPermissions: permissionsAllTrue,
+        })
+      )
+
+      // Switch to YAML tab
+      const yamlTab = await screen.findByText("YAML")
+      fireEvent.click(yamlTab)
+
+      // Find Edit button
+      const editButton = await screen.findByRole("button", { name: /edit/i })
+      expect(editButton).not.toBeDisabled()
+    })
+
+    it("prioritizes deleted message over permission message", async () => {
+      const user = userEvent.setup()
+      const deletedCluster = { ...defaultCluster, isDeleted: true }
+      await act(async () =>
+        renderDetailsContent({
+          cluster: deletedCluster,
+          shootPermissions: { ...permissionsAllTrue, update: false },
+        })
+      )
+
+      // Switch to YAML tab
+      const yamlTab = await screen.findByText("YAML")
+      fireEvent.click(yamlTab)
+
+      // Find Edit button
+      const editButton = await screen.findByRole("button", { name: /edit/i })
+      expect(editButton).toBeDisabled()
+
+      // Hover to show tooltip with disabled message
+      act(() => {
+        user.hover(editButton)
+      })
+
+      // Should show deleted message, not permission message
+      expect(await screen.findByText(/cluster is deleted and cannot be edited/i)).toBeInTheDocument()
+      expect(screen.queryByText(/you don't have permission/i)).not.toBeInTheDocument()
+    })
   })
 })
