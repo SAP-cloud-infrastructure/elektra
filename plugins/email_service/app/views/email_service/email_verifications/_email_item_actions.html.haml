@@ -1,5 +1,0 @@
-- id = email_item[:id]
-- identity = email_item[:identity_name]
-- if current_user.is_allowed?('email_service:verified_email_delete')
-  = link_to plugin('email_service').email_verification_path(id: id, identity: identity), class: 'btn btn-default btn-sm', :method => 'delete', data: { confirm: "Are you sure you want to remove the verified email #{identity}?", ok: "Yes, remove it", confirmed: :loading_status} do
-    %i.fa.fa-trash.fa-fw
