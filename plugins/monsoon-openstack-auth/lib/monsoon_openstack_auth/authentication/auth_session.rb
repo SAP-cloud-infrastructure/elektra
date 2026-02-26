@@ -146,7 +146,7 @@ module MonsoonOpenstackAuth
         def two_factor_cookie_valid?(controller)
           return false unless controller.request.cookies[TWO_FACTOR_AUTHENTICATION]
 
-          crypt = ActiveSupport::MessageEncryptor.new(Rails.application.secrets.secret_key_base[0..31])
+          crypt = ActiveSupport::MessageEncryptor.new(Rails.application.secret_key_base[0..31])
           value = begin
             crypt.decrypt_and_verify(controller.request.cookies[TWO_FACTOR_AUTHENTICATION])
           rescue StandardError
