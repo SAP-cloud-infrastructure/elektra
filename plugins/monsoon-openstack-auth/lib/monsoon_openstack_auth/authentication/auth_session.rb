@@ -160,10 +160,10 @@ module MonsoonOpenstackAuth
       end
 
       def rescope_token(requested_scope = @scope)
-        return unless current_token and !@scope.empty? # and @session_store.token_valid? and !@scope.empty?
+        return unless current_token and !@scope.empty?
 
         token = current_token
-        return unless token && token.valid?
+        return unless token && token_valid?(token)
 
         # token = @session_store.token
         domain =  token[:domain]
@@ -213,7 +213,7 @@ module MonsoonOpenstackAuth
       end
 
       def validate_session_token
-        return true if @token && @token.valid?
+        return true if @token && token_valid?(@token)
 
         # Try to get token from HTTP header or session
         auth_token_value = @controller.request.headers['HTTP_X_AUTH_TOKEN'] ||
@@ -339,6 +339,11 @@ module MonsoonOpenstackAuth
 
       def current_token
         @token
+      end
+
+      def token_valid?(token)
+        return false unless token
+        !!token[:expires_at] && DateTime.parse(token[:expires_at]) > Time.now
       end
 
       def create_user_from_token(token)
