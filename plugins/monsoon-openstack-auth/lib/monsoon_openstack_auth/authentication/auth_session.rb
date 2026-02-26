@@ -7,7 +7,7 @@ module MonsoonOpenstackAuth
         TWO_FACTOR_AUTHENTICATION = 'two_factor_authentication'
 
         def load_user_from_session(controller, scope_and_options = {})
-          session = AuthSession.new(controller, token_store(controller), scope_and_options)
+          session = AuthSession.new(controller, scope_and_options)
           session.validate_session_token
           session
         end
@@ -32,8 +32,7 @@ module MonsoonOpenstackAuth
             two_factor = true
           end
 
-          token_store = token_store(controller)
-          session = AuthSession.new(controller, token_store, scope_and_options)
+          session = AuthSession.new(controller, scope_and_options)
 
           if session.authenticated?
             if !two_factor or two_factor_cookie_valid?(controller)
@@ -83,7 +82,7 @@ module MonsoonOpenstackAuth
           # reset session-id for Session Fixation
           reset_session(controller)
 
-          session = AuthSession.new(controller, token_store(controller), scope)
+          session = AuthSession.new(controller, scope)
           session.login_form_user(username, password)
         end
 
@@ -91,7 +90,7 @@ module MonsoonOpenstackAuth
         def create_from_auth_token(controller, auth_token)
           # reset session-id for Session Fixation
           reset_session(controller)
-          session = AuthSession.new(controller, token_store(controller))
+          session = AuthSession.new(controller)
           session.login_auth_token(auth_token)
           session
         end
@@ -107,24 +106,11 @@ module MonsoonOpenstackAuth
 
         # clear session_store if request session is presented
         def logout(controller, domain)
-          token_store = token_store(controller)
-          if token_store
-            if domain
-              token_store.delete_all_by_user_domain(domain)
-            else
-              token_store.delete_all_tokens
-            end
-          end
           reset_session(controller)
         end
 
         def reset_session(controller)
-          token_store = token_store(controller)
-          return unless token_store
-
-          dump = token_store.dump
           controller.send('reset_session')
-          token_store.restore(dump)
         end
 
         def session_id_presented?(controller)
@@ -132,14 +118,6 @@ module MonsoonOpenstackAuth
           return false unless controller.request.session.respond_to?(:id)
 
           !(controller.request.session.blank? && controller.request.session.id.blank?)
-        end
-
-        def token_store(controller)
-          # return nil if request session id isn't provided
-          return nil unless session_id_presented?(controller)
-
-          # return session store
-          TokenStore.new(controller.session)
         end
 
         # check if cookie for two factor authentication is valid
@@ -164,9 +142,8 @@ module MonsoonOpenstackAuth
         end
       end
 
-      def initialize(controller, token_store, scope = {})
+      def initialize(controller, scope = {})
         @controller = controller
-        @token_store = token_store
         @scope = scope
 
         # get api client
@@ -176,18 +153,17 @@ module MonsoonOpenstackAuth
 
       def authenticated?
         return true if validate_session_token
-        return true if validate_auth_token
         return true if validate_access_key
         return true if validate_sso_certificate
 
-        true if validate_http_basic
+        false
       end
 
       def rescope_token(requested_scope = @scope)
-        return unless @token_store and !@scope.empty? # and @session_store.token_valid? and !@scope.empty?
+        return unless current_token and !@scope.empty? # and @session_store.token_valid? and !@scope.empty?
 
-        token = current_valid_token
-        return unless token
+        token = current_token
+        return unless token && token.valid?
 
         # token = @session_store.token
         domain =  token[:domain]
@@ -225,7 +201,7 @@ module MonsoonOpenstackAuth
           # scope has changed -> get new scoped token
           token = @api_client.authenticate_with_token(token[:value], scope)
           create_user_from_token(token)
-          save_in_token_store(token)
+          cache_token(token)
         rescue StandardError => e
           unless scope == 'unscoped'
             raise MonsoonOpenstackAuth::Authentication::NotAuthorized.new("User has no access to the requested scope: #{e}")
@@ -236,42 +212,25 @@ module MonsoonOpenstackAuth
         end
       end
 
-      def validate_auth_token
-        # return false if not allowed.
-        unless MonsoonOpenstackAuth.configuration.token_auth_allowed?
-          MonsoonOpenstackAuth.logger.info 'validate_auth_token -> not allowed.' if @debug
+      def validate_session_token
+        return true if @token && @token.valid?
+
+        # Try to get token from HTTP header or session
+        auth_token_value = @controller.request.headers['HTTP_X_AUTH_TOKEN'] ||
+                           @controller.session[:auth_token_value]
+
+        unless auth_token_value
+          MonsoonOpenstackAuth.logger.info 'validate_session_token -> auth token not presented.' if @debug
           return false
-        end
-
-        # didn't return -> token auth is allowed!
-        auth_token = @controller.request.headers['HTTP_X_AUTH_TOKEN']
-
-        unless auth_token
-          MonsoonOpenstackAuth.logger.info 'validate_auth_token -> auth token not presented.' if @debug
-          return false
-        end
-
-        # didn't return -> auth token is presented
-        if @token_store
-          token = @token_store.find_by_value(auth_token)
-          # if token exists create user
-          create_user_from_token(token) if token
-
-          if logged_in?
-            if @debug
-              MonsoonOpenstackAuth.logger.info 'validate_auth_token -> successful (session token is equal to auth token).'
-            end
-            return true
-          end
         end
 
         # didn't return -> validate auth token
         begin
-          token = @api_client.validate_token(auth_token)
+          token = @api_client.validate_token(auth_token_value)
           if token
             # token is valid -> create user from token and save token in session store
             create_user_from_token(token)
-            save_in_token_store(token)
+            cache_token(token)
 
             if logged_in?
               MonsoonOpenstackAuth.logger.info("validate_auth_token -> successful (username=#{@user.name}).") if @debug
@@ -292,43 +251,6 @@ module MonsoonOpenstackAuth
         end
 
         MonsoonOpenstackAuth.logger.info 'validate_auth_token -> failed.' if @debug
-        false
-      end
-
-      def validate_http_basic
-        # return false if not allowed.
-        unless MonsoonOpenstackAuth.configuration.basic_auth_allowed?
-          MonsoonOpenstackAuth.logger.info 'validate_http_basic -> not allowed.' if @debug
-          return false
-        end
-
-        # basic auth is allowed
-        begin
-          basic_auth_presented = false
-          user = nil
-          @controller.authenticate_with_http_basic do |username, password|
-            # basic auth is presented
-            basic_auth_presented = true
-            MonsoonOpenstackAuth.logger.info "validate_http_basic -> username=#{username}." if @debug
-            token = @api_client.authenticate_with_credentials(username, password)
-            create_user_from_token(token)
-            save_in_token_store(token)
-          end
-
-          unless basic_auth_presented
-            MonsoonOpenstackAuth.logger.info 'validate_http_basic -> basic auth header not presented.' if @debug
-            return false
-          end
-
-          if logged_in?
-            MonsoonOpenstackAuth.logger.info "validate_http_basic -> successful (username=#{@user.name})." if @debug
-            return true
-          end
-        rescue StandardError => e
-          MonsoonOpenstackAuth.logger.info "basic auth failed: #{e}."
-        end
-        # basic auth authentication failed
-        MonsoonOpenstackAuth.logger.info 'validate_http_basic -> failed.' if @debug
         false
       end
 
@@ -363,21 +285,6 @@ module MonsoonOpenstackAuth
         elsif @scope[:domain]
           headers['X-User-Domain-Id'] = @scope[:domain]
         end
-
-        # # evaluate auth scope
-        # if @scope[:project]
-        #   scope= if @scope[:domain]
-        #            {project: {domain:{id: @scope[:domain]},id: @scope[:project]}}
-        #          elsif @scope[:domain_name]
-        #            {project: {domain:{name: @scope[:domain_name]},id: @scope[:project]}}
-        #          end
-        # elsif @scope[:domain]
-        #   scope = {domain:{id: @scope[:domain]}}
-        # elsif @scope[:domain_name]
-        #   scope = {domain:{name:@scope[:domain_name]}}
-        # else
-        #   scope = 'unscoped'
-        # end
         scope = 'unscoped'
 
         # authenticate user as external user
@@ -385,7 +292,7 @@ module MonsoonOpenstackAuth
           token = @api_client.authenticate_external_user(headers, scope)
           # create user from token and save token in session store
           create_user_from_token(token)
-          save_in_token_store(token)
+          cache_token(token)
         rescue StandardError => e
           MonsoonOpenstackAuth.logger.error "external user authentication failed #{e}."
         end
@@ -396,26 +303,6 @@ module MonsoonOpenstackAuth
         end
 
         MonsoonOpenstackAuth.logger.info 'validate_sso_certificate -> failed.' if @debug
-        false
-      end
-
-      def validate_session_token
-        unless @token_store
-          MonsoonOpenstackAuth.logger.info 'validate_session_token -> token store not presented.' if @debug
-          return false
-        end
-
-        token = current_valid_token
-
-        if token
-          create_user_from_token(token)
-          if logged_in?
-            MonsoonOpenstackAuth.logger.info "validate_session_token -> successful (username=#{@user.name})." if @debug
-            return true
-          end
-        end
-
-        MonsoonOpenstackAuth.logger.info 'validate_session_token -> failed.' if @debug
         false
       end
 
@@ -433,7 +320,7 @@ module MonsoonOpenstackAuth
           return false unless token
 
           create_user_from_token(token)
-          save_in_token_store(token)
+          cache_token(token)
 
           if logged_in?
             MonsoonOpenstackAuth.logger.info "validate_access_key -> successful (username=#{@user.name})." if @debug
@@ -444,14 +331,14 @@ module MonsoonOpenstackAuth
         false
       end
 
-      def save_in_token_store(token)
-        @token_store.set_token(token) if @token_store
+      def cache_token(new_token)
+        @token = new_token
+        # Store token value in session for cookie-based sessions
+        @controller.session[:auth_token_value] = new_token[:value] if new_token
       end
 
-      def current_valid_token
-        return nil unless @scope
-
-        @token_store.current_token(@scope[:domain] || @scope[:domain_name]) if @token_store
+      def current_token
+        @token
       end
 
       def create_user_from_token(token)
@@ -464,16 +351,10 @@ module MonsoonOpenstackAuth
 
       ############ LOGIN FORM FUCNTIONALITY ##################
       def login_form_user(username, password)
-        unless @token_store
-          MonsoonOpenstackAuth.logger.info 'login_form_user -> token store not presented.' if @debug
-          return false
-        end
-
         begin
           # create auth token
           token = @api_client.authenticate_with_credentials(username, password, @scope)
-          # save token in session
-          save_in_token_store(token)
+          cache_token(token)
           # create auth user from token
           create_user_from_token(token)
           # success -> return true
@@ -488,17 +369,11 @@ module MonsoonOpenstackAuth
 
       # login with auth token
       def login_auth_token(auth_token)
-        unless @token_store
-          MonsoonOpenstackAuth.logger.info 'login_auth_token -> token store not presented.' if @debug
-          return false
-        end
-
         return false unless auth_token
         begin
           # create auth token
           token = @api_client.authenticate_with_token(auth_token)
-          # save token in session
-          save_in_token_store(token)
+          cache_token(token)
           # create auth user from token
           create_user_from_token(token)
           # success -> return true
