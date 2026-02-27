@@ -1,12 +1,33 @@
 import React, { useMemo, useRef, useState, useEffect } from "react"
-import CodeMirror, { EditorView, highlightWhitespace, ReactCodeMirrorRef } from "@uiw/react-codemirror"
+import { EditorView, highlightWhitespace, keymap, highlightActiveLine, lineNumbers } from "@codemirror/view"
+import { EditorState, Compartment } from "@codemirror/state"
 import { Stack, Modal } from "@cloudoperators/juno-ui-components"
 import { yaml } from "@codemirror/lang-yaml"
+import { defaultHighlightStyle, syntaxHighlighting } from "@codemirror/language"
 import yamlParser from "js-yaml"
 import { useMutation } from "@tanstack/react-query"
 import DisableableButton from "./DisableableButton"
 
 const TOOLBAR_HEIGHT = 50
+
+// Compartments for dynamic reconfiguration
+const editableCompartment = new Compartment()
+const heightCompartment = new Compartment()
+
+function createEditableExtension(value: boolean) {
+  return EditorView.editable.of(value)
+}
+
+function createHeightExtension(height: string) {
+  return EditorView.theme({
+    "&": {
+      height: height,
+    },
+    ".cm-scroller": {
+      fontFamily: "monospace",
+    },
+  })
+}
 
 // Confirm dialog for canceling unsaved changes
 const CancelConfirmDialog = ({
@@ -88,9 +109,12 @@ export default function YamlEditor({
   const [showVersionConflictDialog, setShowVersionConflictDialog] = useState<boolean>(false)
   const [pendingSaveData, setPendingSaveData] = useState<Record<string, unknown> | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const codeMirrorRef = useRef<ReactCodeMirrorRef>(null)
+  const editorContainerRef = useRef<HTMLDivElement>(null)
+  const codeMirrorRef = useRef<EditorView | null>(null)
   const timeoutIdRef = useRef<number | undefined>(undefined)
   const initialResourceVersionRef = useRef<string | undefined>(undefined)
+  const initialYamlValueRef = useRef<string>("")
+  const isUpdatingProgrammaticallyRef = useRef<boolean>(false)
 
   const { yamlContent, error } = useMemo(() => {
     try {
@@ -174,13 +198,132 @@ export default function YamlEditor({
   }, [])
 
   // Focus the CodeMirror editor when entering edit mode.
-  // This must be done in a useEffect because setting isEditable triggers a re-render,
-  // and the editor ref is only available after the component updates.
   useEffect(() => {
     if (isEditable) {
-      codeMirrorRef.current?.view?.focus()
+      codeMirrorRef.current?.focus()
     }
   }, [isEditable])
+
+  // Create the CodeMirror editor instance once
+  useEffect(() => {
+    if (!editorContainerRef.current) return
+
+    initialYamlValueRef.current = yamlContent
+
+    // Create the editor state with extensions
+    const state = EditorState.create({
+      doc: yamlContent,
+      extensions: [
+        yaml(),
+        syntaxHighlighting(defaultHighlightStyle),
+        highlightWhitespace(),
+        highlightActiveLine(),
+        lineNumbers(),
+        EditorView.lineWrapping,
+        EditorView.theme({
+          ".cm-highlightSpace": {
+            backgroundImage:
+              "url(\"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='6' height='6'><circle cx='3' cy='3' r='1' fill='%23cccccc' /></svg>\")",
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "center",
+            backgroundSize: "contain",
+            opacity: 0.1,
+          },
+          ".cm-scroller": {
+            fontFamily: "monospace",
+          },
+        }),
+        editableCompartment.of(createEditableExtension(false)),
+        heightCompartment.of(createHeightExtension(editorHeight)),
+        EditorView.updateListener.of((update) => {
+          if (update.docChanged && !isUpdatingProgrammaticallyRef.current) {
+            const newValue = update.state.doc.toString()
+            setEditedYaml(newValue)
+          }
+        }),
+      ],
+    })
+
+    // Create the editor view
+    const view = new EditorView({
+      state,
+      parent: editorContainerRef.current,
+    })
+
+    codeMirrorRef.current = view
+
+    return () => {
+      view.destroy()
+      codeMirrorRef.current = null
+    }
+  }, []) // Only create once
+
+  // Update editable state dynamically
+  useEffect(() => {
+    if (!codeMirrorRef.current) return
+    const currentEditable = !error && isEditable
+    codeMirrorRef.current.dispatch({
+      effects: editableCompartment.reconfigure(createEditableExtension(currentEditable)),
+    })
+  }, [isEditable, error])
+
+  // Update height dynamically
+  useEffect(() => {
+    if (!codeMirrorRef.current) return
+    codeMirrorRef.current.dispatch({
+      effects: heightCompartment.reconfigure(createHeightExtension(editorHeight)),
+    })
+  }, [editorHeight])
+
+  // Update editor content when yamlContent changes (external updates) - only in read-only mode
+  useEffect(() => {
+    if (!codeMirrorRef.current || isEditable) return
+
+    const currentDoc = codeMirrorRef.current.state.doc.toString()
+    if (currentDoc !== yamlContent) {
+      const view = codeMirrorRef.current
+      const state = view.state
+      const scrollPos = view.scrollDOM.scrollTop
+
+      isUpdatingProgrammaticallyRef.current = true
+      view.dispatch({
+        changes: {
+          from: 0,
+          to: state.doc.length,
+          insert: yamlContent,
+        },
+      })
+      isUpdatingProgrammaticallyRef.current = false
+
+      view.scrollDOM.scrollTop = scrollPos
+    }
+  }, [yamlContent, isEditable])
+
+  // Update editor content when entering edit mode
+  useEffect(() => {
+    if (!codeMirrorRef.current || !isEditable) return
+
+    const view = codeMirrorRef.current
+    const state = view.state
+    const currentDoc = state.doc.toString()
+
+    // When entering edit mode, if editedYaml is set and different from current doc, update it
+    if (editedYaml && currentDoc !== editedYaml) {
+      const scrollPos = view.scrollDOM.scrollTop
+
+      isUpdatingProgrammaticallyRef.current = true
+      view.dispatch({
+        changes: {
+          from: 0,
+          to: state.doc.length,
+          insert: editedYaml,
+        },
+      })
+      isUpdatingProgrammaticallyRef.current = false
+
+      view.scrollDOM.scrollTop = scrollPos
+    }
+  }, [isEditable, editedYaml])
 
   const handleEditClick = () => {
     onEdit?.()
@@ -248,10 +391,6 @@ export default function YamlEditor({
   const handleVersionConflictCancel = () => {
     setShowVersionConflictDialog(false)
     setPendingSaveData(null)
-  }
-
-  const handleYamlChange = (newValue: string) => {
-    setEditedYaml(newValue)
   }
 
   const handleSaveClick = async () => {
@@ -362,32 +501,7 @@ export default function YamlEditor({
         </div>
       </div>
       <div className="tw-border tw-border-theme-box-default">
-        <CodeMirror
-          ref={codeMirrorRef}
-          value={isEditable ? editedYaml : yamlContent}
-          onChange={isEditable ? handleYamlChange : undefined}
-          theme="light"
-          height={editorHeight}
-          extensions={[
-            yaml(),
-            highlightWhitespace(),
-            EditorView.lineWrapping,
-            EditorView.theme({
-              ".cm-highlightSpace": {
-                backgroundImage:
-                  "url(\"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='6' height='6'><circle cx='3' cy='3' r='1' fill='%23cccccc' /></svg>\")",
-                backgroundRepeat: "no-repeat",
-                backgroundPosition: "center",
-                backgroundSize: "contain",
-                opacity: 0.1,
-              },
-            }),
-          ]}
-          editable={!error && isEditable}
-          aria-label={isEditable ? "YAML data editor" : "YAML data viewer (read-only)"}
-          aria-readonly={!isEditable}
-          {...props}
-        />
+        <div ref={editorContainerRef} />
       </div>
       <CancelConfirmDialog
         isOpen={showCancelDialog}
