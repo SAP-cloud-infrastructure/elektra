@@ -110,7 +110,9 @@ module MonsoonOpenstackAuth
         end
 
         def reset_session(controller)
-          controller.send('reset_session')
+          # Instead of resetting the entire session (which clears CSRF tokens),
+          # just remove the authentication data
+          controller.session.delete(:auth_token_value)
         end
 
         def session_id_presented?(controller)
