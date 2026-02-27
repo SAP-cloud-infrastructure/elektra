@@ -599,6 +599,7 @@ GEM
       execjs (>= 0.3.0, < 3)
     unf (0.2.0)
 <<<<<<< HEAD
+<<<<<<< HEAD
     uri (1.0.4)
 =======
 <<<<<<< HEAD
@@ -617,6 +618,9 @@ GEM
 =======
 >>>>>>> 2a9f849d0 (chore(core): improve session reset preventing csrf issues)
 >>>>>>> e298ebfb2 (chore(core): improve session reset preventing csrf issues)
+=======
+    uri (1.1.1)
+>>>>>>> b40e88026 (chore(core): improve session reset preventing csrf issues)
     web-console (4.2.1)
       actionview (>= 6.0.0)
       activemodel (>= 6.0.0)
