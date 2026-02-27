@@ -480,8 +480,8 @@ SimpleNavigation::Configuration.run do |navigation|
                         'Mail Log',
                         -> { plugin('maillog').maillog_path },
                         if: -> { 
-                          services.available?(:maillog) &&
-                          plugin_available?(:maillog) },
+                          services.available?(:maillog)
+                        },
                         highlights_on: lambda {
                           params[:controller][%r{maillog/?.*}]
                         }
@@ -491,8 +491,7 @@ SimpleNavigation::Configuration.run do |navigation|
                             plugin('smartops').start_path
                           },
                           if: lambda {
-                            services.available?(:smartops) &&
-                              plugin_available?(:smartops)
+                            services.available?(:smartops) 
                           },
                           highlights_on: lambda {
                               params[:controller][%r{smartops/.*}]
