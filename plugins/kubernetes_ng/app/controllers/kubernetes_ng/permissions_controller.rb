@@ -15,22 +15,22 @@ module KubernetesNg
         if resource.nil?
           permissions = RESOURCE_MAPPING.values.map do |value|
             res, sub = extract_resource(value)
-            services.kubernetes_ng.list_permissions_by_project_and_resource(@scoped_project_id, res, sub)
+            kubernetes_service.list_permissions_by_project_and_resource(res, sub)
           end
           render json: permissions
           return
         end
         # Map the resource to the appropriate value
         mapped_resource, mapped_subresource = extract_resource(
-          RESOURCE_MAPPING[resource] || resource  
+          RESOURCE_MAPPING[resource] || resource
         )
 
         # return all permissions for the mapped resource
         if verb.nil?
-          render json: services.kubernetes_ng.list_permissions_by_project_and_resource(@scoped_project_id, mapped_resource, mapped_subresource)
+          render json: kubernetes_service.list_permissions_by_project_and_resource(mapped_resource, mapped_subresource)
         else
           # return permission (as boolean) for the mapped resource and verb
-          render json: services.kubernetes_ng.get_permission_by_project_and_resource_and_verb(@scoped_project_id, mapped_resource, verb, mapped_subresource)
+          render json: kubernetes_service.get_permission_by_project_and_resource_and_verb(mapped_resource, verb, mapped_subresource)
         end
       end
     end

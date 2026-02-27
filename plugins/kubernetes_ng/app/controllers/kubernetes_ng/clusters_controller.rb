@@ -4,43 +4,43 @@ module KubernetesNg
 
     def index
       handle_api_call do
-        services.kubernetes_ng.list_clusters(@scoped_project_id)
+        kubernetes_service.list_clusters
       end
     end
 
     def show
       handle_api_call do
-        services.kubernetes_ng.show_cluster_by_name(@scoped_project_id, params[:name])
+        kubernetes_service.show_cluster_by_name(params[:name])
       end
     end
 
-    def create     
+    def create
       cluster_defaults = { region: current_region }
 
       permitted_params = cluster_params.to_h
       cluster_params_with_defaults = permitted_params.merge(cluster_defaults).with_indifferent_access
 
       handle_api_call do
-        services.kubernetes_ng.create_cluster(@scoped_project_id, cluster_params_with_defaults)
+        kubernetes_service.create_cluster(cluster_params_with_defaults)
       end
     end
 
     def confirm_deletion_and_destroy
       handle_api_call(auto_render: false) do
-        services.kubernetes_ng.confirm_cluster_deletion(@scoped_project_id, params[:name])
-        render json: services.kubernetes_ng.destroy_cluster(@scoped_project_id, params[:name])
+        kubernetes_service.confirm_cluster_deletion(params[:name])
+        render json: kubernetes_service.destroy_cluster(params[:name])
       end
     end
 
     def destroy
       handle_api_call do
-        services.kubernetes_ng.destroy_cluster(@scoped_project_id, params[:name])
+        kubernetes_service.destroy_cluster(params[:name])
       end
     end
 
     def confirm_deletion
       handle_api_call do
-        services.kubernetes_ng.confirm_cluster_deletion(@scoped_project_id, params[:name])
+        kubernetes_service.confirm_cluster_deletion(params[:name])
       end
     end
 
@@ -62,7 +62,7 @@ module KubernetesNg
       #}
 
       handle_api_call do
-        services.kubernetes_ng.update_cluster(@scoped_project_id, params[:name], cluster_params)
+        kubernetes_service.update_cluster(params[:name], cluster_params)
       end
     end
 
@@ -71,7 +71,7 @@ module KubernetesNg
       raw_resource = JSON.parse(request.body.read)
 
       handle_api_call do
-        services.kubernetes_ng.replace_cluster(@scoped_project_id, params[:name], raw_resource)
+        kubernetes_service.replace_cluster(params[:name], raw_resource)
       end
     end
 
@@ -88,7 +88,7 @@ module KubernetesNg
 
     def kubeconfig
       handle_api_call do
-        services.kubernetes_ng.admin_kubeconfig_cluster(@scoped_project_id, params[:name])
+        kubernetes_service.admin_kubeconfig_cluster(params[:name])
       end
     end
 
