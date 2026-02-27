@@ -1,9 +1,10 @@
 import React from "react"
-import { screen, within, act } from "@testing-library/react"
+import { screen, within, act, fireEvent } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import ClusterList from "./ClusterList"
 import { renderComponent } from "../../../mocks/TestTools"
 import { defaultCluster } from "../../../mocks/data"
+import { vi } from "vitest"
 
 const expectClusterListHeaders = () => {
   // check the visible headers
@@ -51,5 +52,51 @@ describe("<ClusterList />", () => {
     expectClusterListHeaders()
 
     expect(screen.getByText("No clusters found")).toBeInTheDocument()
+  })
+
+  it("renders refresh button when onRefresh is provided", async () => {
+    const mockOnRefresh = vi.fn()
+    await act(async () =>
+      renderComponent(<ClusterList clusters={[defaultCluster]} updatedAt={Date.now()} onRefresh={mockOnRefresh} />)
+    )
+
+    const refreshButton = screen.getByRole("button", { name: /refresh/i })
+    expect(refreshButton).toBeInTheDocument()
+    expect(refreshButton).not.toBeDisabled()
+  })
+
+  it("calls onRefresh when refresh button is clicked", async () => {
+    const mockOnRefresh = vi.fn()
+    await act(async () =>
+      renderComponent(<ClusterList clusters={[defaultCluster]} updatedAt={Date.now()} onRefresh={mockOnRefresh} />)
+    )
+
+    const refreshButton = screen.getByRole("button", { name: /refresh/i })
+    fireEvent.click(refreshButton)
+
+    expect(mockOnRefresh).toHaveBeenCalledTimes(1)
+  })
+
+  it("disables refresh button when isFetching is true", async () => {
+    const mockOnRefresh = vi.fn()
+    await act(async () =>
+      renderComponent(
+        <ClusterList
+          clusters={[defaultCluster]}
+          updatedAt={Date.now()}
+          onRefresh={mockOnRefresh}
+          isFetching={true}
+        />
+      )
+    )
+
+    const refreshButton = screen.getByRole("button", { name: /refresh/i })
+    expect(refreshButton).toBeDisabled()
+  })
+
+  it("does not render refresh button when onRefresh is not provided", async () => {
+    await act(async () => renderComponent(<ClusterList clusters={[defaultCluster]} updatedAt={Date.now()} />))
+
+    expect(screen.queryByRole("button", { name: /refresh/i })).not.toBeInTheDocument()
   })
 })

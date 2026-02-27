@@ -9,16 +9,19 @@ import Step1 from "./Step1"
 import { CloudProfile } from "../../../../types/cloudProfiles"
 import { DEFAULT_CLUSTER_FORM_DATA } from "./defaults"
 import { GardenerApi } from "../../../../apiClient"
+import { MessagesProvider } from "@cloudoperators/juno-messages-provider"
 
 const TestWrapper =
   (queryClient: QueryClient, client: GardenerApi = defaultMockClient) =>
   ({ children }: { children: React.ReactNode }) => (
     <PortalProvider>
       <QueryClientProvider client={queryClient}>
-        <WizardProvider client={client} region="us-east-1" formData={DEFAULT_CLUSTER_FORM_DATA}>
-          <Step1 />
-          {children}
-        </WizardProvider>
+        <MessagesProvider>
+          <WizardProvider client={client} region="us-east-1" formData={DEFAULT_CLUSTER_FORM_DATA}>
+            <Step1 />
+            {children}
+          </WizardProvider>
+        </MessagesProvider>
       </QueryClientProvider>
     </PortalProvider>
   )

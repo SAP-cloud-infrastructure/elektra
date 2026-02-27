@@ -2,6 +2,7 @@ import React from "react"
 import { render, act, screen } from "@testing-library/react"
 import { createRootRoute, RouterProvider, createMemoryHistory, createRoute } from "@tanstack/react-router"
 import { getTestRouter } from "../mocks/TestTools"
+import { MessagesProvider } from "@cloudoperators/juno-messages-provider"
 
 import { Root } from "./__root"
 
@@ -29,7 +30,11 @@ const renderComponent = () => {
   })
 
   return {
-    ...render(<RouterProvider router={router} />),
+    ...render(
+      <MessagesProvider>
+        <RouterProvider router={router} />
+      </MessagesProvider>
+    ),
     router,
   }
 }
