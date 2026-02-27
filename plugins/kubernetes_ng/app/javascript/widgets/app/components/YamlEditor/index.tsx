@@ -17,7 +17,6 @@ export interface YamlEditorProps {
   onRefresh: () => Promise<Record<string, unknown>>
   disabled?: boolean
   disabledMessage?: string
-  "data-testid"?: string
 }
 
 export default function YamlEditor({
@@ -28,7 +27,7 @@ export default function YamlEditor({
   onRefresh,
   disabled = false,
   disabledMessage,
-  "data-testid": testId,
+  ...props
 }: YamlEditorProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const editorContainerRef = useRef<HTMLDivElement>(null)
@@ -64,9 +63,9 @@ export default function YamlEditor({
   return (
     <div
       ref={containerRef}
-      data-testid={testId}
       aria-label={editorState.isEditable ? "YAML data editor" : "YAML data viewer (read-only)"}
       aria-readonly={!editorState.isEditable}
+      {...props}
     >
       <div
         className="tw-flex tw-items-center tw-bg-theme-background-lvl-1 tw-py-3 tw-px-6 tw-mb-px"
