@@ -70,7 +70,7 @@ function MainActions({ shootPermissions, kubeconfigPermissions, disabled = false
     onError: (error) => {
       resetMessages()
       const errText = normalizeError(error)
-      addMessage({ text: `${errText.title}: ${errText.message}`, variant: "danger" })
+      addMessage({ text: `${errText.title}${errText.message}`, variant: "danger" })
     },
   })
 
@@ -95,7 +95,7 @@ function MainActions({ shootPermissions, kubeconfigPermissions, disabled = false
       setShowDeleteDialog(false)
       resetMessages()
       const errText = normalizeError(error)
-      addMessage({ text: `${errText.title}: ${errText.message}`, variant: "danger" })
+      addMessage({ text: `${errText.title}${errText.message}`, variant: "danger" })
     },
   })
 

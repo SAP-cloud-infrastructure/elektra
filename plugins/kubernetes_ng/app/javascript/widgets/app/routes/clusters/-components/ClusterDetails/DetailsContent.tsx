@@ -66,14 +66,14 @@ const DetailsContent = ({
       .catch((error) => {
         resetMessages()
         const errText = normalizeError(error)
-        addMessage({ text: `${errText.title}: ${errText.message}`, variant: "danger" })
+        addMessage({ text: `${errText.title}${errText.message}`, variant: "danger" })
       })
   }
 
   const handleYamlError = (error: Error) => {
     resetMessages()
     const errText = normalizeError(error)
-    addMessage({ text: `${errText.title}: ${errText.message}`, variant: "danger" })
+    addMessage({ text: `${errText.title}${errText.message}`, variant: "danger" })
   }
 
   const handleEditClick = () => {
