@@ -598,18 +598,7 @@ GEM
     uglifier (4.2.1)
       execjs (>= 0.3.0, < 3)
     unf (0.2.0)
-<<<<<<< HEAD
     uri (1.1.1)
-=======
-    uri (1.0.3)
-<<<<<<< HEAD
-    virtus (2.0.0)
-      axiom-types (~> 0.1)
-      coercible (~> 1.0)
-      descendants_tracker (~> 0.0, >= 0.0.3)
->>>>>>> f217d9f5c (fix(core): migrate from TokenStore to cookie-based session storage)
-=======
->>>>>>> 2a9f849d0 (chore(core): improve session reset preventing csrf issues)
     web-console (4.2.1)
       actionview (>= 6.0.0)
       activemodel (>= 6.0.0)
