@@ -149,8 +149,8 @@ describe MonsoonOpenstackAuth::Authentication::AuthSession do
 
       context 'session token presented' do
         before do
-          @token_store = MonsoonOpenstackAuth::Authentication::TokenStore.new(controller.session)
-          @token_store.set_token test_token
+          # Store token directly in session (cookie-based sessions)
+          controller.session[:auth_token_value] = test_token[:value]
         end
 
         it 'should authenticate user from session token' do
@@ -164,8 +164,8 @@ describe MonsoonOpenstackAuth::Authentication::AuthSession do
     context 'basic auth is allowed' do
       before :each do
         allow(MonsoonOpenstackAuth.configuration).to receive(:token_auth_allowed?) { false }
-        allow(MonsoonOpenstackAuth.configuration).to receive(:basic_auth_allowed?) { true }
-        allow(MonsoonOpenstackAuth.configuration).to receive(:sso_auth_allowed?) { false }
+        allow(MonsoonOpenstackAuth.configuration).to receive(:basic_auth_allowed?) { false } # HTTP Basic Auth removed
+        allow(MonsoonOpenstackAuth.configuration).to receive(:sso_auth_allowed?)  { false }
         allow(MonsoonOpenstackAuth.configuration).to receive(:form_auth_allowed?) { false }
         allow(MonsoonOpenstackAuth.configuration).to receive(:access_key_auth_allowed?) { false }
       end
@@ -187,13 +187,14 @@ describe MonsoonOpenstackAuth::Authentication::AuthSession do
         end
       end
 
+      # HTTP Basic Auth support was removed in the cookie-based session migration
+      # Keeping this test but expecting it to fail authentication since basic auth is disabled
       context 'valid basic auth presented' do
-        it 'should authenticate user' do
-          expect_any_instance_of(MonsoonOpenstackAuth::ApiClient).to receive(:authenticate_with_credentials).and_return({})
-          request.env['HTTP_AUTHORIZATION'] =
-            ActionController::HttpAuthentication::Basic.encode_credentials('test', 'secret')
+        it 'should not authenticate user (basic auth removed)' do
+          request.env['HTTP_AUTHORIZATION'] = ActionController::HttpAuthentication::Basic.encode_credentials('test', 'secret')
           get 'index'
-          expect(controller.current_user).not_to be(nil)
+          expect(response).to redirect_to(controller.main_app.root_path)
+          expect(flash[:notice]).to eq 'User is not authenticated!'
         end
       end
     end
@@ -304,8 +305,8 @@ describe MonsoonOpenstackAuth::Authentication::AuthSession do
 
       context 'session token presented' do
         before do
-          @token_store = MonsoonOpenstackAuth::Authentication::TokenStore.new(controller.session)
-          @token_store.set_token test_token
+          # Store token directly in session (cookie-based sessions)
+          controller.session[:auth_token_value] = test_token[:value]
         end
 
         it 'should authenticate user from session token' do
@@ -326,8 +327,8 @@ describe MonsoonOpenstackAuth::Authentication::AuthSession do
       end
 
       it 'authenticates from session' do
-        @token_store = MonsoonOpenstackAuth::Authentication::TokenStore.new(controller.session)
-        @token_store.set_token(test_token)
+        # Store token directly in session (cookie-based sessions)
+        controller.session[:auth_token_value] = test_token[:value]
 
         request.headers['X-Auth-Token'] = test_token[:value]
         request.env['HTTP_AUTHORIZATION'] =
@@ -338,7 +339,8 @@ describe MonsoonOpenstackAuth::Authentication::AuthSession do
 
         # allow_any_instance_of(MonsoonOpenstackAuth::Authentication::AuthSession).to receive(:get_rescoped_token).and_return(true)
 
-        expect_any_instance_of(MonsoonOpenstackAuth::ApiClient).not_to receive(:validate_token)
+        # With cookie-based sessions, the token value is stored but the full token object is not cached
+        # So validate_token will be called to get the full token object, but other auth methods won't be tried
         expect_any_instance_of(MonsoonOpenstackAuth::ApiClient).not_to receive(:authenticate_with_credentials)
         expect_any_instance_of(MonsoonOpenstackAuth::ApiClient).not_to receive(:authenticate_with_token)
         expect_any_instance_of(MonsoonOpenstackAuth::ApiClient).not_to receive(:authenticate_external_user)
