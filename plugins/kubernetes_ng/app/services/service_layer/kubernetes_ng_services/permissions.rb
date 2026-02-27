@@ -16,7 +16,7 @@ module ServiceLayer
             metadata: { creationTimestamp: nil },
             spec: {
               resourceAttributes: {
-                namespace: "garden-#{project_id}",
+                namespace: garden_namespace(project_id),
                 verb: verb,
                 resource: resource,
                 subresource: subresource,

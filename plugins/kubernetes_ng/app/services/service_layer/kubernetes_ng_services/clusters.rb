@@ -5,23 +5,20 @@ module ServiceLayer
       class KubeconfigGenerationError < StandardError; end
 
       def list_clusters(project_id)
-        namespace = "garden-#{project_id}"
-        response = elektron_gardener.get("apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots")
+        response = elektron_gardener.get("apis/core.gardener.cloud/v1beta1/namespaces/#{garden_namespace(project_id)}/shoots")
         shoot_items = response&.body&.dig("items") || []
         return shoot_items.map { |shoot| convert_shoot_to_cluster(shoot) }.compact
       end
       
       def show_cluster_by_name(project_id, cluster_name)
-        return nil unless cluster_name  
-        namespace = "garden-#{project_id}"
-        response = elektron_gardener.get("apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots/#{cluster_name}")
+        return nil unless cluster_name
+        response = elektron_gardener.get("apis/core.gardener.cloud/v1beta1/namespaces/#{garden_namespace(project_id)}/shoots/#{cluster_name}")
         shoot_body = response&.body
         return convert_shoot_to_cluster(shoot_body)
       end
       
       def create_cluster(project_id, cluster_spec)
-        namespace = "garden-#{project_id}"
-        response = elektron_gardener.post("apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots", 
+        response = elektron_gardener.post("apis/core.gardener.cloud/v1beta1/namespaces/#{garden_namespace(project_id)}/shoots",
             headers:{"Content-Type": "application/json"
           }) do
           convert_cluster_to_shoot(cluster_spec)
@@ -31,8 +28,7 @@ module ServiceLayer
       end
       
       def confirm_cluster_deletion(project_id, cluster_name)
-        namespace = "garden-#{project_id}"
-        response = elektron_gardener.patch("apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots/#{cluster_name}", 
+        response = elektron_gardener.patch("apis/core.gardener.cloud/v1beta1/namespaces/#{garden_namespace(project_id)}/shoots/#{cluster_name}",
             headers: {
               "Content-Type": "application/json-patch+json",
             }) do
@@ -49,15 +45,13 @@ module ServiceLayer
       end 
       
       def destroy_cluster(project_id, cluster_name)
-        namespace = "garden-#{project_id}"
-        response = elektron_gardener.delete("apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots/#{cluster_name}")
+        response = elektron_gardener.delete("apis/core.gardener.cloud/v1beta1/namespaces/#{garden_namespace(project_id)}/shoots/#{cluster_name}")
         shoot_body = response&.body
         return convert_shoot_to_cluster(shoot_body)
       end
       
       def update_cluster(project_id, cluster_name, cluster_spec)
-        namespace = "garden-#{project_id}"
-        response = elektron_gardener.patch("apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots/#{cluster_name}",
+        response = elektron_gardener.patch("apis/core.gardener.cloud/v1beta1/namespaces/#{garden_namespace(project_id)}/shoots/#{cluster_name}",
             headers:{
               "Content-Type": "application/json-patch+json",
             }) do
@@ -67,9 +61,7 @@ module ServiceLayer
       end
 
       def replace_cluster(project_id, cluster_name, raw_resource)
-        namespace = "garden-#{project_id}"
-
-        response = elektron_gardener.put("apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots/#{cluster_name}",
+        response = elektron_gardener.put("apis/core.gardener.cloud/v1beta1/namespaces/#{garden_namespace(project_id)}/shoots/#{cluster_name}",
             headers:{
               "Content-Type": "application/json",
             }) do
@@ -80,9 +72,8 @@ module ServiceLayer
       end
 
       def admin_kubeconfig_cluster(project_id, cluster_name, expiration_seconds = 28800)
-        namespace = "garden-#{project_id}"
         response = elektron_gardener.post(
-          "apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots/#{cluster_name}/adminkubeconfig",
+          "apis/core.gardener.cloud/v1beta1/namespaces/#{garden_namespace(project_id)}/shoots/#{cluster_name}/adminkubeconfig",
           headers: { "Content-Type" => "application/json" }
         ) do
           {

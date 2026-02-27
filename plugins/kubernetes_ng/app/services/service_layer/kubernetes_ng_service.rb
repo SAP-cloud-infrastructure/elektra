@@ -26,5 +26,12 @@ module ServiceLayer
         )
     end
 
+    private
+
+    # Build the Gardener namespace for a given project
+    def garden_namespace(project_id)
+      "garden-#{project_id}"
+    end
+
   end
 end
