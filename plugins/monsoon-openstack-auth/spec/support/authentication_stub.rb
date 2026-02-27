@@ -35,23 +35,24 @@ module AuthenticationStub
     def stub_authentication(options={},&block)
       stub_auth_configuration
 
+      # Get the test token and allow block to modify it (e.g., change roles)
+      test_token = AuthenticationStub.test_token
+      test_token = block.call(test_token) if block_given?
+
       # stub validate_token
       # stub validate_token for any parameters
       allow_any_instance_of(MonsoonOpenstackAuth::ApiClient).to receive(:validate_token).and_return(nil)
-      # stub validate_token for test_token
+      # stub validate_token for test_token - return the MODIFIED token
       allow_any_instance_of(MonsoonOpenstackAuth::ApiClient).to receive(:validate_token).
-        with(AuthenticationStub.test_token["value"]).and_return(AuthenticationStub.test_token)
+        with(test_token["value"]).and_return(test_token)
 
       # stub authenticate. This method is called from api_client on :authenticate_with_credentials, :authenticate_with_token,
       # :authenticate_with_access_key, :authenticate_external_user
       allow_any_instance_of(MonsoonOpenstackAuth.configuration.connection_driver).to receive(:authenticate)
-        .and_return(AuthenticationStub.test_token)
+        .and_return(test_token)
 
       # Store token value directly in session for cookie-based sessions
       begin
-        test_token = AuthenticationStub.test_token
-        test_token = block.call(test_token) if block_given?
-
         # Store the token value in session (cookie-based approach)
         controller.session[:auth_token_value] = test_token["value"]
       rescue
