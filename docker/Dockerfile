@@ -89,13 +89,22 @@ ADD . $APP_PATH
 # Copy .npmrc.sample file into the container
 ADD .npmrc.sample .npmrc
 # Replace the $GITHUB_TOKEN placeholder with the actual token value
-# this is needed to install npm packages from github
-# the sed is needed because Docker doesn’t expand environment variables in .npmrc files directly, 
+# this is needed to install npm packages from github (@sapcc/* private packages)
+# the sed is needed because Docker doesn’t expand environment variables in .npmrc files directly,
 # so writing $GITHUB_TOKEN in the .npmrc file won’t automatically replace it with the environment variable at build time.
 RUN sed -i "s|\$GITHUB_TOKEN|$GITHUB_TOKEN|g" .npmrc
 
-
+# Precompile Rails assets (this uses pnpm which needs .npmrc for @sapcc/* packages)
 RUN bin/rails assets:precompile && rm -rf node_modules
+
+# Security: Remove .npmrc containing the GitHub token after assets are compiled
+# The token is only needed during build, not in the final image
+# This prevents the token from being exposed in the image layers
+RUN rm -f .npmrc
+
+# Security: Unset the GITHUB_TOKEN environment variable after build
+# The token was only needed for pnpm install and should not persist in the image
+ENV GITHUB_TOKEN=
 
 RUN echo $(git rev-parse HEAD) > $APP_PATH/REVISION && rm -rf .git
 
