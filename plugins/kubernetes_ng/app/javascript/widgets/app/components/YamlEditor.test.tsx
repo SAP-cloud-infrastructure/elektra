@@ -83,12 +83,12 @@ describe("<YamlEditor />", () => {
     const editButton = screen.getByRole("button", { name: /edit/i })
     expect(editButton).toBeInTheDocument()
 
-    const editor = screen.getByTestId("yaml-editor")
-    expect(editor).toBeInTheDocument()
+    const editorWrapper = screen.getByTestId("yaml-editor")
+    expect(editorWrapper).toBeInTheDocument()
 
-    // Verify editor is in read-only mode by checking aria attributes
-    expect(editor).toHaveAttribute("aria-label", "YAML data viewer (read-only)")
-    expect(editor).toHaveAttribute("aria-readonly", "true")
+    // Verify editor is in read-only mode by checking aria attributes on the content element
+    const editorContent = within(editorWrapper).getByLabelText("YAML data viewer (read-only)")
+    expect(editorContent).toHaveAttribute("aria-readonly", "true")
   })
 
   it("converts object to YAML and displays it", async () => {
@@ -147,9 +147,9 @@ describe("<YamlEditor />", () => {
     expect(saveButton).toBeDisabled()
 
     // Verify editor is now editable by checking aria attributes
-    const editor = screen.getByTestId("yaml-editor")
-    expect(editor).toHaveAttribute("aria-label", "YAML data editor")
-    expect(editor).toHaveAttribute("aria-readonly", "false")
+    const editorWrapper = screen.getByTestId("yaml-editor")
+    const editorContent = within(editorWrapper).getByLabelText("YAML data editor")
+    expect(editorContent).toHaveAttribute("aria-readonly", "false")
   })
 
   it("calls onEdit callback when Edit button is clicked", async () => {
@@ -186,11 +186,9 @@ describe("<YamlEditor />", () => {
     expect(screen.getByRole("button", { name: /edit/i })).toBeInTheDocument()
     expect(screen.queryByRole("button", { name: /save/i })).not.toBeInTheDocument()
 
-    const editor = screen.getByTestId("yaml-editor")
-    expect(editor).toBeInTheDocument()
-    // Verify editor is in read-only mode by checking aria attributes
-    expect(editor).toHaveAttribute("aria-label", "YAML data viewer (read-only)")
-    expect(editor).toHaveAttribute("aria-readonly", "true")
+    const editorWrapper = screen.getByTestId("yaml-editor")
+    const editorContent = within(editorWrapper).getByLabelText("YAML data viewer (read-only)")
+    expect(editorContent).toHaveAttribute("aria-readonly", "true")
   })
 
   it("disables Save button when there are no changes", async () => {

@@ -9,7 +9,7 @@ import { CancelConfirmDialog, ResourceVersionConflictDialog } from "./dialogs"
 
 const TOOLBAR_HEIGHT = 50
 
-export interface YamlEditorProps {
+export interface YamlEditorProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "onError" | "resource"> {
   resource: Record<string, unknown>
   onSave: (resource: Record<string, unknown>) => Promise<void>
   onError?: (error: Error) => void
@@ -17,6 +17,7 @@ export interface YamlEditorProps {
   onRefresh: () => Promise<Record<string, unknown>>
   disabled?: boolean
   disabledMessage?: string
+  wrapperClassName?: string
 }
 
 export default function YamlEditor({
@@ -27,6 +28,7 @@ export default function YamlEditor({
   onRefresh,
   disabled = false,
   disabledMessage,
+  wrapperClassName = "",
   ...props
 }: YamlEditorProps) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -61,17 +63,12 @@ export default function YamlEditor({
   })
 
   return (
-    <div
-      ref={containerRef}
-      aria-label={editorState.isEditable ? "YAML data editor" : "YAML data viewer (read-only)"}
-      aria-readonly={!editorState.isEditable}
-      {...props}
-    >
+    <div ref={containerRef} className={`yaml-editor-wrapper ${wrapperClassName}`} {...props}>
       <div
         className="tw-flex tw-items-center tw-bg-theme-background-lvl-1 tw-py-3 tw-px-6 tw-mb-px"
         style={{ height: `${TOOLBAR_HEIGHT}px` }}
       >
-        <div className="tw-ml-auto">
+        <div className="yaml-editor-toolbar tw-ml-auto">
           <Stack alignment="center" gap="2">
             <DisableableButton
               size="small"

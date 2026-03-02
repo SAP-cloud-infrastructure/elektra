@@ -57,6 +57,7 @@ function createEditorExtensions(
         fontFamily: "monospace",
       },
     }),
+    EditorView.editorAttributes.of({ class: "yaml-editor" }),
     ariaCompartment.of(createAriaExtension(isEditable)),
     editableCompartment.of(createEditableExtension(false)),
     heightCompartment.of(createHeightExtension(editorHeight)),
