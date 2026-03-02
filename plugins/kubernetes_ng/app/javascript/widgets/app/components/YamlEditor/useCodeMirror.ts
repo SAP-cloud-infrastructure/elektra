@@ -115,13 +115,28 @@ export function useCodeMirror({
   const editorViewRef = useRef<EditorView | null>(null)
   const isUpdatingProgrammaticallyRef = useRef<boolean>(false)
 
+  // Store initial values in refs to avoid triggering effect re-runs
+  const initialContentRef = useRef(initialContent)
+  const initialHeightRef = useRef(editorHeight)
+  const onDocChangeRef = useRef(onDocChange)
+
+  // Keep onDocChange ref up to date
+  useEffect(() => {
+    onDocChangeRef.current = onDocChange
+  }, [onDocChange])
+
   // Create the CodeMirror editor instance once
   useEffect(() => {
     if (!containerRef.current) return
 
     const state = EditorState.create({
-      doc: initialContent,
-      extensions: createEditorExtensions(editorHeight, false, onDocChange, isUpdatingProgrammaticallyRef),
+      doc: initialContentRef.current,
+      extensions: createEditorExtensions(
+        initialHeightRef.current,
+        false,
+        (value) => onDocChangeRef.current(value),
+        isUpdatingProgrammaticallyRef
+      ),
     })
 
     const view = new EditorView({
@@ -135,7 +150,7 @@ export function useCodeMirror({
       view.destroy()
       editorViewRef.current = null
     }
-  }) // Only create once
+  }, [containerRef])
 
   // Focus the editor when entering edit mode
   useEffect(() => {
