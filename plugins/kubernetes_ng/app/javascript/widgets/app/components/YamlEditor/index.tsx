@@ -17,7 +17,7 @@ export interface YamlEditorProps extends Omit<React.HTMLAttributes<HTMLDivElemen
   onRefresh: () => Promise<Record<string, unknown>>
   disabled?: boolean
   disabledMessage?: string
-  wrapperClassName?: string
+  className?: string
 }
 
 export default function YamlEditor({
@@ -28,7 +28,7 @@ export default function YamlEditor({
   onRefresh,
   disabled = false,
   disabledMessage,
-  wrapperClassName = "",
+  className = "",
   ...props
 }: YamlEditorProps) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -63,7 +63,7 @@ export default function YamlEditor({
   })
 
   return (
-    <div ref={containerRef} className={`yaml-editor-wrapper ${wrapperClassName}`} {...props}>
+    <div ref={containerRef} className={`yaml-editor-wrapper ${className}`} {...props}>
       <div
         className="tw-flex tw-items-center tw-bg-theme-background-lvl-1 tw-py-3 tw-px-6 tw-mb-px"
         style={{ height: `${TOOLBAR_HEIGHT}px` }}
