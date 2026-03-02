@@ -47,7 +47,7 @@ function createEditorExtensions(
     EditorView.theme({
       ".cm-highlightSpace": {
         backgroundImage:
-          'url("data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'6\' height=\'6\'><circle cx=\'3\' cy=\'3\' r=\'1\' fill=\'%23cccccc\' /></svg>")',
+          "url(\"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='6' height='6'><circle cx='3' cy='3' r='1' fill='%23cccccc' /></svg>\")",
         backgroundRepeat: "no-repeat",
         backgroundPosition: "center",
         backgroundSize: "contain",
@@ -134,7 +134,7 @@ export function useCodeMirror({
       view.destroy()
       editorViewRef.current = null
     }
-  }, []) // Only create once
+  }) // Only create once
 
   // Focus the editor when entering edit mode
   useEffect(() => {
