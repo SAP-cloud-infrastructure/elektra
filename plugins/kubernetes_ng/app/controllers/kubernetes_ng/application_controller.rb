@@ -5,6 +5,11 @@ module KubernetesNg
 
     protected
 
+    # Returns a scoped Kubernetes service with project_id and region automatically injected
+    def kubernetes_service
+      @kubernetes_service ||= services.kubernetes_ng.scoped(@scoped_project_id, current_region)
+    end
+
     def handle_api_call(auto_render: true)
       # if the API call is successful, return the response
       # but only render if auto_render is true
@@ -14,19 +19,19 @@ module KubernetesNg
         render json: response if auto_render
         response
       rescue Elektron::Errors::ApiResponse => e
-        render json: { 
+        render json: {
           error: "API Error",
           code: e.code,
           message: e.message
         }, status: e.code
       rescue Elektron::Errors::Request => e
-        render json: { 
-          error: "Request Error", 
+        render json: {
+          error: "Request Error",
           code: 500,
-          message: "Service temporarily unavailable. Please try again later.", 
+          message: "Service temporarily unavailable. Please try again later.",
         }, status: 500
       rescue Net::HTTPError => e
-        render json: { 
+        render json: {
           error: "Network Error",
           message: e.message
         }, status: 500
