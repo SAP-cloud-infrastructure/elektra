@@ -63,7 +63,7 @@ module Identity
           @group,
         )
         flash[:notice] = "User '#{@user.name}' successfully added to group '#{@group.name}'."
-        redirect_to domains_group_path(@group.id)
+        redirect_to domains_group_path(domain_id: @scoped_domain_id, id: @group.id)
       end
     end
 
@@ -88,7 +88,7 @@ module Identity
         @group,
       )
       flash[:notice] = "User '#{user_display_name}' successfully removed from group '#{@group.name}'."
-      redirect_to domains_group_path(@group.id)
+      redirect_to domains_group_path(domain_id: @scoped_domain_id, id: @group.id)
     end
 
     def new
@@ -105,7 +105,7 @@ module Identity
       if @group.save
         audit_logger.info(current_user, "has created", @group)
         flash[:notice] = "Group '#{@group.name}' successfully created."
-        redirect_to domains_groups_path
+        redirect_to domains_groups_path(domain_id: @scoped_domain_id)
       else
         render action: :new
       end
@@ -123,7 +123,7 @@ module Identity
       if @group.update(params[:group])
         audit_logger.info(current_user, "has updated", @group)
         flash[:notice] = "Group '#{@group.name}' successfully updated."
-        redirect_to domains_group_path(@group.id)
+        redirect_to domains_group_path(domain_id: @scoped_domain_id, id: @group.id)
       else
         render action: :edit
       end
@@ -139,7 +139,7 @@ module Identity
       else
         flash[:error] = @group.errors.full_messages.to_sentence
       end
-      redirect_to domains_groups_path
+      redirect_to domains_groups_path(domain_id: @scoped_domain_id)
     end
   end
 end
