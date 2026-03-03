@@ -862,8 +862,17 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
 
   describe "kube config generation" do
     let(:project_id) { "test" }
-    let(:namespace) { "garden-#{project_id}" }
+    let(:region) { "qa-de-1" }
+    let(:namespace) { "garden-#{region}-#{project_id}" }
     let(:cluster_name) { "test-cluster" }
+
+    # Set up scoped variables before each test
+    before do
+      @scoped_project_id = project_id
+      @scoped_region = region
+      # Mock garden_namespace method
+      allow(self).to receive(:garden_namespace).and_return(namespace)
+    end
 
     let(:mock_response) do
       double(
@@ -910,7 +919,7 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
         .with("apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots/#{cluster_name}/adminkubeconfig", {headers: {"Content-Type" => "application/json"}})
         .and_return(mock_response)
 
-      kubeconfig = admin_kubeconfig_cluster(project_id, cluster_name)
+      kubeconfig = admin_kubeconfig_cluster(cluster_name)
 
       expect(kubeconfig).to be_a(String)
       expect(kubeconfig).to include("apiVersion: v1")
@@ -924,7 +933,7 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
         .and_return(double(body: { 'status' => {} }))
 
       expect {
-        admin_kubeconfig_cluster(project_id, cluster_name)
+        admin_kubeconfig_cluster(cluster_name)
       }.to raise_error(/not found/)
     end
 
@@ -935,7 +944,7 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
         .and_return(double(body: { 'status' => { 'kubeconfig' => "invalid-base64" } }))
 
       expect {
-        admin_kubeconfig_cluster(project_id, cluster_name)
+        admin_kubeconfig_cluster(cluster_name)
       }.to raise_error(/Invalid base64/)
     end
   end
