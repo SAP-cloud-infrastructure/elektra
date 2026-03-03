@@ -19,7 +19,7 @@ module MonsoonOpenstackAuth
 
       # Token types produced by the tokenizer
       TOKEN_TYPES = %i[
-        role rule param_ref local_compare
+        role rule param_ref local_compare equality_compare standalone_param
         and or not
         lparen rparen
         true false
@@ -51,16 +51,38 @@ module MonsoonOpenstackAuth
             tokens << Token.new(type: :true, value: 'true')
           elsif scanner.scan(/\bFalse\b/i) || scanner.scan(/!/)
             tokens << Token.new(type: :false, value: 'false')
-          elsif scanner.scan(/role:([^\s()]+)/)
+          elsif scanner.scan(/role:\s*([^\s()]+)/)
             tokens << Token.new(type: :role, value: scanner[1])
-          elsif scanner.scan(/rule:([^\s()]+)/)
+          elsif scanner.scan(/rule:\s*([^\s()]+)/)
             tokens << Token.new(type: :rule, value: scanner[1])
-          elsif scanner.scan(/([a-zA-Z_][a-zA-Z0-9_.]*):(%\([a-zA-Z0-9_.]+\)s)/)
+          elsif scanner.scan(/(%\([a-zA-Z0-9_.?]+\)s)(==|!=)('([^']*)'|"([^"]*)"|[a-zA-Z0-9_.]+|nil)/)
+            # Handle %(param)s==value or %(param)s!=value
+            # This is Ruby-style equality comparison (non-standard OpenStack syntax)
+            # Supports: ==nil, ==value, =='quoted', =="quoted"
+            param_ref = scanner[1].match(/%\(([^)]+)\)s/)[1]
+            operator = scanner[2]
+            literal = scanner[3]
+            # Strip quotes if present
+            literal = literal[1..-2] if literal.start_with?("'", '"')
+            tokens << Token.new(type: :equality_compare, value: { param: param_ref, operator: operator, literal: literal })
+          elsif scanner.scan(/('([^']*)'|"([^"]*)"|[a-zA-Z0-9_.]+|nil)(==|!=)(%\([a-zA-Z0-9_.?]+\)s)/)
+            # Handle value==%(param)s or value!=%(param)s (reversed order)
+            literal = scanner[1]
+            # Strip quotes if present
+            literal = literal[1..-2] if literal.start_with?("'", '"')
+            operator = scanner[4]
+            param_ref = scanner[5].match(/%\(([^)]+)\)s/)[1]
+            tokens << Token.new(type: :equality_compare, value: { param: param_ref, operator: operator, literal: literal })
+          elsif scanner.scan(/(%\([a-zA-Z0-9_.?]+\)s)/)
+            # Standalone param reference like %(flavor.public?)s used as a boolean
+            param_ref = scanner[1].match(/%\(([^)]+)\)s/)[1]
+            tokens << Token.new(type: :standalone_param, value: param_ref)
+          elsif scanner.scan(/([a-zA-Z_][a-zA-Z0-9_.?]*):(%\([a-zA-Z0-9_.?]+\)s)/)
             # local:%(param)s  e.g., domain_id:%(domain.id)s
             local_name = scanner[1]
             param_ref = scanner[2].match(/%\(([^)]+)\)s/)[1]
             tokens << Token.new(type: :local_compare, value: { local: local_name, param: param_ref })
-          elsif scanner.scan(/([a-zA-Z_][a-zA-Z0-9_.]*):([^\s()]+)/)
+          elsif scanner.scan(/([a-zA-Z_][a-zA-Z0-9_.?]*):([^\s()]+)/)
             # local:literal_value  e.g., domain_id:default
             local_name = scanner[1]
             literal = scanner[2]
@@ -82,6 +104,8 @@ module MonsoonOpenstackAuth
         RoleCheck     = Struct.new(:role_name, keyword_init: true)
         RuleRef       = Struct.new(:rule_name, keyword_init: true)
         LocalCompare  = Struct.new(:local_name, :param_path, :literal_value, keyword_init: true)
+        EqualityCompare = Struct.new(:param_path, :operator, :literal_value, keyword_init: true)
+        StandaloneParam = Struct.new(:param_path, keyword_init: true)
         AndNode       = Struct.new(:left, :right, keyword_init: true)
         OrNode        = Struct.new(:left, :right, keyword_init: true)
         NotNode       = Struct.new(:operand, keyword_init: true)
@@ -179,6 +203,13 @@ module MonsoonOpenstackAuth
             else
               AST::LocalCompare.new(local_name: v[:local], param_path: nil, literal_value: v[:literal])
             end
+          when :equality_compare
+            tok = consume(:equality_compare)
+            v = tok.value
+            AST::EqualityCompare.new(param_path: v[:param], operator: v[:operator], literal_value: v[:literal])
+          when :standalone_param
+            tok = consume(:standalone_param)
+            AST::StandaloneParam.new(param_path: tok.value)
           when :true
             consume(:true)
             AST::LiteralTrue.new
@@ -228,6 +259,26 @@ module MonsoonOpenstackAuth
           rescue
             false
           end
+        when AST::EqualityCompare
+          # Handle %(param)s==value or %(param)s!=value syntax
+          param_val = resolve_param_path(node.param_path, params)
+          literal_val = (node.literal_value == 'nil') ? nil : node.literal_value
+          begin
+            if node.operator == '=='
+              param_val == literal_val
+            elsif node.operator == '!='
+              param_val != literal_val
+            else
+              false
+            end
+          rescue
+            false
+          end
+        when AST::StandaloneParam
+          # Handle standalone %(param)s used as a boolean value
+          param_val = resolve_param_path(node.param_path, params)
+          # Convert to boolean: truthy values are true, falsy are false
+          !!param_val
         when AST::AndNode
           evaluate(node.left, locals, params, rules, trace) &&
             evaluate(node.right, locals, params, rules, trace)
@@ -286,6 +337,10 @@ module MonsoonOpenstackAuth
         case node
         when AST::LocalCompare
           node.param_path ? [node.param_path] : []
+        when AST::EqualityCompare
+          [node.param_path]
+        when AST::StandaloneParam
+          [node.param_path]
         when AST::AndNode
           extract_params(node.left) + extract_params(node.right)
         when AST::OrNode
