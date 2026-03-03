@@ -69,7 +69,7 @@ export default function YamlEditor({
         style={{ height: `${TOOLBAR_HEIGHT}px` }}
       >
         <div className="tw-text-sm tw-text-theme-text-secondary">
-          <b>{editorState.isEditable ? "Edit Mode" : "Read Mode"}</b>
+          {editorState.isEditable ? "Edit Mode" : "Read Mode"}
         </div>
         <div className="tw-ml-auto">
           <Stack alignment="center" gap="2">
