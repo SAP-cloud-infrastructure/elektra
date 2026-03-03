@@ -221,6 +221,9 @@ module MonsoonOpenstackAuth
                           node.literal_value
                         end
           begin
+            # If comparing against a param path that couldn't be resolved (nil),
+            # treat as false to match OpenStack policy semantics (missing params = deny).
+            return false if node.param_path && compare_val.nil?
             local_val == compare_val
           rescue
             false

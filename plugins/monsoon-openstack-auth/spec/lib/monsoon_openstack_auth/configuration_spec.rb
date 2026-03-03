@@ -8,7 +8,6 @@ describe MonsoonOpenstackAuth::Configuration do
   [
     :connection_driver,
     :token_auth_allowed,
-    :basic_auth_allowed,
     :access_key_auth_allowed,
     :sso_auth_allowed,
     :form_auth_allowed,
@@ -17,7 +16,6 @@ describe MonsoonOpenstackAuth::Configuration do
     :debug_api_calls,
     :logger,
     :authorization,
-    :token_cache,
     :two_factor_authentication_method
   ].each do |m|
     it "should respond to two_factor_authentication_method" do

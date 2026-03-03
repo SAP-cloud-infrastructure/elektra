@@ -262,7 +262,7 @@ describe MonsoonOpenstackAuth::Authorization::SafeRuleParser do
 
   describe 'policy file compatibility' do
     it 'parses all rules from the test policy file without errors' do
-      policy_file = File.expand_path('../../../../config/policy_test.json', __dir__)
+      policy_file = File.expand_path('../../../../spec/config/policy_test.json', __dir__)
       policy = JSON.parse(File.read(policy_file))
 
       policy.each do |name, rule|
