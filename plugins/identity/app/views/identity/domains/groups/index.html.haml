@@ -4,7 +4,7 @@
 - if current_user.is_allowed?("identity:group_create",{domain_id: @scoped_domain_id})
   .toolbar
     .main-buttons
-      = link_to 'New Group', new_group_path, data: {modal: true}, class: 'btn btn-primary'
+      = link_to 'New Group', new_domains_group_path, data: {modal: true}, class: 'btn btn-primary'
 
 %table.table#groups
   %thead
