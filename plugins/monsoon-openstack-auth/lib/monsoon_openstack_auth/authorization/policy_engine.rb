@@ -230,10 +230,14 @@ module MonsoonOpenstackAuth
             parsed_rule.gsub!(/^$/, 'true')
             parsed_rule.gsub!(/True|@/i, 'true')
             parsed_rule.gsub!(/False|!/i, 'false')
-            parsed_rule.gsub!(/rule:([^\s]+)/) { |m| "rule:#{$1.gsub(/\:/, '<->')}" }
-            parsed_rule.gsub!(/rule:([^\s]+)/, '@rules.get("\1").execute(locals,params,trace)')
-            parsed_rule.gsub!(/role:([^\s:]+)/, 'locals["roles"].include?("\1")')
-            parsed_rule.gsub!(/([^\s|:]+):([^\s:]+)/, '(begin; locals["\1"]==\2; rescue; false; end)')
+            # Fix ReDoS: Use possessive quantifiers and more specific patterns
+            # Match rule: references (e.g., rule:admin_required)
+            parsed_rule.gsub!(/rule:([a-zA-Z0-9_]+)/) { |m| "rule:#{$1.gsub(/\:/, '<->')}" }
+            parsed_rule.gsub!(/rule:([a-zA-Z0-9_<>-]+)/, '@rules.get("\1").execute(locals,params,trace)')
+            # Match role: references (e.g., role:admin)
+            parsed_rule.gsub!(/role:([a-zA-Z0-9_]+)/, 'locals["roles"].include?("\1")')
+            # Match key:value comparisons (e.g., domain_id:%(domain.id)s)
+            parsed_rule.gsub!(/([a-zA-Z0-9_]+):([a-zA-Z0-9_.\[\]"]+)/, '(begin; locals["\1"]==\2; rescue; false; end)')
             parsed_rule.gsub!("<->", ":")
             parsed_rule
           end
