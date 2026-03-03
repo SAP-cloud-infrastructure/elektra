@@ -324,19 +324,12 @@ module MonsoonOpenstackAuth
               # catch no method error and raise rule execution error
           rescue NoMethodError => nme
             raise RuleExecutionError.new(self, locals, params, nme)
-              #return false
               # catch name error and raise rule execution error
           rescue NameError => ne
-            raise RuleExecutionError.new(self, locals, params, nme)
-              #return false
+            raise RuleExecutionError.new(self, locals, params, ne)
               # catch rule execution error from nested rules and raise it up to next
           rescue RuleExecutionError => ree
             raise ree
-              #return false
-              # catch other exceptions and raise rule execution error
-          rescue NameError => ne
-            raise RuleExecutionError.new(self, locals, params, nme)
-            #return false
           end
         end
 

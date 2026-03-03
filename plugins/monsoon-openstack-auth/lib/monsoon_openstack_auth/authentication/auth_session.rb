@@ -6,6 +6,13 @@ module MonsoonOpenstackAuth
       class << self
         TWO_FACTOR_AUTHENTICATION = 'two_factor_authentication'
 
+        # Generate proper encryption key for two-factor cookie
+        def encryption_key
+          @encryption_key ||= ActiveSupport::KeyGenerator.new(
+            Rails.application.secret_key_base
+          ).generate_key('two_factor_cookie', ActiveSupport::MessageEncryptor.key_len)
+        end
+
         def load_user_from_session(controller, scope_and_options = {})
           session = AuthSession.new(controller, scope_and_options)
           session.validate_session_token
@@ -131,7 +138,7 @@ module MonsoonOpenstackAuth
         def two_factor_cookie_valid?(controller)
           return false unless controller.request.cookies[TWO_FACTOR_AUTHENTICATION]
 
-          crypt = ActiveSupport::MessageEncryptor.new(Rails.application.secret_key_base[0..31])
+          crypt = ActiveSupport::MessageEncryptor.new(encryption_key)
           value = begin
             crypt.decrypt_and_verify(controller.request.cookies[TWO_FACTOR_AUTHENTICATION])
           rescue StandardError
@@ -142,10 +149,11 @@ module MonsoonOpenstackAuth
 
         # set cookie for two factor authentication
         def set_two_factor_cookie(controller)
-          crypt = ActiveSupport::MessageEncryptor.new(Rails.application.secret_key_base[0..31])
+          crypt = ActiveSupport::MessageEncryptor.new(encryption_key)
           value = crypt.encrypt_and_sign('valid')
+          domain = MonsoonOpenstackAuth.configuration.two_factor_domain
           controller.response.set_cookie(TWO_FACTOR_AUTHENTICATION,
-                                         { value: value, expires: Time.now + 4.hours, path: '/', domain: '.cloud.sap' })
+                                         { value: value, expires: Time.now + 4.hours, path: '/', domain: domain })
         end
       end
 

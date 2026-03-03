@@ -18,8 +18,6 @@ MonsoonOpenstackAuth.configure do |auth|
   # optional, default=true
   auth.token_auth_allowed = true
   # optional, default=true
-  auth.basic_auth_allowed = true
-  # optional, default=true
   auth.sso_auth_allowed = true
   # optional, default=true
   auth.form_auth_allowed = true

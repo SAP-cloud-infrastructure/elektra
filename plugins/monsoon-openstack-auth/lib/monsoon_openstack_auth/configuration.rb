@@ -1,9 +1,9 @@
 module MonsoonOpenstackAuth
   class Configuration
     METHODS = %i[
-      connection_driver token_auth_allowed basic_auth_allowed access_key_auth_allowed sso_auth_allowed
-      form_auth_allowed login_redirect_url debug debug_api_calls logger authorization token_cache
-      two_factor_authentication_method two_factor_enabled enforce_natural_user natural_user_name_pattern rsa_dns
+      connection_driver token_auth_allowed access_key_auth_allowed sso_auth_allowed
+      form_auth_allowed login_redirect_url debug debug_api_calls logger authorization
+      two_factor_authentication_method two_factor_enabled two_factor_domain enforce_natural_user natural_user_name_pattern rsa_dns
     ]
 
     attr_accessor(*METHODS)
@@ -11,20 +11,19 @@ module MonsoonOpenstackAuth
     def initialize
       @connection_driver        = MonsoonOpenstackAuth::ConnectionDriver::Default
       @token_auth_allowed       = true
-      @basic_auth_allowed       = true
       @sso_auth_allowed         = true
       @form_auth_allowed        = true
       @access_key_auth_allowed  = false
       @two_factor_enabled       = false
+      @two_factor_domain        = '.cloud.sap'
       @two_factor_authentication_method = lambda { |username, passcode|
         raise 'No two_factor_authentication_method given! Please provide a method for two factor authentication (config.two_factor_authentication_method=Proc).'
       }
 
       @debug                    = false
       @debug_api_calls          = false
-      @logger                   = MonsoonOpenstackAuth::LoggerWrapper.new(Rails ? Rails.logger : Logger.new(STDERR))
+      @logger                   = Rails ? Rails.logger : Logger.new(STDERR)
       @authorization            = AuthorizationConfig.new
-      @token_cache              = MonsoonOpenstackAuth::Cache::NoopCache
       @enforce_natural_user     = false
       @natural_user_name_pattern = nil
       @rsa_dns = false
@@ -46,10 +45,6 @@ module MonsoonOpenstackAuth
 
     def token_auth_allowed?
       @token_auth_allowed
-    end
-
-    def basic_auth_allowed?
-      @basic_auth_allowed
     end
 
     def access_key_auth_allowed?

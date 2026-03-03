@@ -8,23 +8,8 @@ require 'monsoon_openstack_auth/authorization'
 require "monsoon_openstack_auth/authentication"
 require "monsoon_openstack_auth/configuration"
 
-require "monsoon_openstack_auth/cache/rails_memory_cache"
-require "monsoon_openstack_auth/cache/noop_cache"
-
 module MonsoonOpenstackAuth
   class ApiError < StandardError; end
-
-  class LoggerWrapper
-    def initialize(logger)
-      @logger = logger
-    end
-
-    def method_missing(method_sym, *arguments, &block)
-      message = arguments.first
-      message = "[Monsoon Openstack Auth] #{message}" if message.is_a?(String)
-      @logger.send(method_sym, message)
-    end
-  end
 
   class << self
     attr_accessor :configuration
