@@ -1,7 +1,7 @@
-- if current_user.is_allowed?('identity:group_add_member', domain_id: @group.domain_id)
+- if current_user.is_allowed?('identity:group_add_member', domain_id: group.domain_id)
   .toolbar.toolbar-aligntop
     .main-buttons
-      = link_to 'Add Member', plugin('identity').domains_group_members_new_path(@group.id), data: {modal: true}, class: 'btn btn-primary'
+      = link_to 'Add Member', plugin('identity').domains_group_members_new_path(group.id), data: {modal: true}, class: 'btn btn-primary'
 
 %table.table#group_members
   %tr
@@ -9,4 +9,4 @@
     %th ID
     %th
   - members.each do |user|
-    = render partial: 'identity/domains/groups/member', locals: {user: user, group: @group}
+    = render partial: 'identity/domains/groups/member', locals: {user: user, group: group}
