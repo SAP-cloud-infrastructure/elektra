@@ -67,7 +67,7 @@ module MonsoonOpenstackAuth
 
         # create user from form and authenticate
         def create_from_login_form(controller, username, password, options = {})
-          options ||= options
+          options ||= {}
           domain_id = options[:domain_id]
           domain_name = options[:domain_name]
 
@@ -108,9 +108,14 @@ module MonsoonOpenstackAuth
         end
 
         def reset_session(controller)
-          # Instead of resetting the entire session (which clears CSRF tokens),
-          # just remove the authentication data
-          controller.session.delete(:auth_token_value)
+          # Store CSRF token before reset
+          csrf_token = controller.session[:_csrf_token]
+
+          # Full session reset (regenerates session ID)
+          controller.reset_session
+
+          # Restore CSRF token
+          controller.session[:_csrf_token] = csrf_token
         end
 
         def session_id_presented?(controller)

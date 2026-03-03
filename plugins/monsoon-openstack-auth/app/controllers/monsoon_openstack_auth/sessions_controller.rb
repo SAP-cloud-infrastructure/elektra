@@ -136,11 +136,10 @@ module MonsoonOpenstackAuth
       end
     end
 
-    def destroy
-      MonsoonOpenstackAuth::Authentication::AuthSession.logout(
-        self, params[:domain_name]
-      )
-      logout_url = params[:redirect_to] || main_app.root_url
+    def destroy        
+      MonsoonOpenstackAuth::Authentication::AuthSession.logout(self, params[:domain_name])
+      logout_url = params[:redirect_to]
+      logout_url = main_app.root_url unless safe_redirect_url?(logout_url)
       redirect_to logout_url
     end
 

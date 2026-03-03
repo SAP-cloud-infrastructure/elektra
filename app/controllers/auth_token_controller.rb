@@ -59,16 +59,10 @@ class AuthTokenController < ActionController::Base
   protected
 
   def verify_authenticity_token
-    # for debugging comment out to disable CSRF protection for this action
-    if Rails.env.development? || Rails.env.test?
-      # Disable CSRF protection in development/test environments
-      return true
-    end
+    return true if Rails.env.development? || Rails.env.test?
+    return true if allowed_origin?
 
-    # Call the original method to maintain normal CSRF checking
-    super unless allowed_origin?
-
-    true
+    super # Will raise InvalidAuthenticityToken if CSRF check fails
   end
 
   private
