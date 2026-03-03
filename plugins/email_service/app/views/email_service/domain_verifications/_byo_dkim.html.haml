@@ -1,6 +1,0 @@
-- domain_signing_selector_hint = "A string that's used to identify a public key in the DNS configuration for a domain."
-- domain_signing_private_key_hint = "A private key that's used to generate a DKIM signature. Remove entries like -----BEGIN RSA PRIVATE KEY----- and -----END RSA PRIVATE KEY----- and any line breaks from the private key"
-
-#byo_dkim{class: ('hide' if hide_easy_dkim(@verified_domain.dkim_type))}
-  = f.input :domain_signing_selector, required: true, input_html: {}, label: "Domain Signing Selector (Public key identifier)", hint: domain_signing_selector_hint
-  = f.input :domain_signing_private_key, required: true, as: :text, input_html: {}, label: "Domain Signing Private Key", hint: domain_signing_private_key_hint

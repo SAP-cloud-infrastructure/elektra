@@ -5,6 +5,7 @@ import CreateClusterWizard from "./CreateClusterWizard"
 import { defaultMockClient } from "../../../mocks/TestTools"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { PortalProvider } from "@cloudoperators/juno-ui-components"
+import { MessagesProvider } from "@cloudoperators/juno-messages-provider"
 
 describe("CreateClusterWizard", () => {
   let queryClient: QueryClient
@@ -23,13 +24,15 @@ describe("CreateClusterWizard", () => {
     render(
       <PortalProvider>
         <QueryClientProvider client={queryClient}>
-          <CreateClusterWizard
-            isOpen={true}
-            onClose={() => {}}
-            client={defaultMockClient}
-            region="us-east-1"
-            onSuccessCreate={() => {}}
-          />
+          <MessagesProvider>
+            <CreateClusterWizard
+              isOpen={true}
+              onClose={() => {}}
+              client={defaultMockClient}
+              region="us-east-1"
+              onSuccessCreate={() => {}}
+            />
+          </MessagesProvider>
         </QueryClientProvider>
       </PortalProvider>
     )

@@ -5,9 +5,12 @@ describe("cost report", () => {
     cy.elektraLoginWithEnv()
   })
 
-  it("open cost report and see no data available", () => {
-    cy.visit(`/${TEST_DOMAIN}/test/reports/cost/project`)
-    cy.contains("[data-test=page-title]", "Cost Report")
-    cy.contains("No data available for this project.")
+  it("check for 403 forbidden", () => {
+    cy.request({
+      url: `/${TEST_DOMAIN}/test/reports/cost/project`,
+      failOnStatusCode: false,
+    }).then((response) => {
+      expect(response.status).to.eq(403)
+    })
   })
 })

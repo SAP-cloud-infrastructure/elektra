@@ -7,6 +7,7 @@ import { Cluster } from "../../types/cluster"
 import { Permissions } from "../../types/permissions"
 import { MockInstance } from "vitest"
 import { RouterContext } from "../__root"
+import { MessagesProvider } from "@cloudoperators/juno-messages-provider"
 
 const renderComponent = ({
   clustersPromise = Promise.resolve([defaultCluster]),
@@ -29,7 +30,11 @@ const renderComponent = ({
     history: createMemoryHistory({ initialEntries: [CLUSTERS_ROUTE_ID] }),
   })
 
-  return render(<RouterProvider router={router} />)
+  return render(
+    <MessagesProvider>
+      <RouterProvider router={router} />
+    </MessagesProvider>
+  )
 }
 
 describe("<Clusters />", () => {
@@ -44,10 +49,7 @@ describe("<Clusters />", () => {
     await act(async () => renderComponent())
 
     const addClusterButton = screen.getByRole("button", { name: "Add Cluster" })
-    const refreshButton = screen.getByRole("button", { name: "Refresh" })
 
-    expect(refreshButton).toBeInTheDocument()
-    expect(refreshButton).toHaveClass("juno-button-default")
     expect(addClusterButton).toBeInTheDocument()
     expect(addClusterButton).toHaveClass("juno-button-primary")
   })
@@ -59,28 +61,6 @@ describe("<Clusters />", () => {
     expect(list).toBeInTheDocument()
   })
 
-  it("displays a message if location.state has a successMessage", async () => {
-    const successMessage = "Cluster created successfully"
-
-    const router = getTestRouter({
-      routeTree: ClustersRoute,
-      context: {
-        apiClient: defaultMockClient,
-        region: "qa-de-1",
-      },
-      history: createMemoryHistory({ initialEntries: [CLUSTERS_ROUTE_ID] }),
-    })
-
-    router.navigate({
-      to: "/clusters",
-      state: { successMessage },
-    })
-
-    render(<RouterProvider router={router} />)
-
-    expect(await screen.findByText(successMessage)).toBeInTheDocument()
-  })
-
   describe("Loading", () => {
     it("shows loading state within the clusters list", async () => {
       const clustersDeferred = deferredPromise<Cluster[]>()
@@ -89,8 +69,8 @@ describe("<Clusters />", () => {
         clustersPromise: clustersDeferred.promise,
         permissionsPromise: permissionsDeferred.promise,
       })
-      const spinner = await screen.findByRole("progressbar", { name: /loading clusters/i })
-      expect(spinner).toBeInTheDocument()
+      const loadingText = await screen.findByText(/Loading clusters/i)
+      expect(loadingText).toBeInTheDocument()
     })
 
     it("disables action buttons when loading", async () => {
@@ -102,8 +82,6 @@ describe("<Clusters />", () => {
       })
       const addClusterButton = await screen.findByRole("button", { name: /Add Cluster/i })
       expect(addClusterButton).toBeDisabled()
-      const refreshButton = await screen.getByRole("button", { name: /Refresh/i })
-      expect(refreshButton).toBeDisabled()
     })
   })
 
@@ -139,8 +117,6 @@ describe("<Clusters />", () => {
 
       const addClusterButton = await screen.findByRole("button", { name: /Add Cluster/i })
       expect(addClusterButton).toBeDisabled()
-      const refreshButton = screen.getByRole("button", { name: /Refresh/i })
-      expect(refreshButton).not.toBeDisabled()
     })
   })
 })

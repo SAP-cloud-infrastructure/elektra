@@ -3,6 +3,9 @@ KubernetesNg::Engine.routes.draw do
   # API routes
   scope "/api" do
     resources :clusters, only: [:index, :show, :create, :destroy, :update], param: :name do
+      member do
+        put 'replace', to: 'clusters#replace_cluster'
+      end
       collection do
         patch 'confirm-deletion(/:name)', to: 'clusters#confirm_for_deletion'
         delete 'confirm-deletion-and-destroy(/:name)', to: 'clusters#confirm_deletion_and_destroy'

@@ -36,3 +36,15 @@ h4 {
     @apply tw-min-h-20;
   }
 }
+
+// This class is needed to add some spacing between messages when multiple messages are shown.
+// This is needed until we are able to upgrade juno-messages-provider to the latest version.
+.juno-message-provider {
+  .juno-message {
+    @apply tw-mb-2;
+
+    &:last-child {
+      @apply tw-mb-0;
+    }
+  }
+}

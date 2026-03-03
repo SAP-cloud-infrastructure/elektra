@@ -1,4 +1,0 @@
-- email_source_hint = 'Choose a verified email address to send email from'
--# #email-source{class: ('hide' if hide_email_source(@templated_email.source_type))}
-#email-source
-  = f.input :source_email,   required: true, label: "Sender Address", input_html: {data: {toggle: 'emailSelect'}}, collection: email_addresses_collection, as: :select, icon_hint: email_source_hint

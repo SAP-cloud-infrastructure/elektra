@@ -6,6 +6,7 @@ import styles from "./styles.scss?inline"
 import { ErrorBoundary } from "react-error-boundary"
 import InlineError from "./components/InlineError"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { MessagesProvider } from "@cloudoperators/juno-messages-provider"
 
 const queryClient = new QueryClient()
 
@@ -23,9 +24,11 @@ export default function App({ basepath, mountpoint, region }: AppProps) {
       <style>{styles}</style>
       <ErrorBoundary fallback={<InlineError />}>
         <StrictMode>
-          <QueryClientProvider client={queryClient}>
-            <RouterProvider basepath={basepath} context={{}} router={router} />
-          </QueryClientProvider>
+          <MessagesProvider>
+            <QueryClientProvider client={queryClient}>
+              <RouterProvider basepath={basepath} context={{}} router={router} />
+            </QueryClientProvider>
+          </MessagesProvider>
         </StrictMode>
       </ErrorBoundary>
     </AppShellProvider>

@@ -1,4 +1,0 @@
-- next_signing_key_length_hint = "The key length of the future DKIM key pair to be generated."
-- selected_next_signing_key_length = 'RSA_2048_BIT'
-#easy_dkim{class: ('hide' if hide_easy_dkim(@verified_domain.dkim_type))}
-  = f.input :next_signing_key_length, required: true, label: "Next Signing Key Length", input_html: {data: {toggle: 'dkimSelect'}}, collection: @rsa_key_length, as: :select, :selected => selected_next_signing_key_length, hint: next_signing_key_length_hint, icon_hint: next_signing_key_length_hint

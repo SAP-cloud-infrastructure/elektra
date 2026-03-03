@@ -1,7 +1,0 @@
-%tr
-  %td
-    = link_to template_item[:name], plugin('email_service').template_path(id: template_item[:id], name: template_item[:name]), data: {modal: true}
-  %td
-    = template_item[:subject]
-  %td.snug
-    = render partial: 'item_actions', locals: { template_item: template_item, show_view: false }
