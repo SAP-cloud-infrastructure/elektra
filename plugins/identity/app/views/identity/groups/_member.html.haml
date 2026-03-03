@@ -6,7 +6,7 @@
   %td.info-text= user.id
 
   %td.snug
-    - if current_user.is_allowed?("identity:group_remove_member", {group: group})
+    - if current_user.is_allowed?("identity:group_remove_member", domain_id: group.domain_id)
       = link_to plugin('identity').group_members_remove_path(group.id, user.id), class: "btn btn-default btn-sm", method: :delete do
         %i.fa.fa-trash.fa-fw
         Remove
