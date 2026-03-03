@@ -80,6 +80,11 @@ module ServiceLayer
       end
 
       # This method is used by model.
+      def update_group(group_id, attributes = {})
+        elektron_identity.patch("groups/#{group_id}") { { group: attributes } }.body["group"]
+      end
+
+      # This method is used by model.
       def delete_group(group_id)
         elektron_identity.delete("groups/#{group_id}")
       end
