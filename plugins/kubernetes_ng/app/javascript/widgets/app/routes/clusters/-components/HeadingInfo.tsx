@@ -16,7 +16,7 @@ export default function HeadingInfo() {
         aria-controls="instructions"
         id="instructions-toggle"
       >
-        {showInstructions ? "Hide managing your clusters with kubectl" : "Show managing your clusters with kubectl"}
+        {showInstructions ? "Hide Managing Clusters with kubectl" : "Show Managing Clusters with kubectl"}
         <Icon color="global-text" icon={showInstructions ? "expandLess" : "expandMore"} />
       </button>
       <Collapse isOpen={showInstructions} id="instructions" aria-labelledby="instructions-toggle">
