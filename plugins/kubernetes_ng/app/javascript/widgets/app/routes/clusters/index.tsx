@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { createFileRoute, useLoaderData, useRouter, useMatch } from "@tanstack/react-router"
-import { Container } from "@cloudoperators/juno-ui-components"
+import { Container, IntroBox, CodeBlock } from "@cloudoperators/juno-ui-components"
 import ClusterList from "./-components/ClusterList"
 import PageHeader from "../../components/PageHeader"
 import { Permissions } from "../../types/permissions"
@@ -135,6 +135,35 @@ function Clusters(props: ClustersViewProps) {
 
   return (
     <>
+      <IntroBox variant="default" className="tw-mt-6">
+        <p>
+          For conveniently managing your clusters with kubectl, first install the scikube CLI utility, then generate the
+          kubeconfig file for your OpenStack domain/project. Download the latest source code zip/tarball, then:
+        </p>
+
+        <CodeBlock
+          content={`# Generic instructions: all platforms
+PERSEPHONE_VERSION='0.2.0'
+unzip persephone-"$PERSEPHONE_VERSION".zip
+cd persephone-"$PERSEPHONE_VERSION"
+make build/scikube && ./build/scikube -h`}
+        />
+        <p>
+          Make sure to include scikube in your shell PATH. Finally, set up your OpenStack variables and create your
+          "garden kubeconfig" file as follows:
+        </p>
+
+        <CodeBlock
+          content={`source "<your-openstack-rc-file.sh>" 
+# create kubeconfig file
+scikube kubeconfig-for-garden --landscape canary > kubeconfig-for-garden.yaml
+# list your domain/project clusters
+KUBECONFIG=kubeconfig-for-garden.yaml kubectl get shoot
+# create a new cluster on your domain/project
+KUBECONFIG=kubeconfig-for-garden.yaml kubectl apply -f "<your-new-shoot-manifest.yaml>"`}
+        />
+      </IntroBox>
+
       <ClustersPageHeader>
         <ClusterActions permissions={permissions} disabled={isLoading} onAddCluster={() => setShowWizardModal(true)} />
       </ClustersPageHeader>
@@ -142,7 +171,6 @@ function Clusters(props: ClustersViewProps) {
       {showWizardModal && (!client || !region) && (
         <InlineError error={new Error("Cannot open cluster creation wizard: missing client or region.")} />
       )}
-
       {showWizardModal && client && region && (
         <CreateClusterWizard
           isOpen={showWizardModal}
