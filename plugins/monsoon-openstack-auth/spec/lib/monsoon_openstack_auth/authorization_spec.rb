@@ -278,6 +278,57 @@ describe MonsoonOpenstackAuth::Authorization, type: :controller do
       expect(rule_name.call("users", "show")).to eq("#{app_name}:user_read")
     end
 
+    describe "resolve_rule_name" do
+      let(:app_name) { MonsoonOpenstackAuth.configuration.authorization.context }
+
+      before do
+        allow(MonsoonOpenstackAuth::Authorization).to receive(:authorization_action_map).and_return({
+          index: 'list',
+          show: 'read',
+          new: 'create',
+          create: 'create',
+          edit: 'update',
+          update: 'update',
+          destroy: 'delete'
+        })
+      end
+
+      it "strips :: prefix for absolute rule names" do
+        result = MonsoonOpenstackAuth::Authorization.resolve_rule_name(
+          "::other_app:domain_list", app_name
+        )
+        expect(result).to eq("other_app:domain_list")
+      end
+
+      it "keeps fully qualified rule names unchanged" do
+        result = MonsoonOpenstackAuth::Authorization.resolve_rule_name(
+          "identity:domain_list", app_name
+        )
+        expect(result).to eq("identity:domain_list")
+      end
+
+      it "auto-derives rule name from controller and action" do
+        result = MonsoonOpenstackAuth::Authorization.resolve_rule_name(
+          "", app_name, controller_name: "credentials", action_name: "index"
+        )
+        expect(result).to eq("#{app_name}:credential_list")
+      end
+
+      it "prepends application context for relative rule names" do
+        result = MonsoonOpenstackAuth::Authorization.resolve_rule_name(
+          "credential_list", app_name
+        )
+        expect(result).to eq("#{app_name}:credential_list")
+      end
+
+      it "handles symbol rule names" do
+        result = MonsoonOpenstackAuth::Authorization.resolve_rule_name(
+          :credential_list, app_name
+        )
+        expect(result).to eq("#{app_name}:credential_list")
+      end
+    end
+
     describe "enforce_permissions" do
       let(:policy_class) { MonsoonOpenstackAuth::Authorization::PolicyEngine::Policy }
       

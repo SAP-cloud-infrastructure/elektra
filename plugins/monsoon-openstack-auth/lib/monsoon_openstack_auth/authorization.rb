@@ -1,8 +1,10 @@
 require 'hashie'
 
 require 'monsoon_openstack_auth/authorization/errors'
+require 'monsoon_openstack_auth/authorization/safe_rule_parser'
 require 'monsoon_openstack_auth/authorization/policy_engine'
 require 'monsoon_openstack_auth/authorization/policy_params'
+require 'monsoon_openstack_auth/authorization/user_authorizer'
 
 module MonsoonOpenstackAuth
   module Authorization
@@ -23,9 +25,34 @@ module MonsoonOpenstackAuth
     end
 
     ################ NEW action-level permissions ######################
+
+    # Resolves a rule name to a fully qualified form.
+    # Handles 4 cases:
+    #   1. Absolute:       "::identity:domain_list" -> "identity:domain_list" (strip leading ::)
+    #   2. Fully qualified: "identity:domain_list"  -> "identity:domain_list" (already has app context)
+    #   3. Auto-derived:    nil (from controller/action) -> "app:controller_action"
+    #   4. Relative:        "domain_list"           -> "app:domain_list" (prepend context)
+    def self.resolve_rule_name(rule_name, application_name, controller_name: nil, action_name: nil)
+      name = rule_name.to_s
+
+      if name.start_with?('::')
+        # Case 1: Absolute - strip leading :: prefix
+        name[2..-1]
+      elsif name.include?(':')
+        # Case 2: Fully qualified - already has context
+        name
+      elsif name.empty? && controller_name && action_name
+        # Case 3: Auto-derived from controller and action
+        determine_rule_name(application_name, controller_name, action_name)
+      else
+        # Case 4: Relative - prepend application context
+        "#{application_name}:#{name}"
+      end
+    end
+
     def self.determine_rule_name(application_name, controller_name, action_name)
       authorization_action = authorization_action_map[action_name.to_sym] || action_name
-      rule_name = "#{application_name}:#{controller_name.singularize}_#{authorization_action.to_s}"
+      "#{application_name}:#{controller_name.singularize}_#{authorization_action.to_s}"
     end
 
     # build policy relevant parameters based on controller params
@@ -179,27 +206,21 @@ module MonsoonOpenstackAuth
       # enforce_permissions(:user_read,{user: UserObject})
       # enforce_permissions(user: UserObject), rule_name is determined based on the controller and action names
       def enforce_permissions(*options)
-        #context = "#{MonsoonOpenstackAuth.configuration.authorization.context}:"
         application_name = @authorization_context || MonsoonOpenstackAuth.configuration.authorization.context
 
         policy_rules = []
         policy_params = {}
 
         if options.first.is_a?(Hash)
-          # application_name = context || @authorization_context || MonsoonOpenstackAuth.configuration.authorization.context
-          policy_rules = [MonsoonOpenstackAuth::Authorization.determine_rule_name(application_name,self.controller_name,self.action_name)]
+          policy_rules = [MonsoonOpenstackAuth::Authorization.resolve_rule_name(
+            '', application_name,
+            controller_name: self.controller_name, action_name: self.action_name
+          )]
           policy_params = options.first
         else
           policy_rules = options.first.is_a?(Array) ? options.first : [options.first]
           policy_rules = policy_rules.collect do |n|
-            rule_name = n.to_s
-            if rule_name.start_with?('::')
-              rule_name[2..-1]
-            elsif (rule_name.include?(':') and rule_name.start_with?(application_name))
-              rule_name
-            else
-              "#{application_name}:#{rule_name}"
-            end
+            MonsoonOpenstackAuth::Authorization.resolve_rule_name(n, application_name)
           end
           policy_params = options.second
         end
@@ -209,7 +230,6 @@ module MonsoonOpenstackAuth
         if @policy_default_params and @policy_default_params.is_a?(Hash)
           policy_params = @policy_default_params.merge(policy_params)
         end
-
 
         result = if MonsoonOpenstackAuth.configuration.authorization.trace_enabled
           policy_trace = policy.enforce_with_trace(policy_rules, policy_params)
