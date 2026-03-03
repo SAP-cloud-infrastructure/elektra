@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 module Identity
-  # This class implements Group actions
-  class GroupsController < ::DashboardController
+  module Domains
+    # This class implements Group actions
+    class GroupsController < ::DashboardController
     def show
       enforce_permissions("identity:group_get", domain_id: @scoped_domain_id)
       @group = services.identity.find_group(params[:id])
@@ -61,7 +62,7 @@ module Identity
           "to",
           @group,
         )
-        redirect_to group_path(@group.id)
+        redirect_to domains_group_path(@group.id)
       end
     end
 
@@ -75,7 +76,7 @@ module Identity
         "from",
         @group,
       )
-      redirect_to group_path(@group.id)
+      redirect_to domains_group_path(@group.id)
     end
 
     def new
@@ -91,7 +92,7 @@ module Identity
         )
       if @group.save
         audit_logger.info(current_user, "has created", @group)
-        redirect_to groups_path
+        redirect_to domains_groups_path
       else
         render action: :new
       end
@@ -108,7 +109,7 @@ module Identity
 
       if @group.update(params[:group])
         audit_logger.info(current_user, "has updated", @group)
-        redirect_to group_path(@group.id)
+        redirect_to domains_group_path(@group.id)
       else
         render action: :edit
       end
@@ -124,7 +125,8 @@ module Identity
       else
         flash[:error] = @group.errors.full_messages.to_sentence
       end
-      redirect_to groups_path
+      redirect_to domains_groups_path
     end
   end
+end
 end

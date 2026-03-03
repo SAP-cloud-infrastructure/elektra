@@ -2,13 +2,14 @@ Identity::Engine.routes.draw do
   root to: 'application#index'
 
   resources :domains, only: [:index]
-  resources :groups do
-    get 'members/new' => 'groups#new_member'
-    post 'members' => 'groups#add_member'
-    delete 'members/:id' => 'groups#remove_member', :as => :members_remove
-  end
 
   namespace :domains do
+    resources :groups do
+      get 'members/new' => 'groups#new_member'
+      post 'members' => 'groups#add_member'
+      delete 'members/:id' => 'groups#remove_member', :as => :members_remove
+    end
+
     scope :wizard do
       get 'create_project' => 'create_wizard#new'
       post 'create_project' => 'create_wizard#create'
