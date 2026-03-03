@@ -26,11 +26,11 @@ import Box from "../../../../components/Box"
 import WorkerList from "./WorkerList"
 import YamlEditor from "../../../../components/YamlEditor"
 import InlineError from "../../../../components/InlineError"
-import { useRouteContext, useRouter, useMatch } from "@tanstack/react-router"
+import { useRouteContext, useRouter, useMatch, useNavigate, useSearch } from "@tanstack/react-router"
 import { RouterContext } from "../../../__root"
 import { useActions } from "@cloudoperators/juno-messages-provider"
 import { normalizeError } from "../../../../components/InlineError"
-import { CLUSTER_DETAIL_ROUTE_ID } from "../../$clusterName"
+import { CLUSTER_DETAIL_ROUTE_ID, ClusterDetailTab } from "../../$clusterName"
 
 const sectionHeaderStyles = "details-section tw-text-lg tw-font-bold tw-mb-4"
 
@@ -50,9 +50,20 @@ const DetailsContent = ({
   const [showLastOperation, setShowLastOperation] = useState(false)
   const { apiClient } = useRouteContext({ strict: false }) as RouterContext
   const router = useRouter()
+  const navigate = useNavigate({ from: CLUSTER_DETAIL_ROUTE_ID })
   const match = useMatch({ from: CLUSTER_DETAIL_ROUTE_ID })
+  const { tab } = useSearch({ from: CLUSTER_DETAIL_ROUTE_ID })
   const isFetching = match.isFetching === "loader"
   const { addMessage, resetMessages } = useActions()
+
+  // Handle tab change via URL navigation
+  const tabIndex = tab === "yaml" ? 1 : 0
+  const handleTabChange = (index: number) => {
+    const newTab: ClusterDetailTab = index === 1 ? "yaml" : "overview"
+    navigate({
+      search: { tab: newTab },
+    })
+  }
 
   const handleSaveCluster = async (resource: Record<string, unknown>): Promise<void> => {
     if (!cluster) return
@@ -133,7 +144,7 @@ const DetailsContent = ({
             title="Refresh cluster data"
           />
         </div>
-        <Tabs>
+        <Tabs selectedIndex={tabIndex} onSelect={handleTabChange}>
           <TabList>
             <Tab>Overview</Tab>
             <Tab disabled={isLoading || error ? true : false}>YAML</Tab>
