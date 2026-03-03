@@ -1,5 +1,6 @@
 import React from "react"
 import { createFileRoute, useParams, useLoaderData } from "@tanstack/react-router"
+import { z } from "zod"
 import { Cluster } from "../../types/cluster"
 import { Permissions } from "../../types/permissions"
 import { LoaderWithCrumb } from "../-types"
@@ -13,20 +14,15 @@ import InlineError from "../../components/InlineError"
 
 export const CLUSTER_DETAIL_ROUTE_ID = "/clusters/$clusterName"
 
-export type ClusterDetailTab = "overview" | "yaml"
+const clusterDetailSearchSchema = z.object({
+  tab: z.enum(["overview", "yaml"]).optional().default("overview"),
+})
 
-interface ClusterDetailSearch {
-  tab?: ClusterDetailTab
-}
+export type ClusterDetailTab = "overview" | "yaml"
 
 export const RouterConfig = {
   component: ClusterDetailLoader,
-  validateSearch: (search: Record<string, unknown>): ClusterDetailSearch => {
-    const tab = search.tab as string | undefined
-    return {
-      tab: tab === "yaml" ? "yaml" : "overview",
-    }
-  },
+  validateSearch: clusterDetailSearchSchema,
   pendingComponent: () => (
     <ClusterDetailErrorBoundary>
       <ClusterDetail isLoading />
