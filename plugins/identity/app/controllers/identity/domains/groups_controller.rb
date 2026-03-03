@@ -62,6 +62,7 @@ module Identity
           "to",
           @group,
         )
+        flash[:notice] = "User '#{@user.name}' successfully added to group '#{@group.name}'."
         redirect_to domains_group_path(@group.id)
       end
     end
@@ -69,6 +70,11 @@ module Identity
     def remove_member
       @group = services.identity.find_group(params[:group_id])
       enforce_permissions("identity:group_remove_member", domain_id: @group.domain_id)
+
+      # Get user info before removing for flash message
+      @user = services.identity.find_user(params[:id])
+      user_display_name = @user ? @user.name : params[:id]
+
       services.identity.remove_group_member(@group.id, params[:id])
       audit_logger.info(
         current_user,
@@ -76,6 +82,7 @@ module Identity
         "from",
         @group,
       )
+      flash[:notice] = "User '#{user_display_name}' successfully removed from group '#{@group.name}'."
       redirect_to domains_group_path(@group.id)
     end
 
@@ -92,6 +99,7 @@ module Identity
         )
       if @group.save
         audit_logger.info(current_user, "has created", @group)
+        flash[:notice] = "Group '#{@group.name}' successfully created."
         redirect_to domains_groups_path
       else
         render action: :new
@@ -109,6 +117,7 @@ module Identity
 
       if @group.update(params[:group])
         audit_logger.info(current_user, "has updated", @group)
+        flash[:notice] = "Group '#{@group.name}' successfully updated."
         redirect_to domains_group_path(@group.id)
       else
         render action: :edit
