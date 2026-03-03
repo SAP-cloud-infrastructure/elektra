@@ -1,4 +1,10 @@
-[![Build Status](https://travis-ci.org/SAP-cloud-infrastructure/elektra.svg?branch=master)](https://travis-ci.org/SAP-cloud-infrastructure/elektra)
+[![Checks](https://github.com/SAP-cloud-infrastructure/elektra/actions/workflows/checks.yaml/badge.svg)](https://github.com/SAP-cloud-infrastructure/elektra/actions/workflows/checks.yaml)
+![Ruby Version](https://img.shields.io/badge/ruby-3.4.5-red.svg)
+![Rails Version](https://img.shields.io/badge/rails-7.1.6-red.svg)
+![Node.js Version](https://img.shields.io/badge/node-22.16.0-green.svg)
+![React Version](https://img.shields.io/badge/react-18.2.0-blue.svg)
+[![REUSE status](https://api.reuse.software/badge/github.com/SAP-cloud-infrastructure/elektra)](https://api.reuse.software/info/github.com/SAP-cloud-infrastructure/elektra)
+![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)
 
 # Elektra
 
