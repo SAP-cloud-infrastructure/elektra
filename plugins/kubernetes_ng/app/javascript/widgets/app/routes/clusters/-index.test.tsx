@@ -38,11 +38,10 @@ const renderComponent = ({
 }
 
 describe("<Clusters />", () => {
-  it("renders heading and description", async () => {
+  it("renders heading", async () => {
     await act(async () => renderComponent())
 
     expect(screen.getByText("Kubernetes Clusters")).toBeInTheDocument()
-    expect(screen.getByText("Manage your VM-based Kubernetes deployments")).toBeInTheDocument()
   })
 
   it("renders main buttons", async () => {
@@ -59,6 +58,13 @@ describe("<Clusters />", () => {
 
     const list = screen.getByRole("grid", { name: /cluster list/i })
     expect(list).toBeInTheDocument()
+  })
+
+  it("renders kubectl instructions info", async () => {
+    await act(async () => renderComponent())
+
+    const instructionsButton = screen.getByRole("button", { name: /show managing your clusters with kubectl/i })
+    expect(instructionsButton).toBeInTheDocument()
   })
 
   describe("Loading", () => {

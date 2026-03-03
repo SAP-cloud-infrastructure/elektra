@@ -1,20 +1,13 @@
 import React, { useState } from "react"
 import { CodeBlock, Icon } from "@cloudoperators/juno-ui-components"
 import Collapse from "../../../components/Collapse"
+import Card from "../../../components/Card"
 
 export default function HeadingInfo() {
   const [showInstructions, setShowInstructions] = useState(false)
 
   return (
-    <div
-      className="tw-text-sm
-  tw-rounded-lg
-  tw-border
-  tw-p-4
-  tw-bg-color-white
-  tw-border-juno-grey-light-7
-  tw-shadow-[0_1px_2px_0_rgba(34,54,73,0.3)]"
-    >
+    <Card>
       <button
         type="button"
         onClick={() => setShowInstructions((prev) => !prev)}
@@ -56,6 +49,6 @@ KUBECONFIG=kubeconfig-for-garden.yaml kubectl apply -f "<your-new-shoot-manifest
           />
         </div>
       </Collapse>
-    </div>
+    </Card>
   )
 }
