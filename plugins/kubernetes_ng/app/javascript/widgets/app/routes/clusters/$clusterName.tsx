@@ -13,8 +13,20 @@ import InlineError from "../../components/InlineError"
 
 export const CLUSTER_DETAIL_ROUTE_ID = "/clusters/$clusterName"
 
+export type ClusterDetailTab = "overview" | "yaml"
+
+interface ClusterDetailSearch {
+  tab?: ClusterDetailTab
+}
+
 export const RouterConfig = {
   component: ClusterDetailLoader,
+  validateSearch: (search: Record<string, unknown>): ClusterDetailSearch => {
+    const tab = search.tab as string | undefined
+    return {
+      tab: tab === "yaml" ? "yaml" : "overview",
+    }
+  },
   pendingComponent: () => (
     <ClusterDetailErrorBoundary>
       <ClusterDetail isLoading />
