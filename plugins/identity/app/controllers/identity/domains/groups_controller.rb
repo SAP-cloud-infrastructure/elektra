@@ -72,13 +72,18 @@ module Identity
       enforce_permissions("identity:group_remove_member", domain_id: @group.domain_id)
 
       # Get user info before removing for flash message
-      @user = services.identity.find_user(params[:id])
-      user_display_name = @user ? @user.name : params[:id]
+      user_id = params[:id]
+      begin
+        @user = services.identity.find_user(user_id)
+        user_display_name = @user&.name || user_id
+      rescue
+        user_display_name = user_id
+      end
 
-      services.identity.remove_group_member(@group.id, params[:id])
+      services.identity.remove_group_member(@group.id, user_id)
       audit_logger.info(
         current_user,
-        "has removed user #{params[:id]}",
+        "has removed user #{user_id}",
         "from",
         @group,
       )

@@ -1,13 +1,14 @@
 %tr
   %td
     = user.name
-    %br
-    = user.description
+    - if user.description.present?
+      %br
+      = user.description
   %td.info-text= user.id
 
   %td.snug
     - if current_user.is_allowed?("identity:group_remove_member", domain_id: group.domain_id)
-      = link_to plugin('identity').domains_group_members_remove_path(group.id, user.id), class: "btn btn-default btn-sm", method: :delete do
+      = link_to plugin('identity').domains_group_members_remove_path(group.id, user.id), class: "btn btn-default btn-sm", method: :delete, data: {confirm: "Are you sure you want to remove user '#{user.name}' from this group?"} do
         %i.fa.fa-trash.fa-fw
         Remove
 
