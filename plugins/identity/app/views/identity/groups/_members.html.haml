@@ -1,4 +1,4 @@
-- if current_user.is_allowed?('identity:group_add_member', group: @group)
+- if current_user.is_allowed?('identity:group_add_member', domain_id: @group.domain_id)
   .toolbar.toolbar-aligntop
     .main-buttons
       = link_to 'Add Member', plugin('identity').group_members_new_path(@group.id), data: {modal: true}, class: 'btn btn-primary' 

@@ -21,12 +21,12 @@ module Identity
 
     def new_member
       @group = services.identity.find_group(params[:group_id])
-      enforce_permissions("identity:group_add_member", group: @group)
+      enforce_permissions("identity:group_add_member", domain_id: @group.domain_id)
     end
 
     def add_member
       @group = services.identity.find_group(params[:group_id])
-      enforce_permissions("identity:group_add_member", group: @group)
+      enforce_permissions("identity:group_add_member", domain_id: @group.domain_id)
 
       @group_members = services.identity.group_members(params[:group_id])
 
@@ -67,7 +67,7 @@ module Identity
 
     def remove_member
       @group = services.identity.find_group(params[:group_id])
-      enforce_permissions("identity:group_remove_member", group: @group)
+      enforce_permissions("identity:group_remove_member", domain_id: @group.domain_id)
       services.identity.remove_group_member(@group.id, params[:id])
       audit_logger.info(
         current_user,
@@ -99,13 +99,13 @@ module Identity
 
     def edit
       @group = services.identity.find_group(params[:id])
-      enforce_permissions("identity:group_update", group: @group)
+      enforce_permissions("identity:group_update", domain_id: @group.domain_id)
     end
 
     def update
       @group = services.identity.new_group
       @group.id = params[:id]
-      enforce_permissions("identity:group_update", group: @group)
+      enforce_permissions("identity:group_update", domain_id: @scoped_domain_id)
       @group.description = params[:group][:description]
       if @group.save
         audit_logger.info(current_user, "has updated", @group)
@@ -118,7 +118,7 @@ module Identity
     def destroy
       @group = services.identity.new_group
       @group.id = params[:id]
-      enforce_permissions("identity:group_delete", group: @group)
+      enforce_permissions("identity:group_delete", domain_id: @scoped_domain_id)
       if @group.destroy
         audit_logger.info(current_user, "has deleted", @group)
         flash.now[:error] = @group.errors.full_messages.to_sentence

@@ -9,9 +9,9 @@
   .col-md-3
     .infobox
       %h4.action-heading
-        Group Info 
-        - can_edit = current_user.is_allowed?('identity:group_update', group: @group)
-        - can_delete = current_user.is_allowed?('identity:group_delete', group: @group)
+        Group Info
+        - can_edit = current_user.is_allowed?('identity:group_update', domain_id: @scoped_domain_id)
+        - can_delete = current_user.is_allowed?('identity:group_delete', domain_id: @scoped_domain_id)
         - if can_delete or can_edit
           .dropdown.header-action
             %i.fa.fa-cog.dropdown-toggle{ data: { toggle: "dropdown"}, aria: { expanded: true} }
