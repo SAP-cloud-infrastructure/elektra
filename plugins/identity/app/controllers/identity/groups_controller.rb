@@ -103,11 +103,10 @@ module Identity
     end
 
     def update
-      @group = services.identity.new_group
-      @group.id = params[:id]
+      @group = services.identity.find_group(params[:id])
       enforce_permissions("identity:group_update", domain_id: @scoped_domain_id)
-      @group.description = params[:group][:description]
-      if @group.save
+
+      if @group.update(params[:group])
         audit_logger.info(current_user, "has updated", @group)
         redirect_to group_path(@group.id)
       else
@@ -116,12 +115,14 @@ module Identity
     end
 
     def destroy
-      @group = services.identity.new_group
-      @group.id = params[:id]
+      @group = services.identity.find_group(params[:id])
       enforce_permissions("identity:group_delete", domain_id: @scoped_domain_id)
+
       if @group.destroy
         audit_logger.info(current_user, "has deleted", @group)
-        flash.now[:error] = @group.errors.full_messages.to_sentence
+        flash[:notice] = "Group successfully deleted."
+      else
+        flash[:error] = @group.errors.full_messages.to_sentence
       end
       redirect_to groups_path
     end
