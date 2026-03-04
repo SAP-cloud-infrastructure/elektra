@@ -20,6 +20,8 @@ domains:
     check_cidr_range: true
     terms_of_use_name: "actual_terms"
     oidc_provider: false
+    disabled_features:
+      - group_management
 
   # More general pattern
   - name: marioworld
