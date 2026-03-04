@@ -21,10 +21,12 @@ class DashboardController < ::ScopeController
   # this method checks if user has permissions for the new scope and if so
   rescue_from MonsoonOpenstackAuth::Authentication::NotAuthorized do |exception|
     project = FriendlyIdEntry.find_project(@scoped_domain_id, @scoped_project_id)
-    if project
-      render template: 'application/exceptions/unauthorized', status: :unauthorized
-    else 
+    
+    if @scoped_project_id && project.nil? 
       render template: 'application/exceptions/project_not_found', status: :not_found
+    else
+      # continue with the rendering of the requested action 
+      render action: params[:action]
     end
   end
 

@@ -9,7 +9,7 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 CONTAINER_NAME="elektra-dev"
 IMAGE_NAME="elektra-dev"
 DOCKERFILE="${PROJECT_ROOT}/docker/Dockerfile.dev"
-PORT=8180
+PORT=4001
 
 # Handle special commands
 case "$1" in
