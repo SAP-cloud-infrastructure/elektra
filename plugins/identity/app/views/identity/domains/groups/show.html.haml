@@ -10,8 +10,8 @@
     .infobox
       %h4.action-heading
         Group Info
-        - can_edit = current_user.is_allowed?('identity:group_update', domain_id: @scoped_domain_id)
-        - can_delete = current_user.is_allowed?('identity:group_delete', domain_id: @scoped_domain_id)
+        - can_edit = current_user.is_allowed?('identity:group_update', domain_id: @scoped_domain_id) && !@domain_config&.feature_hidden?('group_management')
+        - can_delete = current_user.is_allowed?('identity:group_delete', domain_id: @scoped_domain_id) && !@domain_config&.feature_hidden?('group_management')
         - if can_delete or can_edit
           .dropdown.header-action
             %i.fa.fa-cog.dropdown-toggle{ data: { toggle: "dropdown"}, aria: { expanded: true} }
@@ -27,8 +27,8 @@
                   = link_to plugin('identity').domains_group_path(project_id: nil, id:@group.id), method: :delete, data: {confirm:'This cannot be undone, are you sure?', ok: 'Yes, delete it!', confirm_term: @group.name, confirm_term_label: "Type group name to confirm (#{@group.name})" } do
                     %i.fa.fa-trash.fa-fw
                     Delete Group
-                    %i.fa.fa-exclamation-triangle 
-        
+                    %i.fa.fa-exclamation-triangle
+
       %table.table
         %tbody
           %tr
