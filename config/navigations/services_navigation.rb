@@ -133,14 +133,47 @@ SimpleNavigation::Configuration.run do |navigation|
                             },
                           highlights_on:
                             proc { params[:controller][%r{kubernetes/.*}] }
-      containers_nav.item :kubernetes_ng,
-                          'Kubernetes (Gardener)',
-                          -> { plugin('kubernetes_ng').root_path },
+      containers_nav.item :kubernetes_ng_prod,
+                          capture {
+                            concat 'Kubernetes '
+                            concat content_tag(
+                              :span, 'gardener', class: 'label label-info'
+                            )
+                          },
+                            -> { plugin('kubernetes_ng').service_path(service_name: 'prod') },
+                            if:
+                            lambda {
+                              plugin_available?(:kubernetes_ng) && services.available?(:kubernetes_ng, :prod) && (current_region == "qa-de-1" || (@active_project&.tags && @active_project.tags.include?('persephone'))) },
+                          highlights_on:
+                            proc { params[:controller][%r{kubernetes_ng/.*}] && request.path.include?('/prod') }
+
+      containers_nav.item :kubernetes_ng_canary,
+                          capture {
+                            concat 'Kubernetes Canary '
+                            concat content_tag(
+                              :span, 'gardener', class: 'label label-info'
+                            )
+                          },
+                          -> { plugin('kubernetes_ng').service_path(service_name: 'canary') },
                           if:
                             lambda {
-                              plugin_available?(:kubernetes_ng) && current_region == "qa-de-1" && services.available?(:kubernetes_ng) },
+                              plugin_available?(:kubernetes_ng) && services.available?(:kubernetes_ng, :canary) && (current_region == "qa-de-1" || (@active_project&.tags && @active_project.tags.include?('persephone'))) },
                           highlights_on:
-                            proc { params[:controller][%r{kubernetes_ng/.*}] }
+                            proc { params[:controller][%r{kubernetes_ng/.*}] && request.path.include?('/canary') }
+
+      containers_nav.item :kubernetes_ng_qa,
+                          capture {
+                            concat 'Kubernetes QA '
+                            concat content_tag(
+                              :span, 'gardener', class: 'label label-info'
+                            )
+                          },
+                          -> { plugin('kubernetes_ng').service_path(service_name: 'qa') },
+                          if:
+                            lambda {
+                              plugin_available?(:kubernetes_ng) && services.available?(:kubernetes_ng, :qa) && current_region == "qa-de-1" },
+                          highlights_on:
+                            proc { params[:controller][%r{kubernetes_ng/.*}] && request.path.include?('/qa') }
     end
 
     primary.item :hana,
