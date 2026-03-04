@@ -7,6 +7,13 @@ module Identity
     def show
       enforce_permissions("identity:group_get", domain_id: @scoped_domain_id)
       @group = services.identity.find_group(params[:id])
+
+      unless @group
+        flash[:error] = "Group not found."
+        redirect_to domains_groups_path(domain_id: @scoped_domain_id)
+        return
+      end
+
       @group_members = services.identity.group_members(params[:id])
     end
 
@@ -22,11 +29,25 @@ module Identity
 
     def new_member
       @group = services.identity.find_group(params[:group_id])
+
+      unless @group
+        flash[:error] = "Group not found."
+        redirect_to domains_groups_path(domain_id: @scoped_domain_id)
+        return
+      end
+
       enforce_permissions("identity:group_add_member", domain_id: @group.domain_id)
     end
 
     def add_member
       @group = services.identity.find_group(params[:group_id])
+
+      unless @group
+        flash[:error] = "Group not found."
+        redirect_to domains_groups_path(domain_id: @scoped_domain_id)
+        return
+      end
+
       enforce_permissions("identity:group_add_member", domain_id: @group.domain_id)
 
       @group_members = services.identity.group_members(params[:group_id])
@@ -69,6 +90,13 @@ module Identity
 
     def remove_member
       @group = services.identity.find_group(params[:group_id])
+
+      unless @group
+        flash[:error] = "Group not found."
+        redirect_to domains_groups_path(domain_id: @scoped_domain_id)
+        return
+      end
+
       enforce_permissions("identity:group_remove_member", domain_id: @group.domain_id)
 
       # Get user info before removing for flash message
@@ -113,11 +141,25 @@ module Identity
 
     def edit
       @group = services.identity.find_group(params[:id])
+
+      unless @group
+        flash[:error] = "Group not found."
+        redirect_to domains_groups_path(domain_id: @scoped_domain_id)
+        return
+      end
+
       enforce_permissions("identity:group_update", domain_id: @group.domain_id)
     end
 
     def update
       @group = services.identity.find_group(params[:id])
+
+      unless @group
+        flash[:error] = "Group not found."
+        redirect_to domains_groups_path(domain_id: @scoped_domain_id)
+        return
+      end
+
       enforce_permissions("identity:group_update", domain_id: @scoped_domain_id)
 
       if @group.update(params[:group])
@@ -131,6 +173,13 @@ module Identity
 
     def destroy
       @group = services.identity.find_group(params[:id])
+
+      unless @group
+        flash[:error] = "Group not found."
+        redirect_to domains_groups_path(domain_id: @scoped_domain_id)
+        return
+      end
+
       enforce_permissions("identity:group_delete", domain_id: @scoped_domain_id)
 
       if @group.destroy
