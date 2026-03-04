@@ -41,19 +41,16 @@ describe KubernetesNg::ApplicationController, type: :controller do
       it "returns http success for prod" do
         get :show, params: default_params.merge(landscape_name: 'prod')
         expect(response).to be_successful
-        expect(session[:kubernetes_landscape_name]).to eq('prod')
       end
 
       it "returns http success for canary" do
         get :show, params: default_params.merge(landscape_name: 'canary')
         expect(response).to be_successful
-        expect(session[:kubernetes_landscape_name]).to eq('canary')
       end
 
       it "returns http success for qa" do
         get :show, params: default_params.merge(landscape_name: 'qa')
         expect(response).to be_successful
-        expect(session[:kubernetes_landscape_name]).to eq('qa')
       end
     end
 

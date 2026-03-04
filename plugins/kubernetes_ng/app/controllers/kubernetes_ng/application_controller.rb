@@ -6,7 +6,6 @@ module KubernetesNg
     ALLOWED_LANDSCAPES = %w[prod canary qa].freeze
 
     def show
-      # Store landscape_name in session when loading the React app
       @landscape_name = params[:landscape_name]
 
       # Redirect to default landscape if no landscape_name provided
@@ -20,19 +19,16 @@ module KubernetesNg
         redirect_to plugin('kubernetes_ng').service_path(landscape_name: 'prod')
         return
       end
-
-      session[:kubernetes_landscape_name] = @landscape_name
     end
 
     protected
 
     # Returns a scoped Kubernetes service with project_id, region, and landscape_name automatically injected
     def kubernetes_service
-      # Try to get landscape_name from params first (for landscape-scoped API routes)
-      # Fall back to session (for just API routes without UI)
-      landscape_name = params[:landscape_name] || session[:kubernetes_landscape_name]
+      # Get landscape_name from params (always present in landscape-scoped routes)
+      landscape_name = params[:landscape_name]
 
-      # Raise error if landscape_name is missing (indicates session expired or missing setup)
+      # Raise error if landscape_name is missing
       if landscape_name.blank?
         raise "Landscape name is required."
       end

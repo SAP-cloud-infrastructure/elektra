@@ -12,12 +12,12 @@ const queryClient = new QueryClient()
 
 interface AppProps {
   basepath: string
-  mountpoint: string
   region: string
 }
 
-export default function App({ basepath, mountpoint, region }: AppProps) {
-  const router = createAppRouter(mountpoint, region)
+export default function App({ basepath, region }: AppProps) {
+  // Pass basepath to router instead of mountpoint - basepath includes the landscape
+  const router = createAppRouter(basepath, region)
 
   return (
     <AppShellProvider theme="theme-light">

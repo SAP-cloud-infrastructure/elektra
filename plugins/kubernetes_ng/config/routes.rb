@@ -1,6 +1,9 @@
 KubernetesNg::Engine.routes.draw do
-  # Define API routes as a reusable lambda
-  api_routes = lambda do
+  # Landscape-scoped routes (e.g., /prod, /canary, /qa for UI)
+  get ":landscape_name", to: "application#show", as: :service
+
+  # Landscape-scoped API routes (e.g., /prod/api, /canary/api, /qa/api)
+  scope "/:landscape_name/api" do
     resources :clusters, only: [:index, :show, :create, :destroy, :update], param: :name do
       member do
         put 'replace', to: 'clusters#replace_cluster'
@@ -16,22 +19,8 @@ KubernetesNg::Engine.routes.draw do
     get 'permissions(/:resource(/:verb))', to: 'permissions#index'
   end
 
-  # API routes (for UI use without landscape_name, landscape_name will be injected in controller from session)
-  scope "/api", &api_routes
-
-  # Landscape-scoped routes (e.g., /prod, /canary, /qa for UI)
-  get ":landscape_name", to: "application#show", as: :service
-
-  # Landscape-scoped API routes (e.g., /prod/api, /canary/api, /qa/api just for API calls with explicit landscape_name in URL)
-  scope "/:landscape_name/api", &api_routes
-
   # Catch-all for frontend routes → let React handle routing
   get ':landscape_name/*path', to: 'application#show', constraints: ->(req) do
-    !req.xhr? && req.format.html?
-  end
-
-  # Catch-all for legacy routes without landscape_name
-  get '*path', to: 'application#show', constraints: ->(req) do
     !req.xhr? && req.format.html?
   end
 
