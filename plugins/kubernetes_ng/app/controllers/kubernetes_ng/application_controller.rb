@@ -3,42 +3,47 @@
 module KubernetesNg
   class ApplicationController < AjaxController
 
-    ALLOWED_SERVICES = %w[prod canary qa].freeze
+    ALLOWED_LANDSCAPES = %w[prod canary qa].freeze
 
     def show
-      # Store service_name in session when loading the React app
-      @service_name = params[:service_name]
+      # Store landscape_name in session when loading the React app
+      @landscape_name = params[:landscape_name]
 
-      # Redirect to default service if no service_name provided
-      if @service_name.blank?
-        redirect_to plugin('kubernetes_ng').service_path(service_name: 'prod')
+      # Redirect to default landscape if no landscape_name provided
+      if @landscape_name.blank?
+        redirect_to plugin('kubernetes_ng').service_path(landscape_name: 'prod')
         return
       end
 
-      # Validate service_name is allowed
-      unless ALLOWED_SERVICES.include?(@service_name)
-        redirect_to plugin('kubernetes_ng').service_path(service_name: 'prod')
+      # Validate landscape_name is allowed
+      unless ALLOWED_LANDSCAPES.include?(@landscape_name)
+        redirect_to plugin('kubernetes_ng').service_path(landscape_name: 'prod')
         return
       end
 
-      session[:kubernetes_service_name] = @service_name
+      session[:kubernetes_landscape_name] = @landscape_name
     end
 
     protected
 
-    # Returns a scoped Kubernetes service with project_id, region, and service_name automatically injected
+    # Returns a scoped Kubernetes service with project_id, region, and landscape_name automatically injected
     def kubernetes_service
-      # Try to get service_name from params first (for service-scoped API routes)
+      # Try to get landscape_name from params first (for landscape-scoped API routes)
       # Fall back to session (for just API routes without UI)
-      service_name = params[:service_name] || session[:kubernetes_service_name]
+      landscape_name = params[:landscape_name] || session[:kubernetes_landscape_name]
 
-      # Reset the cached service if the service_name has changed
-      if @kubernetes_service && @cached_service_name != service_name
+      # Raise error if landscape_name is missing (indicates session expired or missing setup)
+      if landscape_name.blank?
+        raise "Landscape name is required."
+      end
+
+      # Reset the cached service if the landscape_name has changed
+      if @kubernetes_service && @cached_landscape_name != landscape_name
         @kubernetes_service = nil
       end
 
-      @cached_service_name = service_name
-      @kubernetes_service ||= services.kubernetes_ng.scoped(@scoped_project_id, current_region, service_name)
+      @cached_landscape_name = landscape_name
+      @kubernetes_service ||= services.kubernetes_ng.scoped(@scoped_project_id, current_region, landscape_name)
     end
 
     def handle_api_call(auto_render: true)

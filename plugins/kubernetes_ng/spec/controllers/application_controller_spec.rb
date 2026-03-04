@@ -29,10 +29,39 @@ describe KubernetesNg::ApplicationController, type: :controller do
     stub_authentication
   end
 
-  describe "GET index" do
-    it "returns http success" do
-      get :show, params: default_params
-      expect(response).to be_successful
+  describe "GET show" do
+    context "without landscape_name" do
+      it "redirects to prod landscape" do
+        get :show, params: default_params
+        expect(response).to redirect_to(action: :show, landscape_name: 'prod')
+      end
+    end
+
+    context "with valid landscape_name" do
+      it "returns http success for prod" do
+        get :show, params: default_params.merge(landscape_name: 'prod')
+        expect(response).to be_successful
+        expect(session[:kubernetes_landscape_name]).to eq('prod')
+      end
+
+      it "returns http success for canary" do
+        get :show, params: default_params.merge(landscape_name: 'canary')
+        expect(response).to be_successful
+        expect(session[:kubernetes_landscape_name]).to eq('canary')
+      end
+
+      it "returns http success for qa" do
+        get :show, params: default_params.merge(landscape_name: 'qa')
+        expect(response).to be_successful
+        expect(session[:kubernetes_landscape_name]).to eq('qa')
+      end
+    end
+
+    context "with invalid landscape_name" do
+      it "redirects to prod landscape" do
+        get :show, params: default_params.merge(landscape_name: 'invalid')
+        expect(response).to redirect_to(action: :show, landscape_name: 'prod')
+      end
     end
   end
 end

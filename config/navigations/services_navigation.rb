@@ -140,7 +140,7 @@ SimpleNavigation::Configuration.run do |navigation|
                               :span, 'gardener', class: 'label label-info'
                             )
                           },
-                            -> { plugin('kubernetes_ng').service_path(service_name: 'prod') },
+                            -> { plugin('kubernetes_ng').service_path(landscape_name: 'prod') },
                             if:
                             lambda {
                               plugin_available?(:kubernetes_ng) && services.available?(:kubernetes_ng, :prod) && (current_region == "qa-de-1" || (@active_project&.tags && @active_project.tags.include?('persephone'))) },
@@ -154,7 +154,7 @@ SimpleNavigation::Configuration.run do |navigation|
                               :span, 'gardener', class: 'label label-info'
                             )
                           },
-                          -> { plugin('kubernetes_ng').service_path(service_name: 'canary') },
+                          -> { plugin('kubernetes_ng').service_path(landscape_name: 'canary') },
                           if:
                             lambda {
                               plugin_available?(:kubernetes_ng) && services.available?(:kubernetes_ng, :canary) && (current_region == "qa-de-1" || (@active_project&.tags && @active_project.tags.include?('persephone'))) },
@@ -168,7 +168,7 @@ SimpleNavigation::Configuration.run do |navigation|
                               :span, 'gardener', class: 'label label-info'
                             )
                           },
-                          -> { plugin('kubernetes_ng').service_path(service_name: 'qa') },
+                          -> { plugin('kubernetes_ng').service_path(landscape_name: 'qa') },
                           if:
                             lambda {
                               plugin_available?(:kubernetes_ng) && services.available?(:kubernetes_ng, :qa) && current_region == "qa-de-1" },

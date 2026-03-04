@@ -16,25 +16,25 @@ KubernetesNg::Engine.routes.draw do
     get 'permissions(/:resource(/:verb))', to: 'permissions#index'
   end
 
-  # API routes (for UI use without service_name, service_name will be injected in controller from session)
+  # API routes (for UI use without landscape_name, landscape_name will be injected in controller from session)
   scope "/api", &api_routes
 
-  # Service-scoped routes (e.g., /prod, /canary, /qa for UI)
-  get ":service_name", to: "application#show", as: :service
+  # Landscape-scoped routes (e.g., /prod, /canary, /qa for UI)
+  get ":landscape_name", to: "application#show", as: :service
 
-  # Service-scoped API routes (e.g., /prod/api, /canary/api, /qa/api just for API calls with explicit service_name in URL)
-  scope "/:service_name/api", &api_routes
+  # Landscape-scoped API routes (e.g., /prod/api, /canary/api, /qa/api just for API calls with explicit landscape_name in URL)
+  scope "/:landscape_name/api", &api_routes
 
   # Catch-all for frontend routes → let React handle routing
-  get ':service_name/*path', to: 'application#show', constraints: ->(req) do
+  get ':landscape_name/*path', to: 'application#show', constraints: ->(req) do
     !req.xhr? && req.format.html?
   end
 
-  # Catch-all for legacy routes without service_name
+  # Catch-all for legacy routes without landscape_name
   get '*path', to: 'application#show', constraints: ->(req) do
     !req.xhr? && req.format.html?
   end
 
-  # Root route redirects to default service (handled by controller)
+  # Root route redirects to default landscape (handled by controller)
   root to: "application#show", as: :root
 end
