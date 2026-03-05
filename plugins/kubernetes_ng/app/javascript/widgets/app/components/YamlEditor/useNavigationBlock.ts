@@ -47,7 +47,7 @@ export function useNavigationBlock({ hasUnsavedChanges }: UseNavigationBlockOpti
       const href = link.getAttribute("href")
 
       // Skip non-navigating links
-      if (!href || href.startsWith("#") || href.startsWith("javascript:")) return
+      if (!href || href.startsWith("#") || href.startsWith("javascript:") || href.startsWith("data:") || href.startsWith("vbscript:")) return
 
       // Skip links that open in new tab/window
       if (link.target === "_blank") return
