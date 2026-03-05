@@ -11,17 +11,20 @@ module KubernetesNg
     'prod' => {
       service: 'persephone-prod',
       display_name: 'Prod',
+      nav_label: 'Kubernetes',
       user_facing: true
     },
     'canary' => {
       service: 'persephone-canary',
       display_name: 'Canary',
+      nav_label: 'Kubernetes Canary',
       user_facing: true
     },
     'qa' => {
       service: 'persephone-qa',
       display_name: 'QA',
-      user_facing: false  # Internal/QA only - not shown error messages
+      nav_label: 'Kubernetes QA',
+      user_facing: false  # Internal/QA only - only visible in qa-de-1 region
     }
   }.freeze
 
@@ -36,6 +39,10 @@ module KubernetesNg
 
   def self.display_name_for(landscape_name)
     LANDSCAPES.dig(landscape_name, :display_name) || landscape_name.capitalize
+  end
+
+  def self.nav_label_for(landscape_name)
+    LANDSCAPES.dig(landscape_name, :nav_label)
   end
 
   # Landscapes shown in error messages
