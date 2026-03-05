@@ -38,7 +38,9 @@ module ServiceLayer
       region = ENV["MONSOON_DASHBOARD_REGION"]
       mapped_service_name = gardener_service_name
 
-      @elektron_identity ||=
+      # Cache per landscape to avoid issues when landscape changes
+      @elektron_gardener_cache ||= {}
+      @elektron_gardener_cache[mapped_service_name] ||=
         elektron.service(
           mapped_service_name,
            headers:{
