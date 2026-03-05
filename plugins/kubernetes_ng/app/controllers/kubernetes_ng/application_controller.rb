@@ -30,7 +30,7 @@ module KubernetesNg
 
       # Raise error if landscape_name is missing
       if landscape_name.blank?
-        raise "Landscape name is required."
+        raise KubernetesNg::LandscapeError, "Landscape name is required."
       end
 
       # Reset the cached service if the landscape_name has changed
@@ -50,6 +50,12 @@ module KubernetesNg
         response = yield
         render json: response if auto_render
         response
+      rescue KubernetesNg::LandscapeError => e
+        render json: {
+          error: "Landscape Error",
+          code: 400,
+          message: e.message
+        }, status: :bad_request
       rescue Elektron::Errors::ApiResponse => e
         render json: {
           error: "API Error",

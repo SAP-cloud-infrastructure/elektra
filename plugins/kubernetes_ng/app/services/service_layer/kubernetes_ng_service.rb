@@ -58,7 +58,7 @@ module ServiceLayer
       mapped_name = LANDSCAPE_MAPPING[@landscape_name]
       # Only show user-facing options (exclude 'qa' from error message)
       valid_options = LANDSCAPE_MAPPING.keys.reject { |k| k == 'qa' }.join(', ')
-      raise "Invalid or missing landscape name: #{@landscape_name.inspect}. Valid options: #{valid_options}" if mapped_name.nil?
+      raise KubernetesNg::LandscapeError, "Invalid or missing landscape name: #{@landscape_name.inspect}. Valid options: #{valid_options}" if mapped_name.nil?
       mapped_name
     end
 
