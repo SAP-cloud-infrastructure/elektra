@@ -52,6 +52,9 @@ export function useNavigationBlock({ hasUnsavedChanges }: UseNavigationBlockOpti
       // Skip links that open in new tab/window
       if (link.target === "_blank") return
 
+      // Skip modified clicks (open in new tab) and middle-clicks
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return
+
       // Skip if link is inside our React app
       const reactRoot = document.getElementById("kubernetes-ng-app")
       if (reactRoot?.contains(link)) return
@@ -64,7 +67,10 @@ export function useNavigationBlock({ hasUnsavedChanges }: UseNavigationBlockOpti
 
     // Use capture phase to intercept before other handlers
     document.addEventListener("click", handleLinkClick, true)
-    return () => document.removeEventListener("click", handleLinkClick, true)
+    return () => {
+      document.removeEventListener("click", handleLinkClick, true)
+      setPendingUrl(null)
+    }
   }, [hasUnsavedChanges])
 
   // Handle browser close/refresh with native dialog
@@ -86,7 +92,7 @@ export function useNavigationBlock({ hasUnsavedChanges }: UseNavigationBlockOpti
   const isExternalBlocked = pendingUrl !== null
 
   const proceed = useCallback(() => {
-    if (isRouterBlocked && blocker.proceed) {
+    if (isRouterBlocked) {
       blocker.proceed()
     } else if (isExternalBlocked && pendingUrl) {
       window.location.href = pendingUrl
@@ -94,7 +100,7 @@ export function useNavigationBlock({ hasUnsavedChanges }: UseNavigationBlockOpti
   }, [isRouterBlocked, isExternalBlocked, pendingUrl, blocker])
 
   const reset = useCallback(() => {
-    if (isRouterBlocked && blocker.reset) {
+    if (isRouterBlocked) {
       blocker.reset()
     }
     setPendingUrl(null)
