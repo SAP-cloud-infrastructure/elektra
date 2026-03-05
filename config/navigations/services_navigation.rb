@@ -120,8 +120,14 @@ SimpleNavigation::Configuration.run do |navigation|
                  },
                  if:
                    lambda {
-                     plugin_available?(:kubernetes) && current_user &&
-                       current_user.has_service?('kubernikus')
+                     # Show if old kubernetes (kubernikus) is available
+                     (plugin_available?(:kubernetes) && current_user &&
+                       current_user.has_service?('kubernikus')) ||
+                     # Or if any kubernetes_ng landscape is available
+                     (plugin_available?(:kubernetes_ng) && (
+                       services.available?(:kubernetes_ng, :prod) ||
+                       services.available?(:kubernetes_ng, :canary) 
+                     ))
                    } do |containers_nav|
       containers_nav.item :kubernetes,
                           'Kubernetes',
