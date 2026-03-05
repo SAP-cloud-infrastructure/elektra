@@ -106,6 +106,7 @@ module MonsoonOpenstackAuth
 
         # clear session_store if request session is presented
         def logout(controller, domain)
+          delete_shared_auth_cookie(controller)
           reset_session(controller)
         end
 
@@ -145,7 +146,74 @@ module MonsoonOpenstackAuth
           crypt = ActiveSupport::MessageEncryptor.new(Rails.application.secret_key_base[0..31])
           value = crypt.encrypt_and_sign('valid')
           controller.response.set_cookie(TWO_FACTOR_AUTHENTICATION,
-                                         { value: value, expires: Time.now + 4.hours, path: '/', domain: '.cloud.sap' })
+                                         {
+                                           value: value,
+                                           expires: Time.now + 4.hours,
+                                           path: '/',
+                                           domain: '.cloud.sap',
+                                           secure: Rails.env.production?,
+                                           httponly: true,
+                                           same_site: :lax
+                                         })
+        end
+
+        # Set shared auth token cookie for cross-dashboard authentication
+        # This cookie is shared between Elektra and Aurora with wildcard domain
+        def set_shared_auth_cookie(controller, token)
+          return unless token && token[:value]
+
+          cookie_name = Rails.configuration.shared_auth_cookie_name
+
+          # Extract global domain (e.g., ".qa-de-1.cloud.sap" from "dashboard.qa-de-1.cloud.sap")
+          host = controller.request.host
+          parts = host.split('.')
+          global_domain = if parts.length > 2
+                            ".#{parts[-3..-1].join('.')}"  # Returns ".qa-de-1.cloud.sap"
+                          else
+                            ".#{host}"  # Fallback to current host
+                          end
+
+          # Calculate expiry from token
+          expires = if token[:expires_at]
+                      DateTime.parse(token[:expires_at])
+                    else
+                      Time.now + 24.hours  # Fallback expiry
+                    end
+
+          # Set the shared auth token cookie (unencoded)
+          controller.response.set_cookie(cookie_name,
+                                         {
+                                           value: token[:value],
+                                           expires: expires,
+                                           path: '/',
+                                           domain: global_domain,
+                                           secure: Rails.env.production?,
+                                           httponly: true,
+                                           same_site: :lax
+                                         })
+        end
+
+        # Delete shared auth token cookie on logout
+        def delete_shared_auth_cookie(controller)
+          cookie_name = Rails.configuration.shared_auth_cookie_name
+
+          # Extract global domain
+          host = controller.request.host
+          parts = host.split('.')
+          global_domain = if parts.length > 2
+                            ".#{parts[-3..-1].join('.')}"
+                          else
+                            ".#{host}"
+                          end
+
+          # Delete the cookie by setting it with past expiry
+          controller.response.set_cookie(cookie_name,
+                                         {
+                                           value: '',
+                                           expires: 1.year.ago,
+                                           path: '/',
+                                           domain: global_domain
+                                         })
         end
       end
 
@@ -222,8 +290,9 @@ module MonsoonOpenstackAuth
       def validate_session_token
         return true if @token && token_valid?(@token)
 
-        # Try to get token from HTTP header or session
+        # Try to get token from HTTP header, shared cookie, or session (in priority order)
         auth_token_value = @controller.request.headers['HTTP_X_AUTH_TOKEN'] ||
+                           read_shared_auth_cookie ||
                            @controller.session[:auth_token_value]
 
         unless auth_token_value
@@ -338,10 +407,18 @@ module MonsoonOpenstackAuth
         false
       end
 
+      # Read shared authentication cookie for cross-dashboard SSO
+      def read_shared_auth_cookie
+        cookie_name = Rails.configuration.shared_auth_cookie_name
+        @controller.request.cookies[cookie_name]
+      end
+
       def cache_token(new_token)
         @token = new_token
         # Store token value in session for cookie-based sessions
         @controller.session[:auth_token_value] = new_token[:value] if new_token
+        # Also maintain shared cookie for cross-dashboard SSO
+        self.class.set_shared_auth_cookie(@controller, new_token) if new_token
       end
 
       def current_token
