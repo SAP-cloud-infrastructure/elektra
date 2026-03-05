@@ -20,17 +20,19 @@ export default function App({ basepath, region }: AppProps) {
   const router = createAppRouter(basepath, region)
 
   return (
-    <AppShellProvider theme="theme-light">
-      <style>{styles}</style>
-      <ErrorBoundary fallback={<InlineError />}>
-        <StrictMode>
-          <MessagesProvider>
-            <QueryClientProvider client={queryClient}>
-              <RouterProvider basepath={basepath} context={{}} router={router} />
-            </QueryClientProvider>
-          </MessagesProvider>
-        </StrictMode>
-      </ErrorBoundary>
-    </AppShellProvider>
+    <div id="kubernetes-ng-app">
+      <AppShellProvider theme="theme-light">
+        <style>{styles}</style>
+        <ErrorBoundary fallback={<InlineError />}>
+          <StrictMode>
+            <MessagesProvider>
+              <QueryClientProvider client={queryClient}>
+                <RouterProvider basepath={basepath} context={{}} router={router} />
+              </QueryClientProvider>
+            </MessagesProvider>
+          </StrictMode>
+        </ErrorBoundary>
+      </AppShellProvider>
+    </div>
   )
 }

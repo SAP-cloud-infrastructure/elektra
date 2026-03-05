@@ -47,3 +47,24 @@ export function ResourceVersionConflictDialog({ isOpen, onCancel, onConfirm }: R
     </Modal>
   )
 }
+
+interface NavigationBlockDialogProps {
+  isOpen: boolean
+  onCancel: () => void
+  onConfirm: () => void
+}
+
+export function NavigationBlockDialog({ isOpen, onCancel, onConfirm }: NavigationBlockDialogProps) {
+  return (
+    <Modal
+      open={isOpen}
+      onCancel={onCancel}
+      onConfirm={onConfirm}
+      title="Leave Page?"
+      cancelButtonLabel="Stay"
+      confirmButtonLabel="Leave"
+    >
+      <p>You have unsaved changes in the YAML editor. Are you sure you want to leave this page?</p>
+    </Modal>
+  )
+}
