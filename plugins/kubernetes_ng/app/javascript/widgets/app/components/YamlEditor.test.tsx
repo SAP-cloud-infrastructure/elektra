@@ -7,6 +7,15 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { act } from "react-dom/test-utils"
 import { PortalProvider } from "@cloudoperators/juno-ui-components"
 
+// Mock useBlocker from TanStack Router
+vi.mock("@tanstack/react-router", () => ({
+  useBlocker: () => ({
+    status: "idle",
+    proceed: vi.fn(),
+    reset: vi.fn(),
+  }),
+}))
+
 // Helper to render YamlEditor with QueryClientProvider
 const renderYamlEditor = ({
   resource = {},
