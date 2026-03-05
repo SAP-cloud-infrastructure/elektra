@@ -1,7 +1,9 @@
 KubernetesNg::Engine.routes.draw do
-  root to: "application#show", as: :root
-  # API routes
-  scope "/api" do
+  # Landscape-scoped routes (e.g., /prod, /canary, /qa for UI)
+  get ":landscape_name", to: "application#show", as: :service
+
+  # Landscape-scoped API routes (e.g., /prod/api, /canary/api, /qa/api)
+  scope "/:landscape_name/api" do
     resources :clusters, only: [:index, :show, :create, :destroy, :update], param: :name do
       member do
         put 'replace', to: 'clusters#replace_cluster'
@@ -11,13 +13,6 @@ KubernetesNg::Engine.routes.draw do
         delete 'confirm-deletion-and-destroy(/:name)', to: 'clusters#confirm_deletion_and_destroy'
         get 'external-networks', to: 'clusters#external_networks'
         get 'kubeconfig(/:name)', to: 'clusters#kubeconfig'
-        # for testing only, to access the functions from the browser, to be removed or comment out later
-        # get 'create(/:name)', to: 'clusters#create'
-        # get 'destroy(/:name)', to: 'clusters#destroy'
-        # get 'update(/:name)', to: 'clusters#update'
-        # get 'confirm-deletion-and-destroy(/:name)', to: 'clusters#confirm_deletion_and_destroy'
-        # get 'confirm-deletion(/:name)', to: 'clusters#confirm_deletion'
-
       end
     end
     resources :cloud_profiles, only: [:index], path: "cloud-profiles"
@@ -25,8 +20,10 @@ KubernetesNg::Engine.routes.draw do
   end
 
   # Catch-all for frontend routes → let React handle routing
-  # Example: <domain>/<project>/kubernetes-ng/clusters --> should be handled by React and not Rails
-  get '*path', to: 'application#show', constraints: ->(req) do
+  get ':landscape_name/*path', to: 'application#show', constraints: ->(req) do
     !req.xhr? && req.format.html?
   end
+
+  # Root route redirects to default landscape (handled by controller)
+  root to: "application#show", as: :root
 end
