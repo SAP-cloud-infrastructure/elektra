@@ -3,8 +3,6 @@
 module KubernetesNg
   class ApplicationController < AjaxController
 
-    ALLOWED_LANDSCAPES = %w[prod canary qa].freeze
-
     def show
       @landscape_name = params[:landscape_name]
 
@@ -15,7 +13,7 @@ module KubernetesNg
       end
 
       # Validate landscape_name is allowed
-      unless ALLOWED_LANDSCAPES.include?(@landscape_name)
+      unless KubernetesNg.allowed_landscapes.include?(@landscape_name)
         redirect_to plugin('kubernetes_ng').service_path(landscape_name: 'prod')
         return
       end

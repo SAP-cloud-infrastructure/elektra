@@ -9,15 +9,8 @@ module ServiceLayer
     include KubernetesNgServices::Clusters
     include KubernetesNgServices::Permissions
 
-    # Map landscape_name to actual Gardener service names
-    LANDSCAPE_MAPPING = {
-      'prod' => 'persephone-prod',
-      'canary' => 'persephone-canary',
-      'qa' => 'gardener'
-    }.freeze
-
     def available?(landscape_name_or_action = nil)
-      service_to_check = LANDSCAPE_MAPPING[landscape_name_or_action.to_s]
+      service_to_check = KubernetesNg.service_for(landscape_name_or_action.to_s)
       return false unless service_to_check
       elektron.service?(service_to_check)
     end
@@ -55,9 +48,8 @@ module ServiceLayer
     # e.g., 'prod' => 'persephone-prod', 'canary' => 'persephone-canary'
     # Raises error if landscape_name is invalid
     def gardener_service_name
-      mapped_name = LANDSCAPE_MAPPING[@landscape_name]
-      # Only show user-facing options (exclude 'qa' from error message)
-      valid_options = LANDSCAPE_MAPPING.keys.reject { |k| k == 'qa' }.join(', ')
+      mapped_name = KubernetesNg.service_for(@landscape_name)
+      valid_options = KubernetesNg.user_facing_landscapes.join(', ')
       raise KubernetesNg::LandscapeError, "Invalid or missing landscape name: #{@landscape_name.inspect}. Valid options: #{valid_options}" if mapped_name.nil?
       mapped_name
     end
