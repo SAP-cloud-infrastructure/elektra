@@ -91,6 +91,28 @@ describe("<YamlEditor />", () => {
     expect(editorContent).toHaveAttribute("aria-readonly", "true")
   })
 
+  it("displays Read Mode indicator by default", async () => {
+    await act(async () =>
+      renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+    )
+
+    expect(screen.getByText("Read Mode")).toBeInTheDocument()
+  })
+
+  it("displays Edit Mode indicator when in edit mode", async () => {
+    await act(async () =>
+      renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+    )
+
+    const editButton = screen.getByRole("button", { name: /edit/i })
+    act(() => {
+      editButton.click()
+    })
+
+    expect(screen.getByText("Edit Mode")).toBeInTheDocument()
+    expect(screen.queryByText("Read Mode")).not.toBeInTheDocument()
+  })
+
   it("converts object to YAML and displays it", async () => {
     await act(async () =>
       renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
