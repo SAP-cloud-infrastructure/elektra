@@ -150,8 +150,8 @@ module MonsoonDashboard
     # Mailer configuration for inquiries/requests
     config.limes_mail_server_endpoint = ENV["LIMES_MAIL_SERVER_API_ENDPOINT"]
 
-    # Shared authentication cookie name for cross-dashboard SSO (Elektra <-> Aurora)
-    config.shared_auth_cookie_name = ENV['SHARED_AUTH_COOKIE_NAME'] || 'dashboard-session-auth'
+    # Cross-dashboard authentication cookie name for SSO (Elektra <-> Aurora)
+    config.cross_dashboard_cookie_name = ENV['CROSS_DASHBOARD_COOKIE_NAME'] || 'dashboard-session-auth'
 
     config.middleware.use SessionCookiePathMiddleware
   end
