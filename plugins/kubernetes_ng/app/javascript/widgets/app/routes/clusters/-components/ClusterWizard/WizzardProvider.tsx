@@ -15,6 +15,19 @@ const getLatestVersion = (versions: string[] = []) => {
     .join(".")
 }
 
+const isValidCIDR = (cidr: string) => {
+  const cidrRegex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})\/(\d{1,2})$/
+  const match = cidr.match(cidrRegex)
+  if (!match) return false
+
+  const [, octet1, octet2, octet3, octet4, mask] = match
+  const octets = [octet1, octet2, octet3, octet4].map(Number)
+  const maskNum = Number(mask)
+
+  // Check if all octets are 0-255 and mask is 0-32
+  return octets.every((octet) => octet >= 0 && octet <= 255) && maskNum >= 0 && maskNum <= 32
+}
+
 const isRequired = (value: unknown) => (value ? [] : ["This field is required"])
 
 const matchesRegex = (value: string, regex: RegExp, message: string) => (regex.test(value) ? [] : [message])
@@ -35,21 +48,20 @@ const validateStep1 = (data: ClusterFormData): ClusterFormErrorsFlat => {
     "infrastructure.floatingPoolName": isRequired(data.infrastructure.floatingPoolName),
     "infrastructure.apiVersion": isRequired(data.infrastructure.apiVersion),
     "networking.pods":
-      data?.networking?.pods && !/^([0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2}$/.test(data.networking.pods)
-        ? ["Pods CIDR must be in CIDR notation"]
+      data?.networking?.pods && !isValidCIDR(data.networking.pods)
+        ? ["Pods CIDR must be in valid CIDR notation (e.g., 10.0.0.0/16)"]
         : [],
     "networking.nodes":
-      data?.networking?.nodes && !/^([0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2}$/.test(data.networking.nodes)
-        ? ["Nodes CIDR must be in CIDR notation"]
+      data?.networking?.nodes && !isValidCIDR(data.networking.nodes)
+        ? ["Nodes CIDR must be in valid CIDR notation (e.g., 10.1.0.0/16)"]
         : [],
     "networking.services":
-      data?.networking?.services && !/^([0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2}$/.test(data.networking.services)
-        ? ["Services CIDR must be in CIDR notation"]
+      data?.networking?.services && !isValidCIDR(data.networking.services)
+        ? ["Services CIDR must be in valid CIDR notation (e.g., 10.2.0.0/16)"]
         : [],
     "infrastructure.networkWorkers":
-      data?.infrastructure?.networkWorkers &&
-      !/^([0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2}$/.test(data.infrastructure.networkWorkers)
-        ? ["Workers CIDR must be in CIDR notation"]
+      data?.infrastructure?.networkWorkers && !isValidCIDR(data.infrastructure.networkWorkers)
+        ? ["Workers CIDR must be in valid CIDR notation (e.g., 10.3.0.0/16)"]
         : [],
   }
 }
