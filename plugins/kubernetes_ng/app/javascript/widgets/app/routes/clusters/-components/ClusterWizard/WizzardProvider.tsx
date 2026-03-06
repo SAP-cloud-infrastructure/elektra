@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode, useCallback, useMemo } from "react"
+import React, { createContext, useContext, useState, ReactNode, useCallback, useMemo, useRef } from "react"
 import { ClusterFormData, WorkerGroups, WorkerGroup, Step, StepId, ClusterFormErrorsFlat } from "./types"
 import { STEP_DEFINITIONS, DEFAULT_CLOUD_PROFILE_NAME } from "./constants"
 import { GardenerApi } from "../../../../apiClient"
@@ -170,6 +170,10 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ client, region, 
   const [clusterFormData, setClusterFormData] = useState<ClusterFormData>(formData)
   const [formErrors, setFormErrors] = useState<ClusterFormErrorsFlat>({})
 
+  // Use ref to track latest form data without causing callback recreation
+  const clusterFormDataRef = useRef(clusterFormData)
+  clusterFormDataRef.current = clusterFormData
+
   // updates cloud profile, resets dependent fields
   const updateCloudProfile = (prev: ClusterFormData, newName: string, profiles: CloudProfile[]): ClusterFormData => {
     const profile = profiles.find((p) => p.name === newName)
@@ -265,7 +269,7 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ client, region, 
 
       // validate all steps up to maxStepReached and collect errors
       stepsToValidate.forEach((s) => {
-        const errors = validateStep(clusterFormData, s.id)
+        const errors = validateStep(clusterFormDataRef.current, s.id)
         newFormErrors = { ...errors, ...newFormErrors }
         newStepErrors[s.id] = { hasError: Object.values(errors).some((arr) => Array.isArray(arr) && arr.length > 0) }
       })
@@ -282,7 +286,7 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ client, region, 
       setFormErrors((prev) => ({ ...prev, ...newFormErrors }))
       setSteps(newSteps)
     },
-    [clusterFormData, maxStepReached, steps.length]
+    [maxStepReached, steps.length]
   )
 
   // selects the currently selected cloud profile based on form data
@@ -316,41 +320,44 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ client, region, 
     return updatedCluster
   }
 
-  const validateSingleField = (fieldPath: string) => {
-    // Validate all steps once (cached)
-    const validationByStep: Record<StepId, ClusterFormErrorsFlat> = {
-      step1: validateStep1(clusterFormData),
-      step2: validateStep2(clusterFormData),
-      summary: {
-        ...validateStep1(clusterFormData),
-        ...validateStep2(clusterFormData),
-      },
-    }
-
-    // Update only the specific field errors
-    setFormErrors((prev) => ({
-      ...prev,
-      [fieldPath]: validationByStep.step1[fieldPath] || validationByStep.step2[fieldPath] || [],
-    }))
-
-    // update the hasError flag for the current step and also summary step if reached
-    const stepErrors: Record<string, { hasError: boolean }> = {}
-
-    STEP_DEFINITIONS.forEach((step) => {
-      const errs = validationByStep[step.id]
-      stepErrors[step.id] = {
-        hasError: Object.values(errs).some((arr) => Array.isArray(arr) && arr.length > 0),
+  const validateSingleField = useCallback(
+    (fieldPath: string) => {
+      // Validate all steps once (cached)
+      const validationByStep: Record<StepId, ClusterFormErrorsFlat> = {
+        step1: validateStep1(clusterFormDataRef.current),
+        step2: validateStep2(clusterFormDataRef.current),
+        summary: {
+          ...validateStep1(clusterFormDataRef.current),
+          ...validateStep2(clusterFormDataRef.current),
+        },
       }
-    })
 
-    // update haseError for for the current step and also update the summary step if reached already
-    setSteps((prev) =>
-      prev.map((step, idx) => ({
-        ...step,
-        hasError: idx < maxStepReached || step.id === "summary" ? stepErrors[step.id].hasError : step.hasError,
+      // Update only the specific field errors
+      setFormErrors((prev) => ({
+        ...prev,
+        [fieldPath]: validationByStep.step1[fieldPath] || validationByStep.step2[fieldPath] || [],
       }))
-    )
-  }
+
+      // update the hasError flag for the current step and also summary step if reached
+      const stepErrors: Record<string, { hasError: boolean }> = {}
+
+      STEP_DEFINITIONS.forEach((step) => {
+        const errs = validationByStep[step.id]
+        stepErrors[step.id] = {
+          hasError: Object.values(errs).some((arr) => Array.isArray(arr) && arr.length > 0),
+        }
+      })
+
+      // update haseError for for the current step and also update the summary step if reached already
+      setSteps((prev) =>
+        prev.map((step, idx) => ({
+          ...step,
+          hasError: idx < maxStepReached || step.id === "summary" ? stepErrors[step.id].hasError : step.hasError,
+        }))
+      )
+    },
+    [maxStepReached]
+  )
 
   return (
     <WizardContext.Provider
