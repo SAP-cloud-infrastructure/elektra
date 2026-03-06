@@ -8,6 +8,7 @@ import { Cluster } from "../../../../types/cluster"
 import { ExternalNetwork } from "../../../../types/network"
 
 const getLatestVersion = (versions: string[] = []) => {
+  if (versions.length === 0) return ""
   return versions
     .map((v) => v.split(".").map(Number))
     .sort((a, b) => b[0] - a[0] || b[1] - a[1] || b[2] - a[2])[0]
