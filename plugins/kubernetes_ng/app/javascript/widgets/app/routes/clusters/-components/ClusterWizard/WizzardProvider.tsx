@@ -170,6 +170,32 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ client, region, 
   const [clusterFormData, setClusterFormData] = useState<ClusterFormData>(formData)
   const [formErrors, setFormErrors] = useState<ClusterFormErrorsFlat>({})
 
+  // updates cloud profile, resets dependent fields
+  const updateCloudProfile = (prev: ClusterFormData, newName: string, profiles: CloudProfile[]): ClusterFormData => {
+    const profile = profiles.find((p) => p.name === newName)
+    const latestK8sVersion = profile ? getLatestVersion(profile.kubernetesVersions) : ""
+    const apiVersion = profile ? profile.providerConfig.apiVersion : ""
+
+    return {
+      ...prev,
+      cloudProfileName: newName,
+      kubernetesVersion: latestK8sVersion,
+      infrastructure: {
+        ...prev.infrastructure,
+        apiVersion: apiVersion,
+      },
+      workers: prev.workers.map((wg) => ({
+        ...wg,
+        machineType: "",
+        machineImage: {
+          name: "",
+          version: "",
+        },
+        zones: [],
+      })),
+    }
+  }
+
   const cloudProfiles = useQuery({
     queryKey: ["cloudProfiles"],
     queryFn: () => client.gardener.getCloudProfiles(),
@@ -264,32 +290,6 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ client, region, 
     if (!cloudProfiles.data) return undefined
     return cloudProfiles.data.find((cp) => cp.name === clusterFormData.cloudProfileName)
   }, [cloudProfiles.data, clusterFormData.cloudProfileName])
-
-  // updates cloud profile, resets dependent fields
-  const updateCloudProfile = (prev: ClusterFormData, newName: string, profiles: CloudProfile[]): ClusterFormData => {
-    const profile = profiles.find((p) => p.name === newName)
-    const latestK8sVersion = profile ? getLatestVersion(profile.kubernetesVersions) : ""
-    const apiVersion = profile ? profile.providerConfig.apiVersion : ""
-
-    return {
-      ...prev,
-      cloudProfileName: newName,
-      kubernetesVersion: latestK8sVersion,
-      infrastructure: {
-        ...prev.infrastructure,
-        apiVersion: apiVersion,
-      },
-      workers: prev.workers.map((wg) => ({
-        ...wg,
-        machineType: "",
-        machineImage: {
-          name: "",
-          version: "",
-        },
-        zones: [],
-      })),
-    }
-  }
 
   // updates a networking field, removes it if value is empty, and removes networking entirely if empty
   const updateNetworkingField = (
