@@ -316,6 +316,50 @@ describe("<YamlEditor />", () => {
     })
   })
 
+  it("supports Tab key for indentation in edit mode", async () => {
+    await act(async () =>
+      renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+    )
+
+    // Enter edit mode
+    const editButton = screen.getByRole("button", { name: /edit/i })
+    act(() => {
+      editButton.click()
+    })
+
+    // Wait for editor to be ready
+    await waitFor(() => {
+      const editorWrapper = screen.getByTestId("yaml-editor")
+      const editableContent = within(editorWrapper).getByLabelText("YAML data editor")
+      expect(editableContent).toHaveAttribute("aria-readonly", "false")
+    })
+
+    // Get the CodeMirror editor content using role
+    const editorWrapper = screen.getByTestId("yaml-editor")
+    const editorContent = within(editorWrapper).getByRole("textbox")
+    expect(editorContent).toBeInTheDocument()
+
+    // Simulate Tab key press on the contenteditable element
+    await act(async () => {
+      // Create and dispatch a proper keyboard event with Tab
+      const tabEvent = new KeyboardEvent("keydown", {
+        key: "Tab",
+        code: "Tab",
+        keyCode: 9,
+        which: 9,
+        bubbles: true,
+        cancelable: true,
+      })
+      editorContent.dispatchEvent(tabEvent)
+    })
+
+    // Verify that changes were registered (Save button should be enabled)
+    await waitFor(() => {
+      const saveButton = screen.getByRole("button", { name: /save/i })
+      expect(saveButton).not.toBeDisabled()
+    })
+  })
+
   it("calls onError for invalid YAML when saving", async () => {
     await act(async () =>
       renderYamlEditor({
