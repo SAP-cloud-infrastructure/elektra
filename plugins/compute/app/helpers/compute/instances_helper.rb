@@ -56,7 +56,7 @@ module Compute
 
               # hypervisor_type is the legacy property replaced since "liberty" by img_hv_type, but we still have them in use.
 
-              if image.hypervisor_type.nil? && image.img_hv_type != "kvm"
+              if image.hypervisor_type.nil?
                 # some years ago we decided to treat images without hypervisor_type as baremetal. 
                 # From now on we will treat them as both baremetal and vmware because 
                 # thus images run on both hypervisors.
@@ -64,10 +64,9 @@ module Compute
                 # images that have no hypervisor_type are treated as both baremetal and vmware
                 map[visibility]["baremetal"] ||= []
                 map[visibility]["vmware"] ||= []
+                map[visibility]["kvm"] ||= []
                 map[visibility]["baremetal"] << image
                 map[visibility]["vmware"] << image
-              elsif image.img_hv_type == "kvm"
-                map[visibility]["kvm"] ||= []
                 map[visibility]["kvm"] << image
               elsif image.img_hv_type == "baremetal"
                 map[visibility]["baremetal"] ||= []
