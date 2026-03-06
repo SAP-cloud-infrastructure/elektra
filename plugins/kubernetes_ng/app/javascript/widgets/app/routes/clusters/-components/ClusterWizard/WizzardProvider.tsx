@@ -162,6 +162,8 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ client, region, 
     queryFn: () => client.gardener.getCloudProfiles(),
     enabled: !!client.gardener.getCloudProfiles,
     select: (profiles) => [...profiles].sort((a, b) => a.name.localeCompare(b.name)),
+    staleTime: 0,
+    cacheTime: 0,
     onSuccess: (profiles) => {
       setClusterFormData((prev) => {
         // don’t override if user selected something
@@ -177,6 +179,8 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ client, region, 
     queryKey: ["external-networks"],
     queryFn: () => client.gardener.getExternalNetworks(),
     enabled: !!client.gardener.getExternalNetworks,
+    staleTime: 0,
+    cacheTime: 0,
     onSuccess: (networks) => {
       setClusterFormData((prev) => {
         // don’t override if user selected something
