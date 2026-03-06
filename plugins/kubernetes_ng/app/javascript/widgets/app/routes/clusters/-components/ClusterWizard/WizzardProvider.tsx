@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode, useCallback, useMemo, useRef } from "react"
+import React, { createContext, useContext, useState, ReactNode, useCallback, useMemo, useRef, useEffect } from "react"
 import { ClusterFormData, WorkerGroups, WorkerGroup, Step, StepId, ClusterFormErrorsFlat } from "./types"
 import { STEP_DEFINITIONS, DEFAULT_CLOUD_PROFILE_NAME } from "./constants"
 import { GardenerApi } from "../../../../apiClient"
@@ -174,31 +174,38 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ client, region, 
   const clusterFormDataRef = useRef(clusterFormData)
   clusterFormDataRef.current = clusterFormData
 
-  // updates cloud profile, resets dependent fields
-  const updateCloudProfile = (prev: ClusterFormData, newName: string, profiles: CloudProfile[]): ClusterFormData => {
-    const profile = profiles.find((p) => p.name === newName)
-    const latestK8sVersion = profile ? getLatestVersion(profile.kubernetesVersions) : ""
-    const apiVersion = profile ? profile.providerConfig.apiVersion : ""
+  // Track if defaults have been set to prevent re-setting on data changes
+  const cloudProfileDefaultSet = useRef(false)
+  const networkDefaultSet = useRef(false)
 
-    return {
-      ...prev,
-      cloudProfileName: newName,
-      kubernetesVersion: latestK8sVersion,
-      infrastructure: {
-        ...prev.infrastructure,
-        apiVersion: apiVersion,
-      },
-      workers: prev.workers.map((wg) => ({
-        ...wg,
-        machineType: "",
-        machineImage: {
-          name: "",
-          version: "",
+  // updates cloud profile, resets dependent fields
+  const updateCloudProfile = useCallback(
+    (prev: ClusterFormData, newName: string, profiles: CloudProfile[]): ClusterFormData => {
+      const profile = profiles.find((p) => p.name === newName)
+      const latestK8sVersion = profile ? getLatestVersion(profile.kubernetesVersions) : ""
+      const apiVersion = profile ? profile.providerConfig.apiVersion : ""
+
+      return {
+        ...prev,
+        cloudProfileName: newName,
+        kubernetesVersion: latestK8sVersion,
+        infrastructure: {
+          ...prev.infrastructure,
+          apiVersion: apiVersion,
         },
-        zones: [],
-      })),
-    }
-  }
+        workers: prev.workers.map((wg) => ({
+          ...wg,
+          machineType: "",
+          machineImage: {
+            name: "",
+            version: "",
+          },
+          zones: [],
+        })),
+      }
+    },
+    []
+  )
 
   const cloudProfiles = useQuery({
     queryKey: ["cloudProfiles"],
@@ -207,15 +214,6 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ client, region, 
     select: (profiles) => [...profiles].sort((a, b) => a.name.localeCompare(b.name)),
     staleTime: 0,
     cacheTime: 0,
-    onSuccess: (profiles) => {
-      setClusterFormData((prev) => {
-        // don’t override if user selected something
-        if (prev.cloudProfileName) return prev
-        // check if default cloud profile exists or take the first one
-        const defaultCloudProfile = profiles.find((p) => p.name === DEFAULT_CLOUD_PROFILE_NAME) ?? profiles[0]
-        return updateCloudProfile(prev, defaultCloudProfile?.name, profiles)
-      })
-    },
   })
 
   const extNetworks = useQuery({
@@ -224,21 +222,45 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ client, region, 
     enabled: !!client.gardener.getExternalNetworks,
     staleTime: 0,
     cacheTime: 0,
-    onSuccess: (networks) => {
-      setClusterFormData((prev) => {
-        // don’t override if user selected something
-        if (prev.infrastructure.floatingPoolName) return prev
-        // set the first as default
-        return {
-          ...prev,
-          infrastructure: {
-            ...prev.infrastructure,
-            floatingPoolName: networks[0]?.name || "",
-          },
-        }
-      })
-    },
   })
+
+  // Set cloud profile default as soon as data is available
+  useEffect(() => {
+    if (!cloudProfiles.data || cloudProfileDefaultSet.current) return
+
+    setClusterFormData((prev) => {
+      if (prev.cloudProfileName) {
+        cloudProfileDefaultSet.current = true
+        return prev
+      }
+
+      const defaultProfile =
+        cloudProfiles.data.find((p) => p.name === DEFAULT_CLOUD_PROFILE_NAME) ?? cloudProfiles.data[0]
+      cloudProfileDefaultSet.current = true
+      return updateCloudProfile(prev, defaultProfile?.name, cloudProfiles.data)
+    })
+  }, [cloudProfiles.data, updateCloudProfile])
+
+  // Set network default as soon as data is available
+  useEffect(() => {
+    if (!extNetworks.data || networkDefaultSet.current) return
+
+    setClusterFormData((prev) => {
+      if (prev.infrastructure.floatingPoolName) {
+        networkDefaultSet.current = true
+        return prev
+      }
+
+      networkDefaultSet.current = true
+      return {
+        ...prev,
+        infrastructure: {
+          ...prev.infrastructure,
+          floatingPoolName: extNetworks.data[0]?.name || "",
+        },
+      }
+    })
+  }, [extNetworks.data])
 
   const createMutation = useMutation({
     mutationFn: client.gardener.createCluster,
