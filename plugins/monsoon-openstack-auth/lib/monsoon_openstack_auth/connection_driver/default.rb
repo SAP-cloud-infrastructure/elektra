@@ -72,7 +72,7 @@ module MonsoonOpenstackAuth
       end
 
       def validate_token(auth_token)
-        cache.fetch key:auth_token,scope:nil do
+        Rails.cache.fetch("validate_token:#{auth_token}", expires_in: 20.seconds) do
           begin
             headers = {
               'Content-Type' => 'application/json',
@@ -173,11 +173,6 @@ module MonsoonOpenstackAuth
       end
 
       protected
-
-        def cache
-          impl = MonsoonOpenstackAuth.configuration.token_cache
-          impl.new
-        end
 
         def filter_params(params,filters=[:password])
           filter = lambda do |hash,f=[:password]|

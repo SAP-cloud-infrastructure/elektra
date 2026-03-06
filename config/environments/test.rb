@@ -42,6 +42,9 @@ Rails.application.configure do
   # Print deprecation notices to the stderr.
   config.active_support.deprecation = :stderr
 
+  # Suppress specific deprecation warnings
+  config.active_support.deprecation = :silence
+
   # Raise exceptions for disallowed deprecations.
   config.active_support.disallowed_deprecation = :raise
 
@@ -63,8 +66,9 @@ Rails.application.configure do
   # Enable stdout logger
   config.logger = Logger.new(STDOUT)
 
-  # Set log level
-  config.log_level = :ERROR
+  # Set log level - FATAL to suppress error logs during tests
+  # Use ERROR or WARN for debugging test failures
+  config.log_level = :FATAL
 
   config.debug_api_calls = false
 end

@@ -188,64 +188,59 @@ module MonsoonOpenstackAuth
         attr_reader :name, :rule, :parsed_rule, :required_locals, :required_params, :resolved_rule, :involved_roles, :js_parsed_rule
 
         class << self
-          def parse(policy_hash,all_rules, name, rule)
-            ############ normalize rule ############
-            # replace %(text)s with params["text"]
+          def parse(policy_hash, all_rules, name, rule)
+            # Build AST using SafeRuleParser (no eval)
+            ast = SafeRuleParser.build(rule)
+
+            # Keep legacy parsed_rule for JS generation and tracing
+            parsed_rule = build_legacy_parsed_rule(rule)
+            js_parsed_rule = parse_js(parsed_rule)
+
+            self.new(policy_hash, all_rules, name, rule, parsed_rule, js_parsed_rule, ast)
+          end
+
+          def default_rule
+            @default_rule ||= begin
+              ast = SafeRuleParser::AST::LiteralFalse.new
+              self.new(nil, nil, 'default_rule', '!', 'false', nil, ast)
+            end
+          end
+
+          protected
+
+          # Builds the legacy parsed_rule string used only for JS generation.
+          # This is NOT used for execution - the AST handles that safely.
+          def build_legacy_parsed_rule(rule)
             parsed_rule = rule.gsub(/%\(/, 'params["').gsub(/\)s/, '"]')
-
-            # replace "(" and ")" with " ( " and " ) "
             parsed_rule.gsub!(/\s*+([()])\s*+/, ' \1 ')
-            # replace "or" and "and" with " or " and " and "
             parsed_rule.gsub!(/\s++\b(or|and)\b\s++/i, ' \1 ')
-            # remove spaces betwenn ":" and text
             parsed_rule.gsub!(/\s*+:\s*+/, ':')
-            ############# end #############
 
-            # replace params["param1.param2.param3"] with (params["param1"].param2.param3 rescue false)
-            # Pass 1: Handle nested parameters (contains dots)
             parsed_rule.gsub!(/params\["([a-zA-Z0-9_]{1,100}\.[a-zA-Z0-9_.]{1,200})"\]/) do |match|
               param_path = $1
               parts = param_path.split('.')
               if parts.all? { |part| part.match?(/\A[a-zA-Z0-9_]+\z/) }
                 "params[\"#{parts.first}\"].#{parts[1..-1].join('.')}"
               else
-                match # Leave unchanged if invalid
+                match
               end
             end
 
-            # replace params["param"] with params["param".to_sym]
             parsed_rule.gsub!(/params\["([a-zA-Z0-9_]{1,200})"\]/, 'params["\1".to_sym]')
-            # replace "True" and "@" and empty rule with "true"
             parsed_rule.gsub!(/^$/, 'true')
             parsed_rule.gsub!(/True|@/i, 'true')
-            # replace "False" and "!" with "false"
             parsed_rule.gsub!(/False|!/i, 'false')
-
-            #********* save rules which name's contain ":"
-            # replace rule:part1:part2:partn with rule:part1<->part2<->part3
-            parsed_rule.gsub!(/rule:([^\s]+)/) { |m| "rule:#{$1.gsub(/\:/, '<->')}" }
-
-            # replace rule:name with @rules["name"].execute(locals,params)
-            parsed_rule.gsub!(/rule:([^\s]+)/, '@rules.get("\1").execute(locals,params,trace)')
-            # replace role:name with locals["roles"].include?("name")
-            parsed_rule.gsub!(/role:([^\s:]+)/, 'locals["roles"].include?("\1")')
-            # replace name:value with (locals["name"]=="value" rescue false)
-            parsed_rule.gsub!(/([^\s|:]+):([^\s:]+)/, '(begin; locals["\1"]==\2; rescue; false; end)')
-            #********* recover rules
-            # replace <-> with :
+            # Fix ReDoS: Use possessive quantifiers and more specific patterns
+            # Match rule: references (e.g., rule:admin_required)
+            parsed_rule.gsub!(/rule:([a-zA-Z0-9_]+)/) { |m| "rule:#{$1.gsub(/\:/, '<->')}" }
+            parsed_rule.gsub!(/rule:([a-zA-Z0-9_<>-]+)/, '@rules.get("\1").execute(locals,params,trace)')
+            # Match role: references (e.g., role:admin)
+            parsed_rule.gsub!(/role:([a-zA-Z0-9_]+)/, 'locals["roles"].include?("\1")')
+            # Match key:value comparisons (e.g., domain_id:%(domain.id)s)
+            parsed_rule.gsub!(/([a-zA-Z0-9_]+):([a-zA-Z0-9_.\[\]"]+)/, '(begin; locals["\1"]==\2; rescue; false; end)')
             parsed_rule.gsub!("<->", ":")
-
-            js_parsed_rule = parse_js(parsed_rule)
-
-            self.new(policy_hash,all_rules, name, rule, parsed_rule, js_parsed_rule)
+            parsed_rule
           end
-
-          def default_rule
-            @default_rule ||= self.new(nil, 'default_rule', '!', 'false')
-          end
-
-          protected
-
 
           def parse_js(parsed_rule)
             js_rule = parsed_rule.gsub(/@rules\.get\((?<rule>[^\)]+)\)\.execute\([^\)]+\)/,'rules[\k<rule>](rules,locals,params)')
@@ -264,18 +259,18 @@ module MonsoonOpenstackAuth
           end
         end
 
-        def initialize(policy_hash,all_rules, name, rule, parsed_rule,js_parsed_rule=nil)
+        def initialize(policy_hash, all_rules, name, rule, parsed_rule, js_parsed_rule = nil, ast = nil)
           @policy_hash = policy_hash
           @name = name
           @rules = all_rules
           @rule = rule
           @parsed_rule = parsed_rule
           @js_parsed_rule = js_parsed_rule
+          @ast = ast
           @resolved_rule = resolve_rule_dependencies(name)
           @involved_roles = @resolved_rule.scan(/role:([^\s]+)/).uniq rescue []
-          @required_locals = extract_required_locals
-          @required_params = extract_required_params
-          @executable = eval("lambda {|locals={},params={},trace=nil| #{@parsed_rule} }")
+          @required_locals = SafeRuleParser.extract_locals(@ast).uniq
+          @required_params = SafeRuleParser.extract_params(@ast).uniq
         end
 
         def resolve_rule_dependencies(name)
@@ -311,7 +306,7 @@ module MonsoonOpenstackAuth
               end
             end
 
-            result = @executable.call(locals, params, next_trace)
+            result = SafeRuleParser.evaluate(@ast, locals, params, @rules, next_trace)
 
             if trace
               next_trace.locals=locals
@@ -324,31 +319,13 @@ module MonsoonOpenstackAuth
               # catch no method error and raise rule execution error
           rescue NoMethodError => nme
             raise RuleExecutionError.new(self, locals, params, nme)
-              #return false
               # catch name error and raise rule execution error
           rescue NameError => ne
-            raise RuleExecutionError.new(self, locals, params, nme)
-              #return false
+            raise RuleExecutionError.new(self, locals, params, ne)
               # catch rule execution error from nested rules and raise it up to next
           rescue RuleExecutionError => ree
             raise ree
-              #return false
-              # catch other exceptions and raise rule execution error
-          rescue NameError => ne
-            raise RuleExecutionError.new(self, locals, params, nme)
-            #return false
           end
-        end
-
-        protected
-
-        def extract_required_locals
-          # @parsed_rule.scan(/locals\["([^\]]+)"\]/).flatten
-          @parsed_rule.scan(/locals\["([^\]"]+)"\]/).flatten
-        end
-
-        def extract_required_params
-          @parsed_rule.scan(/params\["([^"]+)".to_sym\]/).flatten
         end
       end
     end

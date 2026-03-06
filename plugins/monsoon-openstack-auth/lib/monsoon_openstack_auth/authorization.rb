@@ -1,8 +1,10 @@
 require 'hashie'
 
 require 'monsoon_openstack_auth/authorization/errors'
+require 'monsoon_openstack_auth/authorization/safe_rule_parser'
 require 'monsoon_openstack_auth/authorization/policy_engine'
 require 'monsoon_openstack_auth/authorization/policy_params'
+require 'monsoon_openstack_auth/authorization/user_authorizer'
 
 module MonsoonOpenstackAuth
   module Authorization
@@ -23,13 +25,41 @@ module MonsoonOpenstackAuth
     end
 
     ################ NEW action-level permissions ######################
+
+    # Resolves a rule name to a fully qualified form.
+    # Handles 4 cases:
+    #   1. Absolute:       "::identity:domain_list" -> "identity:domain_list" (strip leading ::)
+    #   2. Fully qualified: "identity:domain_list"  -> "identity:domain_list" (already has app context)
+    #   3. Auto-derived:    nil (from controller/action) -> "app:controller_action"
+    #   4. Relative:        "domain_list"           -> "app:domain_list" (prepend context)
+    def self.resolve_rule_name(rule_name, application_name, controller_name: nil, action_name: nil)
+      name = rule_name.to_s
+
+      if name.start_with?('::')
+        # Case 1: Absolute - strip leading :: prefix
+        name[2..-1]
+      elsif name.include?(':')
+        # Case 2: Fully qualified - already has context
+        name
+      elsif name.empty? && controller_name && action_name
+        # Case 3: Auto-derived from controller and action
+        determine_rule_name(application_name, controller_name, action_name)
+      else
+        # Case 4: Relative - prepend application context
+        "#{application_name}:#{name}"
+      end
+    end
+
     def self.determine_rule_name(application_name, controller_name, action_name)
       authorization_action = authorization_action_map[action_name.to_sym] || action_name
-      rule_name = "#{application_name}:#{controller_name.singularize}_#{authorization_action.to_s}"
+      "#{application_name}:#{controller_name.singularize}_#{authorization_action.to_s}"
     end
 
     # build policy relevant parameters based on controller params
+    # DEPRECATED: This method is rarely used in practice. Controllers should pass explicit params to enforce_permissions.
+    # TODO: Remove this method in Phase 2 of authentication simplification.
     def self.build_policy_params(controller, controller_params={},options = {})
+      Rails.logger.warn "[DEPRECATED] build_policy_params is deprecated and will be removed. Pass explicit params to enforce_permissions instead."
       params =  controller_params.is_a?(ActionController::Parameters) ? controller_params.to_unsafe_hash : controller_params
       policy_params             = {target: {}}
       # ignore_params             = options.fetch(:ignore_params,[:page,:per_page,:action, :controller])
@@ -65,7 +95,7 @@ module MonsoonOpenstackAuth
             # Caching: try to find already loaded object -> load from db unless found
             object = controller.instance_variable_get("@#{target_name.to_s}")
             unless object
-              klazz = eval(class_name.capitalize)
+              klazz = Object.const_get(class_name.capitalize)
               object = klazz.where(id_alias => value).first
             end
 
@@ -82,7 +112,7 @@ module MonsoonOpenstackAuth
         elsif object.is_a?(Symbol)
           if object.to_s.start_with?('@')
             controller.instance_variable_get(object.to_s) || object
-          elsif controller.repond_to?(object)
+          elsif controller.respond_to?(object)
             controller.send(object)
           else
             object
@@ -149,23 +179,6 @@ module MonsoonOpenstackAuth
 
 
 
-      # Sets up before_action to ensure user is allowed to perform a given controller action
-      #
-      # @param [Class OR Symbol] resource_or_finder - class whose authorizer
-      # should be consulted, or instance method on the controller which will
-      # determine that class when the request is made
-      # @param [Hash] options - can contain :actions to
-      # be merged with existing
-      # ones and any other options applicable to a before_action
-      # <b>DEPRECATED:</b> Please use <tt>authorization_required</tt> instead.
-      def authorization_actions_for(resource_or_finder, options = {})
-        self.authorization_resource = resource_or_finder
-        authorization_actions(overridden_actions(options))
-        before_action options.merge(unless: -> c { c.instance_variable_get("@_skip_authorization") }) do
-          run_authorization_check options
-        end
-      end
-
       # Allows defining and overriding a controller's map of its actions to the model's authorizer methods
       #
       # @param [Hash] action_map - controller actions and methods, to be merged with existing action_map
@@ -174,26 +187,12 @@ module MonsoonOpenstackAuth
         authorization_action_map.merge!(action_map.symbolize_keys)
       end
 
-      # Convenience wrapper for instance method
-      def ensure_authorization_performed(options = {})
-        after_filter(options.slice(:only, :except)) do |controller_instance|
-          controller_instance.ensure_authorization_performed(options)
-        end
-      end
-
       # The controller action to authorization action map used for determining
       # which Rails actions map to which authorization actions (ex: index to read)
       #
       # @return [Hash] A duplicated copy of the configured controller_action_map
       def authorization_action_map
         @authorization_action_map ||= MonsoonOpenstackAuth.configuration.authorization.controller_action_map.dup
-      end
-
-      def overridden_actions(options = {})
-        if forced_action = options.fetch(:all_actions, false)
-          overridden_actions = authorization_action_map.inject({}) { |hash, (key, val)| hash.tap { |h| h[key] = forced_action } }
-        end
-        overridden_actions || options.fetch(:actions, {})
       end
 
     end
@@ -207,27 +206,21 @@ module MonsoonOpenstackAuth
       # enforce_permissions(:user_read,{user: UserObject})
       # enforce_permissions(user: UserObject), rule_name is determined based on the controller and action names
       def enforce_permissions(*options)
-        #context = "#{MonsoonOpenstackAuth.configuration.authorization.context}:"
         application_name = @authorization_context || MonsoonOpenstackAuth.configuration.authorization.context
 
         policy_rules = []
         policy_params = {}
 
         if options.first.is_a?(Hash)
-          # application_name = context || @authorization_context || MonsoonOpenstackAuth.configuration.authorization.context
-          policy_rules = [MonsoonOpenstackAuth::Authorization.determine_rule_name(application_name,self.controller_name,self.action_name)]
+          policy_rules = [MonsoonOpenstackAuth::Authorization.resolve_rule_name(
+            '', application_name,
+            controller_name: self.controller_name, action_name: self.action_name
+          )]
           policy_params = options.first
         else
           policy_rules = options.first.is_a?(Array) ? options.first : [options.first]
           policy_rules = policy_rules.collect do |n|
-            rule_name = n.to_s
-            if rule_name.start_with?('::')
-              rule_name[2..-1]
-            elsif (rule_name.include?(':') and rule_name.start_with?(application_name))
-              rule_name
-            else
-              "#{application_name}:#{rule_name}"
-            end
+            MonsoonOpenstackAuth::Authorization.resolve_rule_name(n, application_name)
           end
           policy_params = options.second
         end
@@ -237,7 +230,6 @@ module MonsoonOpenstackAuth
         if @policy_default_params and @policy_default_params.is_a?(Hash)
           policy_params = @policy_default_params.merge(policy_params)
         end
-
 
         result = if MonsoonOpenstackAuth.configuration.authorization.trace_enabled
           policy_trace = policy.enforce_with_trace(policy_rules, policy_params)
@@ -259,13 +251,6 @@ module MonsoonOpenstackAuth
 
       def authorization_performed?
         !!@authorization_performed
-      end
-
-      def ensure_authorization_performed(options = {})
-        return if authorization_performed?
-        return if options[:if] && !send(options[:if])
-        return if options[:unless] && send(options[:unless])
-        raise AuthorizationNotPerformed, "No authorization was performed for #{self.class.to_s}##{self.action_name}"
       end
 
       protected
@@ -328,38 +313,6 @@ module MonsoonOpenstackAuth
         raise MonsoonOpenstackAuth::Authorization::SecurityViolation.new(authorization_user, os_action, authorization_resource, policy) unless result
       end
 
-
-      def if_allowed?(policy_rules, options={})
-
-        unless options.is_a? Hash
-          raise InvalidResource
-        else
-          mashed_resource = Hashie::Mash.new(options)
-        end
-
-        unless policy_rules.is_a? Array
-          policy_rules = [policy_rules]
-        end
-
-        self.authorization_performed = true
-
-        if params[:policy_trace] && params[:policy_trace] == "1" && !session[:policy_trace]
-          session[:policy_trace] = 1
-        elsif params[:policy_trace] && session[:policy_trace]
-            session.delete(:policy_trace)
-        end
-
-        result = if session[:policy_trace] || MonsoonOpenstackAuth.configuration.authorization.trace_enabled
-          @policy_trace = policy.enforce_with_trace(policy_rules, mashed_resource)
-          @policy_trace.print
-          @policy_trace.result
-        else
-          policy.enforce(policy_rules, mashed_resource)
-        end
-
-        raise MonsoonOpenstackAuth::Authorization::SecurityViolation.new(authorization_user, policy_rules, mashed_resource, policy) unless result
-      end
-
       # Renders a static file to minimize the chances of further errors.
       #
       # @param [Exception] error, an error that indicates the user tried to perform a forbidden action.
@@ -369,24 +322,6 @@ module MonsoonOpenstackAuth
       end
 
       private
-
-      # The `before_action` that will be setup to run when the class method
-      # `authorize_actions_for` is called
-      def run_authorization_check options
-        authorization_action_for instance_authorization_resource, options
-      end
-
-      def instance_authorization_resource
-        return self.class.authorization_resource if self.class.authorization_resource.is_a?(Class)
-        send(self.class.authorization_resource)
-      rescue NoMethodError
-        return self.class.authorization_resource
-        # raise MissingResource.new(
-        #           "Trying to authorize actions for '#{self.class.authorization_resource}', but can't. \
-        #   Must be either a resource class OR the name of a controller instance method that \
-        #   returns one.".squeeze(' ')
-        #       )
-      end
 
       def policy
         if !@policy || (authorization_user and authorization_user.id != @policy.user.id)

@@ -10,7 +10,7 @@ module MonsoonOpenstackAuth
       end
 
       def enabled?
-        @enabled ||= read_value("user.enabled")
+        @enabled ||= @context.dig("user", "enabled")
       end
 
       # Returns the token value (auth_token)
@@ -19,63 +19,63 @@ module MonsoonOpenstackAuth
       end
 
       def is_admin_project_token?
-        @is_admin_project_token ||= read_value("is_admin_project")
+        @is_admin_project_token ||= @context.dig("is_admin_project")
       end
 
       def id
-        @id ||= read_value("user.id")
+        @id ||= @context.dig("user", "id")
       end
 
       def name
-        @name ||= read_value("user.name")
+        @name ||= @context.dig("user", "name")
       end
 
       def description
-        @description ||= read_value("user.description")
+        @description ||= @context.dig("user", "description")
       end
 
       def user_domain_id
-        @user_domain_id ||= read_value("user.domain.id")
+        @user_domain_id ||= @context.dig("user", "domain", "id")
       end
 
       def user_domain_name
-        @user_domain_name ||= read_value("user.domain.name")
+        @user_domain_name ||= @context.dig("user", "domain", "name")
       end
 
       def domain_id
-        @domain_id ||= read_value("domain.id")
+        @domain_id ||= @context.dig("domain", "id")
       end
 
       def domain_name
-        @domain_name ||= read_value("domain.name")
+        @domain_name ||= @context.dig("domain", "name")
       end
 
       def project_id
-        @project_id ||= read_value("project.id")
+        @project_id ||= @context.dig("project", "id")
       end
 
       def project_name
-        @project_name ||= read_value("project.name")
+        @project_name ||= @context.dig("project", "name")
       end
 
       def project_parent_id
-        @project_parent_id ||= read_value("project.parent_id")
+        @project_parent_id ||= @context.dig("project", "parent_id")
       end
 
       def project_domain_id
-        @project_domain_id ||= read_value("project.domain.id")
+        @project_domain_id ||= @context.dig("project", "domain", "id")
       end
 
       def project_domain_name
-        @project_domain_name ||= read_value("project.domain.name")
+        @project_domain_name ||= @context.dig("project", "domain", "name")
       end
 
       def project_scoped
-        @project_scoped ||= read_value("project")
+        @project_scoped ||= @context.dig("project")
       end
 
       def domain_scoped
-        @domain_scoped ||= read_value("domain")
+        @domain_scoped ||= @context.dig("domain")
       end
 
       def token_expires_at
@@ -103,7 +103,7 @@ module MonsoonOpenstackAuth
       end
 
       def roles
-        @roles ||= (@context["roles"] || read_value("user.roles") || [])
+        @roles ||= (@context["roles"] || @context.dig("user", "roles") || [])
       end
 
       def role_names
@@ -179,40 +179,17 @@ module MonsoonOpenstackAuth
       end
 
       def is_allowed?(actions, params={})
-        unless params.is_a? Hash
-          params_hash = Hash.new
-          params_hash[params.class.name.downcase.to_sym] = params
-        else
-          params_hash = params
-        end
-        @policy ||= MonsoonOpenstackAuth.policy_engine.policy(self)
-        result = if MonsoonOpenstackAuth.configuration.authorization.trace_enabled
-                   policy_trace = @policy.enforce_with_trace(actions, params_hash)
-                   policy_trace.print
-                   policy_trace.result
-                 else
-                   @policy.enforce(actions, params_hash)
-                 end
-        return result
+        authorizer.is_allowed?(actions, params)
       end
 
       def required_roles(rules)
-        @policy ||= MonsoonOpenstackAuth.policy_engine.policy(self)
-        @policy.involved_roles(rules)
+        authorizer.required_roles(rules)
       end
 
       protected
 
-      # Returns a value from context for given key.
-      # example for key: "user.id"
-      def read_value(key)
-        keys = key.split('.')
-        result = @context
-        keys.each do |k|
-          return nil unless result
-          result = result[k]
-        end
-        return result
+      def authorizer
+        @authorizer ||= MonsoonOpenstackAuth::Authorization::UserAuthorizer.new(self)
       end
     end
   end
