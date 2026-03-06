@@ -82,7 +82,7 @@ module MonsoonOpenstackAuth
         elsif object.is_a?(Symbol)
           if object.to_s.start_with?('@')
             controller.instance_variable_get(object.to_s) || object
-          elsif controller.repond_to?(object)
+          elsif controller.respond_to?(object)
             controller.send(object)
           else
             object
