@@ -70,7 +70,7 @@ module Identity
         @error = "User not found."
         render action: :new_member
       elsif @group_members.find { |user| user.id == @user.id }
-        @error = "User is already a member of this project."
+        @error = "User is already a member of this domain."
         render action: :new_member
       elsif @user.domain_id != @scoped_domain_id
         @error = "User is not a member of this domain."
