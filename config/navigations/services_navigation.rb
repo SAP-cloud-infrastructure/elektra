@@ -127,7 +127,7 @@ SimpleNavigation::Configuration.run do |navigation|
                      (plugin_available?(:kubernetes_ng) && (
                        services.available?(:kubernetes_ng, :prod) ||
                        services.available?(:kubernetes_ng, :canary) ||
-                       services.available?(:kubernetes_ng, :qa)
+                       (services.available?(:kubernetes_ng, :qa) && current_region == "qa-de-1")
                      ))
                    } do |containers_nav|
       containers_nav.item :kubernetes,
