@@ -5,7 +5,8 @@ import { useCodeMirror } from "./useCodeMirror"
 import { useEditorHeight } from "./useEditorHeight"
 import { useYamlSerialization } from "./useYamlSerialization"
 import { useYamlEditorState } from "./useYamlEditorState"
-import { CancelConfirmDialog, ResourceVersionConflictDialog } from "./dialogs"
+import { useNavigationBlock } from "./useNavigationBlock"
+import { CancelConfirmDialog, ResourceVersionConflictDialog, NavigationBlockDialog } from "./dialogs"
 
 const TOOLBAR_HEIGHT = 50
 
@@ -62,13 +63,21 @@ export default function YamlEditor({
     onDocChange: editorState.setEditedYaml,
   })
 
+  // Block navigation when there are unsaved changes
+  const navigationBlock = useNavigationBlock({
+    hasUnsavedChanges: editorState.hasChanges,
+  })
+
   return (
     <div ref={containerRef} className={`yaml-editor-wrapper ${className}`} {...props}>
       <div
-        className="tw-flex tw-items-center tw-bg-theme-background-lvl-1 tw-py-3 tw-px-6 tw-mb-px"
+        className="yaml-editor-toolbar tw-flex tw-items-center tw-bg-theme-background-lvl-1 tw-py-3 tw-px-6 tw-mb-px"
         style={{ height: `${TOOLBAR_HEIGHT}px` }}
       >
-        <div className="yaml-editor-toolbar tw-ml-auto">
+        <div className="tw-text-sm tw-text-theme-text-secondary">
+          {editorState.isEditable ? "Edit Mode" : "Read Mode"}
+        </div>
+        <div className="tw-ml-auto">
           <Stack alignment="center" gap="2">
             <DisableableButton
               size="small"
@@ -104,6 +113,11 @@ export default function YamlEditor({
         isOpen={editorState.showVersionConflictDialog}
         onCancel={editorState.handleVersionConflictCancel}
         onConfirm={editorState.handleVersionConflictConfirm}
+      />
+      <NavigationBlockDialog
+        isOpen={navigationBlock.isBlocked}
+        onCancel={navigationBlock.reset}
+        onConfirm={navigationBlock.proceed}
       />
     </div>
   )

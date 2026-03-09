@@ -120,8 +120,17 @@ SimpleNavigation::Configuration.run do |navigation|
                  },
                  if:
                    lambda {
-                     plugin_available?(:kubernetes) && current_user &&
-                       current_user.has_service?('kubernikus')
+                     # Show if old kubernetes (kubernikus) is available
+                     (plugin_available?(:kubernetes) && current_user &&
+                       current_user.has_service?('kubernikus')) ||
+                     # Or if any kubernetes_ng landscape is available with correct conditions
+                     (plugin_available?(:kubernetes_ng) && (
+                       # prod/canary with persephone tag OR in qa-de-1
+                       ((services.available?(:kubernetes_ng, :prod) || services.available?(:kubernetes_ng, :canary)) &&
+                         (current_region == "qa-de-1" || @active_project&.tags&.include?('persephone'))) ||
+                       # qa in qa-de-1 region
+                       (services.available?(:kubernetes_ng, :qa) && current_region == "qa-de-1")
+                     ))
                    } do |containers_nav|
       containers_nav.item :kubernetes,
                           'Kubernetes',
@@ -133,14 +142,31 @@ SimpleNavigation::Configuration.run do |navigation|
                             },
                           highlights_on:
                             proc { params[:controller][%r{kubernetes/.*}] }
-      containers_nav.item :kubernetes_ng,
-                          'Kubernetes (Gardener)',
-                          -> { plugin('kubernetes_ng').root_path },
-                          if:
-                            lambda {
-                              plugin_available?(:kubernetes_ng) && current_region == "qa-de-1" && services.available?(:kubernetes_ng) },
-                          highlights_on:
-                            proc { params[:controller][%r{kubernetes_ng/.*}] }
+
+      # Generate navigation items for each kubernetes_ng landscape
+      KubernetesNg::LANDSCAPES.each do |landscape_name, config|
+        nav_label = config[:nav_label]
+        containers_nav.item :"kubernetes_ng_#{landscape_name}",
+                            capture {
+                              concat "#{nav_label} "
+                              concat content_tag(:span, 'gardener', class: 'label label-info')
+                            },
+                            -> { plugin('kubernetes_ng').service_path(landscape_name: landscape_name) },
+                            if: lambda {
+                              plugin_available?(:kubernetes_ng) &&
+                                services.available?(:kubernetes_ng, landscape_name.to_sym) &&
+                                if config[:user_facing]
+                                  # prod/canary: with persephone tag OR in qa-de-1
+                                  current_region == "qa-de-1" || @active_project&.tags&.include?('persephone')
+                                else
+                                  # qa: only in qa-de-1 region
+                                  current_region == "qa-de-1"
+                                end
+                            },
+                            highlights_on: proc {
+                              params[:controller][%r{kubernetes_ng/.*}] && request.path.include?("/#{landscape_name}")
+                            }
+      end
     end
 
     primary.item :hana,

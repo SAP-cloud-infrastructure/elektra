@@ -3,21 +3,24 @@
 module ServiceLayer
   # kubernetesNG implements the bff for the gardener API
   class KubernetesNgService < Core::ServiceLayer::Service
-    attr_accessor :scoped_project_id, :scoped_region
+    attr_accessor :scoped_project_id, :scoped_region, :landscape_name
 
     include KubernetesNgServices::CloudProfiles
     include KubernetesNgServices::Clusters
     include KubernetesNgServices::Permissions
 
-    def available?(_action_name_sym = nil)
-      elektron.service?("gardener")
+    def available?(landscape_name_or_action = nil)
+      service_to_check = KubernetesNg.service_for(landscape_name_or_action.to_s)
+      return false unless service_to_check
+      elektron.service?(service_to_check)
     end
 
-    # Return a scoped version of this service with project_id and region set
-    # Usage: services.kubernetes_ng.scoped(project_id, region).list_clusters
-    def scoped(project_id, region)
+    # Return a scoped version of this service with project_id, region, and landscape_name set
+    # Usage: services.kubernetes_ng.scoped(project_id, region, landscape_name).list_clusters
+    def scoped(project_id, region, landscape_name = nil)
       @scoped_project_id = project_id
       @scoped_region = region
+      @landscape_name = landscape_name
       self
     end
 
@@ -26,9 +29,13 @@ module ServiceLayer
     # thats why we add a new authorization header here
     def elektron_gardener
       region = ENV["MONSOON_DASHBOARD_REGION"]
-      @elektron_identity ||=
+      mapped_service_name = gardener_service_name
+
+      # Cache per landscape to avoid issues when landscape changes
+      @elektron_gardener_cache ||= {}
+      @elektron_gardener_cache[mapped_service_name] ||=
         elektron.service(
-          "gardener",
+          mapped_service_name,
            headers:{
             "Authorization":"Bearer #{region}:#{elektron.token}"
           }
@@ -36,6 +43,16 @@ module ServiceLayer
     end
 
     private
+
+    # Get the actual Gardener service name based on the landscape_name
+    # e.g., 'prod' => 'persephone-prod', 'canary' => 'persephone-canary'
+    # Raises error if landscape_name is invalid
+    def gardener_service_name
+      mapped_name = KubernetesNg.service_for(@landscape_name)
+      valid_options = KubernetesNg.user_facing_landscapes.join(', ')
+      raise KubernetesNg::LandscapeError, "Invalid or missing landscape name: #{@landscape_name.inspect}. Valid options: #{valid_options}" if mapped_name.nil?
+      mapped_name
+    end
 
     # Build the Gardener namespace for a given project and region
     def garden_namespace

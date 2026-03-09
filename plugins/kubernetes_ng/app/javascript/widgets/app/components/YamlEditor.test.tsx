@@ -7,6 +7,15 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { act } from "react-dom/test-utils"
 import { PortalProvider } from "@cloudoperators/juno-ui-components"
 
+// Mock useBlocker from TanStack Router
+vi.mock("@tanstack/react-router", () => ({
+  useBlocker: () => ({
+    status: "idle",
+    proceed: vi.fn(),
+    reset: vi.fn(),
+  }),
+}))
+
 // Helper to render YamlEditor with QueryClientProvider
 const renderYamlEditor = ({
   resource = {},
@@ -89,6 +98,28 @@ describe("<YamlEditor />", () => {
     // Verify editor is in read-only mode by checking aria attributes on the content element
     const editorContent = within(editorWrapper).getByLabelText("YAML data viewer (read-only)")
     expect(editorContent).toHaveAttribute("aria-readonly", "true")
+  })
+
+  it("displays Read Mode indicator by default", async () => {
+    await act(async () =>
+      renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+    )
+
+    expect(screen.getByText("Read Mode")).toBeInTheDocument()
+  })
+
+  it("displays Edit Mode indicator when in edit mode", async () => {
+    await act(async () =>
+      renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+    )
+
+    const editButton = screen.getByRole("button", { name: /edit/i })
+    act(() => {
+      editButton.click()
+    })
+
+    expect(screen.getByText("Edit Mode")).toBeInTheDocument()
+    expect(screen.queryByText("Read Mode")).not.toBeInTheDocument()
   })
 
   it("converts object to YAML and displays it", async () => {
@@ -282,6 +313,50 @@ describe("<YamlEditor />", () => {
       expect(content).toContain("name")
       expect(content).toContain("version")
       expect(content).toContain("metadata")
+    })
+  })
+
+  it("supports Tab key for indentation in edit mode", async () => {
+    await act(async () =>
+      renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
+    )
+
+    // Enter edit mode
+    const editButton = screen.getByRole("button", { name: /edit/i })
+    act(() => {
+      editButton.click()
+    })
+
+    // Wait for editor to be ready
+    await waitFor(() => {
+      const editorWrapper = screen.getByTestId("yaml-editor")
+      const editableContent = within(editorWrapper).getByLabelText("YAML data editor")
+      expect(editableContent).toHaveAttribute("aria-readonly", "false")
+    })
+
+    // Get the CodeMirror editor content using role
+    const editorWrapper = screen.getByTestId("yaml-editor")
+    const editorContent = within(editorWrapper).getByRole("textbox")
+    expect(editorContent).toBeInTheDocument()
+
+    // Simulate Tab key press on the contenteditable element
+    await act(async () => {
+      // Create and dispatch a proper keyboard event with Tab
+      const tabEvent = new KeyboardEvent("keydown", {
+        key: "Tab",
+        code: "Tab",
+        keyCode: 9,
+        which: 9,
+        bubbles: true,
+        cancelable: true,
+      })
+      editorContent.dispatchEvent(tabEvent)
+    })
+
+    // Verify that changes were registered (Save button should be enabled)
+    await waitFor(() => {
+      const saveButton = screen.getByRole("button", { name: /save/i })
+      expect(saveButton).not.toBeDisabled()
     })
   })
 

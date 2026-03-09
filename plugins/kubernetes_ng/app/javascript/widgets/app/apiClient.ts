@@ -1,5 +1,4 @@
 import { createAjaxHelper } from "lib/ajax_helper"
-import { widgetBasePath } from "lib/widget"
 import { Cluster, ClusterSchema, ClustersSchema } from "./types/cluster"
 import { Permissions, PermissionsSchema } from "./types/permissions"
 import { CloudProfile, CloudProfilesSchema } from "./types/cloudProfiles"
@@ -22,9 +21,9 @@ export const gardenerTestApi = {
   getKubeconfigPermission: () => Promise.resolve({ list: true, get: true, create: true, update: true, delete: true }),
 }
 
-export function createGardenerApi(mountpoint: string) {
-  const baseURL = widgetBasePath(mountpoint)
-  const apiClient = createAjaxHelper({ baseURL })
+export function createGardenerApi(basepath: string) {
+  // Use basepath directly - it already includes the landscape (e.g., /kubernetes-gardener/prod)
+  const apiClient = createAjaxHelper({ baseURL: basepath })
 
   const shootApi = {
     getClusters: () =>
