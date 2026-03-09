@@ -1,8 +1,9 @@
 import { useEffect, useRef } from "react"
-import { EditorView, highlightWhitespace, highlightActiveLine, lineNumbers } from "@codemirror/view"
+import { EditorView, highlightWhitespace, highlightActiveLine, lineNumbers, keymap } from "@codemirror/view"
 import { EditorState, Compartment } from "@codemirror/state"
 import { yaml } from "@codemirror/lang-yaml"
 import { defaultHighlightStyle, syntaxHighlighting } from "@codemirror/language"
+import { indentWithTab } from "@codemirror/commands"
 
 // Compartments for dynamic reconfiguration
 const editableCompartment = new Compartment()
@@ -43,6 +44,7 @@ function createEditorExtensions(
     highlightWhitespace(),
     highlightActiveLine(),
     lineNumbers(),
+    keymap.of([indentWithTab]),
     EditorView.lineWrapping,
     EditorView.theme({
       ".cm-highlightSpace": {
@@ -57,7 +59,7 @@ function createEditorExtensions(
         fontFamily: "monospace",
       },
     }),
-    EditorView.editorAttributes.of({ class: "yaml-editor" }),
+    EditorView.editorAttributes.of({ class: "yaml-editor-content" }),
     ariaCompartment.of(createAriaExtension(isEditable)),
     editableCompartment.of(createEditableExtension(false)),
     heightCompartment.of(createHeightExtension(editorHeight)),

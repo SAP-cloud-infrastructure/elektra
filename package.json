@@ -2,6 +2,7 @@
   "dependencies": {
     "@cloudoperators/juno-messages-provider": "0.2.5",
     "@cloudoperators/juno-ui-components": "3.1.1",
+    "@codemirror/commands": "^6.10.2",
     "@codemirror/lang-yaml": "^6.1.2",
     "@codemirror/language": "^6.12.2",
     "@codemirror/state": "^6.5.4",
