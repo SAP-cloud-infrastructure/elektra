@@ -15,7 +15,7 @@
 # You can also pull the image manually: docker pull keppel.eu-de-1.cloud.sap/ccloud-dockerhub-mirror/library/ruby:3.2.5-alpine3.20
 
 # check for latest version https://hub.docker.com/_/ruby/tags
-FROM keppel.eu-de-1.cloud.sap/ccloud-dockerhub-mirror/library/ruby:3.4.5-alpine3.22 AS base 
+FROM keppel.eu-de-1.cloud.sap/ccloud-dockerhub-mirror/library/ruby:3.4.8-alpine3.22 AS base 
 LABEL source_repository="https://github.com/sapcc/elektra"
 
 ENV APP_PATH=/home/app
@@ -53,7 +53,7 @@ RUN apk --no-cache add postgresql16-dev ruby-sassc \
     byebug:12.0.0 \
     ffi:1.17.2 \
     nio4r:2.7.5 \
-    nokogiri:1.18.10 \
+    nokogiri:1.19.1 \
     pg:1.3.4 \
     puma:6.4.3  \
     redcarpet:3.6.1 \
@@ -123,11 +123,6 @@ RUN curl -fL http://aia.pki.co.sap.com/aia/SAP%20Global%20Root%20CA.crt -o /usr/
 # to upgrade the image to the latest
 # this is used to ensure all packages are up to date and vulnerable packages are fixed
 RUN apk update && apk upgrade
-
-# rexml version 3.4.0 has a vulnerability see https://avd.aquasec.com/nvd/cve-2025-58767
-# we need to install version 3.4.2 and remove 3.4.0
-# Note: this needs to be removed once the base image is updated to a newer ruby version which includes rexml 3.4.2
-RUN gem install rexml -v 3.4.2 && rm /usr/local/lib/ruby/gems/3.4.0/specifications/rexml-3.4.0.gemspec
 
 # Note: in our k8s this will be overwriten from deployment
 ENTRYPOINT ["dumb-init", "-c", "--" ]
