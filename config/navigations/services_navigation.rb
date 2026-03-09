@@ -121,10 +121,7 @@ SimpleNavigation::Configuration.run do |navigation|
                  if:
                    lambda {
                      # Load current project to check tags
-                     active_project = if @scoped_project_id
-                       cached_project = ObjectCache.where(id: @scoped_project_id).first
-                       cached_project ? Identity::Project.new(services.identity, cached_project.payload) : nil
-                     end
+                     active_project = load_project_for_navigation
 
                      # Show if old kubernetes (kubernikus) is available
                      (plugin_available?(:kubernetes) && current_user &&
@@ -158,10 +155,7 @@ SimpleNavigation::Configuration.run do |navigation|
                             -> { plugin('kubernetes_ng').service_path(landscape_name: landscape_name) },
                             if: lambda {
                               # Load current project to check tags
-                              active_project = if @scoped_project_id
-                                cached_project = ObjectCache.where(id: @scoped_project_id).first
-                                cached_project ? Identity::Project.new(services.identity, cached_project.payload) : nil
-                              end
+                              active_project = load_project_for_navigation
 
                               plugin_available?(:kubernetes_ng) &&
                                 services.available?(:kubernetes_ng, landscape_name.to_sym) &&
