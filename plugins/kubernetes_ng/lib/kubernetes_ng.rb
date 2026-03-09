@@ -10,7 +10,7 @@ module KubernetesNg
   LANDSCAPES = {
     'prod' => {
       service: 'persephone-prod',
-      display_name: 'Prod',
+      display_name: '',
       nav_label: 'Kubernetes',
       user_facing: true
     },

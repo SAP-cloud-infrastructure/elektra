@@ -145,12 +145,10 @@ SimpleNavigation::Configuration.run do |navigation|
 
       # Generate navigation items for each kubernetes_ng landscape
       KubernetesNg::LANDSCAPES.each do |landscape_name, config|
-        nav_label = config[:nav_label]
+        display_name = config[:display_name]
+        label = display_name.empty? ? "Kubernetes (Gardener)" : "Kubernetes (Gardener #{display_name})"
         containers_nav.item :"kubernetes_ng_#{landscape_name}",
-                            capture {
-                              concat "#{nav_label} "
-                              concat content_tag(:span, 'gardener', class: 'label label-info')
-                            },
+                            label,
                             -> { plugin('kubernetes_ng').service_path(landscape_name: landscape_name) },
                             if: lambda {
                               plugin_available?(:kubernetes_ng) &&
