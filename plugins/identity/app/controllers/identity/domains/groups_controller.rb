@@ -4,7 +4,9 @@ module Identity
   module Domains
     # This class implements Group actions
     class GroupsController < ::DashboardController
-    def show
+      before_action :check_feature_enabled
+
+      def show
       enforce_permissions("identity:group_get", domain_id: @scoped_domain_id)
       @group = services.identity.find_group(params[:id])
 
@@ -189,6 +191,15 @@ module Identity
         flash[:error] = @group.errors.full_messages.to_sentence
       end
       redirect_to domains_groups_path(domain_id: @scoped_domain_id)
+    end
+
+    private
+
+    def check_feature_enabled
+      if @domain_config&.feature_hidden?('group_management')
+        flash[:error] = "Group management is not available for this domain."
+        redirect_to main_app.domain_home_path(domain_id: @scoped_domain_id)
+      end
     end
   end
 end

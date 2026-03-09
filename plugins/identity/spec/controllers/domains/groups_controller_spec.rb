@@ -332,7 +332,7 @@ describe Identity::Domains::GroupsController, type: :controller do
         post :add_member, params: default_params.merge(group_id: "1", user_name: "testuser")
 
         expect(response).to render_template(:new_member)
-        expect(assigns(:error)).to eq("User is already a member of this project.")
+        expect(assigns(:error)).to eq("User is already a member of this domain.")
       end
     end
 
