@@ -120,6 +120,12 @@ SimpleNavigation::Configuration.run do |navigation|
                  },
                  if:
                    lambda {
+                     # Load current project to check tags
+                     active_project = if @scoped_project_id
+                       cached_project = ObjectCache.where(id: @scoped_project_id).first
+                       cached_project ? Identity::Project.new(services.identity, cached_project.payload) : nil
+                     end
+
                      # Show if old kubernetes (kubernikus) is available
                      (plugin_available?(:kubernetes) && current_user &&
                        current_user.has_service?('kubernikus')) ||
@@ -127,7 +133,7 @@ SimpleNavigation::Configuration.run do |navigation|
                      (plugin_available?(:kubernetes_ng) && (
                        # prod/canary with persephone tag OR in qa-de-1
                        ((services.available?(:kubernetes_ng, :prod) || services.available?(:kubernetes_ng, :canary)) &&
-                         (current_region == "qa-de-1" || @active_project&.tags&.include?('persephone'))) ||
+                         (current_region == "qa-de-1" || active_project&.tags&.include?('persephone'))) ||
                        # qa in qa-de-1 region
                        (services.available?(:kubernetes_ng, :qa) && current_region == "qa-de-1")
                      ))
@@ -151,11 +157,17 @@ SimpleNavigation::Configuration.run do |navigation|
                             label,
                             -> { plugin('kubernetes_ng').service_path(landscape_name: landscape_name) },
                             if: lambda {
+                              # Load current project to check tags
+                              active_project = if @scoped_project_id
+                                cached_project = ObjectCache.where(id: @scoped_project_id).first
+                                cached_project ? Identity::Project.new(services.identity, cached_project.payload) : nil
+                              end
+
                               plugin_available?(:kubernetes_ng) &&
                                 services.available?(:kubernetes_ng, landscape_name.to_sym) &&
                                 if config[:user_facing]
                                   # prod/canary: with persephone tag OR in qa-de-1
-                                  current_region == "qa-de-1" || @active_project&.tags&.include?('persephone')
+                                  current_region == "qa-de-1" || active_project&.tags&.include?('persephone')
                                 else
                                   # qa: only in qa-de-1 region
                                   current_region == "qa-de-1"
