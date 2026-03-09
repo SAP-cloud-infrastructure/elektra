@@ -233,7 +233,7 @@ class CacheController < ::ScopeController
     # only currently active and valid users can be found and assigned roles.
     skip_cache = !!params[:nocache]
     term = params[:term]
-    domain_id = params[:domain]
+    domain_id = params[:domain] || @scoped_domain_id
 
     
     # Try cache first unless skip_cache is true
@@ -323,7 +323,7 @@ class CacheController < ::ScopeController
     unless items.nil? || items.empty?
       items = items.to_a.map { |g| { id: g.id, name: g.name } }
     else 
-      filter = {domain_id: params[:domain]}
+      filter = {domain_id: params[:domain] || @scoped_domain_id}
       if params[:term]
         filter[:name__contains] = params[:term]
       end
