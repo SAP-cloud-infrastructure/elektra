@@ -6,7 +6,7 @@ import HeadingInfo from "./HeadingInfo"
 describe("HeadingInfo", () => {
   it("renders with collapsed instructions by default", () => {
     render(<HeadingInfo />)
-    const button = screen.getByRole("button", { name: /show managing clusters with kubectl/i })
+    const button = screen.getByRole("button", { name: /show kubectl setup instructions/i })
     expect(button).toBeInTheDocument()
     expect(button).toHaveAttribute("aria-expanded", "false")
   })
@@ -15,11 +15,11 @@ describe("HeadingInfo", () => {
     const user = userEvent.setup()
     render(<HeadingInfo />)
 
-    const button = screen.getByRole("button", { name: /show managing clusters with kubectl/i })
+    const button = screen.getByRole("button", { name: /show kubectl setup instructions/i })
     await user.click(button)
 
     expect(button).toHaveAttribute("aria-expanded", "true")
-    expect(screen.getByText(/hide managing clusters with kubectl/i)).toBeInTheDocument()
+    expect(screen.getByText(/hide kubectl setup instructions/i)).toBeInTheDocument()
     expect(screen.getByText(/For conveniently managing your clusters with kubectl/i)).toBeInTheDocument()
   })
 })

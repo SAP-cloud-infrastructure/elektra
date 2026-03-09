@@ -63,7 +63,7 @@ describe("<Clusters />", () => {
   it("renders kubectl instructions info", async () => {
     await act(async () => renderComponent())
 
-    const instructionsButton = screen.getByRole("button", { name: /show managing clusters with kubectl/i })
+    const instructionsButton = screen.getByRole("button", { name: /show kubectl setup instructions/i })
     expect(instructionsButton).toBeInTheDocument()
   })
 
