@@ -16,4 +16,31 @@ class AjaxController < ::ScopeController
                             c.instance_variable_get(:@scoped_project_id)
                           },
                           rescope: true
+
+  before_action :load_active_project
+
+  protected
+
+  def load_active_project
+    return unless @scoped_project_id
+
+    # load active project. Try first from ObjectCache and then from API
+
+    cached_active_project = ObjectCache.where(id: @scoped_project_id).first
+    @active_project = if cached_active_project
+      Identity::Project.new(services.identity, cached_active_project.payload)
+    else
+      service_user.identity.find_project(@scoped_project_id)
+    end
+
+    return if @active_project && @active_project.name == @scoped_project_name
+
+    @active_project =
+      services.identity.find_project(
+        @scoped_project_id,
+        subtree_as_ids: true,
+        parents_as_ids: true
+      )
+    FriendlyIdEntry.update_project_entry(@active_project)
+  end
 end
