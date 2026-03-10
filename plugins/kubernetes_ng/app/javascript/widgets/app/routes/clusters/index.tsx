@@ -11,6 +11,7 @@ import CreateClusterWizard from "./-components/CreateClusterWizard"
 import { GardenerApi } from "../../apiClient"
 import DisableableButton from "../../components/DisableableButton"
 import { useActions } from "@cloudoperators/juno-messages-provider"
+import HeadingInfo from "./-components/HeadingInfo"
 
 export const CLUSTERS_ROUTE_ID = "/clusters/"
 
@@ -43,11 +44,7 @@ export const Route = createFileRoute(CLUSTERS_ROUTE_ID)({
 })
 
 function ClustersPageHeader({ children }: { children?: React.ReactNode }) {
-  return (
-    <PageHeader title="Kubernetes Clusters" subtitle="Manage your VM-based Kubernetes deployments">
-      {children}
-    </PageHeader>
-  )
+  return <PageHeader title="Kubernetes Clusters">{children}</PageHeader>
 }
 
 function ClustersErrorBoundary({ children }: { children?: React.ReactNode }) {
@@ -139,10 +136,11 @@ function Clusters(props: ClustersViewProps) {
         <ClusterActions permissions={permissions} disabled={isLoading} onAddCluster={() => setShowWizardModal(true)} />
       </ClustersPageHeader>
 
+      <HeadingInfo />
+
       {showWizardModal && (!client || !region) && (
         <InlineError error={new Error("Cannot open cluster creation wizard: missing client or region.")} />
       )}
-
       {showWizardModal && client && region && (
         <CreateClusterWizard
           isOpen={showWizardModal}

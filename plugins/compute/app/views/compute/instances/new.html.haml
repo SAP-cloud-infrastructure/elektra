@@ -93,10 +93,10 @@
     #kvm_volume_type{class:'hidden'}
       = f.input :kvm_volume_type, label: 'KVM Volume Type',
         as: :select,
-        collection: render_available_volume_types(@available_volume_types, 'kvm'),
+        collection: render_available_volume_types(@available_volume_types, 'premium'),
         include_blank: "Choose volume type",
         required: true
-
+ 
     :javascript
       function renderImages() {
         if ($('#server_flavor_id option:selected').text().match(/ironic/)) {

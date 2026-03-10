@@ -1,5 +1,5 @@
 import React from "react"
-import { render, screen, within, fireEvent, act } from "@testing-library/react"
+import { render, screen, within, fireEvent, act, waitFor } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import ReadinessConditions from "./ReadinessConditions"
 import {
@@ -9,6 +9,7 @@ import {
   ReadinessConditionPending,
 } from "../mocks/data"
 import { ReadinessCondition } from "../types/cluster"
+import userEvent from "@testing-library/user-event"
 
 describe("<ReadinessConditions />", () => {
   describe("badges", () => {
@@ -22,6 +23,12 @@ describe("<ReadinessConditions />", () => {
       expect(screen.getByText(ReadinessConditionTrue.displayValue)).toBeInTheDocument()
       expect(screen.getByText(ReadinessConditionFalse.displayValue)).toBeInTheDocument()
       expect(screen.getByText(ReadinessConditionUnknown.displayValue)).toBeInTheDocument()
+    })
+
+    it("renders tooltips with condition types", async () => {
+      render(<ReadinessConditions conditions={[ReadinessConditionTrue]} />)
+      await waitFor(() => userEvent.hover(screen.getByText(ReadinessConditionTrue.displayValue)))
+      expect(screen.getByText(ReadinessConditionTrue.type)).toBeInTheDocument()
     })
 
     it("applies success variant when status is True without icon", () => {

@@ -30,7 +30,7 @@ gem 'friendly_id'
 gem 'high_voltage'
 gem 'kaminari'
 gem 'simple-navigation' # Navigation menu builder
-gem 'nokogiri', '>= 1.18.9'
+gem 'nokogiri', '>= 1.19.1'
 
 gem 'responders'
 

@@ -1,5 +1,15 @@
 import React, { useState } from "react"
-import { Badge, Stack, Grid, GridRow, GridColumn, Icon } from "@cloudoperators/juno-ui-components"
+import {
+  Badge,
+  Stack,
+  Grid,
+  GridRow,
+  GridColumn,
+  Icon,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@cloudoperators/juno-ui-components"
 import { ReadinessCondition } from "../types/cluster"
 import Box from "./Box"
 import Collapse from "./Collapse"
@@ -17,7 +27,17 @@ const getReadinessConditionVariant = (status: string): ConditionVariant =>
 
 const ConditionBadge: React.FC<{ condition: ReadinessCondition }> = ({ condition }) => {
   const variant = getReadinessConditionVariant(condition.status)
-  return <Badge text={condition.displayValue} icon={variant !== "success"} variant={variant} data-variant={variant} />
+  return (
+    <Tooltip triggerEvent="hover">
+      {/* Badge doesn't forward refs, so we need a wrapper div for the tooltip trigger */}
+      <TooltipTrigger asChild>
+        <div>
+          <Badge text={condition.displayValue} icon={variant !== "success"} variant={variant} data-variant={variant} />
+        </div>
+      </TooltipTrigger>
+      <TooltipContent>{condition.type}</TooltipContent>
+    </Tooltip>
+  )
 }
 
 const renderCondition = (condition: ReadinessCondition) => {
