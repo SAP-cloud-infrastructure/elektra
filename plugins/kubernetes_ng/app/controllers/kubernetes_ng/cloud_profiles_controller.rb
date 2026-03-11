@@ -1,5 +1,5 @@
 module KubernetesNg
-  class CloudProfilesController < ApplicationController
+  class CloudProfilesController < Api::BaseController
     def index
       handle_api_call do
         kubernetes_service.list_cloud_profiles

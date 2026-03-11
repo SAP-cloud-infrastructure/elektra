@@ -5,7 +5,7 @@ RESOURCE_MAPPING = {
 }
 
 module KubernetesNg
-  class PermissionsController < ApplicationController
+  class PermissionsController < Api::BaseController
     def index
       handle_api_call(auto_render: false) do
         resource = params[:resource]
