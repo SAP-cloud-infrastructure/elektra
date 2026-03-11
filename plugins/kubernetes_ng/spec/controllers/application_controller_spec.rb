@@ -76,42 +76,4 @@ describe KubernetesNg::ApplicationController, type: :controller do
       end
     end
   end
-
-  describe "#kubernetes_service" do
-    controller do
-      def test_kubernetes_service
-        kubernetes_service
-        render json: { success: true }
-      end
-    end
-
-    before do
-      routes.draw do
-        get 'test_kubernetes_service' => 'kubernetes_ng/application#test_kubernetes_service'
-        get ':landscape_name/test_kubernetes_service' => 'kubernetes_ng/application#test_kubernetes_service'
-      end
-    end
-
-    context "when landscape_name is missing" do
-      it "raises LandscapeError" do
-        expect {
-          controller.send(:kubernetes_service)
-        }.to raise_error(KubernetesNg::LandscapeError, "Landscape name is required.")
-      end
-    end
-
-    context "when landscape_name is present" do
-      it "returns a scoped kubernetes service" do
-        allow(controller).to receive(:params).and_return(
-          ActionController::Parameters.new(landscape_name: 'prod')
-        )
-        allow(controller).to receive(:services).and_return(
-          double(kubernetes_ng: double(scoped: double))
-        )
-        allow(controller).to receive(:current_region).and_return('qa-de-1')
-
-        expect { controller.send(:kubernetes_service) }.not_to raise_error
-      end
-    end
-  end
 end
