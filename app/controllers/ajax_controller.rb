@@ -16,5 +16,4 @@ class AjaxController < ::ScopeController
                             c.instance_variable_get(:@scoped_project_id)
                           },
                           rescope: true
-
 end
