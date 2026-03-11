@@ -1,5 +1,5 @@
 module KubernetesNg
-  class ClustersController < ApplicationController
+  class ClustersController < Api::BaseController
     rescue_from ServiceLayer::KubernetesNgServices::Clusters::KubeconfigGenerationError, with: :render_kubeconfig_error
 
     def index
