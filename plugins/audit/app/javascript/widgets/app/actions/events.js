@@ -118,8 +118,9 @@ const updateSearchTerm = (searchTerm) => ({
 })
 
 export function searchEvents(searchTerm) {
-  return (dispatch) => {
-    // trigger api call only if the given start time is a valid date or an empty string
+  return (dispatch, getState) => {
+    const currentSearchTerm = getState().events.searchTerm
+    if (searchTerm === currentSearchTerm) return;
     dispatch(updateSearchTerm(searchTerm))
     dispatch(fetchEvents(0))
   }
