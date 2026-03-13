@@ -4,17 +4,10 @@ Identity::Engine.routes.draw do
   resources :domains, only: [:index]
 
   namespace :domains do
-    # Group management routes - only enabled when feature flag is on
-    constraints lambda { |req|
-      domain_name = req.params[:domain_id] || req.session[:domain_id]
-      domain_config = DomainConfig.new(domain_name) if domain_name
-      !domain_config&.feature_hidden?('group_management')
-    } do
-      resources :groups do
-        get 'members/new' => 'groups#new_member'
-        post 'members' => 'groups#add_member'
-        delete 'members/:id' => 'groups#remove_member', :as => :members_remove
-      end
+    resources :groups do
+      get 'members/new' => 'groups#new_member'
+      post 'members' => 'groups#add_member'
+      delete 'members/:id' => 'groups#remove_member', :as => :members_remove
     end
 
     scope :wizard do

@@ -4,7 +4,7 @@ module Identity
   module Domains
     # This class implements Group actions
     class GroupsController < ::DashboardController
-      before_action :check_feature_enabled
+      before_action :check_feature_enabled, except: %i[index show]
 
       def show
       enforce_permissions("identity:group_get", domain_id: @scoped_domain_id)
