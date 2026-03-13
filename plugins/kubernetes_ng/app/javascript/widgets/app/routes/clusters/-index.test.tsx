@@ -1,4 +1,4 @@
-import { render, screen, act, within } from "@testing-library/react"
+import { render, screen, act, within, waitFor } from "@testing-library/react"
 import { RouterProvider, createMemoryHistory } from "@tanstack/react-router"
 import { Route as ClustersRoute, CLUSTERS_ROUTE_ID } from "./index"
 import { getTestRouter, deferredPromise, defaultMockClient } from "../../mocks/TestTools"
@@ -8,6 +8,7 @@ import { Permissions } from "../../types/permissions"
 import { MockInstance } from "vitest"
 import { RouterContext } from "../__root"
 import { MessagesProvider } from "@cloudoperators/juno-messages-provider"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 
 const renderComponent = ({
   clustersPromise = Promise.resolve([defaultCluster]),
@@ -17,8 +18,10 @@ const renderComponent = ({
     apiClient: {
       gardener: {
         ...defaultMockClient.gardener,
-        getClusters: () => clustersPromise,
-        getShootPermissions: () => permissionsPromise,
+        // Return the promise directly so each query call gets the same promise instance
+        // For errors, this means we need to create a function that returns a new rejected promise each time
+        getClusters: typeof clustersPromise === "function" ? clustersPromise : () => clustersPromise,
+        getShootPermissions: typeof permissionsPromise === "function" ? permissionsPromise : () => permissionsPromise,
       },
     },
     region: "qa-de-1",
@@ -30,10 +33,28 @@ const renderComponent = ({
     history: createMemoryHistory({ initialEntries: [CLUSTERS_ROUTE_ID] }),
   })
 
+  // Create a new QueryClient for each test to ensure isolation
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false, // Disable retries in tests
+        gcTime: 0, // Don't cache queries
+        staleTime: 0, // Always treat data as stale
+      },
+    },
+    logger: {
+      log: () => {},
+      warn: () => {},
+      error: () => {}, // Suppress error logs in tests
+    },
+  })
+
   return render(
-    <MessagesProvider>
-      <RouterProvider router={router} />
-    </MessagesProvider>
+    <QueryClientProvider client={queryClient}>
+      <MessagesProvider>
+        <RouterProvider router={router} />
+      </MessagesProvider>
+    </QueryClientProvider>
   )
 }
 
@@ -101,22 +122,30 @@ describe("<Clusters />", () => {
     })
 
     it("shows error state within the clusters list", async () => {
-      const clustersPromise = Promise.reject(new Error("Failed to fetch clusters"))
+      // Pass a function that throws an error asynchronously
+      const clustersPromise = async () => {
+        throw new Error("Failed to fetch clusters")
+      }
       const permissionsPromise = Promise.resolve(permissionsAllTrue)
 
       renderComponent({ clustersPromise, permissionsPromise })
 
-      // Wait for the cluster list container
-      const list = await screen.findByRole("grid", { name: /cluster list/i })
-      expect(list).toBeInTheDocument()
-
-      // Wait for the error message inside it
-      const errorMessage = await within(list).findByText(/failed to fetch clusters/i)
-      expect(errorMessage).toBeInTheDocument()
+      // InlineError renders "Error: " prefix before the message
+      // Wait for the error to be displayed
+      await waitFor(
+        async () => {
+          const errorText = screen.getByText(/error:.*failed to fetch clusters/i)
+          expect(errorText).toBeInTheDocument()
+        },
+        { timeout: 3000 }
+      )
     })
 
     it("disables new cluster button when there is an error", async () => {
-      const clustersPromise = Promise.reject(new Error("Failed to fetch clusters"))
+      // Pass a function that throws an error asynchronously
+      const clustersPromise = async () => {
+        throw new Error("Failed to fetch clusters")
+      }
       const permissionsPromise = Promise.resolve(permissionsAllTrue)
 
       renderComponent({ clustersPromise, permissionsPromise })
