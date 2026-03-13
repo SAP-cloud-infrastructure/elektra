@@ -1,0 +1,18 @@
+= content_for :main_toolbar do
+  Groups
+
+- if current_user.is_allowed?("identity:group_create",{domain_id: @scoped_domain_id}) && !@domain_config&.feature_hidden?('group_management')
+  .toolbar
+    .main-buttons
+      = link_to 'New Group', new_domains_group_path, data: {modal: true}, class: 'btn btn-primary'
+
+%table.table#groups
+  %thead
+    %tr
+      %th Name
+      %th Description
+      %th ID
+
+  %tbody
+    - @groups.each do |group|
+      = render partial: 'group', locals: {group: group}
