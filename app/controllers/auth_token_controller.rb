@@ -42,7 +42,13 @@ class AuthTokenController < ActionController::Base
           @auth_token = encode_auth_token(token)
           render :redirect and return
         else
-          @error = 'Domain ID not found in response'
+          # Token is valid but user has no domain/project access (no Keystone role assignments)
+          if MonsoonOpenstackAuth.configuration.block_login_fallback_after_sso?
+            @error = 'Access Forbidden'
+            @oidc_authorization_failure = true
+          else
+            @error = 'Domain ID not found in response'
+          end
         end
       else
         @error = 'Authentication failed'

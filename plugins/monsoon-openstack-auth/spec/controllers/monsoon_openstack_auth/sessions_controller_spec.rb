@@ -405,6 +405,7 @@ describe MonsoonOpenstackAuth::SessionsController, type: :controller do
     before do
       allow(MonsoonOpenstackAuth.configuration).to receive(:form_auth_allowed?).and_return(true)
       allow(MonsoonOpenstackAuth.configuration).to receive(:enforce_natural_user).and_return(false)
+      allow(MonsoonOpenstackAuth.configuration).to receive(:password_session_auth_allowed?).and_return(true)
     end
 
     context 'when form auth is allowed' do
@@ -1041,6 +1042,7 @@ describe MonsoonOpenstackAuth::SessionsController, type: :controller do
 
     before do
       allow(MonsoonOpenstackAuth.configuration).to receive(:form_auth_allowed?).and_return(true)
+      allow(MonsoonOpenstackAuth.configuration).to receive(:password_session_auth_allowed?).and_return(true)
       allow(MonsoonOpenstackAuth::Authentication::AuthSession)
         .to receive(:create_from_login_form)
         .and_return(mock_auth_session)
@@ -1118,6 +1120,128 @@ describe MonsoonOpenstackAuth::SessionsController, type: :controller do
 
         # Should redirect to the safe default (root_url with domain_id)
         expect(response).to redirect_to(controller.main_app.root_url(domain_id: domain_id))
+      end
+    end
+
+    # HASI2025461-29: Tests for password session authentication control
+    context 'with password_session_auth_allowed disabled (Change #2)' do
+      before do
+        allow(MonsoonOpenstackAuth.configuration).to receive(:password_session_auth_allowed?).and_return(false)
+      end
+
+      context 'with valid credentials' do
+        before do
+          allow(MonsoonOpenstackAuth::Authentication::AuthSession)
+            .to receive(:create_from_login_form)
+            .and_return(mock_auth_session)
+        end
+
+        it 'validates credentials but does NOT create session' do
+          post :create, params: {
+            domain_fid: domain_id,
+            username: username,
+            password: password,
+            domain_id: domain_id
+          }
+
+          expect(response).to redirect_to(new_session_path(domain_fid: domain_id))
+          expect(flash[:notice]).to eq('Password validation successful. Please use Single Sign-On to access the dashboard.')
+        end
+
+        it 'triggers password sync via Keystone authentication' do
+          # Verify create_from_login_form is called (which triggers Keystone validation and password sync)
+          expect(MonsoonOpenstackAuth::Authentication::AuthSession)
+            .to receive(:create_from_login_form)
+            .with(controller, username, password, domain_id: domain_id, domain_name: nil)
+            .and_return(mock_auth_session)
+
+          post :create, params: {
+            domain_fid: domain_id,
+            username: username,
+            password: password,
+            domain_id: domain_id
+          }
+        end
+
+        it 'does not redirect to dashboard even with valid credentials' do
+          post :create, params: {
+            domain_fid: domain_id,
+            username: username,
+            password: password,
+            domain_id: domain_id,
+            after_login: after_login_url
+          }
+
+          # Should NOT redirect to after_login_url (no session created)
+          expect(response).not_to redirect_to(after_login_url)
+          expect(response).to redirect_to(new_session_path(domain_fid: domain_id))
+        end
+      end
+
+      context 'with invalid credentials' do
+        before do
+          allow(MonsoonOpenstackAuth::Authentication::AuthSession)
+            .to receive(:create_from_login_form)
+            .and_return(nil)
+        end
+
+        it 'shows error message for invalid credentials' do
+          post :create, params: {
+            domain_fid: domain_id,
+            username: username,
+            password: 'wrong_password',
+            domain_id: domain_id
+          }
+
+          expect(response).to render_template(:new)
+          expect(flash[:alert]).to eq('Invalid username/password combination.')
+          expect(assigns(:error)).to eq('Invalid username/password combination.')
+        end
+      end
+
+      context 'when authentication raises exception' do
+        before do
+          allow(MonsoonOpenstackAuth::Authentication::AuthSession)
+            .to receive(:create_from_login_form)
+            .and_raise(StandardError.new('Keystone unavailable'))
+        end
+
+        it 'renders login form with error message' do
+          post :create, params: {
+            domain_fid: domain_id,
+            username: username,
+            password: password,
+            domain_id: domain_id
+          }
+
+          expect(response).to render_template(:new)
+          expect(flash[:alert]).to eq('Keystone unavailable')
+          expect(assigns(:error)).to eq('Keystone unavailable')
+        end
+      end
+    end
+
+    # HASI2025461-29: Verify backward compatibility
+    context 'with password_session_auth_allowed enabled (backward compatible)' do
+      before do
+        allow(MonsoonOpenstackAuth.configuration).to receive(:password_session_auth_allowed?).and_return(true)
+        allow(MonsoonOpenstackAuth::Authentication::AuthSession)
+          .to receive(:create_from_login_form)
+          .and_return(mock_auth_session)
+      end
+
+      it 'creates session and redirects to dashboard (normal behavior)' do
+        post :create, params: {
+          domain_fid: domain_id,
+          username: username,
+          password: password,
+          domain_id: domain_id,
+          after_login: after_login_url
+        }
+
+        # Normal behavior: redirect to after_login_url
+        expect(response).to redirect_to(after_login_url)
+        expect(flash[:notice]).to be_nil
       end
     end
   end

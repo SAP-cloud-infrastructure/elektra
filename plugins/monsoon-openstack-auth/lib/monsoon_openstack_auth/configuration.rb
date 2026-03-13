@@ -2,7 +2,7 @@ module MonsoonOpenstackAuth
   class Configuration
     METHODS = %i[
       connection_driver token_auth_allowed basic_auth_allowed access_key_auth_allowed sso_auth_allowed
-      form_auth_allowed login_redirect_url debug debug_api_calls logger authorization token_cache
+      form_auth_allowed block_login_fallback_after_sso password_session_auth_allowed login_redirect_url debug debug_api_calls logger authorization token_cache
       two_factor_authentication_method two_factor_enabled enforce_natural_user natural_user_name_pattern rsa_dns
     ]
 
@@ -28,6 +28,12 @@ module MonsoonOpenstackAuth
       @enforce_natural_user     = false
       @natural_user_name_pattern = nil
       @rsa_dns = false
+
+      # Feature flag: show 403 when SSO succeeds but user has no Keystone permissions (default: false)
+      @block_login_fallback_after_sso = false
+
+      # Feature flag: allow password form login to create an authenticated session (default: true)
+      @password_session_auth_allowed = true
     end
 
     # support old configuration format
@@ -70,6 +76,14 @@ module MonsoonOpenstackAuth
 
     def two_factor_enabled?
       @two_factor_enabled
+    end
+
+    def block_login_fallback_after_sso?
+      @block_login_fallback_after_sso
+    end
+
+    def password_session_auth_allowed?
+      @password_session_auth_allowed
     end
   end
 

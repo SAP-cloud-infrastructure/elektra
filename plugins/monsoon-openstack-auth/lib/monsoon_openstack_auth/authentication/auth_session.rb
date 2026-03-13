@@ -50,6 +50,16 @@ module MonsoonOpenstackAuth
             end
           else
             # not authenticated!
+
+            # If SSO enforcement is on and a valid certificate was presented but Keystone rejected the user,
+            # raise NotAuthorized so the caller can show a 403 instead of redirecting to the login form
+            if MonsoonOpenstackAuth.configuration.block_login_fallback_after_sso? &&
+               session.certificate_valid_but_no_keystone_permissions?(controller)
+              raise MonsoonOpenstackAuth::Authentication::NotAuthorized.new(
+                "Valid certificate authentication but no OpenStack domain/project access"
+              )
+            end
+
             # raise error if options contains the flag
             raise MonsoonOpenstackAuth::Authentication::NotAuthorized if raise_error
 
@@ -533,6 +543,21 @@ module MonsoonOpenstackAuth
 
       def params
         @controller.params
+      end
+
+      # Returns true when a valid SSL client certificate was presented (HTTP_SSL_CLIENT_VERIFY == SUCCESS)
+      # but the user is not authenticated in Elektra (no Keystone role assignments).
+      #
+      # @param controller [ActionController::Base]
+      # @return [Boolean]
+      def certificate_valid_but_no_keystone_permissions?(controller)
+        return false unless MonsoonOpenstackAuth.configuration.sso_auth_allowed?
+        return false unless controller.request.env['HTTP_SSL_CLIENT_VERIFY'] == 'SUCCESS'
+
+        certificate = controller.request.env['HTTP_SSL_CLIENT_CERT']
+        return false if certificate.nil? || certificate.empty?
+
+        true
       end
     end
   end

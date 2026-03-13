@@ -30,6 +30,11 @@ MonsoonOpenstackAuth.configure do |auth|
   auth.enforce_natural_user = ENV['ENFORCE_NATURAL_USER_LOGIN'].to_s == 'true'
   auth.natural_user_name_pattern = /\A([DCIdci]\d*|TI_EC5A3E_.*)\z/
 
+  # Feature flags for SSO authorization and password session control
+  # See BLOCK_LOGIN_FALLBACK_AFTER_SSO and PASSWORD_SESSION_AUTH_ALLOWED env vars
+  auth.block_login_fallback_after_sso = ENV.fetch('BLOCK_LOGIN_FALLBACK_AFTER_SSO', 'false') == 'true'
+  auth.password_session_auth_allowed = ENV.fetch('PASSWORD_SESSION_AUTH_ALLOWED', 'true') == 'true'
+
   # authorization policy file
   auth.authorization.policy_file_path = policy_paths
   # auth.authorization.context = "identity"
