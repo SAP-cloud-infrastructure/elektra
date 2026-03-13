@@ -184,6 +184,8 @@
         if ($('#server_flavor_id option:selected').text().match(/Disk: 0/)){
           // force custom root disk
           console.debug("force custom root disk");
+          // check the custom root disk checkbox
+          $('#server_custom_root_disk').prop("checked", true);
           toggleRootDisk(true)
           // hide the checkbox
           $('#custom_root_disk_wrapper').addClass('hidden')

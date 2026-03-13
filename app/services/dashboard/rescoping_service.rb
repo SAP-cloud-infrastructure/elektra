@@ -19,10 +19,16 @@ module Dashboard
         )
 
       if entry.nil? && @service_user.present?
+        # Look up the domain directly by ID or name via the Keystone API.
+        # Previously this used auth_domains (GET /v3/auth/domains), which
+        # only returns domains where the token's user has an explicit role
+        # assignment. With the cloud_admin token, the user can look up any
+        # domain via find_domain/domains, but auth_domains would miss
+        # domains without a direct role grant (e.g. new iaas-* domains).
         domain =
-          @service_user.identity.auth_domains.find do |d|
-            d.name == domain_fid_id_or_key || d.id == domain_fid_id_or_key
-          end
+          @service_user.identity.find_domain(domain_fid_id_or_key) rescue nil
+        domain ||=
+          @service_user.identity.domains(name: domain_fid_id_or_key).first rescue nil
 
         if domain
           entry =
