@@ -1,4 +1,4 @@
-import { render, screen, act, within, waitFor } from "@testing-library/react"
+import { render, screen, act, waitFor } from "@testing-library/react"
 import { RouterProvider, createMemoryHistory } from "@tanstack/react-router"
 import { Route as ClustersRoute, CLUSTERS_ROUTE_ID } from "./index"
 import { getTestRouter, deferredPromise, defaultMockClient } from "../../mocks/TestTools"
