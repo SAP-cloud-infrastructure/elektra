@@ -32,12 +32,12 @@
   "identity:project_group_update": "rule:cloud_admin or role:admin or role:role_admin",
 
   "identity:group_list": "rule:cloud_admin or (role:admin and domain_id:%(domain_id)s) or rule:cloud_viewer",
-  "identity:group_create": "rule:cloud_admin",
-  "identity:group_update": "rule:cloud_admin",
-  "identity:group_delete": "rule:cloud_admin",
+  "identity:group_create": "rule:cloud_admin or rule:admin_and_matching_domain_id",
+  "identity:group_update": "rule:cloud_admin or rule:admin_and_matching_domain_id",
+  "identity:group_delete": "rule:cloud_admin or rule:admin_and_matching_domain_id",
 
-  "identity:group_add_member": "rule:cloud_admin or (role:admin and domain_id:%(group.domain_id)s)",
-  "identity:group_remove_member": "rule:cloud_admin or (role:admin and domain_id:%(group.domain_id)s)",
+  "identity:group_add_member": "rule:cloud_admin or rule:admin_and_matching_domain_id",
+  "identity:group_remove_member": "rule:cloud_admin or rule:admin_and_matching_domain_id",
 
   "identity:user_list": "rule:cloud_admin or (role:admin and domain_id:%(domain_id)s) or rule:cloud_viewer",
   "identity:user_show": "rule:cloud_admin or (role:admin and domain_id:%(domain_id)s) or rule:cloud_viewer",
