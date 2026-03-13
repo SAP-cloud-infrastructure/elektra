@@ -13,6 +13,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 const renderComponent = ({
   clustersPromise = Promise.resolve([defaultCluster]),
   permissionsPromise = Promise.resolve(permissionsAllTrue),
+}: {
+  clustersPromise?: Promise<Cluster[]> | (() => Promise<Cluster[]>)
+  permissionsPromise?: Promise<Permissions> | (() => Promise<Permissions>)
 } = {}) => {
   const mockClient: RouterContext = {
     apiClient: {
