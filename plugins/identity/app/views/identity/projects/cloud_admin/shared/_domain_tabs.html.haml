@@ -1,9 +1,7 @@
 %ul.nav.nav-tabs
   - if params[:controller]=='identity/projects/cloud_admin/domain_members'
     %li{ role: 'presentation', class: 'active'}= link_to 'Domain Members', '#'
-    - unless @domain_config&.feature_hidden?('group_management')
-      %li{ role: 'presentation' }= link_to 'Domain Groups', projects_cloud_admin_domain_groups_path(did:@domain.id)
-  - else
+    %li{ role: 'presentation' }= link_to 'Domain Groups', projects_cloud_admin_domain_groups_path(did:@domain.id)
+  - else  
     %li{ role: 'presentation'}= link_to 'Domain Members', projects_cloud_admin_domain_members_path(did: @domain.id)
-    - unless @domain_config&.feature_hidden?('group_management')
-      %li{ role: 'presentation', class: 'active' }= link_to 'Domain Groups', '#'
+    %li{ role: 'presentation', class: 'active' }= link_to 'Domain Groups', '#'
