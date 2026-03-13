@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useRef } from "react"
 import { useWizard } from "./WizzardProvider"
 import {
   Button,
@@ -56,16 +56,24 @@ function SummaryRow({ label, children, hasError }: { label: string; children?: R
 
 const Summary = () => {
   const { clusterFormData, formErrors, handleSetCurrentStep, createMutation } = useWizard()
+  const errorRef = useRef<HTMLDivElement>(null)
 
   const goToStep = (stepId: StepId) => {
     const step = STEP_DEFINITIONS.find((s) => s.id === stepId)!
     return handleSetCurrentStep(step.index)
   }
 
+  // Scroll to error message when it appears
+  React.useEffect(() => {
+    if (createMutation.error && errorRef.current) {
+      errorRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" })
+    }
+  }, [createMutation.error])
+
   return (
     <div>
       {createMutation.error instanceof Error && (
-        <div className="tw-mb-4">
+        <div ref={errorRef} className="tw-mb-4">
           <Message
             variant="error"
             text={normalizeError(createMutation.error).title + normalizeError(createMutation.error).message}
