@@ -77,6 +77,10 @@ class DomainConfig
     idp_value ? URI.encode_www_form_component(idp_value.to_s) : false
   end
 
+  def group_management?
+    @domain_config.fetch('group_management', false)
+  end
+
   private
 
   def find_config(domains_config, scoped_domain_name)

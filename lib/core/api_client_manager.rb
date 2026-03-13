@@ -121,51 +121,15 @@ module Core
     #  
     ####################################################
 
-    def self.create_service_user_api_client(scope_domain)
-      # If application credentials are available, use the `cloud_admin` user instead of the `service_user`, as application credentials cannot be rescoped.
-      if Rails.application.config.use_app_credentials
-        return create_cloud_admin_api_client
-      end
-
-      auth_config = {
-        url: ::Core.keystone_auth_endpoint,
-        user_name: Rails.application.config.service_user_id,
-        user_domain_name: Rails.application.config.service_user_domain_name,
-        password: Rails.application.config.service_user_password,
-        scope_domain_name: scope_domain,
-      }
-
-      begin
-        client = ::Elektron.client(auth_config, default_client_params)
-        client.middlewares.add(
-          ::Core::ElektronMiddlewares::RequestUUID,
-          before: ::Elektron::Middlewares::ResponseErrorHandler,
-        )
-        client.middlewares.add(
-          ::Core::ElektronMiddlewares::ObjectCache,
-          before: ::Elektron::Middlewares::ResponseErrorHandler,
-        )
-        client.middlewares.add(
-          ::Core::ElektronMiddlewares::ServiceUserLogger,
-          before: ::Core::ElektronMiddlewares::ObjectCache,
-        )
-        client.middlewares.add(
-          ::Core::ElektronMiddlewares::DebugLogger,
-          before: ::Core::ElektronMiddlewares::ServiceUserLogger,
-        )
-        client
-      rescue ::Elektron::Errors::ApiResponse => _e
-        unless auth_config[:scope_domain_id]
-          auth_config.delete(:scope_domain_name)
-          auth_config[:scope_domain_id] = scope_domain
-          retry
-        end
-
-        raise ::Core::Error::ServiceUserNotAuthenticated, <<~ERROR
-                Could not authenticate service user.
-                domain: #{scope_domain}
-              ERROR
-      end
+    def self.create_service_user_api_client(_scope_domain)
+      # Use the cloud_admin client for all service user operations.
+      # The cloud_admin token (scoped to ccadmin/cloud_admin) is a strict
+      # superset of a domain-scoped admin token — it can perform all the
+      # same identity operations across any domain without requiring a
+      # per-domain admin role assignment. This removes the need to seed
+      # an admin role for the dashboard user on every individual domain,
+      # allowing newly created domains to work in Elektra immediately.
+      create_cloud_admin_api_client
     end
 
     def self.create_cloud_admin_api_client

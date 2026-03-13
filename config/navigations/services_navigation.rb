@@ -273,7 +273,8 @@ SimpleNavigation::Configuration.run do |navigation|
                                  if: lambda {
                                    current_user.is_allowed?(
                                      'identity:project_group_list'
-                                   ) && plugin_available?(:identity)
+                                   ) && plugin_available?(:identity) &&
+                                   !@domain_config&.feature_hidden?('group_management')
                                  },
                                  highlights_on: %r{identity/projects/groups/?.*}
       access_management_nav.item :key_manager,

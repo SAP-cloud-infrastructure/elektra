@@ -33,7 +33,7 @@ RSpec.describe Dashboard::RescopingService do
 
     context "entry does not exists" do
       before :each do
-        domain =
+        @domain =
           double(
             "domain",
             id: "12-34",
@@ -42,9 +42,9 @@ RSpec.describe Dashboard::RescopingService do
               "name" => "test_domain",
             },
           )
-        auth_domains = double("auth_domains")
-        allow(auth_domains).to receive(:find).and_return(domain)
-        identity = double("identity", auth_domains: auth_domains)
+        identity = double("identity")
+        allow(identity).to receive(:find_domain).and_return(@domain)
+        allow(identity).to receive(:domains).and_return([@domain])
         allow(@service_user).to receive(:identity).and_return(identity)
       end
 
@@ -60,6 +60,15 @@ RSpec.describe Dashboard::RescopingService do
         expect {
           Dashboard::RescopingService.new(@service_user).domain_friendly_id(
             "test domain",
+          )
+        }.to change { FriendlyIdEntry.count }.by(1)
+      end
+
+      it "should find domain by name when find_domain raises" do
+        allow(@service_user.identity).to receive(:find_domain).and_raise(StandardError)
+        expect {
+          Dashboard::RescopingService.new(@service_user).domain_friendly_id(
+            "test_domain",
           )
         }.to change { FriendlyIdEntry.count }.by(1)
       end

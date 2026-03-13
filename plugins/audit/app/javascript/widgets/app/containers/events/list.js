@@ -38,7 +38,6 @@ export default connect(
     handleClearFilters: () => dispatch(clearFilters()),
     addNewFilter: () => dispatch(addNewFilter()),
     handleRemoveFilter: (filterType) => dispatch(removeFilter(filterType)),
-    handleSearch: (searchTerm) =>
-      searchTerm?.length > 0 && dispatch(searchEvents(searchTerm)),
+    handleSearch: (searchTerm) => dispatch(searchEvents(searchTerm || "")),
   })
 )(EventList)
