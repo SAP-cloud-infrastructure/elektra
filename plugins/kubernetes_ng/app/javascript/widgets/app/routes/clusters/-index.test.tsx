@@ -38,7 +38,6 @@ const renderComponent = ({
     defaultOptions: {
       queries: {
         retry: false, // Disable retries in tests
-        gcTime: 0, // Don't cache queries
         staleTime: 0, // Always treat data as stale
       },
     },
