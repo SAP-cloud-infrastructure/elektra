@@ -19,8 +19,11 @@ export function useClustersQuery(apiClient: GardenerApi | undefined) {
     },
     enabled: !!apiClient,
     // Automatically refetch based on cluster operations status
-    refetchInterval: (data) => {
+    refetchInterval: (data, query) => {
       if (!data) return false
+
+      // Stop polling if there have been errors
+      if (query.state.error) return false
 
       // Check if any cluster has incomplete operations
       const hasIncompleteOperations = data.some(
