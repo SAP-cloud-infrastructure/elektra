@@ -1,11 +1,11 @@
 - if modal?
   = content_for :title do
-    New Project Member
+    New Group Member
 - else
   = content_for :main_toolbar do
-    New Project Member
+    New Group Member
 
-= simple_form_for :member, url: plugin('identity').group_members_path(group_id: @group.id), method: :post, remote: request.xhr?, html: {data: {modal: modal?}, class: 'form-horizontal' }, wrapper: :horizontal_form do |f|
+= simple_form_for :member, url: plugin('identity').domains_group_members_path(group_id: @group.id), method: :post, remote: request.xhr?, html: {data: {modal: modal?}, class: 'form-horizontal' }, wrapper: :horizontal_form do |f|
   %div{class: modal? ? 'modal-body' : ''}
     - if @error
       %p.alert.alert-error= @error
@@ -20,12 +20,12 @@
             data: { autocomplete: { url: main_app.users_cache_index_path, label: 'name', details: 'full_name', value: 'id' }}}
         %p.help-block
           %i.fa.fa-info-circle
-          You can add users from the same domain as members of this project.
+          You can add users from the same domain as members of this group.
 
 
   %div{class: modal? ? 'modal-footer' : ''}
     - if modal?
       %button.btn.btn-default{type:"button", data: {dismiss:"modal"}, aria: {label: "Cancel"}} Cancel
     - else
-      = link_to 'Back', plugin('identity').project_path, class: 'btn btn-default'
+      = link_to 'Back', plugin('identity').domains_group_path(@group.id), class: 'btn btn-default'
     = f.submit 'Add', class: 'btn btn-primary', data: { disable_with: "Please wait..." }
