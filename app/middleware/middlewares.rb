@@ -7,8 +7,6 @@ require_relative "inquiry_metrics_middleware"
 require_relative "http_metrics_collector_middleware"
 require_relative "sli_metrics_middleware"
 require_relative "http_metrics_exporter_middleware"
-require_relative "same_site_cookie_middleware"
-require_relative "secure_cookies"
 
 module Middlewares
 end

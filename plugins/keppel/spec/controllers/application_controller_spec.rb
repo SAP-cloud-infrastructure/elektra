@@ -32,7 +32,7 @@ describe Keppel::ApplicationController, type: :controller do
         "id" => "cloud_support_tools_viewer",
         "name" => "cloud_support_tools_viewer",
       }
-      return token
+      token
     end
   end
 

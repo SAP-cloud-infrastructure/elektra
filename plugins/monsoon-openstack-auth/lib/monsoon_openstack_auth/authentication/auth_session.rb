@@ -7,7 +7,7 @@ module MonsoonOpenstackAuth
         TWO_FACTOR_AUTHENTICATION = 'two_factor_authentication'
 
         def load_user_from_session(controller, scope_and_options = {})
-          session = AuthSession.new(controller, token_store(controller), scope_and_options)
+          session = AuthSession.new(controller, scope_and_options)
           session.validate_session_token
           session
         end
@@ -32,8 +32,7 @@ module MonsoonOpenstackAuth
             two_factor = true
           end
 
-          token_store = token_store(controller)
-          session = AuthSession.new(controller, token_store, scope_and_options)
+          session = AuthSession.new(controller, scope_and_options)
 
           if session.authenticated?
             if !two_factor or two_factor_cookie_valid?(controller)
@@ -68,7 +67,7 @@ module MonsoonOpenstackAuth
 
         # create user from form and authenticate
         def create_from_login_form(controller, username, password, options = {})
-          options ||= options
+          options ||= {}
           domain_id = options[:domain_id]
           domain_name = options[:domain_name]
 
@@ -81,7 +80,7 @@ module MonsoonOpenstackAuth
           # reset session-id for Session Fixation
           reset_session(controller)
 
-          session = AuthSession.new(controller, token_store(controller), scope)
+          session = AuthSession.new(controller, scope)
           session.login_form_user(username, password)
         end
 
@@ -89,7 +88,7 @@ module MonsoonOpenstackAuth
         def create_from_auth_token(controller, auth_token)
           # reset session-id for Session Fixation
           reset_session(controller)
-          session = AuthSession.new(controller, token_store(controller))
+          session = AuthSession.new(controller)
           session.login_auth_token(auth_token)
           session
         end
@@ -105,24 +104,19 @@ module MonsoonOpenstackAuth
 
         # clear session_store if request session is presented
         def logout(controller, domain)
-          token_store = token_store(controller)
-          if token_store
-            if domain
-              token_store.delete_all_by_user_domain(domain)
-            else
-              token_store.delete_all_tokens
-            end
-          end
+          delete_cross_dashboard_cookie(controller)
           reset_session(controller)
         end
 
         def reset_session(controller)
-          token_store = token_store(controller)
-          return unless token_store
+          # Store CSRF token before reset
+          csrf_token = controller.session[:_csrf_token]
 
-          dump = token_store.dump
-          controller.send(:reset_session)
-          token_store.restore(dump)
+          # Full session reset (regenerates session ID)
+          controller.reset_session
+
+          # Restore CSRF token
+          controller.session[:_csrf_token] = csrf_token
         end
 
         def session_id_presented?(controller)
@@ -130,14 +124,6 @@ module MonsoonOpenstackAuth
           return false unless controller.request.session.respond_to?(:id)
 
           !(controller.request.session.blank? && controller.request.session.id.blank?)
-        end
-
-        def token_store(controller)
-          # return nil if request session id isn't provided
-          return nil unless session_id_presented?(controller)
-
-          # return session store
-          TokenStore.new(controller.session)
         end
 
         # check if cookie for two factor authentication is valid
@@ -158,13 +144,79 @@ module MonsoonOpenstackAuth
           crypt = ActiveSupport::MessageEncryptor.new(Rails.application.secret_key_base[0..31])
           value = crypt.encrypt_and_sign('valid')
           controller.response.set_cookie(TWO_FACTOR_AUTHENTICATION,
-                                         { value: value, expires: Time.now + 4.hours, path: '/', domain: '.cloud.sap' })
+                                         {
+                                           value: value,
+                                           expires: Time.now + 4.hours,
+                                           path: '/',
+                                           domain: '.cloud.sap',
+                                           secure: Rails.env.production?,
+                                           httponly: true,
+                                           same_site: :lax
+                                         })
+        end
+
+        # Set cross-dashboard auth token cookie for SSO
+        # This cookie enables authentication between Elektra and Aurora with wildcard domain
+        def set_cross_dashboard_cookie(controller, token)
+          return unless token && token[:value]
+
+          cookie_name = Rails.configuration.cross_dashboard_cookie_name
+
+          # Extract global domain (e.g., ".qa-de-1.cloud.sap" from "dashboard.qa-de-1.cloud.sap")
+          host = controller.request.host
+          parts = host.split('.')
+          global_domain = if parts.length > 2
+                            ".#{parts[-3..-1].join('.')}"  # Returns ".qa-de-1.cloud.sap"
+                          else
+                            ".#{host}"  # Fallback to current host
+                          end
+
+          # Calculate expiry from token
+          expires = if token[:expires_at]
+                      DateTime.parse(token[:expires_at])
+                    else
+                      Time.now + 24.hours  # Fallback expiry
+                    end
+
+          # Set the cross-dashboard auth token cookie (unencoded)
+          controller.response.set_cookie(cookie_name,
+                                         {
+                                           value: token[:value],
+                                           expires: expires,
+                                           path: '/',
+                                           domain: global_domain,
+                                           secure: Rails.env.production?,
+                                           httponly: true,
+                                           same_site: :lax
+                                         })
+        end
+
+        # Delete cross-dashboard auth token cookie on logout
+        def delete_cross_dashboard_cookie(controller)
+          cookie_name = Rails.configuration.cross_dashboard_cookie_name
+
+          # Extract global domain
+          host = controller.request.host
+          parts = host.split('.')
+          global_domain = if parts.length > 2
+                            ".#{parts[-3..-1].join('.')}"
+                          else
+                            ".#{host}"
+                          end
+
+          # Delete the cookie by setting it with past expiry
+          controller.response.set_cookie(cookie_name,
+                                         {
+                                           value: '',
+                                           expires: 1.year.ago,
+                                           path: '/',
+                                           domain: global_domain
+                                         })
         end
       end
 
-      def initialize(controller, token_store, scope = {})
+      def initialize(controller, scope = {})
         @controller = controller
-        @token_store = token_store
         @scope = scope
 
         # get api client
@@ -174,18 +226,17 @@ module MonsoonOpenstackAuth
 
       def authenticated?
         return true if validate_session_token
-        return true if validate_auth_token
         return true if validate_access_key
         return true if validate_sso_certificate
 
-        true if validate_http_basic
+        false
       end
 
       def rescope_token(requested_scope = @scope)
-        return unless @token_store and !@scope.empty? # and @session_store.token_valid? and !@scope.empty?
+        return unless current_token and !@scope.empty?
 
-        token = current_valid_token
-        return unless token
+        token = current_token
+        return unless token && token_valid?(token)
 
         # token = @session_store.token
         domain = token[:domain]
@@ -223,7 +274,7 @@ module MonsoonOpenstackAuth
           # scope has changed -> get new scoped token
           token = @api_client.authenticate_with_token(token[:value], scope)
           create_user_from_token(token)
-          save_in_token_store(token)
+          cache_token(token, update_cross_dashboard_cookie: true)
         rescue StandardError => e
           unless scope == 'unscoped'
             raise MonsoonOpenstackAuth::Authentication::NotAuthorized.new("User has no access to the requested scope: #{e}")
@@ -234,42 +285,36 @@ module MonsoonOpenstackAuth
         end
       end
 
-      def validate_auth_token
-        # return false if not allowed.
-        unless MonsoonOpenstackAuth.configuration.token_auth_allowed?
-          MonsoonOpenstackAuth.logger.info 'validate_auth_token -> not allowed.' if @debug
+      def validate_session_token
+        return true if @token && token_valid?(@token)
+
+        # Try to get token from session first (fast path), then cross-dashboard cookie, then HTTP header
+        session_token = @controller.session[:auth_token_value]
+        cross_dashboard_token = read_cross_dashboard_cookie
+        auth_token_value = session_token || cross_dashboard_token || @controller.request.headers['HTTP_X_AUTH_TOKEN']
+
+        unless auth_token_value
+          MonsoonOpenstackAuth.logger.info 'validate_session_token -> auth token not presented.' if @debug
           return false
         end
 
-        # didn't return -> token auth is allowed!
-        auth_token = @controller.request.headers['HTTP_X_AUTH_TOKEN']
-
-        unless auth_token
-          MonsoonOpenstackAuth.logger.info 'validate_auth_token -> auth token not presented.' if @debug
-          return false
-        end
-
-        # didn't return -> auth token is presented
-        if @token_store
-          token = @token_store.find_by_value(auth_token)
-          # if token exists create user
-          create_user_from_token(token) if token
-
-          if logged_in?
-            if @debug
-              MonsoonOpenstackAuth.logger.info 'validate_auth_token -> successful (session token is equal to auth token).'
-            end
-            return true
-          end
-        end
-
-        # didn't return -> validate auth token
+        # Validate auth token and check domain match
         begin
-          token = @api_client.validate_token(auth_token)
+          token = @api_client.validate_token(auth_token_value)
+
           if token
-            # token is valid -> create user from token and save token in session store
+            # Check if token's domain matches URL's domain
+            unless token_domain_matches_url?(token)
+              MonsoonOpenstackAuth.logger.info 'Token domain mismatch with URL, rejecting token.' if @debug
+              return false
+            end
+
+            # token is valid and domain matches -> create user from token and save token in session store
             create_user_from_token(token)
-            save_in_token_store(token)
+
+            # Only update cross-dashboard cookie if the token value is different from what's already in the cookie
+            should_update_cookie = session_token.present? && session_token != cross_dashboard_token
+            cache_token(token, update_cross_dashboard_cookie: should_update_cookie)
 
             if logged_in?
               MonsoonOpenstackAuth.logger.info("validate_auth_token -> successful (username=#{@user.name}).") if @debug
@@ -290,42 +335,6 @@ module MonsoonOpenstackAuth
         end
 
         MonsoonOpenstackAuth.logger.info 'validate_auth_token -> failed.' if @debug
-        false
-      end
-
-      def validate_http_basic
-        # return false if not allowed.
-        unless MonsoonOpenstackAuth.configuration.basic_auth_allowed?
-          MonsoonOpenstackAuth.logger.info 'validate_http_basic -> not allowed.' if @debug
-          return false
-        end
-
-        # basic auth is allowed
-        begin
-          basic_auth_presented = false
-          @controller.authenticate_with_http_basic do |username, password|
-            # basic auth is presented
-            basic_auth_presented = true
-            MonsoonOpenstackAuth.logger.info "validate_http_basic -> username=#{username}." if @debug
-            token = @api_client.authenticate_with_credentials(username, password)
-            create_user_from_token(token)
-            save_in_token_store(token)
-          end
-
-          unless basic_auth_presented
-            MonsoonOpenstackAuth.logger.info 'validate_http_basic -> basic auth header not presented.' if @debug
-            return false
-          end
-
-          if logged_in?
-            MonsoonOpenstackAuth.logger.info "validate_http_basic -> successful (username=#{@user.name})." if @debug
-            return true
-          end
-        rescue StandardError => e
-          MonsoonOpenstackAuth.logger.info "basic auth failed: #{e}."
-        end
-        # basic auth authentication failed
-        MonsoonOpenstackAuth.logger.info 'validate_http_basic -> failed.' if @debug
         false
       end
 
@@ -360,21 +369,6 @@ module MonsoonOpenstackAuth
         elsif @scope[:domain]
           headers['X-User-Domain-Id'] = @scope[:domain]
         end
-
-        # # evaluate auth scope
-        # if @scope[:project]
-        #   scope= if @scope[:domain]
-        #            {project: {domain:{id: @scope[:domain]},id: @scope[:project]}}
-        #          elsif @scope[:domain_name]
-        #            {project: {domain:{name: @scope[:domain_name]},id: @scope[:project]}}
-        #          end
-        # elsif @scope[:domain]
-        #   scope = {domain:{id: @scope[:domain]}}
-        # elsif @scope[:domain_name]
-        #   scope = {domain:{name:@scope[:domain_name]}}
-        # else
-        #   scope = 'unscoped'
-        # end
         scope = 'unscoped'
 
         # authenticate user as external user
@@ -382,7 +376,7 @@ module MonsoonOpenstackAuth
           token = @api_client.authenticate_external_user(headers, scope)
           # create user from token and save token in session store
           create_user_from_token(token)
-          save_in_token_store(token)
+          cache_token(token, update_cross_dashboard_cookie: true)
         rescue StandardError => e
           MonsoonOpenstackAuth.logger.error "external user authentication failed #{e}."
         end
@@ -393,26 +387,6 @@ module MonsoonOpenstackAuth
         end
 
         MonsoonOpenstackAuth.logger.info 'validate_sso_certificate -> failed.' if @debug
-        false
-      end
-
-      def validate_session_token
-        unless @token_store
-          MonsoonOpenstackAuth.logger.info 'validate_session_token -> token store not presented.' if @debug
-          return false
-        end
-
-        token = current_valid_token
-
-        if token
-          create_user_from_token(token)
-          if logged_in?
-            MonsoonOpenstackAuth.logger.info "validate_session_token -> successful (username=#{@user.name})." if @debug
-            return true
-          end
-        end
-
-        MonsoonOpenstackAuth.logger.info 'validate_session_token -> failed.' if @debug
         false
       end
 
@@ -428,7 +402,7 @@ module MonsoonOpenstackAuth
           return false unless token
 
           create_user_from_token(token)
-          save_in_token_store(token)
+          cache_token(token, update_cross_dashboard_cookie: true)
 
           if logged_in?
             MonsoonOpenstackAuth.logger.info "validate_access_key -> successful (username=#{@user.name})." if @debug
@@ -439,14 +413,51 @@ module MonsoonOpenstackAuth
         false
       end
 
-      def save_in_token_store(token)
-        @token_store.set_token(token) if @token_store
+      # Read cross-dashboard authentication cookie for SSO
+      def read_cross_dashboard_cookie
+        cookie_name = Rails.configuration.cross_dashboard_cookie_name
+        @controller.request.cookies[cookie_name]
       end
 
-      def current_valid_token
-        return nil unless @scope
+      # Check if the token's domain matches the URL's domain
+      # Returns true if domains match or if no domain check is needed, false otherwise
+      def token_domain_matches_url?(token)
+        return false unless token
 
-        @token_store.current_token(@scope[:domain] || @scope[:domain_name]) if @token_store
+        # Get the URL's domain from params
+        url_domain_fid = @controller.params[:domain_fid] || @controller.params[:domain_id]
+        return true unless url_domain_fid  # No domain in URL, allow the token
+
+        # Extract domain ID from token
+        token_domain_id = token.dig(:domain, :id) || token.dig(:domain, 'id')
+        return true unless token_domain_id  # Unscoped token, allow it
+
+        # Resolve URL domain friendly ID to actual domain ID
+        domain_entry = FriendlyIdEntry.find_domain(url_domain_fid)
+        url_domain_id = domain_entry&.key || url_domain_fid
+
+        # Check if domains match
+        token_domain_id == url_domain_id
+      rescue StandardError => e
+        MonsoonOpenstackAuth.logger.error "Failed to check token domain match: #{e}" if @debug
+        false  # On error, reject the token
+      end
+
+      def cache_token(new_token, update_cross_dashboard_cookie: true)
+        @token = new_token
+        # Store token value in session for cookie-based sessions
+        @controller.session[:auth_token_value] = new_token[:value] if new_token
+        # Only update cross-dashboard cookie on initial login, not on rescope
+        self.class.set_cross_dashboard_cookie(@controller, new_token) if new_token && update_cross_dashboard_cookie
+      end
+
+      def current_token
+        @token
+      end
+
+      def token_valid?(token)
+        return false unless token
+        !!token[:expires_at] && DateTime.parse(token[:expires_at]) > Time.now
       end
 
       def create_user_from_token(token)
@@ -459,16 +470,10 @@ module MonsoonOpenstackAuth
 
       ############ LOGIN FORM FUCNTIONALITY ##################
       def login_form_user(username, password)
-        unless @token_store
-          MonsoonOpenstackAuth.logger.info 'login_form_user -> token store not presented.' if @debug
-          return false
-        end
-
         begin
           # create auth token
           token = @api_client.authenticate_with_credentials(username, password, @scope)
-          # save token in session
-          save_in_token_store(token)
+          cache_token(token, update_cross_dashboard_cookie: true)
           # create auth user from token
           create_user_from_token(token)
           # success -> return true
@@ -483,18 +488,12 @@ module MonsoonOpenstackAuth
 
       # login with auth token
       def login_auth_token(auth_token)
-        unless @token_store
-          MonsoonOpenstackAuth.logger.info 'login_auth_token -> token store not presented.' if @debug
-          return false
-        end
-
         return false unless auth_token
 
         begin
           # create auth token
           token = @api_client.authenticate_with_token(auth_token)
-          # save token in session
-          save_in_token_store(token)
+          cache_token(token, update_cross_dashboard_cookie: true)
           # create auth user from token
           create_user_from_token(token)
           # success -> return true
