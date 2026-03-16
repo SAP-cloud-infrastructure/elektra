@@ -65,16 +65,14 @@ function ClusterActions({
   }
 
   return (
-    <>
-      <DisableableButton
-        variant="primary"
-        size="small"
-        label="Add Cluster"
-        disabled={disabled || !permissions?.create}
-        onClick={onAddCluster}
-        disabledMessage={getAddClusterDisabledMessage()}
-      />
-    </>
+    <DisableableButton
+      variant="primary"
+      size="small"
+      label="Add Cluster"
+      disabled={disabled || !permissions?.create}
+      onClick={onAddCluster}
+      disabledMessage={getAddClusterDisabledMessage()}
+    />
   )
 }
 
@@ -87,6 +85,7 @@ interface ClustersViewProps {
   client?: GardenerApi
   updatedAt?: number
   region?: string
+  onRefreshClusters: () => void
 }
 
 function ClusterContent({
@@ -96,14 +95,8 @@ function ClusterContent({
   isLoading = false,
   updatedAt,
   isFetching,
+  onRefreshClusters,
 }: ClustersViewProps) {
-  const queryClient = useQueryClient()
-
-  const handleRefresh = () => {
-    // Invalidate and refetch clusters query
-    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.clusters })
-  }
-
   const listError =
     error ?? (permissions?.list === false ? new Error("You do not have permission to view clusters.") : undefined)
 
@@ -115,16 +108,15 @@ function ClusterContent({
         error={listError}
         updatedAt={updatedAt}
         isFetching={isFetching}
-        onRefresh={handleRefresh}
+        onRefresh={onRefreshClusters}
       />
     </Container>
   )
 }
 
 function Clusters(props: ClustersViewProps) {
-  const { permissions, isLoading = false, client, region } = props
+  const { permissions, isLoading = false, client, region, onRefreshClusters } = props
   const [showWizardModal, setShowWizardModal] = useState(false)
-  const queryClient = useQueryClient()
   const { addMessage, resetMessages } = useActions()
 
   return (
@@ -142,7 +134,7 @@ function Clusters(props: ClustersViewProps) {
         <CreateClusterWizard
           isOpen={showWizardModal}
           onSuccessCreate={(clusterName) => {
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.clusters })
+            onRefreshClusters()
             resetMessages()
             addMessage({
               text: `Cluster ${clusterName} is being bootstrapped. This may take a few minutes.`,
@@ -163,6 +155,7 @@ function Clusters(props: ClustersViewProps) {
 
 function ClustersWithQueries() {
   const { apiClient, region } = Route.useRouteContext()
+  const queryClient = useQueryClient()
 
   const {
     data: clusters,
@@ -189,6 +182,10 @@ function ClustersWithQueries() {
   // so we don't want to show a stale updatedAt timestamp in that case
   const validUpdatedAt = !error && dataUpdatedAt > 0 ? dataUpdatedAt : undefined
 
+  const handleRefreshClusters = () => {
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.clusters })
+  }
+
   return (
     <ClustersErrorBoundary>
       <Clusters
@@ -200,6 +197,7 @@ function ClustersWithQueries() {
         client={apiClient}
         region={region}
         updatedAt={validUpdatedAt}
+        onRefreshClusters={handleRefreshClusters}
       />
     </ClustersErrorBoundary>
   )
