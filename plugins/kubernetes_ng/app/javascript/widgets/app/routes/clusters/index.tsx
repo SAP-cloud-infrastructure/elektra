@@ -14,11 +14,12 @@ import { useActions } from "@cloudoperators/juno-messages-provider"
 import HeadingInfo from "./-components/HeadingInfo"
 import { useClustersQuery, useShootPermissionsQuery } from "../../hooks/useClusterQueries"
 import { useQueryClient } from "@tanstack/react-query"
+import { QUERY_KEYS } from "../../hooks/queryKeys"
 
 export const CLUSTERS_ROUTE_ID = "/clusters/"
 
 export const Route = createFileRoute(CLUSTERS_ROUTE_ID)({
-  component: ClustersLoader,
+  component: ClustersWithQueries,
   // Provide the context through the route so it's available in the component
   beforeLoad: ({ context }) => {
     return {
@@ -100,7 +101,7 @@ function ClusterContent({
 
   const handleRefresh = () => {
     // Invalidate and refetch clusters query
-    queryClient.invalidateQueries({ queryKey: ["clusters"] })
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.clusters })
   }
 
   const listError =
@@ -141,7 +142,7 @@ function Clusters(props: ClustersViewProps) {
         <CreateClusterWizard
           isOpen={showWizardModal}
           onSuccessCreate={(clusterName) => {
-            queryClient.invalidateQueries({ queryKey: ["clusters"] })
+            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.clusters })
             resetMessages()
             addMessage({
               text: `Cluster ${clusterName} is being bootstrapped. This may take a few minutes.`,
@@ -160,10 +161,9 @@ function Clusters(props: ClustersViewProps) {
   )
 }
 
-function ClustersLoader() {
+function ClustersWithQueries() {
   const { apiClient, region } = Route.useRouteContext()
 
-  // Use custom hooks with automatic polling
   const {
     data: clusters,
     isLoading: clustersLoading,
@@ -179,12 +179,14 @@ function ClustersLoader() {
   } = useShootPermissionsQuery(apiClient)
 
   const isLoading = clustersLoading || permissionsLoading
-  const error = clustersError || permissionsError
+  // TanStack Query v4 returns null when there's no error, convert to undefined
+  const error = clustersError || permissionsError || undefined
 
-  // Only pass permissions if there's no error (either from clusters or permissions)
+  // Disable all actions when there's an error fetching either clusters or permissions
   const validPermissions = error ? undefined : permissions
 
-  // Only show updatedAt if there's valid data (not 0 or during error state)
+  // if there is an error, independently of fetching either clusters or permissions, we show an error state,
+  // so we don't want to show a stale updatedAt timestamp in that case
   const validUpdatedAt = !error && dataUpdatedAt > 0 ? dataUpdatedAt : undefined
 
   return (
@@ -192,7 +194,7 @@ function ClustersLoader() {
       <Clusters
         clusters={clusters}
         permissions={validPermissions}
-        error={error ? (error instanceof Error ? error : new Error(String(error))) : undefined}
+        error={error}
         isLoading={isLoading}
         isFetching={clustersFetching}
         client={apiClient}

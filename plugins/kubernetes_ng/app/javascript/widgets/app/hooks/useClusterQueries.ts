@@ -1,13 +1,16 @@
 import { useQuery } from "@tanstack/react-query"
 import { GardenerApi } from "../apiClient"
+import { QUERY_KEYS } from "./queryKeys"
+import { Cluster } from "../types/cluster"
+import { Permissions } from "../types/permissions"
 
 /**
  * Query hook for fetching clusters with automatic polling
  * Polls every 30 seconds when any cluster has incomplete operations (progress < 100)
  */
 export function useClustersQuery(apiClient: GardenerApi | undefined) {
-  return useQuery({
-    queryKey: ["clusters"],
+  return useQuery<Cluster[], Error>({
+    queryKey: QUERY_KEYS.clusters,
     queryFn: () => {
       if (!apiClient) {
         throw new Error("API client is not available")
@@ -35,21 +38,20 @@ export function useClustersQuery(apiClient: GardenerApi | undefined) {
 
 /**
  * Query hook for fetching shoot permissions
+ * Permissions are static for the session and only change on page reload
  */
 export function useShootPermissionsQuery(apiClient: GardenerApi | undefined) {
-  return useQuery({
-    queryKey: ["shoot-permissions"],
+  return useQuery<Permissions, Error>({
+    queryKey: QUERY_KEYS.permissions,
     queryFn: () => {
       if (!apiClient) {
         throw new Error("API client is not available")
       }
       return apiClient.gardener.getShootPermissions()
-
-      // return new Promise(() => {})
-      // throw new Error("Failed to fetch shoot permissions (simulated error)")
     },
     enabled: !!apiClient,
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: Infinity, // Permissions don't change during the session
+    cacheTime: Infinity, // Keep in cache indefinitely until page reload (v4 name, renamed to gcTime in v5)
     refetchOnWindowFocus: false,
   })
 }

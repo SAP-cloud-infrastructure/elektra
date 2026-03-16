@@ -132,11 +132,10 @@ describe("<Clusters />", () => {
 
       renderComponent({ clustersPromise, permissionsPromise })
 
-      // InlineError renders "Error: " prefix before the message
-      // Wait for the error to be displayed
+      // Wait for the error message to be displayed (don't depend on InlineError's format)
       await waitFor(
         async () => {
-          const errorText = screen.getByText(/error:.*failed to fetch clusters/i)
+          const errorText = screen.getByText(/failed to fetch clusters/i)
           expect(errorText).toBeInTheDocument()
         },
         { timeout: 3000 }
