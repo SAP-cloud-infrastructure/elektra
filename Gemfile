@@ -35,7 +35,6 @@ gem 'nokogiri', '>= 1.19.1'
 gem 'responders'
 
 # Database
-gem 'activerecord-session_store'
 gem 'pg', '1.3.4'
 
 # Openstack
