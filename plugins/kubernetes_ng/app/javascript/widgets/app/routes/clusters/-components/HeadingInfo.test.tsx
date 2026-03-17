@@ -1,6 +1,5 @@
 import { render, screen, act } from "@testing-library/react"
 import { describe, it, expect } from "vitest"
-import userEvent from "@testing-library/user-event"
 import HeadingInfo from "./HeadingInfo"
 
 describe("HeadingInfo", () => {
