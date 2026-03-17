@@ -5,7 +5,6 @@ module CurrentUserWrapper
   # This method wraps current_user and adds some details
   # like email and full_name.
   def current_user
-    # byebug
     return nil if super.nil?
     if @current_user_wrapper.try(:token) == super.token
       return @current_user_wrapper

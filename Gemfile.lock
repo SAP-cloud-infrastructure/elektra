@@ -214,12 +214,6 @@ GEM
       activemodel (= 7.1.6)
       activesupport (= 7.1.6)
       timeout (>= 0.4.0)
-    activerecord-session_store (2.2.0)
-      actionpack (>= 7.0)
-      activerecord (>= 7.0)
-      cgi (>= 0.3.6)
-      rack (>= 2.0.8, < 4)
-      railties (>= 7.0)
     activestorage (7.1.6)
       actionpack (= 7.1.6)
       activejob (= 7.1.6)
@@ -618,7 +612,6 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
-  activerecord-session_store
   audit!
   aws-sdk-cloudwatch
   aws-sdk-ses
