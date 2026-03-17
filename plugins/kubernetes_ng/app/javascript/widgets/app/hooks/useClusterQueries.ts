@@ -40,6 +40,39 @@ export function useClustersQuery(apiClient: GardenerApi | undefined) {
 }
 
 /**
+ * Query hook for fetching a single cluster by name with automatic polling
+ * Polls every 30 seconds when the cluster has incomplete operations (progress < 100)
+ */
+export function useClusterQuery(apiClient: GardenerApi | undefined, clusterName: string) {
+  return useQuery<Cluster, Error>({
+    queryKey: QUERY_KEYS.cluster(clusterName),
+    queryFn: () => {
+      if (!apiClient) {
+        throw new Error("API client is not available")
+      }
+      // return apiClient.gardener.getClusterByName(clusterName)
+      throw new Error("getClusterByName errooorororo")
+    },
+    enabled: !!apiClient && !!clusterName,
+    // Automatically refetch based on cluster operation status
+    refetchInterval: (data, query) => {
+      if (!data) return false
+
+      // Stop polling if there have been errors
+      if (query.state.error) return false
+
+      // Check if this cluster has incomplete operations
+      const hasIncompleteOperation = data.lastOperation && data.lastOperation.progress < 100
+
+      // Poll every 30 seconds if there are incomplete operations, otherwise don't poll
+      return hasIncompleteOperation ? 30000 : false
+    },
+    staleTime: 5 * 60 * 1000, // Consider data stale after 5 minutes
+    refetchOnWindowFocus: false,
+  })
+}
+
+/**
  * Query hook for fetching shoot permissions
  * Permissions are static for the session and only change on page reload
  */
@@ -55,6 +88,26 @@ export function useShootPermissionsQuery(apiClient: GardenerApi | undefined) {
     enabled: !!apiClient,
     staleTime: Infinity, // Permissions don't change during the session
     cacheTime: Infinity, // Keep in cache indefinitely until page reload (v4 name, renamed to gcTime in v5)
+    refetchOnWindowFocus: false,
+  })
+}
+
+/**
+ * Query hook for fetching kubeconfig permissions
+ * Permissions are static for the session and only change on page reload
+ */
+export function useKubeconfigPermissionsQuery(apiClient: GardenerApi | undefined) {
+  return useQuery<Permissions, Error>({
+    queryKey: QUERY_KEYS.kubeconfigPermissions,
+    queryFn: () => {
+      if (!apiClient) {
+        throw new Error("API client is not available")
+      }
+      return apiClient.gardener.getKubeconfigPermission()
+    },
+    enabled: !!apiClient,
+    staleTime: Infinity, // kubeconfig don't change during the session
+    cacheTime: Infinity, // Keep in cache indefinitely until page reload
     refetchOnWindowFocus: false,
   })
 }
