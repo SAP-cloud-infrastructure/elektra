@@ -50,8 +50,7 @@ export function useClusterQuery(apiClient: GardenerApi | undefined, clusterName:
       if (!apiClient) {
         throw new Error("API client is not available")
       }
-      // return apiClient.gardener.getClusterByName(clusterName)
-      throw new Error("getClusterByName errooorororo")
+      return apiClient.gardener.getClusterByName(clusterName)
     },
     enabled: !!apiClient && !!clusterName,
     // Automatically refetch based on cluster operation status
