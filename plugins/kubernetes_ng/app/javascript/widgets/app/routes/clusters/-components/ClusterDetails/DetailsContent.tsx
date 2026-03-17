@@ -138,6 +138,22 @@ const DetailsContent = ({
 
   const yamlEditorState = getYamlEditorDisabledState()
 
+  // Content rendered in both tabs during loading/error states
+  const loadingContent = (
+    <Container py px={false}>
+      <Stack gap="2">
+        <Spinner variant="primary" size="small" aria-label="Loading cluster details" />
+        <span>Loading cluster details...</span>
+      </Stack>
+    </Container>
+  )
+
+  const errorContent = (
+    <Container py px={false}>
+      <InlineError error={error} />
+    </Container>
+  )
+
   return (
     <Container px={false} py>
       <div className="tw-relative">
@@ -155,30 +171,19 @@ const DetailsContent = ({
         </div>
         <Tabs selectedIndex={tabIndex} onSelect={handleTabChange}>
           <TabList>
-            <Tab>Overview</Tab>
-            <Tab disabled={isLoading || error ? true : false}>YAML</Tab>
+            <Tab disabled={isLoading || !!error}>Overview</Tab>
+            <Tab disabled={isLoading || !!error}>YAML</Tab>
           </TabList>
           {isLoading && (
             <>
-              <TabPanel>
-                <Container py px={false}>
-                  <Stack gap="2">
-                    <Spinner variant="primary" size="small" aria-label="Loading cluster details" />
-                    <span>Loading cluster details...</span>
-                  </Stack>
-                </Container>
-              </TabPanel>
-              <TabPanel></TabPanel>
+              <TabPanel>{loadingContent}</TabPanel>
+              <TabPanel>{loadingContent}</TabPanel>
             </>
           )}
           {error && (
             <>
-              <TabPanel>
-                <Container py px={false}>
-                  <InlineError error={error} />
-                </Container>
-              </TabPanel>
-              <TabPanel></TabPanel>
+              <TabPanel>{errorContent}</TabPanel>
+              <TabPanel>{errorContent}</TabPanel>
             </>
           )}
           {!isLoading && !error && cluster && (
