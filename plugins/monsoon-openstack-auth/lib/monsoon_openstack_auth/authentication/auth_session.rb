@@ -1,7 +1,7 @@
 module MonsoonOpenstackAuth
   module Authentication
     class AuthSession
-      attr_reader :session_store, :user
+      attr_reader :user
 
       class << self
         TWO_FACTOR_AUTHENTICATION = 'two_factor_authentication'
@@ -102,7 +102,7 @@ module MonsoonOpenstackAuth
           end
         end
 
-        # clear session_store if request session is presented
+        # clear session if request session is presented
         def logout(controller, domain)
           delete_cross_dashboard_cookie(controller)
           reset_session(controller)
@@ -238,7 +238,6 @@ module MonsoonOpenstackAuth
         token = current_token
         return unless token && token_valid?(token)
 
-        # token = @session_store.token
         domain = token[:domain]
         project = token[:project]
 
