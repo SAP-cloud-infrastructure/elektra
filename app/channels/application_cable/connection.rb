@@ -12,17 +12,24 @@ module ApplicationCable
       # return if no domain provided
       return reject_unauthorized_connection unless request.params[:domain_id]
 
-      # access auth gem directly to get current user_id
-      token_store = MonsoonOpenstackAuth::Authentication::TokenStore.new(
-        request.session
-      )
-      
-      current_token = token_store&.current_token(request.params[:domain_id])
-      user_id = current_token && 
-                current_token['user'] && 
-                current_token['user']['id'] 
+      # Get auth token value from session (cookie-based)
+      auth_token_value = request.session[:auth_token_value]
+      return reject_unauthorized_connection unless auth_token_value
 
-      user_id || reject_unauthorized_connection
+      # Validate token and extract user_id
+      begin
+        api_client = MonsoonOpenstackAuth.api_client
+        token = api_client.validate_token(auth_token_value)
+
+        return reject_unauthorized_connection unless token
+
+        # Extract user_id from validated token
+        user_id = token.dig(:user, :id) || token.dig(:user, 'id')
+        user_id || reject_unauthorized_connection
+      rescue StandardError => e
+        Rails.logger.error "WebSocket auth failed: #{e.message}"
+        reject_unauthorized_connection
+      end
     end
   end
 end
