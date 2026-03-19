@@ -1,6 +1,5 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, act } from "@testing-library/react"
 import { describe, it, expect } from "vitest"
-import userEvent from "@testing-library/user-event"
 import HeadingInfo from "./HeadingInfo"
 
 describe("HeadingInfo", () => {
@@ -12,11 +11,13 @@ describe("HeadingInfo", () => {
   })
 
   it("shows instructions when button is clicked", async () => {
-    const user = userEvent.setup()
     render(<HeadingInfo />)
 
     const button = screen.getByRole("button", { name: /show kubectl setup instructions/i })
-    await user.click(button)
+
+    act(() => {
+      button.click()
+    })
 
     expect(button).toHaveAttribute("aria-expanded", "true")
     expect(screen.getByText(/hide kubectl setup instructions/i)).toBeInTheDocument()
