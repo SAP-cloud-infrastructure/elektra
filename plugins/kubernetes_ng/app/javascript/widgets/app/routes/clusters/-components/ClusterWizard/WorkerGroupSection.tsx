@@ -10,8 +10,8 @@ import {
   FormSection,
   Button,
 } from "@cloudoperators/juno-ui-components"
-import { useWizard } from "./WizzardProvider"
 import { WorkerGroup } from "./types"
+import { MachineType, MachineImage } from "../../../../types/cloudProfiles"
 
 type WorkerGroupProps = {
   workerGroup: WorkerGroup
@@ -19,22 +19,37 @@ type WorkerGroupProps = {
   totalWorkers: number
   onChange: (updatedWorkerGroup: WorkerGroup) => void
   onDelete: () => void
+  availableMachineTypes: MachineType[]
+  availableMachineImages: MachineImage[]
+  availableZones: string[]
+  cloudProfileIsLoading?: boolean
+  cloudProfileError?: Error | null
+  formErrors?: Record<string, string[]>
+  validateSingleField?: (field: string) => void
 }
 
-const WorkerGroupSection = ({ workerGroup, index, totalWorkers, onChange, onDelete }: WorkerGroupProps) => {
-  const { cloudProfiles, selectedCloudProfile, region, formErrors, validateSingleField } = useWizard()
+const WorkerGroupSection = ({
+  workerGroup,
+  index,
+  totalWorkers,
+  onChange,
+  onDelete,
+  availableMachineTypes,
+  availableMachineImages,
+  availableZones,
+  cloudProfileIsLoading = false,
+  cloudProfileError = null,
+  formErrors = {},
+  validateSingleField = () => {},
+}: WorkerGroupProps) => {
 
-  const availableMachineTypes = selectedCloudProfile?.machineTypes ?? []
-  const availableMachineImages = selectedCloudProfile?.machineImages ?? []
   const selectedImage = availableMachineImages.find((img) => img.name === workerGroup.machineImage.name)
   const availableImageVersions = selectedImage?.versions ?? []
-  const availableZones = selectedCloudProfile?.regions?.find((r) => r.name === region)?.zones || []
   const imageVersionDisabled = !workerGroup.machineImage.name
   // Do not show error if image version select is disabled
   const imageVersionErrorText = imageVersionDisabled
     ? undefined
-    : (cloudProfiles.error instanceof Error && cloudProfiles.error.message) ||
-      formErrors[`workers.${workerGroup.id}.machineImage.version`]?.[0]
+    : cloudProfileError?.message || formErrors[`workers.${workerGroup.id}.machineImage.version`]?.[0]
 
   const handleFieldChange = (field: string, value: unknown) => {
     onChange({
@@ -101,15 +116,11 @@ const WorkerGroupSection = ({ workerGroup, index, totalWorkers, onChange, onDele
                 label="Machine Type"
                 id="machineType"
                 name="machineType"
-                loading={cloudProfiles.isLoading}
+                loading={cloudProfileIsLoading}
                 value={workerGroup.machineType}
                 onChange={(e) => handleFieldChange("machineType", e?.toString())}
                 helptext="Select the machine type for the worker nodes."
-                errortext={
-                  cloudProfiles.error instanceof Error
-                    ? cloudProfiles.error.message
-                    : formErrors[`workers.${workerGroup.id}.machineType`]?.[0] || undefined
-                }
+                errortext={cloudProfileError?.message || formErrors[`workers.${workerGroup.id}.machineType`]?.[0]}
                 onBlur={() => validateSingleField(`workers.${workerGroup.id}.machineType`)}
                 truncateOptions
               >
@@ -146,13 +157,9 @@ const WorkerGroupSection = ({ workerGroup, index, totalWorkers, onChange, onDele
                 label="Machine Image"
                 id="machineImage"
                 name="machineImage"
-                loading={cloudProfiles.isLoading}
+                loading={cloudProfileIsLoading}
                 helptext="Select the machine image for the worker nodes."
-                errortext={
-                  cloudProfiles.error instanceof Error
-                    ? cloudProfiles.error.message
-                    : formErrors[`workers.${workerGroup.id}.machineImage.name`]?.[0] || undefined
-                }
+                errortext={cloudProfileError?.message || formErrors[`workers.${workerGroup.id}.machineImage.name`]?.[0]}
                 value={workerGroup?.machineImage?.name}
                 onChange={(e) =>
                   onChange({
@@ -182,12 +189,8 @@ const WorkerGroupSection = ({ workerGroup, index, totalWorkers, onChange, onDele
                 label="Availability Zones"
                 id="availabilityZones"
                 name="availabilityZones"
-                loading={cloudProfiles.isLoading}
-                errortext={
-                  cloudProfiles.error instanceof Error
-                    ? cloudProfiles.error.message
-                    : formErrors[`workers.${workerGroup.id}.zones`]?.[0] || undefined
-                }
+                loading={cloudProfileIsLoading}
+                errortext={cloudProfileError?.message || formErrors[`workers.${workerGroup.id}.zones`]?.[0]}
                 value={workerGroup.zones}
                 onChange={(e) =>
                   onChange({
@@ -215,7 +218,7 @@ const WorkerGroupSection = ({ workerGroup, index, totalWorkers, onChange, onDele
                 label="Image Version"
                 id="imageVersion"
                 name="imageVersion"
-                loading={cloudProfiles.isLoading}
+                loading={cloudProfileIsLoading}
                 helptext="Select the version of the machine image for the chosen image type."
                 errortext={imageVersionErrorText}
                 value={workerGroup?.machineImage?.version}
