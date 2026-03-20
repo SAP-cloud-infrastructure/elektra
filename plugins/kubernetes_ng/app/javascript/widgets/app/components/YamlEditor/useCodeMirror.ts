@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react"
 import { EditorView, highlightWhitespace, highlightActiveLine, lineNumbers, keymap } from "@codemirror/view"
 import { EditorState, Compartment } from "@codemirror/state"
 import { yaml } from "@codemirror/lang-yaml"
-import { defaultHighlightStyle, syntaxHighlighting } from "@codemirror/language"
+import { defaultHighlightStyle, syntaxHighlighting, foldGutter, foldKeymap } from "@codemirror/language"
 import { indentWithTab } from "@codemirror/commands"
 
 // Compartments for dynamic reconfiguration
@@ -44,7 +44,8 @@ function createEditorExtensions(
     highlightWhitespace(),
     highlightActiveLine(),
     lineNumbers(),
-    keymap.of([indentWithTab]),
+    foldGutter(),
+    keymap.of([indentWithTab, ...foldKeymap]),
     EditorView.lineWrapping,
     EditorView.theme({
       ".cm-highlightSpace": {
