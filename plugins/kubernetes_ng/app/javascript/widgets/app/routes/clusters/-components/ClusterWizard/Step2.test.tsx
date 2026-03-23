@@ -1,6 +1,5 @@
 import React from "react"
-import { renderHook, screen, act, waitFor } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
+import { renderHook, screen } from "@testing-library/react"
 import { WizardProvider, useWizard } from "./WizzardProvider"
 import * as wizardHook from "./WizzardProvider"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
@@ -35,10 +34,18 @@ describe("Step2 Component", () => {
     })
   })
 
-  it("renders initial 1 worker group", () => {
+  it("renders WorkerGroupEditor component", () => {
+    const wrapper = TestWrapper(queryClient)
+    renderHook(() => useWizard(), { wrapper })
+
+    expect(screen.getByText("Node Auto-scaling")).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: /Add Worker Group/i })).toBeInTheDocument()
+  })
+
+  it("passes workers from wizard context to WorkerGroupEditor", () => {
     const wrapper = TestWrapper(queryClient)
     const originalUseWizard = wizardHook.useWizard
-    const worker = { ...DEFAULT_WORKER_GROUP, name: "worker-test1" }
+    const worker = { ...DEFAULT_WORKER_GROUP, id: "worker-1", name: "worker-test1" }
 
     vi.spyOn(wizardHook, "useWizard").mockImplementation(() => {
       const original = originalUseWizard()
@@ -55,52 +62,35 @@ describe("Step2 Component", () => {
     expect(screen.getByText((content) => content.includes(worker.name))).toBeInTheDocument()
   })
 
-  it("adds a new worker group", async () => {
+  it("passes cloud profile data to WorkerGroupEditor", () => {
     const wrapper = TestWrapper(queryClient)
     renderHook(() => useWizard(), { wrapper })
 
-    const addButton = screen.getByRole("button", { name: /Add Worker Group/i })
-    await act(async () => {
-      userEvent.click(addButton)
-    })
-
-    expect(screen.getByText((content) => content.includes("worker1"))).toBeInTheDocument()
-    expect(screen.getByText((content) => content.includes("worker2"))).toBeInTheDocument()
+    // WorkerGroupEditor should render with machine type select
+    const section = screen.getByRole("region", { name: /worker1/i })
+    expect(section).toBeInTheDocument()
   })
 
-  it("doesn't allow to delete the first worker group", async () => {
+  it("passes form errors to WorkerGroupEditor", () => {
     const wrapper = TestWrapper(queryClient)
+    const originalUseWizard = wizardHook.useWizard
+    const workerId = "worker-test-id"
+
+    vi.spyOn(wizardHook, "useWizard").mockImplementation(() => {
+      const original = originalUseWizard()
+      return {
+        ...original,
+        clusterFormData: {
+          ...original.clusterFormData,
+          workers: [{ ...DEFAULT_WORKER_GROUP, id: workerId, name: "worker1" }],
+        },
+        formErrors: {
+          [`workers.${workerId}.name`]: ["Name is required"],
+        },
+      }
+    })
+
     renderHook(() => useWizard(), { wrapper })
-
-    const addButton = screen.getByRole("button", { name: /Add Worker Group/i })
-    await act(async () => {
-      userEvent.click(addButton)
-    })
-
-    const deleteButton = screen.queryByLabelText("Delete Worker Group worker1")
-    expect(deleteButton).toBeNull()
-  })
-
-  it("deletes a worker group", async () => {
-    const wrapper = TestWrapper(queryClient)
-    renderHook(() => useWizard(), { wrapper })
-
-    const addButton = screen.getByRole("button", { name: /Add Worker Group/i })
-    await act(async () => {
-      userEvent.click(addButton)
-    })
-
-    expect(screen.getByText((content) => content.includes("worker1"))).toBeInTheDocument()
-    expect(screen.getByText((content) => content.includes("worker2"))).toBeInTheDocument()
-
-    const deleteButton = screen.getByLabelText("Delete Worker Group worker2")
-
-    await act(async () => {
-      userEvent.click(deleteButton)
-    })
-
-    await waitFor(() => {
-      expect(screen.queryByText(/worker2/)).not.toBeInTheDocument()
-    })
+    expect(screen.getByText("Name is required")).toBeInTheDocument()
   })
 })

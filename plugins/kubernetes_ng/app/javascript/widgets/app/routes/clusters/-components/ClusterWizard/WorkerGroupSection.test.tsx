@@ -1,66 +1,63 @@
 import React from "react"
-import { renderHook, screen, within, fireEvent } from "@testing-library/react"
-import { WizardProvider, useWizard } from "./WizzardProvider"
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { render, screen, within, fireEvent } from "@testing-library/react"
 import { PortalProvider } from "@cloudoperators/juno-ui-components"
-import { defaultMockClient } from "../../../../mocks/TestTools"
-import { DEFAULT_WORKER_GROUP, DEFAULT_CLUSTER_FORM_DATA } from "./defaults"
+import { DEFAULT_WORKER_GROUP } from "./defaults"
 import WorkerGroupSection from "./WorkerGroupSection"
-import { validWorkerGroupFormData } from "../../../../mocks/data"
-import * as wizardHook from "./WizzardProvider"
+import { validWorkerGroupFormData, mockMachineTypes, mockMachineImages, mockRegions } from "../../../../mocks/data"
 import userEvent from "@testing-library/user-event"
 
+const defaultProps = {
+  availableMachineTypes: mockMachineTypes,
+  availableMachineImages: mockMachineImages,
+  availableZones: mockRegions[0].zones,
+  cloudProfileIsLoading: false,
+  cloudProfileError: null,
+  formErrors: {},
+  validateSingleField: vi.fn(),
+  onChange: vi.fn(),
+  onDelete: vi.fn(),
+}
+
 const TestWrapper =
-  (queryClient: QueryClient, workerGroup = DEFAULT_WORKER_GROUP, totalWorkers = 1, index = 0) =>
-  ({ children }: { children: React.ReactNode }) => (
-    <PortalProvider>
-      <QueryClientProvider client={queryClient}>
-        <WizardProvider client={defaultMockClient} region="us-east-1" formData={DEFAULT_CLUSTER_FORM_DATA}>
-          <WorkerGroupSection
-            workerGroup={workerGroup}
-            index={index}
-            totalWorkers={totalWorkers}
-            onChange={() => {}}
-            onDelete={() => {}}
-          />
-          {children}
-        </WizardProvider>
-      </QueryClientProvider>
-    </PortalProvider>
-  )
+  (workerGroup = DEFAULT_WORKER_GROUP, totalWorkers = 1, index = 0, overrideProps = {}) =>
+  () =>
+    (
+      <PortalProvider>
+        <WorkerGroupSection
+          workerGroup={workerGroup}
+          index={index}
+          totalWorkers={totalWorkers}
+          {...defaultProps}
+          {...overrideProps}
+        />
+      </PortalProvider>
+    )
 
 describe("WorkerGroupSection", () => {
-  let queryClient: QueryClient
-
   beforeEach(() => {
     vi.restoreAllMocks()
-    queryClient = new QueryClient({
-      defaultOptions: {
-        queries: { retry: false },
-        mutations: { retry: false },
-      },
-    })
+    vi.clearAllMocks()
   })
 
   it("renders worker group title default if no name is provided", () => {
     const workerGroupWithoutName = { ...DEFAULT_WORKER_GROUP, name: "" }
-    const wrapper = TestWrapper(queryClient, workerGroupWithoutName)
-    renderHook(() => useWizard(), { wrapper })
+    const wrapper = TestWrapper(workerGroupWithoutName)
+    render(wrapper())
 
     expect(screen.getByText("Worker Group: New Worker Group")).toBeInTheDocument()
   })
 
   it("renders worker group title with provided name", () => {
     const workerGroupWithName = { ...DEFAULT_WORKER_GROUP, name: "custom-worker" }
-    const wrapper = TestWrapper(queryClient, workerGroupWithName)
-    renderHook(() => useWizard(), { wrapper })
+    const wrapper = TestWrapper(workerGroupWithName)
+    render(wrapper())
 
     expect(screen.getByText(`Worker Group: ${workerGroupWithName.name}`)).toBeInTheDocument()
   })
 
   it("renders worker fields", async () => {
-    const wrapper = TestWrapper(queryClient, validWorkerGroupFormData)
-    renderHook(() => useWizard(), { wrapper })
+    const wrapper = TestWrapper(validWorkerGroupFormData)
+    render(wrapper())
 
     const section = screen.getByRole("region", { name: new RegExp(validWorkerGroupFormData.name, "i") })
     expect(section).toBeInTheDocument()
@@ -93,9 +90,9 @@ describe("WorkerGroupSection", () => {
   })
 
   it("validates on blur", () => {
-    const wrapper = TestWrapper(queryClient, validWorkerGroupFormData)
-    const originalUseWizard = wizardHook.useWizard
     const validateSingleField = vi.fn()
+    const wrapper = TestWrapper(validWorkerGroupFormData, 1, 0, { validateSingleField })
+    render(wrapper())
 
     const fields = [
       { label: "Name", key: "name" },
@@ -106,16 +103,6 @@ describe("WorkerGroupSection", () => {
       { label: "Maximum Nodes", key: "maximum" },
       { label: "Availability Zones", key: "zones" },
     ]
-
-    vi.spyOn(wizardHook, "useWizard").mockImplementation(() => {
-      const original = originalUseWizard()
-      return {
-        ...original,
-        validateSingleField: validateSingleField,
-      }
-    })
-
-    renderHook(() => useWizard(), { wrapper })
 
     const section = screen.getByRole("region", { name: new RegExp(validWorkerGroupFormData.name, "i") })
     expect(section).toBeInTheDocument()
@@ -128,8 +115,10 @@ describe("WorkerGroupSection", () => {
     })
   })
 
-  it("calls onChange updates data", () => {
-    const wrapper = TestWrapper(queryClient, validWorkerGroupFormData)
+  it("updates field values when inputs change", () => {
+    const onChange = vi.fn()
+    const wrapper = TestWrapper(validWorkerGroupFormData, 1, 0, { onChange })
+    render(wrapper())
 
     const textFields = [
       { label: "Name", key: "name", value: "new-name" },
@@ -143,8 +132,6 @@ describe("WorkerGroupSection", () => {
       { label: "Image Version", key: "machineImage.version" },
       { label: "Availability Zones", key: "zones" },
     ]
-
-    renderHook(() => useWizard(), { wrapper })
 
     const section = screen.getByRole("region", { name: new RegExp(validWorkerGroupFormData.name, "i") })
     expect(section).toBeInTheDocument()
@@ -170,26 +157,18 @@ describe("WorkerGroupSection", () => {
   })
 
   it("displays errors for all fields", () => {
-    const wrapper = TestWrapper(queryClient, validWorkerGroupFormData)
-    const originalUseWizard = wizardHook.useWizard
+    const formErrors = {
+      [`workers.${validWorkerGroupFormData.id}.name`]: ["Name is required"],
+      [`workers.${validWorkerGroupFormData.id}.machineType`]: ["Machine Type is required"],
+      [`workers.${validWorkerGroupFormData.id}.machineImage.name`]: ["Machine Image is required"],
+      [`workers.${validWorkerGroupFormData.id}.machineImage.version`]: ["Image Version is required"],
+      [`workers.${validWorkerGroupFormData.id}.minimum`]: ["Minimum Nodes are required"],
+      [`workers.${validWorkerGroupFormData.id}.maximum`]: ["Maximum Nodes are required"],
+      [`workers.${validWorkerGroupFormData.id}.zones`]: ["At least one zone must be selected"],
+    }
 
-    vi.spyOn(wizardHook, "useWizard").mockImplementation(() => {
-      const original = originalUseWizard()
-      return {
-        ...original,
-        formErrors: {
-          [`workers.${validWorkerGroupFormData.id}.name`]: ["Name is required"],
-          [`workers.${validWorkerGroupFormData.id}.machineType`]: ["Machine Type is required"],
-          [`workers.${validWorkerGroupFormData.id}.machineImage.name`]: ["Machine Image is required"],
-          [`workers.${validWorkerGroupFormData.id}.machineImage.version`]: ["Image Version is required"],
-          [`workers.${validWorkerGroupFormData.id}.minimum`]: ["Minimum Nodes are required"],
-          [`workers.${validWorkerGroupFormData.id}.maximum`]: ["Maximum Nodes are required"],
-          [`workers.${validWorkerGroupFormData.id}.zones`]: ["At least one zone must be selected"],
-        },
-      }
-    })
-
-    renderHook(() => useWizard(), { wrapper })
+    const wrapper = TestWrapper(validWorkerGroupFormData, 1, 0, { formErrors })
+    render(wrapper())
 
     const section = screen.getByRole("region", { name: new RegExp(validWorkerGroupFormData.name, "i") })
     expect(section).toBeInTheDocument()
@@ -204,8 +183,8 @@ describe("WorkerGroupSection", () => {
   })
 
   it("doesn't displays onDelete button when just one worker group is present or is the first one", async () => {
-    const wrapper = TestWrapper(queryClient, validWorkerGroupFormData)
-    renderHook(() => useWizard(), { wrapper })
+    const wrapper = TestWrapper(validWorkerGroupFormData)
+    render(wrapper())
 
     const section = screen.getByRole("region", { name: new RegExp(validWorkerGroupFormData.name, "i") })
     expect(section).toBeInTheDocument()
@@ -215,8 +194,8 @@ describe("WorkerGroupSection", () => {
   })
 
   it("displays onDelete button when there are more then one worker group and not the first one", async () => {
-    const wrapper = TestWrapper(queryClient, validWorkerGroupFormData, 2, 1)
-    renderHook(() => useWizard(), { wrapper })
+    const wrapper = TestWrapper(validWorkerGroupFormData, 2, 1)
+    render(wrapper())
 
     const section = screen.getByRole("region", { name: new RegExp(validWorkerGroupFormData.name, "i") })
     expect(section).toBeInTheDocument()
