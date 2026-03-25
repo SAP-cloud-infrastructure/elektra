@@ -7,4 +7,6 @@ export const QUERY_KEYS = {
   cluster: (name: string) => ["cluster", name] as const,
   permissions: ["shoot-permissions"] as const,
   kubeconfigPermissions: ["kubeconfig-permissions"] as const,
+  cloudProfiles: ["cloudProfiles"] as const,
+  externalNetworks: ["external-networks"] as const,
 } as const
