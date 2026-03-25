@@ -56,7 +56,7 @@ export default class RBACPoliciesEditModal extends React.Component {
   setPermissions = (idx, input) => {
     const policies = [...this.state.policies]
     policies[idx] = { ...policies[idx], permissions: input.split(",") }
-    if (input == "anonymous_pull" || input == "anonymous_first_pull") {
+    if (input.includes("anonymous_pull") || input.includes("anonymous_first_pull")) {
       policies[idx].match_username = ""
     }
     this.setState({ ...this.state, policies })
@@ -64,7 +64,7 @@ export default class RBACPoliciesEditModal extends React.Component {
   setForbiddenPermissions = (idx, input) => {
     const policies = [...this.state.policies]
     policies[idx] = { ...policies[idx], forbidden_permissions: input === "" ? null : input.split(",") }
-    if (input == "anonymous_pull" || input == "anonymous_first_pull") {
+    if (input.includes("anonymous_pull") || input.includes("anonymous_first_pull")) {
       policies[idx].match_username = ""
     }
     this.setState({ ...this.state, policies })
