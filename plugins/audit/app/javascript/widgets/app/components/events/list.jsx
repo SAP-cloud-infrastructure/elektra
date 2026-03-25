@@ -201,6 +201,13 @@ const EventList = ({
           </tr>
         </thead>
         <tbody>
+          {!isFetching && (!events || events.length === 0) && (
+            <tr>
+              <td colSpan={6} className="text-center">
+                No audit events found for the selected filters.
+              </td>
+            </tr>
+          )}
           {events &&
             events.map((event, i) => (
               <React.Fragment key={i}>
