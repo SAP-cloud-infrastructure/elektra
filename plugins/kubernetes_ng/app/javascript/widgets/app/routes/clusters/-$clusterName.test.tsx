@@ -1,5 +1,5 @@
 import React from "react"
-import { render, screen, act, within } from "@testing-library/react"
+import { render, screen, act, within, waitFor } from "@testing-library/react"
 import { createRoute, RouterProvider, createMemoryHistory, createRootRouteWithContext } from "@tanstack/react-router"
 import { RouterConfig, CLUSTER_DETAIL_ROUTE_ID } from "./$clusterName"
 import { getTestRouter, deferredPromise } from "../../mocks/TestTools"
@@ -18,6 +18,11 @@ const renderComponent = ({
   permissionsPromise = Promise.resolve(permissionsAllTrue),
   kubeconfigPromise = Promise.resolve("kubeconfig-data"),
   deletePromise = Promise.resolve(defaultCluster),
+}: {
+  clusterDetailsPromise?: Promise<Cluster> | (() => Promise<Cluster>)
+  permissionsPromise?: Promise<Permissions> | (() => Promise<Permissions>)
+  kubeconfigPromise?: Promise<string> | (() => Promise<string>)
+  deletePromise?: Promise<Cluster> | (() => Promise<Cluster>)
 } = {}) => {
   const rootRoute = createRootRouteWithContext<RouterContext>()({
     component: Root,
@@ -44,11 +49,13 @@ const renderComponent = ({
       apiClient: {
         gardener: {
           ...defaultMockClient.gardener,
-          getClusterByName: () => clusterDetailsPromise,
-          getShootPermissions: () => permissionsPromise,
-          getKubeconfigPermission: () => permissionsPromise,
-          getKubeconfig: () => kubeconfigPromise,
-          confirm_deletion_and_destroy: () => deletePromise,
+          getClusterByName:
+            typeof clusterDetailsPromise === "function" ? clusterDetailsPromise : () => clusterDetailsPromise,
+          getShootPermissions: typeof permissionsPromise === "function" ? permissionsPromise : () => permissionsPromise,
+          getKubeconfigPermission:
+            typeof permissionsPromise === "function" ? permissionsPromise : () => permissionsPromise,
+          getKubeconfig: typeof kubeconfigPromise === "function" ? kubeconfigPromise : () => kubeconfigPromise,
+          confirm_deletion_and_destroy: typeof deletePromise === "function" ? deletePromise : () => deletePromise,
         },
       },
       region: "qa-de-1",
@@ -58,8 +65,13 @@ const renderComponent = ({
 
   let queryClient: QueryClient = new QueryClient({
     defaultOptions: {
-      queries: { retry: false },
+      queries: { retry: false, cacheTime: 0, staleTime: 0 },
       mutations: { retry: false },
+    },
+    logger: {
+      log: () => {},
+      warn: () => {},
+      error: () => {},
     },
   })
 
@@ -152,7 +164,9 @@ describe("<ClusterDetail />", () => {
     })
 
     it("shows error state when cluster details fail to load", async () => {
-      const clusterDetailsPromise = Promise.reject(new Error("Failed to load cluster details"))
+      const clusterDetailsPromise = async () => {
+        throw new Error("Failed to load cluster details")
+      }
       const permissionsPromise = Promise.resolve(permissionsAllTrue)
 
       await act(async () =>
@@ -162,13 +176,19 @@ describe("<ClusterDetail />", () => {
         })
       )
 
-      expect(screen.getByText("Error: Failed to load cluster details")).toBeInTheDocument()
+      // Wait for error to be displayed
+      await waitFor(() => {
+        expect(screen.getByText(/Failed to load cluster details/i)).toBeInTheDocument()
+      })
+
       expect(screen.queryByRole("tab", { name: "YAML" })).toBeInTheDocument()
       expect(screen.queryByRole("tab", { name: "Overview" })).toBeInTheDocument()
     })
 
     it("disables action buttons when cluster details fail to load", async () => {
-      const clusterDetailsPromise = Promise.reject(new Error("Failed to load cluster details"))
+      const clusterDetailsPromise = async () => {
+        throw new Error("Failed to load cluster details")
+      }
       const permissionsPromise = Promise.resolve(permissionsAllTrue)
 
       await act(async () =>
@@ -178,7 +198,12 @@ describe("<ClusterDetail />", () => {
         })
       )
 
-      expect(screen.getByRole("button", { name: /refresh/i })).not.toBeDisabled()
+      // Wait for the query to settle (error state, not fetching anymore)
+      await waitFor(() => {
+        const refreshButton = screen.getByRole("button", { name: /refresh/i })
+        expect(refreshButton).not.toBeDisabled()
+      })
+
       expect(screen.getByRole("button", { name: /delete cluster/i })).toBeDisabled()
     })
   })
@@ -203,8 +228,10 @@ describe("<ClusterDetail />", () => {
         })
       )
 
-      expect(screen.getByRole("heading", { level: 2, name: "Latest Operation & Errors" })).toBeInTheDocument()
-      expect(screen.getByText("Cluster updated successfully")).toBeInTheDocument()
+      await waitFor(() => {
+        expect(screen.getByRole("heading", { level: 2, name: "Latest Operation & Errors" })).toBeInTheDocument()
+        expect(screen.getByText("Cluster updated successfully")).toBeInTheDocument()
+      })
     })
   })
 })

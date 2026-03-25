@@ -26,11 +26,13 @@ import Box from "../../../../components/Box"
 import WorkerList from "./WorkerList"
 import YamlEditor from "../../../../components/YamlEditor"
 import InlineError from "../../../../components/InlineError"
-import { useRouteContext, useRouter, useMatch, useNavigate, useSearch } from "@tanstack/react-router"
+import { useRouteContext, useNavigate, useSearch, useParams } from "@tanstack/react-router"
 import { RouterContext } from "../../../__root"
 import { useActions } from "@cloudoperators/juno-messages-provider"
 import { normalizeError } from "../../../../components/InlineError"
 import { CLUSTER_DETAIL_ROUTE_ID, ClusterDetailTab } from "../../$clusterName"
+import { useQueryClient } from "@tanstack/react-query"
+import { QUERY_KEYS } from "../../../../hooks/queryKeys"
 
 const sectionHeaderStyles = "details-section tw-text-lg tw-font-bold tw-mb-4"
 
@@ -40,21 +42,22 @@ const DetailsContent = ({
   shootPermissions,
   error,
   isLoading = false,
+  isFetching = false,
 }: {
   cluster?: Cluster
   updatedAt?: number
   shootPermissions?: Permissions
   error?: Error
   isLoading?: boolean
+  isFetching?: boolean
 }) => {
   const [showLastOperation, setShowLastOperation] = useState(false)
   const { apiClient } = useRouteContext({ strict: false }) as RouterContext
-  const router = useRouter()
+  const params = useParams({ from: CLUSTER_DETAIL_ROUTE_ID })
   const navigate = useNavigate({ from: CLUSTER_DETAIL_ROUTE_ID })
-  const match = useMatch({ from: CLUSTER_DETAIL_ROUTE_ID })
   const { tab } = useSearch({ from: CLUSTER_DETAIL_ROUTE_ID })
-  const isFetching = match.isFetching === "loader"
   const { addMessage, resetMessages } = useActions()
+  const queryClient = useQueryClient()
 
   // Handle tab change via URL navigation
   const tabIndex = tab === "yaml" ? 1 : 0
@@ -65,12 +68,18 @@ const DetailsContent = ({
     })
   }
 
+  // Helper to refresh cluster data - uses clusterName from URL params
+  // This works even when cluster is undefined (during loading or error states)
+  const refreshCluster = () => {
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.cluster(params.clusterName) })
+  }
+
   const handleSaveCluster = async (resource: Record<string, unknown>): Promise<void> => {
     if (!cluster) return
     return apiClient.gardener
       .replaceCluster(cluster.name, resource)
       .then(() => {
-        router.invalidate()
+        refreshCluster()
         resetMessages()
         addMessage({ text: "Cluster updated successfully", variant: "success" })
       })
@@ -93,9 +102,9 @@ const DetailsContent = ({
 
   const handleRefreshCluster = async (): Promise<Record<string, unknown>> => {
     if (!cluster) throw new Error("Cluster not available")
-    // Invalidate the router to update the UI
-    router.invalidate()
-    // Fetch the latest cluster resource directly from the API to not watch resource changes
+    // Invalidate the query to trigger a refresh in the background
+    refreshCluster()
+    // Fetch the latest cluster resource directly from the API for the YAML editor
     const latestCluster = await apiClient.gardener.getClusterByName(cluster.name)
     // Return the raw cluster resource
     return latestCluster.raw
@@ -129,6 +138,22 @@ const DetailsContent = ({
 
   const yamlEditorState = getYamlEditorDisabledState()
 
+  // Content rendered in both tabs during loading/error states
+  const loadingContent = (
+    <Container py px={false}>
+      <Stack gap="2">
+        <Spinner variant="primary" size="small" aria-label="Loading cluster details" />
+        <span>Loading cluster details...</span>
+      </Stack>
+    </Container>
+  )
+
+  const errorContent = (
+    <Container py px={false}>
+      <InlineError error={error} />
+    </Container>
+  )
+
   return (
     <Container px={false} py>
       <div className="tw-relative">
@@ -137,7 +162,7 @@ const DetailsContent = ({
           <Button
             size="small"
             variant="subdued"
-            onClick={() => router.invalidate()}
+            onClick={refreshCluster}
             progress={isFetching}
             disabled={isFetching}
             label="Refresh"
@@ -146,30 +171,19 @@ const DetailsContent = ({
         </div>
         <Tabs selectedIndex={tabIndex} onSelect={handleTabChange}>
           <TabList>
-            <Tab>Overview</Tab>
-            <Tab disabled={isLoading || error ? true : false}>YAML</Tab>
+            <Tab disabled={isLoading || !!error}>Overview</Tab>
+            <Tab disabled={isLoading || !!error}>YAML</Tab>
           </TabList>
           {isLoading && (
             <>
-              <TabPanel>
-                <Container py px={false}>
-                  <Stack gap="2">
-                    <Spinner variant="primary" size="small" aria-label="Loading cluster details" />
-                    <span>Loading cluster details...</span>
-                  </Stack>
-                </Container>
-              </TabPanel>
-              <TabPanel></TabPanel>
+              <TabPanel>{loadingContent}</TabPanel>
+              <TabPanel>{loadingContent}</TabPanel>
             </>
           )}
           {error && (
             <>
-              <TabPanel>
-                <Container py px={false}>
-                  <InlineError error={error} />
-                </Container>
-              </TabPanel>
-              <TabPanel></TabPanel>
+              <TabPanel>{errorContent}</TabPanel>
+              <TabPanel>{errorContent}</TabPanel>
             </>
           )}
           {!isLoading && !error && cluster && (
