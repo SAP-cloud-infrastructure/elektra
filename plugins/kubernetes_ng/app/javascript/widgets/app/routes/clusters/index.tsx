@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { createFileRoute, useLoaderData, useRouter, useMatch } from "@tanstack/react-router"
+import { createFileRoute } from "@tanstack/react-router"
 import { Container } from "@cloudoperators/juno-ui-components"
 import ClusterList from "./-components/ClusterList"
 import PageHeader from "../../components/PageHeader"
@@ -12,33 +12,19 @@ import { GardenerApi } from "../../apiClient"
 import DisableableButton from "../../components/DisableableButton"
 import { useActions } from "@cloudoperators/juno-messages-provider"
 import HeadingInfo from "./-components/HeadingInfo"
+import { useClustersQuery, useShootPermissionsQuery } from "../../hooks/useClusterQueries"
+import { useQueryClient } from "@tanstack/react-query"
+import { QUERY_KEYS } from "../../hooks/queryKeys"
 
 export const CLUSTERS_ROUTE_ID = "/clusters/"
 
 export const Route = createFileRoute(CLUSTERS_ROUTE_ID)({
-  component: ClustersLoader,
-  pendingComponent: () => (
-    <ClustersErrorBoundary>
-      <Clusters isLoading />
-    </ClustersErrorBoundary>
-  ),
-  errorComponent: ({ error }) => (
-    <ClustersErrorBoundary>
-      <Clusters error={error} />
-    </ClustersErrorBoundary>
-  ),
-  loader: async ({ context }) => {
-    const client = context.apiClient
-    const [clusters, permissions] = await Promise.all([
-      client.gardener.getClusters(),
-      client.gardener.getShootPermissions(),
-    ])
+  component: ClustersWithQueries,
+  // Provide the context through the route so it's available in the component
+  beforeLoad: ({ context }) => {
     return {
-      clusters,
-      permissions,
-      client,
+      apiClient: context.apiClient,
       region: context.region,
-      updatedAt: Date.now(),
     }
   },
 })
@@ -79,16 +65,14 @@ function ClusterActions({
   }
 
   return (
-    <>
-      <DisableableButton
-        variant="primary"
-        size="small"
-        label="Add Cluster"
-        disabled={disabled || !permissions?.create}
-        onClick={onAddCluster}
-        disabledMessage={getAddClusterDisabledMessage()}
-      />
-    </>
+    <DisableableButton
+      variant="primary"
+      size="small"
+      label="Add Cluster"
+      disabled={disabled || !permissions?.create}
+      onClick={onAddCluster}
+      disabledMessage={getAddClusterDisabledMessage()}
+    />
   )
 }
 
@@ -97,16 +81,22 @@ interface ClustersViewProps {
   permissions?: Permissions
   error?: Error
   isLoading?: boolean
+  isFetching?: boolean
   client?: GardenerApi
   updatedAt?: number
   region?: string
+  onRefreshClusters: () => void
 }
 
-function ClusterContent({ clusters = [], permissions, error, isLoading = false, updatedAt }: ClustersViewProps) {
-  const router = useRouter()
-  const match = useMatch({ from: Route.id })
-  const isFetching = match.isFetching === "loader"
-
+function ClusterContent({
+  clusters = [],
+  permissions,
+  error,
+  isLoading = false,
+  updatedAt,
+  isFetching,
+  onRefreshClusters,
+}: ClustersViewProps) {
   const listError =
     error ?? (permissions?.list === false ? new Error("You do not have permission to view clusters.") : undefined)
 
@@ -118,16 +108,15 @@ function ClusterContent({ clusters = [], permissions, error, isLoading = false, 
         error={listError}
         updatedAt={updatedAt}
         isFetching={isFetching}
-        onRefresh={() => router.invalidate()}
+        onRefresh={onRefreshClusters}
       />
     </Container>
   )
 }
 
 function Clusters(props: ClustersViewProps) {
-  const { permissions, isLoading = false, client, region } = props
+  const { permissions, isLoading = false, client, region, onRefreshClusters } = props
   const [showWizardModal, setShowWizardModal] = useState(false)
-  const router = useRouter()
   const { addMessage, resetMessages } = useActions()
 
   return (
@@ -145,7 +134,7 @@ function Clusters(props: ClustersViewProps) {
         <CreateClusterWizard
           isOpen={showWizardModal}
           onSuccessCreate={(clusterName) => {
-            router.invalidate()
+            onRefreshClusters()
             resetMessages()
             addMessage({
               text: `Cluster ${clusterName} is being bootstrapped. This may take a few minutes.`,
@@ -164,12 +153,52 @@ function Clusters(props: ClustersViewProps) {
   )
 }
 
-function ClustersLoader() {
-  const props = useLoaderData({ from: Route.id })
+function ClustersWithQueries() {
+  const { apiClient, region } = Route.useRouteContext()
+  const queryClient = useQueryClient()
+
+  const {
+    data: clusters,
+    isLoading: clustersLoading,
+    error: clustersError,
+    isFetching: clustersFetching,
+    dataUpdatedAt,
+  } = useClustersQuery(apiClient)
+
+  const {
+    data: permissions,
+    isLoading: permissionsLoading,
+    error: permissionsError,
+  } = useShootPermissionsQuery(apiClient)
+
+  const isLoading = clustersLoading || permissionsLoading
+  // TanStack Query v4 returns null when there's no error, convert to undefined
+  const error = clustersError || permissionsError || undefined
+
+  // Disable all actions when there's an error fetching either clusters or permissions
+  const validPermissions = error ? undefined : permissions
+
+  // if there is an error, independently of fetching either clusters or permissions, we show an error state,
+  // so we don't want to show a stale updatedAt timestamp in that case
+  const validUpdatedAt = !error && dataUpdatedAt > 0 ? dataUpdatedAt : undefined
+
+  const handleRefreshClusters = () => {
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.clusters })
+  }
 
   return (
     <ClustersErrorBoundary>
-      <Clusters {...props} />
+      <Clusters
+        clusters={clusters}
+        permissions={validPermissions}
+        error={error}
+        isLoading={isLoading}
+        isFetching={clustersFetching}
+        client={apiClient}
+        region={region}
+        updatedAt={validUpdatedAt}
+        onRefreshClusters={handleRefreshClusters}
+      />
     </ClustersErrorBoundary>
   )
 }

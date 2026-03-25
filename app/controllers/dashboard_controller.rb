@@ -67,6 +67,7 @@ class DashboardController < ::ScopeController
   end
 
   def terms_of_use
+
     if current_user
       @tou =
         UserProfile.tou(
@@ -134,16 +135,11 @@ class DashboardController < ::ScopeController
   end
 
   def tou_accepted?
-    Rails.cache.fetch(
-      "tou_accepted:#{current_user.id}:#{current_user.user_domain_id}",
-      expires_in: 5.minutes
-    ) do
-      UserProfile.tou_accepted?(
-        current_user.id,
-        current_user.user_domain_id,
-        Settings.send(@domain_config&.terms_of_use_name).version
-      )
-    end
+    UserProfile.tou_accepted?(
+      current_user.id,
+      current_user.user_domain_id,
+      Settings.send(@domain_config&.terms_of_use_name).version
+    )
   end
 
   def set_mailer_host

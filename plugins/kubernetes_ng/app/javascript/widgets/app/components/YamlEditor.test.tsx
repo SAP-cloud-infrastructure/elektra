@@ -1,10 +1,9 @@
 import React from "react"
-import { render, screen, fireEvent, waitFor, within } from "@testing-library/react"
+import { render, screen, fireEvent, waitFor, within, act } from "@testing-library/react"
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import "@testing-library/jest-dom"
 import YamlEditor from "./YamlEditor/index"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { act } from "react-dom/test-utils"
 import { PortalProvider } from "@cloudoperators/juno-ui-components"
 
 // Mock useBlocker from TanStack Router

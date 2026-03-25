@@ -1,16 +1,16 @@
 import React from "react"
-import { createFileRoute, useParams, useLoaderData } from "@tanstack/react-router"
+import { createFileRoute, useParams } from "@tanstack/react-router"
 import { z } from "zod"
 import { Cluster } from "../../types/cluster"
 import { Permissions } from "../../types/permissions"
 import { LoaderWithCrumb } from "../-types"
 import PageHeader from "../../components/PageHeader"
 import { ErrorBoundary, FallbackProps } from "react-error-boundary"
-import { RouterContext } from "../__root"
-import { GardenerApi } from "../../apiClient"
 import DetailsContent from "./-components/ClusterDetails/DetailsContent"
 import MainActions from "./-components/ClusterDetails/MainActions"
 import InlineError from "../../components/InlineError"
+import { useClusterQuery, useShootPermissionsQuery, useKubeconfigPermissionsQuery } from "../../hooks/useClusterQueries"
+import { RouterContext } from "../__root"
 
 export const CLUSTER_DETAIL_ROUTE_ID = "/clusters/$clusterName"
 
@@ -21,48 +21,18 @@ const clusterDetailSearchSchema = z.object({
 export type ClusterDetailTab = "overview" | "yaml"
 
 export const RouterConfig = {
-  component: ClusterDetailLoader,
+  component: ClusterDetailWithQueries,
   validateSearch: clusterDetailSearchSchema,
-  pendingComponent: () => (
-    <ClusterDetailErrorBoundary>
-      <ClusterDetail isLoading />
-    </ClusterDetailErrorBoundary>
-  ),
-  errorComponent: ({ error }: { error?: Error }) => (
-    <ClusterDetailErrorBoundary>
-      <ClusterDetail error={error} />
-    </ClusterDetailErrorBoundary>
-  ),
-  loader: async ({
-    context,
-    params,
-  }: {
-    context: RouterContext
-    params: { clusterName: string }
-  }): Promise<
-    LoaderWithCrumb & {
-      cluster: Cluster
-      shootPermissions: Permissions
-      kubeconfigPermissions: Permissions
-      client: GardenerApi
-      updatedAt: number
+  beforeLoad: ({ context }: { context: RouterContext }) => {
+    return {
+      apiClient: context.apiClient,
     }
-  > => {
-    const client = context.apiClient
-    const [cluster, shootPermissions, kubeconfigPermissions] = await Promise.all([
-      client.gardener.getClusterByName(params.clusterName),
-      client.gardener.getShootPermissions(),
-      client.gardener.getKubeconfigPermission(),
-    ])
+  },
+  loader: async ({ params }: { params: { clusterName: string } }): Promise<LoaderWithCrumb> => {
     return {
       crumb: {
         label: `${params.clusterName}`,
       },
-      cluster,
-      shootPermissions,
-      kubeconfigPermissions,
-      client,
-      updatedAt: Date.now(),
     }
   },
 }
@@ -93,6 +63,7 @@ interface ClusterDetailProps {
   shootPermissions?: Permissions
   kubeconfigPermissions?: Permissions
   isLoading?: boolean
+  isFetching?: boolean
   error?: Error
   updatedAt?: number
 }
@@ -102,6 +73,7 @@ function ClusterDetail({
   shootPermissions,
   kubeconfigPermissions,
   isLoading,
+  isFetching,
   error,
   updatedAt,
 }: ClusterDetailProps) {
@@ -129,6 +101,7 @@ function ClusterDetail({
       <DetailsContent
         cluster={cluster}
         updatedAt={updatedAt}
+        isFetching={isFetching}
         shootPermissions={shootPermissions}
         error={getError()}
         isLoading={isLoading}
@@ -137,11 +110,52 @@ function ClusterDetail({
   )
 }
 
-function ClusterDetailLoader() {
-  const props = useLoaderData({ from: Route.id })
+function ClusterDetailWithQueries() {
+  const { apiClient } = Route.useRouteContext()
+  const params = useParams({ from: Route.id })
+
+  const {
+    data: cluster,
+    isLoading: clusterLoading,
+    error: clusterError,
+    isFetching: clusterFetching,
+    dataUpdatedAt,
+  } = useClusterQuery(apiClient, params.clusterName)
+
+  const {
+    data: shootPermissions,
+    isLoading: shootPermissionsLoading,
+    error: shootPermissionsError,
+  } = useShootPermissionsQuery(apiClient)
+
+  const {
+    data: kubeconfigPermissions,
+    isLoading: kubeconfigPermissionsLoading,
+    error: kubeconfigPermissionsError,
+  } = useKubeconfigPermissionsQuery(apiClient)
+
+  const isLoading = clusterLoading || shootPermissionsLoading || kubeconfigPermissionsLoading
+  // TanStack Query v4 returns null when there's no error, convert to undefined
+  const error = clusterError || shootPermissionsError || kubeconfigPermissionsError || undefined
+
+  // Disable all actions when there's an error fetching cluster or permissions
+  const validShootPermissions = error ? undefined : shootPermissions
+  const validKubeconfigPermissions = error ? undefined : kubeconfigPermissions
+
+  // Don't show stale updatedAt timestamp when there's an error
+  const validUpdatedAt = !error && dataUpdatedAt > 0 ? dataUpdatedAt : undefined
+
   return (
     <ClusterDetailErrorBoundary>
-      <ClusterDetail {...props} />
+      <ClusterDetail
+        cluster={cluster}
+        shootPermissions={validShootPermissions}
+        kubeconfigPermissions={validKubeconfigPermissions}
+        error={error}
+        isLoading={isLoading}
+        isFetching={clusterFetching}
+        updatedAt={validUpdatedAt}
+      />
     </ClusterDetailErrorBoundary>
   )
 }
