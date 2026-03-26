@@ -1,5 +1,5 @@
 import React from "react"
-import { renderHook, screen } from "@testing-library/react"
+import { renderHook, screen, within, waitFor } from "@testing-library/react"
 import { WizardProvider, useWizard } from "./WizzardProvider"
 import * as wizardHook from "./WizzardProvider"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
@@ -7,6 +7,7 @@ import { PortalProvider } from "@cloudoperators/juno-ui-components"
 import { defaultMockClient } from "../../../../mocks/TestTools"
 import Step2 from "./Step2"
 import { DEFAULT_WORKER_GROUP, DEFAULT_CLUSTER_FORM_DATA } from "./defaults"
+import { mockMachineTypes, mockMachineImages, mockRegions } from "../../../../mocks/data"
 
 const TestWrapper =
   (queryClient: QueryClient) =>
@@ -62,13 +63,30 @@ describe("Step2 Component", () => {
     expect(screen.getByText((content) => content.includes(worker.name))).toBeInTheDocument()
   })
 
-  it("passes cloud profile data to WorkerGroupEditor", () => {
+  it("passes cloud profile data to WorkerGroupEditor", async () => {
     const wrapper = TestWrapper(queryClient)
     renderHook(() => useWizard(), { wrapper })
 
-    // WorkerGroupEditor should render with machine type select
-    const section = screen.getByRole("region", { name: /worker1/i })
+    // WorkerGroupEditor should render with cloud profile data
+    const workerName = DEFAULT_CLUSTER_FORM_DATA.workers[0].name
+    const section = screen.getByRole("region", { name: new RegExp(workerName, "i") })
     expect(section).toBeInTheDocument()
+
+    // Verify that selects are rendered with cloud profile data
+    const machineTypeSelect = within(section).getByLabelText("Machine Type")
+    const machineImageSelect = within(section).getByLabelText("Machine Image")
+    const zonesSelect = within(section).getByLabelText("Availability Zones")
+
+    expect(machineTypeSelect).toBeInTheDocument()
+    expect(machineImageSelect).toBeInTheDocument()
+    expect(zonesSelect).toBeInTheDocument()
+
+    // Verify actual cloud profile data options are present in the document
+    await waitFor(() => {
+      expect(screen.getByText(mockMachineTypes[0].name)).toBeInTheDocument()
+    })
+    expect(screen.getByText(mockMachineImages[0].name)).toBeInTheDocument()
+    expect(screen.getByText(mockRegions[0].zones[0])).toBeInTheDocument()
   })
 
   it("passes form errors to WorkerGroupEditor", () => {

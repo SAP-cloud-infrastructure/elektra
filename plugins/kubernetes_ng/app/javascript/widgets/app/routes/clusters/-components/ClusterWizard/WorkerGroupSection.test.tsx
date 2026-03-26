@@ -20,18 +20,17 @@ const defaultProps = {
 
 const TestWrapper =
   (workerGroup = DEFAULT_WORKER_GROUP, totalWorkers = 1, index = 0, overrideProps = {}) =>
-  () =>
-    (
-      <PortalProvider>
-        <WorkerGroupSection
-          workerGroup={workerGroup}
-          index={index}
-          totalWorkers={totalWorkers}
-          {...defaultProps}
-          {...overrideProps}
-        />
-      </PortalProvider>
-    )
+  () => (
+    <PortalProvider>
+      <WorkerGroupSection
+        workerGroup={workerGroup}
+        index={index}
+        totalWorkers={totalWorkers}
+        {...defaultProps}
+        {...overrideProps}
+      />
+    </PortalProvider>
+  )
 
 describe("WorkerGroupSection", () => {
   beforeEach(() => {
@@ -202,5 +201,19 @@ describe("WorkerGroupSection", () => {
 
     const deleteButton = await screen.queryByLabelText(`Delete Worker Group ${validWorkerGroupFormData.name}`)
     expect(deleteButton).toBeInTheDocument()
+  })
+
+  it("shows all fields enabled", () => {
+    const wrapper = TestWrapper(validWorkerGroupFormData, 1, 0)
+    render(wrapper())
+
+    const section = screen.getByRole("region", { name: new RegExp(validWorkerGroupFormData.name, "i") })
+    expect(within(section).getByLabelText("Name")).not.toBeDisabled()
+    expect(within(section).getByLabelText("Machine Type")).not.toHaveAttribute("disabled")
+    expect(within(section).getByLabelText("Machine Image")).not.toHaveAttribute("disabled")
+    expect(within(section).getByLabelText("Image Version")).not.toHaveAttribute("disabled")
+    expect(within(section).getByLabelText("Minimum Nodes")).not.toBeDisabled()
+    expect(within(section).getByLabelText("Maximum Nodes")).not.toBeDisabled()
+    expect(within(section).getByLabelText("Availability Zones")).not.toHaveAttribute("disabled")
   })
 })

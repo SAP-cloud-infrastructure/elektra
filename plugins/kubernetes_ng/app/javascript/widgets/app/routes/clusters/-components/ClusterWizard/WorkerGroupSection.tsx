@@ -30,7 +30,6 @@ type WorkerGroupProps = {
 
 const WorkerGroupSection = ({
   workerGroup,
-  index,
   totalWorkers,
   onChange,
   onDelete,
@@ -42,7 +41,6 @@ const WorkerGroupSection = ({
   formErrors = {},
   validateSingleField = () => {},
 }: WorkerGroupProps) => {
-
   const selectedImage = availableMachineImages.find((img) => img.name === workerGroup.machineImage.name)
   const availableImageVersions = selectedImage?.versions ?? []
   const imageVersionDisabled = !workerGroup.machineImage.name
@@ -50,6 +48,9 @@ const WorkerGroupSection = ({
   const imageVersionErrorText = imageVersionDisabled
     ? undefined
     : cloudProfileError?.message || formErrors[`workers.${workerGroup.id}.machineImage.version`]?.[0]
+
+  // Allow deletion if there's more than one worker (must keep at least one)
+  const canDelete = totalWorkers > 1
 
   const handleFieldChange = (field: string, value: unknown) => {
     onChange({
@@ -64,7 +65,7 @@ const WorkerGroupSection = ({
       data-worker-id={workerGroup.id}
       aria-label={`Worker Group: ${workerGroup.name || "New Worker Group"}`}
     >
-      {totalWorkers > 1 && index > 0 && (
+      {canDelete && (
         <Button
           variant="primary-danger"
           icon="deleteForever"
@@ -219,7 +220,11 @@ const WorkerGroupSection = ({
                 id="imageVersion"
                 name="imageVersion"
                 loading={cloudProfileIsLoading}
-                helptext="Select the version of the machine image for the chosen image type."
+                helptext={
+                  imageVersionDisabled
+                    ? "Select a machine image first"
+                    : "Select the version of the machine image for the chosen image type."
+                }
                 errortext={imageVersionErrorText}
                 value={workerGroup?.machineImage?.version}
                 onChange={(e) =>

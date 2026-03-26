@@ -1,6 +1,5 @@
 import React from "react"
-import { render, screen, within } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
+import { render, screen, within, act, fireEvent } from "@testing-library/react"
 import { PortalProvider } from "@cloudoperators/juno-ui-components"
 import WorkerGroupEditor from "./WorkerGroupEditor"
 import { DEFAULT_WORKER_GROUP } from "./defaults"
@@ -33,9 +32,7 @@ describe("WorkerGroupEditor", () => {
     render(TestWrapper())
 
     expect(screen.getByText("Node Auto-scaling")).toBeInTheDocument()
-    expect(
-      screen.getByText(/Configure the worker nodes for your cluster/i)
-    ).toBeInTheDocument()
+    expect(screen.getByText(/Configure the worker nodes for your cluster/i)).toBeInTheDocument()
   })
 
   it("renders initial worker group", () => {
@@ -62,37 +59,41 @@ describe("WorkerGroupEditor", () => {
     render(TestWrapper(workers, { onChange }))
 
     const addButton = screen.getByRole("button", { name: /Add Worker Group/i })
-    await userEvent.click(addButton)
+    act(() => {
+      addButton.click()
+    })
 
     expect(onChange).toHaveBeenCalledWith(
       expect.arrayContaining([
         expect.objectContaining({ id: "worker-1", name: "worker1" }),
-        expect.objectContaining({ name: "worker2" }),
+        expect.objectContaining({
+          name: expect.stringMatching(/^worker-[a-z0-9]{5}$/),
+        }),
       ])
     )
     expect(onChange).toHaveBeenCalledTimes(1)
   })
 
-  it("doesn't show delete button for the first worker group", () => {
+  it("shows delete button for all workers when there are multiple", () => {
     const workers = [
       { ...DEFAULT_WORKER_GROUP, id: "worker-1", name: "worker1" },
       { ...DEFAULT_WORKER_GROUP, id: "worker-2", name: "worker2" },
     ]
+    render(TestWrapper(workers))
+
+    // Both workers should have delete buttons since totalWorkers > 1
+    const deleteButton1 = screen.getByLabelText("Delete Worker Group worker1")
+    const deleteButton2 = screen.getByLabelText("Delete Worker Group worker2")
+    expect(deleteButton1).toBeInTheDocument()
+    expect(deleteButton2).toBeInTheDocument()
+  })
+
+  it("hides delete button when there is only one worker", () => {
+    const workers = [{ ...DEFAULT_WORKER_GROUP, id: "worker-1", name: "worker1" }]
     render(TestWrapper(workers))
 
     const deleteButton = screen.queryByLabelText("Delete Worker Group worker1")
     expect(deleteButton).toBeNull()
-  })
-
-  it("shows delete button for additional worker groups", () => {
-    const workers = [
-      { ...DEFAULT_WORKER_GROUP, id: "worker-1", name: "worker1" },
-      { ...DEFAULT_WORKER_GROUP, id: "worker-2", name: "worker2" },
-    ]
-    render(TestWrapper(workers))
-
-    const deleteButton = screen.getByLabelText("Delete Worker Group worker2")
-    expect(deleteButton).toBeInTheDocument()
   })
 
   it("calls onChange when deleting a worker group", async () => {
@@ -104,11 +105,11 @@ describe("WorkerGroupEditor", () => {
     render(TestWrapper(workers, { onChange }))
 
     const deleteButton = screen.getByLabelText("Delete Worker Group worker2")
-    await userEvent.click(deleteButton)
+    act(() => {
+      deleteButton.click()
+    })
 
-    expect(onChange).toHaveBeenCalledWith([
-      expect.objectContaining({ id: "worker-1", name: "worker1" }),
-    ])
+    expect(onChange).toHaveBeenCalledWith([expect.objectContaining({ id: "worker-1", name: "worker1" })])
     expect(onChange).toHaveBeenCalledTimes(1)
   })
 
@@ -118,14 +119,13 @@ describe("WorkerGroupEditor", () => {
     render(TestWrapper(workers, { onChange }))
 
     const section = screen.getByRole("region", { name: /worker1/i })
-    const nameInput = within(section).getByLabelText("Name")
+    const nameInput = within(section).getByLabelText("Name") as HTMLInputElement
 
-    await userEvent.clear(nameInput)
-    await userEvent.type(nameInput, "updated-name")
+    act(() => {
+      fireEvent.change(nameInput, { target: { value: "updated-name" } })
+    })
 
-    expect(onChange).toHaveBeenCalledWith([
-      expect.objectContaining({ id: "worker-1", name: expect.stringContaining("updated") }),
-    ])
+    expect(onChange).toHaveBeenCalledWith([expect.objectContaining({ id: "worker-1", name: "updated-name" })])
   })
 
   it("renders separator between worker groups", () => {

@@ -2,7 +2,7 @@ import React from "react"
 import { Stack, Button, Container, Message } from "@cloudoperators/juno-ui-components"
 import WorkerGroupSection from "./WorkerGroupSection"
 import { WorkerGroup } from "./types"
-import { DEFAULT_WORKER_GROUP } from "./defaults"
+import { DEFAULT_WORKER_GROUP, generateRandomSuffix } from "./defaults"
 import { MachineType, MachineImage } from "../../../../types/cloudProfiles"
 
 type WorkerGroupEditorProps = {
@@ -29,13 +29,14 @@ const WorkerGroupEditor: React.FC<WorkerGroupEditorProps> = ({
   validateSingleField = () => {},
 }) => {
   const onAddWorkerGroup = () => {
-    const nextNumber = workers.length + 1
+    const randomSuffix = generateRandomSuffix()
     onChange([
       ...workers,
       {
         ...DEFAULT_WORKER_GROUP,
         id: `worker-${Date.now()}`,
-        name: `worker${nextNumber}`,
+        name: `worker-${randomSuffix}`,
+        isExisting: false, // Mark new workers as not existing
       },
     ])
   }
@@ -58,8 +59,10 @@ const WorkerGroupEditor: React.FC<WorkerGroupEditorProps> = ({
         text="Each worker nodes will automatically scale between its minimum and maximum node counts based on workload demands. Ensure your maximum node counts align with your resource quotas."
       />
       <Container px={false} py>
-        Configure the worker nodes for your cluster. These settings determine the compute resources available for your
-        workloads.
+        <p>
+          Configure the worker nodes for your cluster. These settings determine the compute resources available for
+          your workloads.
+        </p>
       </Container>
       <div className="cluster-form">
         {workers.map((wg, index) => {

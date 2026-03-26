@@ -2,13 +2,14 @@ import React, { createContext, useContext, useState, ReactNode, useCallback, use
 import { ClusterFormData, Step, StepId, ClusterFormErrorsFlat } from "./types"
 import { STEP_DEFINITIONS, DEFAULT_CLOUD_PROFILE_NAME } from "./constants"
 import { GardenerApi } from "../../../../apiClient"
-import { UseQueryResult, useMutation, UseMutationResult } from "@tanstack/react-query"
+import { UseQueryResult, UseMutationResult } from "@tanstack/react-query"
 import { CloudProfile } from "../../../../types/cloudProfiles"
 import { Cluster } from "../../../../types/cluster"
 import { ExternalNetwork } from "../../../../types/network"
 import { validateWorkers, validateStep1 } from "./validation"
 import { useCloudProfilesQuery } from "../../../../hooks/useCloudProfileQueries"
 import { useExternalNetworksQuery } from "../../../../hooks/useExternalNetworkQueries"
+import { useCreateClusterMutation } from "../../../../hooks/useClusterQueries"
 
 const getLatestVersion = (versions: string[] = []) => {
   if (versions.length === 0) return ""
@@ -128,6 +129,8 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ client, region, 
 
   const extNetworks = useExternalNetworksQuery(client)
 
+  const createMutation = useCreateClusterMutation(client)
+
   // Set cloud profile default as soon as data is available
   useEffect(() => {
     if (!cloudProfiles.data || cloudProfileDefaultSet.current) return
@@ -165,11 +168,6 @@ export const WizardProvider: React.FC<WizardProviderProps> = ({ client, region, 
       }
     })
   }, [extNetworks.data])
-
-  const createMutation = useMutation({
-    mutationFn: client.gardener.createCluster,
-    mutationKey: ["createCluster"],
-  })
 
   const handleSetCurrentStep = useCallback(
     (step: number) => {
