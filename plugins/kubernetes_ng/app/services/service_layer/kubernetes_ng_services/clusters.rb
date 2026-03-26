@@ -156,7 +156,7 @@ module ServiceLayer
       end
 
       ## Helper Methods
-      # Convert a single shoot API response to cluster format
+      # Convert a single shoot API response to cluster format for the UI
       def convert_shoot_to_cluster(shoot)
         return nil unless shoot.is_a?(Hash)
         
@@ -177,7 +177,7 @@ module ServiceLayer
           readiness: get_cluster_readiness(shoot),
           purpose: spec['purpose'],
           addOns: get_enabled_add_ons(spec),
-          cloudProfileName: spec['cloudProfileName'],
+          cloudProfileName: deep_fetch(spec, 'cloudProfile', 'name'),
           namespace: metadata.dig('namespace'),
           secretBindingName: spec['secretBindingName'],          
           lastOperation: safe_map_last_operation(status['lastOperation']),
@@ -395,8 +395,8 @@ module ServiceLayer
         spec['region'] = cluster[:region] if cluster[:region]
         spec['purpose'] = cluster[:purpose] if cluster[:purpose]
 
-        # Cloud profile
-        if (cloud_profile_name = cluster[:cloudProfileName] || cluster[:cloud_profile_name]) # Handle both camelCase and snake_case
+        # Cloud profile - Gardener expects spec.cloudProfile with name and kind
+        if (cloud_profile_name = cluster[:cloudProfileName])
           spec['cloudProfile'] = { 'name' => cloud_profile_name }
         end
 
@@ -414,7 +414,7 @@ module ServiceLayer
         end
         
         # Maintenance configuration
-        if cluster[:maintenance] || cluster[:autoUpdate] || cluster[:auto_update] # Handle both camelCase and snake_case
+        if cluster[:maintenance] || cluster[:autoUpdate]
           spec['maintenance'] = build_maintenance_spec(cluster)
         end
         
@@ -429,11 +429,11 @@ module ServiceLayer
       # Build provider specification
       def build_provider_spec(cluster)
         provider = {}
-        
-        if (provider_type = cluster[:cloudProfileName] || cluster[:cloud_profile_name]) # Handle both camelCase and snake_case
+
+        # Provider type - derived from cloudProfileName (typically matches: openstack, aws, gcp)
+        if (provider_type = cluster[:cloudProfileName])
           provider['type'] = provider_type
-        end        
-        
+        end
 
         # build infrastructureConfig
         infrastructureConfig = {}
@@ -517,9 +517,9 @@ module ServiceLayer
             }.compact
           end
         end
-        
+
         # Auto update settings
-        auto_update = cluster[:autoUpdate] || cluster[:auto_update] # Handle both camelCase and snake_case
+        auto_update = cluster[:autoUpdate]
         if auto_update
           maintenance['autoUpdate'] = {
             'machineImageVersion' => auto_update[:os] || false,

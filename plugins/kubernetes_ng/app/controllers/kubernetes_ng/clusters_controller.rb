@@ -103,6 +103,7 @@ module KubernetesNg
           { machineImage: [:name, :version] },
           :minimum,
           :maximum,
+          :isExisting,
           zones: []
         ]
       )

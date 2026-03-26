@@ -21,7 +21,9 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           }
         },
         'spec' => {
-          'cloudProfileName' => 'openstack',
+          'cloudProfile' => {
+            'name' => 'openstack'
+          },
           'kubernetes' => {
             'version' => '1.25.4'
           },
@@ -122,7 +124,7 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
         status: 'healthy',
         version: shoot_mock['spec']['kubernetes']['version'],
         purpose: shoot_mock['spec']['purpose'],
-        cloudProfileName: shoot_mock['spec']['cloudProfileName'],
+        cloudProfileName: shoot_mock['spec']['cloudProfile']['name'],
         namespace: shoot_mock['metadata']['namespace'],
         secretBindingName: shoot_mock['spec']['secretBindingName'],
         lastOperation: {
@@ -175,7 +177,9 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           'creationTimestamp' => Time.now.iso8601
         },
         'spec' => {
-          'cloudProfileName' => 'openstack',
+          'cloudProfile' => {
+            'name' => 'openstack'
+          },
           'kubernetes' => {
             'version' => '1.25.4'
           },
@@ -213,7 +217,9 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           'deletionTimestamp' => Time.now.iso8601
         },
         'spec' => {
-          'cloudProfileName' => 'openstack',
+          'cloudProfile' => {
+            'name' => 'openstack'
+          },
           'kubernetes' => {
             'version' => '1.25.4'
           },
@@ -381,7 +387,9 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           'creationTimestamp' => Time.now.iso8601
         },
         'spec' => {
-          'cloudProfileName' => 'openstack',
+          'cloudProfile' => {
+            'name' => 'openstack'
+          },
           'kubernetes' => {
             'version' => '1.25.4',
             'kubeAPIServer' => {
@@ -504,7 +512,9 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           'creationTimestamp' => Time.now.iso8601
         },
         'spec' => {
-          'cloudProfileName' => 'openstack',
+          'cloudProfile' => {
+            'name' => 'openstack'
+          },
           'kubernetes' => {
             'version' => '1.25.4'
           },
@@ -549,7 +559,9 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           'creationTimestamp' => Time.now.iso8601
         },
         'spec' => {
-          'cloudProfileName' => 'openstack',
+          'cloudProfile' => {
+            'name' => 'openstack'
+          },
           'kubernetes' => {
             'version' => '1.25.4'
           },
@@ -609,7 +621,9 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           'creationTimestamp' => Time.now.iso8601
         },
         'spec' => {
-          'cloudProfileName' => 'openstack',
+          'cloudProfile' => {
+            'name' => 'openstack'
+          },
           'kubernetes' => {
             'version' => '1.25.4'
           },
