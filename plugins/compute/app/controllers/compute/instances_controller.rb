@@ -158,11 +158,7 @@ module Compute
       @fixed_ip_ports = services.networking.fixed_ip_ports
       @subnets = services.networking.subnets
 
-      @bootable_volumes =
-        services
-          .block_storage
-          .volumes_detail(bootable: true)
-          .select { |v| %w[available downloading].include?(v.status) }
+      @bootable_volumes = bootable_volumes_for_instance
 
       if params[:image_id]
         # preselect image_id
@@ -264,11 +260,7 @@ module Compute
 
       # add all attributes from create dialog to instance
       @instance.attributes = params[@instance.model_name.param_key]
-      @bootable_volumes =
-        services
-          .block_storage
-          .volumes_detail(bootable: true)
-          .select { |v| %w[available downloading].include?(v.status) }
+      @bootable_volumes = bootable_volumes_for_instance
       @images = services.image.all_images
 
       if @instance.image_id
@@ -1076,6 +1068,18 @@ module Compute
 
     def instance_params
       params.require(:instance).permit(:q)
+    end
+
+    # Get bootable volumes suitable for instance creation
+    # Excludes volumes in states that cannot be used for booting:
+    # - deleting: volume is being deleted
+    # - in-use: already attached to another instance
+    # - error states: volume has errors
+    def bootable_volumes_for_instance
+      services
+        .block_storage
+        .volumes_detail(bootable: true)
+        .reject { |v| %w[deleting in-use error error_deleting error_backing-up error_restoring error_extending].include?(v.status) }
     end
   end
 end
