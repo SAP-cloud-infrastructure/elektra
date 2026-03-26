@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useRef } from "react"
+import React, { useState, useCallback, useMemo, useRef, useEffect } from "react"
 import { Modal, Message, ModalFooter, ButtonRow, Button } from "@cloudoperators/juno-ui-components"
 import { useRouteContext } from "@tanstack/react-router"
 import WorkerGroupEditor from "../ClusterWizard/WorkerGroupEditor"
@@ -54,6 +54,9 @@ const WorkerGroupEditModal: React.FC<WorkerGroupEditModalProps> = ({
   const [formErrors, setFormErrors] = useState<FormErrors>({})
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
+  // Ref for error message to scroll to it
+  const errorMessageRef = useRef<HTMLDivElement>(null)
+
   // Use centralized mutation hook
   const updateClusterMutation = useUpdateClusterMutation(apiClient)
 
@@ -88,6 +91,13 @@ const WorkerGroupEditModal: React.FC<WorkerGroupEditModalProps> = ({
 
   // Form is valid only if there are no validation errors AND cloud profile data has loaded AND there are changes
   const isFormValid = !hasValidationErrors && !isLoading && hasChanges
+
+  // Scroll to error message when it appears
+  useEffect(() => {
+    if (errorMessage && errorMessageRef.current) {
+      errorMessageRef.current.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
+  }, [errorMessage])
 
   const handleSave = async () => {
     // Clear previous errors
@@ -140,9 +150,9 @@ const WorkerGroupEditModal: React.FC<WorkerGroupEditModalProps> = ({
       }
     >
       {errorMessage && (
-        <Message variant="error" className="tw-mb-4">
-          {errorMessage}
-        </Message>
+        <div ref={errorMessageRef} className="tw-mb-4">
+          <Message variant="error">{errorMessage}</Message>
+        </div>
       )}
       <WorkerGroupEditor
         workers={workerGroups}
