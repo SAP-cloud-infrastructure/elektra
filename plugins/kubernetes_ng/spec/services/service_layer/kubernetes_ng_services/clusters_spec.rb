@@ -948,5 +948,166 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
       }.to raise_error(/Invalid base64/)
     end
   end
-      
+
+  describe "build_patch_operations" do
+    it "creates patch operations for flat hash" do
+      hash = {
+        'region' => 'eu-de',
+        'purpose' => 'production'
+      }
+      operations = []
+      build_patch_operations(hash, '/spec', operations)
+
+      expect(operations).to contain_exactly(
+        { op: "replace", path: "/spec/region", value: 'eu-de' },
+        { op: "replace", path: "/spec/purpose", value: 'production' }
+      )
+    end
+
+    it "creates nested patch operations for provider/workers" do
+      hash = {
+        'provider' => {
+          'workers' => [
+            {
+              'name' => 'worker1',
+              'minimum' => 1,
+              'maximum' => 3
+            }
+          ]
+        }
+      }
+      operations = []
+      build_patch_operations(hash, '/spec', operations)
+
+      expect(operations).to contain_exactly(
+        {
+          op: "replace",
+          path: "/spec/provider/workers",
+          value: [{ 'name' => 'worker1', 'minimum' => 1, 'maximum' => 3 }]
+        }
+      )
+    end
+
+    it "creates deeply nested patch operations" do
+      hash = {
+        'provider' => {
+          'infrastructureConfig' => {
+            'networks' => {
+              'workers' => '10.250.0.0/16'
+            }
+          }
+        }
+      }
+      operations = []
+      build_patch_operations(hash, '/spec', operations)
+
+      expect(operations).to contain_exactly(
+        {
+          op: "replace",
+          path: "/spec/provider/infrastructureConfig/networks/workers",
+          value: '10.250.0.0/16'
+        }
+      )
+    end
+
+    it "handles multiple nested paths" do
+      hash = {
+        'kubernetes' => {
+          'version' => '1.25.4'
+        },
+        'provider' => {
+          'type' => 'openstack',
+          'workers' => []
+        }
+      }
+      operations = []
+      build_patch_operations(hash, '/spec', operations)
+
+      expect(operations).to contain_exactly(
+        { op: "replace", path: "/spec/kubernetes/version", value: '1.25.4' },
+        { op: "replace", path: "/spec/provider/type", value: 'openstack' },
+        { op: "replace", path: "/spec/provider/workers", value: [] }
+      )
+    end
+
+    it "handles empty hash gracefully" do
+      hash = {}
+      operations = []
+      build_patch_operations(hash, '/spec', operations)
+
+      expect(operations).to be_empty
+    end
+
+    it "does not descend into empty hashes" do
+      hash = {
+        'provider' => {},
+        'region' => 'eu-de'
+      }
+      operations = []
+      build_patch_operations(hash, '/spec', operations)
+
+      expect(operations).to contain_exactly(
+        { op: "replace", path: "/spec/provider", value: {} },
+        { op: "replace", path: "/spec/region", value: 'eu-de' }
+      )
+    end
+  end
+
+  describe "update_cluster" do
+    let(:project_id) { "test" }
+    let(:region) { "qa-de-1" }
+    let(:namespace) { "garden-#{region}-#{project_id}" }
+    let(:cluster_name) { "test-cluster" }
+
+    before do
+      @scoped_project_id = project_id
+      @scoped_region = region
+      allow(self).to receive(:garden_namespace).and_return(namespace)
+    end
+
+    it "generates granular patch operations for workers update" do
+      cluster_data = {
+        workers: [
+          {
+            name: 'worker1',
+            machineType: 'g_c2_m4',
+            machineImage: { name: 'flatcar', version: '1.0.0' },
+            minimum: 1,
+            maximum: 3,
+            zones: ['qa-de-1a']
+          }
+        ]
+      }
+
+      mock_response = double('response', body: { 'metadata' => { 'name' => cluster_name } })
+      mock_elektron = double('elektron_gardener')
+      allow(self).to receive(:elektron_gardener).and_return(mock_elektron)
+
+      # Capture the actual patch operations
+      actual_operations = nil
+      expect(mock_elektron).to receive(:patch)
+        .with(
+          "apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots/#{cluster_name}",
+          headers: { "Content-Type": "application/json-patch+json" }
+        ) do |*args, &block|
+          actual_operations = block.call
+          mock_response
+        end
+
+      update_cluster(cluster_name, cluster_data)
+
+      # Verify that workers are patched at /spec/provider/workers, not /spec/provider
+      workers_patch = actual_operations.find { |op| op[:path] == "/spec/provider/workers" }
+      expect(workers_patch).not_to be_nil
+      expect(workers_patch[:op]).to eq("replace")
+      expect(workers_patch[:value]).to be_an(Array)
+      expect(workers_patch[:value].first['name']).to eq('worker1')
+
+      # Verify we're not replacing the entire provider object
+      provider_patch = actual_operations.find { |op| op[:path] == "/spec/provider" }
+      expect(provider_patch).to be_nil
+    end
+
+  end
+
 end

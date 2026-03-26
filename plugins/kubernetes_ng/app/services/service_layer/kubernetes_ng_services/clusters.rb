@@ -50,12 +50,28 @@ module ServiceLayer
         return convert_shoot_to_cluster(shoot_body)
       end
 
-      def update_cluster(cluster_name, cluster_spec)
+      def update_cluster(cluster_name, changed_spec_data)
+        # Convert cluster spec to shoot format
+        shoot_spec = convert_cluster_to_shoot(changed_spec_data)
+
+        # Generate JSON Patch operations from the shoot spec
+        patch_operations = []
+
+        # Build patch operations for spec fields
+        if shoot_spec && shoot_spec['spec']
+          build_patch_operations(shoot_spec['spec'], '/spec', patch_operations)
+        end
+
+        # Build patch operations for metadata fields if present
+        if shoot_spec && shoot_spec['metadata']
+          build_patch_operations(shoot_spec['metadata'], '/metadata', patch_operations)
+        end
+
         response = elektron_gardener.patch("apis/core.gardener.cloud/v1beta1/namespaces/#{garden_namespace}/shoots/#{cluster_name}",
             headers:{
               "Content-Type": "application/json-patch+json",
             }) do
-          convert_cluster_to_shoot(cluster_spec)
+          patch_operations
         end
         return response&.body
       end
@@ -87,6 +103,26 @@ module ServiceLayer
       end
 
       private
+
+      # Recursively build JSON Patch operations for nested hashes
+      # This ensures we don't replace entire parent objects when updating nested fields
+      def build_patch_operations(hash, base_path, operations)
+        hash.each do |key, value|
+          path = "#{base_path}/#{key}"
+
+          if value.is_a?(Hash) && !value.empty?
+            # Recurse into nested hashes
+            build_patch_operations(value, path, operations)
+          else
+            # Leaf node or array - create patch operation
+            operations << {
+              op: "replace",
+              path: path,
+              value: value
+            }
+          end
+        end
+      end
 
       # Decode the kubeconfig from the API response
       # Raises KubeconfigGenerationError on failure
