@@ -16,7 +16,17 @@ const renderDetailsContent = ({
   cluster = defaultCluster,
   updatedAt = Date.now(),
   shootPermissions = permissionsAllTrue,
+  isLoading,
+  isFetching,
+  error,
   ...props
+}: {
+  cluster?: typeof defaultCluster
+  updatedAt?: number
+  shootPermissions?: typeof permissionsAllTrue
+  isLoading?: boolean
+  isFetching?: boolean
+  error?: Error
 } = {}) => {
   let queryClient: QueryClient = new QueryClient({
     defaultOptions: {
