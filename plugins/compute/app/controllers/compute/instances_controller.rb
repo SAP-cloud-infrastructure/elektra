@@ -260,14 +260,12 @@ module Compute
 
       # add all attributes from create dialog to instance
       @instance.attributes = params[@instance.model_name.param_key]
-      @bootable_volumes = bootable_volumes_for_instance
-      @images = services.image.all_images
 
       if @instance.image_id
         # check if image id is a bootable volume
         if !params[:server][:custom_root_disk] ||
              params[:server][:custom_root_disk] == "0"
-          volume = @bootable_volumes.find { |v| v.id == @instance.image_id }
+          volume = services.block_storage.find_volume(@instance.image_id)
         end
 
         # Bootable Volume as image source
@@ -284,7 +282,7 @@ module Compute
           ]
           @instance.metadata = volume.volume_image_metadata
         else
-          image = @images.find { |i| i.id == @instance.image_id }
+          image = services.image.find_image(@instance.image_id)
 
           if image
             @instance.metadata = {
@@ -363,6 +361,8 @@ module Compute
         audit_logger.info(current_user, "has created", @instance)
         @instance = services.compute.find_server(@instance.id)
       else
+        @bootable_volumes = bootable_volumes_for_instance
+        @images = services.image.all_images
         if @port && @port.id && !@port.fixed_ip_port? &&
              params[:server][:network_ids].first["port"].blank?
           @port.destroy
