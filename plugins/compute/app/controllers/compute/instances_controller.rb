@@ -260,8 +260,6 @@ module Compute
 
       # add all attributes from create dialog to instance
       @instance.attributes = params[@instance.model_name.param_key]
-      # @bootable_volumes = bootable_volumes_for_instance
-      # @images = services.image.all_images
 
       if @instance.image_id
         # check if image id is a bootable volume
