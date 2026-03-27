@@ -37,7 +37,15 @@ const renderDetailsContent = ({
 
   const rootRoute = createRootRoute({
     component: () => (
-      <DetailsContent cluster={cluster} updatedAt={updatedAt} shootPermissions={shootPermissions} {...props} />
+      <DetailsContent
+        cluster={cluster}
+        updatedAt={updatedAt}
+        shootPermissions={shootPermissions}
+        isLoading={isLoading}
+        isFetching={isFetching}
+        error={error}
+        {...props}
+      />
     ),
   })
 
