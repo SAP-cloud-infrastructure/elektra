@@ -231,6 +231,33 @@
         return server_custom_root_disk_size;
       }
 
+      function handleImageSelection() {
+        // Check if a bootable volume is selected in KVM or VMware image dropdowns
+        var kvmSelectedText = $('#server_kvm_image_id option:selected').text();
+        var vmwareSelectedText = $('#server_vmware_image_id option:selected').text();
+
+        // Bootable volumes have "Bootable: kvm" or "Bootable: vmware" in their text
+        var isBootableVolumeSelected = kvmSelectedText.includes('Bootable:') || vmwareSelectedText.includes('Bootable:');
+
+        if (isBootableVolumeSelected) {
+          console.debug("bootable volume selected - hiding custom root disk options");
+          // Hide custom root disk options
+          $('#custom_root_disk_wrapper').addClass('hidden');
+          $('#custom_root_disk_size_wrapper').addClass('hidden');
+          // Uncheck and clear custom root disk
+          $('#server_custom_root_disk').prop("checked", false);
+          $('#server_custom_root_disk_size').val('');
+          // Enable create button
+          $('button:contains("Create")').prop('disabled', false);
+        } else if ($('#server_flavor_id option:selected').text().match(/kvm/) ||
+                   $('#server_flavor_id option:selected').text().match(/vmware/)) {
+          // Only show custom root disk options if KVM or VMware flavor is selected and it's not a bootable volume
+          if (!$('#server_flavor_id option:selected').text().match(/Disk: 0/)) {
+            $('#custom_root_disk_wrapper').removeClass('hidden');
+          }
+        }
+      }
+
       function checkKvmVolumeType() {
         var flavorText = $('#server_flavor_id option:selected').text();
         var volumeTypeSelected = $('#server_kvm_volume_type').val() !== "";
@@ -253,6 +280,8 @@
         handleDiskSizeChange()
         // initial check of kvm volume type
         checkKvmVolumeType()
+        // initial check if bootable volume is selected
+        handleImageSelection()
 
         // Root Disk Toggle
         var server_custom_root_disk_size = ''
@@ -275,6 +304,14 @@
         $('#server_custom_root_disk_size').on('input', handleDiskSizeChange);
         // Also listen for blur (when user leaves the field)
         $('#server_custom_root_disk_size').on('blur', handleDiskSizeChange);
+
+        // Handle KVM and VMware image selection changes
+        $('#server_kvm_image_id').change(function() {
+          handleImageSelection();
+        });
+        $('#server_vmware_image_id').change(function() {
+          handleImageSelection();
+        });
 
       });
 
