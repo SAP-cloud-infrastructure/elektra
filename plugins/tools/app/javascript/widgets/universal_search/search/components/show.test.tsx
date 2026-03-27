@@ -27,6 +27,11 @@ vi.mock("react-bootstrap", () => ({
       Footer: ({ children }: any) => <div data-testid="modal-footer">{children}</div>,
     }
   ),
+  Button: ({ children, onClick }: any) => (
+    <button data-testid="close-btn" onClick={onClick}>
+      {children}
+    </button>
+  ),
   Tabs: ({ children, defaultActiveKey }: any) => (
     <div data-testid="tabs" data-default-key={defaultActiveKey}>
       {children}
@@ -40,11 +45,6 @@ vi.mock("react-bootstrap", () => ({
 }))
 
 vi.mock("@cloudoperators/juno-ui-components", () => ({
-  Button: ({ children, onClick }: any) => (
-    <button data-testid="close-btn" onClick={onClick}>
-      {children}
-    </button>
-  ),
   Spinner: () => <span data-testid="spinner" />,
   JsonViewer: ({ data }: any) => <div data-testid="json-viewer">{JSON.stringify(data)}</div>,
 }))
