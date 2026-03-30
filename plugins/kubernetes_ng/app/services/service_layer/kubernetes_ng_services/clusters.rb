@@ -50,12 +50,28 @@ module ServiceLayer
         return convert_shoot_to_cluster(shoot_body)
       end
 
-      def update_cluster(cluster_name, cluster_spec)
+      def update_cluster(cluster_name, changed_spec_data)
+        # Convert cluster spec to shoot format
+        shoot_spec = convert_cluster_to_shoot(changed_spec_data)
+
+        # Generate JSON Patch operations from the shoot spec
+        patch_operations = []
+
+        # Build patch operations for spec fields
+        if shoot_spec && shoot_spec['spec']
+          build_patch_operations(shoot_spec['spec'], '/spec', patch_operations)
+        end
+
+        # Build patch operations for metadata fields if present
+        if shoot_spec && shoot_spec['metadata']
+          build_patch_operations(shoot_spec['metadata'], '/metadata', patch_operations)
+        end
+
         response = elektron_gardener.patch("apis/core.gardener.cloud/v1beta1/namespaces/#{garden_namespace}/shoots/#{cluster_name}",
             headers:{
               "Content-Type": "application/json-patch+json",
             }) do
-          convert_cluster_to_shoot(cluster_spec)
+          patch_operations
         end
         return response&.body
       end
@@ -87,6 +103,26 @@ module ServiceLayer
       end
 
       private
+
+      # Recursively build JSON Patch operations for nested hashes
+      # This ensures we don't replace entire parent objects when updating nested fields
+      def build_patch_operations(hash, base_path, operations)
+        hash.each do |key, value|
+          path = "#{base_path}/#{key}"
+
+          if value.is_a?(Hash) && !value.empty?
+            # Recurse into nested hashes
+            build_patch_operations(value, path, operations)
+          else
+            # Leaf node or array - create patch operation
+            operations << {
+              op: "replace",
+              path: path,
+              value: value
+            }
+          end
+        end
+      end
 
       # Decode the kubeconfig from the API response
       # Raises KubeconfigGenerationError on failure
@@ -120,7 +156,7 @@ module ServiceLayer
       end
 
       ## Helper Methods
-      # Convert a single shoot API response to cluster format
+      # Convert a single shoot API response to cluster format for the UI
       def convert_shoot_to_cluster(shoot)
         return nil unless shoot.is_a?(Hash)
         
@@ -141,7 +177,7 @@ module ServiceLayer
           readiness: get_cluster_readiness(shoot),
           purpose: spec['purpose'],
           addOns: get_enabled_add_ons(spec),
-          cloudProfileName: spec['cloudProfileName'],
+          cloudProfileName: deep_fetch(spec, 'cloudProfile', 'name'),
           namespace: metadata.dig('namespace'),
           secretBindingName: spec['secretBindingName'],          
           lastOperation: safe_map_last_operation(status['lastOperation']),
@@ -359,8 +395,8 @@ module ServiceLayer
         spec['region'] = cluster[:region] if cluster[:region]
         spec['purpose'] = cluster[:purpose] if cluster[:purpose]
 
-        # Cloud profile
-        if (cloud_profile_name = cluster[:cloudProfileName] || cluster[:cloud_profile_name]) # Handle both camelCase and snake_case
+        # Cloud profile - Gardener expects spec.cloudProfile with name and kind
+        if (cloud_profile_name = cluster[:cloudProfileName])
           spec['cloudProfile'] = { 'name' => cloud_profile_name }
         end
 
@@ -378,7 +414,7 @@ module ServiceLayer
         end
         
         # Maintenance configuration
-        if cluster[:maintenance] || cluster[:autoUpdate] || cluster[:auto_update] # Handle both camelCase and snake_case
+        if cluster[:maintenance] || cluster[:autoUpdate]
           spec['maintenance'] = build_maintenance_spec(cluster)
         end
         
@@ -393,11 +429,11 @@ module ServiceLayer
       # Build provider specification
       def build_provider_spec(cluster)
         provider = {}
-        
-        if (provider_type = cluster[:cloudProfileName] || cluster[:cloud_profile_name]) # Handle both camelCase and snake_case
+
+        # Provider type - derived from cloudProfileName (typically matches: openstack, aws, gcp)
+        if (provider_type = cluster[:cloudProfileName])
           provider['type'] = provider_type
-        end        
-        
+        end
 
         # build infrastructureConfig
         infrastructureConfig = {}
@@ -481,9 +517,9 @@ module ServiceLayer
             }.compact
           end
         end
-        
+
         # Auto update settings
-        auto_update = cluster[:autoUpdate] || cluster[:auto_update] # Handle both camelCase and snake_case
+        auto_update = cluster[:autoUpdate]
         if auto_update
           maintenance['autoUpdate'] = {
             'machineImageVersion' => auto_update[:os] || false,

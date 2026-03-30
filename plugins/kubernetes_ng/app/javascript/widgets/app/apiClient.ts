@@ -50,6 +50,10 @@ export function createGardenerApi(basepath: string) {
         }
         return res.data
       }),
+    updateCluster: (name: string, clusterData: Partial<ClusterFormData>) =>
+      apiClient.patch<{ data: object }>(`/api/clusters/${name}/`, clusterData).then((res) => {
+        return res.data
+      }),
     replaceCluster: (name: string, rawResource: object) =>
       apiClient.put<{ data: Cluster }>(`/api/clusters/${name}/replace/`, rawResource).then((res) => {
         const parsed = ClusterSchema.safeParse(res.data)
