@@ -2,25 +2,8 @@ import { createAjaxHelper } from "lib/ajax_helper"
 import { Cluster, ClusterSchema, ClustersSchema } from "./types/cluster"
 import { Permissions, PermissionsSchema } from "./types/permissions"
 import { CloudProfile, CloudProfilesSchema } from "./types/cloudProfiles"
-import { defaultCluster, errorCluster, unknownStatusCluster } from "./mocks/data"
 import { ClusterFormData } from "./routes/clusters/-components/ClusterWizard/types"
 import { ExternalNetwork, ExternalNetworksSchema } from "./types/network"
-
-export const gardenerTestApi = {
-  getClusters: () => Promise.resolve([defaultCluster, errorCluster, unknownStatusCluster]),
-  getClusterByName: (name: string) => {
-    const clusters = [defaultCluster, errorCluster, unknownStatusCluster]
-    const cluster = clusters.find((c) => c.name === name)
-    if (cluster) {
-      return Promise.resolve(cluster)
-    } else {
-      return Promise.reject(new Error("Cluster not found"))
-    }
-  },
-  getShootPermissions: () => Promise.resolve({ list: true, get: true, create: true, update: true, delete: true }),
-  getKubeconfigPermission: () => Promise.resolve({ list: true, get: true, create: true, update: true, delete: true }),
-  getClusterKubeconfig: () => Promise.resolve("kubeconfig-data"),
-}
 
 export function createGardenerApi(basepath: string) {
   // Use basepath directly - it already includes the landscape (e.g., /kubernetes-gardener/prod)
@@ -131,7 +114,7 @@ export function createGardenerApi(basepath: string) {
   }
 
   const gardenApi = {
-    getApiKubeconfig: () =>
+    getGardenerApiKubeconfig: () =>
       apiClient
         .get<{ data: string }>("/api/gardener-api/kubeconfig")
         .then((res) => res.data)

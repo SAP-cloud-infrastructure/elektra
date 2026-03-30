@@ -84,6 +84,6 @@ export const defaultMockClient: GardenerApi = {
     getExternalNetworks: () => Promise.resolve(externalNetworks),
     getCloudProfiles: () => Promise.resolve(cloudProfiles),
 
-    getApiKubeconfig: () => Promise.resolve("kubeconfig-data"),
+    getGardenerApiKubeconfig: () => Promise.resolve("kubeconfig-data"),
   },
 }
