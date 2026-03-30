@@ -77,9 +77,9 @@ describe("WorkerGroupSection", () => {
     expect(within(section).getByLabelText("Image Version")).toBeInTheDocument()
     expect(await within(section).findByText(validWorkerGroupFormData.machineImage.version)).toBeInTheDocument()
 
-    const minimumInput = within(section).getByLabelText("Minimum Nodes")
+    const minimumInput = within(section).getByLabelText("Min Nodes")
     expect(minimumInput).toHaveValue(validWorkerGroupFormData.minimum)
-    const maximumInput = within(section).getByLabelText("Maximum Nodes")
+    const maximumInput = within(section).getByLabelText("Max Nodes")
     expect(maximumInput).toHaveValue(validWorkerGroupFormData.maximum)
 
     expect(within(section).getByLabelText("Availability Zones")).toBeInTheDocument()
@@ -98,8 +98,8 @@ describe("WorkerGroupSection", () => {
       { label: "Machine Type", key: "machineType" },
       { label: "Machine Image", key: "machineImage.name" },
       { label: "Image Version", key: "machineImage.version" },
-      { label: "Minimum Nodes", key: "minimum" },
-      { label: "Maximum Nodes", key: "maximum" },
+      { label: "Min Nodes", key: "minimum" },
+      { label: "Max Nodes", key: "maximum" },
       { label: "Availability Zones", key: "zones" },
     ]
 
@@ -121,8 +121,8 @@ describe("WorkerGroupSection", () => {
 
     const textFields = [
       { label: "Name", key: "name", value: "new-name" },
-      { label: "Minimum Nodes", key: "minimum", value: 2 },
-      { label: "Maximum Nodes", key: "maximum", value: 3 },
+      { label: "Min Nodes", key: "minimum", value: 2 },
+      { label: "Max Nodes", key: "maximum", value: 3 },
     ]
 
     const selects = [
@@ -212,8 +212,8 @@ describe("WorkerGroupSection", () => {
     expect(within(section).getByLabelText("Machine Type")).not.toHaveAttribute("disabled")
     expect(within(section).getByLabelText("Machine Image")).not.toHaveAttribute("disabled")
     expect(within(section).getByLabelText("Image Version")).not.toHaveAttribute("disabled")
-    expect(within(section).getByLabelText("Minimum Nodes")).not.toBeDisabled()
-    expect(within(section).getByLabelText("Maximum Nodes")).not.toBeDisabled()
+    expect(within(section).getByLabelText("Min Nodes")).not.toBeDisabled()
+    expect(within(section).getByLabelText("Max Nodes")).not.toBeDisabled()
     expect(within(section).getByLabelText("Availability Zones")).not.toHaveAttribute("disabled")
   })
 })
