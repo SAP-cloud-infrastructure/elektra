@@ -25,6 +25,7 @@ import Collapse from "../../../../components/Collapse"
 import Box from "../../../../components/Box"
 import WorkerList from "./WorkerList"
 import YamlEditor from "../../../../components/YamlEditor"
+import WorkerGroupEditModal from "./WorkerGroupEditModal"
 import InlineError from "../../../../components/InlineError"
 import { useRouteContext, useNavigate, useSearch, useParams } from "@tanstack/react-router"
 import { RouterContext } from "../../../__root"
@@ -33,6 +34,7 @@ import { normalizeError } from "../../../../components/InlineError"
 import { CLUSTER_DETAIL_ROUTE_ID, ClusterDetailTab } from "../../$clusterName"
 import { useQueryClient } from "@tanstack/react-query"
 import { QUERY_KEYS } from "../../../../hooks/queryKeys"
+import DisableableButton from "../../../../components/DisableableButton"
 
 const sectionHeaderStyles = "details-section tw-text-lg tw-font-bold tw-mb-4"
 
@@ -52,6 +54,7 @@ const DetailsContent = ({
   isFetching?: boolean
 }) => {
   const [showLastOperation, setShowLastOperation] = useState(false)
+  const [isEditingWorkers, setIsEditingWorkers] = useState(false)
   const { apiClient } = useRouteContext({ strict: false }) as RouterContext
   const params = useParams({ from: CLUSTER_DETAIL_ROUTE_ID })
   const navigate = useNavigate({ from: CLUSTER_DETAIL_ROUTE_ID })
@@ -108,6 +111,12 @@ const DetailsContent = ({
     const latestCluster = await apiClient.gardener.getClusterByName(cluster.name)
     // Return the raw cluster resource
     return latestCluster.raw
+  }
+
+  const handleWorkersSuccess = () => {
+    setIsEditingWorkers(false)
+    resetMessages()
+    addMessage({ text: "Worker groups updated successfully", variant: "success" })
   }
 
   // Determine disabled state and message for YamlEditor
@@ -297,9 +306,38 @@ const DetailsContent = ({
 
                 {/* Workers */}
                 <Container py px={false}>
-                  <h2 className={sectionHeaderStyles}>Worker Groups</h2>
+                  <Stack direction="horizontal" alignment="center">
+                    <h2 className={sectionHeaderStyles + " tw-w-full"}>Worker Groups</h2>
+                    <DisableableButton
+                      size="small"
+                      variant="subdued"
+                      onClick={() => setIsEditingWorkers(true)}
+                      label="Edit Worker Groups"
+                      className="tw-whitespace-nowrap"
+                      disabled={!shootPermissions?.update || cluster.isDeleted}
+                      disabledMessage={
+                        cluster.isDeleted
+                          ? "Cluster is deleted and cannot be edited"
+                          : !shootPermissions?.update
+                            ? "You don't have permission to edit worker groups"
+                            : undefined
+                      }
+                    />
+                  </Stack>
                   <WorkerList workers={cluster.workers} />
                 </Container>
+
+                {isEditingWorkers && (
+                  <WorkerGroupEditModal
+                    open={true}
+                    clusterName={cluster.name}
+                    workers={cluster.workers}
+                    cloudProfileName={cluster.cloudProfileName}
+                    region={cluster.region}
+                    onSuccess={handleWorkersSuccess}
+                    onCancel={() => setIsEditingWorkers(false)}
+                  />
+                )}
 
                 {/* Maintenance and auto update */}
                 <DataGrid columns={2} gridColumnTemplate="50% 50%">
