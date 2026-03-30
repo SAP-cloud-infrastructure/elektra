@@ -21,8 +21,7 @@ type WorkerGroupEditModalProps = {
 }
 
 // Convert Worker to WorkerGroup for editing
-// Track whether this is an existing worker (from API) or newly added
-const workerToWorkerGroup = (worker: Worker, index: number, isExisting = true): WorkerGroup => ({
+const workerToWorkerGroup = (worker: Worker, index: number): WorkerGroup => ({
   id: `worker-${index}-${Date.now()}`,
   name: worker.name,
   machineType: worker.machineType,
@@ -33,7 +32,6 @@ const workerToWorkerGroup = (worker: Worker, index: number, isExisting = true): 
   minimum: worker.min,
   maximum: worker.max,
   zones: worker.zones,
-  isExisting,
 })
 
 const WorkerGroupEditModal: React.FC<WorkerGroupEditModalProps> = ({

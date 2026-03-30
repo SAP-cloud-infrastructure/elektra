@@ -38,7 +38,6 @@ export type WorkerGroup = {
   minimum: number
   maximum: number
   zones: string[]
-  isExisting?: boolean // Track whether this is an existing worker from Kubernetes API
 }
 
 export type ClusterFormData = BasicInfo & Infrastructure & WorkerGroups

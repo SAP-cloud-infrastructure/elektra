@@ -36,7 +36,6 @@ const WorkerGroupEditor: React.FC<WorkerGroupEditorProps> = ({
         ...DEFAULT_WORKER_GROUP,
         id: `worker-${Date.now()}`,
         name: `worker-${randomSuffix}`,
-        isExisting: false, // Mark new workers as not existing
       },
     ])
   }
