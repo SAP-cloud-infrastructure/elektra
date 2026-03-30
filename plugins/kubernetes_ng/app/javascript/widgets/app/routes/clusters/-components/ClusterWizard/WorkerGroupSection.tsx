@@ -76,8 +76,9 @@ const WorkerGroupSection = ({
         />
       )}
       <Grid>
+        {/* Row 1: Identity and Scaling */}
         <GridRow>
-          <GridColumn cols={6}>
+          <GridColumn cols={4}>
             <FormRow>
               <TextInput
                 label="Name"
@@ -92,25 +93,75 @@ const WorkerGroupSection = ({
               />
             </FormRow>
           </GridColumn>
-          <GridColumn cols={6}>
+          <GridColumn cols={4}>
             <FormRow>
-              <TextInput
-                label="Minimum Nodes"
-                id="minNodes"
+              <Select
                 required
-                type="number"
-                value={workerGroup.minimum}
-                onChange={(e) => handleFieldChange("minimum", Number(e.target.value))}
-                helptext="Minimum number of nodes for auto-scaling."
-                errortext={formErrors[`workers.${workerGroup.id}.minimum`]?.[0] || undefined}
-                onBlur={() => validateSingleField(`workers.${workerGroup.id}.minimum`)}
-                maxLength={4}
-              />
+                label="Availability Zones"
+                id="availabilityZones"
+                name="availabilityZones"
+                loading={cloudProfileIsLoading}
+                errortext={cloudProfileError?.message || formErrors[`workers.${workerGroup.id}.zones`]?.[0]}
+                value={workerGroup.zones}
+                onChange={(e) =>
+                  onChange({
+                    ...workerGroup,
+                    zones: e ? [e.toString()] : [],
+                  })
+                }
+                onBlur={() => validateSingleField(`workers.${workerGroup.id}.zones`)}
+                truncateOptions
+              >
+                {availableZones.map((opt) => (
+                  <SelectOption key={opt} value={opt}>
+                    {opt}
+                  </SelectOption>
+                ))}
+              </Select>
             </FormRow>
           </GridColumn>
+          <GridColumn cols={4}>
+            <Grid>
+              <GridRow>
+                <GridColumn cols={6}>
+                  <FormRow>
+                    <TextInput
+                      label="Min Nodes"
+                      id="minNodes"
+                      required
+                      type="number"
+                      value={workerGroup.minimum}
+                      onChange={(e) => handleFieldChange("minimum", Number(e.target.value))}
+                      helptext="Minimum number of nodes for auto-scaling."
+                      errortext={formErrors[`workers.${workerGroup.id}.minimum`]?.[0] || undefined}
+                      onBlur={() => validateSingleField(`workers.${workerGroup.id}.minimum`)}
+                      maxLength={4}
+                    />
+                  </FormRow>
+                </GridColumn>
+                <GridColumn cols={6}>
+                  <FormRow>
+                    <TextInput
+                      label="Max Nodes"
+                      id="maxNodes"
+                      required
+                      type="number"
+                      value={workerGroup.maximum}
+                      onChange={(e) => handleFieldChange("maximum", Number(e.target.value))}
+                      helptext="Maximum number of nodes for auto-scaling."
+                      errortext={formErrors[`workers.${workerGroup.id}.maximum`]?.[0] || undefined}
+                      onBlur={() => validateSingleField(`workers.${workerGroup.id}.maximum`)}
+                      maxLength={4}
+                    />
+                  </FormRow>
+                </GridColumn>
+              </GridRow>
+            </Grid>
+          </GridColumn>
         </GridRow>
+        {/* Row 2: Machine Configuration */}
         <GridRow>
-          <GridColumn cols={6}>
+          <GridColumn cols={4}>
             <FormRow>
               <Select
                 required
@@ -133,25 +184,7 @@ const WorkerGroupSection = ({
               </Select>
             </FormRow>
           </GridColumn>
-          <GridColumn cols={6}>
-            <FormRow>
-              <TextInput
-                label="Maximum Nodes"
-                id="maxNodes"
-                required
-                type="number"
-                value={workerGroup.maximum}
-                onChange={(e) => handleFieldChange("maximum", Number(e.target.value))}
-                helptext="Maximum number of nodes for auto-scaling."
-                errortext={formErrors[`workers.${workerGroup.id}.maximum`]?.[0] || undefined}
-                onBlur={() => validateSingleField(`workers.${workerGroup.id}.maximum`)}
-                maxLength={4}
-              />
-            </FormRow>
-          </GridColumn>
-        </GridRow>
-        <GridRow>
-          <GridColumn cols={6}>
+          <GridColumn cols={4}>
             <FormRow>
               <Select
                 required
@@ -183,36 +216,7 @@ const WorkerGroupSection = ({
               </Select>
             </FormRow>
           </GridColumn>
-          <GridColumn cols={6}>
-            <FormRow>
-              <Select
-                required
-                label="Availability Zones"
-                id="availabilityZones"
-                name="availabilityZones"
-                loading={cloudProfileIsLoading}
-                errortext={cloudProfileError?.message || formErrors[`workers.${workerGroup.id}.zones`]?.[0]}
-                value={workerGroup.zones}
-                onChange={(e) =>
-                  onChange({
-                    ...workerGroup,
-                    zones: e ? [e.toString()] : [],
-                  })
-                }
-                onBlur={() => validateSingleField(`workers.${workerGroup.id}.zones`)}
-                truncateOptions
-              >
-                {availableZones.map((opt) => (
-                  <SelectOption key={opt} value={opt}>
-                    {opt}
-                  </SelectOption>
-                ))}
-              </Select>
-            </FormRow>
-          </GridColumn>
-        </GridRow>
-        <GridRow>
-          <GridColumn cols={6}>
+          <GridColumn cols={4}>
             <FormRow>
               <Select
                 required
@@ -248,7 +252,6 @@ const WorkerGroupSection = ({
               </Select>
             </FormRow>
           </GridColumn>
-          <GridColumn cols={6}></GridColumn>
         </GridRow>
       </Grid>
     </FormSection>
