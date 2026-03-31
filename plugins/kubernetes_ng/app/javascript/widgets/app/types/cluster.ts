@@ -57,7 +57,7 @@ export const ClusterSchema = z.object({
   }),
   purpose: z.string().optional(),
   addOns: z.array(z.string()).optional(),
-  cloudProfileName: z.string().optional(),
+  cloudProfileName: z.string(),
   labels: z.record(z.string(), z.string()).optional(),
   stateDetails: z
     .object({

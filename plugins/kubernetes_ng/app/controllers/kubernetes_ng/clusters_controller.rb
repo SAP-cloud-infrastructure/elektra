@@ -45,24 +45,10 @@ module KubernetesNg
     end
 
     def update
-      # todo here we need to translate or copy the data over from the request parameters
-      # example data, this needs to be commented out!
-      cluster_params = {
-        purpose: 'testing-2'
-      }
-      # Note: this is not working
-      #{
-      #    "apiVersion": "v1",
-      #    "code": 400,
-      #    "kind": "Status",
-      #    "message": "error decoding patch: json: cannot unmarshal object into Go value of type []handlers.jsonPatchOp",
-      #    "metadata": {},
-      #    "reason": "BadRequest",
-      #    "status": "Failure"
-      #}
+      permitted_params = cluster_params.to_h
 
       handle_api_call do
-        kubernetes_service.update_cluster(params[:name], cluster_params)
+        kubernetes_service.update_cluster(params[:name], permitted_params)
       end
     end
 
