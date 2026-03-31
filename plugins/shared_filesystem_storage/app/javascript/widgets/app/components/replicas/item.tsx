@@ -2,6 +2,18 @@ import React, { useEffect, useCallback } from "react"
 import { Link } from "react-router-dom"
 import { policy } from "lib/policy"
 
+// availability_zone: "qa-de-1a"
+// cached_object_type: "share_replica"
+// created_at: "2019-02-06T13:39:46.000000"
+// id: "818a9e38-7100-43ab-86ff-e9265612eca4"
+// project_id: null
+// replica_state: "active"
+// search_label: ""
+// share_id: "d7da010b-a1b6-4a51-89c9-61ce1998e2b9"
+// share_network_id: "d1d461b8-3c2e-4629-80ae-60a8d3a2a8b9"
+// share_server_id: "dd24c960-27d0-4db0-94de-628177c17700"
+// status: "available"
+// updated_at: "2019-02-06T13:39:55.000000"
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface Replica {
