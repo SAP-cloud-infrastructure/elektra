@@ -16,7 +16,17 @@ const renderDetailsContent = ({
   cluster = defaultCluster,
   updatedAt = Date.now(),
   shootPermissions = permissionsAllTrue,
+  isLoading,
+  isFetching,
+  error,
   ...props
+}: {
+  cluster?: typeof defaultCluster
+  updatedAt?: number
+  shootPermissions?: typeof permissionsAllTrue
+  isLoading?: boolean
+  isFetching?: boolean
+  error?: Error
 } = {}) => {
   let queryClient: QueryClient = new QueryClient({
     defaultOptions: {
@@ -27,7 +37,15 @@ const renderDetailsContent = ({
 
   const rootRoute = createRootRoute({
     component: () => (
-      <DetailsContent cluster={cluster} updatedAt={updatedAt} shootPermissions={shootPermissions} {...props} />
+      <DetailsContent
+        cluster={cluster}
+        updatedAt={updatedAt}
+        shootPermissions={shootPermissions}
+        isLoading={isLoading}
+        isFetching={isFetching}
+        error={error}
+        {...props}
+      />
     ),
   })
 
@@ -124,15 +142,12 @@ describe("DetailsContent", () => {
 
   it("renders WorkerList", async () => {
     renderDetailsContent()
-    // Find the heading
+    // Find the Worker Groups heading
     const workerGroupsSection = await screen.findByRole("heading", { name: /Worker Groups/i, level: 2 })
     expect(workerGroupsSection).toBeInTheDocument()
-    // Scope queries to the container under the heading
-    const sectionContainer = workerGroupsSection.parentElement!
-    const { getByRole } = within(sectionContainer)
-    // Find a grid role
-    const workersGrid = getByRole("grid")
-    expect(workersGrid).toBeInTheDocument()
+
+    // Verify worker data is displayed - check for worker name from mock data
+    expect(screen.getByText(defaultCluster!.workers[0].name)).toBeInTheDocument()
   })
 
   it("renders maintenance and auto-update sections", async () => {
@@ -148,15 +163,30 @@ describe("DetailsContent", () => {
   })
 
   it("switches to YAML tab and renders YamlEditor", async () => {
-    renderDetailsContent()
+    await act(async () => renderDetailsContent())
+    // Switch to YAML tab
     const yamlTab = await screen.findByText("YAML")
     fireEvent.click(yamlTab)
-    // Expect YamlEditor to be in the document - look for the Edit button
-    const editButton = await screen.findByRole("button", { name: /edit/i })
-    expect(editButton).toBeInTheDocument()
+
+    // Find the selected YAML panel and look for the Edit button within it
+    await waitFor(() => {
+      const allPanels = screen.getAllByRole("tabpanel")
+      const yamlPanel = allPanels.find((panel) => panel.className.includes("juno-tabpanel-selected"))
+      expect(yamlPanel).toBeDefined()
+      const editButton = within(yamlPanel!).getByRole("button", { name: /^edit$/i })
+      expect(editButton).toBeInTheDocument()
+    })
   })
 
   describe("YamlEditor disabled states", () => {
+    // Helper to get the selected YAML panel's Edit button
+    const getYamlEditButton = () => {
+      const allPanels = screen.getAllByRole("tabpanel")
+      const yamlPanel = allPanels.find((panel) => panel.className.includes("juno-tabpanel-selected"))
+      if (!yamlPanel) throw new Error("YAML panel not found")
+      return within(yamlPanel).getByRole("button", { name: /^edit$/i })
+    }
+
     it("disables YamlEditor when cluster is deleted", async () => {
       const user = userEvent.setup()
       const deletedCluster = { ...defaultCluster, isDeleted: true }
@@ -166,13 +196,13 @@ describe("DetailsContent", () => {
       const yamlTab = await screen.findByText("YAML")
       fireEvent.click(yamlTab)
 
-      // Find Edit button
-      const editButton = await screen.findByRole("button", { name: /edit/i })
+      // Find Edit button in the selected YAML panel
+      const editButton = await waitFor(() => getYamlEditButton())
       expect(editButton).toBeDisabled()
 
       // Hover to show tooltip with disabled message
-      act(() => {
-        user.hover(editButton)
+      await act(async () => {
+        await user.hover(editButton)
       })
 
       // Check for deleted cluster message
@@ -191,13 +221,13 @@ describe("DetailsContent", () => {
       const yamlTab = await screen.findByText("YAML")
       fireEvent.click(yamlTab)
 
-      // Find Edit button
-      const editButton = await screen.findByRole("button", { name: /edit/i })
+      // Find Edit button in the selected YAML panel
+      const editButton = await waitFor(() => getYamlEditButton())
       expect(editButton).toBeDisabled()
 
       // Hover to show tooltip with disabled message
-      act(() => {
-        user.hover(editButton)
+      await act(async () => {
+        await user.hover(editButton)
       })
 
       // Check for permission message
@@ -215,8 +245,8 @@ describe("DetailsContent", () => {
       const yamlTab = await screen.findByText("YAML")
       fireEvent.click(yamlTab)
 
-      // Find Edit button
-      const editButton = await screen.findByRole("button", { name: /edit/i })
+      // Find Edit button in the selected YAML panel
+      const editButton = await waitFor(() => getYamlEditButton())
       expect(editButton).not.toBeDisabled()
     })
 
@@ -234,13 +264,13 @@ describe("DetailsContent", () => {
       const yamlTab = await screen.findByText("YAML")
       fireEvent.click(yamlTab)
 
-      // Find Edit button
-      const editButton = await screen.findByRole("button", { name: /edit/i })
+      // Find Edit button in the selected YAML panel
+      const editButton = await waitFor(() => getYamlEditButton())
       expect(editButton).toBeDisabled()
 
       // Hover to show tooltip with disabled message
-      act(() => {
-        user.hover(editButton)
+      await act(async () => {
+        await user.hover(editButton)
       })
 
       // Should show deleted message, not permission message

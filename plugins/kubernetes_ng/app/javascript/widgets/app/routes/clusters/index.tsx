@@ -115,7 +115,7 @@ function ClusterContent({
 }
 
 function Clusters(props: ClustersViewProps) {
-  const { permissions, isLoading = false, client, region, onRefreshClusters } = props
+  const { permissions, isLoading = false, client, region } = props
   const [showWizardModal, setShowWizardModal] = useState(false)
   const { addMessage, resetMessages } = useActions()
 
@@ -134,7 +134,6 @@ function Clusters(props: ClustersViewProps) {
         <CreateClusterWizard
           isOpen={showWizardModal}
           onSuccessCreate={(clusterName) => {
-            onRefreshClusters()
             resetMessages()
             addMessage({
               text: `Cluster ${clusterName} is being bootstrapped. This may take a few minutes.`,

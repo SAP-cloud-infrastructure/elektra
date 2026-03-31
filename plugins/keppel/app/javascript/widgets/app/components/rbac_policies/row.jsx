@@ -5,7 +5,7 @@ const permsOptions = [
   { value: "", label: "Grant: Nothing" },
   { value: "anonymous_pull", label: "Grant: Pull anonymously" },
   {
-    value: "anonymous_first_pull",
+    value: "anonymous_first_pull,anonymous_pull",
     label: "Grant: Pull anonymously (even new images)",
   },
   { value: "pull", label: "Grant: Pull" },
@@ -47,11 +47,11 @@ const RBACPoliciesEditRow = ({
   const currentPerms = policy.permissions.sort().join(",") || ""
   const currentPermsOptions = isExternalReplica
     ? permsOptions
-    : permsOptions.filter((opt) => opt.value != "anonymous_first_pull")
+    : permsOptions.filter((opt) => !opt.value.includes("anonymous_first_pull"))
   const currentForbiddenPerms = (policy.forbidden_permissions || []).sort().join(",") || ""
   const currentForbiddenPermsOptions = isExternalReplica
     ? forbiddenPermsOptions
-    : forbiddenPermsOptions.filter((opt) => opt.value != "anonymous_first_pull")
+    : forbiddenPermsOptions.filter((opt) => !opt.value.includes("anonymous_first_pull"))
   return (
     <tr>
       <td>
@@ -75,7 +75,7 @@ const RBACPoliciesEditRow = ({
             value={userRegex || ""}
             className="form-control"
             onChange={(e) => setUserRegex(index, e.target.value)}
-            disabled={currentPerms == "anonymous_pull" || currentPerms == "anonymous_first_pull"}
+            disabled={currentPerms.includes("anonymous_pull") || currentPerms.includes("anonymous_first_pull")}
           />
         ) : userRegex ? (
           <code>{userRegex}</code>

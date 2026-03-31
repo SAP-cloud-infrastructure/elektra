@@ -149,6 +149,21 @@ export const externalNetworks: ExternalNetwork[] = [
   { id: "net1", name: "net1", description: "desc", availability_zones: [], status: "active" },
 ]
 
+export const mockMachineTypes = [
+  { name: "m5.large", cpu: "2", memory: "8Gi" },
+  { name: "m5.xlarge", cpu: "4", memory: "16Gi", architecture: "x86_64" },
+]
+
+export const mockMachineImages = [
+  { name: "ubuntu", versions: ["22.04", "20.04"] },
+  { name: "amazon-linux", versions: ["2.0"] },
+]
+
+export const mockRegions = [
+  { name: "us-east-1", zones: ["us-east-1a", "us-east-1b"] },
+  { name: "us-west-1", zones: ["us-west-1a", "us-west-1b"] },
+]
+
 export const cloudProfiles: CloudProfile[] = [
   {
     uid: "cp1",
@@ -156,18 +171,9 @@ export const cloudProfiles: CloudProfile[] = [
     provider: "aws",
     providerConfig: { apiVersion: "v1" },
     kubernetesVersions: ["1.27.0", "1.26.5"],
-    machineTypes: [
-      { name: "m5.large", cpu: "2", memory: "8Gi" },
-      { name: "m5.xlarge", cpu: "4", memory: "16Gi", architecture: "x86_64" },
-    ],
-    machineImages: [
-      { name: "ubuntu", versions: ["22.04", "20.04"] },
-      { name: "amazon-linux", versions: ["2.0"] },
-    ],
-    regions: [
-      { name: "us-east-1", zones: ["us-east-1a", "us-east-1b"] },
-      { name: "us-west-1", zones: ["us-west-1a", "us-west-1b"] },
-    ],
+    machineTypes: mockMachineTypes,
+    machineImages: mockMachineImages,
+    regions: mockRegions,
     volumeTypes: ["gp2", "io1"],
   },
 ]
