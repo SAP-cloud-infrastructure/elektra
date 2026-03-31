@@ -6,7 +6,6 @@ module ServiceLayer
       class KubeconfigGenerationError < StandardError; end
 
       def gardener_api_kubeconfig
-        # Construct kubeconfig locally for garden cluster access
         # This allows CLI tools to authenticate against the Gardener API
         # Note: Token expiration is controlled by OpenStack Keystone, not by this kubeconfig
         build_garden_kubeconfig
@@ -15,7 +14,6 @@ module ServiceLayer
       private
 
       # Build a kubeconfig for accessing the garden cluster API
-      # Returns a YAML string containing the kubeconfig
       def build_garden_kubeconfig
         # Get the Gardener API endpoint URL
         api_url = elektron_gardener.endpoint_url
