@@ -151,7 +151,8 @@
     "overrides": {
       "@isaacs/brace-expansion": ">=5.0.1",
       "minimatch": ">=10.2.1",
-      "seroval": ">=1.4.1"
+      "seroval": ">=1.4.1",
+      "rollup": ">=4.59.0"
     }
   }
 }
