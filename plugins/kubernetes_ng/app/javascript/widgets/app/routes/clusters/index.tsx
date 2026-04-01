@@ -27,6 +27,7 @@ export const Route = createFileRoute(CLUSTERS_ROUTE_ID)({
     return {
       apiClient: context.apiClient,
       region: context.region,
+      projectid: context.projectid,
     }
   },
 })
@@ -55,11 +56,15 @@ function ClusterActions({
   disabled = false,
   onAddCluster,
   apiClient,
+  region,
+  projectid,
 }: {
   permissions?: Permissions
   disabled?: boolean
   onAddCluster?: () => void
   apiClient?: GardenerApi
+  region?: string
+  projectid?: string
 }) {
   const { addMessage, resetMessages } = useActions()
 
@@ -75,6 +80,8 @@ function ClusterActions({
   const handleDownloadGardenKubeconfig = () => {
     gardenKubeconfigMutation.mutate(undefined, {
       onSuccess: (kubeconfigYaml) => {
+        const filename = `kubeconfig--garden-${region || "unknown"}-${projectid || "unknown"}.yaml`
+
         // Create a file-like object in memory from the YAML
         const blob = new Blob([kubeconfigYaml], {
           type: "application/x-yaml",
@@ -86,7 +93,7 @@ function ClusterActions({
         // Create a temporary anchor element to trigger the download
         const a = document.createElement("a")
         a.href = url
-        a.download = `kubeconfig.yaml`
+        a.download = filename
 
         // Required for Safari / Firefox compatibility
         document.body.appendChild(a)
@@ -136,6 +143,7 @@ interface ClustersViewProps {
   client?: GardenerApi
   updatedAt?: number
   region?: string
+  projectid?: string
   onRefreshClusters: () => void
 }
 
@@ -166,7 +174,7 @@ function ClusterContent({
 }
 
 function Clusters(props: ClustersViewProps) {
-  const { permissions, isLoading = false, client, region } = props
+  const { permissions, isLoading = false, client, region, projectid } = props
   const [showWizardModal, setShowWizardModal] = useState(false)
   const { addMessage, resetMessages } = useActions()
 
@@ -178,6 +186,8 @@ function Clusters(props: ClustersViewProps) {
           disabled={isLoading}
           onAddCluster={() => setShowWizardModal(true)}
           apiClient={client}
+          region={region}
+          projectid={projectid}
         />
       </ClustersPageHeader>
 
@@ -209,7 +219,7 @@ function Clusters(props: ClustersViewProps) {
 }
 
 function ClustersWithQueries() {
-  const { apiClient, region } = Route.useRouteContext()
+  const { apiClient, region, projectid } = Route.useRouteContext()
   const queryClient = useQueryClient()
 
   const {
@@ -251,6 +261,7 @@ function ClustersWithQueries() {
         isFetching={clustersFetching}
         client={apiClient}
         region={region}
+        projectid={projectid}
         updatedAt={validUpdatedAt}
         onRefreshClusters={handleRefreshClusters}
       />

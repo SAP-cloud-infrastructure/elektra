@@ -24,7 +24,7 @@ function MainActions({ shootPermissions, kubeconfigPermissions, disabled = false
   const { addMessage, resetMessages } = useActions()
   const { apiClient } = useRouteContext({ strict: false }) as RouterContext
 
-  // Helper to determine the disabled message for Kube Config button
+  // Helper to determine the disabled message for Kubeconfig button
   const getKubeconfigDisabledMessage = () => {
     if (disabled && disabledMessage) return disabledMessage
     if (!kubeconfigPermissions) return "Permissions are not available"
@@ -103,9 +103,9 @@ function MainActions({ shootPermissions, kubeconfigPermissions, disabled = false
     <>
       <DisableableButton
         size="small"
-        label="Kube Config"
+        label="Kubeconfig"
         icon="download"
-        title="Download Kube Config valid for 8 hours"
+        title="Download Kubeconfig valid for 8 hours"
         disabled={disabled || kubeconfigMutation.isPending || !kubeconfigPermissions?.create}
         progress={kubeconfigMutation.isPending}
         onClick={() => kubeconfigMutation.mutate()}

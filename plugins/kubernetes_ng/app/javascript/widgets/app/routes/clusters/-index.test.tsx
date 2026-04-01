@@ -38,6 +38,7 @@ const renderComponent = ({
       },
     },
     region: "qa-de-1",
+    projectid: "test",
   }
 
   const router = getTestRouter({
