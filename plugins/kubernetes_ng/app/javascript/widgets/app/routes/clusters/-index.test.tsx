@@ -125,7 +125,7 @@ describe("<Clusters />", () => {
         permissionsPromise: permissionsDeferred.promise,
       })
       const addClusterButton = await screen.findByRole("button", { name: /Add Cluster/i })
-      const gardenKubeconfigButton = await screen.findByRole("button", { name: /Gardener.*Kubeconfig/i })
+      const gardenKubeconfigButton = await screen.findByRole("button", { name: /Garden.*Kubeconfig/i })
       expect(addClusterButton).toBeDisabled()
       expect(gardenKubeconfigButton).toBeDisabled()
     })
@@ -183,7 +183,7 @@ describe("<Clusters />", () => {
         })
       )
 
-      const downloadButton = await screen.findByRole("button", { name: /Gardener.*Kubeconfig/i })
+      const downloadButton = await screen.findByRole("button", { name: /Garden.*Kubeconfig/i })
       expect(downloadButton).toBeInTheDocument()
 
       const errorMessage = "Failed to fetch garden kubeconfig"
@@ -210,7 +210,7 @@ describe("<Clusters />", () => {
         })
       )
 
-      const downloadButton = await screen.findByRole("button", { name: /Gardener.*Kubeconfig/i })
+      const downloadButton = await screen.findByRole("button", { name: /Garden.*Kubeconfig/i })
       expect(downloadButton).toBeInTheDocument()
 
       // Click the download button and resolve the promise
@@ -242,7 +242,7 @@ describe("<Clusters />", () => {
         })
       )
 
-      const gardenKubeconfigButton = await screen.findByRole("button", { name: /Gardener.*Kubeconfig/i })
+      const gardenKubeconfigButton = await screen.findByRole("button", { name: /Garden.*Kubeconfig/i })
       await user.click(gardenKubeconfigButton)
 
       // Verify button is disabled while pending
@@ -293,9 +293,9 @@ describe("<Clusters />", () => {
         const addClusterButton = await screen.findByRole("button", { name: /Add Cluster/i })
         expect(addClusterButton).toBeDisabled()
 
-        // Note: Gardener Kubeconfig button is NOT disabled on query error
+        // Note: Garden Kubeconfig button is NOT disabled on query error
         // It only disables during loading or when mutation is pending
-        const gardenKubeconfigButton = await screen.findByRole("button", { name: /Gardener.*Kubeconfig/i })
+        const gardenKubeconfigButton = await screen.findByRole("button", { name: /Garden.*Kubeconfig/i })
         expect(gardenKubeconfigButton).not.toBeDisabled()
       })
     })
