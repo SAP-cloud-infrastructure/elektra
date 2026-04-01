@@ -42,7 +42,7 @@ function MainActions({ shootPermissions, kubeconfigPermissions, disabled = false
 
   const kubeconfigMutation = useMutation<string, Error, void>({
     mutationFn: async () => {
-      return apiClient.gardener.getKubeconfig(params.clusterName)
+      return apiClient.gardener.getClusterKubeconfig(params.clusterName)
     },
 
     onSuccess: (kubeconfigYaml) => {

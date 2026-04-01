@@ -83,7 +83,7 @@ const ClusterListItem: React.FC<ClusterListItemProps> = ({ cluster, ...props }) 
       </DataGridCell>
       <DataGridCell>
         <Link to="/clusters/$clusterName" params={{ clusterName: cluster.name }}>
-          <Button label="View Details" variant="primary" size="small" />
+          <Button label="View Details" variant="subdued" size="small" />
         </Link>
       </DataGridCell>
     </DataGridRow>

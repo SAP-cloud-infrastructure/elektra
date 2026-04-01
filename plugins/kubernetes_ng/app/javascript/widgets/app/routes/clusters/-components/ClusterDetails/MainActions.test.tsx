@@ -235,7 +235,7 @@ describe("<MainActions />", () => {
             ...defaultMockClient,
             gardener: {
               ...defaultMockClient.gardener,
-              getKubeconfig: () => kubeconfigDeferred.promise,
+              getClusterKubeconfig: () => kubeconfigDeferred.promise,
             },
           },
         })
@@ -269,7 +269,7 @@ describe("<MainActions />", () => {
             ...defaultMockClient,
             gardener: {
               ...defaultMockClient.gardener,
-              getKubeconfig: () => kubeconfigDeferred.promise,
+              getClusterKubeconfig: () => kubeconfigDeferred.promise,
             },
           },
         })
@@ -306,7 +306,7 @@ describe("<MainActions />", () => {
             ...defaultMockClient,
             gardener: {
               ...defaultMockClient.gardener,
-              getKubeconfig: () => kubeconfigDeferred.promise,
+              getClusterKubeconfig: () => kubeconfigDeferred.promise,
             },
           },
         })
