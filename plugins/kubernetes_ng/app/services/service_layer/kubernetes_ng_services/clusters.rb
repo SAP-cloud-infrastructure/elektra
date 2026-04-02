@@ -108,7 +108,10 @@ module ServiceLayer
       # This ensures we don't replace entire parent objects when updating nested fields
       def build_patch_operations(hash, base_path, operations)
         hash.each do |key, value|
-          path = "#{base_path}/#{key}"
+          # Escape special characters in JSON Patch paths
+          # Per RFC 6901: ~ must be escaped as ~0, / must be escaped as ~1
+          escaped_key = key.to_s.gsub('~', '~0').gsub('/', '~1')
+          path = "#{base_path}/#{escaped_key}"
 
           if value.is_a?(Hash) && !value.empty?
             # Recurse into nested hashes
@@ -390,6 +393,12 @@ module ServiceLayer
         metadata = {}
         metadata['uid'] = cluster[:uid] if cluster[:uid]
         metadata['name'] = cluster[:name] if cluster[:name]
+
+        # Add annotations if present
+        if cluster[:metadata] && cluster[:metadata][:annotations]
+          metadata['annotations'] = cluster[:metadata][:annotations]
+        end
+
         metadata.empty? ? nil : metadata
       end
 

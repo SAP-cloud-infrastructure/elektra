@@ -9,6 +9,7 @@ import { useActions } from "@cloudoperators/juno-messages-provider"
 import { normalizeError } from "../../../../components/InlineError"
 import { RouterContext } from "../../../__root"
 import DisableableButton from "../../../../components/DisableableButton"
+import { useReconcileClusterMutation } from "../../../../hooks/useClusterQueries"
 
 interface MainActionsProps {
   shootPermissions?: Permissions
@@ -38,6 +39,33 @@ function MainActions({ shootPermissions, kubeconfigPermissions, disabled = false
     if (!shootPermissions) return "Permissions are not available"
     if (!shootPermissions.delete) return "You don't have permission to delete this cluster"
     return undefined
+  }
+
+  // Helper to determine the disabled message for Reconcile button
+  const getReconcileDisabledMessage = () => {
+    if (disabled && disabledMessage) return disabledMessage
+    if (!shootPermissions) return "Permissions are not available"
+    if (!shootPermissions.update) return "You don't have permission to reconcile this cluster"
+    return undefined
+  }
+
+  const reconcileMutation = useReconcileClusterMutation(apiClient)
+
+  const handleReconcile = () => {
+    reconcileMutation.mutate(
+      { clusterName: params.clusterName },
+      {
+        onSuccess: () => {
+          resetMessages()
+          addMessage({ text: `Cluster ${params.clusterName} reconciliation triggered`, variant: "success" })
+        },
+        onError: (error) => {
+          resetMessages()
+          const errText = normalizeError(error)
+          addMessage({ text: `${errText.title}${errText.message}`, variant: "danger" })
+        },
+      }
+    )
   }
 
   const kubeconfigMutation = useMutation<string, Error, void>({
@@ -110,6 +138,15 @@ function MainActions({ shootPermissions, kubeconfigPermissions, disabled = false
         progress={kubeconfigMutation.isPending}
         onClick={() => kubeconfigMutation.mutate()}
         disabledMessage={getKubeconfigDisabledMessage()}
+      />
+      <DisableableButton
+        size="small"
+        label="Reconcile"
+        title="Trigger cluster reconciliation"
+        disabled={disabled || reconcileMutation.isPending || !shootPermissions?.update}
+        progress={reconcileMutation.isPending}
+        onClick={handleReconcile}
+        disabledMessage={getReconcileDisabledMessage()}
       />
       <DisableableButton
         size="small"
