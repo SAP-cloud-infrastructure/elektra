@@ -698,7 +698,7 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
         maintenance: {
           startTime: '220000+0100',
           windowTime: '230000+0100',
-          timezone: 'Europe/Berlin'
+          timezone: '+0100'
         },
         autoUpdate: {
           os: true,

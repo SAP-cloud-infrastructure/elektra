@@ -347,12 +347,18 @@ module ServiceLayer
       # Extract maintenance window information
       def get_maintenance_info(spec)
         maintenance = spec.dig('maintenance')
-        hibernation = spec.dig('hibernation')
         time_window = maintenance&.dig('timeWindow') || {}
-        
+        begin_time = time_window['begin'] || ''
+
+        # Extract timezone offset from begin time (format: HHMMSS+HHMM or HHMMSS-HHMM)
+        timezone = ''
+        if begin_time =~ /([+-]\d{4})$/
+          timezone = $1
+        end
+
         {
-          startTime: time_window['begin'] || '',
-          timezone: deep_fetch(hibernation, 'schedules', 0, 'location') || '',
+          startTime: begin_time,
+          timezone: timezone,
           windowTime: time_window['end'] || ''
         }
       end
