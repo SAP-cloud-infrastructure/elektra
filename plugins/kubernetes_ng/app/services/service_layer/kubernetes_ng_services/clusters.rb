@@ -362,7 +362,7 @@ module ServiceLayer
         {
           startTime: begin_time,
           timezone: timezone,
-          windowTime: time_window['end'] || ''
+          endTime: time_window['end'] || ''
         }
       end
       
@@ -525,10 +525,10 @@ module ServiceLayer
         # Time window
         if cluster[:maintenance]
           maint = cluster[:maintenance]
-          if maint[:startTime] || maint[:start_time] || maint[:windowTime] || maint[:window_time] # Handle both camelCase and snake_case
+          if maint[:startTime] || maint[:start_time] || maint[:endTime] || maint[:end_time] # Handle both camelCase and snake_case
             maintenance['timeWindow'] = {
               'begin' => maint[:startTime] || maint[:start_time],
-              'end' => maint[:windowTime] || maint[:window_time]
+              'end' => maint[:endTime] || maint[:end_time]
             }.compact
           end
         end

@@ -57,7 +57,10 @@ function MainActions({ shootPermissions, kubeconfigPermissions, disabled = false
       {
         onSuccess: () => {
           resetMessages()
-          addMessage({ text: `Cluster ${params.clusterName} reconciliation triggered`, variant: "success" })
+          addMessage({
+            text: `Reconciliation triggered for ${params.clusterName}. The operation increases metadata.generation to trigger cluster reconciliation.`,
+            variant: "success"
+          })
         },
         onError: (error) => {
           resetMessages()

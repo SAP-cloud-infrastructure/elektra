@@ -359,8 +359,12 @@ const DetailsContent = ({
                     <Container py px={false}>
                       <h2 className={sectionHeaderStyles}>Maintenance Window</h2>
                       <DataGrid columns={2} gridColumnTemplate="35% auto">
-                        <ClusterDetailRow label="Start Time">{parseMaintenanceTime(cluster.maintenance.startTime)}</ClusterDetailRow>
-                        <ClusterDetailRow label="Window Time">{parseMaintenanceTime(cluster.maintenance.windowTime)}</ClusterDetailRow>
+                        <ClusterDetailRow label="Start Time">
+                          {parseMaintenanceTime(cluster.maintenance.startTime)}
+                        </ClusterDetailRow>
+                        <ClusterDetailRow label="End Time">
+                          {parseMaintenanceTime(cluster.maintenance.endTime)}
+                        </ClusterDetailRow>
                         <ClusterDetailRow label="Timezone">{cluster.maintenance.timezone}</ClusterDetailRow>
                       </DataGrid>
                     </Container>
