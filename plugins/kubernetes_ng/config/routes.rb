@@ -17,6 +17,9 @@ KubernetesNg::Engine.routes.draw do
     end
     resources :cloud_profiles, only: [:index], path: "cloud-profiles"
     get 'permissions(/:resource(/:verb))', to: 'permissions#index'
+
+    # Gardener API kubeconfig endpoint
+    get 'gardener-api/kubeconfig', to: 'gardener_api#kubeconfig'
   end
 
   # Catch-all for frontend routes → let React handle routing

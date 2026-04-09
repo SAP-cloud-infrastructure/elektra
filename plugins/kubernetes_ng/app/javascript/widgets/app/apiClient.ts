@@ -2,24 +2,8 @@ import { createAjaxHelper } from "lib/ajax_helper"
 import { Cluster, ClusterSchema, ClustersSchema } from "./types/cluster"
 import { Permissions, PermissionsSchema } from "./types/permissions"
 import { CloudProfile, CloudProfilesSchema } from "./types/cloudProfiles"
-import { defaultCluster, errorCluster, unknownStatusCluster } from "./mocks/data"
 import { ClusterFormData } from "./routes/clusters/-components/ClusterWizard/types"
 import { ExternalNetwork, ExternalNetworksSchema } from "./types/network"
-
-export const gardenerTestApi = {
-  getClusters: () => Promise.resolve([defaultCluster, errorCluster, unknownStatusCluster]),
-  getClusterByName: (name: string) => {
-    const clusters = [defaultCluster, errorCluster, unknownStatusCluster]
-    const cluster = clusters.find((c) => c.name === name)
-    if (cluster) {
-      return Promise.resolve(cluster)
-    } else {
-      return Promise.reject(new Error("Cluster not found"))
-    }
-  },
-  getShootPermissions: () => Promise.resolve({ list: true, get: true, create: true, update: true, delete: true }),
-  getKubeconfigPermission: () => Promise.resolve({ list: true, get: true, create: true, update: true, delete: true }),
-}
 
 export function createGardenerApi(basepath: string) {
   // Use basepath directly - it already includes the landscape (e.g., /kubernetes-gardener/prod)
@@ -62,7 +46,7 @@ export function createGardenerApi(basepath: string) {
         }
         return res.data
       }),
-    getKubeconfig: (name: string) =>
+    getClusterKubeconfig: (name: string) =>
       apiClient
         .get<{ data: string }>(`/api/clusters/kubeconfig/${name}/`)
         .then((res) => res.data)
@@ -76,7 +60,7 @@ export function createGardenerApi(basepath: string) {
           }
 
           // Fallback to normal Error
-          throw new Error(err instanceof Error ? err.message : "Failed to fetch kubeconfig")
+          throw new Error(err instanceof Error ? err.message : "Failed to fetch clusterkubeconfig")
         }),
     confirm_deletion_and_destroy: (name: string) =>
       apiClient.delete<{ data: Cluster }>(`/api/clusters/confirm-deletion-and-destroy/${name}/`).then((res) => {
@@ -118,7 +102,7 @@ export function createGardenerApi(basepath: string) {
       }),
   }
 
-  const CloudProfilesApi = {
+  const cloudProfilesApi = {
     getCloudProfiles: () =>
       apiClient.get<{ data: CloudProfile[] }>("/api/cloud-profiles").then((res) => {
         const parsed = CloudProfilesSchema.safeParse(res.data)
@@ -129,8 +113,27 @@ export function createGardenerApi(basepath: string) {
       }),
   }
 
+  const gardenApi = {
+    getGardenerApiKubeconfig: () =>
+      apiClient
+        .get<{ data: string }>("/api/gardener-api/kubeconfig")
+        .then((res) => res.data)
+        .catch((err: unknown) => {
+          // Handle serialized server errors so normalizeError can pick up the proper message
+          if (err && typeof err === "object" && "data" in err) {
+            const data = (err as { data?: Record<string, unknown> }).data
+            if (data?.message && typeof data.message === "string") {
+              throw err // serialized server error
+            }
+          }
+
+          // Fallback to normal Error
+          throw new Error(err instanceof Error ? err.message : "Failed to fetch garden kubeconfig")
+        }),
+  }
+
   return {
-    gardener: { ...shootApi, ...permissionsApi, ...CloudProfilesApi, ...networkApi },
+    gardener: { ...shootApi, ...permissionsApi, ...cloudProfilesApi, ...networkApi, ...gardenApi },
   }
 }
 

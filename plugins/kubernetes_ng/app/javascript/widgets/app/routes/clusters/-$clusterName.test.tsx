@@ -54,7 +54,7 @@ const renderComponent = ({
           getShootPermissions: typeof permissionsPromise === "function" ? permissionsPromise : () => permissionsPromise,
           getKubeconfigPermission:
             typeof permissionsPromise === "function" ? permissionsPromise : () => permissionsPromise,
-          getKubeconfig: typeof kubeconfigPromise === "function" ? kubeconfigPromise : () => kubeconfigPromise,
+          getClusterKubeconfig: typeof kubeconfigPromise === "function" ? kubeconfigPromise : () => kubeconfigPromise,
           confirm_deletion_and_destroy: typeof deletePromise === "function" ? deletePromise : () => deletePromise,
         },
       },
