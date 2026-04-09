@@ -47,10 +47,7 @@ const UploadFile = ({ refresh }) => {
     history.replace(path)
   }, [containerName, objectPath])
 
-  const valid = React.useMemo(
-    () => file && fileName && file.size <= LIMIT,
-    [file, fileName]
-  )
+  const valid = React.useMemo(() => file && fileName && file.size <= LIMIT, [file, fileName])
 
   const handleFileSelect = React.useCallback(
     (file) => {
@@ -85,15 +82,7 @@ const UploadFile = ({ refresh }) => {
         setError(error.message)
         setSubmitting(false)
       })
-  }, [
-    containerName,
-    fileName,
-    file,
-    close,
-    uploadObject,
-    setSubmitting,
-    setError,
-  ])
+  }, [containerName, fileName, file, close, uploadObject, setSubmitting, setError])
 
   return (
     <Modal
@@ -120,20 +109,19 @@ const UploadFile = ({ refresh }) => {
         <div className="bs-callout bs-callout-info">
           {!file || file.size <= LIMIT ? (
             <p>
-              This dialog only accepts files{" "}
-              <strong>smaller than {unit.format(LIMIT)}.</strong> To upload
-              larger files, please use a different client.
+              This dialog only accepts files <strong>smaller than {unit.format(LIMIT)}.</strong> To upload larger files,
+              please use a different client.
             </p>
           ) : (
             <>
               <p>
-                This file is larger than <strong>{unit.format(LIMIT)}</strong> (
-                {unit.format(file.size)}). You can upload it using:
+                This file is larger than <strong>{unit.format(LIMIT)}</strong> ({unit.format(file.size)}). You can
+                upload it using:
               </p>
               <p ref={codeRef}>
                 <code>
-                  curl -T {file.name} -X PUT "{serviceEndpoint}/
-                  {decodeURIComponent(containerName)}/
+                  curl -T {file.name} -X PUT "{serviceEndpoint}/{decodeURIComponent(containerName)}/
+                  {currentPath ? `${decodeURIComponent(currentPath)}` : ""}
                   {decodeURIComponent(fileName)}" -H "X-Auth-Token: $token"
                 </code>
               </p>
@@ -141,16 +129,11 @@ const UploadFile = ({ refresh }) => {
               <div className="text-right">
                 {showCopyInfo && (
                   <>
-                    <span className="fade-in-info-text reverse">
-                      copied to clipboard
-                    </span>{" "}
+                    <span className="fade-in-info-text reverse">copied to clipboard</span>{" "}
                   </>
                 )}
                 {authToken && (
-                  <button
-                    className="btn btn-xs"
-                    onClick={(e) => copyToClipboard()}
-                  >
+                  <button className="btn btn-xs" onClick={(e) => copyToClipboard()}>
                     Copy
                   </button>
                 )}
@@ -165,11 +148,7 @@ const UploadFile = ({ refresh }) => {
               <abbr title="required">*</abbr> Select file
             </label>
             <div className="col-sm-10">
-              <input
-                className="file required"
-                type="file"
-                onChange={(e) => handleFileSelect(e.target.files[0])}
-              />
+              <input className="file required" type="file" onChange={(e) => handleFileSelect(e.target.files[0])} />
             </div>
           </div>
 
@@ -190,11 +169,7 @@ const UploadFile = ({ refresh }) => {
       </Modal.Body>
       <Modal.Footer>
         <Button onClick={close}>Cancel</Button>
-        <Button
-          bsStyle="primary"
-          onClick={submit}
-          disabled={!valid || submitting}
-        >
+        <Button bsStyle="primary" onClick={submit} disabled={!valid || submitting}>
           Upload
         </Button>
       </Modal.Footer>
