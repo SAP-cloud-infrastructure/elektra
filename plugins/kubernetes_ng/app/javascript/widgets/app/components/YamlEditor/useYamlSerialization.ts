@@ -8,10 +8,11 @@ function filterManagedFields(resource: Record<string, unknown>): Record<string, 
     return resource
   }
 
-  const { managedFields, ...restMetadata } = metadata
+  const filteredMetadata = { ...metadata }
+  delete filteredMetadata.managedFields
   return {
     ...resource,
-    metadata: restMetadata,
+    metadata: filteredMetadata,
   }
 }
 
