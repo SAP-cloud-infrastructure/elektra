@@ -502,14 +502,14 @@ SimpleNavigation::Configuration.run do |navigation|
                       plugin_available?(:smartops)
                    } do |services_nav|
       services_nav.item :maillog,
-                        'Mail Log',
-                        -> { plugin('maillog').maillog_path },
-                        if: -> { 
-                          services.available?(:maillog)
-                        },
-                        highlights_on: lambda {
-                          params[:controller][%r{maillog/?.*}]
-                        }
+                          'Email',
+                          -> { plugin('maillog').maillog_path },
+                          if: -> { 
+                            services.available?(:maillog)
+                          },
+                          highlights_on: lambda {
+                            params[:controller][%r{maillog/?.*}]
+                          }
       services_nav.item :smartops,
                           'Smart Ops',
                           lambda {
