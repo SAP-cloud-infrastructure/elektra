@@ -189,9 +189,18 @@ describe("<Clusters />", () => {
 
       const errorMessage = "Failed to fetch garden kubeconfig"
 
-      // Click the download button and reject the promise
+      // Click the button to open the dialog
       await act(async () => {
         downloadButton.click()
+      })
+
+      // Find the Download button in the dialog
+      const dialogDownloadButton = await screen.findByRole("button", { name: /^Download$/i })
+      expect(dialogDownloadButton).toBeInTheDocument()
+
+      // Click the dialog Download button and reject the promise
+      await act(async () => {
+        dialogDownloadButton.click()
         gardenKubeconfigDeferred.reject(new Error(errorMessage))
       })
 
@@ -214,9 +223,18 @@ describe("<Clusters />", () => {
       const downloadButton = await screen.findByRole("button", { name: /Garden.*Kubeconfig/i })
       expect(downloadButton).toBeInTheDocument()
 
-      // Click the download button and resolve the promise
+      // Click the button to open the dialog
       await act(async () => {
         downloadButton.click()
+      })
+
+      // Find the Download button in the dialog
+      const dialogDownloadButton = await screen.findByRole("button", { name: /^Download$/i })
+      expect(dialogDownloadButton).toBeInTheDocument()
+
+      // Click the dialog Download button and resolve the promise
+      await act(async () => {
+        dialogDownloadButton.click()
         gardenKubeconfigDeferred.resolve(kubeconfigData)
       })
 
@@ -233,7 +251,7 @@ describe("<Clusters />", () => {
       })
     })
 
-    it("disables Garden Kubeconfig button while download is pending", async () => {
+    it("disables Download button in dialog and Garden Kubeconfig button while download is pending", async () => {
       const user = userEvent.setup()
       const gardenKubeconfigDeferred = deferredPromise<string>()
 
@@ -246,8 +264,18 @@ describe("<Clusters />", () => {
       const gardenKubeconfigButton = await screen.findByRole("button", { name: /Garden.*Kubeconfig/i })
       await user.click(gardenKubeconfigButton)
 
-      // Verify button is disabled while pending
+      // Find the Download button in the dialog
+      const dialogDownloadButton = await screen.findByRole("button", { name: /^Download$/i })
+      expect(dialogDownloadButton).toBeInTheDocument()
+
+      // Click the dialog Download button (don't resolve promise yet)
+      await act(async () => {
+        dialogDownloadButton.click()
+      })
+
+      // Verify Download button in dialog and outside are disabled while pending
       await waitFor(() => {
+        expect(dialogDownloadButton).toBeDisabled()
         expect(gardenKubeconfigButton).toBeDisabled()
       })
     })

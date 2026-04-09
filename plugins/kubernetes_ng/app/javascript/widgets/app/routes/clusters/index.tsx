@@ -17,6 +17,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { QUERY_KEYS } from "../../hooks/queryKeys"
 import { normalizeError } from "../../components/InlineError"
 import { useGardenKubeconfigDownload } from "../../hooks/useGardenKubeconfig"
+import KubeconfigDownloadDialog from "./-components/KubeconfigDownloadDialog"
 
 export const CLUSTERS_ROUTE_ID = "/clusters/"
 
@@ -67,6 +68,7 @@ function ClusterActions({
   projectid?: string
 }) {
   const { addMessage, resetMessages } = useActions()
+  const [showKubeconfigDialog, setShowKubeconfigDialog] = useState(false)
 
   // Determine the disabled message for Add Cluster button
   const getAddClusterDisabledMessage = () => {
@@ -78,6 +80,7 @@ function ClusterActions({
   const gardenKubeconfigMutation = useGardenKubeconfigDownload(apiClient)
 
   const handleDownloadGardenKubeconfig = () => {
+    setShowKubeconfigDialog(false)
     gardenKubeconfigMutation.mutate(undefined, {
       onSuccess: (kubeconfigYaml) => {
         const filename = `kubeconfig--garden-${region || "unknown"}-${projectid || "unknown"}.yaml`
@@ -120,7 +123,7 @@ function ClusterActions({
         title="Download Garden API Kubeconfig"
         disabled={disabled || gardenKubeconfigMutation.isPending}
         progress={gardenKubeconfigMutation.isPending}
-        onClick={handleDownloadGardenKubeconfig}
+        onClick={() => setShowKubeconfigDialog(true)}
       />
       <DisableableButton
         variant="primary"
@@ -129,6 +132,12 @@ function ClusterActions({
         disabled={disabled || !permissions?.create}
         onClick={onAddCluster}
         disabledMessage={getAddClusterDisabledMessage()}
+      />
+      <KubeconfigDownloadDialog
+        isOpen={showKubeconfigDialog}
+        onClose={() => setShowKubeconfigDialog(false)}
+        onConfirm={handleDownloadGardenKubeconfig}
+        isDownloading={gardenKubeconfigMutation.isPending}
       />
     </Stack>
   )
