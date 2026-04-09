@@ -1195,6 +1195,18 @@ describe MonsoonOpenstackAuth::SessionsController, type: :controller do
           expect(flash[:notice]).to eq('Password validation successful. Please use Single Sign-On to access the dashboard.')
         end
 
+        it 'shows generic notice when password_sync param is absent' do
+          post :create, params: {
+            domain_fid: domain_id,
+            username: username,
+            password: password,
+            domain_id: domain_id
+          }
+
+          expect(response).to have_http_status(:ok)
+          expect(flash[:notice]).to eq('Password login is disabled. Please use Single Sign-On to access the dashboard.')
+        end
+
         it 'does not create a session even via the sync form' do
           post :create, params: {
             domain_fid: domain_id,

@@ -1,4 +1,5 @@
 - domain_config = DomainConfig.new(@domain_name)
+- password_sync_mode = params[:password_sync].present? || !MonsoonOpenstackAuth.configuration.password_session_auth_allowed?
 = inside_layout 'login' do
   .container
 
@@ -9,10 +10,10 @@
         = hidden_field_tag :domain_id, @domain_id
         = hidden_field_tag :domain_name, @domain_name
         = hidden_field_tag :two_factor, @two_factor
-        = hidden_field_tag :password_sync, params[:password_sync] if params[:password_sync]
+        = hidden_field_tag :password_sync, 'true' if password_sync_mode
 
         %h2.form-signin-heading
-          = params[:password_sync] ? 'Sync Password' : 'Please sign in'
+          = password_sync_mode ? 'Sync Password' : 'Please sign in'
 
         .flashes
           - flash.each do |name, msg|
@@ -32,7 +33,7 @@
 
 
         %section
-          - if params[:password_sync]
+          - if password_sync_mode
             .bs-callout.bs-callout-info.bs-callout-emphasize
               Log in with your new global SAP Password
           - else
