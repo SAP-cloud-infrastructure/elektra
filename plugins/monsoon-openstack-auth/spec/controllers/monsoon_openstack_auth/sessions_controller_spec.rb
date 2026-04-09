@@ -1037,7 +1037,7 @@ describe MonsoonOpenstackAuth::SessionsController, type: :controller do
   end
 
   describe 'safe_redirect_url?' do
-    let(:username) { 'testuser' }
+    let(:username) { 'D123456' } # natural user pattern — works regardless of ENFORCE_NATURAL_USER_LOGIN
     let(:password) { 'password123' }
 
     before do
@@ -1128,7 +1128,7 @@ describe MonsoonOpenstackAuth::SessionsController, type: :controller do
         allow(MonsoonOpenstackAuth.configuration).to receive(:password_session_auth_allowed?).and_return(false)
       end
 
-      context 'with valid credentials' do
+      context 'with valid credentials (normal login form)' do
         before do
           allow(MonsoonOpenstackAuth::Authentication::AuthSession)
             .to receive(:create_from_login_form)
@@ -1143,15 +1143,15 @@ describe MonsoonOpenstackAuth::SessionsController, type: :controller do
             domain_id: domain_id
           }
 
-          expect(response).to redirect_to(new_session_path(domain_fid: domain_id))
-          expect(flash[:notice]).to eq('Password validation successful. Please use Single Sign-On to access the dashboard.')
+          expect(response).to have_http_status(:ok)
+          expect(flash[:notice]).to eq('Password login is disabled. Please use Single Sign-On to access the dashboard.')
         end
 
         it 'triggers password sync via Keystone authentication' do
           # Verify create_from_login_form is called (which triggers Keystone validation and password sync)
           expect(MonsoonOpenstackAuth::Authentication::AuthSession)
             .to receive(:create_from_login_form)
-            .with(controller, username, password, domain_id: domain_id, domain_name: nil)
+            .with(controller, username, password, domain_id: domain_id, domain_name: domain_id)
             .and_return(mock_auth_session)
 
           post :create, params: {
@@ -1171,9 +1171,41 @@ describe MonsoonOpenstackAuth::SessionsController, type: :controller do
             after_login: after_login_url
           }
 
-          # Should NOT redirect to after_login_url (no session created)
-          expect(response).not_to redirect_to(after_login_url)
-          expect(response).to redirect_to(new_session_path(domain_fid: domain_id))
+          expect(response).to have_http_status(:ok)
+        end
+      end
+
+      context 'with valid credentials (password sync form)' do
+        before do
+          allow(MonsoonOpenstackAuth::Authentication::AuthSession)
+            .to receive(:create_from_login_form)
+            .and_return(mock_auth_session)
+        end
+
+        it 'shows sync-specific notice when password_sync param is present' do
+          post :create, params: {
+            domain_fid: domain_id,
+            username: username,
+            password: password,
+            domain_id: domain_id,
+            password_sync: 'true'
+          }
+
+          expect(response).to have_http_status(:ok)
+          expect(flash[:notice]).to eq('Password validation successful. Please use Single Sign-On to access the dashboard.')
+        end
+
+        it 'does not create a session even via the sync form' do
+          post :create, params: {
+            domain_fid: domain_id,
+            username: username,
+            password: password,
+            domain_id: domain_id,
+            password_sync: 'true',
+            after_login: after_login_url
+          }
+
+          expect(response).to have_http_status(:ok)
         end
       end
 

@@ -88,8 +88,13 @@ module MonsoonOpenstackAuth
                          )
 
           if auth_session
-            flash[:notice] = 'Password validation successful. Please use Single Sign-On to access the dashboard.'
-            redirect_to new_session_path(domain_fid: @domain_id || @domain_name) # `new` calls logout, clearing the session token
+            MonsoonOpenstackAuth::Authentication::AuthSession.logout(self, @domain_id || @domain_name)
+            flash.now[:notice] = if params[:password_sync]
+                                   'Password validation successful. Please use Single Sign-On to access the dashboard.'
+                                 else
+                                   'Password login is disabled. Please use Single Sign-On to access the dashboard.'
+                                 end
+            render action: :new
           else
             @error = 'Invalid username/password combination.'
             flash.now[:alert] = @error
@@ -176,8 +181,8 @@ module MonsoonOpenstackAuth
       @username = params[:username]
       @password = params[:password]
       @passcode = params[:passcode]
-      @domain_id = params[:domain_id]
-      @domain_name = params[:domain_name]
+      @domain_id = params[:domain_id].presence
+      @domain_name = params[:domain_name].presence || params[:domain_fid]
       @two_factor = params[:two_factor].to_s == 'true'
     end
 

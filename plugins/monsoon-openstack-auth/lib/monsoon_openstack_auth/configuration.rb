@@ -29,7 +29,7 @@ module MonsoonOpenstackAuth
       @natural_user_name_pattern = nil
       @rsa_dns = false
 
-      # Feature flag: show 403 when SSO succeeds but user has no Keystone permissions (default: false)
+      # Feature flag: show 401 when SSO succeeds but user has no Keystone permissions (default: false)
       @block_login_fallback_after_sso = false
 
       # Feature flag: allow password form login to create an authenticated session (default: true)

@@ -9,6 +9,7 @@
         = hidden_field_tag :domain_id, @domain_id
         = hidden_field_tag :domain_name, @domain_name
         = hidden_field_tag :two_factor, @two_factor
+        = hidden_field_tag :password_sync, params[:password_sync] if params[:password_sync]
 
         %h2.form-signin-heading
           = params[:password_sync] ? 'Sync Password' : 'Please sign in'
