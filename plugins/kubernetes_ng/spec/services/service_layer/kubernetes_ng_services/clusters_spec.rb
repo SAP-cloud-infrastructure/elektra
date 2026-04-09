@@ -768,7 +768,7 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           'hibernation' => {
             'schedules' => [
               {
-                'location' => 'Europe/Berlin'
+                'location' => '+0100'
               }
             ]
           }
