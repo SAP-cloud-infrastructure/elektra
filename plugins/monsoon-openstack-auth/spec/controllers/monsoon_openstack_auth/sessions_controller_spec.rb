@@ -370,8 +370,8 @@ describe MonsoonOpenstackAuth::SessionsController, type: :controller do
 
       it 'handles missing domain parameters' do
         expect(MonsoonOpenstackAuth::Authentication::AuthSession)
-          .to receive(:logout).with(controller, nil)
-        
+          .to receive(:logout).with(controller, domain_id)
+
         get :new, params: { domain_fid: domain_id }
       end
     end
@@ -448,7 +448,7 @@ describe MonsoonOpenstackAuth::SessionsController, type: :controller do
         it 'calls create_from_login_form with correct parameters' do
           expect(MonsoonOpenstackAuth::Authentication::AuthSession)
             .to receive(:create_from_login_form)
-            .with(controller, username, password, domain_id: domain_id, domain_name: nil)
+            .with(controller, username, password, domain_id: domain_id, domain_name: domain_id)
             .and_return(mock_auth_session)
 
           post :create, params: {
@@ -783,7 +783,7 @@ describe MonsoonOpenstackAuth::SessionsController, type: :controller do
     it 'loads user from session' do
       expect(MonsoonOpenstackAuth::Authentication::AuthSession)
         .to receive(:load_user_from_session)
-        .with(controller, domain: domain_id, domain_name: nil)
+        .with(controller, domain: domain_id, domain_name: domain_id)
 
       get :two_factor, params: { domain_fid: domain_id, domain_id: domain_id }
     end
