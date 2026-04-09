@@ -8,6 +8,7 @@ module ServiceLayer
     include KubernetesNgServices::CloudProfiles
     include KubernetesNgServices::Clusters
     include KubernetesNgServices::Permissions
+    include KubernetesNgServices::GardenerApi
 
     def available?(landscape_name_or_action = nil)
       service_to_check = KubernetesNg.service_for(landscape_name_or_action.to_s)
@@ -28,14 +29,12 @@ module ServiceLayer
     # but the kubernetes api uses another auth header than openstack
     # thats why we add a new authorization header here
     def elektron_gardener
-      region = ENV["MONSOON_DASHBOARD_REGION"]
-      mapped_service_name = gardener_service_name
 
       # Cache per landscape to avoid issues when landscape changes
       @elektron_gardener_cache ||= {}
-      @elektron_gardener_cache[mapped_service_name] ||=
+      @elektron_gardener_cache[gardener_service_name] ||=
         elektron.service(
-          mapped_service_name,
+          gardener_service_name,
            headers:{
             "Authorization":"Bearer #{region}:#{elektron.token}"
           }
@@ -57,6 +56,11 @@ module ServiceLayer
     # Build the Gardener namespace for a given project and region
     def garden_namespace
       "garden-#{scoped_region}-#{scoped_project_id}"
+    end
+
+    # Get the current region
+    def region
+      ENV["MONSOON_DASHBOARD_REGION"]
     end
 
   end

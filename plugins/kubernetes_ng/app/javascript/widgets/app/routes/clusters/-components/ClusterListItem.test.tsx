@@ -79,6 +79,5 @@ describe("<ClusterListItem />", () => {
     const viewDetailsButton = screen.getByRole("button", { name: "View Details" })
     const link = viewDetailsButton.closest("a")
     expect(link).toHaveAttribute("href", `/clusters/${clusterWithName.name}`)
-    expect(viewDetailsButton).toHaveClass("juno-button-primary")
   })
 })

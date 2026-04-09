@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { createFileRoute } from "@tanstack/react-router"
-import { Container } from "@cloudoperators/juno-ui-components"
+import { Container, Stack } from "@cloudoperators/juno-ui-components"
 import ClusterList from "./-components/ClusterList"
 import PageHeader from "../../components/PageHeader"
 import { Permissions } from "../../types/permissions"
@@ -15,6 +15,8 @@ import HeadingInfo from "./-components/HeadingInfo"
 import { useClustersQuery, useShootPermissionsQuery } from "../../hooks/useClusterQueries"
 import { useQueryClient } from "@tanstack/react-query"
 import { QUERY_KEYS } from "../../hooks/queryKeys"
+import { normalizeError } from "../../components/InlineError"
+import { useGardenKubeconfigDownload } from "../../hooks/useGardenKubeconfig"
 
 export const CLUSTERS_ROUTE_ID = "/clusters/"
 
@@ -52,11 +54,15 @@ function ClusterActions({
   permissions,
   disabled = false,
   onAddCluster,
+  apiClient,
 }: {
   permissions?: Permissions
   disabled?: boolean
   onAddCluster?: () => void
+  apiClient?: GardenerApi
 }) {
+  const { addMessage, resetMessages } = useActions()
+
   // Determine the disabled message for Add Cluster button
   const getAddClusterDisabledMessage = () => {
     if (!permissions) return "Permissions are not available"
@@ -64,15 +70,60 @@ function ClusterActions({
     return undefined
   }
 
+  const gardenKubeconfigMutation = useGardenKubeconfigDownload(apiClient)
+
+  const handleDownloadGardenKubeconfig = () => {
+    gardenKubeconfigMutation.mutate(undefined, {
+      onSuccess: (kubeconfigYaml) => {
+        // Create a file-like object in memory from the YAML
+        const blob = new Blob([kubeconfigYaml], {
+          type: "application/x-yaml",
+        })
+
+        // Create a temporary URL pointing to the in-memory file
+        const url = URL.createObjectURL(blob)
+
+        // Create a temporary anchor element to trigger the download
+        const a = document.createElement("a")
+        a.href = url
+        a.download = `kubeconfig.yaml`
+
+        // Required for Safari / Firefox compatibility
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+
+        // Revoke the object URL after the download has been triggered
+        setTimeout(() => URL.revokeObjectURL(url), 0)
+      },
+      onError: (error) => {
+        resetMessages()
+        const errText = normalizeError(error)
+        addMessage({ text: `${errText.title}${errText.message}`, variant: "danger" })
+      },
+    })
+  }
+
   return (
-    <DisableableButton
-      variant="primary"
-      size="small"
-      label="Add Cluster"
-      disabled={disabled || !permissions?.create}
-      onClick={onAddCluster}
-      disabledMessage={getAddClusterDisabledMessage()}
-    />
+    <Stack gap="4">
+      <DisableableButton
+        size="small"
+        label="Garden Kubeconfig"
+        icon="download"
+        title="Download Garden API Kubeconfig"
+        disabled={disabled || gardenKubeconfigMutation.isPending}
+        progress={gardenKubeconfigMutation.isPending}
+        onClick={handleDownloadGardenKubeconfig}
+      />
+      <DisableableButton
+        variant="primary"
+        size="small"
+        label="Add Cluster"
+        disabled={disabled || !permissions?.create}
+        onClick={onAddCluster}
+        disabledMessage={getAddClusterDisabledMessage()}
+      />
+    </Stack>
   )
 }
 
@@ -122,7 +173,12 @@ function Clusters(props: ClustersViewProps) {
   return (
     <>
       <ClustersPageHeader>
-        <ClusterActions permissions={permissions} disabled={isLoading} onAddCluster={() => setShowWizardModal(true)} />
+        <ClusterActions
+          permissions={permissions}
+          disabled={isLoading}
+          onAddCluster={() => setShowWizardModal(true)}
+          apiClient={client}
+        />
       </ClustersPageHeader>
 
       <HeadingInfo />
