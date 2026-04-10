@@ -35,17 +35,30 @@ describe("VersionBadge", () => {
   })
 
   it("should render update icon when patch is available", () => {
-    const { container } = render(<VersionBadge version="1.27.5" hasPatchAvailable />)
+    const { container } = render(
+      <VersionBadge version="1.27.5" versionUpdates={{ patch: ["1.27.6"] }} />
+    )
     expect(container.querySelector("svg")).toBeInTheDocument()
   })
 
   it("should render update icon when upgrade is available", () => {
-    const { container } = render(<VersionBadge version="1.27.5" hasUpgradeAvailable />)
+    const { container } = render(
+      <VersionBadge version="1.27.5" versionUpdates={{ minor: ["1.28.0"] }} />
+    )
+    expect(container.querySelector("svg")).toBeInTheDocument()
+  })
+
+  it("should render update icon when major upgrade is available", () => {
+    const { container } = render(
+      <VersionBadge version="1.27.5" versionUpdates={{ major: ["2.0.0"] }} />
+    )
     expect(container.querySelector("svg")).toBeInTheDocument()
   })
 
   it("should render update icon when both patch and upgrade available", () => {
-    const { container } = render(<VersionBadge version="1.27.5" hasPatchAvailable hasUpgradeAvailable />)
+    const { container } = render(
+      <VersionBadge version="1.27.5" versionUpdates={{ patch: ["1.27.6"], minor: ["1.28.0"] }} />
+    )
     expect(container.querySelector("svg")).toBeInTheDocument()
   })
 
@@ -54,13 +67,25 @@ describe("VersionBadge", () => {
     expect(screen.getByTestId("version-badge")).toBeInTheDocument()
   })
 
-  it("should use warning variant when updates available", () => {
-    render(<VersionBadge version="1.27.5" hasPatchAvailable data-testid="version-badge-with-updates" />)
+  it("should use info variant when updates available", () => {
+    render(
+      <VersionBadge
+        version="1.27.5"
+        versionUpdates={{ patch: ["1.27.6"] }}
+        data-testid="version-badge-with-updates"
+      />
+    )
     expect(screen.getByTestId("version-badge-with-updates")).toBeInTheDocument()
   })
 
   it("should show tooltip on hover", () => {
-    render(<VersionBadge version="1.27.5" hasPatchAvailable tooltipText="Patch available" />)
+    render(
+      <VersionBadge
+        version="1.27.5"
+        versionUpdates={{ patch: ["1.27.6"] }}
+        tooltipText="Patch available"
+      />
+    )
     // Tooltip component should be present (even if not visible yet)
     // The TooltipTrigger wraps the badge
     expect(screen.getByText("1.27.5")).toBeInTheDocument()

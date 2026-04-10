@@ -223,11 +223,7 @@ const DetailsContent = ({
                     </ClusterDetailRow>
                     <ClusterDetailRow label="Cluster Status">{`${cluster.status} ${cluster.isDeleted ? "(deleted)" : ""}`}</ClusterDetailRow>
                     <ClusterDetailRow label="Kubernetes Version">
-                      <VersionBadge
-                        version={cluster.version}
-                        hasPatchAvailable={!!cluster.versionUpdates?.patch?.length}
-                        hasUpgradeAvailable={!!cluster.versionUpdates?.minor?.length}
-                      />
+                      <VersionBadge version={cluster.version} versionUpdates={cluster.versionUpdates} />
                     </ClusterDetailRow>
                     <ClusterDetailRow label="Namespace">
                       <ClipboardText text={cluster.namespace} />

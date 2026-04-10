@@ -79,11 +79,7 @@ const ClusterListItem: React.FC<ClusterListItemProps> = ({ cluster, ...props }) 
       <DataGridCell>
         <Stack gap="1">
           {cluster.lastMaintenance.state === "Error" ? <Icon icon="error" color="tw-text-theme-error" /> : null}
-          <VersionBadge
-            version={cluster.version}
-            hasPatchAvailable={!!cluster.versionUpdates?.patch?.length}
-            hasUpgradeAvailable={!!cluster.versionUpdates?.minor?.length}
-          />
+          <VersionBadge version={cluster.version} versionUpdates={cluster.versionUpdates} />
         </Stack>
       </DataGridCell>
       <DataGridCell>
