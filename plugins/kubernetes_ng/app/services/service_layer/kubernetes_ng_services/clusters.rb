@@ -108,7 +108,10 @@ module ServiceLayer
       # This ensures we don't replace entire parent objects when updating nested fields
       def build_patch_operations(hash, base_path, operations)
         hash.each do |key, value|
-          path = "#{base_path}/#{key}"
+          # Escape special characters in JSON Patch paths
+          # Per RFC 6901: ~ must be escaped as ~0, / must be escaped as ~1
+          escaped_key = key.to_s.gsub('~', '~0').gsub('/', '~1')
+          path = "#{base_path}/#{escaped_key}"
 
           if value.is_a?(Hash) && !value.empty?
             # Recurse into nested hashes
@@ -347,13 +350,19 @@ module ServiceLayer
       # Extract maintenance window information
       def get_maintenance_info(spec)
         maintenance = spec.dig('maintenance')
-        hibernation = spec.dig('hibernation')
         time_window = maintenance&.dig('timeWindow') || {}
-        
+        begin_time = time_window['begin'] || ''
+
+        # Extract timezone offset from begin time (format: HHMMSS+HHMM or HHMMSS-HHMM)
+        timezone = ''
+        if begin_time =~ /([+-]\d{4})$/
+          timezone = $1
+        end
+
         {
-          startTime: time_window['begin'] || '',
-          timezone: deep_fetch(hibernation, 'schedules', 0, 'location') || '',
-          windowTime: time_window['end'] || ''
+          startTime: begin_time,
+          timezone: timezone,
+          endTime: time_window['end'] || ''
         }
       end
       
@@ -384,6 +393,12 @@ module ServiceLayer
         metadata = {}
         metadata['uid'] = cluster[:uid] if cluster[:uid]
         metadata['name'] = cluster[:name] if cluster[:name]
+
+        # Add annotations if present
+        if cluster[:metadata] && cluster[:metadata][:annotations]
+          metadata['annotations'] = cluster[:metadata][:annotations]
+        end
+
         metadata.empty? ? nil : metadata
       end
 
@@ -510,10 +525,10 @@ module ServiceLayer
         # Time window
         if cluster[:maintenance]
           maint = cluster[:maintenance]
-          if maint[:startTime] || maint[:start_time] || maint[:windowTime] || maint[:window_time] # Handle both camelCase and snake_case
+          if maint[:startTime] || maint[:start_time] || maint[:endTime] || maint[:end_time] # Handle both camelCase and snake_case
             maintenance['timeWindow'] = {
               'begin' => maint[:startTime] || maint[:start_time],
-              'end' => maint[:windowTime] || maint[:window_time]
+              'end' => maint[:endTime] || maint[:end_time]
             }.compact
           end
         end

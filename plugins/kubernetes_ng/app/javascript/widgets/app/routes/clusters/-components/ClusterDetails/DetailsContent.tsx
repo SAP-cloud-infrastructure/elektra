@@ -38,6 +38,20 @@ import DisableableButton from "../../../../components/DisableableButton"
 
 const sectionHeaderStyles = "details-section tw-text-lg tw-font-bold tw-mb-4"
 
+/**
+ * Parse maintenance time string (HHMMSS+HHMM) to HH:MM format
+ * Example: "170000+0000" -> "17:00"
+ */
+function parseMaintenanceTime(timeString: string | undefined): string {
+  if (!timeString) return ""
+
+  const match = timeString.match(/^(\d{2})(\d{2})/)
+  if (!match) return timeString
+
+  const [, hours, minutes] = match
+  return `${hours}:${minutes}`
+}
+
 const DetailsContent = ({
   cluster,
   updatedAt,
@@ -345,9 +359,13 @@ const DetailsContent = ({
                     <Container py px={false}>
                       <h2 className={sectionHeaderStyles}>Maintenance Window</h2>
                       <DataGrid columns={2} gridColumnTemplate="35% auto">
-                        <ClusterDetailRow label="Start Time">{cluster.maintenance?.startTime}</ClusterDetailRow>
-                        <ClusterDetailRow label="Window Time">{cluster.maintenance?.windowTime}</ClusterDetailRow>
-                        <ClusterDetailRow label="Timezone">{cluster.maintenance?.timezone}</ClusterDetailRow>
+                        <ClusterDetailRow label="Start Time">
+                          {parseMaintenanceTime(cluster.maintenance.startTime)}
+                        </ClusterDetailRow>
+                        <ClusterDetailRow label="End Time">
+                          {parseMaintenanceTime(cluster.maintenance.endTime)}
+                        </ClusterDetailRow>
+                        <ClusterDetailRow label="Timezone">{cluster.maintenance.timezone}</ClusterDetailRow>
                       </DataGrid>
                     </Container>
                     <Container py px={false}>

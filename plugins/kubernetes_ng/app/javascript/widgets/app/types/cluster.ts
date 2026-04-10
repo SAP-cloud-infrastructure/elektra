@@ -78,7 +78,7 @@ export const ClusterSchema = z.object({
   maintenance: z.object({
     startTime: z.string(),
     timezone: z.string(),
-    windowTime: z.string(),
+    endTime: z.string(),
   }),
 
   lastMaintenance: z.object({

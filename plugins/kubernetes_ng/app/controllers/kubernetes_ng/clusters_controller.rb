@@ -104,7 +104,10 @@ module KubernetesNg
           :minimum,
           :maximum,
           zones: []
-        ]
+        ],
+        metadata: {
+          annotations: {}
+        }
       )
     end
 

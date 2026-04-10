@@ -697,8 +697,8 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
         ],
         maintenance: {
           startTime: '220000+0100',
-          windowTime: '230000+0100',
-          timezone: 'Europe/Berlin'
+          endTime: '230000+0100',
+          timezone: '+0100'
         },
         autoUpdate: {
           os: true,
@@ -768,7 +768,7 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           'hibernation' => {
             'schedules' => [
               {
-                'location' => 'Europe/Berlin'
+                'location' => '+0100'
               }
             ]
           }

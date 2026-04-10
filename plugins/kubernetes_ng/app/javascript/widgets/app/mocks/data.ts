@@ -107,7 +107,7 @@ export const defaultCluster: Cluster = {
   maintenance: {
     startTime: "",
     timezone: "",
-    windowTime: "",
+    endTime: "",
   },
   autoUpdate: { os: false, kubernetes: false },
   raw: { some: "raw data" },
