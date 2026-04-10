@@ -2,19 +2,29 @@ module ServiceLayer
   module KubernetesNgServices
     # This module implements Openstack Domain API
     module Clusters
+      include VersionHelpers
+      include CloudProfiles  # Include to access list_cloud_profiles
+
       class KubeconfigGenerationError < StandardError; end
 
       def list_clusters
+        # Fetch all cloud profiles once for version calculations
+        cloud_profiles_map = build_cloud_profiles_map
+
         response = elektron_gardener.get("apis/core.gardener.cloud/v1beta1/namespaces/#{garden_namespace}/shoots")
         shoot_items = response&.body&.dig("items") || []
-        return shoot_items.map { |shoot| convert_shoot_to_cluster(shoot) }.compact
+        return shoot_items.map { |shoot| convert_shoot_to_cluster(shoot, cloud_profiles_map) }.compact
       end
 
       def show_cluster_by_name(cluster_name)
         return nil unless cluster_name
+
+        # Fetch all cloud profiles once for version calculations
+        cloud_profiles_map = build_cloud_profiles_map
+
         response = elektron_gardener.get("apis/core.gardener.cloud/v1beta1/namespaces/#{garden_namespace}/shoots/#{cluster_name}")
         shoot_body = response&.body
-        return convert_shoot_to_cluster(shoot_body)
+        return convert_shoot_to_cluster(shoot_body, cloud_profiles_map)
       end
 
       def create_cluster(cluster_spec)
@@ -104,6 +114,38 @@ module ServiceLayer
 
       private
 
+      # Build a map of cloud profile names to kubernetes versions arrays
+      # Uses list_cloud_profiles from CloudProfiles module
+      # @return [Hash] Map of cloud profile name => [version1, version2, ...]
+      def build_cloud_profiles_map
+        begin
+          cloud_profiles = list_cloud_profiles || []
+
+          cloud_profiles.each_with_object({}) do |profile, map|
+            next unless profile.is_a?(Hash) && profile[:name] && profile[:kubernetesVersions]
+            map[profile[:name]] = profile[:kubernetesVersions]
+          end
+        rescue => e
+          Rails.logger.error("Failed to build cloud profiles map: #{e.message}")
+          {}
+        end
+      end
+
+      # Calculate version update information for a cluster
+      # @param current_version [String] Current cluster version
+      # @param cloud_profile_name [String] Name of the cloud profile
+      # @param cloud_profiles_map [Hash] Map of cloud profile names to version arrays
+      # @return [Hash, nil] Version updates grouped by type, or nil if no updates
+      def calculate_version_updates(current_version, cloud_profile_name, cloud_profiles_map)
+        return nil unless current_version && cloud_profile_name && cloud_profiles_map
+
+        available_versions = cloud_profiles_map[cloud_profile_name]
+        return nil unless available_versions && available_versions.any?
+
+        # Calculate updates using helper from VersionHelpers module
+        calculate_available_updates(current_version, available_versions)
+      end
+
       # Recursively build JSON Patch operations for nested hashes
       # This ensures we don't replace entire parent objects when updating nested fields
       def build_patch_operations(hash, base_path, operations)
@@ -160,13 +202,20 @@ module ServiceLayer
 
       ## Helper Methods
       # Convert a single shoot API response to cluster format for the UI
-      def convert_shoot_to_cluster(shoot)
+      def convert_shoot_to_cluster(shoot, cloud_profiles_map = nil)
         return nil unless shoot.is_a?(Hash)
-        
+
         metadata = shoot.dig('metadata') || {}
         spec = shoot.dig('spec') || {}
         status = shoot.dig('status') || {}
-        
+
+        # Get current version and cloud profile name
+        current_version = deep_fetch(spec, 'kubernetes', 'version')
+        cloud_profile_name = deep_fetch(spec, 'cloudProfile', 'name')
+
+        # Calculate version updates if cloud profiles are available
+        version_updates = calculate_version_updates(current_version, cloud_profile_name, cloud_profiles_map)
+
         {
           # List view fields
           uid: metadata['uid'],
@@ -175,14 +224,15 @@ module ServiceLayer
           isDeleted: get_cluster_deletion_status(metadata),
           region: spec['region'],
           infrastructure: deep_fetch(spec, 'provider', 'type'),
-          status: get_cluster_status(shoot),          
-          version: deep_fetch(spec, 'kubernetes', 'version'),
+          status: get_cluster_status(shoot),
+          version: current_version,
+          versionUpdates: version_updates,
           readiness: get_cluster_readiness(shoot),
           purpose: spec['purpose'],
           addOns: get_enabled_add_ons(spec),
-          cloudProfileName: deep_fetch(spec, 'cloudProfile', 'name'),
+          cloudProfileName: cloud_profile_name,
           namespace: metadata.dig('namespace'),
-          secretBindingName: spec['secretBindingName'],          
+          secretBindingName: spec['secretBindingName'],
           lastOperation: safe_map_last_operation(status['lastOperation']),
           lastOperationSummary: get_last_operation_summary(status['lastOperation']),
           lastErrors: safe_map_last_errors(status['lastErrors']),
