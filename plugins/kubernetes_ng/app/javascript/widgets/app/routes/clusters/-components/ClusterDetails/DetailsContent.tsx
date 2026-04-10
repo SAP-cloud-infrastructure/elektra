@@ -35,6 +35,13 @@ import { CLUSTER_DETAIL_ROUTE_ID, ClusterDetailTab } from "../../$clusterName"
 import { useQueryClient } from "@tanstack/react-query"
 import { QUERY_KEYS } from "../../../../hooks/queryKeys"
 import DisableableButton from "../../../../components/DisableableButton"
+import { VersionBadge } from "./VersionBadge"
+import { useCloudProfilesQuery } from "../../../../hooks/useCloudProfileQueries"
+import {
+  useAvailableKubernetesUpdates,
+  useIsPatchAvailable,
+  useIsUpgradeAvailable,
+} from "../../../../hooks/useClusterVersionUpdates"
 
 const sectionHeaderStyles = "details-section tw-text-lg tw-font-bold tw-mb-4"
 
@@ -75,6 +82,16 @@ const DetailsContent = ({
   const { tab } = useSearch({ from: CLUSTER_DETAIL_ROUTE_ID })
   const { addMessage, resetMessages } = useActions()
   const queryClient = useQueryClient()
+
+  // Fetch cloud profiles to check for version updates
+  const cloudProfiles = useCloudProfilesQuery(apiClient, !!cluster)
+  const selectedCloudProfile = cloudProfiles.data?.find((profile) => profile.name === cluster?.cloudProfileName)
+  const availableVersions = selectedCloudProfile?.kubernetesVersions ?? []
+
+  // Check for available version updates
+  const availableUpdates = useAvailableKubernetesUpdates(cluster?.version, availableVersions)
+  const hasPatchAvailable = useIsPatchAvailable(availableUpdates)
+  const hasUpgradeAvailable = useIsUpgradeAvailable(availableUpdates)
 
   // Handle tab change via URL navigation
   const tabIndex = tab === "yaml" ? 1 : 0
@@ -221,7 +238,15 @@ const DetailsContent = ({
                       <ClipboardText text={cluster.uid} />
                     </ClusterDetailRow>
                     <ClusterDetailRow label="Cluster Status">{`${cluster.status} ${cluster.isDeleted ? "(deleted)" : ""}`}</ClusterDetailRow>
-                    <ClusterDetailRow label="Kubernetes Version">{cluster.version}</ClusterDetailRow>
+                    <ClusterDetailRow label="Kubernetes Version">
+                      <VersionBadge
+                        version={cluster.version}
+                        hasPatchAvailable={hasPatchAvailable}
+                        hasUpgradeAvailable={hasUpgradeAvailable}
+                        isLoading={cloudProfiles.isLoading}
+                        hasError={!!cloudProfiles.error}
+                      />
+                    </ClusterDetailRow>
                     <ClusterDetailRow label="Namespace">
                       <ClipboardText text={cluster.namespace} />
                     </ClusterDetailRow>
