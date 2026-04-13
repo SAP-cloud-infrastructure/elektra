@@ -7,10 +7,6 @@ module ServiceLayer
         response = elektron_gardener.get("apis/core.gardener.cloud/v1beta1/cloudprofiles")
         cloud_profiles = response&.body&.dig("items") || []
 
-        puts "========+++++++========="
-        puts "Raw cloud profiles data: #{cloud_profiles.inspect}"
-        puts "========+++++++========="
-
         cloud_profiles.map do |item|
           next unless item.is_a?(Hash)
 
@@ -113,10 +109,6 @@ module ServiceLayer
       
       def safe_map_machine_images(machine_images, provider_config_machine_images)
         return [] unless machine_images.is_a?(Array)
-
-        puts "========+++++++========="
-        puts "Raw machine images data: #{machine_images.inspect}"
-        puts "========+++++++========="
 
         machine_images.filter_map do |mi|
           next unless mi.is_a?(Hash) && mi['name']
