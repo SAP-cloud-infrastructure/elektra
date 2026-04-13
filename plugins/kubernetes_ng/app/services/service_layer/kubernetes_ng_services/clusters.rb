@@ -20,7 +20,7 @@ module ServiceLayer
 
         response = elektron_gardener.get("apis/core.gardener.cloud/v1beta1/namespaces/#{garden_namespace}/shoots")
         shoot_items = response&.body&.dig("items") || []
-        return shoot_items.map { |shoot| convert_shoot_to_cluster(shoot, nil) }.compact
+        return shoot_items.map { |shoot| convert_shoot_to_cluster(shoot, cloud_profiles_map) }.compact
       end
 
       def show_cluster_by_name(cluster_name)
