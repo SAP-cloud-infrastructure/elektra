@@ -1,0 +1,170 @@
+-# app/views/styleguide/alerts.html.haml
+- content_for :title, 'Alerts'
+
+.page-header
+  %h1 Alert Components
+
+%section.styleguide-section#basic-alerts
+  %h2 Basic Alerts
+
+  .styleguide-example
+    .styleguide-example-label Success Alert
+    .alert.alert-success{role: 'alert'}
+      %strong Well done!
+      You successfully completed the operation.
+
+  .styleguide-example
+    .styleguide-example-label Info Alert
+    .alert.alert-info{role: 'alert'}
+      %strong Heads up!
+      This alert needs your attention, but it's not super important.
+
+  .styleguide-example
+    .styleguide-example-label Warning Alert
+    .alert.alert-warning{role: 'alert'}
+      %strong Warning!
+      Better check yourself, you're not looking too good.
+
+  .styleguide-example
+    .styleguide-example-label Danger Alert
+    .alert.alert-danger{role: 'alert'}
+      %strong Oh snap!
+      Change a few things up and try submitting again.
+
+%section.styleguide-section#dismissible-alerts
+  %h2 Dismissible Alerts
+
+  .styleguide-example
+    .styleguide-example-label Success with Close Button
+    .alert.alert-success.alert-dismissible{role: 'alert'}
+      %button.close{type: 'button', data: {dismiss: 'alert'}, aria: {label: 'Close'}}
+        %span{aria: {hidden: 'true'}} ×
+      %strong Success!
+      Your changes have been saved.
+
+  .styleguide-example
+    .styleguide-example-label Info with Close Button
+    .alert.alert-info.alert-dismissible{role: 'alert'}
+      %button.close{type: 'button', data: {dismiss: 'alert'}}
+        %span ×
+      %strong Information:
+      The system will be under maintenance tonight.
+
+  .styleguide-example
+    .styleguide-example-label Warning with Close Button
+    .alert.alert-warning.alert-dismissible{role: 'alert'}
+      %button.close{type: 'button', data: {dismiss: 'alert'}}
+        %span ×
+      %strong Warning!
+      Your session will expire in 5 minutes.
+
+  .styleguide-example
+    .styleguide-example-label Danger with Close Button
+    .alert.alert-danger.alert-dismissible{role: 'alert'}
+      %button.close{type: 'button', data: {dismiss: 'alert'}}
+        %span ×
+      %strong Error!
+      Failed to connect to the server.
+
+%section.styleguide-section#alerts-with-links
+  %h2 Alerts with Links
+
+  .styleguide-example
+    .styleguide-example-label Alert with Link
+    .alert.alert-success{role: 'alert'}
+      %strong Well done!
+      You successfully read
+      %a.alert-link{href: '#'} this important alert message
+      \.
+
+  .styleguide-example
+    .styleguide-example-label Info with Link
+    .alert.alert-info{role: 'alert'}
+      %strong Heads up!
+      This
+      %a.alert-link{href: '#'} alert needs your attention
+      , but it's not super important.
+
+  .styleguide-example
+    .styleguide-example-label Warning with Link
+    .alert.alert-warning{role: 'alert'}
+      %strong Warning!
+      Better
+      %a.alert-link{href: '#'} check yourself
+      , you're not looking too good.
+
+  .styleguide-example
+    .styleguide-example-label Danger with Link
+    .alert.alert-danger{role: 'alert'}
+      %strong Oh snap!
+      %a.alert-link{href: '#'} Change a few things
+      and try submitting again.
+
+%section.styleguide-section#alerts-with-content
+  %h2 Alerts with Rich Content
+
+  .styleguide-example
+    .styleguide-example-label Alert with Heading and Paragraph
+    .alert.alert-info{role: 'alert'}
+      %h4.alert-heading System Notification
+      %p
+        The system maintenance has been scheduled for tonight at 11:00 PM UTC.
+        All services will be unavailable for approximately 2 hours.
+      %p
+        %strong Important:
+        Please save your work before the maintenance window.
+      %p.mb-0
+        For more information, visit our
+        %a.alert-link{href: '#'} status page
+        \.
+
+  .styleguide-example
+    .styleguide-example-label Alert with List
+    .alert.alert-warning{role: 'alert'}
+      %h4.alert-heading Action Required
+      %p The following issues need your attention:
+      %ul
+        %li Quota limit reached for compute resources
+        %li SSL certificate expiring in 7 days
+        %li Backup job failed yesterday
+      %p.mb-0
+        Please resolve these issues as soon as possible.
+
+%section.styleguide-section#alert-states
+  %h2 Alert States
+
+  .styleguide-example
+    .styleguide-example-label Loading State
+    .alert.alert-info{role: 'alert'}
+      %i.fa.fa-spinner.fa-spin
+      Loading data...
+
+  .styleguide-example
+    .styleguide-example-label Success State
+    .alert.alert-success{role: 'alert'}
+      %i.fa.fa-check
+      Operation completed successfully!
+
+  .styleguide-example
+    .styleguide-example-label Error State
+    .alert.alert-danger{role: 'alert'}
+      %i.fa.fa-times
+      An error occurred during the operation.
+
+%section.styleguide-section#alert-combinations
+  %h2 Combined Styles
+
+  .styleguide-example
+    .styleguide-example-label Striped Alert (Custom)
+    .alert.alert-success{role: 'alert', style: 'background: repeating-linear-gradient(45deg, #dff0d8, #dff0d8 10px, #d0e9c6 10px, #d0e9c6 20px);'}
+      %strong Pattern Alert:
+      Custom styled alert with striped background.
+
+  .styleguide-example
+    .styleguide-example-label Alert with Button
+    .alert.alert-warning{role: 'alert'}
+      %strong Quota Warning:
+      You are using 90% of your compute quota.
+      .pull-right
+        %button.btn.btn-sm.btn-warning Increase Quota
+      .clearfix

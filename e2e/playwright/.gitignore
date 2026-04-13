@@ -1,0 +1,14 @@
+# Playwright package-lock file
+pnpm-lock.yaml
+
+# Test results
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Videos and screenshots
+tests/screenshots/
+tests/videos/
+
+# Trace files
+trace.zip

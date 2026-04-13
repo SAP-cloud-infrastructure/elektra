@@ -1,0 +1,157 @@
+-# app/views/styleguide/index.html.haml
+- content_for :title, 'Overview'
+
+.page-header
+  %h1
+    Elektra Bootstrap Styleguide
+    %small Visual Regression Testing
+
+.row
+  .col-md-12
+    %p.lead
+      This styleguide contains all Bootstrap components used in Elektra.
+      It serves as a visual baseline for the Bootstrap 3 → Bootstrap 5 migration.
+
+    %h2 Purpose
+    %ul
+      %li Visual regression testing with Playwright
+      %li Component reference for developers
+      %li Documentation of Bootstrap usage in Elektra
+      %li Side-by-side comparison during migration
+
+    %h2 Components
+
+    .row
+      .col-md-4
+        .panel.panel-default
+          .panel-heading
+            %h3.panel-title
+              = link_to 'Buttons', styleguide_buttons_path
+          .panel-body
+            %p All button variants, sizes, and states
+            %ul
+              %li Primary, Default, Success, Danger, Warning, Info
+              %li Sizes: xs, sm, default, lg
+              %li States: normal, hover, active, disabled
+              %li Button groups
+
+      .col-md-4
+        .panel.panel-default
+          .panel-heading
+            %h3.panel-title
+              = link_to 'Forms', styleguide_forms_path
+          .panel-body
+            %p Form controls and validation states
+            %ul
+              %li Text inputs
+              %li Select dropdowns
+              %li Checkboxes & Radios
+              %li Validation states (error, success, warning)
+              %li Input groups
+
+      .col-md-4
+        .panel.panel-default
+          .panel-heading
+            %h3.panel-title
+              = link_to 'Modals', styleguide_modals_path
+          .panel-body
+            %p Modal dialogs and overlays
+            %ul
+              %li Default modal
+              %li Large modal
+              %li Modal with form
+              %li Modal states
+
+    .row
+      .col-md-4
+        .panel.panel-default
+          .panel-heading
+            %h3.panel-title
+              = link_to 'Tables', styleguide_tables_path
+          .panel-body
+            %p Table variations
+            %ul
+              %li Basic table
+              %li Striped rows
+              %li Bordered
+              %li Hover state
+              %li Condensed
+
+      .col-md-4
+        .panel.panel-default
+          .panel-heading
+            %h3.panel-title
+              = link_to 'Alerts', styleguide_alerts_path
+          .panel-body
+            %p Alert messages and notifications
+            %ul
+              %li Success
+              %li Info
+              %li Warning
+              %li Danger
+              %li Dismissible alerts
+
+      .col-md-4
+        .panel.panel-default
+          .panel-heading
+            %h3.panel-title
+              = link_to 'Navigation', styleguide_navigation_path
+          .panel-body
+            %p Navigation components
+            %ul
+              %li Navbar
+              %li Tabs
+              %li Pills
+              %li Breadcrumbs
+              %li Pagination
+
+    .row
+      .col-md-4
+        .panel.panel-default
+          .panel-heading
+            %h3.panel-title
+              = link_to 'Typography', styleguide_typography_path
+          .panel-body
+            %p Text styles and formatting
+            %ul
+              %li Headings
+              %li Paragraphs
+              %li Lists
+              %li Blockquotes
+              %li Code
+
+      .col-md-4
+        .panel.panel-default
+          .panel-heading
+            %h3.panel-title
+              = link_to 'Panels', styleguide_panels_path
+          .panel-body
+            %p Panel/Card components
+            %ul
+              %li Default panel
+              %li With heading
+              %li With footer
+              %li Contextual variants
+
+    %h2 Usage with Playwright
+
+    %pre.styleguide-code
+      :preserve
+        # Run visual tests
+        pnpm test:visual
+
+        # Update baselines
+        pnpm test:visual:update
+
+        # Test specific component
+        pnpm test:visual tests/visual/styleguide/buttons.spec.ts
+
+    %h2 Development
+
+    %p
+      Access the styleguide at:
+      %code http://localhost:3000/styleguide
+
+    %p
+      %strong Note:
+      The styleguide is only available in development and test environments.

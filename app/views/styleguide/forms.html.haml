@@ -1,0 +1,293 @@
+-# app/views/styleguide/forms.html.haml
+- content_for :title, 'Forms'
+
+.page-header
+  %h1 Form Components
+
+%section.styleguide-section#text-inputs
+  %h2 Text Inputs
+
+  .styleguide-example
+    .styleguide-example-label Normal State
+    .form-group
+      %label.control-label{for: 'input-normal'} Normal Input
+      %input.form-control#input-normal{type: 'text', placeholder: 'Enter text...'}
+      %span.help-block Helper text for this field
+
+  .styleguide-example
+    .styleguide-example-label Focused State (click to see)
+    .form-group
+      %label.control-label{for: 'input-focus'} Focused Input
+      %input.form-control#input-focus{type: 'text', placeholder: 'Click to focus...'}
+
+  .styleguide-example
+    .styleguide-example-label Filled State
+    .form-group
+      %label.control-label{for: 'input-filled'} Filled Input
+      %input.form-control#input-filled{type: 'text', value: 'Example value'}
+
+  .styleguide-example
+    .styleguide-example-label Disabled State
+    .form-group
+      %label.control-label{for: 'input-disabled'} Disabled Input
+      %input.form-control#input-disabled{type: 'text', value: 'Disabled', disabled: true}
+
+%section.styleguide-section#validation-states
+  %h2 Validation States
+
+  .styleguide-example
+    .styleguide-example-label Success State
+    .form-group.has-success
+      %label.control-label{for: 'input-success'} Valid Input
+      %input.form-control#input-success{type: 'text', value: 'valid@example.com'}
+      %span.help-block Well done! This field is valid.
+
+  .styleguide-example
+    .styleguide-example-label Warning State
+    .form-group.has-warning
+      %label.control-label{for: 'input-warning'} Warning Input
+      %input.form-control#input-warning{type: 'text', value: 'check this'}
+      %span.help-block Please check this field.
+
+  .styleguide-example
+    .styleguide-example-label Error State
+    .form-group.has-error
+      %label.control-label{for: 'input-error'} Invalid Input
+      %input.form-control#input-error{type: 'text', value: 'invalid'}
+      %span.help-block This field is required.
+
+  .styleguide-example
+    .styleguide-example-label Error State (Empty)
+    .form-group.has-error
+      %label.control-label{for: 'input-error-empty'} Required Field
+      %input.form-control#input-error-empty{type: 'text', placeholder: 'This field is required'}
+      %span.help-block This field cannot be empty.
+
+%section.styleguide-section#select-inputs
+  %h2 Select Dropdowns
+
+  .styleguide-example
+    .styleguide-example-label Basic Select
+    .form-group
+      %label.control-label{for: 'select-basic'} Choose Option
+      %select.form-control#select-basic
+        %option Select an option...
+        %option Option 1
+        %option Option 2
+        %option Option 3
+        %option Option 4
+
+  .styleguide-example
+    .styleguide-example-label Select with Groups
+    .form-group
+      %label.control-label{for: 'select-grouped'} Grouped Select
+      %select.form-control#select-grouped
+        %option Select...
+        %optgroup{label: 'Group 1'}
+          %option Option 1.1
+          %option Option 1.2
+        %optgroup{label: 'Group 2'}
+          %option Option 2.1
+          %option Option 2.2
+
+  .styleguide-example
+    .styleguide-example-label Multiple Select
+    .form-group
+      %label.control-label{for: 'select-multiple'} Multiple Select
+      %select.form-control#select-multiple{multiple: true, size: 4}
+        %option Option 1
+        %option Option 2
+        %option Option 3
+        %option Option 4
+
+  .styleguide-example
+    .styleguide-example-label Disabled Select
+    .form-group
+      %label.control-label{for: 'select-disabled'} Disabled Select
+      %select.form-control#select-disabled{disabled: true}
+        %option Disabled option
+
+%section.styleguide-section#checkboxes-radios
+  %h2 Checkboxes and Radios
+
+  .styleguide-example
+    .styleguide-example-label Checkboxes
+    .checkbox
+      %label
+        %input{type: 'checkbox', checked: true}
+        Checked checkbox
+    .checkbox
+      %label
+        %input{type: 'checkbox'}
+        Unchecked checkbox
+    .checkbox.disabled
+      %label
+        %input{type: 'checkbox', disabled: true}
+        Disabled checkbox
+
+  .styleguide-example
+    .styleguide-example-label Radio Buttons
+    .radio
+      %label
+        %input{type: 'radio', name: 'radio-group', checked: true}
+        Selected option
+    .radio
+      %label
+        %input{type: 'radio', name: 'radio-group'}
+        Unselected option
+    .radio.disabled
+      %label
+        %input{type: 'radio', name: 'radio-group', disabled: true}
+        Disabled option
+
+  .styleguide-example
+    .styleguide-example-label Inline Checkboxes
+    %label.checkbox-inline
+      %input{type: 'checkbox', checked: true}
+      Option 1
+    %label.checkbox-inline
+      %input{type: 'checkbox'}
+      Option 2
+    %label.checkbox-inline
+      %input{type: 'checkbox'}
+      Option 3
+
+  .styleguide-example
+    .styleguide-example-label Inline Radios
+    %label.radio-inline
+      %input{type: 'radio', name: 'inline-radio', checked: true}
+      Option 1
+    %label.radio-inline
+      %input{type: 'radio', name: 'inline-radio'}
+      Option 2
+    %label.radio-inline
+      %input{type: 'radio', name: 'inline-radio'}
+      Option 3
+
+%section.styleguide-section#input-groups
+  %h2 Input Groups
+
+  .styleguide-example
+    .styleguide-example-label Input with Addon
+    .form-group
+      %label.control-label Input with Prepend
+      .input-group
+        %span.input-group-addon @
+        %input.form-control{type: 'text', placeholder: 'Username'}
+
+    .form-group
+      %label.control-label Input with Append
+      .input-group
+        %input.form-control{type: 'text', placeholder: 'Amount'}
+        %span.input-group-addon .00
+
+    .form-group
+      %label.control-label Input with Both
+      .input-group
+        %span.input-group-addon $
+        %input.form-control{type: 'text', placeholder: 'Amount'}
+        %span.input-group-addon .00
+
+  .styleguide-example
+    .styleguide-example-label Input with Button
+    .form-group
+      %label.control-label Search
+      .input-group
+        %input.form-control{type: 'text', placeholder: 'Search...'}
+        %span.input-group-btn
+          %button.btn.btn-default{type: 'button'}
+            %i.fa.fa-search
+
+%section.styleguide-section#input-sizes
+  %h2 Input Sizes
+
+  .styleguide-example
+    .styleguide-example-label Large Input
+    .form-group
+      %input.form-control.input-lg{type: 'text', placeholder: 'Large input (.input-lg)'}
+
+  .styleguide-example
+    .styleguide-example-label Default Input
+    .form-group
+      %input.form-control{type: 'text', placeholder: 'Default input'}
+
+  .styleguide-example
+    .styleguide-example-label Small Input
+    .form-group
+      %input.form-control.input-sm{type: 'text', placeholder: 'Small input (.input-sm)'}
+
+%section.styleguide-section#textarea
+  %h2 Textarea
+
+  .styleguide-example
+    .styleguide-example-label Basic Textarea
+    .form-group
+      %label.control-label{for: 'textarea-basic'} Description
+      %textarea.form-control#textarea-basic{rows: 4, placeholder: 'Enter description...'}
+
+  .styleguide-example
+    .styleguide-example-label Textarea with Content
+    .form-group
+      %label.control-label{for: 'textarea-filled'} Notes
+      %textarea.form-control#textarea-filled{rows: 4}
+        This is example content in a textarea.
+        It can span multiple lines.
+
+%section.styleguide-section#horizontal-forms
+  %h2 Horizontal Forms
+
+  .styleguide-example
+    .styleguide-example-label Horizontal Form Layout
+    %form.form-horizontal
+      .form-group
+        %label.col-sm-2.control-label{for: 'input-h1'} Email
+        .col-sm-10
+          %input.form-control#input-h1{type: 'email', placeholder: 'Email'}
+
+      .form-group
+        %label.col-sm-2.control-label{for: 'input-h2'} Password
+        .col-sm-10
+          %input.form-control#input-h2{type: 'password', placeholder: 'Password'}
+
+      .form-group
+        .col-sm-offset-2.col-sm-10
+          .checkbox
+            %label
+              %input{type: 'checkbox'}
+              Remember me
+
+      .form-group
+        .col-sm-offset-2.col-sm-10
+          %button.btn.btn-primary{type: 'submit'} Sign in
+
+%section.styleguide-section#inline-forms
+  %h2 Inline Forms
+
+  .styleguide-example
+    .styleguide-example-label Inline Form Layout
+    %form.form-inline
+      .form-group
+        %label.sr-only{for: 'input-i1'} Email
+        %input.form-control#input-i1{type: 'email', placeholder: 'Email'}
+
+      .form-group
+        %label.sr-only{for: 'input-i2'} Password
+        %input.form-control#input-i2{type: 'password', placeholder: 'Password'}
+
+      .checkbox
+        %label
+          %input{type: 'checkbox'}
+          Remember me
+
+      %button.btn.btn-primary{type: 'submit'} Sign in
+
+%section.styleguide-section#static-control
+  %h2 Static Control
+
+  .styleguide-example
+    .styleguide-example-label Read-only Field
+    %form.form-horizontal
+      .form-group
+        %label.col-sm-2.control-label Email
+        .col-sm-10
+          %p.form-control-static email@example.com

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Standalone Modal Test</title>
+  <style>
+    body { padding: 50px; font-family: Arial, sans-serif; }
+    .test-section { margin: 20px 0; padding: 20px; background: #f5f5f5; border: 1px solid #ddd; }
+    .result { margin-top: 10px; padding: 10px; background: white; }
+    .error { color: red; }
+    .success { color: green; }
+  </style>
+</head>
+<body>
+  <h1>jQuery/Bootstrap Debug Test</h1>
+
+  <div class="test-section">
+    <h2>Step 1: Check if scripts load</h2>
+    <button onclick="checkScripts()">Check Scripts</button>
+    <div id="script-result" class="result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>Step 2: Test jQuery</h2>
+    <button onclick="testJQuery()">Test jQuery</button>
+    <div id="jquery-result" class="result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>Step 3: Test Bootstrap Modal</h2>
+    <button onclick="testBootstrap()">Test Bootstrap</button>
+    <div id="bootstrap-result" class="result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>Step 4: Open Modal</h2>
+    <button onclick="openTestModal()">Open Modal via JS</button>
+    <button data-toggle="modal" data-target="#testModal">Open Modal via data-toggle</button>
+    <div id="modal-result" class="result"></div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="testModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content" style="background: white; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 5px 15px rgba(0,0,0,.5);">
+        <div class="modal-header" style="padding: 15px; border-bottom: 1px solid #e5e5e5;">
+          <button type="button" class="close" data-dismiss="modal" style="float: right; font-size: 21px; font-weight: bold; line-height: 1; color: #000; opacity: .2;">
+            <span>&times;</span>
+          </button>
+          <h4 class="modal-title">Test Modal</h4>
+        </div>
+        <div class="modal-body" style="padding: 15px;">
+          <p><strong>SUCCESS!</strong> If you can see this, the modal is working! 🎉</p>
+        </div>
+        <div class="modal-footer" style="padding: 15px; border-top: 1px solid #e5e5e5; text-align: right;">
+          <button type="button" data-dismiss="modal" style="padding: 6px 12px; margin-bottom: 0; font-size: 14px; font-weight: 400; line-height: 1.42857143; text-align: center; white-space: nowrap; vertical-align: middle; cursor: pointer; border: 1px solid #ccc; border-radius: 4px; background: #fff;">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Backdrop -->
+  <style>
+    .modal { display: none; position: fixed; top: 0; left: 0; z-index: 1050; width: 100%; height: 100%; overflow: hidden; outline: 0; }
+    .modal.fade { opacity: 0; transition: opacity .15s linear; }
+    .modal.fade.in { opacity: 1; }
+    .modal.in { display: block; }
+    .modal-dialog { position: relative; width: auto; margin: 10px; max-width: 600px; margin: 30px auto; }
+    .modal-backdrop { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 1040; background-color: #000; }
+    .modal-backdrop.fade { opacity: 0; }
+    .modal-backdrop.in { opacity: .5; }
+  </style>
+
+  <script>
+    function log(elementId, message, isError) {
+      var el = document.getElementById(elementId);
+      var className = isError ? 'error' : 'success';
+      el.innerHTML += '<div class="' + className + '">' + message + '</div>';
+      console.log(message);
+    }
+
+    function checkScripts() {
+      var result = document.getElementById('script-result');
+      result.innerHTML = '';
+
+      log('script-result', 'Checking for jQuery...');
+      log('script-result', 'typeof jQuery: ' + typeof jQuery, typeof jQuery === 'undefined');
+      log('script-result', 'typeof $: ' + typeof $, typeof $ === 'undefined');
+      log('script-result', 'window.jQuery: ' + window.jQuery, !window.jQuery);
+
+      if (typeof jQuery !== 'undefined') {
+        log('script-result', '✅ jQuery IS loaded!', false);
+      } else {
+        log('script-result', '❌ jQuery NOT loaded!', true);
+      }
+    }
+
+    function testJQuery() {
+      var result = document.getElementById('jquery-result');
+      result.innerHTML = '';
+
+      if (typeof jQuery === 'undefined') {
+        log('jquery-result', '❌ jQuery not available', true);
+        return;
+      }
+
+      log('jquery-result', '✅ jQuery version: ' + jQuery.fn.jquery, false);
+
+      // Test jQuery selector
+      var testDiv = jQuery('<div>Test</div>');
+      log('jquery-result', '✅ jQuery selector works', false);
+
+      // Test jQuery on document
+      var bodyBg = jQuery('body').css('background-color');
+      log('jquery-result', '✅ jQuery can select body, bg: ' + bodyBg, false);
+    }
+
+    function testBootstrap() {
+      var result = document.getElementById('bootstrap-result');
+      result.innerHTML = '';
+
+      if (typeof jQuery === 'undefined') {
+        log('bootstrap-result', '❌ jQuery not available, cannot test Bootstrap', true);
+        return;
+      }
+
+      log('bootstrap-result', 'Checking Bootstrap...', false);
+      log('bootstrap-result', 'typeof jQuery.fn.modal: ' + typeof jQuery.fn.modal, typeof jQuery.fn.modal === 'undefined');
+
+      if (typeof jQuery.fn.modal !== 'undefined') {
+        log('bootstrap-result', '✅ Bootstrap modal IS available!', false);
+      } else {
+        log('bootstrap-result', '❌ Bootstrap modal NOT available!', true);
+      }
+    }
+
+    function openTestModal() {
+      var result = document.getElementById('modal-result');
+      result.innerHTML = '';
+
+      if (typeof jQuery === 'undefined') {
+        log('modal-result', '❌ jQuery not loaded', true);
+        return;
+      }
+
+      if (typeof jQuery.fn.modal === 'undefined') {
+        log('modal-result', '❌ Bootstrap modal not available', true);
+        return;
+      }
+
+      try {
+        log('modal-result', 'Attempting to open modal...', false);
+        jQuery('#testModal').modal('show');
+        log('modal-result', '✅ Modal command executed', false);
+      } catch(e) {
+        log('modal-result', '❌ Error: ' + e.message, true);
+      }
+    }
+
+    // Auto-run on load
+    window.onload = function() {
+      checkScripts();
+
+      if (typeof jQuery !== 'undefined') {
+        jQuery('#testModal').on('show.bs.modal', function() {
+          log('modal-result', '✅ Modal show event fired', false);
+        });
+
+        jQuery('#testModal').on('shown.bs.modal', function() {
+          log('modal-result', '✅ Modal is now visible', false);
+        });
+      }
+    };
+  </script>
+
+  <!-- Load jQuery from Rails -->
+  <script>
+    document.write('<p style="margin-top: 40px; padding: 20px; background: #fff3cd; border: 1px solid #ffc107;">');
+    document.write('<strong>Info:</strong> This test page checks if jQuery and Bootstrap are loaded in your Rails environment.<br>');
+    document.write('Open the browser console (F12) to see detailed logs.');
+    document.write('</p>');
+  </script>
+</body>
+</html>

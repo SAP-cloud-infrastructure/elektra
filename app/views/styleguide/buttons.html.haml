@@ -1,0 +1,197 @@
+-# app/views/styleguide/buttons.html.haml
+- content_for :title, 'Buttons'
+
+.page-header
+  %h1 Buttons
+
+%section.styleguide-section#button-variants
+  %h2 Button Variants
+
+  .styleguide-example
+    .styleguide-example-label Standard Buttons
+    .component-spacer
+      %button.btn.btn-default Default
+    .component-spacer
+      %button.btn.btn-primary Primary
+    .component-spacer
+      %button.btn.btn-success Success
+    .component-spacer
+      %button.btn.btn-info Info
+    .component-spacer
+      %button.btn.btn-warning Warning
+    .component-spacer
+      %button.btn.btn-danger Danger
+    .component-spacer
+      %button.btn.btn-link Link
+
+  .styleguide-example
+    .styleguide-example-label Disabled State
+    .component-spacer
+      %button.btn.btn-default{disabled: true} Default
+    .component-spacer
+      %button.btn.btn-primary{disabled: true} Primary
+    .component-spacer
+      %button.btn.btn-success{disabled: true} Success
+    .component-spacer
+      %button.btn.btn-danger{disabled: true} Danger
+
+%section.styleguide-section#button-sizes
+  %h2 Button Sizes
+
+  .styleguide-example
+    .styleguide-example-label Large Buttons
+    .component-spacer
+      %button.btn.btn-primary.btn-lg Large Primary
+    .component-spacer
+      %button.btn.btn-default.btn-lg Large Default
+
+  .styleguide-example
+    .styleguide-example-label Default Size
+    .component-spacer
+      %button.btn.btn-primary Default Primary
+    .component-spacer
+      %button.btn.btn-default Default Button
+
+  .styleguide-example
+    .styleguide-example-label Small Buttons
+    .component-spacer
+      %button.btn.btn-primary.btn-sm Small Primary
+    .component-spacer
+      %button.btn.btn-default.btn-sm Small Default
+
+  .styleguide-example
+    .styleguide-example-label Extra Small Buttons
+    .component-spacer
+      %button.btn.btn-primary.btn-xs Extra Small Primary
+    .component-spacer
+      %button.btn.btn-default.btn-xs Extra Small Default
+
+%section.styleguide-section#button-groups
+  %h2 Button Groups
+
+  .styleguide-example
+    .styleguide-example-label Basic Button Group
+    .btn-group{role: 'group'}
+      %button.btn.btn-default{type: 'button'} Left
+      %button.btn.btn-default{type: 'button'} Middle
+      %button.btn.btn-default{type: 'button'} Right
+
+  .styleguide-example
+    .styleguide-example-label Button Toolbar
+    .btn-toolbar{role: 'toolbar'}
+      .btn-group{role: 'group'}
+        %button.btn.btn-default{type: 'button'} 1
+        %button.btn.btn-default{type: 'button'} 2
+        %button.btn.btn-default{type: 'button'} 3
+      .btn-group{role: 'group'}
+        %button.btn.btn-default{type: 'button'} 4
+        %button.btn.btn-default{type: 'button'} 5
+      .btn-group{role: 'group'}
+        %button.btn.btn-default{type: 'button'} 6
+
+  .styleguide-example
+    .styleguide-example-label Vertical Button Group
+    .btn-group-vertical{role: 'group'}
+      %button.btn.btn-default{type: 'button'} Top
+      %button.btn.btn-default{type: 'button'} Middle
+      %button.btn.btn-default{type: 'button'} Bottom
+
+%section.styleguide-section#button-dropdowns
+  %h2 Button Dropdowns
+
+  .styleguide-example
+    .styleguide-example-label Dropdown Button
+    .btn-group
+      %button.btn.btn-default.dropdown-toggle{type: 'button', data: {toggle: 'dropdown'}}
+        Action
+        %span.caret
+      %ul.dropdown-menu
+        %li
+          %a{href: '#'} Action
+        %li
+          %a{href: '#'} Another action
+        %li.divider
+        %li
+          %a{href: '#'} Separated link
+
+  .styleguide-example
+    .styleguide-example-label Split Button Dropdown
+    .btn-group
+      %button.btn.btn-primary{type: 'button'} Action
+      %button.btn.btn-primary.dropdown-toggle{type: 'button', data: {toggle: 'dropdown'}}
+        %span.caret
+        %span.sr-only Toggle Dropdown
+      %ul.dropdown-menu
+        %li
+          %a{href: '#'} Action
+        %li
+          %a{href: '#'} Another action
+
+%section.styleguide-section#button-states
+  %h2 Button States
+
+  .styleguide-example
+    .styleguide-example-label Active State
+    .component-spacer
+      %button.btn.btn-primary.active Primary Active
+    .component-spacer
+      %button.btn.btn-default.active Default Active
+
+  .styleguide-example
+    .styleguide-example-label Focus State (click to see)
+    .component-spacer
+      %button.btn.btn-primary Primary Focus
+    .component-spacer
+      %button.btn.btn-default Default Focus
+
+%section.styleguide-section#button-block
+  %h2 Block Level Buttons
+
+  .styleguide-example
+    .styleguide-example-label Block Buttons
+    %button.btn.btn-primary.btn-lg.btn-block{type: 'button'} Block Level Button
+    %button.btn.btn-default.btn-lg.btn-block{type: 'button'} Block Level Button
+
+%section.styleguide-section#button-icons
+  %h2 Buttons with Icons
+
+  .styleguide-example
+    .styleguide-example-label Font Awesome Icons
+    .component-spacer
+      %button.btn.btn-primary
+        %i.fa.fa-save
+        Save
+    .component-spacer
+      %button.btn.btn-danger
+        %i.fa.fa-trash
+        Delete
+    .component-spacer
+      %button.btn.btn-default
+        %i.fa.fa-download
+        Download
+    .component-spacer
+      %button.btn.btn-success
+        %i.fa.fa-plus
+        Create
+
+  .styleguide-example
+    .styleguide-example-label Icon Only Buttons
+    .component-spacer
+      %button.btn.btn-default
+        %i.fa.fa-edit
+    .component-spacer
+      %button.btn.btn-default
+        %i.fa.fa-trash
+    .component-spacer
+      %button.btn.btn-default
+        %i.fa.fa-download
+
+:javascript
+  // Add hover effects demo
+  $(document).ready(function() {
+    // Highlight buttons on hover
+    $('.btn').hover(
+      function() { $(this).addClass('hover-demo'); },
+      function() { $(this).removeClass('hover-demo'); }
+    );
+  });

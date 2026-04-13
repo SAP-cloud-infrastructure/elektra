@@ -1,0 +1,246 @@
+-# app/views/styleguide/panels.html.haml
+- content_for :title, 'Panels'
+
+.page-header
+  %h1 Panel Components
+
+%section.styleguide-section#basic-panels
+  %h2 Basic Panels
+
+  .row
+    .col-md-4
+      .styleguide-example
+        .styleguide-example-label Default Panel
+        .panel.panel-default
+          .panel-body
+            Basic panel with default styling
+
+    .col-md-4
+      .styleguide-example
+        .styleguide-example-label Panel with Heading
+        .panel.panel-default
+          .panel-heading Panel heading
+          .panel-body
+            Panel content goes here
+
+    .col-md-4
+      .styleguide-example
+        .styleguide-example-label Panel with Footer
+        .panel.panel-default
+          .panel-body
+            Panel content
+          .panel-footer Panel footer
+
+%section.styleguide-section#contextual-panels
+  %h2 Contextual Panels
+
+  .row
+    .col-md-6
+      .styleguide-example
+        .styleguide-example-label Primary Panel
+        .panel.panel-primary
+          .panel-heading
+            %h3.panel-title Panel Primary
+          .panel-body
+            This is a primary panel with contextual styling.
+
+    .col-md-6
+      .styleguide-example
+        .styleguide-example-label Success Panel
+        .panel.panel-success
+          .panel-heading
+            %h3.panel-title Panel Success
+          .panel-body
+            This panel indicates a successful or positive action.
+
+  .row
+    .col-md-6
+      .styleguide-example
+        .styleguide-example-label Info Panel
+        .panel.panel-info
+          .panel-heading
+            %h3.panel-title Panel Info
+          .panel-body
+            This panel displays neutral, informative content.
+
+    .col-md-6
+      .styleguide-example
+        .styleguide-example-label Warning Panel
+        .panel.panel-warning
+          .panel-heading
+            %h3.panel-title Panel Warning
+          .panel-body
+            This panel indicates a warning that needs attention.
+
+  .row
+    .col-md-6
+      .styleguide-example
+        .styleguide-example-label Danger Panel
+        .panel.panel-danger
+          .panel-heading
+            %h3.panel-title Panel Danger
+          .panel-body
+            This panel indicates a dangerous or error state.
+
+%section.styleguide-section#panels-with-tables
+  %h2 Panels with Tables
+
+  .styleguide-example
+    .styleguide-example-label Panel with Table
+    .panel.panel-default
+      .panel-heading
+        %h3.panel-title Instance List
+      .table-responsive
+        %table.table.table-striped
+          %thead
+            %tr
+              %th Name
+              %th Status
+              %th Type
+              %th Actions
+          %tbody
+            %tr
+              %td instance-01
+              %td
+                %span.label.label-success Active
+              %td m1.small
+              %td
+                %button.btn.btn-xs.btn-primary Edit
+            %tr
+              %td instance-02
+              %td
+                %span.label.label-warning Pending
+              %td m1.medium
+              %td
+                %button.btn.btn-xs.btn-primary Edit
+            %tr
+              %td instance-03
+              %td
+                %span.label.label-danger Error
+              %td m1.large
+              %td
+                %button.btn.btn-xs.btn-primary Edit
+      .panel-footer
+        Total: 3 instances
+
+%section.styleguide-section#panels-with-list-groups
+  %h2 Panels with List Groups
+
+  .row
+    .col-md-6
+      .styleguide-example
+        .styleguide-example-label Panel with List Group
+        .panel.panel-default
+          .panel-heading
+            %h3.panel-title Services
+          .list-group
+            %a.list-group-item{href: '#'}
+              Compute
+              %span.badge 42
+            %a.list-group-item{href: '#'}
+              Storage
+              %span.badge 128
+            %a.list-group-item{href: '#'}
+              Networking
+              %span.badge 15
+            %a.list-group-item{href: '#'}
+              Identity
+              %span.badge 8
+
+    .col-md-6
+      .styleguide-example
+        .styleguide-example-label Panel with Contextual List Items
+        .panel.panel-default
+          .panel-heading
+            %h3.panel-title System Status
+          .list-group
+            %a.list-group-item.list-group-item-success{href: '#'}
+              Compute Service
+              %span.badge Running
+            %a.list-group-item.list-group-item-info{href: '#'}
+              Storage Service
+              %span.badge Updating
+            %a.list-group-item.list-group-item-warning{href: '#'}
+              Network Service
+              %span.badge Degraded
+            %a.list-group-item.list-group-item-danger{href: '#'}
+              Identity Service
+              %span.badge Down
+
+%section.styleguide-section#complex-panels
+  %h2 Complex Panels
+
+  .styleguide-example
+    .styleguide-example-label Panel with Multiple Sections
+    .panel.panel-info
+      .panel-heading
+        %h3.panel-title
+          Instance Details
+          .pull-right
+            %span.label.label-success Running
+      .panel-body
+        %h4 instance-production-01
+        %p
+          %strong IP Address:
+          10.0.1.42
+        %p
+          %strong Flavor:
+          m1.large (4 vCPUs, 8 GB RAM)
+        %p
+          %strong Created:
+          2024-01-15 14:23:00 UTC
+
+      %table.table
+        %thead
+          %tr
+            %th Volume
+            %th Size
+            %th Device
+        %tbody
+          %tr
+            %td root-volume
+            %td 100 GB
+            %td /dev/vda
+          %tr
+            %td data-volume
+            %td 500 GB
+            %td /dev/vdb
+
+      .panel-footer
+        .btn-group
+          %button.btn.btn-sm.btn-primary Edit
+          %button.btn.btn-sm.btn-default Snapshot
+          %button.btn.btn-sm.btn-danger Delete
+
+%section.styleguide-section#panel-groups
+  %h2 Panel Groups (Accordion)
+
+  .styleguide-example
+    .styleguide-example-label Accordion
+    .panel-group#accordion{role: 'tablist'}
+      .panel.panel-default
+        .panel-heading{role: 'tab', id: 'heading-one'}
+          %h4.panel-title
+            %a{role: 'button', data: {toggle: 'collapse', parent: '#accordion'}, href: '#collapse-one'}
+              Collapsible Group Item #1
+        #collapse-one.panel-collapse.collapse.in{role: 'tabpanel'}
+          .panel-body
+            Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid.
+
+      .panel.panel-default
+        .panel-heading{role: 'tab', id: 'heading-two'}
+          %h4.panel-title
+            %a.collapsed{role: 'button', data: {toggle: 'collapse', parent: '#accordion'}, href: '#collapse-two'}
+              Collapsible Group Item #2
+        #collapse-two.panel-collapse.collapse{role: 'tabpanel'}
+          .panel-body
+            Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid.
+
+      .panel.panel-default
+        .panel-heading{role: 'tab', id: 'heading-three'}
+          %h4.panel-title
+            %a.collapsed{role: 'button', data: {toggle: 'collapse', parent: '#accordion'}, href: '#collapse-three'}
+              Collapsible Group Item #3
+        #collapse-three.panel-collapse.collapse{role: 'tabpanel'}
+          .panel-body
+            Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid.

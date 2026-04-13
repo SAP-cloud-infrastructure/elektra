@@ -35,6 +35,22 @@ Rails.application.routes.draw do
     get :notifications, to: 'global_notifications#index'
   end
 
+  # Bootstrap Styleguide (only in development & test)
+  # IMPORTANT: Must be defined BEFORE domain_id routes to avoid being matched as a domain
+  if Rails.env.development? || Rails.env.test?
+    scope '/__styleguide' do
+      get '/', to: 'styleguide#index', as: :styleguide_root
+      get '/buttons', to: 'styleguide#buttons', as: :styleguide_buttons
+      get '/forms', to: 'styleguide#forms', as: :styleguide_forms
+      get '/modals', to: 'styleguide#modals', as: :styleguide_modals
+      get '/tables', to: 'styleguide#tables', as: :styleguide_tables
+      get '/alerts', to: 'styleguide#alerts', as: :styleguide_alerts
+      get '/navigation', to: 'styleguide#navigation', as: :styleguide_navigation
+      get '/typography', to: 'styleguide#typography', as: :styleguide_typography
+      get '/panels', to: 'styleguide#panels', as: :styleguide_panels
+    end
+  end
+
   # mount Cloudops::Engine => '/ccadmin/cloud_admin/cloudops', as: 'cloudops'
   get '/cloudops',
       to:
@@ -111,7 +127,7 @@ Rails.application.routes.draw do
 
   # in case someone tries to call a project url without the trailing '/home'
   get '/:domain_id/:project_id', to: redirect('/%{domain_id}/%{project_id}/home')
-  
+
   # route for overwritten High Voltage Pages controller
   get '/pages/*id' => 'pages#show', :as => :core_page, :format => false
 

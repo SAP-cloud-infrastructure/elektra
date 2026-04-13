@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Bootstrap Modal Test</title>
+  <!-- Bootstrap 3 CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+</head>
+<body>
+  <div class="container" style="margin-top: 50px;">
+    <h1>Bootstrap Modal Test</h1>
+
+    <p>Test if jQuery and Bootstrap are loaded:</p>
+    <button class="btn btn-primary" onclick="testJQuery()">Test jQuery</button>
+    <button class="btn btn-info" onclick="testBootstrap()">Test Bootstrap</button>
+
+    <hr>
+
+    <h2>Modal Test</h2>
+    <button class="btn btn-primary" data-toggle="modal" data-target="#testModal">
+      Open Test Modal (data-toggle)
+    </button>
+
+    <button class="btn btn-success" onclick="openModalManually()">
+      Open Test Modal (JavaScript)
+    </button>
+
+    <div id="output" style="margin-top: 20px; padding: 10px; background: #f5f5f5;"></div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="testModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">
+            <span>&times;</span>
+          </button>
+          <h4 class="modal-title">Test Modal</h4>
+        </div>
+        <div class="modal-body">
+          <p>If you see this, the modal works! 🎉</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+  <!-- Bootstrap JS -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+  <script>
+    function log(message) {
+      var output = document.getElementById('output');
+      output.innerHTML += '<div>' + message + '</div>';
+      console.log(message);
+    }
+
+    function testJQuery() {
+      if (typeof jQuery !== 'undefined') {
+        log('✅ jQuery loaded: version ' + jQuery.fn.jquery);
+      } else {
+        log('❌ jQuery NOT loaded');
+      }
+    }
+
+    function testBootstrap() {
+      if (typeof jQuery !== 'undefined' && typeof jQuery.fn.modal !== 'undefined') {
+        log('✅ Bootstrap JS loaded (modal function exists)');
+      } else {
+        log('❌ Bootstrap JS NOT loaded or modal not available');
+      }
+    }
+
+    function openModalManually() {
+      try {
+        jQuery('#testModal').modal('show');
+        log('✅ Attempted to open modal via JavaScript');
+      } catch(e) {
+        log('❌ Error opening modal: ' + e.message);
+      }
+    }
+
+    // Auto-test on page load
+    window.onload = function() {
+      testJQuery();
+      testBootstrap();
+
+      // Listen for modal events
+      jQuery('#testModal').on('show.bs.modal', function() {
+        log('✅ Modal show event triggered');
+      });
+
+      jQuery('#testModal').on('shown.bs.modal', function() {
+        log('✅ Modal is now visible');
+      });
+    };
+  </script>
+</body>
+</html>

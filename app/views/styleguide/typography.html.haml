@@ -1,0 +1,231 @@
+-# app/views/styleguide/typography.html.haml
+- content_for :title, 'Typography'
+
+.page-header
+  %h1 Typography
+
+%section.styleguide-section#headings
+  %h2 Headings
+
+  .styleguide-example
+    .styleguide-example-label All Heading Levels
+    %h1 h1. Bootstrap heading
+    %h2 h2. Bootstrap heading
+    %h3 h3. Bootstrap heading
+    %h4 h4. Bootstrap heading
+    %h5 h5. Bootstrap heading
+    %h6 h6. Bootstrap heading
+
+  .styleguide-example
+    .styleguide-example-label Headings with Secondary Text
+    %h1
+      Bootstrap heading
+      %small Secondary text
+    %h2
+      Bootstrap heading
+      %small Secondary text
+    %h3
+      Bootstrap heading
+      %small Secondary text
+
+%section.styleguide-section#body-copy
+  %h2 Body Copy
+
+  .styleguide-example
+    .styleguide-example-label Default Paragraph
+    %p
+      Nullam quis risus eget urna mollis ornare vel eu leo. Cum sociis natoque
+      penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nullam
+      id dolor id nibh ultricies vehicula.
+
+  .styleguide-example
+    .styleguide-example-label Lead Paragraph
+    %p.lead
+      Vivamus sagittis lacus vel augue laoreet rutrum faucibus dolor auctor.
+      Duis mollis, est non commodo luctus.
+
+%section.styleguide-section#inline-text
+  %h2 Inline Text Elements
+
+  .styleguide-example
+    .styleguide-example-label Text Emphasis
+    %p
+      You can use the mark tag to
+      %mark highlight
+      text.
+
+    %p
+      %del This line of text is meant to be treated as deleted text.
+
+    %p
+      %s This line of text is meant to be treated as no longer accurate.
+
+    %p
+      %ins This line of text is meant to be treated as an addition to the document.
+
+    %p
+      %u This line of text will render as underlined
+
+    %p
+      %small This line of text is meant to be treated as fine print.
+
+    %p
+      %strong This line rendered as bold text.
+
+    %p
+      %em This line rendered as italicized text.
+
+%section.styleguide-section#text-alignment
+  %h2 Text Alignment
+
+  .styleguide-example
+    .styleguide-example-label Alignment Classes
+    %p.text-left Left aligned text.
+    %p.text-center Center aligned text.
+    %p.text-right Right aligned text.
+    %p.text-justify Justified text with more content to demonstrate the justification behavior when text wraps to multiple lines.
+    %p.text-nowrap No wrap text. This text will not wrap even if it's very long.
+
+%section.styleguide-section#text-transformation
+  %h2 Text Transformation
+
+  .styleguide-example
+    .styleguide-example-label Transformation Classes
+    %p.text-lowercase lowercase text.
+    %p.text-uppercase uppercase text.
+    %p.text-capitalize capitalized text.
+
+%section.styleguide-section#contextual-colors
+  %h2 Contextual Colors
+
+  .styleguide-example
+    .styleguide-example-label Text Color Classes
+    %p.text-muted Muted text - Fusce dapibus, tellus ac cursus commodo.
+    %p.text-primary Primary text - Nullam id dolor id nibh ultricies vehicula.
+    %p.text-success Success text - Duis mollis, est non commodo luctus.
+    %p.text-info Info text - Maecenas sed diam eget risus varius blandit.
+    %p.text-warning Warning text - Etiam porta sem malesuada magna mollis.
+    %p.text-danger Danger text - Donec ullamcorper nulla non metus auctor.
+
+%section.styleguide-section#contextual-backgrounds
+  %h2 Contextual Backgrounds
+
+  .styleguide-example
+    .styleguide-example-label Background Color Classes
+    %p.bg-primary{style: 'padding: 10px;'} Primary background
+    %p.bg-success{style: 'padding: 10px;'} Success background
+    %p.bg-info{style: 'padding: 10px;'} Info background
+    %p.bg-warning{style: 'padding: 10px;'} Warning background
+    %p.bg-danger{style: 'padding: 10px;'} Danger background
+
+%section.styleguide-section#lists
+  %h2 Lists
+
+  .styleguide-example
+    .styleguide-example-label Unordered List
+    %ul
+      %li Lorem ipsum dolor sit amet
+      %li Consectetur adipiscing elit
+      %li Integer molestie lorem at massa
+      %li Facilisis in pretium nisl aliquet
+      %li
+        Nulla volutpat aliquam velit
+        %ul
+          %li Phasellus iaculis neque
+          %li Purus sodales ultricies
+          %li Vestibulum laoreet porttitor sem
+
+  .styleguide-example
+    .styleguide-example-label Ordered List
+    %ol
+      %li Lorem ipsum dolor sit amet
+      %li Consectetur adipiscing elit
+      %li Integer molestie lorem at massa
+      %li Facilisis in pretium nisl aliquet
+
+  .styleguide-example
+    .styleguide-example-label Unstyled List
+    %ul.list-unstyled
+      %li Lorem ipsum dolor sit amet
+      %li Consectetur adipiscing elit
+      %li Integer molestie lorem at massa
+      %li
+        Nulla volutpat aliquam velit
+        %ul
+          %li Phasellus iaculis neque
+          %li Purus sodales ultricies
+
+  .styleguide-example
+    .styleguide-example-label Inline List
+    %ul.list-inline
+      %li Lorem ipsum
+      %li Phasellus iaculis
+      %li Nulla volutpat
+
+%section.styleguide-section#blockquotes
+  %h2 Blockquotes
+
+  .styleguide-example
+    .styleguide-example-label Default Blockquote
+    %blockquote
+      %p
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere
+        erat a ante.
+
+  .styleguide-example
+    .styleguide-example-label Blockquote with Citation
+    %blockquote
+      %p
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere
+        erat a ante.
+      %footer
+        Someone famous in
+        %cite{title: 'Source Title'} Source Title
+
+  .styleguide-example
+    .styleguide-example-label Reverse Blockquote
+    %blockquote.blockquote-reverse
+      %p
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere
+        erat a ante.
+      %footer
+        Someone famous in
+        %cite{title: 'Source Title'} Source Title
+
+%section.styleguide-section#code
+  %h2 Code
+
+  .styleguide-example
+    .styleguide-example-label Inline Code
+    %p
+      For example,
+      %code &lt;section&gt;
+      should be wrapped as inline.
+
+  .styleguide-example
+    .styleguide-example-label Code Block
+    %pre
+      %code
+        :preserve
+          &lt;div class="container"&gt;
+            &lt;h1&gt;Hello World&lt;/h1&gt;
+          &lt;/div&gt;
+
+  .styleguide-example
+    .styleguide-example-label User Input
+    %p
+      To switch directories, type
+      %kbd cd
+      followed by the name of the directory.
+    %p
+      To edit settings, press
+      %kbd
+        %kbd ctrl
+        \+
+        %kbd alt
+        \+
+        %kbd del
+
+  .styleguide-example
+    .styleguide-example-label Sample Output
+    %samp This text is meant to be treated as sample output from a computer program.

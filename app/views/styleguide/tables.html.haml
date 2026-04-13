@@ -1,0 +1,233 @@
+-# app/views/styleguide/tables.html.haml
+- content_for :title, 'Tables'
+
+.page-header
+  %h1 Table Components
+
+%section.styleguide-section#basic-table
+  %h2 Basic Table
+
+  .styleguide-example
+    .styleguide-example-label Default Table
+    %table.table
+      %thead
+        %tr
+          %th #
+          %th Name
+          %th Status
+          %th Actions
+      %tbody
+        %tr
+          %td 1
+          %td Instance-01
+          %td
+            %span.label.label-success Active
+          %td
+            %button.btn.btn-xs.btn-primary Edit
+        %tr
+          %td 2
+          %td Instance-02
+          %td
+            %span.label.label-warning Pending
+          %td
+            %button.btn.btn-xs.btn-primary Edit
+        %tr
+          %td 3
+          %td Instance-03
+          %td
+            %span.label.label-danger Error
+          %td
+            %button.btn.btn-xs.btn-primary Edit
+
+%section.styleguide-section#striped-table
+  %h2 Striped Table
+
+  .styleguide-example
+    .styleguide-example-label Table with .table-striped
+    %table.table.table-striped
+      %thead
+        %tr
+          %th ID
+          %th Name
+          %th Size
+          %th Created
+      %tbody
+        %tr
+          %td uuid-001
+          %td Volume-01
+          %td 100 GB
+          %td 2024-01-15
+        %tr
+          %td uuid-002
+          %td Volume-02
+          %td 250 GB
+          %td 2024-01-16
+        %tr
+          %td uuid-003
+          %td Volume-03
+          %td 500 GB
+          %td 2024-01-17
+        %tr
+          %td uuid-004
+          %td Volume-04
+          %td 1 TB
+          %td 2024-01-18
+
+%section.styleguide-section#bordered-table
+  %h2 Bordered Table
+
+  .styleguide-example
+    .styleguide-example-label Table with .table-bordered
+    %table.table.table-bordered
+      %thead
+        %tr
+          %th Service
+          %th Quota
+          %th Used
+          %th Available
+      %tbody
+        %tr
+          %td Compute
+          %td 100
+          %td 45
+          %td 55
+        %tr
+          %td Storage
+          %td 10 TB
+          %td 3.5 TB
+          %td 6.5 TB
+        %tr
+          %td Network
+          %td 50
+          %td 12
+          %td 38
+
+%section.styleguide-section#hover-table
+  %h2 Hover Table
+
+  .styleguide-example
+    .styleguide-example-label Table with .table-hover
+    %table.table.table-hover
+      %thead
+        %tr
+          %th IP Address
+          %th Port
+          %th Protocol
+          %th Status
+      %tbody
+        %tr
+          %td 10.0.1.10
+          %td 80
+          %td HTTP
+          %td
+            %span.label.label-success Online
+        %tr
+          %td 10.0.1.11
+          %td 443
+          %td HTTPS
+          %td
+            %span.label.label-success Online
+        %tr
+          %td 10.0.1.12
+          %td 22
+          %td SSH
+          %td
+            %span.label.label-danger Offline
+
+%section.styleguide-section#condensed-table
+  %h2 Condensed Table
+
+  .styleguide-example
+    .styleguide-example-label Table with .table-condensed
+    %table.table.table-condensed
+      %thead
+        %tr
+          %th User
+          %th Email
+          %th Role
+      %tbody
+        %tr
+          %td John Doe
+          %td john@example.com
+          %td Admin
+        %tr
+          %td Jane Smith
+          %td jane@example.com
+          %td Developer
+        %tr
+          %td Bob Wilson
+          %td bob@example.com
+          %td Viewer
+
+%section.styleguide-section#contextual-table
+  %h2 Contextual Classes
+
+  .styleguide-example
+    .styleguide-example-label Rows with contextual classes
+    %table.table
+      %thead
+        %tr
+          %th Class
+          %th Status
+          %th Description
+      %tbody
+        %tr.active
+          %td .active
+          %td Selected
+          %td Highlights the row
+        %tr.success
+          %td .success
+          %td Success
+          %td Indicates a successful action
+        %tr.info
+          %td .info
+          %td Information
+          %td Indicates a neutral informative change
+        %tr.warning
+          %td .warning
+          %td Warning
+          %td Indicates a warning that might need attention
+        %tr.danger
+          %td .danger
+          %td Error
+          %td Indicates a dangerous or potentially negative action
+
+%section.styleguide-section#responsive-table
+  %h2 Responsive Table
+
+  .styleguide-example
+    .styleguide-example-label Wrapped in .table-responsive
+    .table-responsive
+      %table.table.table-striped.table-bordered
+        %thead
+          %tr
+            %th ID
+            %th Name
+            %th Description
+            %th Status
+            %th Created
+            %th Modified
+            %th Actions
+        %tbody
+          %tr
+            %td 1
+            %td Resource Alpha
+            %td Long description text here
+            %td
+              %span.label.label-success Active
+            %td 2024-01-01
+            %td 2024-01-15
+            %td
+              %button.btn.btn-xs.btn-primary Edit
+              %button.btn.btn-xs.btn-danger Delete
+          %tr
+            %td 2
+            %td Resource Beta
+            %td Another long description
+            %td
+              %span.label.label-warning Pending
+            %td 2024-01-02
+            %td 2024-01-16
+            %td
+              %button.btn.btn-xs.btn-primary Edit
+              %button.btn.btn-xs.btn-danger Delete

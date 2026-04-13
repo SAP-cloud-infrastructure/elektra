@@ -1,0 +1,190 @@
+-# app/views/layouts/styleguide.html.haml
+!!!
+%html
+  %head
+    %meta{charset: 'utf-8'}
+    %meta{name: 'viewport', content: 'width=device-width, initial-scale=1'}
+    %title
+      Elektra Bootstrap Styleguide
+      - if content_for?(:title)
+        = " - #{yield(:title)}"
+
+    -# Load application CSS (Bootstrap 3 currently)
+    = stylesheet_link_tag 'application', media: 'all'
+
+    -# Load jQuery and Bootstrap from local files (CSP requires 'self')
+    %script{src: "/jquery-1.12.4.min.js"}
+    %script{src: "/bootstrap-3.4.1.min.js"}
+
+    :javascript
+      // Verify jQuery and Bootstrap loaded
+      (function() {
+        console.log('=== Styleguide Loading ===');
+        console.log('jQuery loaded:', typeof jQuery !== 'undefined' ? 'YES (v' + jQuery.fn.jquery + ')' : 'NO');
+        console.log('$ available:', typeof $ !== 'undefined' ? 'YES' : 'NO');
+        console.log('Bootstrap modal:', typeof jQuery !== 'undefined' && typeof jQuery.fn.modal !== 'undefined' ? 'YES' : 'NO');
+
+        if (typeof jQuery === 'undefined') {
+          console.error('❌ CRITICAL: jQuery failed to load');
+          alert('ERROR: jQuery not loaded. Check /jquery-1.12.4.min.js exists in public/ folder.');
+          return;
+        }
+
+        if (typeof jQuery.fn.modal === 'undefined') {
+          console.error('❌ CRITICAL: Bootstrap modal not loaded');
+          alert('ERROR: Bootstrap not loaded. Check /bootstrap-3.4.1.min.js exists in public/ folder.');
+          return;
+        }
+
+        console.log('✅ All scripts loaded successfully');
+
+        // Initialize Bootstrap modal handlers
+        jQuery(document).ready(function() {
+          console.log('Initializing modal handlers...');
+
+          // Remove any conflicting handlers
+          jQuery(document).off('click.bs.modal.data-api');
+
+          // Add Bootstrap modal handler
+          jQuery(document).on('click.bs.modal.data-api', '[data-toggle="modal"]', function (e) {
+            var $this = jQuery(this);
+            var target = $this.attr('data-target');
+            var $target = jQuery(target);
+
+            console.log('Modal button clicked:', target);
+            console.log('Target exists:', $target.length > 0);
+
+            if ($target.length) {
+              e.preventDefault();
+              console.log('Opening modal...');
+              $target.modal('show');
+            } else {
+              console.error('Modal target not found:', target);
+            }
+          });
+
+          // Listen for modal events
+          jQuery('.modal').on('show.bs.modal', function(e) {
+            console.log('✅ Modal show event:', this.id);
+          });
+
+          jQuery('.modal').on('shown.bs.modal', function(e) {
+            console.log('✅ Modal is visible:', this.id);
+          });
+
+          console.log('✅ Modal handlers ready');
+          console.log('Found', jQuery('.modal').length, 'modals and', jQuery('[data-toggle="modal"]').length, 'buttons');
+        });
+      })();
+
+      // Test function
+      window.testModal = function() {
+        console.log('=== Manual Modal Test ===');
+        if (typeof jQuery !== 'undefined' && typeof jQuery.fn.modal !== 'undefined') {
+          console.log('Opening modal-default...');
+          jQuery('#modal-default').modal('show');
+        } else {
+          alert('jQuery or Bootstrap not loaded!');
+        }
+      };
+
+    :css
+      /* Styleguide-specific styles */
+      body.styleguide {
+        padding-top: 70px;
+      }
+
+      .styleguide-section {
+        margin-bottom: 60px;
+        padding-bottom: 40px;
+        border-bottom: 1px solid #eee;
+      }
+
+      .styleguide-section:last-child {
+        border-bottom: none;
+      }
+
+      .styleguide-section h2 {
+        margin-top: 0;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #ddd;
+      }
+
+      .styleguide-example {
+        padding: 20px;
+        margin-bottom: 20px;
+        background-color: #f9f9f9;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+
+      .styleguide-example-label {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 10px;
+        font-weight: bold;
+      }
+
+      .styleguide-code {
+        margin-top: 10px;
+        font-size: 12px;
+      }
+
+      /* Visual spacing helpers */
+      .component-spacer {
+        margin-right: 10px;
+        margin-bottom: 10px;
+        display: inline-block;
+      }
+
+  %body.styleguide
+    %nav.navbar.navbar-default.navbar-fixed-top
+      .container-fluid
+        .navbar-header
+          %button.navbar-toggle.collapsed{type: 'button', data: {toggle: 'collapse', target: '#styleguide-navbar'}}
+            %span.sr-only Toggle navigation
+            %span.icon-bar
+            %span.icon-bar
+            %span.icon-bar
+          %a.navbar-brand{href: styleguide_root_path}
+            %strong Elektra
+            Styleguide
+
+        #styleguide-navbar.collapse.navbar-collapse
+          %ul.nav.navbar-nav
+            %li{class: ('active' if current_page?(styleguide_root_path))}
+              = link_to 'Overview', styleguide_root_path
+            %li{class: ('active' if current_page?(styleguide_buttons_path))}
+              = link_to 'Buttons', styleguide_buttons_path
+            %li{class: ('active' if current_page?(styleguide_forms_path))}
+              = link_to 'Forms', styleguide_forms_path
+            %li{class: ('active' if current_page?(styleguide_modals_path))}
+              = link_to 'Modals', styleguide_modals_path
+            %li{class: ('active' if current_page?(styleguide_tables_path))}
+              = link_to 'Tables', styleguide_tables_path
+            %li{class: ('active' if current_page?(styleguide_alerts_path))}
+              = link_to 'Alerts', styleguide_alerts_path
+            %li{class: ('active' if current_page?(styleguide_navigation_path))}
+              = link_to 'Navigation', styleguide_navigation_path
+            %li{class: ('active' if current_page?(styleguide_typography_path))}
+              = link_to 'Typography', styleguide_typography_path
+            %li{class: ('active' if current_page?(styleguide_panels_path))}
+              = link_to 'Panels', styleguide_panels_path
+
+          %ul.nav.navbar-nav.navbar-right
+            %li
+              %span.navbar-text
+                %span.label.label-info Bootstrap 3.4.1
+
+    .container-fluid
+      .row
+        .col-md-12
+          = yield
+
+    %footer.styleguide-footer{style: 'margin-top: 60px; padding: 20px 0; border-top: 1px solid #eee; text-align: center; color: #999;'}
+      .container
+        %p
+          Elektra Bootstrap Styleguide for Visual Regression Testing
+          %br
+          Used for Bootstrap 3 → Bootstrap 5 Migration

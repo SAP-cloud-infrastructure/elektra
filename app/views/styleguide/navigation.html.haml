@@ -1,0 +1,240 @@
+-# app/views/styleguide/navigation.html.haml
+- content_for :title, 'Navigation'
+
+.page-header
+  %h1 Navigation Components
+
+%section.styleguide-section#navbar
+  %h2 Navbar
+
+  .styleguide-example
+    .styleguide-example-label Default Navbar
+    %nav.navbar.navbar-default
+      .container-fluid
+        .navbar-header
+          %button.navbar-toggle.collapsed{type: 'button', data: {toggle: 'collapse', target: '#navbar-example'}}
+            %span.sr-only Toggle navigation
+            %span.icon-bar
+            %span.icon-bar
+            %span.icon-bar
+          %a.navbar-brand{href: '#'} Brand
+
+        #navbar-example.collapse.navbar-collapse
+          %ul.nav.navbar-nav
+            %li.active
+              %a{href: '#'} Home
+            %li
+              %a{href: '#'} Projects
+            %li
+              %a{href: '#'} Compute
+            %li.dropdown
+              %a.dropdown-toggle{href: '#', data: {toggle: 'dropdown'}, role: 'button'}
+                Services
+                %span.caret
+              %ul.dropdown-menu
+                %li
+                  %a{href: '#'} Networking
+                %li
+                  %a{href: '#'} Storage
+                %li.divider
+                %li
+                  %a{href: '#'} Identity
+
+          %ul.nav.navbar-nav.navbar-right
+            %li
+              %a{href: '#'} Help
+            %li
+              %a{href: '#'} Logout
+
+%section.styleguide-section#tabs
+  %h2 Tabs (Nav Tabs)
+
+  .styleguide-example
+    .styleguide-example-label Basic Tabs
+    %ul.nav.nav-tabs
+      %li.active
+        %a{href: '#'} Overview
+      %li
+        %a{href: '#'} Details
+      %li
+        %a{href: '#'} Configuration
+      %li
+        %a{href: '#'} Logs
+      %li.disabled
+        %a{href: '#'} Disabled
+
+  .styleguide-example
+    .styleguide-example-label Tabs with Dropdown
+    %ul.nav.nav-tabs
+      %li.active
+        %a{href: '#'} Home
+      %li
+        %a{href: '#'} Profile
+      %li.dropdown
+        %a.dropdown-toggle{href: '#', data: {toggle: 'dropdown'}}
+          Settings
+          %span.caret
+        %ul.dropdown-menu
+          %li
+            %a{href: '#'} General
+          %li
+            %a{href: '#'} Security
+          %li.divider
+          %li
+            %a{href: '#'} Advanced
+
+%section.styleguide-section#pills
+  %h2 Pills (Nav Pills)
+
+  .styleguide-example
+    .styleguide-example-label Basic Pills
+    %ul.nav.nav-pills
+      %li.active
+        %a{href: '#'} Home
+      %li
+        %a{href: '#'} Instances
+      %li
+        %a{href: '#'} Volumes
+      %li
+        %a{href: '#'} Networks
+
+  .styleguide-example
+    .styleguide-example-label Stacked Pills
+    %ul.nav.nav-pills.nav-stacked{style: 'max-width: 300px;'}
+      %li.active
+        %a{href: '#'} Dashboard
+      %li
+        %a{href: '#'} Compute
+      %li
+        %a{href: '#'} Storage
+      %li
+        %a{href: '#'} Networking
+      %li
+        %a{href: '#'} Identity
+
+  .styleguide-example
+    .styleguide-example-label Justified Pills
+    %ul.nav.nav-pills.nav-justified
+      %li.active
+        %a{href: '#'} Overview
+      %li
+        %a{href: '#'} Details
+      %li
+        %a{href: '#'} Settings
+
+%section.styleguide-section#breadcrumbs
+  %h2 Breadcrumbs
+
+  .styleguide-example
+    .styleguide-example-label Basic Breadcrumb
+    %ol.breadcrumb
+      %li
+        %a{href: '#'} Home
+      %li
+        %a{href: '#'} Projects
+      %li.active Current Project
+
+  .styleguide-example
+    .styleguide-example-label Deep Breadcrumb
+    %ol.breadcrumb
+      %li
+        %a{href: '#'} Home
+      %li
+        %a{href: '#'} Compute
+      %li
+        %a{href: '#'} Instances
+      %li
+        %a{href: '#'} instance-01
+      %li.active Details
+
+%section.styleguide-section#pagination
+  %h2 Pagination
+
+  .styleguide-example
+    .styleguide-example-label Default Pagination
+    %nav
+      %ul.pagination
+        %li.disabled
+          %a{href: '#'}
+            %span ‹
+        %li.active
+          %a{href: '#'} 1
+        %li
+          %a{href: '#'} 2
+        %li
+          %a{href: '#'} 3
+        %li
+          %a{href: '#'} 4
+        %li
+          %a{href: '#'} 5
+        %li
+          %a{href: '#'}
+            %span ›
+
+  .styleguide-example
+    .styleguide-example-label Large Pagination
+    %nav
+      %ul.pagination.pagination-lg
+        %li
+          %a{href: '#'} «
+        %li.active
+          %a{href: '#'} 1
+        %li
+          %a{href: '#'} 2
+        %li
+          %a{href: '#'} 3
+        %li
+          %a{href: '#'} »
+
+  .styleguide-example
+    .styleguide-example-label Small Pagination
+    %nav
+      %ul.pagination.pagination-sm
+        %li
+          %a{href: '#'} «
+        %li
+          %a{href: '#'} 1
+        %li.active
+          %a{href: '#'} 2
+        %li
+          %a{href: '#'} 3
+        %li
+          %a{href: '#'} »
+
+%section.styleguide-section#pager
+  %h2 Pager
+
+  .styleguide-example
+    .styleguide-example-label Default Pager
+    %nav
+      %ul.pager
+        %li
+          %a{href: '#'} Previous
+        %li
+          %a{href: '#'} Next
+
+  .styleguide-example
+    .styleguide-example-label Aligned Pager
+    %nav
+      %ul.pager
+        %li.previous
+          %a{href: '#'}
+            %span ←
+            Older
+        %li.next
+          %a{href: '#'}
+            Newer
+            %span →
+
+  .styleguide-example
+    .styleguide-example-label Disabled Pager
+    %nav
+      %ul.pager
+        %li.previous.disabled
+          %a{href: '#'}
+            %span ←
+            Older
+        %li.next
+          %a{href: '#'}
+            Newer
+            %span →

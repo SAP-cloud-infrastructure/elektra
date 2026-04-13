@@ -1,0 +1,204 @@
+-# app/views/styleguide/modals.html.haml
+- content_for :title, 'Modals'
+
+.page-header
+  %h1 Modal Components
+
+.alert.alert-info
+  %strong Debug Info:
+  %br
+  Check the browser console (F12) for jQuery and Bootstrap status.
+  %br
+  %button.btn.btn-sm.btn-info{onclick: "testModal()"}
+    Test Modal (JavaScript)
+
+%section.styleguide-section#modal-triggers
+  %h2 Modal Examples
+
+  .styleguide-example
+    .styleguide-example-label Modal Triggers
+    %button#btn-default.btn.btn-primary{data: {toggle: 'modal', target: '#modal-default'}}
+      Open Default Modal
+
+    %button#btn-large.btn.btn-primary{data: {toggle: 'modal', target: '#modal-large'}}
+      Open Large Modal
+
+    %button#btn-small.btn.btn-primary{data: {toggle: 'modal', target: '#modal-small'}}
+      Open Small Modal
+
+    %button#btn-form.btn.btn-primary{data: {toggle: 'modal', target: '#modal-form'}}
+      Open Modal with Form
+
+-# Default Modal
+#modal-default.modal.fade{tabindex: '-1', role: 'dialog'}
+  .modal-dialog{role: 'document'}
+    .modal-content
+      .modal-header
+        %button.close{type: 'button', data: {dismiss: 'modal'}, aria: {label: 'Close'}}
+          %span{aria: {hidden: 'true'}} ×
+        %h4.modal-title Default Modal Title
+
+      .modal-body
+        %p This is a default modal dialog.
+        %p It contains simple text content and demonstrates the basic modal structure.
+
+      .modal-footer
+        %button.btn.btn-default{type: 'button', data: {dismiss: 'modal'}} Close
+        %button.btn.btn-primary{type: 'button'} Save Changes
+
+-# Large Modal
+#modal-large.modal.fade{tabindex: '-1', role: 'dialog'}
+  .modal-dialog.modal-lg{role: 'document'}
+    .modal-content
+      .modal-header
+        %button.close{type: 'button', data: {dismiss: 'modal'}}
+          %span ×
+        %h4.modal-title Large Modal
+
+      .modal-body
+        %h4 Large Modal Content
+        %p This is a large modal (.modal-lg).
+        %p
+          It's wider than the default modal and is suitable for
+          displaying more complex content or forms.
+
+        .row
+          .col-md-6
+            %h5 Column 1
+            %p Some content here...
+          .col-md-6
+            %h5 Column 2
+            %p More content here...
+
+      .modal-footer
+        %button.btn.btn-default{type: 'button', data: {dismiss: 'modal'}} Cancel
+        %button.btn.btn-primary{type: 'button'} Confirm
+
+-# Small Modal
+#modal-small.modal.fade{tabindex: '-1', role: 'dialog'}
+  .modal-dialog.modal-sm{role: 'document'}
+    .modal-content
+      .modal-header
+        %button.close{type: 'button', data: {dismiss: 'modal'}}
+          %span ×
+        %h4.modal-title Small Modal
+
+      .modal-body
+        %p This is a small modal (.modal-sm).
+        %p Compact and concise.
+
+      .modal-footer
+        %button.btn.btn-default{type: 'button', data: {dismiss: 'modal'}} Close
+
+-# Modal with Form
+#modal-form.modal.fade{tabindex: '-1', role: 'dialog'}
+  .modal-dialog{role: 'document'}
+    .modal-content
+      .modal-header
+        %button.close{type: 'button', data: {dismiss: 'modal'}}
+          %span ×
+        %h4.modal-title Create New Instance
+
+      .modal-body
+        %form
+          .form-group
+            %label{for: 'instance-name'} Instance Name
+            %input.form-control#instance-name{type: 'text', placeholder: 'my-instance'}
+
+          .form-group
+            %label{for: 'instance-flavor'} Flavor
+            %select.form-control#instance-flavor
+              %option m1.tiny
+              %option m1.small
+              %option{selected: 'selected'} m1.medium
+              %option m1.large
+
+          .form-group
+            %label{for: 'instance-image'} Image
+            %select.form-control#instance-image
+              %option Ubuntu 20.04
+              %option Ubuntu 22.04
+              %option Debian 11
+
+          .checkbox
+            %label
+              %input{type: 'checkbox'}
+              Enable monitoring
+
+      .modal-footer
+        %button.btn.btn-default{type: 'button', data: {dismiss: 'modal'}} Cancel
+        %button.btn.btn-primary{type: 'button'} Create Instance
+
+-# Modal with Validation Errors
+#modal-validation.modal.fade{tabindex: '-1', role: 'dialog'}
+  .modal-dialog{role: 'document'}
+    .modal-content
+      .modal-header
+        %button.close{type: 'button', data: {dismiss: 'modal'}}
+          %span ×
+        %h4.modal-title Form with Validation Errors
+
+      .modal-body
+        .alert.alert-danger
+          %strong Validation Error:
+          Please correct the errors below.
+
+        %form
+          .form-group.has-error
+            %label.control-label{for: 'error-name'} Name (Required)
+            %input.form-control#error-name{type: 'text', placeholder: 'Enter name'}
+            %span.help-block Name is required
+
+          .form-group.has-error
+            %label.control-label{for: 'error-email'} Email (Invalid)
+            %input.form-control#error-email{type: 'text', value: 'invalid-email'}
+            %span.help-block Please enter a valid email address
+
+          .form-group.has-warning
+            %label.control-label{for: 'warning-field'} Description (Optional)
+            %textarea.form-control#warning-field{rows: '3'}
+            %span.help-block This field is optional but recommended
+
+      .modal-footer
+        %button.btn.btn-default{type: 'button', data: {dismiss: 'modal'}} Cancel
+        %button.btn.btn-primary{type: 'button'} Submit
+
+:javascript
+  function testModal() {
+    console.log('--- Manual Modal Test ---');
+    console.log('jQuery:', typeof jQuery !== 'undefined' ? 'loaded (v' + jQuery.fn.jquery + ')' : 'NOT loaded');
+    console.log('Bootstrap modal:', typeof jQuery !== 'undefined' && typeof jQuery.fn.modal !== 'undefined' ? 'available' : 'NOT available');
+
+    if (typeof jQuery !== 'undefined' && typeof jQuery.fn.modal !== 'undefined') {
+      console.log('Attempting to open #modal-default...');
+      jQuery('#modal-default').modal('show');
+    } else {
+      alert('jQuery or Bootstrap not loaded!');
+    }
+  }
+
+  // Add click event listeners for debugging
+  jQuery(document).ready(function() {
+    console.log('=== Styleguide Modals Debug ===');
+    console.log('jQuery version:', jQuery.fn.jquery);
+    console.log('Bootstrap modal available:', typeof jQuery.fn.modal !== 'undefined');
+
+    // Test if data-toggle works
+    jQuery('[data-toggle="modal"]').on('click', function(e) {
+      console.log('Modal button clicked:', jQuery(this).data('target'));
+      console.log('Target exists:', jQuery(jQuery(this).data('target')).length > 0);
+    });
+
+    // Listen for modal events
+    jQuery('.modal').on('show.bs.modal', function(e) {
+      console.log('✅ Modal show event:', this.id);
+    });
+
+    jQuery('.modal').on('shown.bs.modal', function(e) {
+      console.log('✅ Modal shown (visible):', this.id);
+    });
+
+    jQuery('.modal').on('hide.bs.modal', function(e) {
+      console.log('Modal hide event:', this.id);
+    });
+  });
