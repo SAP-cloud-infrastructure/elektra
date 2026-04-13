@@ -170,7 +170,7 @@ export const VersionUpdateDialog: React.FC<VersionUpdateDialogProps> = ({
               id="version-select"
               label="Select version"
               value={selectedVersion}
-              onChange={(e) => setSelectedVersion(e?.toString() || "")}
+              onChange={(value: string | undefined) => setSelectedVersion(value ?? "")}
               disabled={isUpdating}
             >
               {versionOptions.map((option) => {
