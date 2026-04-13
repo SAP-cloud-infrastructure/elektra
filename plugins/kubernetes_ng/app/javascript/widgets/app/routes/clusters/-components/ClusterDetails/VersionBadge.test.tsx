@@ -109,7 +109,6 @@ describe("VersionBadge", () => {
     // Should not render badge when versionUpdates is undefined
     expect(container.querySelector('[data-juno-badge]')).not.toBeInTheDocument()
   })
-})
 
   it("should render plain text when versionUpdates is null", () => {
     const { container } = render(<VersionBadge version="1.27.5" versionUpdates={null} />)
@@ -125,3 +124,4 @@ describe("VersionBadge", () => {
     expect(screen.getByText("1.27.5")).toBeInTheDocument()
     // Just check the version is rendered in a badge context (tooltip wrapper exists)
   })
+})
