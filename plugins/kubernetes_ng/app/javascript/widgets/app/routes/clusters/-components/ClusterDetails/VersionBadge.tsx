@@ -13,6 +13,7 @@ export interface VersionBadgeProps {
   tooltipText?: string
   isLoading?: boolean
   hasError?: boolean
+  className?: string
 }
 
 /**
@@ -36,6 +37,7 @@ export const VersionBadge: React.FC<VersionBadgeProps> = ({
   tooltipText,
   isLoading = false,
   hasError = false,
+  className,
   ...props
 }) => {
   // Show plain text with spinner while loading
@@ -70,14 +72,13 @@ export const VersionBadge: React.FC<VersionBadgeProps> = ({
   // Determine badge variant based on update availability
   const variant = hasUpdates ? "info" : "success"
 
-  // Always wrap with tooltip to show status
   return (
-    <div className="tw-flex">
+    <div className={`tw-flex ${className || ""}`} {...props}>
       {/* Wrapper div with flex layout to properly position the tooltip */}
       <Tooltip triggerEvent="hover">
         <TooltipTrigger asChild>
           <div>
-            <Badge icon variant={variant} {...props}>
+            <Badge icon variant={variant}>
               <span>{version}</span>
             </Badge>
           </div>
