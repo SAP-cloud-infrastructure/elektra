@@ -9,18 +9,32 @@ module ServiceLayer
 
       def list_clusters
         # Fetch all cloud profiles once for version calculations
-        cloud_profiles_map = build_cloud_profiles_map
+        # Rescue at this level to allow graceful degradation - clusters are still viewable
+        # even if cloud profiles are unavailable
+        cloud_profiles_map = begin
+          build_cloud_profiles_map
+        rescue => e
+          Rails.logger.warn("Cloud profiles unavailable, version updates will not be shown: #{e.message}")
+          nil
+        end
 
         response = elektron_gardener.get("apis/core.gardener.cloud/v1beta1/namespaces/#{garden_namespace}/shoots")
         shoot_items = response&.body&.dig("items") || []
-        return shoot_items.map { |shoot| convert_shoot_to_cluster(shoot, cloud_profiles_map) }.compact
+        return shoot_items.map { |shoot| convert_shoot_to_cluster(shoot, nil) }.compact
       end
 
       def show_cluster_by_name(cluster_name)
         return nil unless cluster_name
 
         # Fetch all cloud profiles once for version calculations
-        cloud_profiles_map = build_cloud_profiles_map
+        # Rescue at this level to allow graceful degradation - clusters are still viewable
+        # even if cloud profiles are unavailable
+        cloud_profiles_map = begin
+          build_cloud_profiles_map
+        rescue => e
+          Rails.logger.warn("Cloud profiles unavailable, version updates will not be shown: #{e.message}")
+          nil
+        end
 
         response = elektron_gardener.get("apis/core.gardener.cloud/v1beta1/namespaces/#{garden_namespace}/shoots/#{cluster_name}")
         shoot_body = response&.body
@@ -118,16 +132,11 @@ module ServiceLayer
       # Uses list_cloud_profiles from CloudProfiles module
       # @return [Hash] Map of cloud profile name => [version1, version2, ...]
       def build_cloud_profiles_map
-        begin
-          cloud_profiles = list_cloud_profiles || []
+        cloud_profiles = list_cloud_profiles || []
 
-          cloud_profiles.each_with_object({}) do |profile, map|
-            next unless profile.is_a?(Hash) && profile[:name] && profile[:kubernetesVersions]
-            map[profile[:name]] = profile[:kubernetesVersions]
-          end
-        rescue => e
-          Rails.logger.error("Failed to build cloud profiles map: #{e.message}")
-          {}
+        cloud_profiles.each_with_object({}) do |profile, map|
+          next unless profile.is_a?(Hash) && profile[:name] && profile[:kubernetesVersions]
+          map[profile[:name]] = profile[:kubernetesVersions]
         end
       end
 

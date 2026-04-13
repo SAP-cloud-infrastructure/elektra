@@ -77,33 +77,33 @@ module ServiceLayer
       # Based on frontend implementation in useClusterVersionUpdates.ts
       # @param current_version [String] The current cluster Kubernetes version
       # @param available_versions [Array<String>] All available versions from cloud profile
-      # @return [Hash, nil] Grouped updates by type (sorted in ascending order), or nil if no updates available
+      # @return [Hash, nil] Grouped updates by type (sorted in ascending order), hash with empty arrays if no updates, or nil if invalid input
       def calculate_available_updates(current_version, available_versions)
         return nil unless current_version && available_versions.is_a?(Array)
 
         # Find all versions greater than current
         newer_versions = available_versions.select { |v| semver_gt(v, current_version) }
 
-        return nil if newer_versions.empty?
+        # Return explicit structure if no updates available (different from nil which means error/invalid input)
+        return { patch: [], minor: [], major: [] } if newer_versions.empty?
 
         # Group by semantic version diff type
-        grouped = {}
+        grouped = { patch: [], minor: [], major: [] }
 
         newer_versions.each do |version|
           diff = semver_diff(version, current_version)
           next unless diff
 
           diff_key = diff.to_sym
-          grouped[diff_key] ||= []
           grouped[diff_key] << version
         end
 
         # Sort each group in ascending order
-        grouped[:patch] = sort_versions(grouped[:patch]) if grouped[:patch]
-        grouped[:minor] = sort_versions(grouped[:minor]) if grouped[:minor]
-        grouped[:major] = sort_versions(grouped[:major]) if grouped[:major]
+        grouped[:patch] = sort_versions(grouped[:patch]) if grouped[:patch].any?
+        grouped[:minor] = sort_versions(grouped[:minor]) if grouped[:minor].any?
+        grouped[:major] = sort_versions(grouped[:major]) if grouped[:major].any?
 
-        grouped.empty? ? nil : grouped
+        grouped
       end
     end
   end

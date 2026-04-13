@@ -1156,7 +1156,7 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
       expect(cluster[:versionUpdates][:major]).to eq(["2.0.0"])
     end
 
-    it "returns nil versionUpdates when no updates available" do
+    it "returns empty arrays versionUpdates when no updates available" do
       shoot = {
         'metadata' => {
           'name' => 'test-cluster',
@@ -1173,7 +1173,7 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
 
       cluster = convert_shoot_to_cluster(shoot, cloud_profiles_map)
 
-      expect(cluster[:versionUpdates]).to be_nil
+      expect(cluster[:versionUpdates]).to eq({ patch: [], minor: [], major: [] })
     end
 
     it "returns nil versionUpdates when cloud profiles not provided" do

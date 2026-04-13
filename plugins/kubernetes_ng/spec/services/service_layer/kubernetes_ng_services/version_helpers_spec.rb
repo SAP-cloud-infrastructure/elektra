@@ -138,8 +138,9 @@ RSpec.describe ServiceLayer::KubernetesNgServices::VersionHelpers do
       expect(subject.calculate_available_updates(nil, available_versions)).to be_nil
     end
 
-    it "returns nil when no newer versions available" do
-      expect(subject.calculate_available_updates("1.31.5", available_versions)).to be_nil
+    it "returns empty arrays when no newer versions available" do
+      result = subject.calculate_available_updates("1.31.5", available_versions)
+      expect(result).to eq({ patch: [], minor: [], major: [] })
     end
 
     it "groups patch versions correctly" do

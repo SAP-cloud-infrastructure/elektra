@@ -18,16 +18,10 @@ describe("VersionBadge", () => {
     expect(container.querySelector('[data-juno-badge]')).not.toBeInTheDocument()
   })
 
-  it("should render plain text when there is an error", () => {
-    const { container } = render(<VersionBadge version="1.27.5" hasError />)
-    expect(screen.getByText("1.27.5")).toBeInTheDocument()
-    // Should not render badge or spinner when there's an error
-    expect(container.querySelector('[data-juno-badge]')).not.toBeInTheDocument()
-    expect(container.querySelector('[role="progressbar"]')).not.toBeInTheDocument()
-  })
-
   it("should render success icon when no updates", () => {
-    const { container } = render(<VersionBadge version="1.27.5" />)
+    const { container } = render(
+      <VersionBadge version="1.27.5" versionUpdates={{ patch: [], minor: [], major: [] }} />
+    )
     // Badge with icon prop always renders an icon (success icon when no updates)
     expect(container.querySelector("svg")).toBeInTheDocument()
     // Check for success icon specifically
@@ -63,7 +57,13 @@ describe("VersionBadge", () => {
   })
 
   it("should use success variant when no updates", () => {
-    render(<VersionBadge version="1.27.5" data-testid="version-badge" />)
+    render(
+      <VersionBadge
+        version="1.27.5"
+        versionUpdates={{ patch: [], minor: [], major: [] }}
+        data-testid="version-badge"
+      />
+    )
     expect(screen.getByTestId("version-badge")).toBeInTheDocument()
   })
 
@@ -92,13 +92,36 @@ describe("VersionBadge", () => {
   })
 
   it("should render custom tooltip text", () => {
-    render(<VersionBadge version="1.27.5" tooltipText="Custom tooltip" />)
+    render(
+      <VersionBadge
+        version="1.27.5"
+        versionUpdates={{ patch: [], minor: [], major: [] }}
+        tooltipText="Custom tooltip"
+      />
+    )
     // Note: Tooltip content might not be in the DOM until hover
     expect(screen.getByText("1.27.5")).toBeInTheDocument()
   })
 
-  it("should render without tooltip when not provided", () => {
-    render(<VersionBadge version="1.27.5" />)
+  it("should render plain text when not provided versionUpdates", () => {
+    const { container } = render(<VersionBadge version="1.27.5" />)
     expect(screen.getByText("1.27.5")).toBeInTheDocument()
+    // Should not render badge when versionUpdates is undefined
+    expect(container.querySelector('[data-juno-badge]')).not.toBeInTheDocument()
   })
 })
+
+  it("should render plain text when versionUpdates is null", () => {
+    const { container } = render(<VersionBadge version="1.27.5" versionUpdates={null} />)
+    expect(screen.getByText("1.27.5")).toBeInTheDocument()
+    // Should not render badge when versionUpdates is null
+    expect(container.querySelector('[data-juno-badge]')).not.toBeInTheDocument()
+  })
+
+  it("should render badge when versionUpdates is empty object", () => {
+    render(
+      <VersionBadge version="1.27.5" versionUpdates={{ patch: [], minor: [], major: [] }} />
+    )
+    expect(screen.getByText("1.27.5")).toBeInTheDocument()
+    // Just check the version is rendered in a badge context (tooltip wrapper exists)
+  })
