@@ -50,7 +50,12 @@ const FooterActions = ({
         <Button onClick={onCancel} variant="subdued" disabled={isUpdating}>
           Cancel
         </Button>
-        <Button onClick={handleConfirm} variant="primary" disabled={!selectedVersion || isUpdating} progress={isUpdating}>
+        <Button
+          onClick={handleConfirm}
+          variant="primary"
+          disabled={!selectedVersion || isUpdating}
+          progress={isUpdating}
+        >
           {isUpdating ? "Updating..." : "Update"}
         </Button>
       </ButtonRow>
@@ -170,7 +175,7 @@ export const VersionUpdateDialog: React.FC<VersionUpdateDialogProps> = ({
               id="version-select"
               label="Select version"
               value={selectedVersion}
-              onChange={(value: string | undefined) => setSelectedVersion(value ?? "")}
+              onChange={(value) => setSelectedVersion(String(value))}
               disabled={isUpdating}
             >
               {versionOptions.map((option) => {
