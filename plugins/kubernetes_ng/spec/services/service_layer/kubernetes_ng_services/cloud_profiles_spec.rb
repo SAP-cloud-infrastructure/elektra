@@ -61,6 +61,8 @@ RSpec.describe ServiceLayer::KubernetesNgServices::CloudProfiles do
       # Mock the elektron_gardener client
       allow(self).to receive(:elektron_gardener).and_return(double('elektron_gardener'))
       allow(elektron_gardener).to receive(:get).with("apis/core.gardener.cloud/v1beta1/cloudprofiles").and_return(mock_response)
+      # Mock the region method (returns nil by default, no filtering)
+      allow(self).to receive(:region).and_return(nil)
     end
 
     it "returns cloud profiles in camelCase format" do
@@ -117,17 +119,173 @@ RSpec.describe ServiceLayer::KubernetesNgServices::CloudProfiles do
     it "correctly maps machine images with versions" do
       result = list_cloud_profiles
       cloud_profile = result.first
-      
+
       # Test machineImages array structure
       expect(cloud_profile[:machineImages]).to be_an(Array)
       expect(cloud_profile[:machineImages].length).to eq(1)
-      
+
       machine_image = cloud_profile[:machineImages].first
       expect(machine_image).to include(
         name: "flatcar",
         versions: ["1.0.0"]
       )
       expect(machine_image[:versions]).to be_an(Array)
+    end
+
+    context "when filtering machine images by region" do
+      let(:mock_response_with_provider_config) do
+        double('response', body: {
+          "items" => [
+            {
+              "metadata" => {
+                "uid" => "test-uid",
+                "name" => "openstack"
+              },
+              "spec" => {
+                "type" => "openstack",
+                "providerConfig" => {
+                  "apiVersion" => "openstack.provider.extensions.gardener.cloud/v1alpha1",
+                  "machineImages" => [
+                    {
+                      "name" => "gardenlinux",
+                      "versions" => [
+                        {
+                          "version" => "1877.8.0",
+                          "image" => "gardenlinux-1877.8",
+                          "regions" => [
+                            { "name" => "eu-de-1", "id" => "id-1" },
+                            { "name" => "qa-de-1", "id" => "id-2" }
+                          ]
+                        },
+                        {
+                          "version" => "1877.9.0",
+                          "image" => "gardenlinux-1877.9",
+                          "regions" => [
+                            { "name" => "qa-de-1", "id" => "id-3" }
+                          ]
+                        },
+                        {
+                          "version" => "1877.10.0",
+                          "image" => "gardenlinux-1877.10",
+                          "regions" => [
+                            { "name" => "eu-de-1", "id" => "id-4" }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "machineImages" => [
+                  {
+                    "name" => "gardenlinux",
+                    "versions" => [
+                      { "version" => "1877.8.0" },
+                      { "version" => "1877.9.0" },
+                      { "version" => "1877.10.0" }
+                    ]
+                  }
+                ],
+                "kubernetes" => { "versions" => [] },
+                "machineTypes" => [],
+                "regions" => [],
+                "volumeTypes" => []
+              }
+            }
+          ]
+        })
+      end
+
+      before do
+        allow(elektron_gardener).to receive(:get).and_return(mock_response_with_provider_config)
+      end
+
+      context "when region is qa-de-1" do
+        before do
+          allow(self).to receive(:region).and_return("qa-de-1")
+        end
+
+        it "filters machine image versions to only show versions available in qa-de-1" do
+          result = list_cloud_profiles
+          cloud_profile = result.first
+
+          machine_image = cloud_profile[:machineImages].first
+          expect(machine_image[:name]).to eq("gardenlinux")
+          expect(machine_image[:versions]).to contain_exactly("1877.8.0", "1877.9.0")
+          expect(machine_image[:versions]).not_to include("1877.10.0")
+        end
+      end
+
+      context "when region is eu-de-1" do
+        before do
+          allow(self).to receive(:region).and_return("eu-de-1")
+        end
+
+        it "filters machine image versions to only show versions available in eu-de-1" do
+          result = list_cloud_profiles
+          cloud_profile = result.first
+
+          machine_image = cloud_profile[:machineImages].first
+          expect(machine_image[:name]).to eq("gardenlinux")
+          expect(machine_image[:versions]).to contain_exactly("1877.8.0", "1877.10.0")
+          expect(machine_image[:versions]).not_to include("1877.9.0")
+        end
+      end
+
+      context "when region is not set" do
+        before do
+          allow(self).to receive(:region).and_return(nil)
+        end
+
+        it "returns all machine image versions without filtering" do
+          result = list_cloud_profiles
+          cloud_profile = result.first
+
+          machine_image = cloud_profile[:machineImages].first
+          expect(machine_image[:name]).to eq("gardenlinux")
+          expect(machine_image[:versions]).to contain_exactly("1877.8.0", "1877.9.0", "1877.10.0")
+        end
+      end
+
+      context "when providerConfig is missing" do
+        let(:mock_response_without_provider_config) do
+          double('response', body: {
+            "items" => [
+              {
+                "metadata" => { "uid" => "test-uid", "name" => "openstack" },
+                "spec" => {
+                  "type" => "openstack",
+                  "machineImages" => [
+                    {
+                      "name" => "gardenlinux",
+                      "versions" => [
+                        { "version" => "1877.8.0" },
+                        { "version" => "1877.9.0" }
+                      ]
+                    }
+                  ],
+                  "kubernetes" => { "versions" => [] },
+                  "machineTypes" => [],
+                  "regions" => [],
+                  "volumeTypes" => []
+                }
+              }
+            ]
+          })
+        end
+
+        before do
+          allow(elektron_gardener).to receive(:get).and_return(mock_response_without_provider_config)
+          allow(self).to receive(:region).and_return("eu-de-1")
+        end
+
+        it "returns all machine image versions without filtering" do
+          result = list_cloud_profiles
+          cloud_profile = result.first
+
+          machine_image = cloud_profile[:machineImages].first
+          expect(machine_image[:versions]).to contain_exactly("1877.8.0", "1877.9.0")
+        end
+      end
     end
 
     it "correctly maps regions with zones" do
