@@ -3,6 +3,7 @@ import { Cluster } from "../../../types/cluster"
 import { DataGridRow, DataGridCell, Icon, Stack, Button } from "@cloudoperators/juno-ui-components"
 import ReadinessConditions from "../../../components/ReadinessConditions"
 import { Link, useNavigate } from "@tanstack/react-router"
+import { VersionBadge } from "./ClusterDetails/VersionBadge"
 
 // Determine status icon and color based on cluster status
 // Possible statuses:'healthy', 'progressing', 'unhealthy', 'unknown'
@@ -78,7 +79,7 @@ const ClusterListItem: React.FC<ClusterListItemProps> = ({ cluster, ...props }) 
       <DataGridCell>
         <Stack gap="1">
           {cluster.lastMaintenance.state === "Error" ? <Icon icon="error" color="tw-text-theme-error" /> : null}
-          {cluster.version}
+          <VersionBadge version={cluster.version} versionUpdates={cluster.versionUpdates} />
         </Stack>
       </DataGridCell>
       <DataGridCell>
