@@ -282,11 +282,7 @@ const DetailsContent = ({
                           onClick={() => setShowVersionUpdateDialog(true)}
                           label="Update"
                           title="Update Kubernetes version"
-                          disabled={
-                            cluster.isDeleted ||
-                            !shootPermissions?.update ||
-                            !hasVersionUpdatesAvailable
-                          }
+                          disabled={cluster.isDeleted || !shootPermissions?.update || !hasVersionUpdatesAvailable}
                           disabledMessage={versionUpdateDisabledMessage}
                         />
                       </Stack>
