@@ -110,11 +110,11 @@ const ReadinessConditions: React.FC<ReadinessConditionsProps> = ({ conditions, s
   return (
     <div {...props}>
       <Stack gap="2">
-        <Stack gap="1">
+        <div className="tw-flex tw-flex-wrap tw-gap-1">
           {conditions.map((condition) => (
             <ConditionBadge key={condition.type} condition={condition} />
           ))}
-        </Stack>
+        </div>
         {showDetails && healthyConditions.length > 0 && (
           <button
             type="button"
