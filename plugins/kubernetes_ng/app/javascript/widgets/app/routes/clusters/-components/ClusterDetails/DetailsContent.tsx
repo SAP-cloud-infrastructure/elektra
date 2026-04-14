@@ -35,7 +35,7 @@ import { CLUSTER_DETAIL_ROUTE_ID, ClusterDetailTab } from "../../$clusterName"
 import { useQueryClient } from "@tanstack/react-query"
 import { QUERY_KEYS } from "../../../../hooks/queryKeys"
 import DisableableButton from "../../../../components/DisableableButton"
-import { VersionBadge } from "./VersionBadge"
+import { KubernetesVersionDisplay } from "./KubernetesVersionDisplay"
 import { VersionUpdateDialog } from "./VersionUpdateDialog"
 import { useUpdateClusterMutation } from "../../../../hooks/useClusterQueries"
 
@@ -193,6 +193,22 @@ const DetailsContent = ({
 
   const yamlEditorState = getYamlEditorDisabledState()
 
+  // Check if Kubernetes version updates are available
+  const hasVersionUpdatesAvailable =
+    cluster?.versionUpdates &&
+    (!!cluster.versionUpdates.patch?.length ||
+      !!cluster.versionUpdates.minor?.length ||
+      !!cluster.versionUpdates.major?.length)
+
+  // Determine disabled message for version update button
+  const versionUpdateDisabledMessage = cluster?.isDeleted
+    ? "Cluster is deleted and actions are disabled"
+    : !shootPermissions?.update
+      ? "You don't have permission to update this cluster"
+      : !hasVersionUpdatesAvailable
+        ? "No updates available"
+        : undefined
+
   // Content rendered in both tabs during loading/error states
   const loadingContent = (
     <Container py px={false}>
@@ -255,28 +271,24 @@ const DetailsContent = ({
                     <ClusterDetailRow label="Cluster Status">{`${cluster.status} ${cluster.isDeleted ? "(deleted)" : ""}`}</ClusterDetailRow>
                     <ClusterDetailRow label="Kubernetes Version">
                       <Stack gap="2" alignment="center">
-                        <VersionBadge
+                        <KubernetesVersionDisplay
                           version={cluster.version}
                           versionUpdates={cluster.versionUpdates}
                           className="tw-w-full"
                         />
-                        {cluster.versionUpdates && (
-                          <DisableableButton
-                            size="small"
-                            variant="subdued"
-                            onClick={() => setShowVersionUpdateDialog(true)}
-                            icon="download"
-                            title="Update Kubernetes version"
-                            disabled={cluster.isDeleted || !shootPermissions?.update}
-                            disabledMessage={
-                              cluster.isDeleted
-                                ? "Cannot update deleted cluster"
-                                : !shootPermissions?.update
-                                  ? "You don't have permission to update this cluster"
-                                  : undefined
-                            }
-                          />
-                        )}
+                        <DisableableButton
+                          size="small"
+                          variant="subdued"
+                          onClick={() => setShowVersionUpdateDialog(true)}
+                          label="Update"
+                          title="Update Kubernetes version"
+                          disabled={
+                            cluster.isDeleted ||
+                            !shootPermissions?.update ||
+                            !hasVersionUpdatesAvailable
+                          }
+                          disabledMessage={versionUpdateDisabledMessage}
+                        />
                       </Stack>
                     </ClusterDetailRow>
                     <ClusterDetailRow label="Namespace">

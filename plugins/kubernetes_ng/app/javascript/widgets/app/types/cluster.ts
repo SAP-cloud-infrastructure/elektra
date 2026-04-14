@@ -56,6 +56,7 @@ export const ClusterSchema = z.object({
       minor: z.array(z.string()).optional(),
       major: z.array(z.string()).optional(),
     })
+    .nullable()
     .optional(),
   namespace: z.string(),
   readiness: z.object({
