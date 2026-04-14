@@ -56,6 +56,9 @@ module Rescue
         # for project "has no access to project"
         # check MonsoonOpenstackAuth/Authentication/auth_session.rb
         if exception.message =~ /has no access to project/
+          # Return 200 OK instead of 401/403 to prevent OAuth redirect loop
+          # User IS authenticated (passed OAuth), just not authorized for this scope
+          # Using 401 would cause OAuth proxy to redirect back to IdP, creating a loop
           render(template: "application/exceptions/unauthorized")
         else
           redirect_to monsoon_openstack_auth.login_path(
