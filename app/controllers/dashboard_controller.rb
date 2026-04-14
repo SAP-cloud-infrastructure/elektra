@@ -18,15 +18,31 @@ class DashboardController < ::ScopeController
   before_action :set_mailer_host, except: %i[terms_of_use]
   before_action :load_help_text, except: [:terms_of_use]
 
-  # this method checks if user has permissions for the new scope and if so
-  rescue_from MonsoonOpenstackAuth::Authentication::NotAuthorized do |exception|
-    project = FriendlyIdEntry.find_project(@scoped_domain_id, @scoped_project_id)
+  # Handle case when user is not authenticated at all
+  rescue_from MonsoonOpenstackAuth::Authentication::NotAuthenticated do |exception|
+    # User is not logged in - return 401 to trigger OAuth login
+    render template: 'application/exceptions/not_authenticated', status: :unauthorized
+  end
 
-    if @scoped_project_id && project.nil?
-      render template: 'application/exceptions/project_not_found', status: :not_found
+  # Handle case when user is authenticated but not authorized for the scope
+  rescue_from MonsoonOpenstackAuth::Authentication::NotAuthorized do |exception|
+    if @scoped_project_id
+      # User tried to access a project
+      project = FriendlyIdEntry.find_project(@scoped_domain_id, @scoped_project_id)
+      if project.nil?
+        # Project doesn't exist
+        render template: 'application/exceptions/project_not_found', status: :not_found
+      else
+        # Project exists but user has no permission
+        # Use 200 OK to prevent OAuth redirect loop (user IS authenticated)
+        render template: 'application/exceptions/unauthorized', status: :ok
+      end
     else
-      # User has no permission for the existing project
-      render template: 'application/exceptions/unauthorized', status: :unauthorized
+      # User tried to access domain-scoped page (e.g., /monsoon3/home)
+      # This is OK - the user can still see /monsoon3/auth/projects
+      # Don't render anything, just ignore the exception and let the request continue
+      # The rescope failed but user is authenticated and can access domain-level pages
+      nil
     end
   end
 

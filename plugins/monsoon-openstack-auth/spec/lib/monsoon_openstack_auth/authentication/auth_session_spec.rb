@@ -480,13 +480,13 @@ describe MonsoonOpenstackAuth::Authentication::AuthSession do
 
     describe '::check_authentication' do
       context 'not authenticated' do
-        it 'raise not_authorized_error if not authenticated' do
+        it 'raise not_authenticated_error if not authenticated' do
           allow_any_instance_of(MonsoonOpenstackAuth::Authentication::AuthSession).to receive(:authenticated?).and_return(false)
 
           expect do
             MonsoonOpenstackAuth::Authentication::AuthSession.check_authentication(controller, domain: 'aaa',
                                                                                                project: 'bbb', raise_error: true)
-          end.to raise_error(MonsoonOpenstackAuth::Authentication::NotAuthorized)
+          end.to raise_error(MonsoonOpenstackAuth::Authentication::NotAuthenticated)
         end
 
         it 'redirect if not authenticated' do
