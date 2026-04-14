@@ -50,7 +50,7 @@ module MonsoonOpenstackAuth
           else
             # not authenticated!
             # raise error if options contains the flag
-            raise MonsoonOpenstackAuth::Authentication::NotAuthorized if raise_error
+            raise MonsoonOpenstackAuth::Authentication::NotAuthenticated if raise_error
 
             # try to redirect to login form
             login_url = session.redirect_to_login_form_url

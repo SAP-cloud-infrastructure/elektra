@@ -40,6 +40,15 @@ module Rescue
                     )
       end
 
+      # handle NotAuthenticated - user is not logged in at all
+      rescue_from "MonsoonOpenstackAuth::Authentication::NotAuthenticated" do |exception|
+        redirect_to monsoon_openstack_auth.login_path(
+                      domain_fid: @scoped_domain_fid,
+                      domain_name: @scoped_domain_name,
+                      after_login: params[:after_login],
+                    )
+      end
+
       # handle NotAuthorized but NOTE! this should never fetch because all errors related to
       # "MonsoonOpenstackAuth::Authentication::NotAuthorized" are rescued directly in rescope_token and handled by
       # "rescue_and_render_exception_page" but I leave it here just in case ;-)
