@@ -1,6 +1,8 @@
 require "spec_helper"
 RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
   include ServiceLayer::KubernetesNgServices::Clusters
+  include ServiceLayer::KubernetesNgServices::CloudProfiles
+
   describe "convert_shoot_to_cluster" do
     it "converts a full blown valid shoot to cluster format" do
       shoot_mock = {
@@ -697,8 +699,8 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
         ],
         maintenance: {
           startTime: '220000+0100',
-          windowTime: '230000+0100',
-          timezone: 'Europe/Berlin'
+          endTime: '230000+0100',
+          timezone: '+0100'
         },
         autoUpdate: {
           os: true,
@@ -768,7 +770,7 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           'hibernation' => {
             'schedules' => [
               {
-                'location' => 'Europe/Berlin'
+                'location' => '+0100'
               }
             ]
           }
@@ -1122,6 +1124,120 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
       expect(provider_patch).to be_nil
     end
 
+  end
+
+  describe "version updates" do
+    let(:cloud_profiles_map) do
+      {
+        'openstack' => ["1.27.0", "1.27.5", "1.27.6", "1.28.0", "1.28.2", "1.29.0", "2.0.0"]
+      }
+    end
+
+    it "includes versionUpdates when cloud profiles are provided" do
+      shoot = {
+        'metadata' => {
+          'name' => 'test-cluster',
+          'namespace' => 'garden-test',
+          'uid' => '12345678-1234-1234-1234-123456789012'
+        },
+        'spec' => {
+          'cloudProfile' => { 'name' => 'openstack' },
+          'kubernetes' => { 'version' => '1.27.5' },
+          'region' => 'eu-de',
+          'provider' => { 'type' => 'openstack' }
+        }
+      }
+
+      cluster = convert_shoot_to_cluster(shoot, cloud_profiles_map)
+
+      expect(cluster[:versionUpdates]).not_to be_nil
+      expect(cluster[:versionUpdates][:patch]).to eq(["1.27.6"])
+      expect(cluster[:versionUpdates][:minor]).to eq(["1.28.0", "1.28.2", "1.29.0"])
+      expect(cluster[:versionUpdates][:major]).to eq(["2.0.0"])
+    end
+
+    it "returns empty arrays versionUpdates when no updates available" do
+      shoot = {
+        'metadata' => {
+          'name' => 'test-cluster',
+          'namespace' => 'garden-test',
+          'uid' => '12345678-1234-1234-1234-123456789012'
+        },
+        'spec' => {
+          'cloudProfile' => { 'name' => 'openstack' },
+          'kubernetes' => { 'version' => '2.0.0' },
+          'region' => 'eu-de',
+          'provider' => { 'type' => 'openstack' }
+        }
+      }
+
+      cluster = convert_shoot_to_cluster(shoot, cloud_profiles_map)
+
+      expect(cluster[:versionUpdates]).to eq({ patch: [], minor: [], major: [] })
+    end
+
+    it "returns nil versionUpdates when cloud profiles not provided" do
+      shoot = {
+        'metadata' => {
+          'name' => 'test-cluster',
+          'namespace' => 'garden-test',
+          'uid' => '12345678-1234-1234-1234-123456789012'
+        },
+        'spec' => {
+          'cloudProfile' => { 'name' => 'openstack' },
+          'kubernetes' => { 'version' => '1.27.5' },
+          'region' => 'eu-de',
+          'provider' => { 'type' => 'openstack' }
+        }
+      }
+
+      cluster = convert_shoot_to_cluster(shoot, nil)
+
+      expect(cluster[:versionUpdates]).to be_nil
+    end
+
+    it "returns nil versionUpdates when cloud profile not found" do
+      shoot = {
+        'metadata' => {
+          'name' => 'test-cluster',
+          'namespace' => 'garden-test',
+          'uid' => '12345678-1234-1234-1234-123456789012'
+        },
+        'spec' => {
+          'cloudProfile' => { 'name' => 'aws' },
+          'kubernetes' => { 'version' => '1.27.5' },
+          'region' => 'eu-de',
+          'provider' => { 'type' => 'aws' }
+        }
+      }
+
+      cluster = convert_shoot_to_cluster(shoot, cloud_profiles_map)
+
+      expect(cluster[:versionUpdates]).to be_nil
+    end
+
+    it "only includes patch updates when current version has patches" do
+      shoot = {
+        'metadata' => {
+          'name' => 'test-cluster',
+          'namespace' => 'garden-test',
+          'uid' => '12345678-1234-1234-1234-123456789012'
+        },
+        'spec' => {
+          'cloudProfile' => { 'name' => 'openstack' },
+          'kubernetes' => { 'version' => '1.28.0' },
+          'region' => 'eu-de',
+          'provider' => { 'type' => 'openstack' }
+        }
+      }
+
+      cluster = convert_shoot_to_cluster(shoot, cloud_profiles_map)
+
+      expect(cluster[:versionUpdates]).not_to be_nil
+      expect(cluster[:versionUpdates][:patch]).to eq(["1.28.2"])
+      expect(cluster[:versionUpdates][:minor]).to eq(["1.29.0"])
+      expect(cluster[:versionUpdates][:major]).to eq(["2.0.0"])
+    end
   end
 
 end

@@ -42,4 +42,11 @@ export type WorkerGroup = {
 
 export type ClusterFormData = BasicInfo & Infrastructure & WorkerGroups
 
+// Type for cluster update that includes both form data and metadata
+export type ClusterUpdateData = Partial<ClusterFormData> & {
+  metadata?: {
+    annotations?: Record<string, string>
+  }
+}
+
 export type ClusterFormErrorsFlat = Record<string, string[]>

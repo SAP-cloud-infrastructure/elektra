@@ -2,7 +2,7 @@ import { createAjaxHelper } from "lib/ajax_helper"
 import { Cluster, ClusterSchema, ClustersSchema } from "./types/cluster"
 import { Permissions, PermissionsSchema } from "./types/permissions"
 import { CloudProfile, CloudProfilesSchema } from "./types/cloudProfiles"
-import { ClusterFormData } from "./routes/clusters/-components/ClusterWizard/types"
+import { ClusterFormData, ClusterUpdateData } from "./routes/clusters/-components/ClusterWizard/types"
 import { ExternalNetwork, ExternalNetworksSchema } from "./types/network"
 
 export function createGardenerApi(basepath: string) {
@@ -34,7 +34,7 @@ export function createGardenerApi(basepath: string) {
         }
         return res.data
       }),
-    updateCluster: (name: string, clusterData: Partial<ClusterFormData>) =>
+    updateCluster: (name: string, clusterData: ClusterUpdateData) =>
       apiClient.patch<{ data: object }>(`/api/clusters/${name}/`, clusterData).then((res) => {
         return res.data
       }),
