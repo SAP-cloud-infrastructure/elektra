@@ -53,20 +53,12 @@ export default defineConfig({
       use: { ...devices["Desktop Firefox"] },
     },
 
-    // Uncomment if you want to test on WebKit (Safari)
-    // {
-    //   name: 'webkit',
-    //   use: { ...devices['Desktop Safari'] },
-    // },
+    {
+      name: "webkit",
+      use: { ...devices["Desktop Safari"] },
+    },
   ],
 
   /* Folder for test artifacts such as screenshots, videos, traces, etc. */
   outputDir: "e2e/playwright-results",
-
-  /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run start',
-  //   url: 'http://127.0.0.1:3000',
-  //   reuseExistingServer: !process.env.CI,
-  // },
 })
