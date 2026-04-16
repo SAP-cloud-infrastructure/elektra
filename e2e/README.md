@@ -1,118 +1,224 @@
-Please Note, the Test User,Domain and Project is only configured in QA-DE-1
+# E2E Testing for Elektra
 
-## Smoke Tests (No Authentication Required)
+This directory contains end-to-end tests for Elektra using both Cypress (legacy) and Playwright (new).
 
-You can run smoke tests without any test user configuration. These tests verify:
+## 📁 Structure
 
-- System health endpoints (liveliness, readiness, startprobe)
-- Landing page renders correctly
-- All plugin routes are mounted (not 404)
-- Login page renders correctly
+```
+e2e/
+├── cypress/                    # Cypress tests (legacy, being phased out)
+│   ├── integration/
+│   │   ├── smoke/             # Smoke tests (no auth)
+│   │   ├── member/            # Member role tests
+│   │   └── admin/             # Admin role tests
+│   ├── support/
+│   └── cypress.config.js
+├── playwright/                 # Playwright tests (new)
+│   └── smoke/                 # Smoke tests (no auth)
+│       ├── health.spec.ts
+│       ├── landing.spec.ts
+│       ├── auth.spec.ts
+│       └── plugins.spec.ts
+├── run.sh                     # Cypress test runner
+└── run-playwright.sh          # Playwright test runner
+```
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+**No local installation required!** Tests run in Docker containers with pre-installed browsers.
 
 ```bash
-# Run smoke tests against any Elektra instance
+# Only needed if you want IDE autocomplete (optional):
+pnpm install
+```
+
+## Playwright Tests (Recommended for New Tests)
+
+### Running Playwright Smoke Tests
+
+**All tests run in Docker container - no local Playwright installation needed!**
+
+```bash
+# Using npm scripts (default: http://localhost:3000)
+pnpm e2e:smoke              # Chromium (default)
+pnpm e2e:smoke:firefox      # Firefox
+pnpm e2e:smoke:all          # All browsers
+
+# Pass custom host via npm scripts (using -- to pass args)
+pnpm e2e:smoke -- --host http://localhost:4001
+pnpm e2e:smoke:firefox -- --host http://localhost:4001
+
+# Using run-playwright.sh directly with custom host
+./e2e/run-playwright.sh --host http://localhost:4001 -p smoke
+
+# From e2e directory
+cd e2e
+./run-playwright.sh --host http://localhost:4001 -p smoke
+
+# Mac users (with Docker)
+./e2e/run-playwright.sh --host http://host.docker.internal:3000 -p smoke
+
+# Run specific test
+./e2e/run-playwright.sh --host http://localhost:4001 -p smoke health
+./e2e/run-playwright.sh -p smoke landing  # Uses default port 3000
+```
+
+**Default host:** `http://localhost:3000` (override with `--host` parameter)
+
+**Docker image:** `mcr.microsoft.com/playwright:v1.59.1-noble`
+
+## Cypress Tests (Legacy)
+
+### Running Cypress Smoke Tests
+
+```bash
+cd e2e
 ./run.sh --profile smoke --host http://localhost:3000
 
 # Mac users
 ./run.sh --profile smoke --host http://host.docker.internal:3000
 ```
 
-Smoke tests are useful for:
+**Note:** The test user and credentials are only configured in QA-DE-1 for authenticated tests.
 
-- Verifying deployments without test credentials
-- Quick health checks in CI/CD pipelines
-- Testing against any environment (not just QA-DE-1)
+### Smoke Tests (No Authentication Required)
 
-# Best Practice
+Both Cypress and Playwright support smoke tests that verify:
 
-https://docs.cypress.io/guides/references/best-practices
+- System health endpoints (liveliness, readiness, startprobe)
+- Landing page renders correctly
+- All plugin routes are mounted (not 404)
+- Login page renders correctly
 
-- write descriptions always in lowercase
+### Environment Variables
 
-# Usage
-
-```bash
-./run.sh --help
-```
-
-## run e2e tests against elektra running on remote host
+Configure via `.env` file in project root:
 
 ```bash
-./run.sh https://elektra.corp
+# Test domain (defaults to cc3test)
+TEST_DOMAIN=cc3test
+
+# For authenticated tests (member/admin profiles):
+TEST_MEMBER_USER=TEST_D021500_TM
+TEST_MEMBER_PASSWORD=xxx
+TEST_ADMIN_USER=TEST_D021500_TA
+TEST_ADMIN_PASSWORD=xxx
 ```
 
-## run e2e in workspaces with running elektra env localhost
+Check `secrets/qa-de-1/values/domain-seeds.yaml` for passwords.
+
+## Migration Status
+
+| Test Suite | Cypress | Playwright | Notes |
+|------------|---------|------------|-------|
+| Smoke Tests | ✅ | ✅ | Fully migrated, both work |
+| Member Tests | ✅ | ⏳ | Migration pending (auth strategy) |
+| Admin Tests | ✅ | ⏳ | Migration pending (auth strategy) |
+
+## Development Workflow
+
+### Creating New Tests
+
+**For new tests, use Playwright:**
+
+Tests run in Docker, so no local Playwright installation needed. Just create `.spec.ts` files in `e2e/playwright/smoke/` (or other appropriate directory).
+
+Example test structure:
+
+```typescript
+import { test, expect } from "@playwright/test"
+
+test.describe("my feature", () => {
+  test("should do something", async ({ page }) => {
+    await page.goto("/my-page")
+    await expect(page.locator("h1")).toContainText("Expected Title")
+  })
+})
+```
+
+Then run via Docker:
+```bash
+./e2e/run-playwright.sh --host http://localhost:3000 -p smoke
+```
+
+### Debugging Tests
+
+Tests run in Docker container. To debug:
 
 ```bash
-./run.sh
+# Run with headed mode (visible browser - requires X11 forwarding)
+./e2e/run-playwright.sh --host http://localhost:3000 -p smoke --headed
+
+# Check test results in terminal output
+# Or view HTML report (generated in playwright-report/)
 ```
 
-run.sh will find out all information
+**Note:** Interactive UI mode (`--ui`) and debug mode (`--debug`) require X11 forwarding and are not typically used in Docker setups.
 
-## run e2e with debug mode
+## CI/CD Integration
 
-```bash
-  run.sh --host http://localhost:3000 --debug 'cypress:network:*'
-  # will show debug information about the networking"
+### GitHub Actions Example
+
+```yaml
+- name: Pull Playwright Docker image
+  run: docker pull mcr.microsoft.com/playwright:v1.59.1-noble
+
+- name: Run Playwright smoke tests
+  run: ./e2e/run-playwright.sh --host http://localhost:3000 -p smoke
+  env:
+    TEST_DOMAIN: cc3test
+
+- name: Upload test results
+  if: always()
+  uses: actions/upload-artifact@v3
+  with:
+    name: playwright-results
+    path: e2e/playwright-results/
 ```
 
-Debugging options: https://docs.cypress.io/guides/references/troubleshooting#Log-sources"
+## Why Playwright?
 
-- `cypress:cli` The top-level command line parsing problems
-- `cypress:server:args` Incorrect parsed command line arguments
-- `cypress:server:specs` Not finding the expected specs
-- `cypress:server:project` Opening the project
-- `cypress:server:browsers` Finding installed browsers
-- `cypress:launcher` Launching the found browser
-- `cypress:server:video` Video recording
-- `cypress:network:*` Adding network interceptors
-- `cypress:net-stubbing*` Network interception in the proxy layer
-- `cypress:server:reporter` Problems with test reporters
-- `cypress:server:preprocessor` Processing specs
-- `cypress:server:plugins` Running the plugins file and bundling specs
-- `cypress:server:socket-e2e` Watching spec files
-- `cypress:server:task` Invoking the cy.task() command
-- `cypress:server:socket-base` Debugging cy.request() command
-- `cypress:server:fixture` Loading fixture files
-- `cypress:server:record:ci-info` Git commit and CI information when recording to the Cypress Dashboard
+We're migrating from Cypress to Playwright for:
 
-## run e2e from darwin running elektra locally on port 3000
+1. **Better Performance** - Parallel execution by default
+2. **Multi-Browser** - Chromium, Firefox, WebKit out-of-the-box
+3. **Modern API** - Better TypeScript integration
+4. **Auto-waiting** - More reliable, less flakiness
+5. **Docker-First** - Like Cypress, runs in container (no local installation)
+6. **Cost** - No Enterprise license needed for parallel tests
 
-```bash
-./run.sh --host http://host.docker.internal:3000
-```
+## Architecture
 
-## env
-
-you need to add the following env vars to your `.env`
+Both Cypress and Playwright follow the same pattern:
 
 ```
-TEST_DOMAIN="cc3test"
-TEST_MEMBER_USER="TEST_D021500_TM"
-TEST_MEMBER_PASSWORD="xxx"
-TEST_ADMIN_USER="TEST_D021500_TA"
-TEST_ADMIN_PASSWORD="xxd"
+Host Machine
+  ├── e2e/
+  │   ├── cypress/           # Cypress tests
+  │   ├── playwright/        # Playwright tests  
+  │   ├── run.sh            # Runs Cypress in Docker
+  │   └── run-playwright.sh # Runs Playwright in Docker
+  │
+  └── Tests execute in Docker containers:
+      ├── cypress/included:15.10.0      (Cypress)
+      └── playwright:v1.59.1-noble      (Playwright)
 ```
 
-for password check `secrets/qa-de-1/values/domain-seeds.yaml`
+**No local installation of Playwright or Cypress needed** - everything runs in Docker!
 
-## cypress.json
+## Resources
 
-- https://docs.cypress.io/guides/references/configuration#Global
+- [Playwright Documentation](https://playwright.dev/)
+- [Playwright Best Practices](https://playwright.dev/docs/best-practices)
+- [Cypress Documentation](https://docs.cypress.io/) (for legacy tests)
+- Project root `CLAUDE.md` for testing conventions
 
-# Tips
+## TODOs
 
-- `cy.get().should('be.disabled')` works not with `a` or `div` tag instead use
-
-```
-  cy.get().should('have.attr', 'disabled');
-  cy.get().should('not.have.attr', 'disabled');
-```
-
-- if you do not find a good identifier use data attribute like `data-test="search"` you can access it in cypress with `cy.get('[data-test=search]`')
-
-# TODOs
-
-- at the moment we cannot test keppel-ui and cloudops tools, because our test admin user has no permission
-- we need our own project with a test member and admin user
-- https://documentation.global.cloud.sap/docs/customer/access-management/identity-service/overview/identity-usage/#technical-users
+- [ ] Migrate member tests to Playwright (pending auth strategy)
+- [ ] Migrate admin tests to Playwright (pending auth strategy)
+- [ ] Create authentication fixtures for Playwright
+- [ ] Remove Cypress once migration is complete
+- [ ] Add visual regression testing with Playwright

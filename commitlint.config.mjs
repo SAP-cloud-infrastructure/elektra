@@ -42,6 +42,7 @@ export const scopes = [
   "cypress",
   "deps",
   "docker",
+  "end-to-end",
   /^ISSUE-\d+$/, // Regex pattern for ISSUE-<number>]
 ]
 
