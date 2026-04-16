@@ -1,7 +1,15 @@
 #!/bin/bash
 
-if [ ! -f "cypress.config.js" ]; then
-  echo "ERROR: you need to run this script in e2e folder!"
+# Detect if we're running from root or e2e directory
+if [ -f "cypress.config.js" ]; then
+  # Running from e2e directory
+  E2E_DIR="$PWD"
+elif [ -f "e2e/cypress.config.js" ]; then
+  # Running from project root
+  E2E_DIR="$PWD/e2e"
+else
+  echo "ERROR: Cannot find cypress.config.js"
+  echo "Please run this script from project root or e2e directory"
   exit 1
 fi
 
@@ -76,6 +84,10 @@ else
       CY_CMD="cypress-cloud"
       shift # past argument
       ;;
+    --)
+      # Ignore npm/pnpm separator
+      shift
+      ;;
     *) # test folder
       SPECS_FOLDER="cypress/integration/$PROFILE/$1*"
       shift # past argument
@@ -85,7 +97,7 @@ else
 fi
 
 if [[ -z "${E2E_PATH}" ]]; then
-  E2E_PATH=$PWD
+  E2E_PATH=$E2E_DIR
 fi
 
 if [[ -z "${CYPRESS_BROWSER}" ]]; then
@@ -139,9 +151,16 @@ if [[ -z "${HOST}" ]]; then
 fi
 
 # get test user and password (not required for smoke profile)
-set -o allexport
-source ../.env
-set +o allexport
+# Load from parent directory if running from e2e/, from current directory if running from root
+if [ -f "../.env" ]; then
+  set -o allexport
+  source ../.env
+  set +o allexport
+elif [ -f ".env" ]; then
+  set -o allexport
+  source .env
+  set +o allexport
+fi
 
 # smoke profile does not require authentication
 if [[ "${PROFILE}" == "smoke" ]]; then
