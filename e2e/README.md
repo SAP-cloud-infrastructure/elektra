@@ -14,11 +14,15 @@ e2e/
 │   ├── support/
 │   └── cypress.config.js
 ├── playwright/                 # Playwright tests (new)
-│   └── smoke/                 # Smoke tests (no auth)
-│       ├── health.spec.ts
-│       ├── landing.spec.ts
-│       ├── auth.spec.ts
-│       └── plugins.spec.ts
+│   ├── smoke/                 # Smoke tests (no auth)
+│   │   ├── health.spec.ts
+│   │   ├── landing.spec.ts
+│   │   ├── auth.spec.ts
+│   │   └── plugins.spec.ts
+│   ├── ui/                    # UI tests (requires auth + e2e mode)
+│   │   └── api-access.spec.ts
+│   └── helpers/
+│       └── auth.ts            # Authentication helper functions
 ├── run.sh                     # Cypress test runner
 └── run-playwright.sh          # Playwright test runner
 ```
@@ -38,7 +42,7 @@ pnpm install
 
 ## Playwright Tests (Recommended for New Tests)
 
-### Running Playwright Smoke Tests
+### Running Playwright Smoke Tests (No Authentication)
 
 **Playwright runs in Docker container with browsers pre-installed. The container mounts your project to access `node_modules/@playwright/test`.**
 
@@ -66,6 +70,28 @@ cd e2e
 ./e2e/run-playwright.sh --host http://localhost:4001 -p smoke health
 ./e2e/run-playwright.sh -p smoke landing  # Uses default port 3000
 ```
+
+### Running Playwright UI Tests (Requires Authentication + E2E Mode)
+
+**UI tests require Rails running in e2e mode with mock services and test credentials in `.env` file.**
+
+```bash
+# Terminal 1: Start Rails in e2e mode (provides mock OpenStack services)
+RAILS_ENV=e2e bundle exec rails server -p 4001
+
+# Terminal 2: Run UI tests
+pnpm e2e:playwright:ui -- --host http://localhost:4001
+pnpm e2e:playwright:ui:firefox -- --host http://localhost:4001
+pnpm e2e:playwright:ui:all -- --host http://localhost:4001
+
+# Using run-playwright.sh directly
+./e2e/run-playwright.sh --host http://localhost:4001 -p ui
+
+# Run specific UI test
+./e2e/run-playwright.sh --host http://localhost:4001 -p ui api-access
+```
+
+**Note:** UI tests use `TEST_MEMBER_USER` and `TEST_MEMBER_PASSWORD` from `.env` file.
 
 **Default host:** `http://localhost:3000` (override with `--host` parameter)
 
