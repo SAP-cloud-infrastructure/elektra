@@ -31,16 +31,12 @@ test.describe("API Access - Member User", () => {
   test("API endpoints page contains expected sections", async ({ page }) => {
     await page.goto(`/${TEST_DOMAIN}/${TEST_PROJECT}/identity/projects/api-endpoints`)
 
-    // Wait for page to be fully loaded
-    await expect(page.locator("[data-test=page-title]")).toBeVisible()
+    // Wait for page to be fully loaded with correct title
+    await expect(page.locator("[data-test=page-title]")).toContainText("API Endpoints for Clients")
 
     // Verify expected content is present
     await expect(page.locator("text=/Domain ID/i")).toBeVisible()
     await expect(page.locator("text=/Project ID/i")).toBeVisible()
-
-    // Verify page title is correct (not an error page)
-    const pageTitle = await page.locator("[data-test=page-title]").textContent()
-    expect(pageTitle).toContain("API Endpoints for Clients")
   })
 })
 
