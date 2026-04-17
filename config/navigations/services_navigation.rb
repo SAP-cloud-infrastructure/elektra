@@ -346,6 +346,14 @@ SimpleNavigation::Configuration.run do |navigation|
                           highlights_on: lambda {
                             params[:controller][%r{lbaas2/?.*}]
                           }
+      networking_nav.item :archer,
+                          'Endpoint Services',
+                          -> { plugin('networking').archer_widget_path },
+                          if: -> {
+                            plugin_available?(:networking) &&
+                              current_user.has_service?('endpoint-services')
+                          },
+                          highlights_on: %r{networking/widget/archer/?.*}
       networking_nav.item :dns_service,
                           'DNS',
                           -> { plugin('dns_service').zones_path },

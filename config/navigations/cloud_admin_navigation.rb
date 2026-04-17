@@ -191,6 +191,14 @@ SimpleNavigation::Configuration.run do |navigation|
                         highlights_on: -> {
                           params[:controller][%r{keppel/?.*}]
                         }
+      cloudops_nav.item :archer,
+                        "All Archer Services",
+                        -> { plugin("networking").archer_widget_path },
+                        if: -> {
+                          plugin_available?(:networking) &&
+                            current_user.has_service?("endpoint-services")
+                        },
+                        highlights_on: %r{networking/widget/archer/?.*}
     end
 
     # primary.item :account, 'Account', nil, html: {class: "fancy-nav-header", 'data-icon': "fa fa-user fa-fw" } do |account_nav|
