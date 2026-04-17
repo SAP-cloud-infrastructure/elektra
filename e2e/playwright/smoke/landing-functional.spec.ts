@@ -1,15 +1,17 @@
 import { test, expect } from "@playwright/test"
 
 /**
- * Landing Page Tests
+ * Landing Page - Functional Tests
  *
- * These tests verify that the landing page and public-facing pages
- * are loading correctly. No authentication is required.
+ * Tests functionality of landing page and public-facing pages.
+ * No authentication required for these tests.
+ *
+ * Run with: pnpm e2e:playwright:smoke -- landing-functional
  */
 
 const TEST_DOMAIN = process.env.TEST_DOMAIN || "cc3test"
 
-test.describe("landing page", () => {
+test.describe("Landing Page - Functional", () => {
   test.describe("root page", () => {
     test("loads and renders react app", async ({ page }) => {
       await page.goto("/")
