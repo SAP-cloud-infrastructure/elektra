@@ -20,7 +20,7 @@ test.describe("API Access - Member User", () => {
   test("can access API endpoints for clients page", async ({ page }) => {
     // Navigate to API endpoints page
     await page.goto(`/${TEST_DOMAIN}/${TEST_PROJECT}/identity/projects/api-endpoints`, {
-      waitUntil: "networkidle",
+      waitUntil: "domcontentloaded",
     })
 
     // Verify page title
@@ -34,7 +34,7 @@ test.describe("API Access - Member User", () => {
 
   test("API endpoints page contains expected sections", async ({ page }) => {
     await page.goto(`/${TEST_DOMAIN}/${TEST_PROJECT}/identity/projects/api-endpoints`, {
-      waitUntil: "networkidle",
+      waitUntil: "domcontentloaded",
     })
 
     // Wait for page to be fully loaded with correct title
