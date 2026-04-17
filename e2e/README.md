@@ -20,7 +20,8 @@ e2e/
 │   │   ├── auth.spec.ts
 │   │   └── plugins.spec.ts
 │   ├── ui/                    # UI tests (requires auth + e2e mode)
-│   │   └── api-access.spec.ts
+│   │   ├── api-access.spec.ts
+│   │   └── masterdata.spec.ts
 │   └── helpers/
 │       └── auth.ts            # Authentication helper functions
 ├── run.sh                     # Cypress test runner
