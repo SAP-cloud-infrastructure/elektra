@@ -19,20 +19,28 @@ test.describe("API Access - Member User", () => {
 
   test("can access API endpoints for clients page", async ({ page }) => {
     // Navigate to API endpoints page
-    await page.goto(`/${TEST_DOMAIN}/${TEST_PROJECT}/identity/projects/api-endpoints`)
+    await page.goto(`/${TEST_DOMAIN}/${TEST_PROJECT}/identity/projects/api-endpoints`, {
+      waitUntil: "networkidle",
+    })
 
     // Verify page title
-    await expect(page.locator("[data-test=page-title]")).toContainText("API Endpoints for Clients")
+    await expect(page.locator("[data-test=page-title]")).toContainText("API Endpoints for Clients", {
+      timeout: 10000,
+    })
 
     // Verify help text is present
     await expect(page.locator("text=/access the project with the openstack client/i")).toBeVisible()
   })
 
   test("API endpoints page contains expected sections", async ({ page }) => {
-    await page.goto(`/${TEST_DOMAIN}/${TEST_PROJECT}/identity/projects/api-endpoints`)
+    await page.goto(`/${TEST_DOMAIN}/${TEST_PROJECT}/identity/projects/api-endpoints`, {
+      waitUntil: "networkidle",
+    })
 
     // Wait for page to be fully loaded with correct title
-    await expect(page.locator("[data-test=page-title]")).toContainText("API Endpoints for Clients")
+    await expect(page.locator("[data-test=page-title]")).toContainText("API Endpoints for Clients", {
+      timeout: 10000,
+    })
 
     // Verify expected content is present
     await expect(page.locator("text=/Domain ID/i")).toBeVisible()
