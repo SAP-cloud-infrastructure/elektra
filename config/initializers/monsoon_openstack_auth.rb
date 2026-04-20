@@ -30,6 +30,11 @@ MonsoonOpenstackAuth.configure do |auth|
   auth.enforce_natural_user = ENV['ENFORCE_NATURAL_USER_LOGIN'].to_s == 'true'
   auth.natural_user_name_pattern = /\A([DCIdci]\d*|TI_EC5A3E_.*)\z/
 
+  # Feature flags for SSO authorization and password session control
+  # See MONSOON_OPENSTACK_SSO_STRICT_MODE and MONSOON_OPENSTACK_PASSWORD_SYNC_ONLY env vars
+  auth.block_login_fallback_after_sso = ENV.fetch('MONSOON_OPENSTACK_SSO_STRICT_MODE', 'false') == 'true'
+  auth.password_session_auth_allowed = ENV.fetch('MONSOON_OPENSTACK_PASSWORD_SYNC_ONLY', 'false') != 'true'
+
   # authorization policy file
   auth.authorization.policy_file_path = policy_paths
   # auth.authorization.context = "identity"
