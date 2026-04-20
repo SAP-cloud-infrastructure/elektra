@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { Tooltip, TooltipTrigger, TooltipContent, Icon, Stack } from "@cloudoperators/juno-ui-components"
+import { Tooltip, TooltipTrigger, TooltipContent, Icon } from "@cloudoperators/juno-ui-components"
 
 export interface ClipboardTextProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
