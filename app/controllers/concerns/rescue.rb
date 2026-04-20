@@ -40,21 +40,25 @@ module Rescue
                     )
       end
 
+      # handle NotAuthenticated - user is not logged in at all
+      rescue_from "MonsoonOpenstackAuth::Authentication::NotAuthenticated" do |exception|
+        redirect_to monsoon_openstack_auth.login_path(
+                      domain_fid: @scoped_domain_fid,
+                      domain_name: @scoped_domain_name,
+                      after_login: params[:after_login],
+                    )
+      end
+
       # handle NotAuthorized but NOTE! this should never fetch because all errors related to
       # "MonsoonOpenstackAuth::Authentication::NotAuthorized" are rescued directly in rescope_token and handled by
       # "rescue_and_render_exception_page" but I leave it here just in case ;-)
       rescue_from "MonsoonOpenstackAuth::Authentication::NotAuthorized" do |exception|
-        # for project "has no access to project"
-        # check MonsoonOpenstackAuth/Authentication/auth_session.rb
-        if exception.message =~ /has no access to project/
-          render(template: "application/exceptions/unauthorized")
-        else
-          redirect_to monsoon_openstack_auth.login_path(
-                        domain_fid: @scoped_domain_fid,
-                        domain_name: @scoped_domain_name,
-                        after_login: params[:after_login],
-                      )
-        end
+        # Return 200 OK instead of 401/403 to prevent OAuth redirect loop
+        # User IS authenticated (passed OAuth), just not authorized for this scope
+        # Using 401 would cause OAuth proxy to redirect back to IdP, creating a loop
+        # This rescue_from should rarely be triggered as DashboardController handles
+        # NotAuthorized more specifically in rescope_token_with_error_handling
+        render(template: "application/exceptions/unauthorized")
       end
 
       # handle all api errors

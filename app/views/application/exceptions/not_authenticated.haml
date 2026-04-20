@@ -1,0 +1,7 @@
+- if modal?
+  = content_for :title do
+    Not Authenticated
+
+%div{class: modal? ? 'modal-body' : ''}
+  %h3 Not Authenticated
+  %p You need to sign in to access this content.
