@@ -174,7 +174,6 @@ export const cloudProfiles: CloudProfile[] = [
     machineTypes: mockMachineTypes,
     machineImages: mockMachineImages,
     regions: mockRegions,
-    volumeTypes: ["gp2", "io1"],
   },
 ]
 

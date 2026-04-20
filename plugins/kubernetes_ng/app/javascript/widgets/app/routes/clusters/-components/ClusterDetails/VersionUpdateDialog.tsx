@@ -9,7 +9,7 @@ import {
   ButtonRow,
   Message,
 } from "@cloudoperators/juno-ui-components"
-import { VersionUpdates } from "./VersionBadge"
+import { VersionUpdates } from "./KubernetesVersionDisplay"
 
 interface VersionOption {
   version: string

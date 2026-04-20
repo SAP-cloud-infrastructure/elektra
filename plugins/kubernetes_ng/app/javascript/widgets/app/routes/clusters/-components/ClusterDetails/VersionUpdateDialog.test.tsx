@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from "@testing-library/react"
 import { VersionUpdateDialog } from "./VersionUpdateDialog"
 import { PortalProvider } from "@cloudoperators/juno-ui-components"
 import { MessagesProvider } from "@cloudoperators/juno-messages-provider"
-import { VersionUpdates } from "./VersionBadge"
+import { VersionUpdates } from "./KubernetesVersionDisplay"
 
 // Helper component to wrap tests with PortalProvider and MessagesProvider
 const renderWithProviders = (component: React.ReactElement) => {
