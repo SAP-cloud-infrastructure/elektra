@@ -18,6 +18,7 @@ import { Page } from "@playwright/test"
  * - User/Distribution List IDs
  * - Cost Object Numbers
  * - Timestamps
+ * - Token expiration times
  *
  * @param page - Playwright Page object
  * @returns Array of locators to mask
@@ -50,6 +51,9 @@ export function getSecurityMaskSelectors(page: Page) {
 
     // Timestamps and dates
     page.locator("text=/Last change/i").locator(".."),
+
+    // Footer: Token expiration time (changes with every login)
+    page.locator("text=/Token expires at:/i"),
   ]
 }
 
@@ -77,6 +81,9 @@ export function getBasicMaskSelectors(page: Page) {
 
     // Email addresses
     page.locator("a[href^='mailto:']"),
+
+    // Footer: Token expiration time (changes with every login)
+    page.locator("text=/Token expires at:/i"),
   ]
 }
 
