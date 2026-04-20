@@ -35,8 +35,25 @@ import { CLUSTER_DETAIL_ROUTE_ID, ClusterDetailTab } from "../../$clusterName"
 import { useQueryClient } from "@tanstack/react-query"
 import { QUERY_KEYS } from "../../../../hooks/queryKeys"
 import DisableableButton from "../../../../components/DisableableButton"
+import { KubernetesVersionDisplay } from "./KubernetesVersionDisplay"
+import { VersionUpdateDialog } from "./VersionUpdateDialog"
+import { useUpdateClusterMutation } from "../../../../hooks/useClusterQueries"
 
 const sectionHeaderStyles = "details-section tw-text-lg tw-font-bold tw-mb-4"
+
+/**
+ * Parse maintenance time string (HHMMSS+HHMM) to HH:MM format
+ * Example: "170000+0000" -> "17:00"
+ */
+function parseMaintenanceTime(timeString: string | undefined): string {
+  if (!timeString) return ""
+
+  const match = timeString.match(/^(\d{2})(\d{2})/)
+  if (!match) return timeString
+
+  const [, hours, minutes] = match
+  return `${hours}:${minutes}`
+}
 
 const DetailsContent = ({
   cluster,
@@ -55,12 +72,14 @@ const DetailsContent = ({
 }) => {
   const [showLastOperation, setShowLastOperation] = useState(false)
   const [isEditingWorkers, setIsEditingWorkers] = useState(false)
+  const [showVersionUpdateDialog, setShowVersionUpdateDialog] = useState(false)
   const { apiClient } = useRouteContext({ strict: false }) as RouterContext
   const params = useParams({ from: CLUSTER_DETAIL_ROUTE_ID })
   const navigate = useNavigate({ from: CLUSTER_DETAIL_ROUTE_ID })
   const { tab } = useSearch({ from: CLUSTER_DETAIL_ROUTE_ID })
   const { addMessage, resetMessages } = useActions()
   const queryClient = useQueryClient()
+  const updateClusterMutation = useUpdateClusterMutation(apiClient)
 
   // Handle tab change via URL navigation
   const tabIndex = tab === "yaml" ? 1 : 0
@@ -119,6 +138,33 @@ const DetailsContent = ({
     addMessage({ text: "Worker groups updated successfully", variant: "success" })
   }
 
+  const handleVersionUpdate = (targetVersion: string) => {
+    if (!cluster) return
+
+    updateClusterMutation.mutate(
+      {
+        clusterName: cluster.name,
+        data: { kubernetesVersion: targetVersion },
+      },
+      {
+        onSuccess: () => {
+          setShowVersionUpdateDialog(false)
+          resetMessages()
+          addMessage({
+            text: `Kubernetes version update to ${targetVersion} initiated successfully`,
+            variant: "success",
+          })
+        },
+        onError: (error) => {
+          setShowVersionUpdateDialog(false)
+          resetMessages()
+          const errText = normalizeError(error)
+          addMessage({ text: `Version update failed: ${errText.title}${errText.message}`, variant: "danger" })
+        },
+      }
+    )
+  }
+
   // Determine disabled state and message for YamlEditor
   const getYamlEditorDisabledState = () => {
     if (!cluster) {
@@ -146,6 +192,22 @@ const DetailsContent = ({
   }
 
   const yamlEditorState = getYamlEditorDisabledState()
+
+  // Check if Kubernetes version updates are available
+  const hasVersionUpdatesAvailable =
+    cluster?.versionUpdates &&
+    (!!cluster.versionUpdates.patch?.length ||
+      !!cluster.versionUpdates.minor?.length ||
+      !!cluster.versionUpdates.major?.length)
+
+  // Determine disabled message for version update button
+  const versionUpdateDisabledMessage = cluster?.isDeleted
+    ? "Cluster is deleted and actions are disabled"
+    : !shootPermissions?.update
+      ? "You don't have permission to update this cluster"
+      : !hasVersionUpdatesAvailable
+        ? "No updates available"
+        : undefined
 
   // Content rendered in both tabs during loading/error states
   const loadingContent = (
@@ -207,7 +269,24 @@ const DetailsContent = ({
                       <ClipboardText text={cluster.uid} />
                     </ClusterDetailRow>
                     <ClusterDetailRow label="Cluster Status">{`${cluster.status} ${cluster.isDeleted ? "(deleted)" : ""}`}</ClusterDetailRow>
-                    <ClusterDetailRow label="Kubernetes Version">{cluster.version}</ClusterDetailRow>
+                    <ClusterDetailRow label="Kubernetes Version">
+                      <Stack gap="2" alignment="center">
+                        <KubernetesVersionDisplay
+                          version={cluster.version}
+                          versionUpdates={cluster.versionUpdates}
+                          className="tw-w-full"
+                        />
+                        <DisableableButton
+                          size="small"
+                          variant="subdued"
+                          onClick={() => setShowVersionUpdateDialog(true)}
+                          label="Update"
+                          title="Update Kubernetes version"
+                          disabled={cluster.isDeleted || !shootPermissions?.update || !hasVersionUpdatesAvailable}
+                          disabledMessage={versionUpdateDisabledMessage}
+                        />
+                      </Stack>
+                    </ClusterDetailRow>
                     <ClusterDetailRow label="Namespace">
                       <ClipboardText text={cluster.namespace} />
                     </ClusterDetailRow>
@@ -345,9 +424,13 @@ const DetailsContent = ({
                     <Container py px={false}>
                       <h2 className={sectionHeaderStyles}>Maintenance Window</h2>
                       <DataGrid columns={2} gridColumnTemplate="35% auto">
-                        <ClusterDetailRow label="Start Time">{cluster.maintenance?.startTime}</ClusterDetailRow>
-                        <ClusterDetailRow label="Window Time">{cluster.maintenance?.windowTime}</ClusterDetailRow>
-                        <ClusterDetailRow label="Timezone">{cluster.maintenance?.timezone}</ClusterDetailRow>
+                        <ClusterDetailRow label="Start Time">
+                          {parseMaintenanceTime(cluster.maintenance.startTime)}
+                        </ClusterDetailRow>
+                        <ClusterDetailRow label="End Time">
+                          {parseMaintenanceTime(cluster.maintenance.endTime)}
+                        </ClusterDetailRow>
+                        <ClusterDetailRow label="Timezone">{cluster.maintenance.timezone}</ClusterDetailRow>
                       </DataGrid>
                     </Container>
                     <Container py px={false}>
@@ -376,6 +459,17 @@ const DetailsContent = ({
             </>
           )}
         </Tabs>
+
+        {cluster && showVersionUpdateDialog && (
+          <VersionUpdateDialog
+            isOpen={showVersionUpdateDialog}
+            onClose={() => setShowVersionUpdateDialog(false)}
+            onConfirm={handleVersionUpdate}
+            currentVersion={cluster.version}
+            versionUpdates={cluster.versionUpdates}
+            isUpdating={updateClusterMutation.isPending}
+          />
+        )}
       </div>
     </Container>
   )

@@ -104,7 +104,7 @@ describe("<ClusterDetail />", () => {
 
     const deleteButton = screen.getByRole("button", { name: /delete cluster/i })
     expect(deleteButton).toBeDisabled()
-    const downloadKubeconfigButton = screen.getByRole("button", { name: /Kube Config/i })
+    const downloadKubeconfigButton = screen.getByRole("button", { name: /Kubeconfig/i })
     expect(downloadKubeconfigButton).toBeDisabled()
   })
 

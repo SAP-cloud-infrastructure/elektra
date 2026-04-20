@@ -50,6 +50,14 @@ export const ClusterSchema = z.object({
   infrastructure: z.string(),
   status: z.string(),
   version: z.string(),
+  versionUpdates: z
+    .object({
+      patch: z.array(z.string()).optional(),
+      minor: z.array(z.string()).optional(),
+      major: z.array(z.string()).optional(),
+    })
+    .nullable()
+    .optional(),
   namespace: z.string(),
   readiness: z.object({
     status: z.string(),
@@ -78,7 +86,7 @@ export const ClusterSchema = z.object({
   maintenance: z.object({
     startTime: z.string(),
     timezone: z.string(),
-    windowTime: z.string(),
+    endTime: z.string(),
   }),
 
   lastMaintenance: z.object({

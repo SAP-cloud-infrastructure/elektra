@@ -3,7 +3,7 @@ import { GardenerApi } from "../apiClient"
 import { QUERY_KEYS } from "./queryKeys"
 import { Cluster } from "../types/cluster"
 import { Permissions } from "../types/permissions"
-import { ClusterFormData } from "../routes/clusters/-components/ClusterWizard/types"
+import { ClusterFormData, ClusterUpdateData } from "../routes/clusters/-components/ClusterWizard/types"
 
 /**
  * Query hook for fetching clusters with automatic polling
@@ -97,7 +97,7 @@ export function useUpdateClusterMutation(apiClient: GardenerApi) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ clusterName, data }: { clusterName: string; data: Partial<ClusterFormData> }) => {
+    mutationFn: ({ clusterName, data }: { clusterName: string; data: ClusterUpdateData }) => {
       return apiClient.gardener.updateCluster(clusterName, data)
     },
     onSuccess: (_, variables) => {
@@ -122,6 +122,32 @@ export function useCreateClusterMutation(apiClient: GardenerApi) {
     },
     onSuccess: () => {
       // Invalidate clusters list to show the new cluster
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.clusters })
+    },
+  })
+}
+
+/**
+ * Mutation hook for reconciling a cluster
+ * Adds the gardener.cloud/operation=reconcile annotation to trigger reconciliation
+ */
+export function useReconcileClusterMutation(apiClient: GardenerApi) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ clusterName }: { clusterName: string }) => {
+      return apiClient.gardener.updateCluster(clusterName, {
+        metadata: {
+          annotations: {
+            "gardener.cloud/operation": "reconcile",
+          },
+        },
+      })
+    },
+    onSuccess: (_, variables) => {
+      // Invalidate the specific cluster query to refetch latest data
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.cluster(variables.clusterName) })
+      // Also invalidate clusters list to keep it in sync
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.clusters })
     },
   })

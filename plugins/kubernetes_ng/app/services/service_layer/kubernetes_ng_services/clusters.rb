@@ -2,19 +2,43 @@ module ServiceLayer
   module KubernetesNgServices
     # This module implements Openstack Domain API
     module Clusters
+      include VersionHelpers
+      include CloudProfiles  # Include to access list_cloud_profiles
+
       class KubeconfigGenerationError < StandardError; end
 
       def list_clusters
+        # Fetch all cloud profiles once for version calculations
+        # Rescue at this level to allow graceful degradation - clusters are still viewable
+        # even if cloud profiles are unavailable
+        cloud_profiles_map = begin
+          build_cloud_profiles_map
+        rescue => e
+          Rails.logger.warn("Cloud profiles unavailable, version updates will not be shown: #{e.message}")
+          nil
+        end
+
         response = elektron_gardener.get("apis/core.gardener.cloud/v1beta1/namespaces/#{garden_namespace}/shoots")
         shoot_items = response&.body&.dig("items") || []
-        return shoot_items.map { |shoot| convert_shoot_to_cluster(shoot) }.compact
+        return shoot_items.map { |shoot| convert_shoot_to_cluster(shoot, cloud_profiles_map) }.compact
       end
 
       def show_cluster_by_name(cluster_name)
         return nil unless cluster_name
+
+        # Fetch all cloud profiles once for version calculations
+        # Rescue at this level to allow graceful degradation - clusters are still viewable
+        # even if cloud profiles are unavailable
+        cloud_profiles_map = begin
+          build_cloud_profiles_map
+        rescue => e
+          Rails.logger.warn("Cloud profiles unavailable, version updates will not be shown: #{e.message}")
+          nil
+        end
+
         response = elektron_gardener.get("apis/core.gardener.cloud/v1beta1/namespaces/#{garden_namespace}/shoots/#{cluster_name}")
         shoot_body = response&.body
-        return convert_shoot_to_cluster(shoot_body)
+        return convert_shoot_to_cluster(shoot_body, cloud_profiles_map)
       end
 
       def create_cluster(cluster_spec)
@@ -104,11 +128,41 @@ module ServiceLayer
 
       private
 
+      # Build a map of cloud profile names to kubernetes versions arrays
+      # Uses list_cloud_profiles from CloudProfiles module
+      # @return [Hash] Map of cloud profile name => [version1, version2, ...]
+      def build_cloud_profiles_map
+        cloud_profiles = list_cloud_profiles || []
+
+        cloud_profiles.each_with_object({}) do |profile, map|
+          next unless profile.is_a?(Hash) && profile[:name] && profile[:kubernetesVersions]
+          map[profile[:name]] = profile[:kubernetesVersions]
+        end
+      end
+
+      # Calculate version update information for a cluster
+      # @param current_version [String] Current cluster version
+      # @param cloud_profile_name [String] Name of the cloud profile
+      # @param cloud_profiles_map [Hash] Map of cloud profile names to version arrays
+      # @return [Hash, nil] Version updates grouped by type, or nil if no updates
+      def calculate_version_updates(current_version, cloud_profile_name, cloud_profiles_map)
+        return nil unless current_version && cloud_profile_name && cloud_profiles_map
+
+        available_versions = cloud_profiles_map[cloud_profile_name]
+        return nil unless available_versions && available_versions.any?
+
+        # Calculate updates using helper from VersionHelpers module
+        calculate_available_updates(current_version, available_versions)
+      end
+
       # Recursively build JSON Patch operations for nested hashes
       # This ensures we don't replace entire parent objects when updating nested fields
       def build_patch_operations(hash, base_path, operations)
         hash.each do |key, value|
-          path = "#{base_path}/#{key}"
+          # Escape special characters in JSON Patch paths
+          # Per RFC 6901: ~ must be escaped as ~0, / must be escaped as ~1
+          escaped_key = key.to_s.gsub('~', '~0').gsub('/', '~1')
+          path = "#{base_path}/#{escaped_key}"
 
           if value.is_a?(Hash) && !value.empty?
             # Recurse into nested hashes
@@ -157,13 +211,20 @@ module ServiceLayer
 
       ## Helper Methods
       # Convert a single shoot API response to cluster format for the UI
-      def convert_shoot_to_cluster(shoot)
+      def convert_shoot_to_cluster(shoot, cloud_profiles_map = nil)
         return nil unless shoot.is_a?(Hash)
-        
+
         metadata = shoot.dig('metadata') || {}
         spec = shoot.dig('spec') || {}
         status = shoot.dig('status') || {}
-        
+
+        # Get current version and cloud profile name
+        current_version = deep_fetch(spec, 'kubernetes', 'version')
+        cloud_profile_name = deep_fetch(spec, 'cloudProfile', 'name')
+
+        # Calculate version updates if cloud profiles are available
+        version_updates = calculate_version_updates(current_version, cloud_profile_name, cloud_profiles_map)
+
         {
           # List view fields
           uid: metadata['uid'],
@@ -172,14 +233,15 @@ module ServiceLayer
           isDeleted: get_cluster_deletion_status(metadata),
           region: spec['region'],
           infrastructure: deep_fetch(spec, 'provider', 'type'),
-          status: get_cluster_status(shoot),          
-          version: deep_fetch(spec, 'kubernetes', 'version'),
+          status: get_cluster_status(shoot),
+          version: current_version,
+          versionUpdates: version_updates,
           readiness: get_cluster_readiness(shoot),
           purpose: spec['purpose'],
           addOns: get_enabled_add_ons(spec),
-          cloudProfileName: deep_fetch(spec, 'cloudProfile', 'name'),
+          cloudProfileName: cloud_profile_name,
           namespace: metadata.dig('namespace'),
-          secretBindingName: spec['secretBindingName'],          
+          secretBindingName: spec['secretBindingName'],
           lastOperation: safe_map_last_operation(status['lastOperation']),
           lastOperationSummary: get_last_operation_summary(status['lastOperation']),
           lastErrors: safe_map_last_errors(status['lastErrors']),
@@ -347,13 +409,19 @@ module ServiceLayer
       # Extract maintenance window information
       def get_maintenance_info(spec)
         maintenance = spec.dig('maintenance')
-        hibernation = spec.dig('hibernation')
         time_window = maintenance&.dig('timeWindow') || {}
-        
+        begin_time = time_window['begin'] || ''
+
+        # Extract timezone offset from begin time (format: HHMMSS+HHMM or HHMMSS-HHMM)
+        timezone = ''
+        if begin_time =~ /([+-]\d{4})$/
+          timezone = $1
+        end
+
         {
-          startTime: time_window['begin'] || '',
-          timezone: deep_fetch(hibernation, 'schedules', 0, 'location') || '',
-          windowTime: time_window['end'] || ''
+          startTime: begin_time,
+          timezone: timezone,
+          endTime: time_window['end'] || ''
         }
       end
       
@@ -384,6 +452,12 @@ module ServiceLayer
         metadata = {}
         metadata['uid'] = cluster[:uid] if cluster[:uid]
         metadata['name'] = cluster[:name] if cluster[:name]
+
+        # Add annotations if present
+        if cluster[:metadata] && cluster[:metadata][:annotations]
+          metadata['annotations'] = cluster[:metadata][:annotations]
+        end
+
         metadata.empty? ? nil : metadata
       end
 
@@ -510,10 +584,10 @@ module ServiceLayer
         # Time window
         if cluster[:maintenance]
           maint = cluster[:maintenance]
-          if maint[:startTime] || maint[:start_time] || maint[:windowTime] || maint[:window_time] # Handle both camelCase and snake_case
+          if maint[:startTime] || maint[:start_time] || maint[:endTime] || maint[:end_time] # Handle both camelCase and snake_case
             maintenance['timeWindow'] = {
               'begin' => maint[:startTime] || maint[:start_time],
-              'end' => maint[:windowTime] || maint[:window_time]
+              'end' => maint[:endTime] || maint[:end_time]
             }.compact
           end
         end

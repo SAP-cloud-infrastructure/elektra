@@ -52,7 +52,7 @@ describe DashboardController, type: :controller do
 
     context "when NotAuthorized exception is raised" do
       context "and project exists (user has no permission)" do
-        it "renders unauthorized template with 401 status" do
+        it "renders unauthorized template with 200 status to prevent OAuth redirect loop" do
           # Mock FriendlyIdEntry to return a project (project exists)
           allow(FriendlyIdEntry).to receive(:find_project)
             .with(default_params[:domain_id], default_params[:project_id])
@@ -65,7 +65,9 @@ describe DashboardController, type: :controller do
 
           get :terms_of_use, params: default_params
 
-          expect(response).to have_http_status(:unauthorized)
+          # User IS authenticated (passed OAuth), just not authorized for this scope
+          # Return 200 to prevent OAuth proxy redirect loop
+          expect(response).to have_http_status(:ok)
           expect(response).to render_template('application/exceptions/unauthorized')
         end
       end

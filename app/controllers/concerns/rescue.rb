@@ -40,13 +40,22 @@ module Rescue
                     )
       end
 
+      # handle NotAuthenticated - user is not logged in at all
+      rescue_from "MonsoonOpenstackAuth::Authentication::NotAuthenticated" do |exception|
+        redirect_to monsoon_openstack_auth.login_path(
+                      domain_fid: @scoped_domain_fid,
+                      domain_name: @scoped_domain_name,
+                      after_login: params[:after_login],
+                    )
+      end
+
       # handle NotAuthorized but NOTE! this should never fetch because all errors related to
       # "MonsoonOpenstackAuth::Authentication::NotAuthorized" are rescued directly in rescope_token and handled by
       # "rescue_and_render_exception_page" but I leave it here just in case ;-)
       rescue_from "MonsoonOpenstackAuth::Authentication::NotAuthorized" do |exception|
         if MonsoonOpenstackAuth.configuration.block_login_fallback_after_sso? &&
            exception.message =~ /Valid certificate authentication/
-          # Certificate SSO succeeded but user has no OpenStack access — show 403, no redirect
+          # Certificate SSO succeeded but user has no OpenStack access — show error, no redirect
           render_exception_page(
             exception,
             title: "Access Forbidden",
@@ -55,16 +64,11 @@ module Rescue
             sentry: false,
             status: 403
           )
-
-        elsif exception.message =~ /has no access to project/
-          render(template: "application/exceptions/unauthorized")
-
         else
-          redirect_to monsoon_openstack_auth.login_path(
-                        domain_fid: @scoped_domain_fid,
-                        domain_name: @scoped_domain_name,
-                        after_login: params[:after_login],
-                      )
+          # Return 200 OK instead of 401/403 to prevent OAuth redirect loop
+          # User IS authenticated (passed OAuth), just not authorized for this scope
+          # Using 401 would cause OAuth proxy to redirect back to IdP, creating a loop
+          render(template: "application/exceptions/unauthorized")
         end
       end
 

@@ -46,7 +46,7 @@ const WorkerGroupEditModal: React.FC<WorkerGroupEditModalProps> = ({
   const { apiClient } = useRouteContext({ strict: false }) as RouterContext
 
   // Store initial worker groups to detect changes (captured once on mount)
-  const initialWorkerGroupsRef = useRef<WorkerGroup[]>(workers.map((w, i) => workerToWorkerGroup(w, i, true)))
+  const initialWorkerGroupsRef = useRef<WorkerGroup[]>(workers.map((w, i) => workerToWorkerGroup(w, i)))
 
   const [workerGroups, setWorkerGroups] = useState<WorkerGroup[]>(initialWorkerGroupsRef.current)
   const [formErrors, setFormErrors] = useState<FormErrors>({})

@@ -8,8 +8,12 @@ class DashboardController < ::ScopeController
     domain: lambda { |c| c.instance_variable_get(:@scoped_domain_id)},
     domain_name: lambda { |c| c.instance_variable_get(:@scoped_domain_name)},
     project: lambda { |c| c.instance_variable_get(:@scoped_project_id)},
-    two_factor: :two_factor_required?
+    two_factor: :two_factor_required?,
+    rescope: false  # Don't rescope automatically - we'll do it manually to handle errors gracefully
   )
+
+  # Manual rescoping with error handling to prevent OAuth redirect loop
+  before_action :rescope_token_with_error_handling
 
   before_action { params.delete(:after_login) }                    
   before_action :check_terms_of_use, except: %i[accept_terms_of_use terms_of_use]
@@ -18,16 +22,10 @@ class DashboardController < ::ScopeController
   before_action :set_mailer_host, except: %i[terms_of_use]
   before_action :load_help_text, except: [:terms_of_use]
 
-  # this method checks if user has permissions for the new scope and if so
-  rescue_from MonsoonOpenstackAuth::Authentication::NotAuthorized do |exception|
-    project = FriendlyIdEntry.find_project(@scoped_domain_id, @scoped_project_id)
-
-    if @scoped_project_id && project.nil?
-      render template: 'application/exceptions/project_not_found', status: :not_found
-    else
-      # User has no permission for the existing project
-      render template: 'application/exceptions/unauthorized', status: :unauthorized
-    end
+  # Handle case when user is not authenticated at all
+  rescue_from MonsoonOpenstackAuth::Authentication::NotAuthenticated do |exception|
+    # User is not logged in - return 401 to trigger OAuth login
+    render template: 'application/exceptions/not_authenticated', status: :unauthorized
   end
 
   def check_terms_of_use
@@ -79,7 +77,33 @@ class DashboardController < ::ScopeController
     render action: :terms_of_use
   end
 
-  private 
+  private
+
+  def rescope_token_with_error_handling
+    begin
+      # Try to rescope token to domain/project using the authentication instance method
+      authentication_rescope_token
+    rescue MonsoonOpenstackAuth::Authentication::NotAuthorized => e
+      # Rescoping failed - user doesn't have permissions for this scope
+      if @scoped_project_id
+        # User tried to access a project
+        project = FriendlyIdEntry.find_project(@scoped_domain_id, @scoped_project_id)
+        if project.nil?
+          # Project doesn't exist
+          render template: 'application/exceptions/project_not_found', status: :not_found
+        else
+          # Project exists but user has no permission
+          # Use 200 OK to prevent OAuth redirect loop (user IS authenticated)
+          render template: 'application/exceptions/unauthorized', status: :ok
+        end
+      else
+        # Domain-scoped without project: user can still access certain pages
+        # like /monsoon3/auth/projects even without domain permissions
+        # Don't render - just log and continue, allowing the controller action to execute
+        Rails.logger.info "Rescope failed for domain #{@scoped_domain_id}: #{e.message}. Continuing without rescope."
+      end
+    end
+  end
 
   def project_id_required
     return unless params[:project_id].blank?

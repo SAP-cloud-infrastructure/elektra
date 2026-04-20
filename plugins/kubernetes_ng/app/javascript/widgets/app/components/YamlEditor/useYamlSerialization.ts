@@ -1,13 +1,29 @@
 import { useMemo, useEffect } from "react"
 import yamlParser from "js-yaml"
 
+// Filter out managedFields from metadata (server-managed, not user-editable)
+function filterManagedFields(resource: Record<string, unknown>): Record<string, unknown> {
+  const metadata = resource.metadata as Record<string, unknown> | undefined
+  if (!metadata?.managedFields) {
+    return resource
+  }
+
+  const filteredMetadata = { ...metadata }
+  delete filteredMetadata.managedFields
+  return {
+    ...resource,
+    metadata: filteredMetadata,
+  }
+}
+
 export function useYamlSerialization(
   resource: Record<string, unknown>,
   onError?: (error: Error) => void
 ) {
   const { yamlContent, error } = useMemo(() => {
     try {
-      const yamlString = yamlParser.dump(resource, {
+      const filteredResource = filterManagedFields(resource)
+      const yamlString = yamlParser.dump(filteredResource, {
         indent: 2,
         lineWidth: -1,
         noRefs: true,
