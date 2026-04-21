@@ -100,5 +100,98 @@ test.describe("Visual Regression - Shared File System Components", () => {
     })
   })
 
+  test("shares - create dialog", async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto(`/${TEST_DOMAIN}/admin/shared-filesystem-storage/?r=/shares`, {
+      waitUntil: "domcontentloaded",
+    })
+    await expect(page.locator("[data-test=page-title]")).toContainText("File System Storage")
+
+    // Wait for React widget to load
+    await page.waitForTimeout(5000)
+
+    // Click on "Create New" button
+    const createButton = page.locator('a:has-text("Create New")')
+    await expect(createButton).toBeVisible({ timeout: 10000 })
+    await createButton.click()
+
+    // Wait for modal to appear
+    await page.waitForTimeout(3000)
+
+    // Wait for modal content (React app uses role="document")
+    const modalContent = page.locator('.modal-content[role="document"]').first()
+    await expect(modalContent).toBeVisible({ timeout: 10000 })
+    await page.waitForTimeout(2000)
+
+    const masks = getBasicMaskSelectors(page)
+
+    await expect(modalContent).toHaveScreenshot("shared-filesystem-shares-create-dialog.png", {
+      mask: masks,
+      ...SCREENSHOT_OPTIONS,
+    })
+  })
+
+  test("share networks - create dialog", async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto(`/${TEST_DOMAIN}/admin/shared-filesystem-storage/?r=/share-networks`, {
+      waitUntil: "domcontentloaded",
+    })
+    await expect(page.locator("[data-test=page-title]")).toContainText("File System Storage")
+
+    // Wait for React widget to load
+    await page.waitForTimeout(5000)
+
+    // Click on "Create New" button
+    const createButton = page.locator('a:has-text("Create New")')
+    await expect(createButton).toBeVisible({ timeout: 10000 })
+    await createButton.click()
+
+    // Wait for modal to appear
+    await page.waitForTimeout(3000)
+
+    // Wait for modal content (React app uses role="document")
+    const modalContent = page.locator('.modal-content[role="document"]').first()
+    await expect(modalContent).toBeVisible({ timeout: 10000 })
+    await page.waitForTimeout(2000)
+
+    const masks = getBasicMaskSelectors(page)
+
+    await expect(modalContent).toHaveScreenshot("shared-filesystem-share-networks-create-dialog.png", {
+      mask: masks,
+      ...SCREENSHOT_OPTIONS,
+    })
+  })
+
+  test("security services - create dialog", async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto(`/${TEST_DOMAIN}/admin/shared-filesystem-storage/?r=/security-services`, {
+      waitUntil: "domcontentloaded",
+    })
+    await expect(page.locator("[data-test=page-title]")).toContainText("File System Storage")
+
+    // Wait for React widget to load
+    await page.waitForTimeout(5000)
+
+    // Click on "Create New" button
+    const createButton = page.locator('a:has-text("Create New")')
+    await expect(createButton).toBeVisible({ timeout: 10000 })
+    await createButton.click()
+
+    // Wait for modal to appear
+    await page.waitForTimeout(3000)
+
+    // Wait for modal content (React app uses role="document")
+    const modalContent = page.locator('.modal-content[role="document"]').first()
+    await expect(modalContent).toBeVisible({ timeout: 10000 })
+    await page.waitForTimeout(2000)
+
+    const masks = getBasicMaskSelectors(page)
+
+    await expect(modalContent).toHaveScreenshot("shared-filesystem-security-services-create-dialog.png", {
+      mask: masks,
+      ...SCREENSHOT_OPTIONS,
+    })
+  })
+
   // Note: Replicas and Snapshots pages have no toolbar, so we skip visual tests for these pages
 })
