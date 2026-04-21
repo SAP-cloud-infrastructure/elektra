@@ -62,4 +62,35 @@ test.describe("Visual Regression - Volumes Components", () => {
       })
     }
   })
+
+  test("volumes - create dialog", async ({ page }) => {
+    await loginAsMember(page)
+    await page.goto(`/${TEST_DOMAIN}/${TEST_PROJECT}/block-storage?r=/volumes`, {
+      waitUntil: "domcontentloaded",
+    })
+    await expect(page.locator("[data-test=page-title]")).toContainText("Volumes & Snapshots")
+
+    // Wait for React widget to load
+    await page.waitForTimeout(5000)
+
+    // Click on "Create New" button
+    const createButton = page.locator('a:has-text("Create New")')
+    await expect(createButton).toBeVisible({ timeout: 10000 })
+    await createButton.click()
+
+    // Wait for modal to appear
+    await page.waitForTimeout(3000)
+
+    // Wait for modal content (React app uses role="document")
+    const modalContent = page.locator('.modal-content[role="document"]').first()
+    await expect(modalContent).toBeVisible({ timeout: 10000 })
+    await page.waitForTimeout(2000)
+
+    const masks = getBasicMaskSelectors(page)
+
+    await expect(modalContent).toHaveScreenshot("volumes-create-dialog.png", {
+      mask: masks,
+      ...SCREENSHOT_OPTIONS,
+    })
+  })
 })
