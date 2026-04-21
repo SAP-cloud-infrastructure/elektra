@@ -11,6 +11,9 @@ import { getBasicMaskSelectors, SCREENSHOT_OPTIONS } from "../helpers/masking"
  * Run with: pnpm e2e:playwright:ui -- --host http://localhost:4001 flavors-admin-component-visual
  */
 
+// Note this test is doing nothing at the moment because the Admin cannot see the toolbar and we do
+//      test the content of the list also in the end nothing to see here
+
 const TEST_DOMAIN = process.env.TEST_DOMAIN || "cc3test"
 const TEST_PROJECT = "test"
 
@@ -29,7 +32,10 @@ test.describe("Visual Regression - Flavors Components", () => {
   test("toolbar (if visible)", async ({ page }) => {
     // Toolbar only shows if user has create permission
     const toolbar = page.locator(".toolbar")
-    const isVisible = await toolbar.first().isVisible().catch(() => false)
+    const isVisible = await toolbar
+      .first()
+      .isVisible()
+      .catch(() => false)
 
     if (isVisible) {
       const masks = getBasicMaskSelectors(page)
