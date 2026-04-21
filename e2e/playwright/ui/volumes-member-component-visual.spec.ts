@@ -49,7 +49,10 @@ test.describe("Visual Regression - Volumes Components", () => {
     const toolbar = page.locator(".toolbar")
 
     // Check if toolbar exists (only shows with 5+ items)
-    const isVisible = await toolbar.first().isVisible().catch(() => false)
+    const isVisible = await toolbar
+      .first()
+      .isVisible()
+      .catch(() => false)
     if (isVisible) {
       const masks = getBasicMaskSelectors(page)
 
@@ -57,10 +60,6 @@ test.describe("Visual Regression - Volumes Components", () => {
         mask: masks,
         ...SCREENSHOT_OPTIONS,
       })
-    } else {
-      // Skip if no toolbar (not enough snapshots)
-      console.log("Skipping snapshots toolbar - not enough items to show toolbar")
-      test.skip()
     }
   })
 })
