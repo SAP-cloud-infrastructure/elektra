@@ -3,7 +3,7 @@ import { loginAsAdmin } from "../helpers/auth"
 import { getSecurityMaskSelectors, SCREENSHOT_OPTIONS } from "../helpers/masking"
 
 /**
- * Masterdata Cockpit - Visual Regression Tests
+ * Masterdata Cockpit - Visual Regression Tests (Admin)
  *
  * Tests visual stability of the Masterdata Cockpit UI with security masking.
  * All sensitive data is masked with black boxes:
@@ -12,7 +12,7 @@ import { getSecurityMaskSelectors, SCREENSHOT_OPTIONS } from "../helpers/masking
  * - Domain/Project IDs
  * - Timestamps
  *
- * Run with: pnpm e2e:playwright:ui -- --host http://localhost:4001 masterdata-visual
+ * Run with: pnpm e2e:playwright:ui -- --host http://localhost:4001 masterdata-admin-visual
  */
 
 const TEST_DOMAIN = process.env.TEST_DOMAIN || "cc3test"
