@@ -37,8 +37,6 @@ test.describe("Visual Regression - Web Console", () => {
     let hasPendingMessage = await pendingMessage.isVisible().catch(() => false)
 
     if (hasPendingMessage) {
-      console.log("Shell is pending, waiting 60 seconds before reload...")
-
       // Wait for shell to be ready
       await page.waitForTimeout(60000) // Wait 60 seconds
 
@@ -52,7 +50,6 @@ test.describe("Visual Regression - Web Console", () => {
       hasPendingMessage = await pendingMessage.isVisible().catch(() => false)
 
       if (hasPendingMessage) {
-        console.log("Shell still pending after reload, waiting another 45 seconds...")
         await page.waitForTimeout(45000) // Wait another 45 seconds
 
         // Reload again
@@ -66,18 +63,15 @@ test.describe("Visual Regression - Web Console", () => {
     const hasXterm = await xtermScreen.isVisible().catch(() => false)
 
     if (hasXterm) {
-      console.log("xterm-screen found, shell is loaded")
       // Additional wait to ensure shell prompt is rendered
       await page.waitForTimeout(5000)
     } else {
-      console.log("xterm-screen not found yet, waiting 30 more seconds...")
       // Wait 30 more seconds for shell to fully initialize
       await page.waitForTimeout(30000)
 
       // Check again for xterm screen
       const hasXtermNow = await xtermScreen.isVisible().catch(() => false)
       if (hasXtermNow) {
-        console.log("xterm-screen now visible")
         await page.waitForTimeout(5000)
       }
     }
