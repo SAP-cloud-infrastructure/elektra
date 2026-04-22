@@ -67,7 +67,7 @@ export function getSecurityMaskSelectors(page: Page) {
  * @returns Array of locators to mask
  */
 export function getBasicMaskSelectors(page: Page) {
-  return [
+  const selectors = [
     // Header: User info
     page.locator(".user-info, [class*='user-'], .navbar .dropdown-toggle"),
     page.locator("text=/Technical.*User/i"),
@@ -85,6 +85,20 @@ export function getBasicMaskSelectors(page: Page) {
     // Footer: Token expiration time (changes with every login)
     page.locator("text=/Token expires at:/i"),
   ]
+
+  // Dynamically mask test users from environment variables
+  const memberUser = process.env.TEST_MEMBER_USER
+  const adminUser = process.env.TEST_ADMIN_USER
+
+  if (memberUser) {
+    selectors.push(page.locator(`text=${memberUser}`))
+  }
+
+  if (adminUser) {
+    selectors.push(page.locator(`text=${adminUser}`))
+  }
+
+  return selectors
 }
 
 /**
