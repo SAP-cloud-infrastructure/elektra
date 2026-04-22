@@ -5,6 +5,8 @@ import { test, expect } from "@playwright/test"
  *
  * These tests verify that the authentication pages render correctly.
  * No actual login is performed - we only test the UI elements.
+ *
+ * Run with: pnpm e2e:playwright:smoke -- --host http://localhost:PORT auth
  */
 
 const TEST_DOMAIN = process.env.TEST_DOMAIN || "cc3test"

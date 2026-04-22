@@ -7,7 +7,7 @@ import { loginAsAdmin } from "../helpers/auth"
  * Tests functionality of cost report page.
  * Verifies that page loads and basic UI elements are visible.
  *
- * Run with: pnpm e2e:playwright:ui -- --host http://localhost:4001 cost-report-admin-functional
+ * Run with: pnpm e2e:playwright:ui -- --host http://localhost:PORT cost-report-admin-functional
  */
 
 const TEST_DOMAIN = process.env.TEST_DOMAIN || "cc3test"

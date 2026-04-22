@@ -8,7 +8,10 @@ import { getBasicMaskSelectors, SCREENSHOT_OPTIONS } from "../helpers/masking"
  * Tests visual stability of specific UI components (not dynamic data).
  * Focuses on toolbars and static UI elements.
  *
- * Run with: pnpm e2e:playwright:ui -- --host http://localhost:4001 networking-admin-component-visual
+ * Run with: pnpm e2e:playwright:ui -- --host http://localhost:PORT networking-admin-component-visual
+ * Update snapshots: 
+ *   1. Delete old snapshots: rm -rf e2e/playwright/ui/networking-admin-component-visual.spec.ts-snapshots/ 
+ *   2. Generate new: pnpm e2e:playwright:ui -- --host http://localhost:PORT --update-snapshots networking-admin-component-visual
  */
 
 const TEST_DOMAIN = process.env.TEST_DOMAIN || "cc3test"

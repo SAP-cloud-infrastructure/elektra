@@ -9,7 +9,10 @@ import { getBasicMaskSelectors, SCREENSHOT_OPTIONS } from "../helpers/masking"
  * The shell needs up to 60 seconds to initialize and show the prompt.
  * Expected prompt format: "qa-de-1 > cc3test > test >" rendered in .xterm-screen div.
  *
- * Run with: pnpm e2e:playwright:ui -- --host http://localhost:4001 webconsole-member-visual
+ * Run with: pnpm e2e:playwright:ui -- --host http://localhost:PORT webconsole-member-visual
+ * Update snapshots:
+ *   1. Delete old snapshots: rm -rf e2e/playwright/ui/webconsole-member-visual.spec.ts-snapshots/
+ *   2. Generate new: pnpm e2e:playwright:ui -- --host http://localhost:PORT --update-snapshots webconsole-member-visual
  */
 
 const TEST_DOMAIN = process.env.TEST_DOMAIN || "cc3test"

@@ -8,7 +8,7 @@ import { loginAsMember } from "../helpers/auth"
  * Verifies that the shell page loads correctly.
  * Note: Shell needs up to 60 seconds to fully initialize in e2e mode.
  *
- * Run with: pnpm e2e:playwright:ui -- --host http://localhost:4001 webconsole-member-functional
+ * Run with: pnpm e2e:playwright:ui -- --host http://localhost:PORT webconsole-member-functional
  */
 
 const TEST_DOMAIN = process.env.TEST_DOMAIN || "cc3test"

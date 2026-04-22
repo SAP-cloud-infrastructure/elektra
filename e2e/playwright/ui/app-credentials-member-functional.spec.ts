@@ -7,7 +7,7 @@ import { loginAsMember } from "../helpers/auth"
  * Tests functionality of app credentials pages.
  * Verifies that pages load and basic UI elements are visible.
  *
- * Run with: pnpm e2e:playwright:ui -- --host http://localhost:4001 app-credentials-member-functional
+ * Run with: pnpm e2e:playwright:ui -- --host http://localhost:PORT app-credentials-member-functional
  */
 
 const TEST_DOMAIN = process.env.TEST_DOMAIN || "cc3test"
@@ -26,7 +26,10 @@ test.describe("App Credentials - Member", () => {
     await page.waitForTimeout(5000)
 
     // Check if page loaded (either title or content visible)
-    const pageNotFound = await page.locator("text=Page Not Found").isVisible().catch(() => false)
+    const pageNotFound = await page
+      .locator("text=Page Not Found")
+      .isVisible()
+      .catch(() => false)
 
     if (pageNotFound) {
       // Page not available in e2e environment, skip test

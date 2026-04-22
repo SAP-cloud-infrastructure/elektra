@@ -11,7 +11,10 @@ import { getBasicMaskSelectors, SCREENSHOT_OPTIONS } from "../helpers/masking"
  * - Email addresses (if any)
  * - User names
  *
- * Run with: pnpm e2e:playwright:ui -- --host http://localhost:4001 api-access-member-visual
+ * Run with: pnpm e2e:playwright:ui -- --host http://localhost:PORT api-access-member-visual
+ * Update snapshots:
+ *   1. Delete old snapshots: rm -rf e2e/playwright/ui/api-access-member-visual.spec.ts-snapshots/
+ *   2. Generate new: pnpm e2e:playwright:ui -- --host http://localhost:PORT --update-snapshots api-access-member-visual
  */
 
 const TEST_DOMAIN = process.env.TEST_DOMAIN || "cc3test"

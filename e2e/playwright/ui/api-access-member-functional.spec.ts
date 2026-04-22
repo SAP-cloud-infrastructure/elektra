@@ -8,7 +8,7 @@ import { loginAsMember } from "../helpers/auth"
  * Verifies that members can view API endpoints.
  * Tests require Rails running in e2e mode with mock services.
  *
- * Run with: pnpm e2e:playwright:ui -- --host http://localhost:4001 api-access-member-functional
+ * Run with: pnpm e2e:playwright:ui -- --host http://localhost:PORT api-access-member-functional
  */
 
 const TEST_DOMAIN = process.env.TEST_DOMAIN || "cc3test"

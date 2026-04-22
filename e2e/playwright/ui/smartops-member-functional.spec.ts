@@ -8,7 +8,7 @@ import { loginAsMember } from "../helpers/auth"
  * Verifies that the SmartOps page loads correctly.
  * Note: API errors for avatar endpoints are expected and ignored.
  *
- * Run with: pnpm e2e:playwright:ui -- --host http://localhost:4001 smartops-member-functional
+ * Run with: pnpm e2e:playwright:ui -- --host http://localhost:PORT smartops-member-functional
  */
 
 const TEST_DOMAIN = process.env.TEST_DOMAIN || "cc3test"

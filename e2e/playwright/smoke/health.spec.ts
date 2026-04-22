@@ -5,6 +5,8 @@ import { test, expect } from "@playwright/test"
  *
  * These tests verify that Elektra is running and healthy.
  * No authentication is required for these endpoints.
+ *
+ * Run with: pnpm e2e:playwright:smoke -- --host http://localhost:PORT health
  */
 test.describe("system health", () => {
   test("liveliness probe returns 200", async ({ request }) => {

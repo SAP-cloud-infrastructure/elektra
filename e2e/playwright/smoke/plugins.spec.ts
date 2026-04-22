@@ -13,6 +13,8 @@ import { test, expect } from "@playwright/test"
  * - Plugin not loaded
  * - Routing misconfiguration
  * - Missing JavaScript bundles
+ *
+ * Run with: pnpm e2e:playwright:smoke -- --host http://localhost:PORT plugins
  */
 
 const TEST_DOMAIN = process.env.TEST_DOMAIN || "cc3test"

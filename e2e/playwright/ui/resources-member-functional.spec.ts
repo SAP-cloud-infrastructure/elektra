@@ -7,7 +7,7 @@ import { loginAsMember } from "../helpers/auth"
  * Tests functionality of resource management pages (LIMES).
  * Verifies that pages load and basic UI elements are visible.
  *
- * Run with: pnpm e2e:playwright:ui -- --host http://localhost:4001 resources-member-functional
+ * Run with: pnpm e2e:playwright:ui -- --host http://localhost:PORT resources-member-functional
  */
 
 const TEST_DOMAIN = process.env.TEST_DOMAIN || "cc3test"
