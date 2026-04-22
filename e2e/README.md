@@ -1,51 +1,56 @@
 # E2E Testing for Elektra
 
-This directory contains end-to-end tests for Elektra using both Cypress (legacy) and Playwright (new).
+This directory contains end-to-end tests for Elektra using Playwright (new) and Cypress (legacy, being phased out).
 
 ## 📁 Structure
 
 ```
 e2e/
+├── playwright/                 # Playwright tests (recommended)
+│   ├── smoke/                 # Smoke tests (no auth required)
+│   │   ├── health.spec.ts
+│   │   ├── auth.spec.ts
+│   │   ├── plugins.spec.ts
+│   │   ├── landing-functional.spec.ts
+│   │   └── landing-visual.spec.ts
+│   ├── ui/                    # UI tests (requires auth + Rails in e2e mode)
+│   │   ├── *-functional.spec.ts    # Functional tests (page loads, elements visible)
+│   │   └── *-visual.spec.ts        # Visual regression tests (screenshots)
+│   ├── helpers/
+│   │   ├── auth.ts            # Login helper functions
+│   │   └── masking.ts         # Security masking for screenshots
+│   ├── playwright.config.ts
+│   ├── SECURITY.md            # PII masking guidelines
+│   └── VISUAL_REGRESSION.md   # Visual testing best practices
 ├── cypress/                    # Cypress tests (legacy, being phased out)
 │   ├── integration/
-│   │   ├── smoke/             # Smoke tests (no auth)
-│   │   ├── member/            # Member role tests
-│   │   └── admin/             # Admin role tests
-│   ├── support/
+│   │   ├── smoke/
+│   │   ├── member/
+│   │   └── admin/
 │   └── cypress.config.js
-├── playwright/                 # Playwright tests (new)
-│   ├── smoke/                 # Smoke tests (no auth)
-│   │   ├── health.spec.ts
-│   │   ├── landing.spec.ts
-│   │   ├── auth.spec.ts
-│   │   └── plugins.spec.ts
-│   ├── ui/                    # UI tests (requires auth + e2e mode)
-│   │   ├── api-access.spec.ts
-│   │   └── masterdata.spec.ts
-│   └── helpers/
-│       └── auth.ts            # Authentication helper functions
-├── run.sh                     # Cypress test runner
-└── run-playwright.sh          # Playwright test runner
+├── run-playwright.sh          # Playwright test runner (uses Docker)
+├── run.sh                     # Cypress test runner (uses Docker)
+└── README.md                  # This file
 ```
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-**Cypress:** No local installation required - tests run in Docker container with pre-installed Cypress.
-
-**Playwright:** Requires `@playwright/test` package in `node_modules` (already in `package.json`). The Docker container mounts the project's `node_modules` to access the Playwright test framework, while browsers are provided by the Docker image.
+**Playwright:** Requires `@playwright/test` in `package.json` (already included). Tests run in Docker container with browsers pre-installed.
 
 ```bash
-# For Playwright: Install dependencies (required)
+# Install dependencies (required for Playwright)
 pnpm install
 ```
 
-## Playwright Tests (Recommended for New Tests)
+**Cypress:** No local installation required - runs in self-contained Docker container.
 
-### Running Playwright Smoke Tests (No Authentication)
+## Playwright Tests (Recommended)
 
-**Playwright runs in Docker container with browsers pre-installed. The container mounts your project to access `node_modules/@playwright/test`.**
+### Running Smoke Tests (No Authentication)
+
+Smoke tests verify basic functionality without requiring authentication or backend services.
 
 ```bash
 # Using npm scripts (default: http://localhost:3000)
@@ -53,187 +58,262 @@ pnpm e2e:playwright:smoke              # Chromium (default)
 pnpm e2e:playwright:smoke:firefox      # Firefox
 pnpm e2e:playwright:smoke:all          # All browsers
 
-# Pass custom host via npm scripts (using -- to pass args)
-pnpm e2e:playwright:smoke -- --host http://localhost:4001
-pnpm e2e:playwright:smoke:firefox -- --host http://localhost:4001
+# Custom host via npm scripts
+pnpm e2e:playwright:smoke -- --host http://localhost:PORT
+pnpm e2e:playwright:smoke:firefox -- --host http://localhost:PORT
 
-# Using run-playwright.sh directly with custom host
-./e2e/run-playwright.sh --host http://localhost:4001 -p smoke
-
-# From e2e directory
-cd e2e
-./run-playwright.sh --host http://localhost:4001 -p smoke
-
-# Mac users (with Docker)
-./e2e/run-playwright.sh --host http://host.docker.internal:3000 -p smoke
+# Using run-playwright.sh directly
+./e2e/run-playwright.sh --host http://localhost:PORT -p smoke
 
 # Run specific test
-./e2e/run-playwright.sh --host http://localhost:4001 -p smoke health
-./e2e/run-playwright.sh -p smoke landing  # Uses default port 3000
+./e2e/run-playwright.sh --host http://localhost:PORT -p smoke health
+
+# Mac users with Docker
+./e2e/run-playwright.sh --host http://host.docker.internal:3000 -p smoke
 ```
 
-### Running Playwright UI Tests (Requires Authentication + E2E Mode)
+**Docker image:** `mcr.microsoft.com/playwright:v1.59.1-noble`
 
-**UI tests require Rails running in e2e mode with mock services and test credentials in `.env` file.**
+### Running UI Tests (Requires Authentication + E2E Mode)
+
+UI tests require Rails running in e2e mode with mock OpenStack services and test credentials.
 
 ```bash
-# Terminal 1: Start Rails in e2e mode (provides mock OpenStack services)
+# Terminal 1: Start Rails in e2e mode
 RAILS_ENV=e2e bundle exec rails server -p 4001
 
 # Terminal 2: Run UI tests
-pnpm e2e:playwright:ui -- --host http://localhost:4001
-pnpm e2e:playwright:ui:firefox -- --host http://localhost:4001
-pnpm e2e:playwright:ui:all -- --host http://localhost:4001
+pnpm e2e:playwright:ui -- --host http://localhost:PORT
+pnpm e2e:playwright:ui:firefox -- --host http://localhost:PORT
+pnpm e2e:playwright:ui:all -- --host http://localhost:PORT
 
 # Using run-playwright.sh directly
-./e2e/run-playwright.sh --host http://localhost:4001 -p ui
+./e2e/run-playwright.sh --host http://localhost:PORT -p ui
 
-# Run specific UI test
-./e2e/run-playwright.sh --host http://localhost:4001 -p ui api-access
+# Run specific test
+./e2e/run-playwright.sh --host http://localhost:PORT -p ui masterdata-admin-functional
 ```
 
-**Note:** UI tests use `TEST_MEMBER_USER` and `TEST_MEMBER_PASSWORD` from `.env` file.
+### Updating Visual Snapshots
 
-**Default host:** `http://localhost:3000` (override with `--host` parameter)
+When UI changes are intentional and you need to update baselines:
 
-**Docker image:** `mcr.microsoft.com/playwright:v1.59.1-noble` (browsers only, test framework from project's node_modules)
+```bash
+# Delete old snapshots for a specific test
+rm -rf e2e/playwright/ui/<test-name>.spec.ts-snapshots/
+
+# Generate new snapshots
+pnpm e2e:playwright:ui -- --host http://localhost:PORT --update-snapshots <test-name>
+
+# Example: Update masterdata snapshots
+rm -rf e2e/playwright/ui/masterdata-admin-visual.spec.ts-snapshots/
+pnpm e2e:playwright:ui -- --host http://localhost:PORT --update-snapshots masterdata-admin-visual
+```
 
 ## Cypress Tests (Legacy)
 
-### Running Cypress Smoke Tests
+### Running Cypress Tests
 
-**Cypress runs in Docker container with everything pre-installed (no local setup needed).**
+**Cypress runs in Docker container with everything pre-installed.**
 
 ```bash
 # Using npm scripts (default: http://localhost:3000)
 pnpm e2e:cypress:smoke       # Smoke tests (no auth)
-pnpm e2e:cypress:member      # Member role tests (requires credentials)
-pnpm e2e:cypress:admin       # Admin role tests (requires credentials)
+pnpm e2e:cypress:member      # Member role tests
+pnpm e2e:cypress:admin       # Admin role tests
 
-# Pass custom host via npm scripts (using -- to pass args)
-pnpm e2e:cypress:smoke -- --host http://localhost:4001
-pnpm e2e:cypress:member -- --host http://localhost:4001
+# Custom host
+pnpm e2e:cypress:smoke -- --host http://localhost:PORT
 
 # Using run.sh directly
 cd e2e
 ./run.sh --profile smoke --host http://localhost:3000
 ./run.sh --profile member --host http://localhost:3000
 ./run.sh --profile admin --host http://localhost:3000
-
-# Mac users
-./run.sh --profile smoke --host http://host.docker.internal:3000
 ```
 
-**Default host:** `http://localhost:3000` (override with `--host` parameter)
+**Docker image:** `cypress/included:15.10.0`
 
-**Docker image:** `cypress/included:15.10.0` (complete Cypress + browsers)
+## Test Types
 
-**Note:** The test user and credentials are only configured in QA-DE-1 for authenticated tests.
+### Smoke Tests
 
-### Smoke Tests (No Authentication Required)
-
-Both Cypress and Playwright support smoke tests that verify:
+Verify basic functionality without authentication:
 
 - System health endpoints (liveliness, readiness, startprobe)
-- Landing page renders correctly
-- All plugin routes are mounted (not 404)
+- Landing page rendering (including Shadow DOM)
+- Plugin routes are mounted (not 404)
 - Login page renders correctly
+- Console error detection
 
-### Environment Variables (Needed for Login)
+### Functional Tests
+
+Verify UI elements load and are interactive:
+
+- Page loads successfully
+- Key elements are visible
+- Navigation works
+- Forms are accessible
+- No critical errors
+
+### Visual Regression Tests
+
+Capture screenshots to detect unintended UI changes:
+
+- Full-page screenshots
+- Component-level screenshots (toolbars, modals)
+- Security masking of PII (see `SECURITY.md`)
+- Responsive design testing (desktop, tablet, mobile)
+
+## Environment Configuration
 
 Configure via `.env` file in project root:
 
 ```bash
-# Test domain (defaults to cc3test)
+# Test domain (defaults to cc3test if not set)
 TEST_DOMAIN=cc3test
 
-# For authenticated tests (member/admin profiles):
+# Credentials for authenticated tests (member/admin/ui profiles)
 TEST_MEMBER_USER=xxx
 TEST_MEMBER_PASSWORD=xxx
 TEST_ADMIN_USER=xxx
 TEST_ADMIN_PASSWORD=xxx
 ```
 
-# Attempted Approaches and Learnings
+## E2E Environment Mode
 
-We explored several approaches to expand test coverage beyond smoke tests. Without backend or login
+The `e2e` Rails environment provides:
 
-Here's what we tried and why it didn't work:
+- **Mock authentication** - No real Keystone required
+- **Fake OpenStack services** - Returns mock data for UI rendering
+- **Test-friendly configuration** - Simplified setup for CI/CD
 
-## 1. E2E Environment with Mock Services (Abandoned)
+Start Rails in e2e mode:
 
-**Goal:** Test UI rendering without requiring real OpenStack backend or authentication.
+```bash
+RAILS_ENV=e2e bundle exec rails server -p 4001
+```
 
-**Approach:**
+This environment is used for:
 
-- Create `config/environments/e2e.rb` environment
-- Mock authentication bypass in initializer
-- Provide fake data for controllers to render views
-- Use NullDB adapter to avoid database requirements
+- UI rendering tests (Playwright `ui/` tests)
+- Visual regression testing
+- Component-level testing
 
-**Why it failed:**
+## Writing New Tests
 
-- **Database errors:** E2E environment required database configuration, NullDB adapter caused compatibility issues
-- **Complex dependencies:** Views depend on many helpers, route helpers, and authentication state
-- **Asset pipeline issues:** Production-like asset compilation caused errors
-- **Maintenance burden:** Would require mocking every controller action's data requirements
+### Functional Test Pattern
 
-**Conclusion:** Too many technical hurdles and ongoing maintenance for marginal benefit.
+```typescript
+import { test, expect } from "@playwright/test"
+import { loginAsAdmin } from "../helpers/auth"
 
-## 2. Test Renderer Controller (Abandoned)
+const TEST_DOMAIN = process.env.TEST_DOMAIN || "cc3test"
 
-**Goal:** Render individual HAML views in isolation with mock data.
+test.describe("Plugin - Functional Tests", () => {
+  test.setTimeout(60000)
 
-**Approach:**
+  test("can access plugin page", async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto(`/${TEST_DOMAIN}/admin/plugin`, {
+      waitUntil: "domcontentloaded",
+    })
 
-- Create `TestRendererController` that bypasses authentication
-- Provide mock user and project data
-- Render specific views with `render template: "plugin/view", layout: false`
+    await expect(page.locator("[data-test=page-title]")).toContainText("Plugin")
+    await page.waitForTimeout(2000)
 
-**Why it failed:**
+    // Verify key elements
+    await expect(page.locator(".toolbar")).toBeVisible()
+  })
+})
+```
 
-- **No CSS/JS/Layout:** Rendered plain HTML without styling or JavaScript
-- **Limited value:** Testing HAML syntax without the full rendering context is not meaningful
-- **Routing issues:** Views generate links that require proper route parameters
-- **Incomplete representation:** Without layout, navigation, and assets, not testing real user experience
+### Visual Test Pattern
 
-**Conclusion:** Plain HTML rendering without CSS/JS/layout is too limited to provide valuable test coverage.
+```typescript
+import { test, expect } from "@playwright/test"
+import { loginAsAdmin } from "../helpers/auth"
+import { getBasicMaskSelectors, SCREENSHOT_OPTIONS } from "../helpers/masking"
 
-## 3. Element Tests for Protected Pages (Abandoned)
+test.describe("Visual Regression - Plugin", () => {
+  test.setTimeout(60000)
 
-**Goal:** Test that specific UI elements (buttons, forms, tables) exist on plugin pages.
+  test("full page - masked", async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto(`/${TEST_DOMAIN}/admin/plugin`, {
+      waitUntil: "domcontentloaded",
+    })
+    await page.waitForTimeout(2000)
 
-**Approach:**
+    const masks = getBasicMaskSelectors(page)
 
-- Write Playwright tests that navigate to plugin pages and assert element presence
-- Test Masterdata Cockpit page for sections, labels, help icons, etc.
+    await expect(page).toHaveScreenshot("plugin-full-page.png", {
+      fullPage: true,
+      mask: masks,
+      ...SCREENSHOT_OPTIONS,
+    })
+  })
+})
+```
 
-**Why it failed:**
+## Documentation
 
-- **Authentication required:** Plugin pages return 404 or redirect to login without authentication
-- **Cannot mock API responses in browser:** Many React plugins call APIs directly from browser (not via Rails), would need different mocking strategy per plugin type
-- **VCR/Mock complexity:**
-  - Some plugins (HAML-based) make API calls via Rails backend
-  - Other plugins (React-based like kubernetes_ng, object_storage) call APIs directly from browser
-  - Would require two different mocking strategies (backend + frontend)
-  - Maintenance nightmare keeping mocks in sync with real APIs
+- **[SECURITY.md](playwright/SECURITY.md)** - Guidelines for masking PII in screenshots
+- **[VISUAL_REGRESSION.md](playwright/VISUAL_REGRESSION.md)** - Best practices for visual testing
+- **[OPTIMIZATION_PLAN.md](OPTIMIZATION_PLAN.md)** - Future improvements and learnings
 
-**Conclusion:** Element testing for authenticated pages requires authentication. Mocking the full API surface across different plugin architectures is not feasible.
+## Continuous Integration
 
-## What Works: Smoke Tests
+Tests run in Concourse CI pipeline:
 
-The **42 Smoke Tests** provide solid UI integrity coverage without authentication:
+- **Smoke tests** - Run on every commit (no auth required)
+- **UI tests** - Run after successful build (requires e2e environment)
 
-✅ **Health Endpoints** - Verify application health checks  
-✅ **Landing Page** - Full rendering test with CSS/JS/layout (including Shadow DOM)  
-✅ **Authentication Pages** - Login form, validation, error handling  
-✅ **Plugin Routes** - All 27 plugins mounted and accessible (not 404)  
-✅ **JavaScript Errors** - Console error detection  
-✅ **Server Errors** - No 500 errors on smoke test pages
+Results are uploaded to Swift object storage for review.
 
-These tests run in Docker containers without requiring:
+## Troubleshooting
 
-- OpenStack backend
-- Authentication/login
-- Database seeding
-- Mock services
+### Docker Permission Issues
+
+If you encounter permission errors with Docker:
+
+```bash
+# Check Docker is running
+docker ps
+
+# Try running with proper permissions
+sudo ./e2e/run-playwright.sh --host http://localhost:PORT -p smoke
+```
+
+### Port Already in Use
+
+If port 3000 or 4001 is already in use:
+
+```bash
+# Use a different port
+./e2e/run-playwright.sh --host http://localhost:5000 -p smoke
+```
+
+### Tests Timing Out
+
+If tests timeout frequently:
+
+- Increase timeout in test file: `test.setTimeout(120000)`
+- Check Rails server is running in correct mode
+- Verify network connectivity to Rails server
+
+### Visual Test Failures
+
+If visual tests fail unexpectedly:
+
+1. Review diff images in `playwright-results/`
+2. Check if UI changes were intentional
+3. Update snapshots if changes are expected (see "Updating Visual Snapshots")
+
+## Migration Status
+
+- ✅ **Playwright migration complete** - All critical plugins covered
+- ⚠️ **Cypress being phased out** - Use Playwright for new tests
+- ✅ **CI/CD updated** - Playwright integrated into pipeline
+
+For migration history and decisions, see git history and `OPTIMIZATION_PLAN.md`.
