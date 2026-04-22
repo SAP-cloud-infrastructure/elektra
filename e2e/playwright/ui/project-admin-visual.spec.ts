@@ -25,13 +25,61 @@ test.describe("Visual Regression - Project", () => {
       waitUntil: "domcontentloaded",
     })
     await expect(page.locator("[data-test=page-title]")).toContainText("Project Overview")
+
+    // Wait for page to be ready
     await page.waitForTimeout(2000)
+
+    // Scroll to bottom to load all content
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+    await page.waitForTimeout(1000)
+
+    // Scroll back to top for consistent screenshots
+    await page.evaluate(() => window.scrollTo(0, 0))
+    await page.waitForTimeout(500)
   })
 
   test("full page - masked", async ({ page }) => {
     const masks = getBasicMaskSelectors(page)
 
     await expect(page).toHaveScreenshot("project-full-page.png", {
+      fullPage: true,
+      mask: masks,
+      ...SCREENSHOT_OPTIONS,
+    })
+  })
+
+  test("services dropdown - masked", async ({ page }) => {
+    // Click on Services dropdown to open it
+    const servicesDropdown = page.locator('a.dropdown-toggle:has-text("Services")')
+    await servicesDropdown.click()
+
+    // Wait for dropdown to open
+    await page.waitForTimeout(500)
+
+    const masks = getBasicMaskSelectors(page)
+
+    await expect(page).toHaveScreenshot("project-services-dropdown.png", {
+      fullPage: true,
+      mask: masks,
+      ...SCREENSHOT_OPTIONS,
+    })
+  })
+
+  test("your projects modal - masked", async ({ page }) => {
+    // Click on the list icon to open modal
+    const listIcon = page.locator('a:has(i.icon-link.fa.fa-th-list)').first()
+    await listIcon.click()
+
+    // Wait for modal to open
+    await page.waitForTimeout(2000)
+
+    // Wait for modal to be visible
+    const modal = page.locator('.modal-content[role="document"]').first()
+    await expect(modal).toBeVisible({ timeout: 10000 })
+
+    const masks = getBasicMaskSelectors(page)
+
+    await expect(page).toHaveScreenshot("project-your-projects-modal.png", {
       fullPage: true,
       mask: masks,
       ...SCREENSHOT_OPTIONS,
