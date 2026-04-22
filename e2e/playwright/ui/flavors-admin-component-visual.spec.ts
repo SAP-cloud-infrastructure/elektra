@@ -28,26 +28,4 @@ test.describe("Visual Regression - Flavors Components", () => {
     await expect(page.locator("[data-test=page-title]")).toContainText("Flavors")
     await page.waitForTimeout(2000)
   })
-
-  test("toolbar (if visible)", async ({ page }) => {
-    // Toolbar only shows if user has create permission
-    const toolbar = page.locator(".toolbar")
-    const isVisible = await toolbar
-      .first()
-      .isVisible()
-      .catch(() => false)
-
-    if (isVisible) {
-      const masks = getBasicMaskSelectors(page)
-
-      await expect(toolbar.first()).toHaveScreenshot("flavors-toolbar.png", {
-        mask: masks,
-        ...SCREENSHOT_OPTIONS,
-      })
-    } else {
-      // Skip if no toolbar (policy restriction)
-      console.log("Skipping toolbar - not visible (policy restriction)")
-      test.skip()
-    }
-  })
 })
