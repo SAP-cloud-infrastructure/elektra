@@ -3,15 +3,15 @@ import { loginAsMember } from "../helpers/auth"
 import { getBasicMaskSelectors, SCREENSHOT_OPTIONS } from "../helpers/masking"
 
 /**
- * API Access - Visual Regression Tests
+ * API Access - Visual Regression Tests (Member)
  *
- * Tests visual stability of API endpoints and web shell pages with security masking.
+ * Tests visual stability of API endpoints page with security masking.
  * All sensitive data is masked with black boxes:
  * - Domain/Project IDs
  * - Email addresses (if any)
  * - User names
  *
- * Run with: pnpm e2e:playwright:ui -- --host http://localhost:4001 api-access-visual
+ * Run with: pnpm e2e:playwright:ui -- --host http://localhost:4001 api-access-member-visual
  */
 
 const TEST_DOMAIN = process.env.TEST_DOMAIN || "cc3test"
@@ -44,29 +44,6 @@ test.describe("Visual Regression - API Endpoints", () => {
     const masks = getBasicMaskSelectors(page)
 
     await expect(page).toHaveScreenshot("api-endpoints-viewport.png", {
-      mask: masks,
-      ...SCREENSHOT_OPTIONS,
-    })
-  })
-})
-
-test.describe("Visual Regression - Web Shell", () => {
-  test.setTimeout(60000) // 60 seconds
-
-  test.beforeEach(async ({ page }) => {
-    await loginAsMember(page)
-    await page.goto(`/${TEST_DOMAIN}/${TEST_PROJECT}/webconsole/`, {
-      waitUntil: "domcontentloaded",
-    })
-    await expect(page.locator("[data-test=page-title]")).toContainText("Web Shell")
-    await page.waitForTimeout(1000)
-  })
-
-  test("full page - masked", async ({ page }) => {
-    const masks = getBasicMaskSelectors(page)
-
-    await expect(page).toHaveScreenshot("web-shell-full-page.png", {
-      fullPage: true,
       mask: masks,
       ...SCREENSHOT_OPTIONS,
     })

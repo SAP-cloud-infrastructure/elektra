@@ -2,19 +2,19 @@ import { test, expect } from "@playwright/test"
 import { loginAsMember } from "../helpers/auth"
 
 /**
- * API Access - Functional Tests
+ * API Access - Functional Tests (Member)
  *
  * Tests functionality of API endpoints page for member users.
- * Verifies that members can view API endpoints and access web shell.
+ * Verifies that members can view API endpoints.
  * Tests require Rails running in e2e mode with mock services.
  *
- * Run with: pnpm e2e:playwright:ui -- --host http://localhost:4001 api-access-functional
+ * Run with: pnpm e2e:playwright:ui -- --host http://localhost:4001 api-access-member-functional
  */
 
 const TEST_DOMAIN = process.env.TEST_DOMAIN || "cc3test"
 const TEST_PROJECT = "test" // Standard test project in e2e environment
 
-test.describe("API Access - Member User", () => {
+test.describe("API Access - Member", () => {
   test.setTimeout(60000) // 60 seconds
 
   test.beforeEach(async ({ page }) => {
@@ -41,33 +41,5 @@ test.describe("API Access - Member User", () => {
     // Verify expected content is present
     await expect(page.locator("text=/Domain ID/i")).toBeVisible()
     await expect(page.locator("text=/Project ID/i")).toBeVisible()
-  })
-})
-
-test.describe("Web Shell - Member User", () => {
-  test.setTimeout(60000) // 60 seconds
-
-  test.beforeEach(async ({ page }) => {
-    await loginAsMember(page)
-  })
-
-  test("can access web shell page directly", async ({ page }) => {
-    await page.goto(`/${TEST_DOMAIN}/${TEST_PROJECT}/webconsole/`, {
-      waitUntil: "domcontentloaded",
-    })
-
-    // Wait for page title
-    await expect(page.locator("[data-test=page-title]")).toContainText("Web Shell")
-  })
-
-  test("can open web shell from toolbar", async ({ page }) => {
-    // Navigate to project home
-    await page.goto(`/${TEST_DOMAIN}/${TEST_PROJECT}/identity/project/home`)
-
-    // Click web shell button in toolbar
-    await page.click('[data-trigger="webconsole:open"]')
-
-    // Verify web shell toolbar is present
-    await expect(page.locator('div.toolbar:has-text("Web Shell")')).toBeVisible()
   })
 })
