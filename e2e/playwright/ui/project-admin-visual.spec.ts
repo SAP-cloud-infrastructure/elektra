@@ -19,7 +19,7 @@ const TEST_PROJECT = "test"
 test.describe("Visual Regression - Project", () => {
   test.setTimeout(60000)
 
-  test.beforeEach(async ({ page }) => {
+  test("full page - masked", async ({ page }) => {
     await loginAsAdmin(page)
     await page.goto(`/${TEST_DOMAIN}/${TEST_PROJECT}/identity/project/home`, {
       waitUntil: "domcontentloaded",
@@ -36,9 +36,7 @@ test.describe("Visual Regression - Project", () => {
     // Scroll back to top for consistent screenshots
     await page.evaluate(() => window.scrollTo(0, 0))
     await page.waitForTimeout(500)
-  })
 
-  test("full page - masked", async ({ page }) => {
     const masks = getBasicMaskSelectors(page)
 
     await expect(page).toHaveScreenshot("project-full-page.png", {
@@ -49,6 +47,13 @@ test.describe("Visual Regression - Project", () => {
   })
 
   test("services dropdown - masked", async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto(`/${TEST_DOMAIN}/${TEST_PROJECT}/identity/project/home`, {
+      waitUntil: "domcontentloaded",
+    })
+    await expect(page.locator("[data-test=page-title]")).toContainText("Project Overview")
+    await page.waitForTimeout(2000)
+
     // Click on Services dropdown to open it
     const servicesDropdown = page.locator('a.dropdown-toggle:has-text("Services")')
     await servicesDropdown.click()
@@ -66,6 +71,13 @@ test.describe("Visual Regression - Project", () => {
   })
 
   test("your projects modal - masked", async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto(`/${TEST_DOMAIN}/${TEST_PROJECT}/identity/project/home`, {
+      waitUntil: "domcontentloaded",
+    })
+    await expect(page.locator("[data-test=page-title]")).toContainText("Project Overview")
+    await page.waitForTimeout(2000)
+
     // Click on the list icon to open modal
     const listIcon = page.locator('a:has(i.icon-link.fa.fa-th-list)').first()
     await listIcon.click()

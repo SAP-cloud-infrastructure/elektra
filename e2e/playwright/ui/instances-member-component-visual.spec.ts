@@ -38,6 +38,4 @@ test.describe("Visual Regression - Compute Instances Components", () => {
       ...SCREENSHOT_OPTIONS,
     })
   })
-
-  // Note: Create dialog test skipped - modal shows too much sensitive information
 })
