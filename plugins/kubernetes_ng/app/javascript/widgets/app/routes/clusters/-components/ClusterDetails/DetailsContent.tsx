@@ -447,6 +447,7 @@ const DetailsContent = ({
                   />
                 </Stack>
 
+                {/* responsive grid, it changes from 2 columns to 1 column on smaller screens */}
                 <div className="tw-grid tw-grid-cols-1 lg:tw-grid-cols-2">
                   <DataGrid columns={2} gridColumnTemplate="35% auto">
                     <ClusterDetailRow label="Window">
@@ -491,18 +492,6 @@ const DetailsContent = ({
                     </ClusterDetailRow>
                   </DataGrid>
                 </div>
-
-                {isEditingMaintenance && (
-                  <MaintenanceWindowEditModal
-                    open={true}
-                    clusterName={cluster.name}
-                    maintenance={cluster.maintenance}
-                    autoUpdate={cluster.autoUpdate}
-                    hasWorkers={cluster.workers && cluster.workers.length > 0}
-                    onSuccess={handleMaintenanceSuccess}
-                    onCancel={() => setIsEditingMaintenance(false)}
-                  />
-                )}
               </TabPanel>
               <TabPanel>
                 <Container py px={false}>
@@ -520,6 +509,18 @@ const DetailsContent = ({
             </>
           )}
         </Tabs>
+
+        {cluster && isEditingMaintenance && (
+          <MaintenanceWindowEditModal
+            open={true}
+            clusterName={cluster.name}
+            maintenance={cluster.maintenance}
+            autoUpdate={cluster.autoUpdate}
+            hasWorkers={cluster.workers && cluster.workers.length > 0}
+            onSuccess={handleMaintenanceSuccess}
+            onCancel={() => setIsEditingMaintenance(false)}
+          />
+        )}
 
         {cluster && showVersionUpdateDialog && (
           <VersionUpdateDialog
