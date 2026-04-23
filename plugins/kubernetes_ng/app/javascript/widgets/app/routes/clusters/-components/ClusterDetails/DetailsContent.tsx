@@ -126,12 +126,6 @@ const DetailsContent = ({
     addMessage({ text: "Worker groups updated successfully", variant: "success" })
   }
 
-  const handleMaintenanceSuccess = () => {
-    setIsEditingMaintenance(false)
-    resetMessages()
-    addMessage({ text: "Maintenance window updated successfully", variant: "success" })
-  }
-
   const handleVersionUpdate = (targetVersion: string) => {
     if (!cluster) return
 
@@ -154,6 +148,32 @@ const DetailsContent = ({
           resetMessages()
           const errText = normalizeError(error)
           addMessage({ text: `Version update failed: ${errText.title}${errText.message}`, variant: "danger" })
+        },
+      }
+    )
+  }
+
+  const handleMaintenanceUpdate = (data: {
+    maintenance: { startTime: string; endTime: string; timezone: string }
+    autoUpdate: { os: boolean; kubernetes: boolean }
+  }) => {
+    if (!cluster) return
+
+    updateClusterMutation.mutate(
+      {
+        clusterName: cluster.name,
+        data,
+      },
+      {
+        onSuccess: () => {
+          setIsEditingMaintenance(false)
+          resetMessages()
+          addMessage({ text: "Maintenance window updated successfully", variant: "success" })
+        },
+        onError: (error) => {
+          resetMessages()
+          const errText = normalizeError(error)
+          addMessage({ text: `Maintenance update failed: ${errText.title}${errText.message}`, variant: "danger" })
         },
       }
     )
@@ -498,12 +518,12 @@ const DetailsContent = ({
         {cluster && isEditingMaintenance && (
           <MaintenanceWindowEditModal
             open={true}
-            clusterName={cluster.name}
             maintenance={cluster.maintenance}
             autoUpdate={cluster.autoUpdate}
             hasWorkers={cluster.workers && cluster.workers.length > 0}
-            onSuccess={handleMaintenanceSuccess}
+            onSave={handleMaintenanceUpdate}
             onCancel={() => setIsEditingMaintenance(false)}
+            isUpdating={updateClusterMutation.isPending}
           />
         )}
 
