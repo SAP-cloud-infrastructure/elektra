@@ -3,7 +3,7 @@
  * - Converts booleans to strings
  * - Returns "-" for empty/null/undefined values
  */
-export function normalizeDisplayValue(value: unknown): React.ReactNode {
+export function normalizeDisplayValue(value: string | boolean | React.ReactNode): React.ReactNode {
   // Normalize booleans
   if (typeof value === "boolean") {
     return value ? "true" : "false"
