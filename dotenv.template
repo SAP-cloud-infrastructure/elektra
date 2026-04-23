@@ -77,8 +77,14 @@ ELEKTRA_EXTENSION=true
 # this is only used in the create project request to know where new projects where created
 # format can be LOB1|Board1,LOB2|Board1,LOB3|Board2 or just LOB1,LOB2,LOB3
 MONSOON_LOB_LIST="bla,blub"
-# what DL should be informed if a new project was created? 
+# what DL should be informed if a new project was created?
 MONSOON_NEW_PROJECT_DL=""
+
+# SSO authorization and password session control
+# Production values: both set to true
+MONSOON_OPENSTACK_SSO_STRICT_MODE=false # Production: set to true
+MONSOON_OPENSTACK_PASSWORD_SYNC_ONLY=false # Production: set to true
+ENFORCE_NATURAL_USER_LOGIN=false # Production: set to true
 
 # MONSOON_DASHBOARD_MAIL_SERVER="<your-server>"
 

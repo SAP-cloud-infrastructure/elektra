@@ -80,11 +80,10 @@ RSpec.describe ServiceLayer::KubernetesNgServices::CloudProfiles do
         name: "openstack",
         provider: "openstack"
       )
-      
+
       expect(cloud_profile).to have_key(:kubernetesVersions)
       expect(cloud_profile).to have_key(:machineTypes)
       expect(cloud_profile).to have_key(:machineImages)
-      expect(cloud_profile).to have_key(:volumeTypes)
       expect(cloud_profile).to have_key(:regions)
     end
 
@@ -302,15 +301,6 @@ RSpec.describe ServiceLayer::KubernetesNgServices::CloudProfiles do
         zones: ["qa-de-1a"]
       )
       expect(region[:zones]).to be_an(Array)
-    end
-
-    it "correctly handles empty volume types" do
-      result = list_cloud_profiles
-      cloud_profile = result.first
-      
-      # Test volumeTypes array is empty but present
-      expect(cloud_profile[:volumeTypes]).to be_an(Array)
-      expect(cloud_profile[:volumeTypes]).to be_empty
     end
 
     context "when API returns empty response" do

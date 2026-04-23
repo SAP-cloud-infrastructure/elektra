@@ -53,12 +53,23 @@ module Rescue
       # "MonsoonOpenstackAuth::Authentication::NotAuthorized" are rescued directly in rescope_token and handled by
       # "rescue_and_render_exception_page" but I leave it here just in case ;-)
       rescue_from "MonsoonOpenstackAuth::Authentication::NotAuthorized" do |exception|
-        # Return 200 OK instead of 401/403 to prevent OAuth redirect loop
-        # User IS authenticated (passed OAuth), just not authorized for this scope
-        # Using 401 would cause OAuth proxy to redirect back to IdP, creating a loop
-        # This rescue_from should rarely be triggered as DashboardController handles
-        # NotAuthorized more specifically in rescope_token_with_error_handling
-        render(template: "application/exceptions/unauthorized")
+        if MonsoonOpenstackAuth.configuration.block_login_fallback_after_sso? &&
+           exception.message =~ /Valid certificate authentication/
+          # Certificate SSO succeeded but user has no OpenStack access — show error, no redirect
+          render_exception_page(
+            exception,
+            title: "Access Forbidden",
+            description: "Your account is not associated with any OpenStack domain or project. Please contact your cloud administrator to request access.",
+            warning: true,
+            sentry: false,
+            status: 403
+          )
+        else
+          # Return 200 OK instead of 401/403 to prevent OAuth redirect loop
+          # User IS authenticated (passed OAuth), just not authorized for this scope
+          # Using 401 would cause OAuth proxy to redirect back to IdP, creating a loop
+          render(template: "application/exceptions/unauthorized")
+        end
       end
 
       # handle all api errors

@@ -25,8 +25,7 @@ module ServiceLayer
             kubernetesVersions: safe_map_versions(kubernetes['versions']), # Changed from kubernetes_versions
             machineTypes: safe_map_machine_types(spec['machineTypes']), # Changed from machine_types
             machineImages: safe_map_machine_images(spec['machineImages'], provider_config_machine_images), # Changed from machine_images
-            regions: safe_map_regions(spec['regions']),
-            volumeTypes: safe_map_volume_types(spec['volumeTypes']) # Changed from volume_types
+            regions: safe_map_regions(spec['regions'])
           }
         end.compact
       end
@@ -133,30 +132,18 @@ module ServiceLayer
       
       def safe_map_regions(regions)
         return [] unless regions.is_a?(Array)
-        
+
         regions.filter_map do |region|
           next unless region.is_a?(Hash) && region['name']
-          
+
           zones = region['zones'].is_a?(Array) ? region['zones'].filter_map { |z| z['name'] if z.is_a?(Hash) } : []
-          
+
           {
             name: region['name'],
             zones: zones.empty? ? nil : zones
           }.compact
         end
       end
-      
-      def safe_map_volume_types(volume_types)
-        return [] unless volume_types.is_a?(Array)
-        
-        volume_types.filter_map do |vt|
-          next unless vt.is_a?(Hash) && vt['name']
-          
-          {
-            name: vt['name']
-          }
-        end
-      end
     end
-  end 
+  end
 end
