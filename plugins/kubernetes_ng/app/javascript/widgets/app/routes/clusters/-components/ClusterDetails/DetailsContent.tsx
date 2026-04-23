@@ -2,7 +2,6 @@ import React, { useState } from "react"
 import {
   Container,
   DataGrid,
-  DataGridRow,
   Tabs,
   TabList,
   Tab,
@@ -42,20 +41,6 @@ import { useUpdateClusterMutation } from "../../../../hooks/useClusterQueries"
 import { normalizeDisplayValue } from "../../../../utils/valueHelpers"
 
 const sectionHeaderStyles = "details-section tw-text-lg tw-font-bold tw-mb-4"
-
-/**
- * Parse maintenance time string (HHMMSS+HHMM) to HH:MM format
- * Example: "170000+0000" -> "17:00"
- */
-function parseMaintenanceTime(timeString: string | undefined): string {
-  if (!timeString) return ""
-
-  const match = timeString.match(/^(\d{2})(\d{2})/)
-  if (!match) return timeString
-
-  const [, hours, minutes] = match
-  return `${hours}:${minutes}`
-}
 
 const DetailsContent = ({
   cluster,
@@ -456,13 +441,13 @@ const DetailsContent = ({
                           <GridColumn cols={4} className="tw-text-right tw-break-words">
                             <strong>Start Time</strong>
                           </GridColumn>
-                          <GridColumn cols={8}>{parseMaintenanceTime(cluster.maintenance.startTime)}</GridColumn>
+                          <GridColumn cols={8}>{cluster.maintenance.startTime}</GridColumn>
                         </GridRow>
                         <GridRow>
                           <GridColumn cols={4} className="tw-text-right">
                             <strong>End Time</strong>
                           </GridColumn>
-                          <GridColumn cols={8}>{parseMaintenanceTime(cluster.maintenance.endTime)}</GridColumn>
+                          <GridColumn cols={8}>{cluster.maintenance.endTime}</GridColumn>
                         </GridRow>
                         <GridRow>
                           <GridColumn cols={4} className="tw-text-right">

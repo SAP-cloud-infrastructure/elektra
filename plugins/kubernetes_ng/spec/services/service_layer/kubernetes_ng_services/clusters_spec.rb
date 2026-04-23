@@ -143,8 +143,17 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
             taskID: 'task-1234',
             lastUpdateTime: '2023-05-01T01:00:00Z'
           }
-        ],      
+        ],
         labels: shoot_mock['metadata']['labels'],
+        maintenance: {
+          startTime: '22:00',
+          endTime: '23:00',
+          timezone: '+0100'
+        },
+        autoUpdate: {
+          os: true,
+          kubernetes: true
+        },
         readiness: {
           conditions: [
             {
@@ -1124,6 +1133,32 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
       expect(provider_patch).to be_nil
     end
 
+  end
+
+  describe "format_maintenance_time" do
+    it "formats time correctly" do
+      expect(format_maintenance_time('220000+0100')).to eq('22:00')
+    end
+
+    it "formats time with different hours and minutes" do
+      expect(format_maintenance_time('170000-0500')).to eq('17:00')
+    end
+
+    it "formats time with non-zero minutes" do
+      expect(format_maintenance_time('093000+0000')).to eq('09:30')
+    end
+
+    it "returns empty string for nil" do
+      expect(format_maintenance_time(nil)).to eq('')
+    end
+
+    it "returns empty string for empty string" do
+      expect(format_maintenance_time('')).to eq('')
+    end
+
+    it "returns original string if format doesn't match" do
+      expect(format_maintenance_time('invalid')).to eq('invalid')
+    end
   end
 
   describe "version updates" do

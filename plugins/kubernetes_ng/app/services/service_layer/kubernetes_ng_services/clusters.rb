@@ -411,6 +411,7 @@ module ServiceLayer
         maintenance = spec.dig('maintenance')
         time_window = maintenance&.dig('timeWindow') || {}
         begin_time = time_window['begin'] || ''
+        end_time = time_window['end'] || ''
 
         # Extract timezone offset from begin time (format: HHMMSS+HHMM or HHMMSS-HHMM)
         timezone = ''
@@ -419,10 +420,22 @@ module ServiceLayer
         end
 
         {
-          startTime: begin_time,
-          timezone: timezone,
-          endTime: time_window['end'] || ''
+          startTime: format_maintenance_time(begin_time),
+          endTime: format_maintenance_time(end_time),
+          timezone: timezone
         }
+      end
+
+      # Format maintenance time string (HHMMSS+HHMM) to HH:MM
+      # Example: "170000+0000" -> "17:00"
+      def format_maintenance_time(time_string)
+        return '' if time_string.nil? || time_string.empty?
+
+        match = time_string.match(/^(\d{2})(\d{2})/)
+        return time_string unless match
+
+        hours, minutes = match.captures
+        "#{hours}:#{minutes}"
       end
       
       # Extract last maintenance operation info
