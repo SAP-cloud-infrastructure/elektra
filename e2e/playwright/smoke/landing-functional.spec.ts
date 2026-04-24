@@ -6,7 +6,7 @@ import { test, expect } from "@playwright/test"
  * Tests functionality of landing page and public-facing pages.
  * No authentication required for these tests.
  *
- * Run with: pnpm e2e:playwright:smoke -- --host http://localhost:PORT landing-functional
+ * Run with: pnpm e2e:smoke -- --host http://localhost:PORT landing-functional
  */
 
 const TEST_DOMAIN = process.env.TEST_DOMAIN || "cc3test"

@@ -8,10 +8,10 @@ import { getBasicMaskSelectors, SCREENSHOT_OPTIONS } from "../helpers/masking"
  * Tests visual stability of specific UI components (not dynamic data).
  * Focuses on toolbars and static UI elements.
  *
- * Run with: pnpm e2e:playwright:ui -- --host http://localhost:PORT flavors-admin-component-visual
- * Update snapshots: 
- *   1. Delete old snapshots: rm -rf e2e/playwright/ui/flavors-admin-component-visual.spec.ts-snapshots/ 
- *   2. Generate new: pnpm e2e:playwright:ui -- --host http://localhost:PORT --update-snapshots flavors-admin-component-visual
+ * Run with: pnpm e2e:ui -- --host http://localhost:PORT flavors-admin-component-visual
+ * Update snapshots:
+ *   1. Delete old snapshots: rm -rf e2e/playwright/ui/flavors-admin-component-visual.spec.ts-snapshots/
+ *   2. Generate new: pnpm e2e:ui -- --host http://localhost:PORT --update-snapshots flavors-admin-component-visual
  */
 
 // Note this test is doing nothing at the moment because the Admin cannot see the toolbar and we do

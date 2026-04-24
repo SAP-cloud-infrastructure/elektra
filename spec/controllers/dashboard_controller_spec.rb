@@ -99,6 +99,29 @@ describe DashboardController, type: :controller do
         end
       end
     end
+
+    context "when user is not authenticated (no current_user)" do
+      it "redirects to login instead of showing unauthorized" do
+        # Simulate no authenticated user (e.g., token rejected due to domain mismatch)
+        allow(controller).to receive(:current_user).and_return(nil)
+        allow(UserProfile).to receive(:tou_accepted?).and_return(true)
+
+        get :terms_of_use, params: default_params
+
+        # Expect redirect to login path (actual URL details depend on routing)
+        expect(response).to redirect_to(%r{/auth/login})
+      end
+
+      it "logs the missing user information" do
+        allow(controller).to receive(:current_user).and_return(nil)
+        allow(UserProfile).to receive(:tou_accepted?).and_return(true)
+
+        expect(Rails.logger).to receive(:info)
+          .with(/No authenticated user found, redirecting to login/)
+
+        get :terms_of_use, params: default_params
+      end
+    end
   end
   
   describe "terms of use handling" do
