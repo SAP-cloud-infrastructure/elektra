@@ -124,35 +124,17 @@ const DetailsContent = ({
     setIsEditingWorkers(false)
     resetMessages()
     addMessage({ text: "Worker groups updated successfully", variant: "success" })
+    window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
-  const handleVersionUpdate = (targetVersion: string) => {
-    if (!cluster) return
-
-    updateClusterMutation.mutate(
-      {
-        clusterName: cluster.name,
-        data: { kubernetesVersion: targetVersion },
-      },
-      {
-        onSuccess: () => {
-          setShowVersionUpdateDialog(false)
-          resetMessages()
-          addMessage({
-            text: `Kubernetes version update to ${targetVersion} initiated successfully`,
-            variant: "success",
-          })
-          window.scrollTo({ top: 0, behavior: "smooth" })
-        },
-        onError: (error) => {
-          setShowVersionUpdateDialog(false)
-          resetMessages()
-          const errText = normalizeError(error)
-          addMessage({ text: `Version update failed: ${errText.title}${errText.message}`, variant: "danger" })
-          window.scrollTo({ top: 0, behavior: "smooth" })
-        },
-      }
-    )
+  const handleVersionUpdateSuccess = () => {
+    setShowVersionUpdateDialog(false)
+    resetMessages()
+    addMessage({
+      text: "Kubernetes version update initiated successfully",
+      variant: "success",
+    })
+    window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
   const handleMaintenanceSuccess = () => {
@@ -511,12 +493,11 @@ const DetailsContent = ({
 
         {cluster && showVersionUpdateDialog && (
           <VersionUpdateDialog
-            isOpen={showVersionUpdateDialog}
-            onClose={() => setShowVersionUpdateDialog(false)}
-            onConfirm={handleVersionUpdate}
+            clusterName={cluster.name}
             currentVersion={cluster.version}
             versionUpdates={cluster.versionUpdates}
-            isUpdating={updateClusterMutation.isPending}
+            onSuccess={handleVersionUpdateSuccess}
+            onCancel={() => setShowVersionUpdateDialog(false)}
           />
         )}
       </div>
