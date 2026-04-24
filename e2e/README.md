@@ -1,118 +1,270 @@
-Please Note, the Test User,Domain and Project is only configured in QA-DE-1
+# E2E Testing for Elektra
 
-## Smoke Tests (No Authentication Required)
+This directory contains end-to-end tests for Elektra using Playwright.
 
-You can run smoke tests without any test user configuration. These tests verify:
+## 📁 Structure
+
+```
+e2e/
+├── playwright/                 # Playwright tests
+│   ├── smoke/                 # Smoke tests (no auth required)
+│   │   ├── health.spec.ts
+│   │   ├── auth.spec.ts
+│   │   ├── plugins.spec.ts
+│   │   ├── landing-functional.spec.ts
+│   │   └── landing-visual.spec.ts
+│   ├── ui/                    # UI tests (requires auth + Rails in e2e mode)
+│   │   ├── *-functional.spec.ts    # Functional tests (page loads, elements visible)
+│   │   └── *-visual.spec.ts        # Visual regression tests (screenshots)
+│   ├── helpers/
+│   │   ├── auth.ts            # Login helper functions
+│   │   └── masking.ts         # Security masking for screenshots
+│   ├── playwright.config.ts
+│   ├── SECURITY.md            # PII masking guidelines
+│   └── VISUAL_REGRESSION.md   # Visual testing best practices
+├── run.sh                     # Playwright test runner (uses Docker)
+└── README.md                  # This file
+```
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+**Playwright:** Requires `@playwright/test` in `package.json` (already included). Tests run in Docker container with browsers pre-installed.
+
+```bash
+# Install dependencies (required for Playwright)
+pnpm install
+```
+
+## Playwright Tests
+
+### Running Smoke Tests (No Authentication)
+
+Smoke tests verify basic functionality without requiring authentication or backend services.
+
+```bash
+# Using npm scripts (default: http://localhost:3000)
+pnpm e2e:smoke              # Chromium (default)
+pnpm e2e:smoke:firefox      # Firefox
+pnpm e2e:smoke:all          # All browsers
+
+# Custom host via npm scripts
+pnpm e2e:smoke -- --host http://localhost:PORT
+pnpm e2e:smoke:firefox -- --host http://localhost:PORT
+
+# Using run.sh directly
+./e2e/run.sh --host http://localhost:PORT -p smoke
+
+# Run specific test
+./e2e/run.sh --host http://localhost:PORT -p smoke health
+
+# Mac users with Docker
+./e2e/run.sh --host http://host.docker.internal:3000 -p smoke
+```
+
+**Docker image:** `mcr.microsoft.com/playwright:v1.59.1-noble`
+
+### Running UI Tests (Requires Authentication + E2E Mode)
+
+UI tests require Rails running in e2e mode with mock OpenStack services and test credentials.
+
+```bash
+# Terminal 1: Start Rails in e2e mode
+RAILS_ENV=e2e bundle exec rails server -p 4001
+
+# Terminal 2: Run UI tests
+pnpm e2e:ui -- --host http://localhost:PORT
+pnpm e2e:ui:firefox -- --host http://localhost:PORT
+pnpm e2e:ui:all -- --host http://localhost:PORT
+
+# Using run.sh directly
+./e2e/run.sh --host http://localhost:PORT -p ui
+
+# Run specific test
+./e2e/run.sh --host http://localhost:PORT -p ui masterdata-admin-functional
+```
+
+### Updating Visual Snapshots
+
+When UI changes are intentional and you need to update baselines:
+
+```bash
+# Delete old snapshots for a specific test
+rm -rf e2e/playwright/ui/<test-name>.spec.ts-snapshots/
+
+# Generate new snapshots
+pnpm e2e:ui -- --host http://localhost:PORT --update-snapshots <test-name>
+
+# Example: Update masterdata snapshots
+rm -rf e2e/playwright/ui/masterdata-admin-visual.spec.ts-snapshots/
+pnpm e2e:ui -- --host http://localhost:PORT --update-snapshots masterdata-admin-visual
+```
+
+## Test Types
+
+### Smoke Tests
+
+Verify basic functionality without authentication:
 
 - System health endpoints (liveliness, readiness, startprobe)
-- Landing page renders correctly
-- All plugin routes are mounted (not 404)
+- Landing page rendering (including Shadow DOM)
+- Plugin routes are mounted (not 404)
 - Login page renders correctly
+- Console error detection
+
+### Functional Tests
+
+Verify UI elements load and are interactive:
+
+- Page loads successfully
+- Key elements are visible
+- Navigation works
+- Forms are accessible
+- No critical errors
+
+### Visual Regression Tests
+
+Capture screenshots to detect unintended UI changes:
+
+- Full-page screenshots
+- Component-level screenshots (toolbars, modals)
+- Security masking (see `SECURITY.md`)
+- Responsive design testing (desktop, tablet, mobile)
+
+## Environment Configuration
+
+Configure via `.env` file in project root:
 
 ```bash
-# Run smoke tests against any Elektra instance
-./run.sh --profile smoke --host http://localhost:3000
+# Test domain (defaults to cc3test if not set)
+TEST_DOMAIN=cc3test
 
-# Mac users
-./run.sh --profile smoke --host http://host.docker.internal:3000
+# Credentials for authenticated tests (member/admin/ui profiles)
+TEST_MEMBER_USER=xxx
+TEST_MEMBER_PASSWORD=xxx
+TEST_ADMIN_USER=xxx
+TEST_ADMIN_PASSWORD=xxx
 ```
 
-Smoke tests are useful for:
+## Environment Mode
 
-- Verifying deployments without test credentials
-- Quick health checks in CI/CD pipelines
-- Testing against any environment (not just QA-DE-1)
-
-# Best Practice
-
-https://docs.cypress.io/guides/references/best-practices
-
-- write descriptions always in lowercase
-
-# Usage
+Start Rails in dev mode:
 
 ```bash
-./run.sh --help
+bundle exec rails server -p 4001
 ```
 
-## run e2e tests against elektra running on remote host
+Start also Javascript server:
 
 ```bash
-./run.sh https://elektra.corp
+pnpm build --watch
 ```
 
-## run e2e in workspaces with running elektra env localhost
+This environment is used for:
 
-```bash
-./run.sh
+- UI rendering tests (Playwright `ui/` tests)
+- Visual regression testing
+- Component-level testing
+
+## Writing New Tests
+
+### Functional Test Pattern
+
+```typescript
+import { test, expect } from "@playwright/test"
+import { loginAsAdmin } from "../helpers/auth"
+
+const TEST_DOMAIN = process.env.TEST_DOMAIN || "cc3test"
+
+test.describe("Plugin - Functional Tests", () => {
+  test.setTimeout(60000)
+
+  test("can access plugin page", async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto(`/${TEST_DOMAIN}/admin/plugin`, {
+      waitUntil: "domcontentloaded",
+    })
+
+    await expect(page.locator("[data-test=page-title]")).toContainText("Plugin")
+    await page.waitForTimeout(2000)
+
+    // Verify key elements
+    await expect(page.locator(".toolbar")).toBeVisible()
+  })
+})
 ```
 
-run.sh will find out all information
+### Visual Test Pattern
 
-## run e2e with debug mode
+```typescript
+import { test, expect } from "@playwright/test"
+import { loginAsAdmin } from "../helpers/auth"
+import { getBasicMaskSelectors, SCREENSHOT_OPTIONS } from "../helpers/masking"
 
-```bash
-  run.sh --host http://localhost:3000 --debug 'cypress:network:*'
-  # will show debug information about the networking"
+test.describe("Visual Regression - Plugin", () => {
+  test.setTimeout(60000)
+
+  test("full page - masked", async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto(`/${TEST_DOMAIN}/admin/plugin`, {
+      waitUntil: "domcontentloaded",
+    })
+    await page.waitForTimeout(2000)
+
+    const masks = getBasicMaskSelectors(page)
+
+    await expect(page).toHaveScreenshot("plugin-full-page.png", {
+      fullPage: true,
+      mask: masks,
+      ...SCREENSHOT_OPTIONS,
+    })
+  })
+})
 ```
 
-Debugging options: https://docs.cypress.io/guides/references/troubleshooting#Log-sources"
+## Documentation
 
-- `cypress:cli` The top-level command line parsing problems
-- `cypress:server:args` Incorrect parsed command line arguments
-- `cypress:server:specs` Not finding the expected specs
-- `cypress:server:project` Opening the project
-- `cypress:server:browsers` Finding installed browsers
-- `cypress:launcher` Launching the found browser
-- `cypress:server:video` Video recording
-- `cypress:network:*` Adding network interceptors
-- `cypress:net-stubbing*` Network interception in the proxy layer
-- `cypress:server:reporter` Problems with test reporters
-- `cypress:server:preprocessor` Processing specs
-- `cypress:server:plugins` Running the plugins file and bundling specs
-- `cypress:server:socket-e2e` Watching spec files
-- `cypress:server:task` Invoking the cy.task() command
-- `cypress:server:socket-base` Debugging cy.request() command
-- `cypress:server:fixture` Loading fixture files
-- `cypress:server:record:ci-info` Git commit and CI information when recording to the Cypress Dashboard
+- **[SECURITY.md](playwright/SECURITY.md)** - Guidelines for masking PII in screenshots
+- **[VISUAL_REGRESSION.md](playwright/VISUAL_REGRESSION.md)** - Best practices for visual testing
+- **[OPTIMIZATION_PLAN.md](OPTIMIZATION_PLAN.md)** - Future improvements and learnings
 
-## run e2e from darwin running elektra locally on port 3000
+## Continuous Integration
 
-```bash
-./run.sh --host http://host.docker.internal:3000
-```
+Tests run in Concourse CI pipeline:
 
-## env
+- **Smoke tests** - Run on every commit (no auth required)
+- **UI tests** - Run after successful build (requires e2e environment)
 
-you need to add the following env vars to your `.env`
+Results of failed tests are uploaded to Swift object storage for review.
 
-```
-TEST_DOMAIN="cc3test"
-TEST_MEMBER_USER="TEST_D021500_TM"
-TEST_MEMBER_PASSWORD="xxx"
-TEST_ADMIN_USER="TEST_D021500_TA"
-TEST_ADMIN_PASSWORD="xxd"
-```
+## Troubleshooting
 
-for password check `secrets/qa-de-1/values/domain-seeds.yaml`
+### Tests Timing Out
 
-## cypress.json
+If tests timeout frequently:
 
-- https://docs.cypress.io/guides/references/configuration#Global
+- Increase timeout in test file: `test.setTimeout(120000)`
+- Check Rails server is running in correct mode
+- Verify network connectivity to Rails server
 
-# Tips
+### Visual Test Failures
 
-- `cy.get().should('be.disabled')` works not with `a` or `div` tag instead use
+If visual tests fail unexpectedly:
 
-```
-  cy.get().should('have.attr', 'disabled');
-  cy.get().should('not.have.attr', 'disabled');
-```
+1. Review diff images in `playwright-results/`
+2. Check if UI changes were intentional
+3. Update snapshots if changes are expected (see "Updating Visual Snapshots")
 
-- if you do not find a good identifier use data attribute like `data-test="search"` you can access it in cypress with `cy.get('[data-test=search]`')
+## CI/CD Integration
 
-# TODOs
+Tests run in Concourse CI pipeline:
 
-- at the moment we cannot test keppel-ui and cloudops tools, because our test admin user has no permission
-- we need our own project with a test member and admin user
-- https://documentation.global.cloud.sap/docs/customer/access-management/identity-service/overview/identity-usage/#technical-users
+- **Smoke tests** - Run on every commit (no auth required)
+- **UI tests** - Run after successful build (requires e2e environment)
+
+Test results of failed tests are automatically uploaded to Swift object storage on failure:
+
+- Image: see `docker/Dockerfile.ci-helper`
+- Container: `playwright`
+- Path: `elektra/VERSION/smoke/` or `elektra/VERSION/ui/`
