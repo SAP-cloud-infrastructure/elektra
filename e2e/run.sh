@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Playwright Test Runner for Elektra (using Docker container)
-# Similar to Cypress run.sh, uses official Playwright Docker image
+# Uses official Playwright Docker image with pre-installed browsers
 # Can be run from project root or e2e directory
 # Usage: ./e2e/run.sh [options] [test-name]
 
