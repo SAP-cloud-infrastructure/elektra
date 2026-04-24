@@ -593,14 +593,19 @@ module ServiceLayer
       # Build maintenance specification
       def build_maintenance_spec(cluster)
         maintenance = {}
-        
+
         # Time window
         if cluster[:maintenance]
           maint = cluster[:maintenance]
-          if maint[:startTime] || maint[:start_time] || maint[:endTime] || maint[:end_time] # Handle both camelCase and snake_case
+          if maint[:startTime] || maint[:endTime]
+            start_time = maint[:startTime]
+            end_time = maint[:endTime]
+            timezone = maint[:timezone]
+
+            # Convert from display format (HH:MM with timezone +HH:MM) to Gardener format (HHMMSS+HHMM)
             maintenance['timeWindow'] = {
-              'begin' => maint[:startTime] || maint[:start_time],
-              'end' => maint[:endTime] || maint[:end_time]
+              'begin' => convert_display_to_gardener_time(start_time, timezone),
+              'end' => convert_display_to_gardener_time(end_time, timezone)
             }.compact
           end
         end
@@ -613,8 +618,27 @@ module ServiceLayer
             'kubernetesVersion' => auto_update[:kubernetes] || false
           }
         end
-        
+
         maintenance
+      end
+
+      # Convert display format (HH:MM with timezone +HH:MM) to Gardener format (HHMMSS+HHMM)
+      # Example: "22:00" with "+01:00" -> "220000+0100"
+      def convert_display_to_gardener_time(time_string, timezone)
+        return time_string if time_string.nil? || time_string.empty?
+
+        # If already in Gardener format (contains 6 digits), pass through
+        return time_string if time_string.match?(/^\d{6}[+-]\d{4}$/)
+
+        # Parse HH:MM format
+        match = time_string.match(/^(\d{2}):(\d{2})$/)
+        return time_string unless match
+
+        hours, minutes = match.captures
+        # Remove colon from timezone (+01:00 -> +0100)
+        normalized_timezone = timezone&.gsub(':', '') || '+0000'
+
+        "#{hours}#{minutes}00#{normalized_timezone}"
       end
       
       # Build hibernation specification

@@ -707,9 +707,9 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           }
         ],
         maintenance: {
-          startTime: '220000+0100',
-          endTime: '230000+0100',
-          timezone: '+0100'
+          startTime: '22:00',
+          endTime: '23:00',
+          timezone: '+01:00'
         },
         autoUpdate: {
           os: true,
@@ -779,7 +779,7 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           'hibernation' => {
             'schedules' => [
               {
-                'location' => '+0100'
+                'location' => '+01:00'
               }
             ]
           }
@@ -1158,6 +1158,44 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
 
     it "returns original string if format doesn't match" do
       expect(format_maintenance_time('invalid')).to eq('invalid')
+    end
+  end
+
+  describe "convert_display_to_gardener_time" do
+    it "converts display format to Gardener format with positive timezone" do
+      expect(convert_display_to_gardener_time('22:00', '+01:00')).to eq('220000+0100')
+    end
+
+    it "converts display format to Gardener format with negative timezone" do
+      expect(convert_display_to_gardener_time('17:00', '-05:00')).to eq('170000-0500')
+    end
+
+    it "converts display format with non-zero minutes" do
+      expect(convert_display_to_gardener_time('09:30', '+00:00')).to eq('093000+0000')
+    end
+
+    it "passes through Gardener format unchanged" do
+      expect(convert_display_to_gardener_time('220000+0100', '+01:00')).to eq('220000+0100')
+    end
+
+    it "uses default timezone when timezone is nil" do
+      expect(convert_display_to_gardener_time('22:00', nil)).to eq('220000+0000')
+    end
+
+    it "returns empty string for nil input" do
+      expect(convert_display_to_gardener_time(nil, '+01:00')).to eq(nil)
+    end
+
+    it "returns empty string for empty string input" do
+      expect(convert_display_to_gardener_time('', '+01:00')).to eq('')
+    end
+
+    it "returns original string if format doesn't match HH:MM" do
+      expect(convert_display_to_gardener_time('invalid', '+01:00')).to eq('invalid')
+    end
+
+    it "removes colon from timezone" do
+      expect(convert_display_to_gardener_time('14:30', '+02:30')).to eq('143000+0230')
     end
   end
 

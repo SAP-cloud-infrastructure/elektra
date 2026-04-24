@@ -517,7 +517,6 @@ const DetailsContent = ({
 
         {cluster && isEditingMaintenance && (
           <MaintenanceWindowEditModal
-            open={true}
             maintenance={cluster.maintenance}
             autoUpdate={cluster.autoUpdate}
             hasWorkers={cluster.workers && cluster.workers.length > 0}
