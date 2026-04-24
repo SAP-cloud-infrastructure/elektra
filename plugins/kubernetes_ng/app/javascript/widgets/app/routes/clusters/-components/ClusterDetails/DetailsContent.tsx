@@ -383,18 +383,6 @@ const DetailsContent = ({
                   <WorkerList workers={cluster.workers} />
                 </Container>
 
-                {isEditingWorkers && (
-                  <WorkerGroupEditModal
-                    open={true}
-                    clusterName={cluster.name}
-                    workers={cluster.workers}
-                    cloudProfileName={cluster.cloudProfileName}
-                    region={cluster.region}
-                    onSuccess={handleWorkersSuccess}
-                    onCancel={() => setIsEditingWorkers(false)}
-                  />
-                )}
-
                 {/* Maintenance and auto update */}
                 <Stack direction="horizontal" alignment="center">
                   <h2 className={sectionHeaderStyles + " tw-w-full"}>Maintenance</h2>
@@ -477,6 +465,18 @@ const DetailsContent = ({
             </>
           )}
         </Tabs>
+
+        {cluster && isEditingWorkers && (
+          <WorkerGroupEditModal
+            open={true}
+            clusterName={cluster.name}
+            workers={cluster.workers}
+            cloudProfileName={cluster.cloudProfileName}
+            region={cluster.region}
+            onSuccess={handleWorkersSuccess}
+            onCancel={() => setIsEditingWorkers(false)}
+          />
+        )}
 
         {cluster && isEditingMaintenance && (
           <MaintenanceWindowEditModal
