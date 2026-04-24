@@ -321,14 +321,14 @@ module MonsoonOpenstackAuth
           token = @api_client.validate_token(auth_token_value)
 
           if token
-            # Check if token's domain matches URL's domain
-            unless token_domain_matches_url?(token)
-              MonsoonOpenstackAuth.logger.info "Token domain mismatch with URL (source: #{token_source}), rejecting token." if @debug
+            # Check if token's domain matches the requested scope
+            unless token_domain_matches_scope_domain?(token)
+              MonsoonOpenstackAuth.logger.info "Token scope mismatch (source: #{token_source}), rejecting token." if @debug
 
               # If the mismatched token came from cross-dashboard cookie, delete it
               # This prevents repeated authentication failures with stale cookies
               if token_source == :cross_dashboard_cookie
-                MonsoonOpenstackAuth.logger.info 'Deleting stale cross-dashboard cookie due to domain mismatch.' if @debug
+                MonsoonOpenstackAuth.logger.info 'Deleting stale cross-dashboard cookie due to scope mismatch.' if @debug
                 self.class.delete_cross_dashboard_cookie(@controller)
               end
 
@@ -346,6 +346,20 @@ module MonsoonOpenstackAuth
               MonsoonOpenstackAuth.logger.info("validate_auth_token -> successful (username=#{@user.name}).") if @debug
               return true
             end
+          else
+            # Token validation returned nil - token is expired, invalid, or doesn't exist
+            # Clear the stale token from session/cookie to force re-authentication
+            MonsoonOpenstackAuth.logger.info "Token validation failed (token is nil), clearing stale tokens (source: #{token_source})." if @debug
+
+            if token_source == :session || (token_source == :cross_dashboard_cookie && session_token == cross_dashboard_token)
+              # Clear session token if it's the source or if it matches the failed cross-dashboard token
+              @controller.session[:auth_token_value] = nil
+            end
+
+            if token_source == :cross_dashboard_cookie
+              # Delete cross-dashboard cookie
+              self.class.delete_cross_dashboard_cookie(@controller)
+            end
           end
           # rescue Excon::Errors::Unauthorized, Fog::Identity::OpenStack::NotFound => e
           # MonsoonOpenstackAuth.logger.error "token validation failed #{e}."
@@ -353,7 +367,16 @@ module MonsoonOpenstackAuth
         rescue StandardError => e
           class_name = e.class.name
           if class_name.start_with?('Excon', 'Fog')
-            MonsoonOpenstackAuth.logger.error "token validation failed #{e}."
+            MonsoonOpenstackAuth.logger.error "token validation failed (exception: #{e}), clearing stale tokens (source: #{token_source})."
+
+            # Clear stale tokens on validation failure
+            if token_source == :session || (token_source == :cross_dashboard_cookie && session_token == cross_dashboard_token)
+              @controller.session[:auth_token_value] = nil
+            end
+
+            if token_source == :cross_dashboard_cookie
+              self.class.delete_cross_dashboard_cookie(@controller)
+            end
           else
             MonsoonOpenstackAuth.logger.error "unknown error #{e}."
             raise e
@@ -445,27 +468,51 @@ module MonsoonOpenstackAuth
         @controller.request.cookies[cookie_name]
       end
 
-      # Check if the token's domain matches the URL's domain
-      # Returns true if domains match or if no domain check is needed, false otherwise
-      def token_domain_matches_url?(token)
+      # Check if the token's scope matches the requested scope
+      # Returns true if scopes match or if no scope check is needed, false otherwise
+      def token_domain_matches_scope_domain?(token)
         return false unless token
 
-        # Get the URL's domain from params
-        url_domain_fid = @controller.params[:domain_fid] || @controller.params[:domain_id]
-        return true unless url_domain_fid  # No domain in URL, allow the token
+        # If no scope is requested, any valid token is acceptable
+        return true if @scope.empty?
 
-        # Extract domain ID from token
-        token_domain_id = token.dig(:domain, :id) || token.dig(:domain, 'id')
-        return true unless token_domain_id  # Unscoped token, allow it
+        # Extract domain and project IDs from token
+        token_domain_id = token.dig(:project, :domain, :id) || token.dig(:project, :domain, 'id') || token.dig(:domain, :id) || token.dig(:domain, 'id')
+        token_domain_name = token.dig(:project, :domain, :name) || token.dig(:project, :domain, 'name') || token.dig(:domain, :name) || token.dig(:domain, 'name')
+        token_project_id = token.dig(:project, :id) || token.dig(:project, 'id')
 
-        # Resolve URL domain friendly ID to actual domain ID
-        domain_entry = FriendlyIdEntry.find_domain(url_domain_fid)
-        url_domain_id = domain_entry&.key || url_domain_fid
+        # If scope requests a specific project, check both project and domain
+        if @scope[:project]
+          # Project must match
+          return false unless token_project_id == @scope[:project]
 
-        # Check if domains match
-        token_domain_id == url_domain_id
+          # Domain must also match if specified
+          if @scope[:domain]
+            return token_domain_id == @scope[:domain]
+          elsif @scope[:domain_name]
+            return token_domain_name == @scope[:domain_name]
+          end
+
+          # Project matches and no domain specified in scope -> accept
+          return true
+        end
+
+        # If scope requests a domain (without project), check domain
+        if @scope[:domain]
+          return token_domain_id == @scope[:domain]
+        elsif @scope[:domain_name]
+          return token_domain_name == @scope[:domain_name]
+        end
+
+        # If token has a domain but scope doesn't specify one -> mismatch
+        if token_domain_id.present? || token_domain_name.present?
+          return false
+        end
+
+        # No specific scope requirements, accept the token
+        true
       rescue StandardError => e
-        MonsoonOpenstackAuth.logger.error "Failed to check token domain match: #{e}" if @debug
+        MonsoonOpenstackAuth.logger.error "Failed to check token scope match: #{e}" if @debug
         false  # On error, reject the token
       end
 

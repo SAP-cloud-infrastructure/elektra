@@ -500,10 +500,10 @@ describe MonsoonOpenstackAuth::Authentication::AuthSession do
     end
   end
 
-  describe '#validate_session_token with cross-dashboard cookie domain mismatch' do
+  describe '#validate_session_token with cross-dashboard cookie scope mismatch' do
     let(:test_controller) do
       double('controller',
-             params: { domain_fid: 'domain-b' },
+             params: {},
              session: { auth_token_value: nil },
              request: double('request',
                              host: 'dashboard.example.com',
@@ -517,16 +517,13 @@ describe MonsoonOpenstackAuth::Authentication::AuthSession do
     end
 
     before do
-      # Mock FriendlyIdEntry to resolve domain-b to different ID
-      allow(FriendlyIdEntry).to receive(:find_domain).with('domain-b').and_return(
-        double('entry', key: 'domain-b-id')
-      )
       # Token from cookie is for domain-a
       allow_any_instance_of(MonsoonOpenstackAuth::ApiClient).to receive(:validate_token)
         .with(test_token[:value]).and_return(token_domain_a)
     end
 
-    it 'should delete cross-dashboard cookie when domain mismatch occurs' do
+    it 'should delete cross-dashboard cookie when scope mismatch occurs' do
+      # Request for domain-b but token is for domain-a
       session = MonsoonOpenstackAuth::Authentication::AuthSession.new(test_controller, { domain: 'domain-b-id' })
 
       # Expect the cookie to be deleted
@@ -538,7 +535,7 @@ describe MonsoonOpenstackAuth::Authentication::AuthSession do
       expect(result).to be false
     end
 
-    it 'should log the domain mismatch with source information' do
+    it 'should log the scope mismatch with source information' do
       # Enable debug mode to trigger logging
       allow(MonsoonOpenstackAuth.configuration).to receive(:debug?).and_return(true)
 
@@ -546,11 +543,151 @@ describe MonsoonOpenstackAuth::Authentication::AuthSession do
 
       # Mock the logger to verify both log messages
       expect(MonsoonOpenstackAuth.logger).to receive(:info)
-        .with(/Token domain mismatch with URL \(source: cross_dashboard_cookie\)/).ordered
+        .with(/Token scope mismatch \(source: cross_dashboard_cookie\)/).ordered
       expect(MonsoonOpenstackAuth.logger).to receive(:info)
-        .with('Deleting stale cross-dashboard cookie due to domain mismatch.').ordered
+        .with('Deleting stale cross-dashboard cookie due to scope mismatch.').ordered
 
       session.validate_session_token
+    end
+  end
+
+  describe '#validate_session_token with expired token' do
+    context 'when session token is expired' do
+      let(:expired_token_value) { 'EXPIRED_TOKEN_123' }
+      let(:test_controller) do
+        double('controller',
+               params: {},
+               session: { auth_token_value: expired_token_value },
+               request: double('request',
+                               host: 'dashboard.example.com',
+                               cookies: {},
+                               headers: {}),
+               response: double('response').as_null_object)
+      end
+
+      before do
+        # Mock validate_token to return nil for expired token
+        allow_any_instance_of(MonsoonOpenstackAuth::ApiClient).to receive(:validate_token)
+          .with(expired_token_value).and_return(nil)
+      end
+
+      it 'should clear session token when validation returns nil' do
+        session = MonsoonOpenstackAuth::Authentication::AuthSession.new(test_controller, {})
+
+        result = session.validate_session_token
+
+        expect(result).to be false
+        expect(test_controller.session[:auth_token_value]).to be_nil
+      end
+
+      it 'should log token clearing with source information' do
+        allow(MonsoonOpenstackAuth.configuration).to receive(:debug?).and_return(true)
+
+        session = MonsoonOpenstackAuth::Authentication::AuthSession.new(test_controller, {})
+
+        expect(MonsoonOpenstackAuth.logger).to receive(:info)
+          .with(/Token validation failed \(token is nil\), clearing stale tokens \(source: session\)/)
+
+        session.validate_session_token
+      end
+    end
+
+    context 'when cross-dashboard cookie token is expired' do
+      let(:expired_token_value) { 'EXPIRED_COOKIE_TOKEN_456' }
+      let(:test_controller) do
+        double('controller',
+               params: {},
+               session: { auth_token_value: nil },
+               request: double('request',
+                               host: 'dashboard.example.com',
+                               cookies: { Rails.configuration.cross_dashboard_cookie_name => expired_token_value },
+                               headers: {}),
+               response: double('response').as_null_object)
+      end
+
+      before do
+        allow_any_instance_of(MonsoonOpenstackAuth::ApiClient).to receive(:validate_token)
+          .with(expired_token_value).and_return(nil)
+      end
+
+      it 'should delete cross-dashboard cookie when token validation fails' do
+        session = MonsoonOpenstackAuth::Authentication::AuthSession.new(test_controller, {})
+
+        expect(MonsoonOpenstackAuth::Authentication::AuthSession).to receive(:delete_cross_dashboard_cookie)
+          .with(test_controller)
+
+        result = session.validate_session_token
+
+        expect(result).to be false
+      end
+    end
+
+    context 'when both session and cross-dashboard cookie have the same expired token' do
+      let(:expired_token_value) { 'EXPIRED_SHARED_TOKEN_789' }
+      let(:test_controller) do
+        double('controller',
+               params: {},
+               session: { auth_token_value: expired_token_value },
+               request: double('request',
+                               host: 'dashboard.example.com',
+                               cookies: { Rails.configuration.cross_dashboard_cookie_name => expired_token_value },
+                               headers: {}),
+               response: double('response').as_null_object)
+      end
+
+      before do
+        allow_any_instance_of(MonsoonOpenstackAuth::ApiClient).to receive(:validate_token)
+          .with(expired_token_value).and_return(nil)
+      end
+
+      it 'should clear both session token and cross-dashboard cookie' do
+        session = MonsoonOpenstackAuth::Authentication::AuthSession.new(test_controller, {})
+
+        expect(MonsoonOpenstackAuth::Authentication::AuthSession).to receive(:delete_cross_dashboard_cookie)
+          .with(test_controller)
+
+        result = session.validate_session_token
+
+        expect(result).to be false
+        expect(test_controller.session[:auth_token_value]).to be_nil
+      end
+    end
+
+    context 'when token validation throws an exception' do
+      let(:invalid_token_value) { 'MALFORMED_TOKEN' }
+      let(:test_controller) do
+        double('controller',
+               params: {},
+               session: { auth_token_value: invalid_token_value },
+               request: double('request',
+                               host: 'dashboard.example.com',
+                               cookies: {},
+                               headers: {}),
+               response: double('response').as_null_object)
+      end
+
+      before do
+        allow_any_instance_of(MonsoonOpenstackAuth::ApiClient).to receive(:validate_token)
+          .with(invalid_token_value).and_raise(Excon::Errors::Unauthorized.new('Unauthorized'))
+      end
+
+      it 'should clear session token on exception' do
+        session = MonsoonOpenstackAuth::Authentication::AuthSession.new(test_controller, {})
+
+        result = session.validate_session_token
+
+        expect(result).to be false
+        expect(test_controller.session[:auth_token_value]).to be_nil
+      end
+
+      it 'should log the exception with source information' do
+        session = MonsoonOpenstackAuth::Authentication::AuthSession.new(test_controller, {})
+
+        expect(MonsoonOpenstackAuth.logger).to receive(:error)
+          .with(/token validation failed \(exception:.*Unauthorized\), clearing stale tokens \(source: session\)/)
+
+        session.validate_session_token
+      end
     end
   end
 end
