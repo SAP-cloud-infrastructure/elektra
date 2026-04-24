@@ -160,13 +160,11 @@ export const VersionUpdateDialog: React.FC<VersionUpdateDialogProps> = ({
       }
     >
       <Stack direction="vertical" gap="4">
-        <Message variant="info">
+        <p>
           <strong>Note:</strong> Minor version upgrades must be sequential. You can only upgrade one minor version at a
           time (e.g., 1.27.x → 1.28.x). To upgrade further, perform multiple sequential upgrades.
-        </Message>
-
+        </p>
         <p>Select the target Kubernetes version for this cluster.</p>
-
         {versionOptions.length === 0 ? (
           <p>No updates available</p>
         ) : (
