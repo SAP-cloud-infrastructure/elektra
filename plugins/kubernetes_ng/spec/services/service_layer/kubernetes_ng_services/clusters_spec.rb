@@ -732,7 +732,7 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
               'pods' => '10.45.0.0/16',
               'nodes' => '10.45.0.0/16',
               'services' => '10.45.0.0/16'
-            },          
+            },
           'provider' => {
             'infrastructureConfig' => {
               'floatingPoolName' => 'public-floating-pool',
@@ -775,13 +775,6 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
               'machineImageVersion' => true,
               'kubernetesVersion' => true
             }
-          },
-          'hibernation' => {
-            'schedules' => [
-              {
-                'location' => '+01:00'
-              }
-            ]
           }
         }
       })
@@ -881,6 +874,51 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
         workers: []
       }
       shoot = convert_cluster_to_shoot(cluster_without_hibernation)
+      expect(shoot['spec']['hibernation']).to be_nil
+    end
+
+    it "includes hibernation spec when explicitly provided" do
+      cluster_with_hibernation = {
+        uid: '12345678-1234-1234-1234-123456789012',
+        name: 'hibernation-cluster',
+        region: 'eu-de',
+        cloudProfileName: 'openstack',
+        kubernetesVersion: '1.25.4',
+        workers: [],
+        hibernation: {
+          schedules: [
+            { location: 'Europe/Berlin' }
+          ]
+        }
+      }
+      shoot = convert_cluster_to_shoot(cluster_with_hibernation)
+      expect(shoot['spec']['hibernation']).to eq({
+        'schedules' => [
+          { 'location' => 'Europe/Berlin' }
+        ]
+      })
+    end
+
+    it "does not include hibernation when only maintenance is provided" do
+      cluster_with_maintenance_only = {
+        uid: '12345678-1234-1234-1234-123456789012',
+        name: 'maintenance-only-cluster',
+        region: 'eu-de',
+        cloudProfileName: 'openstack',
+        kubernetesVersion: '1.25.4',
+        workers: [],
+        maintenance: {
+          startTime: '22:00',
+          endTime: '23:00',
+          timezone: '+01:00'
+        },
+        autoUpdate: {
+          os: true,
+          kubernetes: true
+        }
+      }
+      shoot = convert_cluster_to_shoot(cluster_with_maintenance_only)
+      expect(shoot['spec']['maintenance']).not_to be_nil
       expect(shoot['spec']['hibernation']).to be_nil
     end
   end

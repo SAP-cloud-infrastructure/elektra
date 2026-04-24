@@ -142,41 +142,24 @@ const DetailsContent = ({
             text: `Kubernetes version update to ${targetVersion} initiated successfully`,
             variant: "success",
           })
+          window.scrollTo({ top: 0, behavior: "smooth" })
         },
         onError: (error) => {
           setShowVersionUpdateDialog(false)
           resetMessages()
           const errText = normalizeError(error)
           addMessage({ text: `Version update failed: ${errText.title}${errText.message}`, variant: "danger" })
+          window.scrollTo({ top: 0, behavior: "smooth" })
         },
       }
     )
   }
 
-  const handleMaintenanceUpdate = (data: {
-    maintenance: { startTime: string; endTime: string; timezone: string }
-    autoUpdate: { os: boolean; kubernetes: boolean }
-  }) => {
-    if (!cluster) return
-
-    updateClusterMutation.mutate(
-      {
-        clusterName: cluster.name,
-        data,
-      },
-      {
-        onSuccess: () => {
-          setIsEditingMaintenance(false)
-          resetMessages()
-          addMessage({ text: "Maintenance window updated successfully", variant: "success" })
-        },
-        onError: (error) => {
-          resetMessages()
-          const errText = normalizeError(error)
-          addMessage({ text: `Maintenance update failed: ${errText.title}${errText.message}`, variant: "danger" })
-        },
-      }
-    )
+  const handleMaintenanceSuccess = () => {
+    setIsEditingMaintenance(false)
+    resetMessages()
+    addMessage({ text: "Maintenance window updated successfully", variant: "success" })
+    window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
   // Determine disabled state and message for YamlEditor
@@ -517,12 +500,12 @@ const DetailsContent = ({
 
         {cluster && isEditingMaintenance && (
           <MaintenanceWindowEditModal
+            clusterName={cluster.name}
             maintenance={cluster.maintenance}
             autoUpdate={cluster.autoUpdate}
             hasWorkers={cluster.workers && cluster.workers.length > 0}
-            onSave={handleMaintenanceUpdate}
+            onSuccess={handleMaintenanceSuccess}
             onCancel={() => setIsEditingMaintenance(false)}
-            isUpdating={updateClusterMutation.isPending}
           />
         )}
 

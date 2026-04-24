@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo, useEffect } from "react"
+import React, { useState, useMemo, useRef } from "react"
 import {
   Modal,
   ModalFooter,
@@ -23,28 +23,29 @@ import {
   parseTimeString,
   calculateDurationFromFormattedTimes,
 } from "../../../../utils/maintenanceTime"
+import { useRouteContext } from "@tanstack/react-router"
+import { RouterContext } from "../../../__root"
+import { useUpdateClusterMutation } from "../../../../hooks/useClusterQueries"
+import { normalizeError } from "../../../../components/InlineError"
 
 type MaintenanceWindowEditModalProps = {
+  clusterName: string
   maintenance: Maintenance
   autoUpdate: AutoUpdate
   hasWorkers: boolean
-  onSave: (data: {
-    maintenance: { startTime: string; endTime: string; timezone: string }
-    autoUpdate: { os: boolean; kubernetes: boolean }
-  }) => void
+  onSuccess: () => void
   onCancel: () => void
-  isUpdating: boolean
 }
 
 const MaintenanceWindowEditModal: React.FC<MaintenanceWindowEditModalProps> = ({
+  clusterName,
   maintenance,
   autoUpdate,
   hasWorkers,
-  onSave,
+  onSuccess,
   onCancel,
-  isUpdating,
 }) => {
-  const errorMessageRef = useRef<HTMLDivElement>(null)
+  const { apiClient } = useRouteContext({ strict: false }) as RouterContext
 
   // Form state - initialized with current maintenance data on mount
   const [formData, setFormData] = useState<MaintenanceFormData>(() => {
@@ -65,6 +66,9 @@ const MaintenanceWindowEditModal: React.FC<MaintenanceWindowEditModalProps> = ({
 
   // Store initial values for change detection
   const initialValuesRef = useRef<MaintenanceFormData>(formData)
+
+  // Use centralized mutation hook
+  const updateClusterMutation = useUpdateClusterMutation(apiClient)
 
   // Change detection
   const hasChanges = useMemo(() => {
@@ -88,7 +92,7 @@ const MaintenanceWindowEditModal: React.FC<MaintenanceWindowEditModalProps> = ({
   }
 
   // Handle save
-  const handleSave = () => {
+  const handleSave = async () => {
     setErrorMessage(null)
 
     if (!isFormValid) {
@@ -111,30 +115,32 @@ const MaintenanceWindowEditModal: React.FC<MaintenanceWindowEditModalProps> = ({
     const endMins = endMinutes % 60
     const endTimeDisplay = `${endHours.toString().padStart(2, "0")}:${endMins.toString().padStart(2, "0")}`
 
-    // Send display format to backend - let backend handle conversion to Gardener format
-    onSave({
-      maintenance: {
-        startTime: formData.startTime,
-        endTime: endTimeDisplay,
-        timezone: formData.timezone,
-      },
-      autoUpdate: {
-        os: formData.autoUpdateOS,
-        kubernetes: formData.autoUpdateKubernetes,
-      },
-    })
-  }
+    try {
+      // Update the cluster using the centralized mutation
+      await updateClusterMutation.mutateAsync({
+        clusterName,
+        data: {
+          maintenance: {
+            startTime: formData.startTime,
+            endTime: endTimeDisplay,
+            timezone: formData.timezone,
+          },
+          autoUpdate: {
+            os: formData.autoUpdateOS,
+            kubernetes: formData.autoUpdateKubernetes,
+          },
+        },
+      })
 
-  // Auto-scroll to error message when it appears
-  useEffect(() => {
-    if (errorMessage && errorMessageRef.current) {
-      errorMessageRef.current.scrollIntoView({ behavior: "smooth", block: "start" })
+      onSuccess()
+    } catch (error) {
+      const errText = normalizeError(error)
+      setErrorMessage(`${errText.title}${errText.message}`)
     }
-  }, [errorMessage])
+  }
 
   return (
     <Modal
-      className="tw-w-[40rem]"
       open={true}
       size="large"
       aria-modal={true}
@@ -146,7 +152,12 @@ const MaintenanceWindowEditModal: React.FC<MaintenanceWindowEditModalProps> = ({
             <Button onClick={onCancel} variant="default">
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={!isFormValid || isUpdating} progress={isUpdating} variant="primary">
+            <Button
+              onClick={handleSave}
+              disabled={!isFormValid || updateClusterMutation.isPending}
+              progress={updateClusterMutation.isPending}
+              variant="primary"
+            >
               Save Changes
             </Button>
           </ButtonRow>
@@ -154,7 +165,7 @@ const MaintenanceWindowEditModal: React.FC<MaintenanceWindowEditModalProps> = ({
       }
     >
       {errorMessage && (
-        <div ref={errorMessageRef} className="tw-mb-4">
+        <div className="tw-mb-4">
           <Message variant="error">{errorMessage}</Message>
         </div>
       )}

@@ -477,7 +477,7 @@ module ServiceLayer
       # Build spec section for shoot
       def build_shoot_spec(cluster)
         spec = {}
-        
+
         # Basic fields
         spec['region'] = cluster[:region] if cluster[:region]
         spec['purpose'] = cluster[:purpose] if cluster[:purpose]
@@ -489,27 +489,27 @@ module ServiceLayer
 
         # Networking configuration
         spec['networking'] = cluster[:networking].transform_keys(&:to_s) if cluster[:networking]
-        
+
         # Provider configuration
         if cluster[:infrastructure] || cluster[:workers]&.any?
           spec['provider'] = build_provider_spec(cluster)
         end
-        
+
         # Kubernetes version
         if cluster[:kubernetesVersion]
           spec['kubernetes'] = { 'version' => cluster[:kubernetesVersion] }
         end
-        
+
         # Maintenance configuration
         if cluster[:maintenance] || cluster[:autoUpdate]
           spec['maintenance'] = build_maintenance_spec(cluster)
         end
-        
+
         # Hibernation configuration
-        if deep_fetch(cluster, :maintenance, :timezone)
+        if cluster[:hibernation]
           spec['hibernation'] = build_hibernation_spec(cluster)
         end
-        
+
         spec.empty? ? nil : spec
       end
       
@@ -643,13 +643,15 @@ module ServiceLayer
       
       # Build hibernation specification
       def build_hibernation_spec(cluster)
-        timezone = deep_fetch(cluster, :maintenance, :timezone)
-        return nil unless timezone
-        
+        hibernation = cluster[:hibernation]
+        return nil unless hibernation
+
+        # Convert schedules to proper format with string keys
+        schedules = hibernation[:schedules]
+        return nil unless schedules
+
         {
-          'schedules' => [
-            { 'location' => timezone }
-          ]
+          'schedules' => schedules.map { |schedule| schedule.transform_keys(&:to_s) }
         }
       end
     end
