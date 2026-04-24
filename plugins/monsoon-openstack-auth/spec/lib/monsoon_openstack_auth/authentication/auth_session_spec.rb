@@ -499,4 +499,58 @@ describe MonsoonOpenstackAuth::Authentication::AuthSession do
       end
     end
   end
+
+  describe '#validate_session_token with cross-dashboard cookie domain mismatch' do
+    let(:test_controller) do
+      double('controller',
+             params: { domain_fid: 'domain-b' },
+             session: { auth_token_value: nil },
+             request: double('request',
+                             host: 'dashboard.example.com',
+                             cookies: { Rails.configuration.cross_dashboard_cookie_name => test_token[:value] },
+                             headers: {}),
+             response: double('response').as_null_object)
+    end
+
+    let(:token_domain_a) do
+      test_token.merge('domain' => { 'id' => 'domain-a-id', 'name' => 'domain-a' })
+    end
+
+    before do
+      # Mock FriendlyIdEntry to resolve domain-b to different ID
+      allow(FriendlyIdEntry).to receive(:find_domain).with('domain-b').and_return(
+        double('entry', key: 'domain-b-id')
+      )
+      # Token from cookie is for domain-a
+      allow_any_instance_of(MonsoonOpenstackAuth::ApiClient).to receive(:validate_token)
+        .with(test_token[:value]).and_return(token_domain_a)
+    end
+
+    it 'should delete cross-dashboard cookie when domain mismatch occurs' do
+      session = MonsoonOpenstackAuth::Authentication::AuthSession.new(test_controller, { domain: 'domain-b-id' })
+
+      # Expect the cookie to be deleted
+      expect(MonsoonOpenstackAuth::Authentication::AuthSession).to receive(:delete_cross_dashboard_cookie)
+        .with(test_controller)
+
+      result = session.validate_session_token
+
+      expect(result).to be false
+    end
+
+    it 'should log the domain mismatch with source information' do
+      # Enable debug mode to trigger logging
+      allow(MonsoonOpenstackAuth.configuration).to receive(:debug?).and_return(true)
+
+      session = MonsoonOpenstackAuth::Authentication::AuthSession.new(test_controller, { domain: 'domain-b-id' })
+
+      # Mock the logger to verify both log messages
+      expect(MonsoonOpenstackAuth.logger).to receive(:info)
+        .with(/Token domain mismatch with URL \(source: cross_dashboard_cookie\)/).ordered
+      expect(MonsoonOpenstackAuth.logger).to receive(:info)
+        .with('Deleting stale cross-dashboard cookie due to domain mismatch.').ordered
+
+      session.validate_session_token
+    end
+  end
 end
