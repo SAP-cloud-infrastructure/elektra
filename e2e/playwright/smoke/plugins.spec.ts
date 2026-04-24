@@ -14,7 +14,7 @@ import { test, expect } from "@playwright/test"
  * - Routing misconfiguration
  * - Missing JavaScript bundles
  *
- * Run with: pnpm e2e:playwright:smoke -- --host http://localhost:PORT plugins
+ * Run with: pnpm e2e:smoke -- --host http://localhost:PORT plugins
  */
 
 const TEST_DOMAIN = process.env.TEST_DOMAIN || "cc3test"
@@ -65,9 +65,10 @@ test.describe("plugin routes are mounted", () => {
       // - 301/302/303: Redirect to login page
       // - 401: Unauthorized (but route exists)
       const acceptableStatuses = [200, 301, 302, 303, 401]
-      expect(acceptableStatuses, `${plugin.name} should return an acceptable status code (got ${response.status()})`).toContain(
-        response.status()
-      )
+      expect(
+        acceptableStatuses,
+        `${plugin.name} should return an acceptable status code (got ${response.status()})`
+      ).toContain(response.status())
     })
   }
 })
