@@ -37,7 +37,6 @@ import { QUERY_KEYS } from "../../../../hooks/queryKeys"
 import DisableableButton from "../../../../components/DisableableButton"
 import { KubernetesVersionDisplay } from "./KubernetesVersionDisplay"
 import { VersionUpdateDialog } from "./VersionUpdateDialog"
-import { useUpdateClusterMutation } from "../../../../hooks/useClusterQueries"
 import { normalizeDisplayValue } from "../../../../utils/valueHelpers"
 
 const sectionHeaderStyles = "details-section tw-text-lg tw-font-bold tw-mb-4"
@@ -67,7 +66,6 @@ const DetailsContent = ({
   const { tab } = useSearch({ from: CLUSTER_DETAIL_ROUTE_ID })
   const { addMessage, resetMessages } = useActions()
   const queryClient = useQueryClient()
-  const updateClusterMutation = useUpdateClusterMutation(apiClient)
 
   // Handle tab change via URL navigation
   const tabIndex = tab === "yaml" ? 1 : 0
