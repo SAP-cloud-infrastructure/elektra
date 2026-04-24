@@ -53,6 +53,7 @@ export default class ShowSnapshot extends React.Component {
                 <Row label="ID" value={snapshot.id} />
                 <Row label="Status" value={snapshot.status} />
                 <Row label="Description" value={snapshot.description} />
+                <Row label="Provider Location" value={snapshot.provider_location} />
                 <Row label="Share ID">
                   <Link to={`/shares/${snapshot.share_id}/show`}>
                     {snapshot.share_id}
