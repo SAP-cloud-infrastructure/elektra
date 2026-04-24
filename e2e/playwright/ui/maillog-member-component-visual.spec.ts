@@ -8,10 +8,10 @@ import { getBasicMaskSelectors, SCREENSHOT_OPTIONS } from "../helpers/masking"
  * Tests visual stability of specific UI components (not dynamic data).
  * Focuses on search bar and static UI elements.
  *
- * Run with: pnpm e2e:playwright:ui -- --host http://localhost:PORT maillog-member-component-visual
- * Update snapshots: 
- *   1. Delete old snapshots: rm -rf e2e/playwright/ui/maillog-member-component-visual.spec.ts-snapshots/ 
- *   2. Generate new: pnpm e2e:playwright:ui -- --host http://localhost:PORT --update-snapshots maillog-member-component-visual
+ * Run with: pnpm e2e:ui -- --host http://localhost:PORT maillog-member-component-visual
+ * Update snapshots:
+ *   1. Delete old snapshots: rm -rf e2e/playwright/ui/maillog-member-component-visual.spec.ts-snapshots/
+ *   2. Generate new: pnpm e2e:ui -- --host http://localhost:PORT --update-snapshots maillog-member-component-visual
  */
 
 const TEST_DOMAIN = process.env.TEST_DOMAIN || "cc3test"
