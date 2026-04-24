@@ -7,8 +7,8 @@ import { getBasicMaskSelectors, SCREENSHOT_OPTIONS } from "../helpers/masking"
  * Tests visual stability of public-facing landing pages with security masking.
  * No authentication required for these tests.
  *
- * Run with: pnpm e2e:playwright:smoke -- --host http://localhost:PORT landing-visual
- * Update snapshots: pnpm e2e:playwright:smoke -- --host http://localhost:PORT --update-snapshots landing-visual
+ * Run with: pnpm e2e:smoke -- --host http://localhost:PORT landing-visual
+ * Update snapshots: pnpm e2e:smoke -- --host http://localhost:PORT --update-snapshots landing-visual
  */
 
 const TEST_DOMAIN = process.env.TEST_DOMAIN || "cc3test"
@@ -84,7 +84,7 @@ test.describe("Visual Regression - Landing Page", () => {
 
   test("error page - unsupported domain", async ({ page }) => {
     await page.goto("/BAD_DOMAIN_THAT_DOES_NOT_EXIST/home", {
-      waitUntil: "domcontentloaded"
+      waitUntil: "domcontentloaded",
     })
     await page.waitForTimeout(1000)
 
