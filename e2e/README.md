@@ -1,12 +1,12 @@
 # E2E Testing for Elektra
 
-This directory contains end-to-end tests for Elektra using Playwright (new) and Cypress (legacy, being phased out).
+This directory contains end-to-end tests for Elektra using Playwright.
 
 ## 📁 Structure
 
 ```
 e2e/
-├── playwright/                 # Playwright tests (recommended)
+├── playwright/                 # Playwright tests
 │   ├── smoke/                 # Smoke tests (no auth required)
 │   │   ├── health.spec.ts
 │   │   ├── auth.spec.ts
@@ -22,14 +22,7 @@ e2e/
 │   ├── playwright.config.ts
 │   ├── SECURITY.md            # PII masking guidelines
 │   └── VISUAL_REGRESSION.md   # Visual testing best practices
-├── cypress/                    # Cypress tests (legacy, being phased out)
-│   ├── integration/
-│   │   ├── smoke/
-│   │   ├── member/
-│   │   └── admin/
-│   └── cypress.config.js
-├── run-playwright.sh          # Playwright test runner (uses Docker)
-├── run.sh                     # Cypress test runner (uses Docker)
+├── run.sh                     # Playwright test runner (uses Docker)
 └── README.md                  # This file
 ```
 
@@ -44,9 +37,7 @@ e2e/
 pnpm install
 ```
 
-**Cypress:** No local installation required - runs in self-contained Docker container.
-
-## Playwright Tests (Recommended)
+## Playwright Tests
 
 ### Running Smoke Tests (No Authentication)
 
@@ -54,22 +45,22 @@ Smoke tests verify basic functionality without requiring authentication or backe
 
 ```bash
 # Using npm scripts (default: http://localhost:3000)
-pnpm e2e:playwright:smoke              # Chromium (default)
-pnpm e2e:playwright:smoke:firefox      # Firefox
-pnpm e2e:playwright:smoke:all          # All browsers
+pnpm e2e:smoke              # Chromium (default)
+pnpm e2e:smoke:firefox      # Firefox
+pnpm e2e:smoke:all          # All browsers
 
 # Custom host via npm scripts
-pnpm e2e:playwright:smoke -- --host http://localhost:PORT
-pnpm e2e:playwright:smoke:firefox -- --host http://localhost:PORT
+pnpm e2e:smoke -- --host http://localhost:PORT
+pnpm e2e:smoke:firefox -- --host http://localhost:PORT
 
-# Using run-playwright.sh directly
-./e2e/run-playwright.sh --host http://localhost:PORT -p smoke
+# Using run.sh directly
+./e2e/run.sh --host http://localhost:PORT -p smoke
 
 # Run specific test
-./e2e/run-playwright.sh --host http://localhost:PORT -p smoke health
+./e2e/run.sh --host http://localhost:PORT -p smoke health
 
 # Mac users with Docker
-./e2e/run-playwright.sh --host http://host.docker.internal:3000 -p smoke
+./e2e/run.sh --host http://host.docker.internal:3000 -p smoke
 ```
 
 **Docker image:** `mcr.microsoft.com/playwright:v1.59.1-noble`
@@ -83,15 +74,15 @@ UI tests require Rails running in e2e mode with mock OpenStack services and test
 RAILS_ENV=e2e bundle exec rails server -p 4001
 
 # Terminal 2: Run UI tests
-pnpm e2e:playwright:ui -- --host http://localhost:PORT
-pnpm e2e:playwright:ui:firefox -- --host http://localhost:PORT
-pnpm e2e:playwright:ui:all -- --host http://localhost:PORT
+pnpm e2e:ui -- --host http://localhost:PORT
+pnpm e2e:ui:firefox -- --host http://localhost:PORT
+pnpm e2e:ui:all -- --host http://localhost:PORT
 
-# Using run-playwright.sh directly
-./e2e/run-playwright.sh --host http://localhost:PORT -p ui
+# Using run.sh directly
+./e2e/run.sh --host http://localhost:PORT -p ui
 
 # Run specific test
-./e2e/run-playwright.sh --host http://localhost:PORT -p ui masterdata-admin-functional
+./e2e/run.sh --host http://localhost:PORT -p ui masterdata-admin-functional
 ```
 
 ### Updating Visual Snapshots
@@ -103,36 +94,12 @@ When UI changes are intentional and you need to update baselines:
 rm -rf e2e/playwright/ui/<test-name>.spec.ts-snapshots/
 
 # Generate new snapshots
-pnpm e2e:playwright:ui -- --host http://localhost:PORT --update-snapshots <test-name>
+pnpm e2e:ui -- --host http://localhost:PORT --update-snapshots <test-name>
 
 # Example: Update masterdata snapshots
 rm -rf e2e/playwright/ui/masterdata-admin-visual.spec.ts-snapshots/
-pnpm e2e:playwright:ui -- --host http://localhost:PORT --update-snapshots masterdata-admin-visual
+pnpm e2e:ui -- --host http://localhost:PORT --update-snapshots masterdata-admin-visual
 ```
-
-## Cypress Tests (Legacy)
-
-### Running Cypress Tests
-
-**Cypress runs in Docker container with everything pre-installed.**
-
-```bash
-# Using npm scripts (default: http://localhost:3000)
-pnpm e2e:cypress:smoke       # Smoke tests (no auth)
-pnpm e2e:cypress:member      # Member role tests
-pnpm e2e:cypress:admin       # Admin role tests
-
-# Custom host
-pnpm e2e:cypress:smoke -- --host http://localhost:PORT
-
-# Using run.sh directly
-cd e2e
-./run.sh --profile smoke --host http://localhost:3000
-./run.sh --profile member --host http://localhost:3000
-./run.sh --profile admin --host http://localhost:3000
-```
-
-**Docker image:** `cypress/included:15.10.0`
 
 ## Test Types
 
@@ -162,7 +129,7 @@ Capture screenshots to detect unintended UI changes:
 
 - Full-page screenshots
 - Component-level screenshots (toolbars, modals)
-- Security masking of PII (see `SECURITY.md`)
+- Security masking (see `SECURITY.md`)
 - Responsive design testing (desktop, tablet, mobile)
 
 ## Environment Configuration
@@ -180,18 +147,18 @@ TEST_ADMIN_USER=xxx
 TEST_ADMIN_PASSWORD=xxx
 ```
 
-## E2E Environment Mode
+## Environment Mode
 
-The `e2e` Rails environment provides:
-
-- **Mock authentication** - No real Keystone required
-- **Fake OpenStack services** - Returns mock data for UI rendering
-- **Test-friendly configuration** - Simplified setup for CI/CD
-
-Start Rails in e2e mode:
+Start Rails in dev mode:
 
 ```bash
-RAILS_ENV=e2e bundle exec rails server -p 4001
+bundle exec rails server -p 4001
+```
+
+Start also Javascript server:
+
+```bash
+pnpm build --watch
 ```
 
 This environment is used for:
@@ -269,30 +236,9 @@ Tests run in Concourse CI pipeline:
 - **Smoke tests** - Run on every commit (no auth required)
 - **UI tests** - Run after successful build (requires e2e environment)
 
-Results are uploaded to Swift object storage for review.
+Results of failed tests are uploaded to Swift object storage for review.
 
 ## Troubleshooting
-
-### Docker Permission Issues
-
-If you encounter permission errors with Docker:
-
-```bash
-# Check Docker is running
-docker ps
-
-# Try running with proper permissions
-sudo ./e2e/run-playwright.sh --host http://localhost:PORT -p smoke
-```
-
-### Port Already in Use
-
-If port 3000 or 4001 is already in use:
-
-```bash
-# Use a different port
-./e2e/run-playwright.sh --host http://localhost:5000 -p smoke
-```
 
 ### Tests Timing Out
 
@@ -310,10 +256,15 @@ If visual tests fail unexpectedly:
 2. Check if UI changes were intentional
 3. Update snapshots if changes are expected (see "Updating Visual Snapshots")
 
-## Migration Status
+## CI/CD Integration
 
-- ✅ **Playwright migration complete** - All critical plugins covered
-- ⚠️ **Cypress being phased out** - Use Playwright for new tests
-- ✅ **CI/CD updated** - Playwright integrated into pipeline
+Tests run in Concourse CI pipeline:
 
-For migration history and decisions, see git history and `OPTIMIZATION_PLAN.md`.
+- **Smoke tests** - Run on every commit (no auth required)
+- **UI tests** - Run after successful build (requires e2e environment)
+
+Test results of failed tests are automatically uploaded to Swift object storage on failure:
+
+- Image: see `docker/Dockerfile.ci-helper`
+- Container: `playwright`
+- Path: `elektra/VERSION/smoke/` or `elektra/VERSION/ui/`
