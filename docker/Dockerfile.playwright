@@ -7,7 +7,7 @@
 
 # SMOKE TESTS (without login)
 # docker run --rm \
-#    --volume /home/d058266/workspace/elektra:/work \
+#    --volume /home/USER/workspace/elektra:/work \
 #    --workdir /app \
 #    --env BASE_URL=https://dashboard-e2e.qa-de-1.cloud.sap \
 #    --env TEST_DOMAIN=cc3test \

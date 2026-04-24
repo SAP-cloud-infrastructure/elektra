@@ -12,8 +12,12 @@ Before making changes (e.g., Bootstrap upgrade), create baseline screenshots:
 # Start Rails in e2e mode
 bundle exec rails server -p PORT
 
+# Start also Javascript server:
+
+pnpm build --watch
+
 # Create baselines (in another terminal)
-pnpm e2e:playwright:ui -- --host http://localhost:PORT --update-snapshots <test-name>
+pnpm e2e:ui -- --host http://localhost:PORT --update-snapshots <test-name>
 ```
 
 ### 2. Make Your Changes
@@ -25,7 +29,7 @@ pnpm e2e:playwright:ui -- --host http://localhost:PORT --update-snapshots <test-
 ### 3. Run Visual Tests
 
 ```bash
-pnpm e2e:playwright:ui -- --host http://localhost:PORT <test-name>
+pnpm e2e:ui -- --host http://localhost:PORT <test-name>
 ```
 
 ### 4. Review Differences
@@ -45,7 +49,7 @@ The report shows:
 ### 5. Update Baselines (if changes are intentional)
 
 ```bash
-pnpm e2e:playwright:ui -- --host http://localhost:PORT --update-snapshots <test-name>
+pnpm e2e:ui -- --host http://localhost:PORT --update-snapshots <test-name>
 ```
 
 ### 6. Recreating Baselines After Masking Changes
@@ -59,10 +63,10 @@ pnpm e2e:playwright:ui -- --host http://localhost:PORT --update-snapshots <test-
 rm -rf e2e/playwright/ui/api-access-visual.spec.ts-snapshots/
 
 # Step 2: Create new snapshots (writes -actual.png files)
-pnpm e2e:playwright:ui -- --host http://localhost:PORT --update-snapshots api-access-visual
+pnpm e2e:ui -- --host http://localhost:PORT --update-snapshots api-access-visual
 
 # Step 3: Accept new baselines (converts -actual.png to baseline)
-pnpm e2e:playwright:ui -- --host http://localhost:PORT --update-snapshots api-access-visual
+pnpm e2e:ui -- --host http://localhost:PORT --update-snapshots api-access-visual
 ```
 
 **Why is this necessary?**
@@ -85,28 +89,28 @@ pnpm e2e:playwright:ui -- --host http://localhost:PORT --update-snapshots api-ac
 **Landing Page**
 
 ```bash
-pnpm e2e:playwright:ui -- --host http://localhost:PORT landing-visual
+pnpm e2e:ui -- --host http://localhost:PORT landing-visual
 ```
 
 **Masterdata Cockpit**
 
 ```bash
 # Visual regression tests (10 tests)
-pnpm e2e:playwright:ui -- --host http://localhost:PORT masterdata-visual
+pnpm e2e:ui -- --host http://localhost:PORT masterdata-visual
 ```
 
 **API Access**
 
 ```bash
 # Visual regression tests (5 tests)
-pnpm e2e:playwright:ui -- --host http://localhost:PORT api-access-visual
+pnpm e2e:ui -- --host http://localhost:PORT api-access-visual
 ```
 
 **Domain Home (Admin)**
 
 ```bash
 # Visual regression tests (3 tests)
-pnpm e2e:playwright:ui -- --host http://localhost:PORT domain-admin-visual
+pnpm e2e:ui -- --host http://localhost:PORT domain-admin-visual
 ```
 
 ### Dynamic Pages (Component-Level Visual Tests)
@@ -115,27 +119,27 @@ pnpm e2e:playwright:ui -- --host http://localhost:PORT domain-admin-visual
 
 ```bash
 # Component visual tests (2 tests: search bar, filter toolbar)
-pnpm e2e:playwright:ui -- --host http://localhost:PORT audit-admin-component-visual
+pnpm e2e:ui -- --host http://localhost:PORT audit-admin-component-visual
 ```
 
 **Volumes (Member)**
 
 ```bash
 # Component visual tests (2 tests: volumes toolbar, snapshots toolbar)
-pnpm e2e:playwright:ui -- --host http://localhost:PORT volumes-member-component-visual
+pnpm e2e:ui -- --host http://localhost:PORT volumes-member-component-visual
 ```
 
 **Images (Member)**
 
 ```bash
 # Component visual tests (1 test: search toolbar)
-pnpm e2e:playwright:ui -- --host http://localhost:PORT images-member-component-visual
+pnpm e2e:ui -- --host http://localhost:PORT images-member-component-visual
 ```
 
 ### All Visual Tests
 
 ```bash
-pnpm e2e:playwright:ui -- --host http://localhost:PORT
+pnpm e2e:ui -- --host http://localhost:PORT
 ```
 
 ## Configuration
@@ -236,7 +240,7 @@ Masked areas appear as black boxes in screenshots. See `SECURITY.md` for details
 
 ```bash
 # Create baselines
-pnpm e2e:playwright:ui -- --host http://localhost:PORT --update-snapshots
+pnpm e2e:ui -- --host http://localhost:PORT --update-snapshots
 
 # Commit baselines
 git add e2e/playwright/ui/*-snapshots
@@ -246,17 +250,14 @@ git commit -m "chore: add visual regression baselines before bootstrap upgrade"
 ### After Upgrade
 
 ```bash
-# Upgrade Bootstrap
-pnpm add bootstrap@5.x.x
-
 # Run visual tests
-pnpm e2e:playwright:ui -- --host http://localhost:PORT
+pnpm e2e:ui -- --host http://localhost:PORT
 
 # Review report
 npx playwright show-report
 
 # If changes look good, update baselines
-pnpm e2e:playwright:ui -- --host http://localhost:PORT --update-snapshots
+pnpm e2e:ui -- --host http://localhost:PORT --update-snapshots
 ```
 
 ## Troubleshooting
@@ -286,8 +287,8 @@ If you modified `masking.ts` to add/remove mask selectors and tests are now fail
 rm -rf e2e/playwright/ui/<test-name>-snapshots/
 
 # Create new snapshots (2-step process)
-pnpm e2e:playwright:ui -- --host http://localhost:PORT --update-snapshots <test-name>
-pnpm e2e:playwright:ui -- --host http://localhost:PORT --update-snapshots <test-name>
+pnpm e2e:ui -- --host http://localhost:PORT --update-snapshots <test-name>
+pnpm e2e:ui -- --host http://localhost:PORT --update-snapshots <test-name>
 ```
 
 See "Recreating Baselines After Masking Changes" section above for details.
@@ -446,13 +447,13 @@ For testing modal dialogs that appear when clicking buttons (e.g., "Create New",
 
    ```bash
    # Step 1: Create baseline (writes -actual.png files)
-   pnpm e2e:playwright:ui -- --host http://localhost:PORT --update-snapshots <test-name>
+   pnpm e2e:ui -- --host http://localhost:PORT --update-snapshots <test-name>
 
    # Step 2: Accept baseline (converts -actual.png to baseline)
-   pnpm e2e:playwright:ui -- --host http://localhost:PORT --update-snapshots <test-name>
+   pnpm e2e:ui -- --host http://localhost:PORT --update-snapshots <test-name>
 
    # Step 3: Verify tests pass
-   pnpm e2e:playwright:ui -- --host http://localhost:PORT <test-name>
+   pnpm e2e:ui -- --host http://localhost:PORT <test-name>
    ```
 
 **Important Notes:**
