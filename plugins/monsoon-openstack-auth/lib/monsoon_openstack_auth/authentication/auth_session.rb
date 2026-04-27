@@ -129,13 +129,6 @@ module MonsoonOpenstackAuth
           controller.session[:_csrf_token] = csrf_token
         end
 
-        def session_id_presented?(controller)
-          # not controller.request.session_options[:id].blank?
-          return false unless controller.request.session.respond_to?(:id)
-
-          !(controller.request.session.blank? && controller.request.session.id.blank?)
-        end
-
         # check if cookie for two factor authentication is valid
         def two_factor_cookie_valid?(controller)
           return false unless controller.request.cookies[TWO_FACTOR_AUTHENTICATION]
@@ -349,10 +342,10 @@ module MonsoonOpenstackAuth
           else
             # Token validation returned nil - token is expired, invalid, or doesn't exist
             # Clear the stale token from session/cookie to force re-authentication
-            MonsoonOpenstackAuth.logger.info "Token validation failed (token is nil), clearing stale tokens (source: #{token_source})." if @debug
+            MonsoonOpenstackAuth.logger.info "Token validation failed (token is nil), clearing stale token (source: #{token_source})." if @debug
 
             if token_source == :session || (token_source == :cross_dashboard_cookie && session_token == cross_dashboard_token)
-              # Clear session token if it's the source or if it matches the failed cross-dashboard token
+              # Clear session token if it was the source or if it matches the failed cross-dashboard token
               @controller.session[:auth_token_value] = nil
             end
 
@@ -361,13 +354,10 @@ module MonsoonOpenstackAuth
               self.class.delete_cross_dashboard_cookie(@controller)
             end
           end
-          # rescue Excon::Errors::Unauthorized, Fog::Identity::OpenStack::NotFound => e
-          # MonsoonOpenstackAuth.logger.error "token validation failed #{e}."
-          # end
         rescue StandardError => e
           class_name = e.class.name
           if class_name.start_with?('Excon', 'Fog')
-            MonsoonOpenstackAuth.logger.error "token validation failed (exception: #{e}), clearing stale tokens (source: #{token_source})."
+            MonsoonOpenstackAuth.logger.error "token validation failed (exception: #{e}), clearing stale token (source: #{token_source})."
 
             # Clear stale tokens on validation failure
             if token_source == :session || (token_source == :cross_dashboard_cookie && session_token == cross_dashboard_token)
@@ -475,38 +465,51 @@ module MonsoonOpenstackAuth
         return false unless token
 
         # If no scope is requested, any valid token is acceptable
-        return true if @scope.empty?
+        # Check if all scope values are nil (not just if hash is empty)
+        return true if @scope.empty? || (@scope[:domain].nil? && @scope[:domain_name].nil? && @scope[:project].nil?)
 
-        # Extract domain and project IDs from token
-        token_domain_id = token.dig(:project, :domain, :id) || token.dig(:project, :domain, 'id') || token.dig(:domain, :id) || token.dig(:domain, 'id')
-        token_domain_name = token.dig(:project, :domain, :name) || token.dig(:project, :domain, 'name') || token.dig(:domain, :name) || token.dig(:domain, 'name')
-        token_project_id = token.dig(:project, :id) || token.dig(:project, 'id')
-
-        # If scope requests a specific project, check both project and domain
-        if @scope[:project]
+        # Check project scope first
+        token_scope_project_id = token.dig(:project, :id) || token.dig(:project, 'id')
+        if @scope[:project] && token_scope_project_id
           # Project must match
-          return false unless token_project_id == @scope[:project]
+          return false unless token_scope_project_id == @scope[:project]
 
-          # Domain must also match if specified
+          # If domain is also specified in scope, check it too
           if @scope[:domain]
+            token_domain_id = token.dig(:project, :domain, :id) || token.dig(:project, :domain, 'id')
             return token_domain_id == @scope[:domain]
           elsif @scope[:domain_name]
+            token_domain_name = token.dig(:project, :domain, :name) || token.dig(:project, :domain, 'name')
             return token_domain_name == @scope[:domain_name]
           end
 
-          # Project matches and no domain specified in scope -> accept
+          # Project matches and no domain check needed
           return true
         end
 
-        # If scope requests a domain (without project), check domain
-        if @scope[:domain]
+        # Check domain scope (with user domain fallback for unscoped tokens)
+        # For project-scoped tokens: project.domain
+        # For domain-scoped tokens: domain
+        # For unscoped tokens: user.domain (fallback)
+        token_domain_id = token.dig(:project, :domain, :id) || token.dig(:project, :domain, 'id')
+        token_domain_id ||= token.dig(:domain, :id) || token.dig(:domain, 'id')
+        token_domain_id ||= token.dig(:user, :domain, :id) || token.dig(:user, :domain, 'id')
+
+        if @scope[:domain] && token_domain_id
           return token_domain_id == @scope[:domain]
-        elsif @scope[:domain_name]
+        end
+
+        # Check domain name (with same fallback logic)
+        token_domain_name = token.dig(:project, :domain, :name) || token.dig(:project, :domain, 'name')
+        token_domain_name ||= token.dig(:domain, :name) || token.dig(:domain, 'name')
+        token_domain_name ||= token.dig(:user, :domain, :name) || token.dig(:user, :domain, 'name')
+
+        if @scope[:domain_name] && token_domain_name
           return token_domain_name == @scope[:domain_name]
         end
 
-        # No specific scope requirements, accept any valid token
-        true
+        # No scope requirements matched - reject token
+        false
       rescue StandardError => e
         MonsoonOpenstackAuth.logger.error "Failed to check token scope match: #{e}" if @debug
         false  # On error, reject the token
