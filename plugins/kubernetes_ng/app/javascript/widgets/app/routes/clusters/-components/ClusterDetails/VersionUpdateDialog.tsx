@@ -186,7 +186,7 @@ export const VersionUpdateDialog: React.FC<VersionUpdateDialogProps> = ({
       }
     >
       <Stack direction="vertical" gap="4">
-        {errorMessage && <Message variant="error">{errorMessage}</Message>}        
+        {errorMessage && <Message variant="error">{errorMessage}</Message>}
         <p>
           <strong>Note:</strong> Minor version upgrades must be sequential. You can only upgrade one minor version at a
           time (e.g., 1.27.x → 1.28.x). To upgrade further, perform multiple sequential upgrades.
