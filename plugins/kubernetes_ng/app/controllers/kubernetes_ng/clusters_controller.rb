@@ -105,6 +105,8 @@ module KubernetesNg
           :maximum,
           zones: []
         ],
+        maintenance: [:startTime, :endTime, :timezone],
+        autoUpdate: [:os, :kubernetes],
         metadata: {
           annotations: {}
         }

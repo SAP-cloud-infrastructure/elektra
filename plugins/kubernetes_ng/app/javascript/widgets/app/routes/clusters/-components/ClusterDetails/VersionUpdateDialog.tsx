@@ -10,6 +10,10 @@ import {
   Message,
 } from "@cloudoperators/juno-ui-components"
 import { VersionUpdates } from "./KubernetesVersionDisplay"
+import { useRouteContext } from "@tanstack/react-router"
+import { RouterContext } from "../../../__root"
+import { useUpdateClusterMutation } from "../../../../hooks/useClusterQueries"
+import { normalizeError } from "../../../../components/InlineError"
 
 interface VersionOption {
   version: string
@@ -20,12 +24,11 @@ interface VersionOption {
 }
 
 interface VersionUpdateDialogProps {
-  isOpen: boolean
-  onClose: () => void
-  onConfirm: (targetVersion: string) => void
+  clusterName: string
   currentVersion: string
   versionUpdates?: VersionUpdates | null
-  isUpdating?: boolean
+  onSuccess: () => void
+  onCancel: () => void
 }
 
 const FooterActions = ({
@@ -73,14 +76,37 @@ const FooterActions = ({
  * - Shows disabled options with explanations for invalid upgrade paths
  */
 export const VersionUpdateDialog: React.FC<VersionUpdateDialogProps> = ({
-  isOpen,
-  onClose,
-  onConfirm,
+  clusterName,
   currentVersion,
   versionUpdates,
-  isUpdating = false,
+  onSuccess,
+  onCancel,
 }) => {
+  const { apiClient } = useRouteContext({ strict: false }) as RouterContext
   const [selectedVersion, setSelectedVersion] = useState<string>("")
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  // Use centralized mutation hook
+  const updateClusterMutation = useUpdateClusterMutation(apiClient)
+
+  // Handle update
+  const handleUpdate = async () => {
+    if (!selectedVersion) return
+
+    setErrorMessage(null)
+
+    try {
+      await updateClusterMutation.mutateAsync({
+        clusterName,
+        data: { kubernetesVersion: selectedVersion },
+      })
+
+      onSuccess()
+    } catch (error) {
+      const errText = normalizeError(error)
+      setErrorMessage(`${errText.title}${errText.message}`)
+    }
+  }
 
   // Parse current version
   const currentParsed = useMemo(() => {
@@ -146,20 +172,22 @@ export const VersionUpdateDialog: React.FC<VersionUpdateDialogProps> = ({
 
   return (
     <Modal
-      open={isOpen}
-      onCancel={onClose}
+      open={true}
+      onCancel={onCancel}
       title="Update Kubernetes Version"
       size="large"
       modalFooter={
         <FooterActions
-          onCancel={onClose}
-          onConfirm={onConfirm}
+          onCancel={onCancel}
+          onConfirm={handleUpdate}
           selectedVersion={selectedVersion}
-          isUpdating={isUpdating}
+          isUpdating={updateClusterMutation.isPending}
         />
       }
     >
       <Stack direction="vertical" gap="4">
+        {errorMessage && <Message variant="error">{errorMessage}</Message>}
+
         <Message variant="info">
           <strong>Note:</strong> Minor version upgrades must be sequential. You can only upgrade one minor version at a
           time (e.g., 1.27.x → 1.28.x). To upgrade further, perform multiple sequential upgrades.
@@ -176,7 +204,7 @@ export const VersionUpdateDialog: React.FC<VersionUpdateDialogProps> = ({
               label="Select version"
               value={selectedVersion}
               onChange={(value) => setSelectedVersion(String(value))}
-              disabled={isUpdating}
+              disabled={updateClusterMutation.isPending}
             >
               {versionOptions.map((option) => {
                 // Section headers
