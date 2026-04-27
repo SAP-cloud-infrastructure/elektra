@@ -87,6 +87,10 @@ describe DashboardController, type: :controller do
             .with(default_params[:domain_id], "non_existent_project")
             .and_return(nil)
 
+          # Allow scope validation to pass (token will be rescoped later)
+          allow_any_instance_of(MonsoonOpenstackAuth::Authentication::AuthSession)
+            .to receive(:token_domain_matches_scope_domain?).and_return(true)
+
           # Trigger the exception
           allow_any_instance_of(MonsoonOpenstackAuth::Authentication::AuthSession)
             .to receive(:rescope_token)
