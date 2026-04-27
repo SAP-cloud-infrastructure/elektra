@@ -356,8 +356,8 @@ module MonsoonOpenstackAuth
               @controller.session[:auth_token_value] = nil
             end
 
-            if token_source == :cross_dashboard_cookie
-              # Delete cross-dashboard cookie
+            if token_source == :cross_dashboard_cookie || (token_source == :session && cross_dashboard_token == auth_token_value)
+              # Delete cross-dashboard cookie if it was the source OR if it contains the same failed token as session
               self.class.delete_cross_dashboard_cookie(@controller)
             end
           end
@@ -374,7 +374,8 @@ module MonsoonOpenstackAuth
               @controller.session[:auth_token_value] = nil
             end
 
-            if token_source == :cross_dashboard_cookie
+            if token_source == :cross_dashboard_cookie || (token_source == :session && cross_dashboard_token == auth_token_value)
+              # Delete cross-dashboard cookie if it was the source OR if it contains the same failed token as session
               self.class.delete_cross_dashboard_cookie(@controller)
             end
           else
@@ -383,7 +384,7 @@ module MonsoonOpenstackAuth
           end
         end
 
-        MonsoonOpenstackAuth.logger.info 'validate_auth_token -> failed.' if @debug
+        MonsoonOpenstackAuth.logger.info 'validate_session_token -> failed.' if @debug
         false
       end
 
@@ -504,12 +505,7 @@ module MonsoonOpenstackAuth
           return token_domain_name == @scope[:domain_name]
         end
 
-        # If token has a domain but scope doesn't specify one -> mismatch
-        if token_domain_id.present? || token_domain_name.present?
-          return false
-        end
-
-        # No specific scope requirements, accept the token
+        # No specific scope requirements, accept any valid token
         true
       rescue StandardError => e
         MonsoonOpenstackAuth.logger.error "Failed to check token scope match: #{e}" if @debug

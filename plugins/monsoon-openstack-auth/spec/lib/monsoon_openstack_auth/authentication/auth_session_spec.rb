@@ -585,6 +585,9 @@ describe MonsoonOpenstackAuth::Authentication::AuthSession do
 
         session = MonsoonOpenstackAuth::Authentication::AuthSession.new(test_controller, {})
 
+        # Allow any info calls
+        allow(MonsoonOpenstackAuth.logger).to receive(:info)
+        # But expect the specific one we care about
         expect(MonsoonOpenstackAuth.logger).to receive(:info)
           .with(/Token validation failed \(token is nil\), clearing stale tokens \(source: session\)/)
 
