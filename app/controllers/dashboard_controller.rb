@@ -80,6 +80,19 @@ class DashboardController < ::ScopeController
   private
 
   def rescope_token_with_error_handling
+    # Check if user is authenticated at all
+    # If there's no current_user (e.g., token was rejected due to domain mismatch),
+    # we should trigger a fresh login instead of showing "Unauthorized"
+    unless current_user
+      Rails.logger.info "No authenticated user found, redirecting to login (domain: #{@scoped_domain_id}, project: #{@scoped_project_id})"
+      redirect_to monsoon_openstack_auth.login_path(
+        domain_fid: @scoped_domain_fid,
+        domain_name: @scoped_domain_name,
+        after_login: request.fullpath
+      )
+      return
+    end
+
     begin
       # Try to rescope token to domain/project using the authentication instance method
       authentication_rescope_token

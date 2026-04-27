@@ -1,7 +1,6 @@
 module ServiceLayer
   module KubernetesNgServices
     # Simple semver parsing and comparison utilities for Kubernetes versions
-    # Based on frontend implementation in app/javascript/widgets/app/utils/versionHelpers.ts
     module VersionHelpers
       # Parse a semantic version string into its components
       # @param version [String] Version string (e.g., "1.27.0")

@@ -307,6 +307,15 @@ module MonsoonOpenstackAuth
           return false
         end
 
+        # Track which token source was used
+        token_source = if session_token && auth_token_value == session_token
+                         :session
+                       elsif cross_dashboard_token && auth_token_value == cross_dashboard_token
+                         :cross_dashboard_cookie
+                       else
+                         :http_header
+                       end
+
         # Validate auth token and check domain match
         begin
           token = @api_client.validate_token(auth_token_value)
@@ -314,7 +323,15 @@ module MonsoonOpenstackAuth
           if token
             # Check if token's domain matches URL's domain
             unless token_domain_matches_url?(token)
-              MonsoonOpenstackAuth.logger.info 'Token domain mismatch with URL, rejecting token.' if @debug
+              MonsoonOpenstackAuth.logger.info "Token domain mismatch with URL (source: #{token_source}), rejecting token." if @debug
+
+              # If the mismatched token came from cross-dashboard cookie, delete it
+              # This prevents repeated authentication failures with stale cookies
+              if token_source == :cross_dashboard_cookie
+                MonsoonOpenstackAuth.logger.info 'Deleting stale cross-dashboard cookie due to domain mismatch.' if @debug
+                self.class.delete_cross_dashboard_cookie(@controller)
+              end
+
               return false
             end
 

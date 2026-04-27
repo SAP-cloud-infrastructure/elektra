@@ -8,7 +8,7 @@ import { loginAsAdmin } from "../helpers/auth"
  * Verifies that all sections, buttons, modals, and interactions work correctly.
  * Tests require Rails running in e2e mode with mock services.
  *
- * Run with: pnpm e2e:playwright:ui -- --host http://localhost:PORT masterdata-admin-functional
+ * Run with: pnpm e2e:ui -- --host http://localhost:PORT masterdata-admin-functional
  */
 
 const TEST_DOMAIN = process.env.TEST_DOMAIN || "cc3test"

@@ -2,7 +2,7 @@ import { Page } from "@playwright/test"
 
 /**
  * Authentication helper for Playwright tests
- * Provides login functionality similar to Cypress custom commands
+ * Provides reusable login functionality for E2E tests
  */
 
 interface LoginOptions {
