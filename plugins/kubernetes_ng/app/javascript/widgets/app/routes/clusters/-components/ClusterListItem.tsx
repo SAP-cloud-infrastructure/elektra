@@ -8,7 +8,6 @@ import {
   PopupMenu,
   PopupMenuOptions,
   PopupMenuItem,
-  Button,
 } from "@cloudoperators/juno-ui-components"
 import ReadinessConditions from "../../../components/ReadinessConditions"
 import { Link, useNavigate } from "@tanstack/react-router"
