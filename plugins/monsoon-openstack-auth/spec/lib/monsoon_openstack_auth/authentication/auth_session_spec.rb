@@ -542,12 +542,22 @@ describe MonsoonOpenstackAuth::Authentication::AuthSession do
       session = MonsoonOpenstackAuth::Authentication::AuthSession.new(test_controller, { domain: 'domain-b-id' })
 
       # Mock the logger to verify both log messages
+      allow(MonsoonOpenstackAuth.logger).to receive(:info)
       expect(MonsoonOpenstackAuth.logger).to receive(:info)
         .with(/Token scope mismatch \(source: cross_dashboard_cookie\)/).ordered
       expect(MonsoonOpenstackAuth.logger).to receive(:info)
         .with('Deleting stale cross-dashboard cookie due to scope mismatch.').ordered
 
       session.validate_session_token
+    end
+
+    it 'should accept token when scope is empty (nil values)' do
+      # Scope with nil values (like in controller tests)
+      session = MonsoonOpenstackAuth::Authentication::AuthSession.new(test_controller, { domain: nil, project: nil })
+
+      result = session.validate_session_token
+
+      expect(result).to be true
     end
   end
 
@@ -589,7 +599,7 @@ describe MonsoonOpenstackAuth::Authentication::AuthSession do
         allow(MonsoonOpenstackAuth.logger).to receive(:info)
         # But expect the specific one we care about
         expect(MonsoonOpenstackAuth.logger).to receive(:info)
-          .with(/Token validation failed \(token is nil\), clearing stale tokens \(source: session\)/)
+          .with(/Token validation failed \(token is nil\), clearing stale token \(source: session\)/)
 
         session.validate_session_token
       end
@@ -622,6 +632,18 @@ describe MonsoonOpenstackAuth::Authentication::AuthSession do
         result = session.validate_session_token
 
         expect(result).to be false
+      end
+
+      it 'should log token clearing with source information' do
+        allow(MonsoonOpenstackAuth.configuration).to receive(:debug?).and_return(true)
+
+        session = MonsoonOpenstackAuth::Authentication::AuthSession.new(test_controller, {})
+
+        allow(MonsoonOpenstackAuth.logger).to receive(:info)
+        expect(MonsoonOpenstackAuth.logger).to receive(:info)
+          .with(/Token validation failed \(token is nil\), clearing stale token \(source: cross_dashboard_cookie\)/)
+
+        session.validate_session_token
       end
     end
 
@@ -687,9 +709,141 @@ describe MonsoonOpenstackAuth::Authentication::AuthSession do
         session = MonsoonOpenstackAuth::Authentication::AuthSession.new(test_controller, {})
 
         expect(MonsoonOpenstackAuth.logger).to receive(:error)
-          .with(/token validation failed \(exception:.*Unauthorized\), clearing stale tokens \(source: session\)/)
+          .with(/token validation failed \(exception:.*Unauthorized\), clearing stale token \(source: session\)/)
 
         session.validate_session_token
+      end
+    end
+  end
+
+  describe '#token_domain_matches_scope_domain?' do
+    let(:test_controller) do
+      double('controller',
+             params: {},
+             session: {},
+             request: double('request',
+                             host: 'dashboard.example.com',
+                             cookies: {},
+                             headers: {}),
+             response: double('response').as_null_object)
+    end
+
+    context 'with unscoped token' do
+      let(:unscoped_token) do
+        {
+          user: { domain: { id: 'domain-a', name: 'Domain A' } },
+          expires_at: (Time.now + 1.hour).to_s,
+          value: 'unscoped_token_123'
+        }
+      end
+
+      it 'should use user domain as fallback when token is unscoped' do
+        session = MonsoonOpenstackAuth::Authentication::AuthSession.new(test_controller, { domain: 'domain-a' })
+        result = session.send(:token_domain_matches_scope_domain?, unscoped_token)
+        expect(result).to be true
+      end
+
+      it 'should reject when user domain does not match requested scope' do
+        session = MonsoonOpenstackAuth::Authentication::AuthSession.new(test_controller, { domain: 'domain-b' })
+        result = session.send(:token_domain_matches_scope_domain?, unscoped_token)
+        expect(result).to be false
+      end
+
+      it 'should accept when scope is empty' do
+        session = MonsoonOpenstackAuth::Authentication::AuthSession.new(test_controller, {})
+        result = session.send(:token_domain_matches_scope_domain?, unscoped_token)
+        expect(result).to be true
+      end
+
+      it 'should accept when scope has nil values' do
+        session = MonsoonOpenstackAuth::Authentication::AuthSession.new(test_controller, { domain: nil, project: nil })
+        result = session.send(:token_domain_matches_scope_domain?, unscoped_token)
+        expect(result).to be true
+      end
+    end
+
+    context 'with domain-scoped token' do
+      let(:domain_token) do
+        {
+          user: { domain: { id: 'domain-a', name: 'Domain A' } },
+          domain: { id: 'domain-a', name: 'Domain A' },
+          expires_at: (Time.now + 1.hour).to_s,
+          value: 'domain_token_123'
+        }
+      end
+
+      it 'should match when token domain equals requested domain' do
+        session = MonsoonOpenstackAuth::Authentication::AuthSession.new(test_controller, { domain: 'domain-a' })
+        result = session.send(:token_domain_matches_scope_domain?, domain_token)
+        expect(result).to be true
+      end
+
+      it 'should reject when token domain does not match requested domain' do
+        session = MonsoonOpenstackAuth::Authentication::AuthSession.new(test_controller, { domain: 'domain-b' })
+        result = session.send(:token_domain_matches_scope_domain?, domain_token)
+        expect(result).to be false
+      end
+    end
+
+    context 'with project-scoped token' do
+      let(:project_token) do
+        {
+          user: { domain: { id: 'domain-a', name: 'Domain A' } },
+          project: {
+            id: 'project-123',
+            name: 'Test Project',
+            domain: { id: 'domain-a', name: 'Domain A' }
+          },
+          expires_at: (Time.now + 1.hour).to_s,
+          value: 'project_token_123'
+        }
+      end
+
+      it 'should match when project and domain both match' do
+        session = MonsoonOpenstackAuth::Authentication::AuthSession.new(test_controller, { domain: 'domain-a', project: 'project-123' })
+        result = session.send(:token_domain_matches_scope_domain?, project_token)
+        expect(result).to be true
+      end
+
+      it 'should reject when project matches but domain does not' do
+        session = MonsoonOpenstackAuth::Authentication::AuthSession.new(test_controller, { domain: 'domain-b', project: 'project-123' })
+        result = session.send(:token_domain_matches_scope_domain?, project_token)
+        expect(result).to be false
+      end
+
+      it 'should reject when domain matches but project does not' do
+        session = MonsoonOpenstackAuth::Authentication::AuthSession.new(test_controller, { domain: 'domain-a', project: 'project-999' })
+        result = session.send(:token_domain_matches_scope_domain?, project_token)
+        expect(result).to be false
+      end
+
+      it 'should match when only project is requested (no domain in scope)' do
+        session = MonsoonOpenstackAuth::Authentication::AuthSession.new(test_controller, { project: 'project-123' })
+        result = session.send(:token_domain_matches_scope_domain?, project_token)
+        expect(result).to be true
+      end
+    end
+
+    context 'with domain name matching' do
+      let(:domain_token_with_name) do
+        {
+          user: { domain: { id: 'domain-a', name: 'Domain A' } },
+          domain: { id: 'domain-a', name: 'Domain A' },
+          expires_at: (Time.now + 1.hour).to_s,
+          value: 'domain_token_name_123'
+        }
+      end
+
+      it 'should match by domain name' do
+        session = MonsoonOpenstackAuth::Authentication::AuthSession.new(test_controller, { domain_name: 'Domain A' })
+        result = session.send(:token_domain_matches_scope_domain?, domain_token_with_name)
+        expect(result).to be true
+      end
+
+      it 'should reject when domain name does not match' do
+        session = MonsoonOpenstackAuth::Authentication::AuthSession.new(test_controller, { domain_name: 'Domain B' })
+        result = session.send(:token_domain_matches_scope_domain?, domain_token_with_name)
+        expect(result).to be false
       end
     end
   end
