@@ -31,6 +31,11 @@ PATH
     dns_service (0.0.1)
 
 PATH
+  remote: plugins/email_service
+  specs:
+    email_service (0.0.1)
+
+PATH
   remote: plugins/identity
   specs:
     identity (0.0.1)
@@ -79,11 +84,6 @@ PATH
   remote: plugins/lookup
   specs:
     lookup (0.0.1)
-
-PATH
-  remote: plugins/maillog
-  specs:
-    maillog (0.0.1)
 
 PATH
   remote: plugins/masterdata_cockpit
@@ -606,6 +606,7 @@ GEM
 
 PLATFORMS
   aarch64-linux-musl
+  arm64-darwin-20
   arm64-darwin-24
   arm64-darwin-25
   x86_64-linux
@@ -630,6 +631,7 @@ DEPENDENCIES
   dotenv-rails
   ed25519 (>= 1.2, < 2.0)
   elektron!
+  email_service!
   excon (= 0.112.0)
   factory_bot_rails
   faraday-httpclient (~> 2.0)
@@ -652,7 +654,6 @@ DEPENDENCIES
   lbaas2!
   listen
   lookup!
-  maillog!
   masterdata_cockpit!
   metrics!
   monsoon-openstack-auth!
