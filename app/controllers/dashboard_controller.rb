@@ -22,12 +22,6 @@ class DashboardController < ::ScopeController
   before_action :set_mailer_host, except: %i[terms_of_use]
   before_action :load_help_text, except: [:terms_of_use]
 
-  # Handle case when user is not authenticated at all
-  rescue_from MonsoonOpenstackAuth::Authentication::NotAuthenticated do |exception|
-    # User is not logged in - return 401 to trigger OAuth login
-    render template: 'application/exceptions/not_authenticated', status: :unauthorized
-  end
-
   def check_terms_of_use
     @orginal_url = request.original_url
     return if tou_accepted? || @domain_config&.feature_hidden?('terms_of_use')

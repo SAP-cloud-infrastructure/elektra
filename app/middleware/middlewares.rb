@@ -7,6 +7,7 @@ require_relative "inquiry_metrics_middleware"
 require_relative "http_metrics_collector_middleware"
 require_relative "sli_metrics_middleware"
 require_relative "http_metrics_exporter_middleware"
+require_relative "oauth_proxy_protection_middleware"
 
 module Middlewares
 end
