@@ -153,13 +153,13 @@ describe("DetailsContent", () => {
   it("renders maintenance and auto-update sections", async () => {
     renderDetailsContent()
     // Find the heading
-    const maintenanceWindowSection = await screen.findByRole("heading", { name: /Maintenance Window/i, level: 2 })
-    expect(maintenanceWindowSection).toBeInTheDocument()
-    const sectionContainer = maintenanceWindowSection.parentElement!
-    const { getByRole } = within(sectionContainer)
-    // Find a grid role
-    const maintenanceGrid = getByRole("grid")
-    expect(maintenanceGrid).toBeInTheDocument()
+    const maintenanceSection = await screen.findByRole("heading", { name: /Maintenance/i, level: 2 })
+    expect(maintenanceSection).toBeInTheDocument()
+
+    // Check that maintenance data is displayed
+    expect(screen.getByText("Start Time")).toBeInTheDocument()
+    expect(screen.getByText("End Time")).toBeInTheDocument()
+    expect(screen.getByText("Timezone")).toBeInTheDocument()
   })
 
   it("switches to YAML tab and renders YamlEditor", async () => {

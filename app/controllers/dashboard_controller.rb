@@ -22,12 +22,6 @@ class DashboardController < ::ScopeController
   before_action :set_mailer_host, except: %i[terms_of_use]
   before_action :load_help_text, except: [:terms_of_use]
 
-  # Handle case when user is not authenticated at all
-  rescue_from MonsoonOpenstackAuth::Authentication::NotAuthenticated do |exception|
-    # User is not logged in - return 401 to trigger OAuth login
-    render template: 'application/exceptions/not_authenticated', status: :unauthorized
-  end
-
   def check_terms_of_use
     @orginal_url = request.original_url
     return if tou_accepted? || @domain_config&.feature_hidden?('terms_of_use')
@@ -80,6 +74,19 @@ class DashboardController < ::ScopeController
   private
 
   def rescope_token_with_error_handling
+    # Check if user is authenticated at all
+    # If there's no current_user (e.g., token was rejected due to domain mismatch),
+    # we should trigger a fresh login instead of showing "Unauthorized"
+    unless current_user
+      Rails.logger.info "No authenticated user found, redirecting to login (domain: #{@scoped_domain_id}, project: #{@scoped_project_id})"
+      redirect_to monsoon_openstack_auth.login_path(
+        domain_fid: @scoped_domain_fid,
+        domain_name: @scoped_domain_name,
+        after_login: request.fullpath
+      )
+      return
+    end
+
     begin
       # Try to rescope token to domain/project using the authentication instance method
       authentication_rescope_token

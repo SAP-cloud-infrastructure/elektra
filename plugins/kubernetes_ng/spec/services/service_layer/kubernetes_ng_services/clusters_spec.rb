@@ -143,8 +143,17 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
             taskID: 'task-1234',
             lastUpdateTime: '2023-05-01T01:00:00Z'
           }
-        ],      
+        ],
         labels: shoot_mock['metadata']['labels'],
+        maintenance: {
+          startTime: '22:00',
+          endTime: '23:00',
+          timezone: '+0100'
+        },
+        autoUpdate: {
+          os: true,
+          kubernetes: true
+        },
         readiness: {
           conditions: [
             {
@@ -698,9 +707,9 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           }
         ],
         maintenance: {
-          startTime: '220000+0100',
-          endTime: '230000+0100',
-          timezone: '+0100'
+          startTime: '22:00',
+          endTime: '23:00',
+          timezone: '+01:00'
         },
         autoUpdate: {
           os: true,
@@ -723,7 +732,7 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
               'pods' => '10.45.0.0/16',
               'nodes' => '10.45.0.0/16',
               'services' => '10.45.0.0/16'
-            },          
+            },
           'provider' => {
             'infrastructureConfig' => {
               'floatingPoolName' => 'public-floating-pool',
@@ -766,13 +775,6 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
               'machineImageVersion' => true,
               'kubernetesVersion' => true
             }
-          },
-          'hibernation' => {
-            'schedules' => [
-              {
-                'location' => '+0100'
-              }
-            ]
           }
         }
       })
@@ -872,6 +874,51 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
         workers: []
       }
       shoot = convert_cluster_to_shoot(cluster_without_hibernation)
+      expect(shoot['spec']['hibernation']).to be_nil
+    end
+
+    it "includes hibernation spec when explicitly provided" do
+      cluster_with_hibernation = {
+        uid: '12345678-1234-1234-1234-123456789012',
+        name: 'hibernation-cluster',
+        region: 'eu-de',
+        cloudProfileName: 'openstack',
+        kubernetesVersion: '1.25.4',
+        workers: [],
+        hibernation: {
+          schedules: [
+            { location: 'Europe/Berlin' }
+          ]
+        }
+      }
+      shoot = convert_cluster_to_shoot(cluster_with_hibernation)
+      expect(shoot['spec']['hibernation']).to eq({
+        'schedules' => [
+          { 'location' => 'Europe/Berlin' }
+        ]
+      })
+    end
+
+    it "does not include hibernation when only maintenance is provided" do
+      cluster_with_maintenance_only = {
+        uid: '12345678-1234-1234-1234-123456789012',
+        name: 'maintenance-only-cluster',
+        region: 'eu-de',
+        cloudProfileName: 'openstack',
+        kubernetesVersion: '1.25.4',
+        workers: [],
+        maintenance: {
+          startTime: '22:00',
+          endTime: '23:00',
+          timezone: '+01:00'
+        },
+        autoUpdate: {
+          os: true,
+          kubernetes: true
+        }
+      }
+      shoot = convert_cluster_to_shoot(cluster_with_maintenance_only)
+      expect(shoot['spec']['maintenance']).not_to be_nil
       expect(shoot['spec']['hibernation']).to be_nil
     end
   end
@@ -1124,6 +1171,70 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
       expect(provider_patch).to be_nil
     end
 
+  end
+
+  describe "format_maintenance_time" do
+    it "formats time correctly" do
+      expect(format_maintenance_time('220000+0100')).to eq('22:00')
+    end
+
+    it "formats time with different hours and minutes" do
+      expect(format_maintenance_time('170000-0500')).to eq('17:00')
+    end
+
+    it "formats time with non-zero minutes" do
+      expect(format_maintenance_time('093000+0000')).to eq('09:30')
+    end
+
+    it "returns empty string for nil" do
+      expect(format_maintenance_time(nil)).to eq('')
+    end
+
+    it "returns empty string for empty string" do
+      expect(format_maintenance_time('')).to eq('')
+    end
+
+    it "returns original string if format doesn't match" do
+      expect(format_maintenance_time('invalid')).to eq('invalid')
+    end
+  end
+
+  describe "convert_display_to_gardener_time" do
+    it "converts display format to Gardener format with positive timezone" do
+      expect(convert_display_to_gardener_time('22:00', '+01:00')).to eq('220000+0100')
+    end
+
+    it "converts display format to Gardener format with negative timezone" do
+      expect(convert_display_to_gardener_time('17:00', '-05:00')).to eq('170000-0500')
+    end
+
+    it "converts display format with non-zero minutes" do
+      expect(convert_display_to_gardener_time('09:30', '+00:00')).to eq('093000+0000')
+    end
+
+    it "passes through Gardener format unchanged" do
+      expect(convert_display_to_gardener_time('220000+0100', '+01:00')).to eq('220000+0100')
+    end
+
+    it "uses default timezone when timezone is nil" do
+      expect(convert_display_to_gardener_time('22:00', nil)).to eq('220000+0000')
+    end
+
+    it "returns empty string for nil input" do
+      expect(convert_display_to_gardener_time(nil, '+01:00')).to eq(nil)
+    end
+
+    it "returns empty string for empty string input" do
+      expect(convert_display_to_gardener_time('', '+01:00')).to eq('')
+    end
+
+    it "returns original string if format doesn't match HH:MM" do
+      expect(convert_display_to_gardener_time('invalid', '+01:00')).to eq('invalid')
+    end
+
+    it "removes colon from timezone" do
+      expect(convert_display_to_gardener_time('14:30', '+02:30')).to eq('143000+0230')
+    end
   end
 
   describe "version updates" do

@@ -7,10 +7,10 @@ import { getBasicMaskSelectors, SCREENSHOT_OPTIONS } from "../helpers/masking"
  *
  * Tests visual stability of app credentials page (static view).
  *
- * Run with: pnpm e2e:playwright:ui -- --host http://localhost:PORT app-credentials-member-visual
- * Update snapshots: 
- *   1. Delete old snapshots: rm -rf e2e/playwright/ui/app-credentials-member-visual.spec.ts-snapshots/ 
- *   2. Generate new: pnpm e2e:playwright:ui -- --host http://localhost:PORT --update-snapshots app-credentials-member-visual
+ * Run with: pnpm e2e:ui -- --host http://localhost:PORT app-credentials-member-visual
+ * Update snapshots:
+ *   1. Delete old snapshots: rm -rf e2e/playwright/ui/app-credentials-member-visual.spec.ts-snapshots/
+ *   2. Generate new: pnpm e2e:ui -- --host http://localhost:PORT --update-snapshots app-credentials-member-visual
  */
 
 const TEST_DOMAIN = process.env.TEST_DOMAIN || "cc3test"

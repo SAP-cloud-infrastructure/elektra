@@ -7,7 +7,7 @@ import { loginAsAdmin } from "../helpers/auth"
  * Tests functionality of DNS service pages.
  * Verifies that pages load and basic UI elements are visible.
  *
- * Run with: pnpm e2e:playwright:ui -- --host http://localhost:PORT dns-admin-functional
+ * Run with: pnpm e2e:ui -- --host http://localhost:PORT dns-admin-functional
  */
 
 const TEST_DOMAIN = process.env.TEST_DOMAIN || "cc3test"

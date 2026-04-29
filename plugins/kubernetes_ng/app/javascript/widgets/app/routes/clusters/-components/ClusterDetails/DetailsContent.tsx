@@ -2,7 +2,6 @@ import React, { useState } from "react"
 import {
   Container,
   DataGrid,
-  DataGridRow,
   Tabs,
   TabList,
   Tab,
@@ -26,6 +25,7 @@ import Box from "../../../../components/Box"
 import WorkerList from "./WorkerList"
 import YamlEditor from "../../../../components/YamlEditor"
 import WorkerGroupEditModal from "./WorkerGroupEditModal"
+import MaintenanceWindowEditModal from "./MaintenanceWindowEditModal"
 import InlineError from "../../../../components/InlineError"
 import { useRouteContext, useNavigate, useSearch, useParams } from "@tanstack/react-router"
 import { RouterContext } from "../../../__root"
@@ -37,23 +37,9 @@ import { QUERY_KEYS } from "../../../../hooks/queryKeys"
 import DisableableButton from "../../../../components/DisableableButton"
 import { KubernetesVersionDisplay } from "./KubernetesVersionDisplay"
 import { VersionUpdateDialog } from "./VersionUpdateDialog"
-import { useUpdateClusterMutation } from "../../../../hooks/useClusterQueries"
+import { normalizeDisplayValue } from "../../../../utils/valueHelpers"
 
 const sectionHeaderStyles = "details-section tw-text-lg tw-font-bold tw-mb-4"
-
-/**
- * Parse maintenance time string (HHMMSS+HHMM) to HH:MM format
- * Example: "170000+0000" -> "17:00"
- */
-function parseMaintenanceTime(timeString: string | undefined): string {
-  if (!timeString) return ""
-
-  const match = timeString.match(/^(\d{2})(\d{2})/)
-  if (!match) return timeString
-
-  const [, hours, minutes] = match
-  return `${hours}:${minutes}`
-}
 
 const DetailsContent = ({
   cluster,
@@ -72,6 +58,7 @@ const DetailsContent = ({
 }) => {
   const [showLastOperation, setShowLastOperation] = useState(false)
   const [isEditingWorkers, setIsEditingWorkers] = useState(false)
+  const [isEditingMaintenance, setIsEditingMaintenance] = useState(false)
   const [showVersionUpdateDialog, setShowVersionUpdateDialog] = useState(false)
   const { apiClient } = useRouteContext({ strict: false }) as RouterContext
   const params = useParams({ from: CLUSTER_DETAIL_ROUTE_ID })
@@ -79,7 +66,6 @@ const DetailsContent = ({
   const { tab } = useSearch({ from: CLUSTER_DETAIL_ROUTE_ID })
   const { addMessage, resetMessages } = useActions()
   const queryClient = useQueryClient()
-  const updateClusterMutation = useUpdateClusterMutation(apiClient)
 
   // Handle tab change via URL navigation
   const tabIndex = tab === "yaml" ? 1 : 0
@@ -136,33 +122,24 @@ const DetailsContent = ({
     setIsEditingWorkers(false)
     resetMessages()
     addMessage({ text: "Worker groups updated successfully", variant: "success" })
+    window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
-  const handleVersionUpdate = (targetVersion: string) => {
-    if (!cluster) return
+  const handleVersionUpdateSuccess = () => {
+    setShowVersionUpdateDialog(false)
+    resetMessages()
+    addMessage({
+      text: "Kubernetes version update initiated successfully",
+      variant: "success",
+    })
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
 
-    updateClusterMutation.mutate(
-      {
-        clusterName: cluster.name,
-        data: { kubernetesVersion: targetVersion },
-      },
-      {
-        onSuccess: () => {
-          setShowVersionUpdateDialog(false)
-          resetMessages()
-          addMessage({
-            text: `Kubernetes version update to ${targetVersion} initiated successfully`,
-            variant: "success",
-          })
-        },
-        onError: (error) => {
-          setShowVersionUpdateDialog(false)
-          resetMessages()
-          const errText = normalizeError(error)
-          addMessage({ text: `Version update failed: ${errText.title}${errText.message}`, variant: "danger" })
-        },
-      }
-    )
+  const handleMaintenanceSuccess = () => {
+    setIsEditingMaintenance(false)
+    resetMessages()
+    addMessage({ text: "Maintenance window updated successfully", variant: "success" })
+    window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
   // Determine disabled state and message for YamlEditor
@@ -406,42 +383,71 @@ const DetailsContent = ({
                   <WorkerList workers={cluster.workers} />
                 </Container>
 
-                {isEditingWorkers && (
-                  <WorkerGroupEditModal
-                    open={true}
-                    clusterName={cluster.name}
-                    workers={cluster.workers}
-                    cloudProfileName={cluster.cloudProfileName}
-                    region={cluster.region}
-                    onSuccess={handleWorkersSuccess}
-                    onCancel={() => setIsEditingWorkers(false)}
-                  />
-                )}
-
                 {/* Maintenance and auto update */}
-                <DataGrid columns={2} gridColumnTemplate="50% 50%">
-                  <DataGridRow>
-                    <Container py px={false}>
-                      <h2 className={sectionHeaderStyles}>Maintenance Window</h2>
-                      <DataGrid columns={2} gridColumnTemplate="35% auto">
-                        <ClusterDetailRow label="Start Time">
-                          {parseMaintenanceTime(cluster.maintenance.startTime)}
-                        </ClusterDetailRow>
-                        <ClusterDetailRow label="End Time">
-                          {parseMaintenanceTime(cluster.maintenance.endTime)}
-                        </ClusterDetailRow>
-                        <ClusterDetailRow label="Timezone">{cluster.maintenance.timezone}</ClusterDetailRow>
-                      </DataGrid>
-                    </Container>
-                    <Container py px={false}>
-                      <h2 className={sectionHeaderStyles}>Auto Update</h2>
-                      <DataGrid columns={2} gridColumnTemplate="35% auto">
-                        <ClusterDetailRow label="OS Updates">{cluster.autoUpdate?.os}</ClusterDetailRow>
-                        <ClusterDetailRow label="Kubernetes Updates">{cluster.autoUpdate?.kubernetes}</ClusterDetailRow>
-                      </DataGrid>
-                    </Container>
-                  </DataGridRow>
-                </DataGrid>
+                <Stack direction="horizontal" alignment="center">
+                  <h2 className={sectionHeaderStyles + " tw-w-full"}>Maintenance</h2>
+                  <DisableableButton
+                    size="small"
+                    className="tw-whitespace-nowrap"
+                    variant="subdued"
+                    onClick={() => setIsEditingMaintenance(true)}
+                    label="Edit Maintenance"
+                    disabled={!shootPermissions?.update || cluster.isDeleted}
+                    disabledMessage={
+                      cluster.isDeleted
+                        ? "Cluster is deleted and cannot be edited"
+                        : !shootPermissions?.update
+                          ? "You don't have permission to edit maintenance settings"
+                          : undefined
+                    }
+                  />
+                </Stack>
+
+                {/* responsive grid, it changes from 2 columns to 1 column on smaller screens */}
+                <div className="tw-grid tw-grid-cols-1 lg:tw-grid-cols-2">
+                  <DataGrid columns={2} gridColumnTemplate="35% auto">
+                    <ClusterDetailRow label="Window">
+                      <Grid>
+                        <GridRow>
+                          <GridColumn cols={4} className="tw-text-right tw-break-words">
+                            <strong>Start Time</strong>
+                          </GridColumn>
+                          <GridColumn cols={8}>{cluster.maintenance.startTime}</GridColumn>
+                        </GridRow>
+                        <GridRow>
+                          <GridColumn cols={4} className="tw-text-right">
+                            <strong>End Time</strong>
+                          </GridColumn>
+                          <GridColumn cols={8}>{cluster.maintenance.endTime}</GridColumn>
+                        </GridRow>
+                        <GridRow>
+                          <GridColumn cols={4} className="tw-text-right">
+                            <strong>Timezone</strong>
+                          </GridColumn>
+                          <GridColumn cols={8}>{cluster.maintenance.timezone}</GridColumn>
+                        </GridRow>
+                      </Grid>
+                    </ClusterDetailRow>
+                  </DataGrid>
+                  <DataGrid columns={2} gridColumnTemplate="35% auto">
+                    <ClusterDetailRow label="Auto Update">
+                      <Grid>
+                        <GridRow>
+                          <GridColumn cols={4} className="tw-text-right tw-break-words">
+                            <strong>OS</strong>
+                          </GridColumn>
+                          <GridColumn cols={8}>{normalizeDisplayValue(cluster.autoUpdate?.os)}</GridColumn>
+                        </GridRow>
+                        <GridRow>
+                          <GridColumn cols={4} className="tw-text-right">
+                            <strong>Kubernetes</strong>
+                          </GridColumn>
+                          <GridColumn cols={8}>{normalizeDisplayValue(cluster.autoUpdate?.kubernetes)}</GridColumn>
+                        </GridRow>
+                      </Grid>
+                    </ClusterDetailRow>
+                  </DataGrid>
+                </div>
               </TabPanel>
               <TabPanel>
                 <Container py px={false}>
@@ -460,14 +466,36 @@ const DetailsContent = ({
           )}
         </Tabs>
 
+        {cluster && isEditingWorkers && (
+          <WorkerGroupEditModal
+            open={true}
+            clusterName={cluster.name}
+            workers={cluster.workers}
+            cloudProfileName={cluster.cloudProfileName}
+            region={cluster.region}
+            onSuccess={handleWorkersSuccess}
+            onCancel={() => setIsEditingWorkers(false)}
+          />
+        )}
+
+        {cluster && isEditingMaintenance && (
+          <MaintenanceWindowEditModal
+            clusterName={cluster.name}
+            maintenance={cluster.maintenance}
+            autoUpdate={cluster.autoUpdate}
+            hasWorkers={cluster.workers && cluster.workers.length > 0}
+            onSuccess={handleMaintenanceSuccess}
+            onCancel={() => setIsEditingMaintenance(false)}
+          />
+        )}
+
         {cluster && showVersionUpdateDialog && (
           <VersionUpdateDialog
-            isOpen={showVersionUpdateDialog}
-            onClose={() => setShowVersionUpdateDialog(false)}
-            onConfirm={handleVersionUpdate}
+            clusterName={cluster.name}
             currentVersion={cluster.version}
             versionUpdates={cluster.versionUpdates}
-            isUpdating={updateClusterMutation.isPending}
+            onSuccess={handleVersionUpdateSuccess}
+            onCancel={() => setShowVersionUpdateDialog(false)}
           />
         )}
       </div>

@@ -87,6 +87,10 @@ describe DashboardController, type: :controller do
             .with(default_params[:domain_id], "non_existent_project")
             .and_return(nil)
 
+          # Allow scope validation to pass so we can test rescoping error handling
+          allow_any_instance_of(MonsoonOpenstackAuth::Authentication::AuthSession)
+            .to receive(:token_domain_matches_scope_domain?).and_return(true)
+
           # Trigger the exception
           allow_any_instance_of(MonsoonOpenstackAuth::Authentication::AuthSession)
             .to receive(:rescope_token)
@@ -97,6 +101,29 @@ describe DashboardController, type: :controller do
           expect(response).to have_http_status(:not_found)
           expect(response).to render_template('application/exceptions/project_not_found')
         end
+      end
+    end
+
+    context "when user is not authenticated (no current_user)" do
+      it "redirects to login instead of showing unauthorized" do
+        # Simulate no authenticated user (e.g., token rejected due to domain mismatch)
+        allow(controller).to receive(:current_user).and_return(nil)
+        allow(UserProfile).to receive(:tou_accepted?).and_return(true)
+
+        get :terms_of_use, params: default_params
+
+        # Expect redirect to login path (actual URL details depend on routing)
+        expect(response).to redirect_to(%r{/auth/login})
+      end
+
+      it "logs the missing user information" do
+        allow(controller).to receive(:current_user).and_return(nil)
+        allow(UserProfile).to receive(:tou_accepted?).and_return(true)
+
+        expect(Rails.logger).to receive(:info)
+          .with(/No authenticated user found, redirecting to login/)
+
+        get :terms_of_use, params: default_params
       end
     end
   end
