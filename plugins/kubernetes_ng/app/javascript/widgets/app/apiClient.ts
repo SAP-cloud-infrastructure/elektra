@@ -5,6 +5,18 @@ import { CloudProfile, CloudProfilesSchema } from "./types/cloudProfiles"
 import { ClusterFormData, ClusterUpdateData } from "./routes/clusters/-components/ClusterWizard/types"
 import { ExternalNetwork, ExternalNetworksSchema } from "./types/network"
 
+// Helper to check if response data contains an API error (even with 200 status due to oauth2-proxy middleware)
+function checkForApiError(data: unknown): void {
+  if (data && typeof data === "object" && "error" in data && "code" in data && typeof (data as { code: unknown }).code === "number") {
+    const errorData = data as { error: string; code: number; message?: string }
+    const errorMessage = errorData.message || errorData.error || "API Error"
+    const error = new Error(`${errorMessage} (HTTP ${errorData.code})`) as Error & { data: unknown; status: number }
+    error.data = data
+    error.status = errorData.code
+    throw error
+  }
+}
+
 export function createGardenerApi(basepath: string) {
   // Use basepath directly - it already includes the landscape (e.g., /kubernetes-gardener/prod)
   const apiClient = createAjaxHelper({ baseURL: basepath })
@@ -12,6 +24,7 @@ export function createGardenerApi(basepath: string) {
   const shootApi = {
     getClusters: () =>
       apiClient.get<{ data: Cluster[] }>("/api/clusters/").then((res) => {
+        checkForApiError(res.data)
         const parsed = ClustersSchema.safeParse(res.data)
         if (!parsed.success) {
           throw new Error("Failed to fetch clusters: invalid response")
@@ -20,6 +33,7 @@ export function createGardenerApi(basepath: string) {
       }),
     getClusterByName: (name: string) =>
       apiClient.get<{ data: Cluster }>(`/api/clusters/${name}/`).then((res) => {
+        checkForApiError(res.data)
         const parsed = ClusterSchema.safeParse(res.data)
         if (!parsed.success) {
           throw new Error("Failed to fetch cluster: invalid response")
@@ -28,6 +42,7 @@ export function createGardenerApi(basepath: string) {
       }),
     createCluster: (clusterData: ClusterFormData) =>
       apiClient.post<{ data: Cluster }>("/api/clusters/", clusterData).then((res) => {
+        checkForApiError(res.data)
         const parsed = ClusterSchema.safeParse(res.data)
         if (!parsed.success) {
           throw new Error("Failed to create cluster: invalid response")
@@ -36,10 +51,12 @@ export function createGardenerApi(basepath: string) {
       }),
     updateCluster: (name: string, clusterData: ClusterUpdateData) =>
       apiClient.patch<{ data: object }>(`/api/clusters/${name}/`, clusterData).then((res) => {
+        checkForApiError(res.data)
         return res.data
       }),
     replaceCluster: (name: string, rawResource: object) =>
       apiClient.put<{ data: Cluster }>(`/api/clusters/${name}/replace/`, rawResource).then((res) => {
+        checkForApiError(res.data)
         const parsed = ClusterSchema.safeParse(res.data)
         if (!parsed.success) {
           throw new Error("Failed to replace cluster: invalid response")
@@ -49,7 +66,10 @@ export function createGardenerApi(basepath: string) {
     getClusterKubeconfig: (name: string) =>
       apiClient
         .get<{ data: string }>(`/api/clusters/kubeconfig/${name}/`)
-        .then((res) => res.data)
+        .then((res) => {
+          checkForApiError(res.data)
+          return res.data
+        })
         .catch((err: unknown) => {
           // Handle serialized server errors so normalizeError can pick up the proper message
           if (err && typeof err === "object" && "data" in err) {
@@ -64,6 +84,7 @@ export function createGardenerApi(basepath: string) {
         }),
     confirm_deletion_and_destroy: (name: string) =>
       apiClient.delete<{ data: Cluster }>(`/api/clusters/confirm-deletion-and-destroy/${name}/`).then((res) => {
+        checkForApiError(res.data)
         const parsed = ClusterSchema.safeParse(res.data)
         if (!parsed.success) {
           throw new Error("Failed to delete cluster: invalid response")
@@ -75,6 +96,7 @@ export function createGardenerApi(basepath: string) {
   const permissionsApi = {
     getShootPermissions: () =>
       apiClient.get<{ data: Permissions }>("/api/permissions/shoots/").then((res) => {
+        checkForApiError(res.data)
         const parsed = PermissionsSchema.safeParse(res.data)
         if (!parsed.success) {
           throw new Error("Failed to fetch permissions: invalid response")
@@ -83,6 +105,7 @@ export function createGardenerApi(basepath: string) {
       }),
     getKubeconfigPermission: () =>
       apiClient.get<{ data: Permissions }>("/api/permissions/clusters_admin_kubeconfig/").then((res) => {
+        checkForApiError(res.data)
         const parsed = PermissionsSchema.safeParse(res.data)
         if (!parsed.success) {
           throw new Error("Failed to fetch kubeconfig permissions: invalid response")
@@ -94,6 +117,7 @@ export function createGardenerApi(basepath: string) {
   const networkApi = {
     getExternalNetworks: () =>
       apiClient.get<{ data: ExternalNetwork[] }>("/api/clusters/external-networks").then((res) => {
+        checkForApiError(res.data)
         const parsed = ExternalNetworksSchema.safeParse(res.data)
         if (!parsed.success) {
           throw new Error("Failed to fetch external networks: invalid response")
@@ -105,6 +129,7 @@ export function createGardenerApi(basepath: string) {
   const cloudProfilesApi = {
     getCloudProfiles: () =>
       apiClient.get<{ data: CloudProfile[] }>("/api/cloud-profiles").then((res) => {
+        checkForApiError(res.data)
         const parsed = CloudProfilesSchema.safeParse(res.data)
         if (!parsed.success) {
           throw new Error("Failed to fetch cloud profiles: invalid response")
@@ -117,7 +142,10 @@ export function createGardenerApi(basepath: string) {
     getGardenerApiKubeconfig: () =>
       apiClient
         .get<{ data: string }>("/api/gardener-api/kubeconfig")
-        .then((res) => res.data)
+        .then((res) => {
+          checkForApiError(res.data)
+          return res.data
+        })
         .catch((err: unknown) => {
           // Handle serialized server errors so normalizeError can pick up the proper message
           if (err && typeof err === "object" && "data" in err) {
