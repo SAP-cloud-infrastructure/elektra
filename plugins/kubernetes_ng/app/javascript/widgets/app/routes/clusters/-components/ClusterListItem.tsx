@@ -1,6 +1,14 @@
 import React from "react"
 import { Cluster } from "../../../types/cluster"
-import { DataGridRow, DataGridCell, Icon, Stack, Button } from "@cloudoperators/juno-ui-components"
+import {
+  DataGridRow,
+  DataGridCell,
+  Icon,
+  Stack,
+  PopupMenu,
+  PopupMenuOptions,
+  PopupMenuItem,
+} from "@cloudoperators/juno-ui-components"
 import ReadinessConditions from "../../../components/ReadinessConditions"
 import { Link, useNavigate } from "@tanstack/react-router"
 import { KubernetesVersionDisplay } from "./ClusterDetails/KubernetesVersionDisplay"
@@ -82,10 +90,14 @@ const ClusterListItem: React.FC<ClusterListItemProps> = ({ cluster, ...props }) 
           <KubernetesVersionDisplay version={cluster.version} versionUpdates={cluster.versionUpdates} />
         </Stack>
       </DataGridCell>
-      <DataGridCell>
-        <Link to="/clusters/$clusterName" params={{ clusterName: cluster.name }}>
-          <Button label="View Details" variant="subdued" size="small" />
-        </Link>
+      <DataGridCell onClick={(e) => e.stopPropagation()}>
+        <PopupMenu>
+          <PopupMenuOptions>
+            <Link to="/clusters/$clusterName" params={{ clusterName: cluster.name }}>
+              <PopupMenuItem label="View Details" />
+            </Link>
+          </PopupMenuOptions>
+        </PopupMenu>
       </DataGridCell>
     </DataGridRow>
   )

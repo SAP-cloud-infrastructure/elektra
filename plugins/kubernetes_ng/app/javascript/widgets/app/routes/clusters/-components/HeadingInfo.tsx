@@ -22,8 +22,18 @@ export default function HeadingInfo() {
       <Collapse isOpen={showInstructions} id="instructions" aria-labelledby="instructions-toggle">
         <div className="info tw-mt-4">
           <p className="tw-mb-4">
-            For conveniently managing your clusters with kubectl, first install the scikube CLI utility, then generate
-            the kubeconfig file for your OpenStack domain/project. Download the latest source code zip/tarball, then:
+            For conveniently managing your clusters with kubectl, first install the{" "}
+            <a
+              href="https://github.wdf.sap.corp/sap-cloud-infrastructure/persephone"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Open scikube CLI in a new tab"
+              className="tw-text-theme-link hover:tw-underline"
+            >
+              scikube CLI <Icon size="18" icon="openInNew" className="tw-inline" />
+            </a>{" "}
+            utility, then generate the kubeconfig file for your OpenStack domain/project. Download the latest source
+            code zip/tarball, then:
           </p>
 
           <CodeBlock
