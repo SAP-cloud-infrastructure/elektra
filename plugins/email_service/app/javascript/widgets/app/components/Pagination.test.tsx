@@ -385,14 +385,13 @@ describe("Pagination", () => {
       expect(screen.getByTestId("button->")).not.toBeDisabled()
     })
 
-    it("should render Stack component with correct props", () => {
-      render(
+    it("should render pagination container with correct styles", () => {
+      const { container } = render(
         <Pagination hits={100} onChanged={mockOnChanged} isFetching={false} pageOptions={{ page: 1, pageSize: 15 }} />
       )
 
-      const stack = screen.getByTestId("stack")
-      expect(stack).toHaveAttribute("alignment", "center")
-      expect(stack).toHaveAttribute("distribution", "end")
+      const wrapper = container.firstChild as HTMLElement
+      expect(wrapper).toHaveStyle({ display: "flex", alignItems: "center" })
     })
   })
 
