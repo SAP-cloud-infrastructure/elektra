@@ -4,6 +4,7 @@ module MonsoonOpenstackAuth
     class InvalidRegion < StandardError; end
     class InvalidAuthToken < StandardError; end
     class InvalidUserCredentials < StandardError; end
+    class NotAuthenticated < StandardError; end
     class NotAuthorized < StandardError; end
   end
 end

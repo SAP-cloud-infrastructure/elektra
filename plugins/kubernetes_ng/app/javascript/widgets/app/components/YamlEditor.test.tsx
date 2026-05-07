@@ -852,6 +852,48 @@ describe("<YamlEditor />", () => {
     })
   })
 
+  it("filters out managedFields from metadata when displaying YAML", async () => {
+    const resourceWithManagedFields = {
+      name: "test-cluster",
+      metadata: {
+        id: "123",
+        managedFields: [
+          {
+            manager: "kubectl",
+            operation: "Update",
+            apiVersion: "v1",
+            time: "2024-01-01T00:00:00Z",
+            fieldsType: "FieldsV1",
+            fieldsV1: { "f:metadata": { "f:labels": {} } },
+          },
+        ],
+      },
+    }
+
+    await act(async () =>
+      renderYamlEditor({
+        resource: resourceWithManagedFields,
+        onSave: mockOnSave,
+        "data-testid": "yaml-editor",
+      })
+    )
+
+    // Wait for CodeMirror to render content
+    await waitFor(() => {
+      const editor = screen.getByTestId("yaml-editor")
+      const content = editor.textContent || ""
+
+      // Should contain other fields
+      expect(content).toContain("test-cluster")
+      expect(content).toContain("id")
+
+      // Should NOT contain managedFields
+      expect(content).not.toContain("managedFields")
+      expect(content).not.toContain("kubectl")
+      expect(content).not.toContain("fieldsV1")
+    })
+  })
+
   describe("resourceVersion conflict detection", () => {
     it("saves successfully when resourceVersion hasn't changed", async () => {
       const mockResourceWithVersion = {

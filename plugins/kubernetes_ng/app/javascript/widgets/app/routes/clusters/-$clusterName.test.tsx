@@ -54,7 +54,7 @@ const renderComponent = ({
           getShootPermissions: typeof permissionsPromise === "function" ? permissionsPromise : () => permissionsPromise,
           getKubeconfigPermission:
             typeof permissionsPromise === "function" ? permissionsPromise : () => permissionsPromise,
-          getKubeconfig: typeof kubeconfigPromise === "function" ? kubeconfigPromise : () => kubeconfigPromise,
+          getClusterKubeconfig: typeof kubeconfigPromise === "function" ? kubeconfigPromise : () => kubeconfigPromise,
           confirm_deletion_and_destroy: typeof deletePromise === "function" ? deletePromise : () => deletePromise,
         },
       },
@@ -104,7 +104,7 @@ describe("<ClusterDetail />", () => {
 
     const deleteButton = screen.getByRole("button", { name: /delete cluster/i })
     expect(deleteButton).toBeDisabled()
-    const downloadKubeconfigButton = screen.getByRole("button", { name: /Kube Config/i })
+    const downloadKubeconfigButton = screen.getByRole("button", { name: /Kubeconfig/i })
     expect(downloadKubeconfigButton).toBeDisabled()
   })
 

@@ -13,11 +13,12 @@ const queryClient = new QueryClient()
 interface AppProps {
   basepath: string
   region: string
+  projectid: string
 }
 
-export default function App({ basepath, region }: AppProps) {
+export default function App({ basepath, region, projectid }: AppProps) {
   // Pass basepath to router instead of mountpoint - basepath includes the landscape
-  const router = createAppRouter(basepath, region)
+  const router = createAppRouter(basepath, region, projectid)
 
   return (
     <div id="kubernetes-ng-app">
