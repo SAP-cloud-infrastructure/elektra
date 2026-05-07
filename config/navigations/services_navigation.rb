@@ -498,17 +498,17 @@ SimpleNavigation::Configuration.run do |navigation|
                  },
                  if:
                    lambda {
-                     (plugin_available?(:maillog) && services.available?(:maillog)) ||
+                     (plugin_available?(:email_service) && services.available?(:email_service)) ||
                       (plugin_available?(:smartops) && services.available?(:smartops))
                    } do |services_nav|
-      services_nav.item :maillog,
+      services_nav.item :email_service,
                           'Email',
-                          -> { plugin('maillog').maillog_path },
-                          if: -> { 
-                            services.available?(:maillog)
+                          -> { plugin('email_service').email_service_path },
+                          if: -> {
+                            services.available?(:email_service)
                           },
                           highlights_on: lambda {
-                            params[:controller][%r{maillog/?.*}]
+                            params[:controller][%r{email_service/?.*}]
                           }
       services_nav.item :smartops,
                           'Smart Ops',
