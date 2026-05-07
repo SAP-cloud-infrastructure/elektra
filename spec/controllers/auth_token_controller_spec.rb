@@ -79,11 +79,43 @@ RSpec.describe AuthTokenController, type: :controller do
         stub_keystone_request(valid_token, Net::HTTPOK.new('1.1', '200', 'OK'), response_without_domain)
       end
 
-      it 'sets error when domain name is not found' do
-        post :verify, params: { token: valid_token }
-        
-        expect(response).to have_http_status(:ok)
-        expect(assigns(:error)).to eq('Domain ID not found in response')
+      context 'with block_login_fallback_after_sso disabled (legacy behavior)' do
+        before do
+          MonsoonOpenstackAuth.configure do |config|
+            config.block_login_fallback_after_sso = false
+          end
+        end
+
+        it 'sets error when domain name is not found' do
+          post :verify, params: { token: valid_token }
+
+          expect(response).to have_http_status(:ok)
+          expect(assigns(:error)).to eq('Domain ID not found in response')
+          expect(assigns(:oidc_authorization_failure)).to be_nil
+        end
+      end
+
+      context 'with block_login_fallback_after_sso enabled' do
+        before do
+          MonsoonOpenstackAuth.configure do |config|
+            config.block_login_fallback_after_sso = true
+          end
+        end
+
+        it 'sets OIDC authorization failure flag' do
+          post :verify, params: { token: valid_token }
+
+          expect(response).to have_http_status(:ok)
+          expect(assigns(:error)).to eq('Access Forbidden')
+          expect(assigns(:oidc_authorization_failure)).to be true
+        end
+
+        it 'sets OIDC authorization failure flag and disables Try Again' do
+          post :verify, params: { token: valid_token }
+
+          # Should set flag for view to show 403 with no "Try Again" button
+          expect(assigns(:oidc_authorization_failure)).to be true
+        end
       end
     end
 

@@ -107,7 +107,7 @@ export const defaultCluster: Cluster = {
   maintenance: {
     startTime: "",
     timezone: "",
-    windowTime: "",
+    endTime: "",
   },
   autoUpdate: { os: false, kubernetes: false },
   raw: { some: "raw data" },
@@ -174,7 +174,6 @@ export const cloudProfiles: CloudProfile[] = [
     machineTypes: mockMachineTypes,
     machineImages: mockMachineImages,
     regions: mockRegions,
-    volumeTypes: ["gp2", "io1"],
   },
 ]
 

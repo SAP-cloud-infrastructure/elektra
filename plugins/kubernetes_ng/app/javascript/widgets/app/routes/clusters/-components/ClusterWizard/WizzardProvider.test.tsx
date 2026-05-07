@@ -268,7 +268,7 @@ describe("WizardProvider / useWizard", () => {
               machineType: "",
               machineImage: { name: "", version: "" },
               minimum: 0,
-              maximum: 0,
+              maximum: 0, // below minimum of 1 → step2 error
               zones: [],
             },
           ],

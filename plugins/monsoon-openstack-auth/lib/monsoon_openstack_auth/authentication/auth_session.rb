@@ -49,8 +49,18 @@ module MonsoonOpenstackAuth
             end
           else
             # not authenticated!
+
+            # If SSO enforcement is on and a valid certificate was presented but Keystone rejected the user,
+            # raise NotAuthorized so the caller can show a 403 instead of redirecting to the login form
+            if MonsoonOpenstackAuth.configuration.block_login_fallback_after_sso? &&
+               session.certificate_valid_but_no_keystone_permissions?(controller)
+              raise MonsoonOpenstackAuth::Authentication::NotAuthorized.new(
+                "Valid certificate authentication but no OpenStack domain/project access"
+              )
+            end
+
             # raise error if options contains the flag
-            raise MonsoonOpenstackAuth::Authentication::NotAuthorized if raise_error
+            raise MonsoonOpenstackAuth::Authentication::NotAuthenticated if raise_error
 
             # try to redirect to login form
             login_url = session.redirect_to_login_form_url
@@ -117,13 +127,6 @@ module MonsoonOpenstackAuth
 
           # Restore CSRF token
           controller.session[:_csrf_token] = csrf_token
-        end
-
-        def session_id_presented?(controller)
-          # not controller.request.session_options[:id].blank?
-          return false unless controller.request.session.respond_to?(:id)
-
-          !(controller.request.session.blank? && controller.request.session.id.blank?)
         end
 
         # check if cookie for two factor authentication is valid
@@ -297,14 +300,31 @@ module MonsoonOpenstackAuth
           return false
         end
 
+        # Track which token source was used
+        token_source = if session_token && auth_token_value == session_token
+                         :session
+                       elsif cross_dashboard_token && auth_token_value == cross_dashboard_token
+                         :cross_dashboard_cookie
+                       else
+                         :http_header
+                       end
+
         # Validate auth token and check domain match
         begin
           token = @api_client.validate_token(auth_token_value)
 
           if token
-            # Check if token's domain matches URL's domain
-            unless token_domain_matches_url?(token)
-              MonsoonOpenstackAuth.logger.info 'Token domain mismatch with URL, rejecting token.' if @debug
+            # Check if token's domain matches the requested scope
+            unless token_domain_matches_scope_domain?(token)
+              MonsoonOpenstackAuth.logger.info "Token scope mismatch (source: #{token_source}), rejecting token." if @debug
+
+              # If the mismatched token came from cross-dashboard cookie, delete it
+              # This prevents repeated authentication failures with stale cookies
+              if token_source == :cross_dashboard_cookie
+                MonsoonOpenstackAuth.logger.info 'Deleting stale cross-dashboard cookie due to scope mismatch.' if @debug
+                self.class.delete_cross_dashboard_cookie(@controller)
+              end
+
               return false
             end
 
@@ -319,21 +339,42 @@ module MonsoonOpenstackAuth
               MonsoonOpenstackAuth.logger.info("validate_auth_token -> successful (username=#{@user.name}).") if @debug
               return true
             end
+          else
+            # Token validation returned nil - token is expired, invalid, or doesn't exist
+            # Clear the stale token from session/cookie to force re-authentication
+            MonsoonOpenstackAuth.logger.info "Token validation failed (token is nil), clearing stale token (source: #{token_source})." if @debug
+
+            if token_source == :session || (token_source == :cross_dashboard_cookie && session_token == cross_dashboard_token)
+              # Clear session token if it was the source or if it matches the failed cross-dashboard token
+              @controller.session[:auth_token_value] = nil
+            end
+
+            if token_source == :cross_dashboard_cookie || (token_source == :session && cross_dashboard_token == auth_token_value)
+              # Delete cross-dashboard cookie if it was the source OR if it contains the same failed token as session
+              self.class.delete_cross_dashboard_cookie(@controller)
+            end
           end
-          # rescue Excon::Errors::Unauthorized, Fog::Identity::OpenStack::NotFound => e
-          # MonsoonOpenstackAuth.logger.error "token validation failed #{e}."
-          # end
         rescue StandardError => e
           class_name = e.class.name
           if class_name.start_with?('Excon', 'Fog')
-            MonsoonOpenstackAuth.logger.error "token validation failed #{e}."
+            MonsoonOpenstackAuth.logger.error "token validation failed (exception: #{e}), clearing stale token (source: #{token_source})."
+
+            # Clear stale tokens on validation failure
+            if token_source == :session || (token_source == :cross_dashboard_cookie && session_token == cross_dashboard_token)
+              @controller.session[:auth_token_value] = nil
+            end
+
+            if token_source == :cross_dashboard_cookie || (token_source == :session && cross_dashboard_token == auth_token_value)
+              # Delete cross-dashboard cookie if it was the source OR if it contains the same failed token as session
+              self.class.delete_cross_dashboard_cookie(@controller)
+            end
           else
             MonsoonOpenstackAuth.logger.error "unknown error #{e}."
             raise e
           end
         end
 
-        MonsoonOpenstackAuth.logger.info 'validate_auth_token -> failed.' if @debug
+        MonsoonOpenstackAuth.logger.info 'validate_session_token -> failed.' if @debug
         false
       end
 
@@ -418,27 +459,59 @@ module MonsoonOpenstackAuth
         @controller.request.cookies[cookie_name]
       end
 
-      # Check if the token's domain matches the URL's domain
-      # Returns true if domains match or if no domain check is needed, false otherwise
-      def token_domain_matches_url?(token)
+      # Check if the token's scope matches the requested scope
+      # Returns true if scopes match or if no scope check is needed, false otherwise
+      def token_domain_matches_scope_domain?(token)
         return false unless token
 
-        # Get the URL's domain from params
-        url_domain_fid = @controller.params[:domain_fid] || @controller.params[:domain_id]
-        return true unless url_domain_fid  # No domain in URL, allow the token
+        # If no scope is requested, any valid token is acceptable
+        # Check if all scope values are nil (not just if hash is empty)
+        return true if @scope.empty? || (@scope[:domain].nil? && @scope[:domain_name].nil? && @scope[:project].nil?)
 
-        # Extract domain ID from token
-        token_domain_id = token.dig(:domain, :id) || token.dig(:domain, 'id')
-        return true unless token_domain_id  # Unscoped token, allow it
+        # Check project scope first
+        token_scope_project_id = token.dig(:project, :id) || token.dig(:project, 'id')
+        if @scope[:project] && token_scope_project_id
+          # Project must match
+          return false unless token_scope_project_id == @scope[:project]
 
-        # Resolve URL domain friendly ID to actual domain ID
-        domain_entry = FriendlyIdEntry.find_domain(url_domain_fid)
-        url_domain_id = domain_entry&.key || url_domain_fid
+          # If domain is also specified in scope, check it too
+          if @scope[:domain]
+            token_domain_id = token.dig(:project, :domain, :id) || token.dig(:project, :domain, 'id')
+            return token_domain_id == @scope[:domain]
+          elsif @scope[:domain_name]
+            token_domain_name = token.dig(:project, :domain, :name) || token.dig(:project, :domain, 'name')
+            return token_domain_name == @scope[:domain_name]
+          end
 
-        # Check if domains match
-        token_domain_id == url_domain_id
+          # Project matches and no domain check needed
+          return true
+        end
+
+        # Check domain scope (with user domain fallback for unscoped tokens)
+        # For project-scoped tokens: project.domain
+        # For domain-scoped tokens: domain
+        # For unscoped tokens: user.domain (fallback)
+        token_domain_id = token.dig(:project, :domain, :id) || token.dig(:project, :domain, 'id')
+        token_domain_id ||= token.dig(:domain, :id) || token.dig(:domain, 'id')
+        token_domain_id ||= token.dig(:user, :domain, :id) || token.dig(:user, :domain, 'id')
+
+        if @scope[:domain] && token_domain_id
+          return token_domain_id == @scope[:domain]
+        end
+
+        # Check domain name (with same fallback logic)
+        token_domain_name = token.dig(:project, :domain, :name) || token.dig(:project, :domain, 'name')
+        token_domain_name ||= token.dig(:domain, :name) || token.dig(:domain, 'name')
+        token_domain_name ||= token.dig(:user, :domain, :name) || token.dig(:user, :domain, 'name')
+
+        if @scope[:domain_name] && token_domain_name
+          return token_domain_name == @scope[:domain_name]
+        end
+
+        # No scope requirements matched - reject token
+        false
       rescue StandardError => e
-        MonsoonOpenstackAuth.logger.error "Failed to check token domain match: #{e}" if @debug
+        MonsoonOpenstackAuth.logger.error "Failed to check token scope match: #{e}" if @debug
         false  # On error, reject the token
       end
 
@@ -527,6 +600,21 @@ module MonsoonOpenstackAuth
 
       def params
         @controller.params
+      end
+
+      # Returns true when a valid SSL client certificate was presented (HTTP_SSL_CLIENT_VERIFY == SUCCESS)
+      # but the user is not authenticated in Elektra (no Keystone role assignments).
+      #
+      # @param controller [ActionController::Base]
+      # @return [Boolean]
+      def certificate_valid_but_no_keystone_permissions?(controller)
+        return false unless MonsoonOpenstackAuth.configuration.sso_auth_allowed?
+        return false unless controller.request.env['HTTP_SSL_CLIENT_VERIFY'] == 'SUCCESS'
+
+        certificate = controller.request.env['HTTP_SSL_CLIENT_CERT']
+        return false if certificate.nil? || certificate.empty?
+
+        true
       end
     end
   end

@@ -16,7 +16,7 @@
 
 # check for latest version https://hub.docker.com/_/ruby/tags
 FROM keppel.eu-de-1.cloud.sap/ccloud-dockerhub-mirror/library/ruby:3.4.8-alpine3.22 AS base 
-LABEL source_repository="https://github.com/sapcc/elektra"
+LABEL source_repository="https://github.com/SAP-cloud-infrastructure/elektra"
 
 ENV APP_PATH=/home/app
 ENV RAILS_ENV=production
