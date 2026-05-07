@@ -52,7 +52,7 @@ describe DashboardController, type: :controller do
 
     context "when NotAuthorized exception is raised" do
       context "and project exists (user has no permission)" do
-        it "renders unauthorized template with 401 status" do
+        it "renders unauthorized template with 200 status to prevent OAuth redirect loop" do
           # Mock FriendlyIdEntry to return a project (project exists)
           allow(FriendlyIdEntry).to receive(:find_project)
             .with(default_params[:domain_id], default_params[:project_id])
@@ -65,7 +65,9 @@ describe DashboardController, type: :controller do
 
           get :terms_of_use, params: default_params
 
-          expect(response).to have_http_status(:unauthorized)
+          # User IS authenticated (passed OAuth), just not authorized for this scope
+          # Return 200 to prevent OAuth proxy redirect loop
+          expect(response).to have_http_status(:ok)
           expect(response).to render_template('application/exceptions/unauthorized')
         end
       end
@@ -85,6 +87,10 @@ describe DashboardController, type: :controller do
             .with(default_params[:domain_id], "non_existent_project")
             .and_return(nil)
 
+          # Allow scope validation to pass so we can test rescoping error handling
+          allow_any_instance_of(MonsoonOpenstackAuth::Authentication::AuthSession)
+            .to receive(:token_domain_matches_scope_domain?).and_return(true)
+
           # Trigger the exception
           allow_any_instance_of(MonsoonOpenstackAuth::Authentication::AuthSession)
             .to receive(:rescope_token)
@@ -95,6 +101,29 @@ describe DashboardController, type: :controller do
           expect(response).to have_http_status(:not_found)
           expect(response).to render_template('application/exceptions/project_not_found')
         end
+      end
+    end
+
+    context "when user is not authenticated (no current_user)" do
+      it "redirects to login instead of showing unauthorized" do
+        # Simulate no authenticated user (e.g., token rejected due to domain mismatch)
+        allow(controller).to receive(:current_user).and_return(nil)
+        allow(UserProfile).to receive(:tou_accepted?).and_return(true)
+
+        get :terms_of_use, params: default_params
+
+        # Expect redirect to login path (actual URL details depend on routing)
+        expect(response).to redirect_to(%r{/auth/login})
+      end
+
+      it "logs the missing user information" do
+        allow(controller).to receive(:current_user).and_return(nil)
+        allow(UserProfile).to receive(:tou_accepted?).and_return(true)
+
+        expect(Rails.logger).to receive(:info)
+          .with(/No authenticated user found, redirecting to login/)
+
+        get :terms_of_use, params: default_params
       end
     end
   end

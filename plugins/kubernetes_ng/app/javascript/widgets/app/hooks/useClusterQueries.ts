@@ -1,23 +1,18 @@
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { GardenerApi } from "../apiClient"
 import { QUERY_KEYS } from "./queryKeys"
 import { Cluster } from "../types/cluster"
 import { Permissions } from "../types/permissions"
+import { ClusterFormData, ClusterUpdateData } from "../routes/clusters/-components/ClusterWizard/types"
 
 /**
  * Query hook for fetching clusters with automatic polling
  * Polls every 30 seconds when any cluster has incomplete operations (progress < 100)
  */
-export function useClustersQuery(apiClient: GardenerApi | undefined) {
+export function useClustersQuery(apiClient: GardenerApi) {
   return useQuery<Cluster[], Error>({
     queryKey: QUERY_KEYS.clusters,
-    queryFn: () => {
-      if (!apiClient) {
-        throw new Error("API client is not available")
-      }
-      return apiClient.gardener.getClusters()
-    },
-    enabled: !!apiClient,
+    queryFn: () => apiClient.gardener.getClusters(),
     // Automatically refetch based on cluster operations status
     refetchInterval: (data, query) => {
       if (!data) return false
@@ -43,16 +38,11 @@ export function useClustersQuery(apiClient: GardenerApi | undefined) {
  * Query hook for fetching a single cluster by name with automatic polling
  * Polls every 30 seconds when the cluster has incomplete operations (progress < 100)
  */
-export function useClusterQuery(apiClient: GardenerApi | undefined, clusterName: string) {
+export function useClusterQuery(apiClient: GardenerApi, clusterName: string) {
   return useQuery<Cluster, Error>({
     queryKey: QUERY_KEYS.cluster(clusterName),
-    queryFn: () => {
-      if (!apiClient) {
-        throw new Error("API client is not available")
-      }
-      return apiClient.gardener.getClusterByName(clusterName)
-    },
-    enabled: !!apiClient && !!clusterName,
+    queryFn: () => apiClient.gardener.getClusterByName(clusterName),
+    enabled: !!clusterName,
     // Automatically refetch based on cluster operation status
     refetchInterval: (data, query) => {
       if (!data) return false
@@ -75,16 +65,10 @@ export function useClusterQuery(apiClient: GardenerApi | undefined, clusterName:
  * Query hook for fetching shoot permissions
  * Permissions are static for the session and only change on page reload
  */
-export function useShootPermissionsQuery(apiClient: GardenerApi | undefined) {
+export function useShootPermissionsQuery(apiClient: GardenerApi) {
   return useQuery<Permissions, Error>({
     queryKey: QUERY_KEYS.permissions,
-    queryFn: () => {
-      if (!apiClient) {
-        throw new Error("API client is not available")
-      }
-      return apiClient.gardener.getShootPermissions()
-    },
-    enabled: !!apiClient,
+    queryFn: () => apiClient.gardener.getShootPermissions(),
     staleTime: Infinity, // Permissions don't change during the session
     cacheTime: Infinity, // Keep in cache indefinitely until page reload (v4 name, renamed to gcTime in v5)
     refetchOnWindowFocus: false,
@@ -95,18 +79,76 @@ export function useShootPermissionsQuery(apiClient: GardenerApi | undefined) {
  * Query hook for fetching kubeconfig permissions
  * Permissions are static for the session and only change on page reload
  */
-export function useKubeconfigPermissionsQuery(apiClient: GardenerApi | undefined) {
+export function useKubeconfigPermissionsQuery(apiClient: GardenerApi) {
   return useQuery<Permissions, Error>({
     queryKey: QUERY_KEYS.kubeconfigPermissions,
-    queryFn: () => {
-      if (!apiClient) {
-        throw new Error("API client is not available")
-      }
-      return apiClient.gardener.getKubeconfigPermission()
-    },
-    enabled: !!apiClient,
+    queryFn: () => apiClient.gardener.getKubeconfigPermission(),
     staleTime: Infinity, // kubeconfig don't change during the session
     cacheTime: Infinity, // Keep in cache indefinitely until page reload
     refetchOnWindowFocus: false,
+  })
+}
+
+/**
+ * Mutation hook for updating a cluster
+ * Automatically invalidates the cluster query on success
+ */
+export function useUpdateClusterMutation(apiClient: GardenerApi) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ clusterName, data }: { clusterName: string; data: ClusterUpdateData }) => {
+      return apiClient.gardener.updateCluster(clusterName, data)
+    },
+    onSuccess: (_, variables) => {
+      // Invalidate the specific cluster query to refetch latest data
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.cluster(variables.clusterName) })
+      // Also invalidate clusters list to keep it in sync
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.clusters })
+    },
+  })
+}
+
+/**
+ * Mutation hook for creating a cluster
+ * Automatically invalidates the clusters list on success
+ */
+export function useCreateClusterMutation(apiClient: GardenerApi) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (clusterData: ClusterFormData) => {
+      return apiClient.gardener.createCluster(clusterData)
+    },
+    onSuccess: () => {
+      // Invalidate clusters list to show the new cluster
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.clusters })
+    },
+  })
+}
+
+/**
+ * Mutation hook for reconciling a cluster
+ * Adds the gardener.cloud/operation=reconcile annotation to trigger reconciliation
+ */
+export function useReconcileClusterMutation(apiClient: GardenerApi) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ clusterName }: { clusterName: string }) => {
+      return apiClient.gardener.updateCluster(clusterName, {
+        metadata: {
+          annotations: {
+            "gardener.cloud/operation": "reconcile",
+          },
+        },
+      })
+    },
+    onSuccess: (_, variables) => {
+      // Invalidate the specific cluster query to refetch latest data
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.cluster(variables.clusterName) })
+      // Also invalidate clusters list to keep it in sync
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.clusters })
+    },
   })
 }

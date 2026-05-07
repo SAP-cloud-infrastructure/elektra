@@ -1,4 +1,5 @@
 import { STEP_DEFINITIONS } from "./constants"
+import type { Maintenance, AutoUpdate } from "../../../types/cluster"
 
 type StepDefinition = (typeof STEP_DEFINITIONS)[number]
 export type StepId = StepDefinition["id"]
@@ -41,5 +42,14 @@ export type WorkerGroup = {
 }
 
 export type ClusterFormData = BasicInfo & Infrastructure & WorkerGroups
+
+// Type for cluster update that includes both form data and metadata
+export type ClusterUpdateData = Partial<ClusterFormData> & {
+  metadata?: {
+    annotations?: Record<string, string>
+  }
+  maintenance?: Maintenance
+  autoUpdate?: AutoUpdate
+}
 
 export type ClusterFormErrorsFlat = Record<string, string[]>

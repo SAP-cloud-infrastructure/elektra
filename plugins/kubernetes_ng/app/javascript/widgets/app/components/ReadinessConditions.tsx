@@ -25,14 +25,23 @@ type ConditionVariant = (typeof CONDITION_VARIANTS)[keyof typeof CONDITION_VARIA
 const getReadinessConditionVariant = (status: string): ConditionVariant =>
   CONDITION_VARIANTS[status as keyof typeof CONDITION_VARIANTS] ?? CONDITION_VARIANTS.Unknown
 
-const ConditionBadge: React.FC<{ condition: ReadinessCondition }> = ({ condition }) => {
+const ConditionBadge: React.FC<{ condition: ReadinessCondition; showTooltip?: boolean }> = ({
+  condition,
+  showTooltip = true
+}) => {
   const variant = getReadinessConditionVariant(condition.status)
+  const badge = <Badge text={condition.displayValue} icon={variant !== "success"} variant={variant} data-variant={variant} />
+
+  if (!showTooltip) {
+    return badge
+  }
+
   return (
     <Tooltip triggerEvent="hover">
       {/* Badge doesn't forward refs, so we need a wrapper div for the tooltip trigger */}
       <TooltipTrigger asChild>
         <div>
-          <Badge text={condition.displayValue} icon={variant !== "success"} variant={variant} data-variant={variant} />
+          {badge}
         </div>
       </TooltipTrigger>
       <TooltipContent>{condition.type}</TooltipContent>
@@ -44,7 +53,7 @@ const renderCondition = (condition: ReadinessCondition) => {
   const variant = getReadinessConditionVariant(condition.status)
   return (
     <Box key={condition.type} variant={variant}>
-      <ConditionBadge condition={condition} />
+      <ConditionBadge condition={condition} showTooltip={false} />
       <Grid>
         <GridRow>
           <GridColumn cols={4} className="tw-text-right tw-break-words tw-whitespace-normal tw-overflow-hidden">
@@ -101,11 +110,11 @@ const ReadinessConditions: React.FC<ReadinessConditionsProps> = ({ conditions, s
   return (
     <div {...props}>
       <Stack gap="2">
-        <Stack gap="1">
+        <div className="tw-flex tw-flex-wrap tw-gap-1">
           {conditions.map((condition) => (
             <ConditionBadge key={condition.type} condition={condition} />
           ))}
-        </Stack>
+        </div>
         {showDetails && healthyConditions.length > 0 && (
           <button
             type="button"

@@ -53,6 +53,29 @@ MonsoonOpenstackAuth.configure do |config|
   # optional, default=false
   config.access_key_auth_allowed = false
 
+  # optional, default=false
+  # When true, only usernames matching natural_user_name_pattern (or the built-in
+  # default /\A[DCIdci]\d*\z/) are allowed to submit the password form.
+  # Service accounts and technical users are rejected before Keystone is called.
+  # Env var: ENFORCE_NATURAL_USER_LOGIN=true
+  config.enforce_natural_user = false
+  # optional — override the default pattern when enforce_natural_user is true
+  config.natural_user_name_pattern = /\A([DCIdci]\d*|TI_EC5A3E_.*)\z/
+
+  # Env var: MONSOON_OPENSTACK_SSO_STRICT_MODE=true (default: unset / disabled)
+  # When enabled, an SSO user (certificate or OIDC/SAML) who authenticates
+  # successfully at the SSO layer but has no role assignments in Keystone
+  # receives a 401 Unauthorized instead of being silently redirected to the
+  # password login form.
+  config.block_login_fallback_after_sso = ENV.fetch('MONSOON_OPENSTACK_SSO_STRICT_MODE', 'false') == 'true'
+
+  # Env var: MONSOON_OPENSTACK_PASSWORD_SYNC_ONLY=true (default: unset / disabled)
+  # When enabled, password credentials are validated against Keystone
+  # (triggering LDAP/cc_password sync) but no session is created.
+  # The user is returned to the login form with a notice to use SSO instead.
+  # When unset or false, password login works normally and a session is created.
+  config.password_session_auth_allowed = ENV.fetch('MONSOON_OPENSTACK_PASSWORD_SYNC_ONLY', 'false') != 'true'
+
   # optional, default= last url before redirected to form
   # config.login_redirect_url = '/'
 

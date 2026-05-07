@@ -8,6 +8,7 @@ import { Messages } from "@cloudoperators/juno-messages-provider"
 export interface RouterContext {
   apiClient: GardenerApi
   region: string
+  projectid: string
 }
 
 export const Root = () => {

@@ -39,6 +39,17 @@ export const LastErrorSchema = z.object({
   lastUpdateTime: z.string(),
 })
 
+export const MaintenanceSchema = z.object({
+  startTime: z.string(),
+  timezone: z.string(),
+  endTime: z.string(),
+})
+
+export const AutoUpdateSchema = z.object({
+  os: z.boolean(),
+  kubernetes: z.boolean(),
+})
+
 // Define simplified cluster schema for the UI
 export const ClusterSchema = z.object({
   // List view fields
@@ -50,6 +61,14 @@ export const ClusterSchema = z.object({
   infrastructure: z.string(),
   status: z.string(),
   version: z.string(),
+  versionUpdates: z
+    .object({
+      patch: z.array(z.string()).optional(),
+      minor: z.array(z.string()).optional(),
+      major: z.array(z.string()).optional(),
+    })
+    .nullable()
+    .optional(),
   namespace: z.string(),
   readiness: z.object({
     status: z.string(),
@@ -57,7 +76,7 @@ export const ClusterSchema = z.object({
   }),
   purpose: z.string().optional(),
   addOns: z.array(z.string()).optional(),
-  cloudProfileName: z.string().optional(),
+  cloudProfileName: z.string(),
   labels: z.record(z.string(), z.string()).optional(),
   stateDetails: z
     .object({
@@ -75,20 +94,13 @@ export const ClusterSchema = z.object({
 
   workers: z.array(workerSchema),
 
-  maintenance: z.object({
-    startTime: z.string(),
-    timezone: z.string(),
-    windowTime: z.string(),
-  }),
+  maintenance: MaintenanceSchema,
 
   lastMaintenance: z.object({
     state: z.string().optional(),
   }),
 
-  autoUpdate: z.object({
-    os: z.boolean(),
-    kubernetes: z.boolean(),
-  }),
+  autoUpdate: AutoUpdateSchema,
 
   raw: z.looseObject({}), // Raw data for JSON viewer
 })
@@ -98,3 +110,5 @@ export type Worker = z.infer<typeof workerSchema>
 export type Cluster = z.infer<typeof ClusterSchema>
 export type ReadinessCondition = z.infer<typeof ReadinessConditionSchema>
 export type LastError = z.infer<typeof LastErrorSchema>
+export type Maintenance = z.infer<typeof MaintenanceSchema>
+export type AutoUpdate = z.infer<typeof AutoUpdateSchema>

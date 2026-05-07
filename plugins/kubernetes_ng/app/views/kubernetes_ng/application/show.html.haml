@@ -2,4 +2,4 @@
   - display_name = KubernetesNg.display_name_for(@landscape_name)
   = display_name.empty? ? "Kubernetes as a Service (Gardener)" : "Kubernetes as a Service (Gardener #{display_name})"
 
-= javascript_include_tag "kubernetes_ng_app_widget", data: {basepath: plugin("kubernetes_ng").service_path(landscape_name: @landscape_name), region: current_region }
+= javascript_include_tag "kubernetes_ng_app_widget", data: {basepath: plugin("kubernetes_ng").service_path(landscape_name: @landscape_name), region: current_region, projectid: @scoped_project_id }

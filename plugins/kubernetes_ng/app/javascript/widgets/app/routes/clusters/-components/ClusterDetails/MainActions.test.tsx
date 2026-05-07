@@ -80,7 +80,7 @@ describe("<MainActions />", () => {
     renderMainActions()
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: /kube config/i })).toBeInTheDocument()
+      expect(screen.getByRole("button", { name: /kubeconfig/i })).toBeInTheDocument()
     })
     expect(screen.getByRole("button", { name: /delete cluster/i })).toBeInTheDocument()
   })
@@ -89,9 +89,9 @@ describe("<MainActions />", () => {
     renderMainActions({ disabled: true })
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: /kube config/i })).toBeDisabled()
+      expect(screen.getByRole("button", { name: /kubeconfig/i })).toBeDisabled()
     })
-    expect(screen.getByRole("button", { name: /kube config/i })).toBeDisabled()
+    expect(screen.getByRole("button", { name: /kubeconfig/i })).toBeDisabled()
     expect(screen.getByRole("button", { name: /delete cluster/i })).toBeDisabled()
   })
 
@@ -118,23 +118,23 @@ describe("<MainActions />", () => {
     expect(await screen.findByText(/you don't have permission to delete this cluster/i)).toBeInTheDocument()
   })
 
-  it("disables Kube Config button when no create permission", async () => {
+  it("disables Kubeconfig button when no create permission", async () => {
     renderMainActions({ kubeconfigPermissions: { ...permissionsAllTrue, create: false } })
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: /kube config/i })).toBeDisabled()
+      expect(screen.getByRole("button", { name: /kubeconfig/i })).toBeDisabled()
     })
   })
 
-  it("shows permission message when Kube Config button is disabled due to permissions", async () => {
+  it("shows permission message when Kubeconfig button is disabled due to permissions", async () => {
     const user = userEvent.setup()
     renderMainActions({ kubeconfigPermissions: { ...permissionsAllTrue, create: false } })
 
-    const kubeConfigButton = await screen.findByRole("button", { name: /kube config/i })
-    expect(kubeConfigButton).toBeDisabled()
+    const kubeconfigButton = await screen.findByRole("button", { name: /kubeconfig/i })
+    expect(kubeconfigButton).toBeDisabled()
 
     // Hover to show tooltip
     act(() => {
-      user.hover(kubeConfigButton)
+      user.hover(kubeconfigButton)
     })
 
     // Check for permission message in tooltip
@@ -235,13 +235,13 @@ describe("<MainActions />", () => {
             ...defaultMockClient,
             gardener: {
               ...defaultMockClient.gardener,
-              getKubeconfig: () => kubeconfigDeferred.promise,
+              getClusterKubeconfig: () => kubeconfigDeferred.promise,
             },
           },
         })
       )
 
-      const downloadButton = await screen.findByRole("button", { name: /Kube Config/i })
+      const downloadButton = await screen.findByRole("button", { name: /Kubeconfig/i })
       expect(downloadButton).toBeInTheDocument()
 
       // // Mock the API call to fail
@@ -269,13 +269,13 @@ describe("<MainActions />", () => {
             ...defaultMockClient,
             gardener: {
               ...defaultMockClient.gardener,
-              getKubeconfig: () => kubeconfigDeferred.promise,
+              getClusterKubeconfig: () => kubeconfigDeferred.promise,
             },
           },
         })
       )
 
-      const downloadButton = await screen.findByRole("button", { name: /Kube Config/i })
+      const downloadButton = await screen.findByRole("button", { name: /Kubeconfig/i })
       expect(downloadButton).toBeInTheDocument()
 
       // Click the download button and resolve the promise
@@ -297,7 +297,7 @@ describe("<MainActions />", () => {
       })
     })
 
-    it("disables Kube Config button while download is pending", async () => {
+    it("disables Kubeconfig button while download is pending", async () => {
       const user = userEvent.setup()
       const kubeconfigDeferred = deferredPromise<string>()
       await act(async () =>
@@ -306,18 +306,18 @@ describe("<MainActions />", () => {
             ...defaultMockClient,
             gardener: {
               ...defaultMockClient.gardener,
-              getKubeconfig: () => kubeconfigDeferred.promise,
+              getClusterKubeconfig: () => kubeconfigDeferred.promise,
             },
           },
         })
       )
 
-      const kubeConfigButton = await screen.findByRole("button", { name: /kube config/i })
-      await user.click(kubeConfigButton)
+      const kubeconfigButton = await screen.findByRole("button", { name: /kubeconfig/i })
+      await user.click(kubeconfigButton)
 
       // Verify button is disabled while pending
       await waitFor(() => {
-        expect(kubeConfigButton).toBeDisabled()
+        expect(kubeconfigButton).toBeDisabled()
       })
     })
   })

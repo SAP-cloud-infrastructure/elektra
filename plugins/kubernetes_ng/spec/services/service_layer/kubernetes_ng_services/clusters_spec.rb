@@ -1,6 +1,8 @@
 require "spec_helper"
 RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
   include ServiceLayer::KubernetesNgServices::Clusters
+  include ServiceLayer::KubernetesNgServices::CloudProfiles
+
   describe "convert_shoot_to_cluster" do
     it "converts a full blown valid shoot to cluster format" do
       shoot_mock = {
@@ -21,7 +23,9 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           }
         },
         'spec' => {
-          'cloudProfileName' => 'openstack',
+          'cloudProfile' => {
+            'name' => 'openstack'
+          },
           'kubernetes' => {
             'version' => '1.25.4'
           },
@@ -122,7 +126,7 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
         status: 'healthy',
         version: shoot_mock['spec']['kubernetes']['version'],
         purpose: shoot_mock['spec']['purpose'],
-        cloudProfileName: shoot_mock['spec']['cloudProfileName'],
+        cloudProfileName: shoot_mock['spec']['cloudProfile']['name'],
         namespace: shoot_mock['metadata']['namespace'],
         secretBindingName: shoot_mock['spec']['secretBindingName'],
         lastOperation: {
@@ -139,8 +143,17 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
             taskID: 'task-1234',
             lastUpdateTime: '2023-05-01T01:00:00Z'
           }
-        ],      
+        ],
         labels: shoot_mock['metadata']['labels'],
+        maintenance: {
+          startTime: '22:00',
+          endTime: '23:00',
+          timezone: '+0100'
+        },
+        autoUpdate: {
+          os: true,
+          kubernetes: true
+        },
         readiness: {
           conditions: [
             {
@@ -175,7 +188,9 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           'creationTimestamp' => Time.now.iso8601
         },
         'spec' => {
-          'cloudProfileName' => 'openstack',
+          'cloudProfile' => {
+            'name' => 'openstack'
+          },
           'kubernetes' => {
             'version' => '1.25.4'
           },
@@ -213,7 +228,9 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           'deletionTimestamp' => Time.now.iso8601
         },
         'spec' => {
-          'cloudProfileName' => 'openstack',
+          'cloudProfile' => {
+            'name' => 'openstack'
+          },
           'kubernetes' => {
             'version' => '1.25.4'
           },
@@ -381,7 +398,9 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           'creationTimestamp' => Time.now.iso8601
         },
         'spec' => {
-          'cloudProfileName' => 'openstack',
+          'cloudProfile' => {
+            'name' => 'openstack'
+          },
           'kubernetes' => {
             'version' => '1.25.4',
             'kubeAPIServer' => {
@@ -504,7 +523,9 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           'creationTimestamp' => Time.now.iso8601
         },
         'spec' => {
-          'cloudProfileName' => 'openstack',
+          'cloudProfile' => {
+            'name' => 'openstack'
+          },
           'kubernetes' => {
             'version' => '1.25.4'
           },
@@ -549,7 +570,9 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           'creationTimestamp' => Time.now.iso8601
         },
         'spec' => {
-          'cloudProfileName' => 'openstack',
+          'cloudProfile' => {
+            'name' => 'openstack'
+          },
           'kubernetes' => {
             'version' => '1.25.4'
           },
@@ -609,7 +632,9 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           'creationTimestamp' => Time.now.iso8601
         },
         'spec' => {
-          'cloudProfileName' => 'openstack',
+          'cloudProfile' => {
+            'name' => 'openstack'
+          },
           'kubernetes' => {
             'version' => '1.25.4'
           },
@@ -682,9 +707,9 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
           }
         ],
         maintenance: {
-          startTime: '220000+0100',
-          windowTime: '230000+0100',
-          timezone: 'Europe/Berlin'
+          startTime: '22:00',
+          endTime: '23:00',
+          timezone: '+01:00'
         },
         autoUpdate: {
           os: true,
@@ -707,7 +732,7 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
               'pods' => '10.45.0.0/16',
               'nodes' => '10.45.0.0/16',
               'services' => '10.45.0.0/16'
-            },          
+            },
           'provider' => {
             'infrastructureConfig' => {
               'floatingPoolName' => 'public-floating-pool',
@@ -750,13 +775,6 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
               'machineImageVersion' => true,
               'kubernetesVersion' => true
             }
-          },
-          'hibernation' => {
-            'schedules' => [
-              {
-                'location' => 'Europe/Berlin'
-              }
-            ]
           }
         }
       })
@@ -858,6 +876,51 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
       shoot = convert_cluster_to_shoot(cluster_without_hibernation)
       expect(shoot['spec']['hibernation']).to be_nil
     end
+
+    it "includes hibernation spec when explicitly provided" do
+      cluster_with_hibernation = {
+        uid: '12345678-1234-1234-1234-123456789012',
+        name: 'hibernation-cluster',
+        region: 'eu-de',
+        cloudProfileName: 'openstack',
+        kubernetesVersion: '1.25.4',
+        workers: [],
+        hibernation: {
+          schedules: [
+            { location: 'Europe/Berlin' }
+          ]
+        }
+      }
+      shoot = convert_cluster_to_shoot(cluster_with_hibernation)
+      expect(shoot['spec']['hibernation']).to eq({
+        'schedules' => [
+          { 'location' => 'Europe/Berlin' }
+        ]
+      })
+    end
+
+    it "does not include hibernation when only maintenance is provided" do
+      cluster_with_maintenance_only = {
+        uid: '12345678-1234-1234-1234-123456789012',
+        name: 'maintenance-only-cluster',
+        region: 'eu-de',
+        cloudProfileName: 'openstack',
+        kubernetesVersion: '1.25.4',
+        workers: [],
+        maintenance: {
+          startTime: '22:00',
+          endTime: '23:00',
+          timezone: '+01:00'
+        },
+        autoUpdate: {
+          os: true,
+          kubernetes: true
+        }
+      }
+      shoot = convert_cluster_to_shoot(cluster_with_maintenance_only)
+      expect(shoot['spec']['maintenance']).not_to be_nil
+      expect(shoot['spec']['hibernation']).to be_nil
+    end
   end
 
   describe "kube config generation" do
@@ -948,5 +1011,344 @@ RSpec.describe ServiceLayer::KubernetesNgServices::Clusters do
       }.to raise_error(/Invalid base64/)
     end
   end
-      
+
+  describe "build_patch_operations" do
+    it "creates patch operations for flat hash" do
+      hash = {
+        'region' => 'eu-de',
+        'purpose' => 'production'
+      }
+      operations = []
+      build_patch_operations(hash, '/spec', operations)
+
+      expect(operations).to contain_exactly(
+        { op: "replace", path: "/spec/region", value: 'eu-de' },
+        { op: "replace", path: "/spec/purpose", value: 'production' }
+      )
+    end
+
+    it "creates nested patch operations for provider/workers" do
+      hash = {
+        'provider' => {
+          'workers' => [
+            {
+              'name' => 'worker1',
+              'minimum' => 1,
+              'maximum' => 3
+            }
+          ]
+        }
+      }
+      operations = []
+      build_patch_operations(hash, '/spec', operations)
+
+      expect(operations).to contain_exactly(
+        {
+          op: "replace",
+          path: "/spec/provider/workers",
+          value: [{ 'name' => 'worker1', 'minimum' => 1, 'maximum' => 3 }]
+        }
+      )
+    end
+
+    it "creates deeply nested patch operations" do
+      hash = {
+        'provider' => {
+          'infrastructureConfig' => {
+            'networks' => {
+              'workers' => '10.250.0.0/16'
+            }
+          }
+        }
+      }
+      operations = []
+      build_patch_operations(hash, '/spec', operations)
+
+      expect(operations).to contain_exactly(
+        {
+          op: "replace",
+          path: "/spec/provider/infrastructureConfig/networks/workers",
+          value: '10.250.0.0/16'
+        }
+      )
+    end
+
+    it "handles multiple nested paths" do
+      hash = {
+        'kubernetes' => {
+          'version' => '1.25.4'
+        },
+        'provider' => {
+          'type' => 'openstack',
+          'workers' => []
+        }
+      }
+      operations = []
+      build_patch_operations(hash, '/spec', operations)
+
+      expect(operations).to contain_exactly(
+        { op: "replace", path: "/spec/kubernetes/version", value: '1.25.4' },
+        { op: "replace", path: "/spec/provider/type", value: 'openstack' },
+        { op: "replace", path: "/spec/provider/workers", value: [] }
+      )
+    end
+
+    it "handles empty hash gracefully" do
+      hash = {}
+      operations = []
+      build_patch_operations(hash, '/spec', operations)
+
+      expect(operations).to be_empty
+    end
+
+    it "does not descend into empty hashes" do
+      hash = {
+        'provider' => {},
+        'region' => 'eu-de'
+      }
+      operations = []
+      build_patch_operations(hash, '/spec', operations)
+
+      expect(operations).to contain_exactly(
+        { op: "replace", path: "/spec/provider", value: {} },
+        { op: "replace", path: "/spec/region", value: 'eu-de' }
+      )
+    end
+  end
+
+  describe "update_cluster" do
+    let(:project_id) { "test" }
+    let(:region) { "qa-de-1" }
+    let(:namespace) { "garden-#{region}-#{project_id}" }
+    let(:cluster_name) { "test-cluster" }
+
+    before do
+      @scoped_project_id = project_id
+      @scoped_region = region
+      allow(self).to receive(:garden_namespace).and_return(namespace)
+    end
+
+    it "generates granular patch operations for workers update" do
+      cluster_data = {
+        workers: [
+          {
+            name: 'worker1',
+            machineType: 'g_c2_m4',
+            machineImage: { name: 'flatcar', version: '1.0.0' },
+            minimum: 1,
+            maximum: 3,
+            zones: ['qa-de-1a']
+          }
+        ]
+      }
+
+      mock_response = double('response', body: { 'metadata' => { 'name' => cluster_name } })
+      mock_elektron = double('elektron_gardener')
+      allow(self).to receive(:elektron_gardener).and_return(mock_elektron)
+
+      # Capture the actual patch operations
+      actual_operations = nil
+      expect(mock_elektron).to receive(:patch)
+        .with(
+          "apis/core.gardener.cloud/v1beta1/namespaces/#{namespace}/shoots/#{cluster_name}",
+          headers: { "Content-Type": "application/json-patch+json" }
+        ) do |*args, &block|
+          actual_operations = block.call
+          mock_response
+        end
+
+      update_cluster(cluster_name, cluster_data)
+
+      # Verify that workers are patched at /spec/provider/workers, not /spec/provider
+      workers_patch = actual_operations.find { |op| op[:path] == "/spec/provider/workers" }
+      expect(workers_patch).not_to be_nil
+      expect(workers_patch[:op]).to eq("replace")
+      expect(workers_patch[:value]).to be_an(Array)
+      expect(workers_patch[:value].first['name']).to eq('worker1')
+
+      # Verify we're not replacing the entire provider object
+      provider_patch = actual_operations.find { |op| op[:path] == "/spec/provider" }
+      expect(provider_patch).to be_nil
+    end
+
+  end
+
+  describe "format_maintenance_time" do
+    it "formats time correctly" do
+      expect(format_maintenance_time('220000+0100')).to eq('22:00')
+    end
+
+    it "formats time with different hours and minutes" do
+      expect(format_maintenance_time('170000-0500')).to eq('17:00')
+    end
+
+    it "formats time with non-zero minutes" do
+      expect(format_maintenance_time('093000+0000')).to eq('09:30')
+    end
+
+    it "returns empty string for nil" do
+      expect(format_maintenance_time(nil)).to eq('')
+    end
+
+    it "returns empty string for empty string" do
+      expect(format_maintenance_time('')).to eq('')
+    end
+
+    it "returns original string if format doesn't match" do
+      expect(format_maintenance_time('invalid')).to eq('invalid')
+    end
+  end
+
+  describe "convert_display_to_gardener_time" do
+    it "converts display format to Gardener format with positive timezone" do
+      expect(convert_display_to_gardener_time('22:00', '+01:00')).to eq('220000+0100')
+    end
+
+    it "converts display format to Gardener format with negative timezone" do
+      expect(convert_display_to_gardener_time('17:00', '-05:00')).to eq('170000-0500')
+    end
+
+    it "converts display format with non-zero minutes" do
+      expect(convert_display_to_gardener_time('09:30', '+00:00')).to eq('093000+0000')
+    end
+
+    it "passes through Gardener format unchanged" do
+      expect(convert_display_to_gardener_time('220000+0100', '+01:00')).to eq('220000+0100')
+    end
+
+    it "uses default timezone when timezone is nil" do
+      expect(convert_display_to_gardener_time('22:00', nil)).to eq('220000+0000')
+    end
+
+    it "returns empty string for nil input" do
+      expect(convert_display_to_gardener_time(nil, '+01:00')).to eq(nil)
+    end
+
+    it "returns empty string for empty string input" do
+      expect(convert_display_to_gardener_time('', '+01:00')).to eq('')
+    end
+
+    it "returns original string if format doesn't match HH:MM" do
+      expect(convert_display_to_gardener_time('invalid', '+01:00')).to eq('invalid')
+    end
+
+    it "removes colon from timezone" do
+      expect(convert_display_to_gardener_time('14:30', '+02:30')).to eq('143000+0230')
+    end
+  end
+
+  describe "version updates" do
+    let(:cloud_profiles_map) do
+      {
+        'openstack' => ["1.27.0", "1.27.5", "1.27.6", "1.28.0", "1.28.2", "1.29.0", "2.0.0"]
+      }
+    end
+
+    it "includes versionUpdates when cloud profiles are provided" do
+      shoot = {
+        'metadata' => {
+          'name' => 'test-cluster',
+          'namespace' => 'garden-test',
+          'uid' => '12345678-1234-1234-1234-123456789012'
+        },
+        'spec' => {
+          'cloudProfile' => { 'name' => 'openstack' },
+          'kubernetes' => { 'version' => '1.27.5' },
+          'region' => 'eu-de',
+          'provider' => { 'type' => 'openstack' }
+        }
+      }
+
+      cluster = convert_shoot_to_cluster(shoot, cloud_profiles_map)
+
+      expect(cluster[:versionUpdates]).not_to be_nil
+      expect(cluster[:versionUpdates][:patch]).to eq(["1.27.6"])
+      expect(cluster[:versionUpdates][:minor]).to eq(["1.28.0", "1.28.2", "1.29.0"])
+      expect(cluster[:versionUpdates][:major]).to eq(["2.0.0"])
+    end
+
+    it "returns empty arrays versionUpdates when no updates available" do
+      shoot = {
+        'metadata' => {
+          'name' => 'test-cluster',
+          'namespace' => 'garden-test',
+          'uid' => '12345678-1234-1234-1234-123456789012'
+        },
+        'spec' => {
+          'cloudProfile' => { 'name' => 'openstack' },
+          'kubernetes' => { 'version' => '2.0.0' },
+          'region' => 'eu-de',
+          'provider' => { 'type' => 'openstack' }
+        }
+      }
+
+      cluster = convert_shoot_to_cluster(shoot, cloud_profiles_map)
+
+      expect(cluster[:versionUpdates]).to eq({ patch: [], minor: [], major: [] })
+    end
+
+    it "returns nil versionUpdates when cloud profiles not provided" do
+      shoot = {
+        'metadata' => {
+          'name' => 'test-cluster',
+          'namespace' => 'garden-test',
+          'uid' => '12345678-1234-1234-1234-123456789012'
+        },
+        'spec' => {
+          'cloudProfile' => { 'name' => 'openstack' },
+          'kubernetes' => { 'version' => '1.27.5' },
+          'region' => 'eu-de',
+          'provider' => { 'type' => 'openstack' }
+        }
+      }
+
+      cluster = convert_shoot_to_cluster(shoot, nil)
+
+      expect(cluster[:versionUpdates]).to be_nil
+    end
+
+    it "returns nil versionUpdates when cloud profile not found" do
+      shoot = {
+        'metadata' => {
+          'name' => 'test-cluster',
+          'namespace' => 'garden-test',
+          'uid' => '12345678-1234-1234-1234-123456789012'
+        },
+        'spec' => {
+          'cloudProfile' => { 'name' => 'aws' },
+          'kubernetes' => { 'version' => '1.27.5' },
+          'region' => 'eu-de',
+          'provider' => { 'type' => 'aws' }
+        }
+      }
+
+      cluster = convert_shoot_to_cluster(shoot, cloud_profiles_map)
+
+      expect(cluster[:versionUpdates]).to be_nil
+    end
+
+    it "only includes patch updates when current version has patches" do
+      shoot = {
+        'metadata' => {
+          'name' => 'test-cluster',
+          'namespace' => 'garden-test',
+          'uid' => '12345678-1234-1234-1234-123456789012'
+        },
+        'spec' => {
+          'cloudProfile' => { 'name' => 'openstack' },
+          'kubernetes' => { 'version' => '1.28.0' },
+          'region' => 'eu-de',
+          'provider' => { 'type' => 'openstack' }
+        }
+      }
+
+      cluster = convert_shoot_to_cluster(shoot, cloud_profiles_map)
+
+      expect(cluster[:versionUpdates]).not_to be_nil
+      expect(cluster[:versionUpdates][:patch]).to eq(["1.28.2"])
+      expect(cluster[:versionUpdates][:minor]).to eq(["1.29.0"])
+      expect(cluster[:versionUpdates][:major]).to eq(["2.0.0"])
+    end
+  end
+
 end

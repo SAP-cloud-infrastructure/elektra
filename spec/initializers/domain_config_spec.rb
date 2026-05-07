@@ -29,7 +29,7 @@ test_config = {
         'masterdata_cockpit',
         'webconsole',
         'dns_service',
-        'maillog'
+        'email_service'
       ],
       'disabled_features' => [
         'documentation',
