@@ -153,13 +153,13 @@ describe("DetailsContent", () => {
   it("renders maintenance and auto-update sections", async () => {
     renderDetailsContent()
     // Find the heading
-    const maintenanceWindowSection = await screen.findByRole("heading", { name: /Maintenance Window/i, level: 2 })
-    expect(maintenanceWindowSection).toBeInTheDocument()
-    const sectionContainer = maintenanceWindowSection.parentElement!
-    const { getByRole } = within(sectionContainer)
-    // Find a grid role
-    const maintenanceGrid = getByRole("grid")
-    expect(maintenanceGrid).toBeInTheDocument()
+    const maintenanceSection = await screen.findByRole("heading", { name: /Maintenance/i, level: 2 })
+    expect(maintenanceSection).toBeInTheDocument()
+
+    // Check that maintenance data is displayed
+    expect(screen.getByText("Start Time")).toBeInTheDocument()
+    expect(screen.getByText("End Time")).toBeInTheDocument()
+    expect(screen.getByText("Timezone")).toBeInTheDocument()
   })
 
   it("switches to YAML tab and renders YamlEditor", async () => {
@@ -359,6 +359,203 @@ describe("DetailsContent", () => {
 
       const refreshButton = screen.getByRole("button", { name: /refresh/i })
       expect(refreshButton).toBeInTheDocument()
+    })
+  })
+
+  describe("Version update button", () => {
+    it("shows update button when versionUpdates are available", async () => {
+      const clusterWithUpdates = {
+        ...defaultCluster,
+        versionUpdates: { patch: ["1.27.6"], minor: [], major: [] },
+      }
+      await act(async () => renderDetailsContent({ cluster: clusterWithUpdates }))
+
+      const updateButton = await screen.findByRole("button", { name: /update/i })
+      expect(updateButton).toBeInTheDocument()
+      expect(updateButton).not.toBeDisabled()
+    })
+
+    it("shows disabled update button when versionUpdates is null", async () => {
+      const user = userEvent.setup()
+      const clusterNoUpdates = {
+        ...defaultCluster,
+        versionUpdates: null,
+      }
+      await act(async () => renderDetailsContent({ cluster: clusterNoUpdates }))
+
+      const updateButton = await screen.findByRole("button", { name: /update/i })
+      expect(updateButton).toBeInTheDocument()
+      expect(updateButton).toBeDisabled()
+
+      // Hover to show tooltip
+      await act(async () => {
+        await user.hover(updateButton)
+      })
+
+      expect(await screen.findByText(/no updates available/i)).toBeInTheDocument()
+    })
+
+    it("shows disabled update button when versionUpdates is undefined", async () => {
+      const user = userEvent.setup()
+      const clusterNoUpdates = {
+        ...defaultCluster,
+        versionUpdates: undefined,
+      }
+      await act(async () => renderDetailsContent({ cluster: clusterNoUpdates }))
+
+      const updateButton = await screen.findByRole("button", { name: /update/i })
+      expect(updateButton).toBeInTheDocument()
+      expect(updateButton).toBeDisabled()
+
+      // Hover to show tooltip
+      await act(async () => {
+        await user.hover(updateButton)
+      })
+
+      expect(await screen.findByText(/no updates available/i)).toBeInTheDocument()
+    })
+
+    it("disables update button when no updates are available", async () => {
+      const user = userEvent.setup()
+      const clusterEmptyUpdates = {
+        ...defaultCluster,
+        versionUpdates: { patch: [], minor: [], major: [] },
+      }
+      await act(async () => renderDetailsContent({ cluster: clusterEmptyUpdates }))
+
+      const updateButton = await screen.findByRole("button", { name: /update/i })
+      expect(updateButton).toBeDisabled()
+
+      // Hover to show tooltip
+      await act(async () => {
+        await user.hover(updateButton)
+      })
+
+      expect(await screen.findByText(/no updates available/i)).toBeInTheDocument()
+    })
+
+    it("disables update button when cluster is deleted", async () => {
+      const user = userEvent.setup()
+      const deletedCluster = {
+        ...defaultCluster,
+        isDeleted: true,
+        versionUpdates: { patch: ["1.27.6"], minor: [], major: [] },
+      }
+      await act(async () => renderDetailsContent({ cluster: deletedCluster }))
+
+      const updateButton = await screen.findByRole("button", { name: /update/i })
+      expect(updateButton).toBeDisabled()
+
+      // Hover to show tooltip
+      await act(async () => {
+        await user.hover(updateButton)
+      })
+
+      expect(await screen.findByText(/cluster is deleted and actions are disabled/i)).toBeInTheDocument()
+    })
+
+    it("disables update button when user has no update permission", async () => {
+      const user = userEvent.setup()
+      const clusterWithUpdates = {
+        ...defaultCluster,
+        versionUpdates: { patch: ["1.27.6"], minor: [], major: [] },
+      }
+      await act(async () =>
+        renderDetailsContent({
+          cluster: clusterWithUpdates,
+          shootPermissions: { ...permissionsAllTrue, update: false },
+        })
+      )
+
+      const updateButton = await screen.findByRole("button", { name: /update/i })
+      expect(updateButton).toBeDisabled()
+
+      // Hover to show tooltip
+      await act(async () => {
+        await user.hover(updateButton)
+      })
+
+      expect(await screen.findByText(/you don't have permission to update this cluster/i)).toBeInTheDocument()
+    })
+
+    it("prioritizes deleted message over permission and no updates messages", async () => {
+      const user = userEvent.setup()
+      const deletedCluster = {
+        ...defaultCluster,
+        isDeleted: true,
+        versionUpdates: { patch: [], minor: [], major: [] },
+      }
+      await act(async () =>
+        renderDetailsContent({
+          cluster: deletedCluster,
+          shootPermissions: { ...permissionsAllTrue, update: false },
+        })
+      )
+
+      const updateButton = await screen.findByRole("button", { name: /update/i })
+      expect(updateButton).toBeDisabled()
+
+      // Hover to show tooltip
+      await act(async () => {
+        await user.hover(updateButton)
+      })
+
+      // Should show deleted message, not permission or no updates message
+      expect(await screen.findByText(/cluster is deleted and actions are disabled/i)).toBeInTheDocument()
+      expect(screen.queryByText(/you don't have permission/i)).not.toBeInTheDocument()
+      expect(screen.queryByText(/no updates available/i)).not.toBeInTheDocument()
+    })
+
+    it("prioritizes permission message over unable to check and no updates messages", async () => {
+      const user = userEvent.setup()
+      const clusterNoUpdates = {
+        ...defaultCluster,
+        versionUpdates: null,
+      }
+      await act(async () =>
+        renderDetailsContent({
+          cluster: clusterNoUpdates,
+          shootPermissions: { ...permissionsAllTrue, update: false },
+        })
+      )
+
+      const updateButton = await screen.findByRole("button", { name: /update/i })
+      expect(updateButton).toBeDisabled()
+
+      // Hover to show tooltip
+      await act(async () => {
+        await user.hover(updateButton)
+      })
+
+      // Should show permission message, not no updates message
+      expect(await screen.findByText(/you don't have permission to update this cluster/i)).toBeInTheDocument()
+      expect(screen.queryByText(/no updates available/i)).not.toBeInTheDocument()
+    })
+
+    it("prioritizes permission message over no updates message", async () => {
+      const user = userEvent.setup()
+      const clusterEmptyUpdates = {
+        ...defaultCluster,
+        versionUpdates: { patch: [], minor: [], major: [] },
+      }
+      await act(async () =>
+        renderDetailsContent({
+          cluster: clusterEmptyUpdates,
+          shootPermissions: { ...permissionsAllTrue, update: false },
+        })
+      )
+
+      const updateButton = await screen.findByRole("button", { name: /update/i })
+      expect(updateButton).toBeDisabled()
+
+      // Hover to show tooltip
+      await act(async () => {
+        await user.hover(updateButton)
+      })
+
+      // Should show permission message, not no updates message
+      expect(await screen.findByText(/you don't have permission to update this cluster/i)).toBeInTheDocument()
+      expect(screen.queryByText(/no updates available/i)).not.toBeInTheDocument()
     })
   })
 })

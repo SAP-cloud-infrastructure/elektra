@@ -2,20 +2,30 @@
 .container
 
   - if @error.present?
-    %section
-      .bs-callout.bs-callout-danger.bs-callout-emphasize
-        %h4
-          Authentication failed. Please check your credentials and try again.
-        - if @details.present?
+    - if @oidc_authorization_failure
+      %section
+        .bs-callout.bs-callout-warning.bs-callout-emphasize
+          %h4
+            Access Forbidden
           %p
-            = @details  
-      
+            You have successfully authenticated via Single Sign-On, but your account is not associated with any OpenStack domain or project.
+          %p
+            Please contact your cloud administrator to request access.
+    - else
+      %section
+        .bs-callout.bs-callout-danger.bs-callout-emphasize
+          %h4
+            Authentication failed. Please check your credentials and try again.
+          - if @details.present?
+            %p
+              = @details
+
       %button.btn.btn-primary{type: "button", onclick: "window.location.href = '/'"} Try Again    
 
-  - else 
+  - else
     %section
       .bs-callout.bs-callout-success.bs-callout-emphasize
         %h4
-          Your token has been verified successfully. 
+          Your token has been verified successfully.
         %p
           Please wait a moment as we prepare your session.

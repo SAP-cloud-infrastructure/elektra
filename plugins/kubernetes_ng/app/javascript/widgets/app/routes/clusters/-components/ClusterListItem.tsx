@@ -1,8 +1,17 @@
 import React from "react"
 import { Cluster } from "../../../types/cluster"
-import { DataGridRow, DataGridCell, Icon, Stack, Button } from "@cloudoperators/juno-ui-components"
+import {
+  DataGridRow,
+  DataGridCell,
+  Icon,
+  Stack,
+  PopupMenu,
+  PopupMenuOptions,
+  PopupMenuItem,
+} from "@cloudoperators/juno-ui-components"
 import ReadinessConditions from "../../../components/ReadinessConditions"
 import { Link, useNavigate } from "@tanstack/react-router"
+import { KubernetesVersionDisplay } from "./ClusterDetails/KubernetesVersionDisplay"
 
 // Determine status icon and color based on cluster status
 // Possible statuses:'healthy', 'progressing', 'unhealthy', 'unknown'
@@ -78,13 +87,17 @@ const ClusterListItem: React.FC<ClusterListItemProps> = ({ cluster, ...props }) 
       <DataGridCell>
         <Stack gap="1">
           {cluster.lastMaintenance.state === "Error" ? <Icon icon="error" color="tw-text-theme-error" /> : null}
-          {cluster.version}
+          <KubernetesVersionDisplay version={cluster.version} versionUpdates={cluster.versionUpdates} />
         </Stack>
       </DataGridCell>
-      <DataGridCell>
-        <Link to="/clusters/$clusterName" params={{ clusterName: cluster.name }}>
-          <Button label="View Details" variant="primary" size="small" />
-        </Link>
+      <DataGridCell onClick={(e) => e.stopPropagation()}>
+        <PopupMenu>
+          <PopupMenuOptions>
+            <Link to="/clusters/$clusterName" params={{ clusterName: cluster.name }}>
+              <PopupMenuItem label="View Details" />
+            </Link>
+          </PopupMenuOptions>
+        </PopupMenu>
       </DataGridCell>
     </DataGridRow>
   )

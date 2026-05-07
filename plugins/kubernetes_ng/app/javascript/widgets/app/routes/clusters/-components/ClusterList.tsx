@@ -107,7 +107,7 @@ const ClusterList: React.FC<ClusterListProps> = ({
           </>
         </Stack>
       </DataGridToolbar>
-      <DataGrid minContentColumns={[0]} columns={NUMBER_OF_COLUMNS} aria-label="Cluster list">
+      <DataGrid minContentColumns={[0, 6]} columns={NUMBER_OF_COLUMNS} aria-label="Cluster list">
         <ClusterListHeader />
         {renderContent()}
       </DataGrid>

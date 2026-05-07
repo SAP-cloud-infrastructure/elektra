@@ -18,7 +18,7 @@ export const scopes = [
   "cloudops",
   "compute",
   "dns-service",
-  "maillog",
+  "email-service",
   "identity",
   "image",
   "inquiry",
@@ -42,6 +42,8 @@ export const scopes = [
   "cypress",
   "deps",
   "docker",
+  "end-to-end",
+  "testing",
   /^ISSUE-\d+$/, // Regex pattern for ISSUE-<number>]
 ]
 

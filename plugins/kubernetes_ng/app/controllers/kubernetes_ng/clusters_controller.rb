@@ -104,7 +104,12 @@ module KubernetesNg
           :minimum,
           :maximum,
           zones: []
-        ]
+        ],
+        maintenance: [:startTime, :endTime, :timezone],
+        autoUpdate: [:os, :kubernetes],
+        metadata: {
+          annotations: {}
+        }
       )
     end
 

@@ -149,11 +149,11 @@ describe MonsoonOpenstackAuth::Authentication, type: :controller do
       get :index, params: { domain_id: 'aaa', project_id: 'bbb' }
     end
 
-    it "should raise a not_authorized_error if not authenticated" do
+    it "should raise a not_authenticated_error if not authenticated" do
       allow_any_instance_of(MonsoonOpenstackAuth::Authentication::AuthSession).to receive(:authenticated?).and_return(false)
-      expect { 
-        get :index, params: { domain_id: 'aaa', project_id: 'bbb' } 
-      }.to raise_error(MonsoonOpenstackAuth::Authentication::NotAuthorized)
+      expect {
+        get :index, params: { domain_id: 'aaa', project_id: 'bbb' }
+      }.to raise_error(MonsoonOpenstackAuth::Authentication::NotAuthenticated)
     end
 
     it "should raise not_authorized_error on forbidden scope" do
