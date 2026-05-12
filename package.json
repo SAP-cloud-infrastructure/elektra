@@ -13,7 +13,8 @@
     "@nivo/tooltip": "^0.99.0",
     "@popperjs/core": "^2.11.6",
     "@rails/actioncable": "^7",
-    "@sapcc/limes-ui": "1.15.1",
+    "@react-spring/types": "^10.0.3",
+    "@sapcc/limes-ui": "1.17.0",
     "@tanstack/react-query": "^4.28.0",
     "@tanstack/react-router": "1.131.25",
     "@tanstack/react-router-devtools": "1.131.25",
@@ -49,7 +50,7 @@
     "jquery.cookie": "1.4.1",
     "js-base64": "^2.1.8",
     "js-yaml": "^4.1.1",
-    "lodash": "^4.17.21",
+    "lodash": "^4.18.0",
     "moment": "^2.29.2",
     "numeral": "^2.0.6",
     "prop-types": "^15.5.7",
@@ -86,6 +87,7 @@
     "@babel/preset-typescript": "^7.24.7",
     "@commitlint/cli": "^19.6.0",
     "@commitlint/config-conventional": "^19.6.0",
+    "@playwright/test": "1.59.1",
     "@svgr/core": "^8.1.0",
     "@svgr/plugin-jsx": "^8.1.0",
     "@tanstack/router-plugin": "1.131.25",
@@ -105,9 +107,7 @@
     "autoprefixer": "^10.4.12",
     "babel-plugin-transform-import-meta": "^2.2.0",
     "chokidar": "^3.5.3",
-    "cypress": "15.10.0",
     "eslint": "^9.37.0",
-    "eslint-plugin-cypress": "^2.12.1",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.0",
@@ -130,6 +130,12 @@
     "test": "vitest run",
     "test-verbose": "vitest run -- --reporter=verbose",
     "test-watch": "vitest watch --reporter=verbose",
+    "e2e:smoke": "./e2e/run.sh -p smoke",
+    "e2e:smoke:firefox": "./e2e/run.sh -p smoke --browser firefox",
+    "e2e:smoke:all": "./e2e/run.sh -p smoke --browser all",
+    "e2e:ui": "./e2e/run.sh -p ui",
+    "e2e:ui:firefox": "./e2e/run.sh -p ui --browser firefox",
+    "e2e:ui:all": "./e2e/run.sh -p ui --browser all",
     "build": "node ./config/esbuild/build.js",
     "format": "prettier --log-level warn --write \"**/*.{js,jsx,ts,tsx,md}\"",
     "check-format": "prettier --config ./.prettierrc --check \"**/*.{js,jsx,ts,tsx,md}\" ",
@@ -151,7 +157,12 @@
     "overrides": {
       "@isaacs/brace-expansion": ">=5.0.1",
       "minimatch": ">=10.2.1",
-      "seroval": ">=1.4.1"
+      "seroval": ">=1.4.1",
+      "rollup": ">=4.59.0",
+      "flatted": ">=3.4.0",
+      "immutable": ">=5.1.5",
+      "vite": ">=8.0.0",
+      "esbuild": ">=0.27.0"
     }
   }
 }

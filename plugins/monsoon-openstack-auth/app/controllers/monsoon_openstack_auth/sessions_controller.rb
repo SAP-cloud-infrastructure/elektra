@@ -76,7 +76,39 @@ module MonsoonOpenstackAuth
         main_app.root_url(domain_id: @domain_id || @domain_name)
       end
 
-      # Attempt to create an authentication session using the provided credentials
+      # When password_session_auth_allowed is false, call create_from_login_form to validate
+      # credentials (and trigger password sync if applicable), but redirect back to login
+      # instead of proceeding.
+      unless MonsoonOpenstackAuth.configuration.password_session_auth_allowed?
+        begin
+          auth_session = MonsoonOpenstackAuth::Authentication::AuthSession
+                         .create_from_login_form(
+                           self, @username, @password,
+                           domain_id: @domain_id, domain_name: @domain_name
+                         )
+
+          if auth_session
+            MonsoonOpenstackAuth::Authentication::AuthSession.logout(self, @domain_id || @domain_name)
+            flash.now[:notice] = if params[:password_sync]
+                                   'Password validation successful. Please use Single Sign-On to access the dashboard.'
+                                 else
+                                   'Password login is disabled. Please use Single Sign-On to access the dashboard.'
+                                 end
+            render action: :new
+          else
+            @error = 'Invalid username/password combination.'
+            flash.now[:alert] = @error
+            render action: :new
+          end
+        rescue StandardError => e
+          @error = e.message
+          flash.now[:alert] = @error
+          render action: :new
+        end
+        return
+      end
+
+      # Normal password login flow
       auth_session = MonsoonOpenstackAuth::Authentication::AuthSession
                      .create_from_login_form(
                        self, @username, @password,
@@ -149,8 +181,8 @@ module MonsoonOpenstackAuth
       @username = params[:username]
       @password = params[:password]
       @passcode = params[:passcode]
-      @domain_id = params[:domain_id]
-      @domain_name = params[:domain_name]
+      @domain_id = params[:domain_id].presence
+      @domain_name = params[:domain_name].presence || params[:domain_fid]
       @two_factor = params[:two_factor].to_s == 'true'
     end
 

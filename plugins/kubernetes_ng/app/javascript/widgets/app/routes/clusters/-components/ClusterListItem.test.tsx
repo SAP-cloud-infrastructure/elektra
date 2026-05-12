@@ -4,6 +4,7 @@ import "@testing-library/jest-dom"
 import ClusterListItem from "./ClusterListItem"
 import { renderComponent } from "../../../mocks/TestTools"
 import { defaultCluster } from "../../../mocks/data"
+import userEvent from "@testing-library/user-event"
 
 // Mock navigator.clipboard
 Object.assign(navigator, {
@@ -72,13 +73,21 @@ describe("<ClusterListItem />", () => {
     })
   })
 
-  it("renders View Details button with correct link", async () => {
+  it("renders View Details menu item with correct link", async () => {
     const clusterWithName = { ...defaultCluster, name: "test-cluster-123" }
-    await act(async () => renderComponent(<ClusterListItem cluster={clusterWithName} />))
+    const user = userEvent.setup()
+    const rendered = await act(async () => renderComponent(<ClusterListItem cluster={clusterWithName} />))
 
-    const viewDetailsButton = screen.getByRole("button", { name: "View Details" })
-    const link = viewDetailsButton.closest("a")
-    expect(link).toHaveAttribute("href", `/clusters/${clusterWithName.name}`)
-    expect(viewDetailsButton).toHaveClass("juno-button-primary")
+    // Find the popup menu trigger and click it to reveal the link
+    const buttons = rendered.container.querySelectorAll("button")
+    if (buttons.length > 0) {
+      await act(async () => {
+        await user.click(buttons[0])
+      })
+    }
+
+    // Verify the link exists with correct href
+    const link = rendered.container.querySelector(`a[href="/clusters/${clusterWithName.name}"]`)
+    expect(link).toBeInTheDocument()
   })
 })

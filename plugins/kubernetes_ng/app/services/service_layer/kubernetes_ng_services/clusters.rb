@@ -2,19 +2,43 @@ module ServiceLayer
   module KubernetesNgServices
     # This module implements Openstack Domain API
     module Clusters
+      include VersionHelpers
+      include CloudProfiles  # Include to access list_cloud_profiles
+
       class KubeconfigGenerationError < StandardError; end
 
       def list_clusters
+        # Fetch all cloud profiles once for version calculations
+        # Rescue at this level to allow graceful degradation - clusters are still viewable
+        # even if cloud profiles are unavailable
+        cloud_profiles_map = begin
+          build_cloud_profiles_map
+        rescue => e
+          Rails.logger.warn("Cloud profiles unavailable, version updates will not be shown: #{e.message}")
+          nil
+        end
+
         response = elektron_gardener.get("apis/core.gardener.cloud/v1beta1/namespaces/#{garden_namespace}/shoots")
         shoot_items = response&.body&.dig("items") || []
-        return shoot_items.map { |shoot| convert_shoot_to_cluster(shoot) }.compact
+        return shoot_items.map { |shoot| convert_shoot_to_cluster(shoot, cloud_profiles_map) }.compact
       end
 
       def show_cluster_by_name(cluster_name)
         return nil unless cluster_name
+
+        # Fetch all cloud profiles once for version calculations
+        # Rescue at this level to allow graceful degradation - clusters are still viewable
+        # even if cloud profiles are unavailable
+        cloud_profiles_map = begin
+          build_cloud_profiles_map
+        rescue => e
+          Rails.logger.warn("Cloud profiles unavailable, version updates will not be shown: #{e.message}")
+          nil
+        end
+
         response = elektron_gardener.get("apis/core.gardener.cloud/v1beta1/namespaces/#{garden_namespace}/shoots/#{cluster_name}")
         shoot_body = response&.body
-        return convert_shoot_to_cluster(shoot_body)
+        return convert_shoot_to_cluster(shoot_body, cloud_profiles_map)
       end
 
       def create_cluster(cluster_spec)
@@ -104,11 +128,41 @@ module ServiceLayer
 
       private
 
+      # Build a map of cloud profile names to kubernetes versions arrays
+      # Uses list_cloud_profiles from CloudProfiles module
+      # @return [Hash] Map of cloud profile name => [version1, version2, ...]
+      def build_cloud_profiles_map
+        cloud_profiles = list_cloud_profiles || []
+
+        cloud_profiles.each_with_object({}) do |profile, map|
+          next unless profile.is_a?(Hash) && profile[:name] && profile[:kubernetesVersions]
+          map[profile[:name]] = profile[:kubernetesVersions]
+        end
+      end
+
+      # Calculate version update information for a cluster
+      # @param current_version [String] Current cluster version
+      # @param cloud_profile_name [String] Name of the cloud profile
+      # @param cloud_profiles_map [Hash] Map of cloud profile names to version arrays
+      # @return [Hash, nil] Version updates grouped by type, or nil if no updates
+      def calculate_version_updates(current_version, cloud_profile_name, cloud_profiles_map)
+        return nil unless current_version && cloud_profile_name && cloud_profiles_map
+
+        available_versions = cloud_profiles_map[cloud_profile_name]
+        return nil unless available_versions && available_versions.any?
+
+        # Calculate updates using helper from VersionHelpers module
+        calculate_available_updates(current_version, available_versions)
+      end
+
       # Recursively build JSON Patch operations for nested hashes
       # This ensures we don't replace entire parent objects when updating nested fields
       def build_patch_operations(hash, base_path, operations)
         hash.each do |key, value|
-          path = "#{base_path}/#{key}"
+          # Escape special characters in JSON Patch paths
+          # Per RFC 6901: ~ must be escaped as ~0, / must be escaped as ~1
+          escaped_key = key.to_s.gsub('~', '~0').gsub('/', '~1')
+          path = "#{base_path}/#{escaped_key}"
 
           if value.is_a?(Hash) && !value.empty?
             # Recurse into nested hashes
@@ -157,13 +211,20 @@ module ServiceLayer
 
       ## Helper Methods
       # Convert a single shoot API response to cluster format for the UI
-      def convert_shoot_to_cluster(shoot)
+      def convert_shoot_to_cluster(shoot, cloud_profiles_map = nil)
         return nil unless shoot.is_a?(Hash)
-        
+
         metadata = shoot.dig('metadata') || {}
         spec = shoot.dig('spec') || {}
         status = shoot.dig('status') || {}
-        
+
+        # Get current version and cloud profile name
+        current_version = deep_fetch(spec, 'kubernetes', 'version')
+        cloud_profile_name = deep_fetch(spec, 'cloudProfile', 'name')
+
+        # Calculate version updates if cloud profiles are available
+        version_updates = calculate_version_updates(current_version, cloud_profile_name, cloud_profiles_map)
+
         {
           # List view fields
           uid: metadata['uid'],
@@ -172,14 +233,15 @@ module ServiceLayer
           isDeleted: get_cluster_deletion_status(metadata),
           region: spec['region'],
           infrastructure: deep_fetch(spec, 'provider', 'type'),
-          status: get_cluster_status(shoot),          
-          version: deep_fetch(spec, 'kubernetes', 'version'),
+          status: get_cluster_status(shoot),
+          version: current_version,
+          versionUpdates: version_updates,
           readiness: get_cluster_readiness(shoot),
           purpose: spec['purpose'],
           addOns: get_enabled_add_ons(spec),
-          cloudProfileName: deep_fetch(spec, 'cloudProfile', 'name'),
+          cloudProfileName: cloud_profile_name,
           namespace: metadata.dig('namespace'),
-          secretBindingName: spec['secretBindingName'],          
+          secretBindingName: spec['secretBindingName'],
           lastOperation: safe_map_last_operation(status['lastOperation']),
           lastOperationSummary: get_last_operation_summary(status['lastOperation']),
           lastErrors: safe_map_last_errors(status['lastErrors']),
@@ -347,14 +409,33 @@ module ServiceLayer
       # Extract maintenance window information
       def get_maintenance_info(spec)
         maintenance = spec.dig('maintenance')
-        hibernation = spec.dig('hibernation')
         time_window = maintenance&.dig('timeWindow') || {}
-        
+        begin_time = time_window['begin'] || ''
+        end_time = time_window['end'] || ''
+
+        # Extract timezone offset from begin time (format: HHMMSS+HHMM or HHMMSS-HHMM)
+        timezone = ''
+        if begin_time =~ /([+-]\d{4})$/
+          timezone = $1
+        end
+
         {
-          startTime: time_window['begin'] || '',
-          timezone: deep_fetch(hibernation, 'schedules', 0, 'location') || '',
-          windowTime: time_window['end'] || ''
+          startTime: format_maintenance_time(begin_time),
+          endTime: format_maintenance_time(end_time),
+          timezone: timezone
         }
+      end
+
+      # Format maintenance time string (HHMMSS+HHMM) to HH:MM
+      # Example: "170000+0000" -> "17:00"
+      def format_maintenance_time(time_string)
+        return '' if time_string.nil? || time_string.empty?
+
+        match = time_string.match(/^(\d{2})(\d{2})/)
+        return time_string unless match
+
+        hours, minutes = match.captures
+        "#{hours}:#{minutes}"
       end
       
       # Extract last maintenance operation info
@@ -384,13 +465,19 @@ module ServiceLayer
         metadata = {}
         metadata['uid'] = cluster[:uid] if cluster[:uid]
         metadata['name'] = cluster[:name] if cluster[:name]
+
+        # Add annotations if present
+        if cluster[:metadata] && cluster[:metadata][:annotations]
+          metadata['annotations'] = cluster[:metadata][:annotations]
+        end
+
         metadata.empty? ? nil : metadata
       end
 
       # Build spec section for shoot
       def build_shoot_spec(cluster)
         spec = {}
-        
+
         # Basic fields
         spec['region'] = cluster[:region] if cluster[:region]
         spec['purpose'] = cluster[:purpose] if cluster[:purpose]
@@ -402,27 +489,27 @@ module ServiceLayer
 
         # Networking configuration
         spec['networking'] = cluster[:networking].transform_keys(&:to_s) if cluster[:networking]
-        
+
         # Provider configuration
         if cluster[:infrastructure] || cluster[:workers]&.any?
           spec['provider'] = build_provider_spec(cluster)
         end
-        
+
         # Kubernetes version
         if cluster[:kubernetesVersion]
           spec['kubernetes'] = { 'version' => cluster[:kubernetesVersion] }
         end
-        
+
         # Maintenance configuration
         if cluster[:maintenance] || cluster[:autoUpdate]
           spec['maintenance'] = build_maintenance_spec(cluster)
         end
-        
+
         # Hibernation configuration
-        if deep_fetch(cluster, :maintenance, :timezone)
+        if cluster[:hibernation]
           spec['hibernation'] = build_hibernation_spec(cluster)
         end
-        
+
         spec.empty? ? nil : spec
       end
       
@@ -506,14 +593,19 @@ module ServiceLayer
       # Build maintenance specification
       def build_maintenance_spec(cluster)
         maintenance = {}
-        
+
         # Time window
         if cluster[:maintenance]
           maint = cluster[:maintenance]
-          if maint[:startTime] || maint[:start_time] || maint[:windowTime] || maint[:window_time] # Handle both camelCase and snake_case
+          if maint[:startTime] || maint[:endTime]
+            start_time = maint[:startTime]
+            end_time = maint[:endTime]
+            timezone = maint[:timezone]
+
+            # Convert from display format (HH:MM with timezone +HH:MM) to Gardener format (HHMMSS+HHMM)
             maintenance['timeWindow'] = {
-              'begin' => maint[:startTime] || maint[:start_time],
-              'end' => maint[:windowTime] || maint[:window_time]
+              'begin' => convert_display_to_gardener_time(start_time, timezone),
+              'end' => convert_display_to_gardener_time(end_time, timezone)
             }.compact
           end
         end
@@ -526,19 +618,40 @@ module ServiceLayer
             'kubernetesVersion' => auto_update[:kubernetes] || false
           }
         end
-        
+
         maintenance
+      end
+
+      # Convert display format (HH:MM with timezone +HH:MM) to Gardener format (HHMMSS+HHMM)
+      # Example: "22:00" with "+01:00" -> "220000+0100"
+      def convert_display_to_gardener_time(time_string, timezone)
+        return time_string if time_string.nil? || time_string.empty?
+
+        # If already in Gardener format (contains 6 digits), pass through
+        return time_string if time_string.match?(/^\d{6}[+-]\d{4}$/)
+
+        # Parse HH:MM format
+        match = time_string.match(/^(\d{2}):(\d{2})$/)
+        return time_string unless match
+
+        hours, minutes = match.captures
+        # Remove colon from timezone (+01:00 -> +0100)
+        normalized_timezone = timezone&.gsub(':', '') || '+0000'
+
+        "#{hours}#{minutes}00#{normalized_timezone}"
       end
       
       # Build hibernation specification
       def build_hibernation_spec(cluster)
-        timezone = deep_fetch(cluster, :maintenance, :timezone)
-        return nil unless timezone
-        
+        hibernation = cluster[:hibernation]
+        return nil unless hibernation
+
+        # Convert schedules to proper format with string keys
+        schedules = hibernation[:schedules]
+        return nil unless schedules
+
         {
-          'schedules' => [
-            { 'location' => timezone }
-          ]
+          'schedules' => schedules.map { |schedule| schedule.transform_keys(&:to_s) }
         }
       end
     end

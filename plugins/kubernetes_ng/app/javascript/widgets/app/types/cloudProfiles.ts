@@ -30,7 +30,6 @@ export const cloudProfileSchema = z.object({
       })
     )
     .optional(),
-  volumeTypes: z.array(z.string()).optional(),
 })
 
 export const CloudProfilesSchema = z.array(cloudProfileSchema)

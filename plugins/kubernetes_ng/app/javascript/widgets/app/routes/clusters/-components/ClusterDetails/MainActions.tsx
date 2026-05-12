@@ -9,6 +9,7 @@ import { useActions } from "@cloudoperators/juno-messages-provider"
 import { normalizeError } from "../../../../components/InlineError"
 import { RouterContext } from "../../../__root"
 import DisableableButton from "../../../../components/DisableableButton"
+import { useReconcileClusterMutation } from "../../../../hooks/useClusterQueries"
 
 interface MainActionsProps {
   shootPermissions?: Permissions
@@ -24,7 +25,7 @@ function MainActions({ shootPermissions, kubeconfigPermissions, disabled = false
   const { addMessage, resetMessages } = useActions()
   const { apiClient } = useRouteContext({ strict: false }) as RouterContext
 
-  // Helper to determine the disabled message for Kube Config button
+  // Helper to determine the disabled message for Kubeconfig button
   const getKubeconfigDisabledMessage = () => {
     if (disabled && disabledMessage) return disabledMessage
     if (!kubeconfigPermissions) return "Permissions are not available"
@@ -40,9 +41,39 @@ function MainActions({ shootPermissions, kubeconfigPermissions, disabled = false
     return undefined
   }
 
+  // Helper to determine the disabled message for Reconcile button
+  const getReconcileDisabledMessage = () => {
+    if (disabled && disabledMessage) return disabledMessage
+    if (!shootPermissions) return "Permissions are not available"
+    if (!shootPermissions.update) return "You don't have permission to reconcile this cluster"
+    return undefined
+  }
+
+  const reconcileMutation = useReconcileClusterMutation(apiClient)
+
+  const handleReconcile = () => {
+    reconcileMutation.mutate(
+      { clusterName: params.clusterName },
+      {
+        onSuccess: () => {
+          resetMessages()
+          addMessage({
+            text: `Reconciliation triggered for ${params.clusterName}. The operation increases metadata.generation to trigger cluster reconciliation.`,
+            variant: "success"
+          })
+        },
+        onError: (error) => {
+          resetMessages()
+          const errText = normalizeError(error)
+          addMessage({ text: `${errText.title}${errText.message}`, variant: "danger" })
+        },
+      }
+    )
+  }
+
   const kubeconfigMutation = useMutation<string, Error, void>({
     mutationFn: async () => {
-      return apiClient.gardener.getKubeconfig(params.clusterName)
+      return apiClient.gardener.getClusterKubeconfig(params.clusterName)
     },
 
     onSuccess: (kubeconfigYaml) => {
@@ -103,13 +134,22 @@ function MainActions({ shootPermissions, kubeconfigPermissions, disabled = false
     <>
       <DisableableButton
         size="small"
-        label="Kube Config"
+        label="Kubeconfig"
         icon="download"
-        title="Download Kube Config valid for 8 hours"
+        title="Download Kubeconfig valid for 8 hours"
         disabled={disabled || kubeconfigMutation.isPending || !kubeconfigPermissions?.create}
         progress={kubeconfigMutation.isPending}
         onClick={() => kubeconfigMutation.mutate()}
         disabledMessage={getKubeconfigDisabledMessage()}
+      />
+      <DisableableButton
+        size="small"
+        label="Reconcile"
+        title="Trigger cluster reconciliation"
+        disabled={disabled || reconcileMutation.isPending || !shootPermissions?.update}
+        progress={reconcileMutation.isPending}
+        onClick={handleReconcile}
+        disabledMessage={getReconcileDisabledMessage()}
       />
       <DisableableButton
         size="small"

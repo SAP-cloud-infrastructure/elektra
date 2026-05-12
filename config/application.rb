@@ -87,6 +87,15 @@ module MonsoonDashboard
     config.middleware.use HttpMetricsExporterMiddleware
     config.middleware.use RevisionMiddleware
 
+    # Prevent oauth2-proxy redirect loops by intercepting 401/403 responses
+    # This middleware must run AFTER the Rails app generates responses but
+    # BEFORE they reach nginx-ingress/oauth2-proxy
+    # Only enabled in production/development where oauth2-proxy is present
+    # Disabled in test environment to allow tests to verify actual HTTP status codes
+    unless Rails.env.test?
+      config.middleware.use OauthProxyProtectionMiddleware
+    end
+
     ############# ENSURE EDGE MODE FOR IE ###############
     config.action_dispatch.default_headers[
       'X-UA-Compatible'

@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { Tooltip, TooltipTrigger, TooltipContent, Icon, Stack } from "@cloudoperators/juno-ui-components"
+import { Tooltip, TooltipTrigger, TooltipContent, Icon } from "@cloudoperators/juno-ui-components"
 
 export interface ClipboardTextProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
@@ -23,7 +23,7 @@ const ClipboardText: React.FC<ClipboardTextProps> = ({
   ...props
 }) => {
   const [open, setOpen] = useState(false)
-  const combinedClassName = `copyableTooltip tw-group tw-relative tw-inline-flex tw-items-center ${className}`
+  const combinedClassName = `copyableTooltip tw-group tw-relative tw-block${className ? ` ${className}` : ""}`
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(text)
@@ -34,15 +34,17 @@ const ClipboardText: React.FC<ClipboardTextProps> = ({
   return (
     <div {...props} className={combinedClassName}>
       <Tooltip open={open}>
-        <TooltipTrigger onClick={handleCopy} aria-label={`Copy ${text} to clipboard`}>
-          <Stack direction="horizontal" gap="1" className="tw-items-center">
-            {text}
-            <Icon
-              icon="contentCopy"
-              size="18"
-              className="tw-opacity-0 group-hover:tw-opacity-100 tw-transition-opacity tw-duration-200 tw-cursor-pointer"
-            />
-          </Stack>
+        <TooltipTrigger
+          onClick={handleCopy}
+          aria-label={`Copy ${text} to clipboard`}
+          className="tw-inline tw-text-left"
+        >
+          {text}
+          <Icon
+            icon="contentCopy"
+            size="18"
+            className="tw-opacity-0 group-hover:tw-opacity-100 tw-transition-opacity tw-duration-200 tw-cursor-pointer tw-inline tw-ml-1 tw-align-text-bottom"
+          />
         </TooltipTrigger>
         <TooltipContent>{tooltipContent}</TooltipContent>
       </Tooltip>

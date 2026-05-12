@@ -83,10 +83,15 @@ export const validateWorkers = (workers: WorkerGroup[]): FormErrors => {
     if (!worker.machineImage.version) {
       errors[`workers.${worker.id}.machineImage.version`] = ["Machine image version is required"]
     }
-    if (worker.minimum < 1) {
-      errors[`workers.${worker.id}.minimum`] = ["Minimum number of nodes must be at least 1"]
+    if (worker.minimum < 0) {
+      errors[`workers.${worker.id}.minimum`] = ["Minimum number of nodes cannot be negative"]
     }
-    if (worker.maximum < worker.minimum) {
+    if (worker.maximum < 1) {
+      errors[`workers.${worker.id}.maximum`] = ["Maximum number of nodes must be at least 1"]
+    }
+    if (worker.minimum > worker.maximum) {
+      errors[`workers.${worker.id}.minimum`] = ["Minimum number of nodes cannot be greater than maximum"]
+    } else if (worker.maximum < worker.minimum) {
       errors[`workers.${worker.id}.maximum`] = ["Maximum number of nodes must be greater than or equal to minimum"]
     }
     if (worker.maximum > 255) {
@@ -99,4 +104,3 @@ export const validateWorkers = (workers: WorkerGroup[]): FormErrors => {
 
   return errors
 }
-

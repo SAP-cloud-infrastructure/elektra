@@ -12,7 +12,7 @@ declare module "@tanstack/react-router" {
   }
 }
 
-export function createAppRouter(basepath: string, region: string) {
+export function createAppRouter(basepath: string, region: string, projectid: string) {
   // Use basepath which includes the landscape (e.g., /kubernetes-gardener/prod)
   const gardenerApi = createGardenerApi(basepath)
 
@@ -21,6 +21,7 @@ export function createAppRouter(basepath: string, region: string) {
     context: {
       apiClient: gardenerApi,
       region,
+      projectid,
     },
     defaultPreload: "intent",
     scrollRestoration: true,
