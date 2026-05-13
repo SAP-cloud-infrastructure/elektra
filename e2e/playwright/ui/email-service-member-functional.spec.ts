@@ -16,9 +16,9 @@ const TEST_PROJECT = "test"
 test.describe("EmailService - Member", () => {
   test.setTimeout(60000) // 60 seconds
 
-  test("can access email_service page", async ({ page }) => {
+  test("can access email-service page and see setup tab", async ({ page }) => {
     await loginAsMember(page)
-    await page.goto(`/${TEST_DOMAIN}/${TEST_PROJECT}/email_service`, {
+    await page.goto(`/${TEST_DOMAIN}/${TEST_PROJECT}/email-service`, {
       waitUntil: "domcontentloaded",
     })
 
@@ -28,21 +28,32 @@ test.describe("EmailService - Member", () => {
     // Verify page title (displays "Email" not "EmailService")
     await expect(page.locator("[data-test=page-title]")).toContainText("Email")
 
-    // Verify app loaded - should see the intro box with documentation link
-    const introBox = page.locator("text=/For documentation on configuring/i")
-    await expect(introBox).toBeVisible()
+    // Verify Setup tab is visible
+    const setupTab = page.locator('text="Setup"')
+    await expect(setupTab).toBeVisible()
+
+    // Verify Maillog tab is visible
+    const maillogTab = page.locator('text="Maillog"')
+    await expect(maillogTab).toBeVisible()
   })
 
-  test("search bar is visible", async ({ page }) => {
+  test("search bar is visible in maillog tab", async ({ page }) => {
     await loginAsMember(page)
-    await page.goto(`/${TEST_DOMAIN}/${TEST_PROJECT}/email_service`, {
+    await page.goto(`/${TEST_DOMAIN}/${TEST_PROJECT}/email-service`, {
       waitUntil: "domcontentloaded",
     })
 
     await page.waitForTimeout(5000)
 
-    // Verify search bar elements are present
-    const searchInput = page.locator('input[type="text"], input[placeholder*="search" i]').first()
+    // Click on Maillog tab to see the maillog content
+    const maillogTab = page.locator('text="Maillog"')
+    await maillogTab.click()
+
+    // Wait for maillog content to load
+    await page.waitForTimeout(2000)
+
+    // Verify search bar elements are present in maillog tab
+    const searchInput = page.locator('input[type="text"], input[placeholder*="Subject" i]').first()
     await expect(searchInput).toBeVisible()
   })
 })
