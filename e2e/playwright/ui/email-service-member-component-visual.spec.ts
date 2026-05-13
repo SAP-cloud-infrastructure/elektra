@@ -10,7 +10,7 @@ import { getBasicMaskSelectors, SCREENSHOT_OPTIONS } from "../helpers/masking"
  *
  * Run with: pnpm e2e:ui -- --host http://localhost:PORT email-service-member-component-visual
  * Update snapshots:
- *   1. Delete old snapshots: rm -rf e2e/playwright/ui/email_service-member-component-visual.spec.ts-snapshots/
+ *   1. Delete old snapshots: rm -rf e2e/playwright/ui/email-service-member-component-visual.spec.ts-snapshots/
  *   2. Generate new: pnpm e2e:ui -- --host http://localhost:PORT --update-snapshots email-service-member-component-visual
  */
 
@@ -20,39 +20,27 @@ const TEST_PROJECT = "test"
 test.describe("Visual Regression - EmailService Components", () => {
   test.setTimeout(60000)
 
-  test("intro box", async ({ page }) => {
+  test("maillog search form", async ({ page }) => {
     await loginAsMember(page)
-    await page.goto(`/${TEST_DOMAIN}/${TEST_PROJECT}/email_service`, {
+    await page.goto(`/${TEST_DOMAIN}/${TEST_PROJECT}/email-service`, {
       waitUntil: "domcontentloaded",
     })
     await page.waitForTimeout(5000)
 
-    // Locate the intro box
-    const introBox = page.locator(".juno-intro-box, [class*='intro']").first()
-    await expect(introBox).toBeVisible()
+    // Click on Maillog tab to see the maillog content
+    const maillogTab = page.locator('text="Maillog"')
+    await maillogTab.click()
+
+    // Wait for maillog content to load
+    await page.waitForTimeout(2000)
+
+    // Locate the entire search form (juno-form component)
+    const searchForm = page.locator('.juno-form').first()
+    await expect(searchForm).toBeVisible()
 
     const masks = getBasicMaskSelectors(page)
 
-    await expect(introBox).toHaveScreenshot("email-service-intro-box.png", {
-      mask: masks,
-      ...SCREENSHOT_OPTIONS,
-    })
-  })
-
-  test("search bar", async ({ page }) => {
-    await loginAsMember(page)
-    await page.goto(`/${TEST_DOMAIN}/${TEST_PROJECT}/email_service`, {
-      waitUntil: "domcontentloaded",
-    })
-    await page.waitForTimeout(5000)
-
-    // Locate the search bar area
-    const searchBar = page.locator("[class*='search'], form").first()
-    await expect(searchBar).toBeVisible()
-
-    const masks = getBasicMaskSelectors(page)
-
-    await expect(searchBar).toHaveScreenshot("email-service-search-bar.png", {
+    await expect(searchForm).toHaveScreenshot("email-service-maillog-form.png", {
       mask: masks,
       ...SCREENSHOT_OPTIONS,
     })

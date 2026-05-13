@@ -4,6 +4,8 @@ declare module "react-bootstrap" {
   export const Form: any
   export const Nav: any
   export const Navbar: any
+  export const Tabs: any
+  export const Tab: any
   // Add other components you use
 }
 
