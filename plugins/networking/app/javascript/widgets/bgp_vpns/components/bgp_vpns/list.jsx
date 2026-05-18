@@ -92,6 +92,8 @@ const BgpVpns = () => {
     )
   }, [bgpvpns.items, filter])
 
+  console.log("============================",filteredItems)
+
   return (
     <>
       <div className="toolbar">
@@ -142,8 +144,9 @@ const BgpVpns = () => {
                 <td>
                   {cachedProjectsData[item.project_id] ? (
                     <>
+                    
                       <a
-                        href={`/_/${item.project_id}`}
+                        href={`/${item.domain_id}/${item.project_id}`}
                         target="_blank"
                         rel="noreferrer"
                       >
