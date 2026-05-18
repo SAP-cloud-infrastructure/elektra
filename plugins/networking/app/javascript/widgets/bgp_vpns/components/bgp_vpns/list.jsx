@@ -92,8 +92,6 @@ const BgpVpns = () => {
     )
   }, [bgpvpns.items, filter])
 
-  console.log("============================",filteredItems)
-
   return (
     <>
       <div className="toolbar">
