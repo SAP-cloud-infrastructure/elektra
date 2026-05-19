@@ -1,5 +1,4 @@
 import React, { useEffect } from "react"
-import { Link } from "react-router-dom"
 import { DefeatableLink } from "lib/components/defeatable_link"
 import { Popover, Tooltip } from "lib/components/Overlay"
 import { TransitionGroup, CSSTransition } from "react-transition-group"
@@ -190,9 +189,9 @@ const ShareList: React.FC<ShareListProps> = ({
           <TransitionGroup component="tbody">
             {filteredItems && filteredItems.length > 0 ? (
               filteredItems.map(
-                (share, index) =>
+                (share) =>
                   !share.isHidden && (
-                    <TableRowFadeTransition key={index}>
+                    <TableRowFadeTransition key={share.id}>
                       <ShareItem
                         share={share}
                         shareNetwork={shareNetwork(share)}
