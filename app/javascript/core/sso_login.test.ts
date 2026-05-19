@@ -1,60 +1,39 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest"
+/**
+ * Tests for sso_login.ts — browser-side mTLS SSO via /verify-auth-token.
+ */
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import { ssoBootstrap } from "./sso_login"
 
 function setMeta(name: string, content: string) {
   const meta = document.createElement("meta")
-  meta.setAttribute("name", name)
-  meta.setAttribute("content", content)
+  meta.name = name
+  meta.content = content
   document.head.appendChild(meta)
-}
-
-function clearMeta() {
-  document.head
-    .querySelectorAll(
-      'meta[name="keystone-url"], meta[name="csrf-token"], meta[name="sso-domain-name"], meta[name="sso-domain-id"], meta[name="sso-consume-path"]'
-    )
-    .forEach((el) => el.remove())
 }
 
 describe("ssoBootstrap", () => {
   let fetchSpy: ReturnType<typeof vi.fn>
+  let formSubmitSpy: ReturnType<typeof vi.fn>
 
   beforeEach(() => {
-    clearMeta()
+    document.head.innerHTML = ""
+    document.body.innerHTML = ""
     fetchSpy = vi.fn()
-    vi.stubGlobal("fetch", fetchSpy)
+    globalThis.fetch = fetchSpy
+    formSubmitSpy = vi.fn()
+    // Mock form.submit() since jsdom doesn't support it
+    vi.spyOn(HTMLFormElement.prototype, "submit").mockImplementation(
+      formSubmitSpy
+    )
   })
 
   afterEach(() => {
-    clearMeta()
     vi.restoreAllMocks()
   })
 
-  it("does nothing when keystone-url meta tag is missing", async () => {
-    setMeta("csrf-token", "test-csrf")
-    setMeta("sso-domain-name", "ccadmin")
-    setMeta("sso-consume-path", "/auth/consume")
+  // --- No-op cases ---
 
-    await ssoBootstrap()
-
-    expect(fetchSpy).not.toHaveBeenCalled()
-  })
-
-  it("does nothing when both domain meta tags are empty", async () => {
-    setMeta("keystone-url", "https://identity.example.com")
-    setMeta("csrf-token", "test-csrf")
-    setMeta("sso-domain-name", "")
-    setMeta("sso-domain-id", "")
-    setMeta("sso-consume-path", "/auth/consume")
-
-    await ssoBootstrap()
-
-    expect(fetchSpy).not.toHaveBeenCalled()
-  })
-
-  it("does nothing when sso-consume-path is missing", async () => {
-    setMeta("keystone-url", "https://identity.example.com")
-    setMeta("csrf-token", "test-csrf")
+  it("does nothing when keystone-url meta is missing", async () => {
     setMeta("sso-domain-name", "ccadmin")
 
     await ssoBootstrap()
@@ -62,16 +41,24 @@ describe("ssoBootstrap", () => {
     expect(fetchSpy).not.toHaveBeenCalled()
   })
 
-  it("calls Keystone with correct URL, method, and headers when domain-name is set", async () => {
+  it("does nothing when both domain meta tags are missing", async () => {
     setMeta("keystone-url", "https://identity.example.com")
-    setMeta("csrf-token", "test-csrf")
-    setMeta("sso-domain-name", "ccadmin")
-    setMeta("sso-consume-path", "/auth/consume")
 
-    fetchSpy.mockResolvedValueOnce({
-      ok: false,
-      status: 401,
-      headers: new Headers(),
+    await ssoBootstrap()
+
+    expect(fetchSpy).not.toHaveBeenCalled()
+  })
+
+  // --- Step 1: Keystone fetch ---
+
+  it("sends correct request to Keystone with X-User-Domain-Name", async () => {
+    setMeta("keystone-url", "https://identity.example.com")
+    setMeta("sso-domain-name", "ccadmin")
+    setMeta("csrf-token", "csrf123")
+
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      headers: new Headers({ "X-Subject-Token": "tok_abc123" }),
     })
 
     await ssoBootstrap()
@@ -87,35 +74,45 @@ describe("ssoBootstrap", () => {
 
     const body = JSON.parse(opts.body)
     expect(body.auth.identity.methods).toEqual(["external"])
-    expect(body.auth.scope).toBe("unscoped")
   })
 
-  it("uses X-User-Domain-Id when domain-id is set and domain-name is not", async () => {
+  it("sends X-User-Domain-Id when domain-name is absent", async () => {
     setMeta("keystone-url", "https://identity.example.com")
-    setMeta("csrf-token", "test-csrf")
-    setMeta("sso-domain-id", "abc123")
-    setMeta("sso-consume-path", "/auth/consume")
+    setMeta("sso-domain-id", "domain-uuid-123")
+    setMeta("csrf-token", "csrf123")
 
-    fetchSpy.mockResolvedValueOnce({
-      ok: false,
-      status: 401,
-      headers: new Headers(),
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      headers: new Headers({ "X-Subject-Token": "tok_abc123" }),
     })
 
     await ssoBootstrap()
 
     const [, opts] = fetchSpy.mock.calls[0]
-    expect(opts.headers["X-User-Domain-Id"]).toBe("abc123")
+    expect(opts.headers["X-User-Domain-Id"]).toBe("domain-uuid-123")
     expect(opts.headers["X-User-Domain-Name"]).toBeUndefined()
   })
 
-  it("does not call consume endpoint when Keystone returns non-ok", async () => {
-    setMeta("keystone-url", "https://identity.example.com")
-    setMeta("csrf-token", "test-csrf")
-    setMeta("sso-domain-name", "ccadmin")
-    setMeta("sso-consume-path", "/auth/consume")
+  // --- Step 1 failure modes ---
 
-    fetchSpy.mockResolvedValueOnce({
+  it("does nothing on CORS/network error (fetch throws)", async () => {
+    setMeta("keystone-url", "https://identity.example.com")
+    setMeta("sso-domain-name", "ccadmin")
+    setMeta("csrf-token", "csrf123")
+
+    fetchSpy.mockRejectedValue(new TypeError("Failed to fetch"))
+
+    await ssoBootstrap()
+
+    expect(formSubmitSpy).not.toHaveBeenCalled()
+  })
+
+  it("does nothing when Keystone returns non-2xx", async () => {
+    setMeta("keystone-url", "https://identity.example.com")
+    setMeta("sso-domain-name", "ccadmin")
+    setMeta("csrf-token", "csrf123")
+
+    fetchSpy.mockResolvedValue({
       ok: false,
       status: 401,
       headers: new Headers(),
@@ -123,159 +120,81 @@ describe("ssoBootstrap", () => {
 
     await ssoBootstrap()
 
-    expect(fetchSpy).toHaveBeenCalledTimes(1)
+    expect(formSubmitSpy).not.toHaveBeenCalled()
   })
 
-  it("does not call consume endpoint when X-Subject-Token header is missing", async () => {
+  it("does nothing when X-Subject-Token header is missing", async () => {
     setMeta("keystone-url", "https://identity.example.com")
-    setMeta("csrf-token", "test-csrf")
     setMeta("sso-domain-name", "ccadmin")
-    setMeta("sso-consume-path", "/auth/consume")
+    setMeta("csrf-token", "csrf123")
 
-    fetchSpy.mockResolvedValueOnce({
+    fetchSpy.mockResolvedValue({
       ok: true,
-      status: 201,
-      headers: new Headers({}), // no X-Subject-Token
+      headers: new Headers({}),
     })
 
     await ssoBootstrap()
 
-    expect(fetchSpy).toHaveBeenCalledTimes(1)
+    expect(formSubmitSpy).not.toHaveBeenCalled()
   })
 
-  it("posts token to consume endpoint with correct params after successful Keystone auth", async () => {
+  // --- Step 2: Form submission to /verify-auth-token ---
+
+  it("submits a form to /verify-auth-token with token and CSRF", async () => {
     setMeta("keystone-url", "https://identity.example.com")
-    setMeta("csrf-token", "my-csrf-token")
     setMeta("sso-domain-name", "ccadmin")
-    setMeta("sso-consume-path", "/auth/consume")
+    setMeta("csrf-token", "csrf123")
 
-    const keystoneHeaders = new Headers()
-    keystoneHeaders.set("X-Subject-Token", "keystone-token-abc")
-
-    fetchSpy
-      .mockResolvedValueOnce({
-        ok: true,
-        status: 201,
-        headers: keystoneHeaders,
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        redirected: false,
-        status: 200,
-      })
-
-    // Mock window.location.reload
-    const reloadMock = vi.fn()
-    Object.defineProperty(window, "location", {
-      value: { ...window.location, reload: reloadMock },
-      writable: true,
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      headers: new Headers({ "X-Subject-Token": "gAAAAABk_token_value" }),
     })
 
     await ssoBootstrap()
 
-    expect(fetchSpy).toHaveBeenCalledTimes(2)
+    expect(formSubmitSpy).toHaveBeenCalledTimes(1)
 
-    const [consumeUrl, consumeOpts] = fetchSpy.mock.calls[1]
-    expect(consumeUrl).toBe("/auth/consume")
-    expect(consumeOpts.method).toBe("POST")
-    expect(consumeOpts.credentials).toBe("same-origin")
-    expect(consumeOpts.headers["X-CSRF-Token"]).toBe("my-csrf-token")
-    expect(consumeOpts.headers["Content-Type"]).toBe(
-      "application/x-www-form-urlencoded"
-    )
-    expect(consumeOpts.body).toContain("auth_token=keystone-token-abc")
-    expect(consumeOpts.body).toContain("raw=1")
+    // Find the form that was appended to the body
+    const form = document.body.querySelector("form")
+    expect(form).not.toBeNull()
+    expect(form!.method).toBe("post")
+    expect(form!.action).toContain("/verify-auth-token")
+    expect(form!.style.display).toBe("none")
+
+    // Verify token input
+    const tokenInput = form!.querySelector(
+      'input[name="token"]'
+    ) as HTMLInputElement
+    expect(tokenInput).not.toBeNull()
+    expect(tokenInput.value).toBe("gAAAAABk_token_value")
+    expect(tokenInput.type).toBe("hidden")
+
+    // Verify CSRF input
+    const csrfInput = form!.querySelector(
+      'input[name="authenticity_token"]'
+    ) as HTMLInputElement
+    expect(csrfInput).not.toBeNull()
+    expect(csrfInput.value).toBe("csrf123")
+    expect(csrfInput.type).toBe("hidden")
   })
 
-  it("redirects to the URL from consume response when redirected", async () => {
+  it("works with domain-id instead of domain-name for form flow", async () => {
     setMeta("keystone-url", "https://identity.example.com")
-    setMeta("csrf-token", "my-csrf-token")
-    setMeta("sso-domain-name", "ccadmin")
-    setMeta("sso-consume-path", "/auth/consume")
+    setMeta("sso-domain-id", "domain-uuid-456")
+    setMeta("csrf-token", "tok_csrf")
 
-    const keystoneHeaders = new Headers()
-    keystoneHeaders.set("X-Subject-Token", "keystone-token-abc")
-
-    fetchSpy
-      .mockResolvedValueOnce({
-        ok: true,
-        status: 201,
-        headers: keystoneHeaders,
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        redirected: true,
-        url: "https://dashboard.example.com/home",
-        status: 200,
-      })
-
-    const locationHrefSetter = vi.fn()
-    Object.defineProperty(window, "location", {
-      value: { ...window.location, href: "" },
-      writable: true,
-    })
-    Object.defineProperty(window.location, "href", {
-      set: locationHrefSetter,
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      headers: new Headers({ "X-Subject-Token": "tok_xyz" }),
     })
 
     await ssoBootstrap()
 
-    expect(locationHrefSetter).toHaveBeenCalledWith(
-      "https://dashboard.example.com/home"
-    )
-  })
-
-  it("handles network error on Keystone fetch gracefully", async () => {
-    setMeta("keystone-url", "https://identity.example.com")
-    setMeta("csrf-token", "test-csrf")
-    setMeta("sso-domain-name", "ccadmin")
-    setMeta("sso-consume-path", "/auth/consume")
-
-    fetchSpy.mockRejectedValueOnce(new TypeError("Failed to fetch"))
-
-    // Should not throw
-    await expect(ssoBootstrap()).resolves.toBeUndefined()
-    expect(fetchSpy).toHaveBeenCalledTimes(1)
-  })
-
-  it("handles network error on consume fetch gracefully", async () => {
-    setMeta("keystone-url", "https://identity.example.com")
-    setMeta("csrf-token", "test-csrf")
-    setMeta("sso-domain-name", "ccadmin")
-    setMeta("sso-consume-path", "/auth/consume")
-
-    const keystoneHeaders = new Headers()
-    keystoneHeaders.set("X-Subject-Token", "keystone-token-abc")
-
-    fetchSpy
-      .mockResolvedValueOnce({
-        ok: true,
-        status: 201,
-        headers: keystoneHeaders,
-      })
-      .mockRejectedValueOnce(new TypeError("Network error"))
-
-    // Should not throw
-    await expect(ssoBootstrap()).resolves.toBeUndefined()
-  })
-
-  it("prefers domain-name over domain-id when both are present", async () => {
-    setMeta("keystone-url", "https://identity.example.com")
-    setMeta("csrf-token", "test-csrf")
-    setMeta("sso-domain-name", "ccadmin")
-    setMeta("sso-domain-id", "abc123")
-    setMeta("sso-consume-path", "/auth/consume")
-
-    fetchSpy.mockResolvedValueOnce({
-      ok: false,
-      status: 401,
-      headers: new Headers(),
-    })
-
-    await ssoBootstrap()
-
-    const [, opts] = fetchSpy.mock.calls[0]
-    expect(opts.headers["X-User-Domain-Name"]).toBe("ccadmin")
-    expect(opts.headers["X-User-Domain-Id"]).toBeUndefined()
+    expect(formSubmitSpy).toHaveBeenCalledTimes(1)
+    const form = document.body.querySelector("form")
+    const tokenInput = form!.querySelector(
+      'input[name="token"]'
+    ) as HTMLInputElement
+    expect(tokenInput.value).toBe("tok_xyz")
   })
 })

@@ -4,13 +4,12 @@
  * This module auto-fires on DOMContentLoaded when the login page includes
  * specific meta tags. It performs a cross-origin fetch to Keystone's
  * /v3/auth/tokens endpoint using the browser's client certificate (via the
- * upstream ingress), then posts the resulting token back to Elektra's
- * consume-auth-token endpoint to establish a Rails session.
+ * upstream ingress), then submits the resulting token to Elektra's existing
+ * /verify-auth-token endpoint via a hidden form POST.
  *
  * Required meta tags (rendered by the login view):
  *   <meta name="keystone-url" content="https://identity.region.cloud.host.tld">
  *   <meta name="sso-domain-name" content="ccadmin">       (or sso-domain-id)
- *   <meta name="sso-consume-path" content="/auth/consume-auth-token">
  *
  * The csrf-token meta tag (standard Rails) must also be present.
  */
@@ -27,11 +26,10 @@ export async function ssoBootstrap(): Promise<void> {
   const csrfToken = getMeta("csrf-token")
   const domainName = getMeta("sso-domain-name")
   const domainId = getMeta("sso-domain-id")
-  const consumePath = getMeta("sso-consume-path")
 
   // Only proceed if all required meta tags are present
   const hasDomain = !!(domainName || domainId)
-  if (!keystoneUrl || !hasDomain || !consumePath) {
+  if (!keystoneUrl || !hasDomain) {
     return
   }
 
@@ -76,35 +74,29 @@ export async function ssoBootstrap(): Promise<void> {
     return
   }
 
-  // Step 2: Post the raw token to Elektra's consume-auth-token endpoint
-  // (same-origin, CSRF-protected)
-  const formData = new URLSearchParams()
-  formData.append("auth_token", token)
-  formData.append("raw", "1")
+  // Step 2: Submit the token to Elektra's /verify-auth-token endpoint
+  // via a hidden form POST. The server validates the token at Keystone,
+  // extracts the user domain, and redirects to consume-auth-token to
+  // establish the Rails session — the same flow used by federated SSO.
+  const form = document.createElement("form")
+  form.method = "POST"
+  form.action = "/verify-auth-token"
+  form.style.display = "none"
 
-  let consumeRes: Response
-  try {
-    consumeRes = await fetch(consumePath, {
-      method: "POST",
-      credentials: "same-origin",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "X-CSRF-Token": csrfToken,
-      },
-      body: formData.toString(),
-    })
-  } catch (_e) {
-    return
-  }
+  const tokenInput = document.createElement("input")
+  tokenInput.type = "hidden"
+  tokenInput.name = "token"
+  tokenInput.value = token
+  form.appendChild(tokenInput)
 
-  // Step 3: Follow the redirect from Elektra
-  if (consumeRes.redirected) {
-    window.location.href = consumeRes.url
-  } else if (consumeRes.ok) {
-    // Session is now set; reload the page so Rails picks it up
-    window.location.reload()
-  }
-  // On failure, do nothing — user stays on the login form
+  const csrfInput = document.createElement("input")
+  csrfInput.type = "hidden"
+  csrfInput.name = "authenticity_token"
+  csrfInput.value = csrfToken
+  form.appendChild(csrfInput)
+
+  document.body.appendChild(form)
+  form.submit()
 }
 
 document.addEventListener("DOMContentLoaded", ssoBootstrap)
