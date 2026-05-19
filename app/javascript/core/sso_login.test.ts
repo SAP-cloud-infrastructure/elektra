@@ -81,7 +81,7 @@ describe("ssoBootstrap", () => {
     expect(url).toBe("https://identity.example.com/v3/auth/tokens")
     expect(opts.method).toBe("POST")
     expect(opts.mode).toBe("cors")
-    expect(opts.credentials).toBe("include")
+    expect(opts.credentials).toBeUndefined()
     expect(opts.headers["X-User-Domain-Name"]).toBe("ccadmin")
     expect(opts.headers["Content-Type"]).toBe("application/json")
 

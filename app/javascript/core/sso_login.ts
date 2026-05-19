@@ -51,7 +51,6 @@ export async function ssoBootstrap(): Promise<void> {
     res = await fetch(`${keystoneUrl}/v3/auth/tokens`, {
       method: "POST",
       mode: "cors",
-      credentials: "include",
       headers: keystoneHeaders,
       body: JSON.stringify({
         auth: {
