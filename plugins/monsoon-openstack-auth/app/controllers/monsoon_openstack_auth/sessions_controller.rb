@@ -31,12 +31,29 @@ module MonsoonOpenstackAuth
       end
 
       auth_token = params[:auth_token]
-      auth_token = decode_auth_token(auth_token) if request.get?
+
+      # When raw=1 is passed from the browser-side SSO JS fetch flow,
+      # accept the token as-is (same-origin POST with CSRF protection).
+      # For GET requests (cross-dashboard handover), decode via MessageVerifier.
+      # For other POST requests (legacy), pass through as-is.
+      if request.get?
+        auth_token = decode_auth_token(auth_token)
+      end
+
       # Attempt to create an authentication session using the provided token
       auth_session = MonsoonOpenstackAuth::Authentication::AuthSession.create_from_auth_token(self, auth_token)
 
       if auth_session.nil? || !auth_session.logged_in?
-        redirect_to new_session_path(domain_fid: domain_fid, domain_id: domain_id), alert: 'Invalid token.' and return
+        if raw_sso_request?
+          render json: { error: 'Invalid token.' }, status: :unauthorized
+        else
+          redirect_to new_session_path(domain_fid: domain_fid, domain_id: domain_id), alert: 'Invalid token.'
+        end
+        return
+      end
+
+      if raw_sso_request?
+        render json: { ok: true, redirect_to: after_login_url }
       else
         redirect_to after_login_url
       end
@@ -203,6 +220,13 @@ module MonsoonOpenstackAuth
       rescue URI::InvalidURIError
         false
       end
+    end
+
+    # Returns true when the request comes from the browser-side SSO JS fetch flow.
+    # This is a same-origin POST with raw=1 indicating the token was obtained
+    # directly from Keystone via the browser's mTLS certificate exchange.
+    def raw_sso_request?
+      request.post? && params[:raw].present?
     end
   end
 end
