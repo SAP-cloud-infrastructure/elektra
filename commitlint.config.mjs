@@ -39,6 +39,7 @@ export const scopes = [
   "tools",
   "webconsole",
   "smartops",
+  "thalamus",
   "cypress",
   "deps",
   "docker",

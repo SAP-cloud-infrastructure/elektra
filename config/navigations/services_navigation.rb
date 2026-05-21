@@ -516,11 +516,35 @@ SimpleNavigation::Configuration.run do |navigation|
                             plugin('smartops').start_path
                           },
                           if: lambda {
-                            services.available?(:smartops) 
+                            services.available?(:smartops)
                           },
                           highlights_on: lambda {
                               params[:controller][%r{smartops/.*}]
                             }
+    end
+
+    primary.item :ai_platform,
+                 'AI Platform',
+                 nil,
+                 html: {
+                   class: 'fancy-nav-header',
+                   "data-icon": 'ai-platform-icon'
+                 },
+                 if: lambda {
+                   plugin_available?(:thalamus) &&
+                     current_region == "qa-de-1" &&
+                     @active_project&.name == "cc-demo"
+                 } do |ai_nav|
+      ai_nav.item :thalamus,
+                  'Inference Service',
+                  -> { plugin('thalamus').root_path },
+                  if: lambda {
+                    current_region == "qa-de-1" &&
+                      @active_project&.name == "cc-demo"
+                  },
+                  highlights_on: lambda {
+                    params[:controller][%r{thalamus/.*}]
+                  }
     end
 
     primary.item :cc_tools,

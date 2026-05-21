@@ -1,0 +1,22 @@
+/****************************************************
+  We are using SASS!
+  DO NOT USE require, require_tree, and require_self.
+  ***************************************************
+
+  Instead require further sass files by calling the "@import" directive.
+  e.g. @import "mixins";
+  FYI:
+  The core app automatically namespaces a plugin's css with the plugin name. I.e. it encapsulates a plugin's css in a class with the same name as plugin (e.g. a plugin with name "myplugin" gets surrounded with css class ".myplugin").
+  This means that in the compiled css e.g. .test { color: #f00; } becomes .myplugin .test { color: #f00; }
+  The core app also ensures that the content div surrounding the plugin views gets a css class with the name of current plugin.
+  This way we ensure that your styles take effect only inside the content of your plugin and don't accidentally overwrite styles defined elsewhere (either in the core or in another plugin).
+
+  ***************************************************
+  IMPORTANT
+  ---------------------------------------------------
+  1) The namespacing happens automatically. There is no special action required from the plugin author. The only thing you need to pay attention to is that you write styles only for elements in the context of your plugin's views.
+
+  2) Make sure all your scss files are partials (i.e. the file name starts with an underscore, e.g. "_application.scss"). Otherwise the base imports in the main stylesheet won't be available in your engine stylesheets!
+  ***************************************************
+
+*/

@@ -600,6 +600,12 @@ section {
   @extend .fa-area-chart;
 }
 
+.ai-platform-icon {
+  @extend .fa;
+  @extend .fa-fw;
+  @extend .fa-microchip;
+}
+
 .project-icon {
   @extend .fa;
   @extend .fa-fw;
