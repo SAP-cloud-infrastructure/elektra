@@ -128,7 +128,7 @@ SimpleNavigation::Configuration.run do |navigation|
                      # QA landscape remains restricted to qa-de-1 region only
                      (plugin_available?(:kubernetes_ng) && (
                        # landscape prod/canary anywhere
-                       ((services.available?(:kubernetes_ng, :prod) || services.available?(:kubernetes_ng, :canary)) ||
+                       (services.available?(:kubernetes_ng, :prod) || services.available?(:kubernetes_ng, :canary)) ||
                        # landscape qa in qa-de-1 region
                        (services.available?(:kubernetes_ng, :qa) && current_region == "qa-de-1")
                      ))
