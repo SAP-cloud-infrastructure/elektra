@@ -134,7 +134,7 @@ SimpleNavigation::Configuration.run do |navigation|
                      ))
                    } do |containers_nav|
       containers_nav.item :kubernetes,
-                          'Kubernetes',
+                          'Kubernetes (Legacy)',
                           -> { plugin('kubernetes').root_path },
                           if:
                             lambda {
@@ -147,7 +147,7 @@ SimpleNavigation::Configuration.run do |navigation|
       # Generate navigation items for each kubernetes_ng landscape
       KubernetesNg::LANDSCAPES.each do |landscape_name, config|
         display_name = config[:display_name]
-        label = display_name.empty? ? "Kubernetes (Gardener)" : "Kubernetes (Gardener #{display_name})"
+        label = display_name.empty? ? "Kubernetes" : "Kubernetes (#{display_name})"
         containers_nav.item :"kubernetes_ng_#{landscape_name}",
                             label,
                             -> { plugin('kubernetes_ng').service_path(landscape_name: landscape_name) },
