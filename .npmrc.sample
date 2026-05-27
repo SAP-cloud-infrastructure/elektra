@@ -1,2 +1,5 @@
+// this file is also used in image build 
 //npm.pkg.github.com/:_authToken=$GITHUB_TOKEN
 @sapcc:registry=https://npm.pkg.github.com
+// Requiring packages to be at least 7 days old
+minimum-release-age=604800
