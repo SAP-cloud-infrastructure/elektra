@@ -57,18 +57,18 @@ const DaySelector: React.FC<{ selected: number; onChange: (d: number) => void }>
   </div>
 )
 
-const StatCard: React.FC<{ label: string; value: string; sub: string }> = ({ label, value, sub }) => (
+const StatCard: React.FC<{ label: string; value: string; sub: string; borderColor?: string; valueColor?: string }> = ({ label, value, sub, borderColor, valueColor }) => (
   <div
     style={{
       flex: 1,
       background: "var(--color-background-lvl-1, #f5f5f5)",
-      border: "1px solid var(--color-border, #e0e0e0)",
+      border: `1px solid ${borderColor ?? "var(--color-border, #e0e0e0)"}`,
       borderRadius: 4,
       padding: "16px 20px",
     }}
   >
     <div style={{ fontSize: 12, color: "var(--color-text-lighter, #666)", marginBottom: 6 }}>{label}</div>
-    <div style={{ fontSize: 28, fontWeight: 700, lineHeight: 1 }}>{value}</div>
+    <div style={{ fontSize: 28, fontWeight: 700, lineHeight: 1, color: valueColor }}>{value}</div>
     <div style={{ fontSize: 12, color: "var(--color-text-lighter, #666)", marginTop: 6 }}>{sub}</div>
   </div>
 )
@@ -325,6 +325,7 @@ const ErrorReport: React.FC = () => {
   const handleDaysChange = (d: number) => {
     setDays(d)
     setErrorPage(1)
+    setSelectedCode(null)
     localStorage.setItem(DAYS_KEY, String(d))
   }
 
@@ -403,9 +404,9 @@ const ErrorReport: React.FC = () => {
             </Stack>
           ) : (
             <div style={{ display: "flex", gap: 12 }}>
-              <StatCard label="Total Error Events" value={fmt(allChartErrorEvents.length)} sub="All error events" />
-              <StatCard label="Temporary (4xx)" value={fmt(chartTempErrs)} sub="Temp failures & retries" />
-              <StatCard label="Permanent (5xx)" value={fmt(chartPermErrs)} sub="Perm delivery failures" />
+              <StatCard label="Total Error Events" value={fmt(allChartErrorEvents.length)} sub="All error events" borderColor="#038bc6" valueColor="#038bc6" />
+              <StatCard label="Temporary (4xx)" value={fmt(chartTempErrs)} sub="Temp failures & retries" borderColor="#fcd34d" valueColor="#ca8a04" />
+              <StatCard label="Permanent (5xx)" value={fmt(chartPermErrs)} sub="Perm delivery failures" borderColor="#fca5a5" valueColor="#991b1b" />
               <StatCard label="Failed Mails" value={fmt(new Set(allChartErrorEvents.filter(e => e.type === "PERM").map(e => e.requestId)).size)} sub="Mails with final failure" />
             </div>
           )}
