@@ -58,8 +58,8 @@ dependencies:
     specifier: ^10.0.3
     version: 10.0.3
   '@sapcc/limes-ui':
-    specifier: 1.18.0
-    version: 1.18.0(@types/node@24.10.9)(@types/react@18.2.0)(postcss@8.5.6)(react-dom@18.2.0)(react@18.2.0)(typescript@5.9.3)
+    specifier: 1.18.1
+    version: 1.18.1(@types/node@24.10.9)(@types/react@18.2.0)(postcss@8.5.6)(react-dom@18.2.0)(react@18.2.0)(typescript@5.9.3)
   '@tanstack/react-query':
     specifier: ^4.28.0
     version: 4.42.2(react-dom@18.2.0)(react@18.2.0)
@@ -1999,9 +1999,9 @@ packages:
       react-dom: 18.2.0(react@18.2.0)
     dev: false
 
-  /@cloudoperators/juno-url-state-provider@3.0.9:
-    resolution: {integrity: sha512-jt4nOnQ+BgF6N1v3vE0cfTuGsHgc+sN+KI4gg2qjpQWT0RBjhm6oGqH6SzlfxZI7jocIMZJMHERynwKc0KoIGQ==}
-    engines: {node: '>=20.12.0', pnpm: '>=8.0.0'}
+  /@cloudoperators/juno-url-state-provider@3.0.10:
+    resolution: {integrity: sha512-bE6FkexkAl1Qrbf8lBFcnonjzSk3zLUvt5Ls6bapO1y+UT9aoyIo5TYR/DnKK5TBvo47e3hPSoYSBj+0mI59dQ==}
+    engines: {node: '>=20.19.0', pnpm: '>=8.0.0'}
     dependencies:
       history: 5.3.0
       query-string: 9.3.1
@@ -3746,12 +3746,12 @@ packages:
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
     dev: true
 
-  /@sapcc/limes-ui@1.18.0(@types/node@24.10.9)(@types/react@18.2.0)(postcss@8.5.6)(react-dom@18.2.0)(react@18.2.0)(typescript@5.9.3):
-    resolution: {integrity: sha512-FDdyeSxwLrykiW42tECdWIUXtVyrl5s/yJZwLI2ipV9I/piydW+FfgftTPbrF183suoHcUeehkNfbaXrYCBCew==, tarball: https://npm.pkg.github.com/download/@sapcc/limes-ui/1.18.0/4212d7ec016788e983beadcf14e3824189fbf3a6}
+  /@sapcc/limes-ui@1.18.1(@types/node@24.10.9)(@types/react@18.2.0)(postcss@8.5.6)(react-dom@18.2.0)(react@18.2.0)(typescript@5.9.3):
+    resolution: {integrity: sha512-wxpdjmrKmteJR9INlO67mE19zr6hXxnDHHBHHSIVpV1JcDQeLCMuD8ByiQrREvbt6xxDh6skepGDQa4003Gbag==, tarball: https://npm.pkg.github.com/download/@sapcc/limes-ui/1.18.1/3fcf0e35e71b6816d3210bcd0a79b11bea2a8f09}
     dependencies:
       '@cj-tech-master/excelts': 9.5.8
       '@cloudoperators/juno-ui-components': 6.4.0(react-dom@18.2.0)(react@18.2.0)
-      '@cloudoperators/juno-url-state-provider': 3.0.9
+      '@cloudoperators/juno-url-state-provider': 3.0.10
       '@tailwindcss/postcss': 4.3.0
       cypress: 15.16.0
       esbuild: 0.28.0
@@ -5303,7 +5303,7 @@ packages:
     dependencies:
       baseline-browser-mapping: 2.10.32
       caniuse-lite: 1.0.30001793
-      electron-to-chromium: 1.5.362
+      electron-to-chromium: 1.5.363
       node-releases: 2.0.46
       update-browserslist-db: 1.2.3(browserslist@4.28.2)
     dev: true
@@ -5779,7 +5779,7 @@ packages:
       request-progress: 3.0.0
       supports-color: 8.1.1
       systeminformation: 5.31.6
-      tmp: 0.2.6
+      tmp: 0.2.7
       tree-kill: 1.2.2
       tslib: 1.14.1
       untildify: 4.0.0
@@ -6255,8 +6255,8 @@ packages:
     resolution: {integrity: sha512-wKXFZw4erWmmOz5N/grBoJ2XrNJGDFMu2+W5ACHza5rHtvsqrK4gb6rnLC7XxKB9WlJ+RmyQatuEXmtm86xbnw==}
     dev: true
 
-  /electron-to-chromium@1.5.362:
-    resolution: {integrity: sha512-PUY2DrLvkjkUuWqq+KPL2iWshrJsZOcIojzRQ7eXFacc9dWga7MGMJAa15VbiejSZB1PAXaRLAiKgruHP8LB1w==}
+  /electron-to-chromium@1.5.363:
+    resolution: {integrity: sha512-VjUKPyWzGnT1fujlkEGC/BvN70Hh70KXtAqcmniXviYlJC/ivcT+BWGPyxWVbJZLfvtKR6dqg1L7T7pgAMBtWA==}
     dev: true
 
   /emoji-regex@10.6.0:
@@ -8901,7 +8901,7 @@ packages:
     resolution: {integrity: sha512-7a70Nsot+EMX9fFU3064K/kdHWZqGVY+BADLyXc8Dfv+mTLLVl6JzJpPaCZ2kQL9gIJvKXSLMHhqdRRjwQeFtw==}
     engines: {node: ^10 || ^12 || >=14}
     dependencies:
-      nanoid: 3.3.11
+      nanoid: 3.3.12
       picocolors: 1.1.1
       source-map-js: 1.2.1
     dev: true
@@ -10325,8 +10325,8 @@ packages:
       tldts-core: 7.4.0
     dev: false
 
-  /tmp@0.2.6:
-    resolution: {integrity: sha512-5sJPdPjfI5Kx+qbrDesxkglRBxW//g7hCsqspEjwkewGvBMGIKMOTKzLt1hFVJzyadba3lDUN20O9qhvbQUSTA==}
+  /tmp@0.2.7:
+    resolution: {integrity: sha512-e0votIpp4Uo2AJYSzVHV6xCcawuiez3DzqDAbrTc3YxBkplN6e+dM13ZeIcZnDg/QpSuU2zfZ3rzwY8ukEnaXw==}
     engines: {node: '>=14.14'}
     dev: false
 
