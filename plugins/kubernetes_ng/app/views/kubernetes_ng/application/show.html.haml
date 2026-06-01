@@ -2,4 +2,12 @@
   - display_name = KubernetesNg.display_name_for(@landscape_name)
   = display_name.empty? ? "Kubernetes as a Service" : "Kubernetes as a Service (#{display_name})"
 
+- if @landscape_name == 'prod'
+  .bs-callout.bs-callout-info
+    %p
+      %strong Welcome to the new Kubernetes UI!
+    %p
+      We've updated our Kubernetes service to use Gardener as the default platform, providing an improved cluster management experience.
+      Your previous Kubernikus clusters remain untouched, and they are accessible under "Kubernetes (Legacy)".
+
 = javascript_include_tag "kubernetes_ng_app_widget", data: {basepath: plugin("kubernetes_ng").service_path(landscape_name: @landscape_name), region: current_region, projectid: @scoped_project_id }
