@@ -2,7 +2,7 @@
   - display_name = KubernetesNg.display_name_for(@landscape_name)
   = display_name.empty? ? "Kubernetes as a Service" : "Kubernetes as a Service (#{display_name})"
 
-- if @landscape_name == 'prod'
+- if @landscape_name == 'prod' && !@domain_config&.plugin_hidden?('kubernetes')
   .bs-callout.bs-callout-info
     %p
       %strong Welcome to the new Kubernetes UI!

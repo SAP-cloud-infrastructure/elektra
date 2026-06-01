@@ -1,6 +1,13 @@
 = content_for :main_toolbar do
   Kubernetes as a Service (Legacy)
 
+- unless @domain_config&.plugin_hidden?('kubernetes_ng')
+  .bs-callout.bs-callout-info
+    %p
+      %strong A new managed Kubernetes service is available.
+    %p
+      You are currently using our legacy managed Kubernetes service. We're pleased to announce a new service powered by Gardener, offering an improved cluster management experience. Your existing clusters remain accessible here on the legacy service. We'll notify you in advance of any migration steps and sunset timeline. In the meantime, nothing changes for you should you choose to continue using the legacy Kubernetes platform.
+
 .bs-callout.bs-callout-info.bs-callout-emphasize
   - unless current_user.is_allowed?('kubernetes:application_list')
     %p
