@@ -33,6 +33,8 @@ Rails.application.routes.draw do
     get :startprobe, to: 'health#startprobe'
 
     get :notifications, to: 'global_notifications#index'
+
+    post :feedback, to: 'feedback#create'
   end
 
   # mount Cloudops::Engine => '/ccadmin/cloud_admin/cloudops', as: 'cloudops'
