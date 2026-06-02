@@ -6,18 +6,22 @@ class FeedbackController < ActionController::Base
   authentication_required rescope: false
 
   # Skip CSRF for external calls from Aurora (they share SSO cookie for auth)
+  # This is safe because:
+  # 1. API token authentication is required (X-Feedback-API-Token header)
+  # 2. User authentication is required (authentication_required)
+  # 3. Rate limiting prevents abuse (check_rate_limit)
   skip_before_action :verify_authenticity_token, only: [:create]
+  protect_from_forgery with: :exception, except: [:create]
 
   before_action :validate_api_token, only: [:create]
+  before_action :check_rate_limit, only: [:create]
   before_action :validate_feedback_params, only: [:create]
 
   def create
     begin
       FeedbackMailer.user_feedback(
-        user_email: current_user.email,
-        user_name: current_user.full_name || current_user.name,
         feedback_message: feedback_params[:feedback_message],
-        user_metadata: enriched_metadata
+        context: enriched_context
       ).deliver_now
 
       render json: {
@@ -48,16 +52,17 @@ class FeedbackController < ActionController::Base
   def feedback_params
     params.require(:feedback).permit(
       :feedback_message,
-      user_metadata: {}
+      context: [:page_url, :source, :browser, :browser_version, :viewport, :feature, :action]
     )
   end
 
-  def enriched_metadata
-    metadata = feedback_params[:user_metadata] || {}
-    metadata.merge(
-      user_id: current_user.id,
-      user_name: current_user.name,
-      domain_id: current_user.user_domain_id
+  def enriched_context
+    context = feedback_params[:context] || {}
+    context.merge(
+      domain_id: current_user.user_domain_id,
+      domain_name: current_user.user_domain_name,
+      project_id: @scoped_project_id,
+      project_name: @scoped_project_name
     )
   end
 
@@ -102,5 +107,26 @@ class FeedbackController < ActionController::Base
     end
 
     Rails.logger.info "Authorized feedback API call from #{request.referer || 'unknown source'}"
+  end
+
+  def check_rate_limit
+    # Rate limit per user: 10 feedback submissions per hour
+    rate_limit_key = "feedback:rate_limit:user:#{current_user.id}"
+    rate_limit_max = 10
+    rate_limit_period = 1.hour
+
+    count = Rails.cache.read(rate_limit_key) || 0
+
+    if count >= rate_limit_max
+      Rails.logger.warn "Rate limit exceeded for user #{current_user.id} - IP: #{request.remote_ip}"
+      render json: {
+        status: 'error',
+        message: 'Too many feedback submissions. Please try again later.'
+      }, status: :too_many_requests
+      return
+    end
+
+    # Increment counter
+    Rails.cache.write(rate_limit_key, count + 1, expires_in: rate_limit_period)
   end
 end

@@ -1,14 +1,12 @@
 class FeedbackMailer < CoreApplicationMailer
   layout false
 
-  def user_feedback(user_email:, user_name:, feedback_message:, user_metadata: {})
-    @user_email = user_email
-    @user_name = user_name
+  def user_feedback(feedback_message:, context: {})
     @feedback_message = feedback_message
-    @user_metadata = user_metadata
+    @context = context
     @timestamp = Time.current
 
-    subject = "SAP Cloud Infrastructure: User Feedback from #{@user_name}"
+    subject = "SAP Cloud Infrastructure: User Feedback"
 
     email_body = render_to_string('feedback_mailer/user_feedback', layout: false)
 

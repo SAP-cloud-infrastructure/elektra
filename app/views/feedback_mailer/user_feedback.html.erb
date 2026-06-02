@@ -59,13 +59,6 @@
 
   <div class="content">
     <div class="field">
-      <div class="field-label">From:</div>
-      <div class="field-value">
-        <%= @user_name %> (<%= @user_email %>)
-      </div>
-    </div>
-
-    <div class="field">
       <div class="field-label">Submitted:</div>
       <div class="field-value">
         <%= @timestamp.strftime("%B %d, %Y at %I:%M %p %Z") %>
@@ -79,11 +72,11 @@
       </div>
     </div>
 
-    <% if @user_metadata.present? %>
+    <% if @context.present? %>
       <div class="metadata">
-        <div class="field-label">Additional Information:</div>
+        <div class="field-label">Context Information:</div>
         <ul>
-          <% @user_metadata.each do |key, value| %>
+          <% @context.each do |key, value| %>
             <li><strong><%= key.to_s.humanize %>:</strong> <%= value %></li>
           <% end %>
         </ul>
