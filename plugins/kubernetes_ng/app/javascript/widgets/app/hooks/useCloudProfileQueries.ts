@@ -16,6 +16,7 @@ export function useCloudProfilesQuery(apiClient: GardenerApi, enabled = true) {
     select: (profiles) => [...profiles].sort((a, b) => a.name.localeCompare(b.name)),
     staleTime: 0,
     cacheTime: 0,
+    refetchOnWindowFocus: false,
   })
 }
 
