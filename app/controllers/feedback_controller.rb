@@ -3,19 +3,31 @@ class FeedbackController < ActionController::Base
   include Services
   include CurrentUserWrapper
 
-  authentication_required rescope: false
+  authentication_required rescope: false, except: [:cors_preflight]
 
-  # Skip CSRF for external calls from Aurora (they share SSO cookie for auth)
-  # This is safe because:
-  # 1. API token authentication is required (X-Feedback-API-Token header)
-  # 2. User authentication is required (authentication_required)
-  # 3. Rate limiting prevents abuse (check_rate_limit)
-  skip_before_action :verify_authenticity_token, only: [:create]
-  protect_from_forgery with: :exception, except: [:create]
+  # CSRF protection enabled for maximum security
+  # Aurora must first call /system/feedback_token to get CSRF token
+  # Skip CSRF only for:
+  # - OPTIONS preflight (CORS)
+  # - Token endpoint (to get the CSRF token)
+  skip_before_action :verify_authenticity_token, only: [:cors_preflight, :csrf_token]
+  protect_from_forgery with: :null_session, except: [:cors_preflight]
 
-  before_action :validate_api_token, only: [:create]
+  before_action :set_cors_headers
   before_action :check_rate_limit, only: [:create]
   before_action :validate_feedback_params, only: [:create]
+
+  # OPTIONS endpoint for CORS preflight
+  def cors_preflight
+    head :ok
+  end
+
+  # Endpoint for Aurora to get CSRF token
+  def csrf_token
+    render json: {
+      csrf_token: form_authenticity_token
+    }, status: :ok
+  end
 
   def create
     begin
@@ -49,6 +61,34 @@ class FeedbackController < ActionController::Base
 
   private
 
+  def set_cors_headers
+    request_origin = request.headers['Origin']
+    allowed_origin = nil
+
+    # In development, allow localhost:3001 (Aurora dev server)
+    if Rails.env.development? && request_origin == 'http://localhost:3001'
+      allowed_origin = request_origin
+    else
+      # Production: strict Aurora-only CORS
+      aurora_origin = if Rails.application.config.respond_to?(:aurora_host)
+                        "https://#{Rails.application.config.aurora_host}"
+                      else
+                        # Fallback: construct from region and tld
+                        "https://dashboard-aurora.#{Rails.application.config.region}.#{Rails.application.config.tld}"
+                      end
+      allowed_origin = aurora_origin if request_origin == aurora_origin
+    end
+
+    # Set CORS headers if origin is allowed
+    if allowed_origin
+      response.headers['Access-Control-Allow-Origin'] = allowed_origin
+      response.headers['Access-Control-Allow-Credentials'] = 'true'
+      response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+      response.headers['Access-Control-Allow-Headers'] = 'Content-Type, X-CSRF-Token'
+      response.headers['Access-Control-Allow-Age'] = '3600' # Cache preflight for 1 hour
+    end
+  end
+
   def feedback_params
     params.require(:feedback).permit(
       :feedback_message,
@@ -74,39 +114,15 @@ class FeedbackController < ActionController::Base
       }, status: :bad_request
       return
     end
-  end
 
-  def validate_api_token
-    provided_token = request.headers['X-Feedback-API-Token']
-    expected_token = ENV['FEEDBACK_API_TOKEN']
-
-    # In development, allow without token for easier testing
-    if Rails.env.development? && expected_token.blank?
-      Rails.logger.warn "⚠️  DEVELOPMENT MODE: API token validation disabled (FEEDBACK_API_TOKEN not set)"
-      return
-    end
-
-    # In production/staging, token is required
-    if expected_token.blank?
-      Rails.logger.error "FEEDBACK_API_TOKEN is not configured in #{Rails.env} environment"
+    # Validate message length
+    if feedback_params[:feedback_message].length > 10_000
       render json: {
         status: 'error',
-        message: 'Service unavailable: API token not configured'
-      }, status: :service_unavailable
+        message: 'Feedback message too long (maximum 10,000 characters)'
+      }, status: :bad_request
       return
     end
-
-    # Validate token
-    unless provided_token.present? && ActiveSupport::SecurityUtils.secure_compare(provided_token, expected_token)
-      Rails.logger.warn "Unauthorized feedback API call - IP: #{request.remote_ip}, Referer: #{request.referer}"
-      render json: {
-        status: 'error',
-        message: 'Unauthorized: Invalid or missing API token'
-      }, status: :unauthorized
-      return
-    end
-
-    Rails.logger.info "Authorized feedback API call from #{request.referer || 'unknown source'}"
   end
 
   def check_rate_limit

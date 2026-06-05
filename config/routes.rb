@@ -34,6 +34,10 @@ Rails.application.routes.draw do
 
     get :notifications, to: 'global_notifications#index'
 
+    # Feedback endpoints
+    match :feedback_token, to: 'feedback#cors_preflight', via: :options
+    match :feedback, to: 'feedback#cors_preflight', via: :options
+    get :feedback_token, to: 'feedback#csrf_token'
     post :feedback, to: 'feedback#create'
   end
 
