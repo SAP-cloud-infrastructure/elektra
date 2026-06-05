@@ -40,14 +40,12 @@ export default function HeadingInfo() {
 brew tap sap-cloud-infrastructure/tap
 brew install scikube`}
           />
-          <p className="tw-my-4">
-            Then source your OpenStack credentials and generate a garden kubeconfig:
-          </p>
+          <p className="tw-my-4">Then source your OpenStack credentials and generate a garden kubeconfig:</p>
 
           <CodeBlock
             content={`source "<your-openstack-rc-file.sh>"
 # Create garden kubeconfig
-scikube kubeconfig-for-garden --landscape prod > kubeconfig-for-garden.yaml
+scikube kubeconfig-for-garden --landscape <landscape> > kubeconfig-for-garden.yaml
 # List clusters in your project
 KUBECONFIG=kubeconfig-for-garden.yaml kubectl get shoot
 # Connect to a cluster
