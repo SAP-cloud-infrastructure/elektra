@@ -36,7 +36,7 @@ const New = () => {
       return apiClient
         .post("../../bgp-vpns", { name: values.name })
         .then((data) => {
-          dispatch("bgpvpns", "add", { name: "items", item: data.body.bgpvpn })
+          dispatch("bgpvpns", "add", { name: "items", item: data.bgpvpn })
           close()
         })
         .catch((error) => {
