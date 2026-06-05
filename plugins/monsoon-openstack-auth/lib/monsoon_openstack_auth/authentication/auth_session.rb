@@ -97,6 +97,7 @@ module MonsoonOpenstackAuth
         # create user from auth token and authenticate
         def create_from_auth_token(controller, auth_token)
           # reset session-id for Session Fixation
+          
           reset_session(controller)
           session = AuthSession.new(controller)
           session.login_auth_token(auth_token)
@@ -289,52 +290,53 @@ module MonsoonOpenstackAuth
 
       def validate_session_token
         return true if @token && token_valid?(@token)
-
+        
         # Try to get token from session first (fast path), then cross-dashboard cookie, then HTTP header
         session_token = @controller.session[:auth_token_value]
         cross_dashboard_token = read_cross_dashboard_cookie
         auth_token_value = session_token || cross_dashboard_token || @controller.request.headers['HTTP_X_AUTH_TOKEN']
-
+        
         unless auth_token_value
           MonsoonOpenstackAuth.logger.info 'validate_session_token -> auth token not presented.' if @debug
           return false
         end
-
+        
         # Track which token source was used
         token_source = if session_token && auth_token_value == session_token
-                         :session
-                       elsif cross_dashboard_token && auth_token_value == cross_dashboard_token
-                         :cross_dashboard_cookie
-                       else
-                         :http_header
-                       end
-
+          :session
+        elsif cross_dashboard_token && auth_token_value == cross_dashboard_token
+          :cross_dashboard_cookie
+        else
+          :http_header
+        end
+        
         # Validate auth token and check domain match
         begin
           token = @api_client.validate_token(auth_token_value)
-
+          
           if token
             # Check if token's domain matches the requested scope
             unless token_domain_matches_scope_domain?(token)
               MonsoonOpenstackAuth.logger.info "Token scope mismatch (source: #{token_source}), rejecting token." if @debug
-
+              
               # If the mismatched token came from cross-dashboard cookie, delete it
               # This prevents repeated authentication failures with stale cookies
               if token_source == :cross_dashboard_cookie
                 MonsoonOpenstackAuth.logger.info 'Deleting stale cross-dashboard cookie due to scope mismatch.' if @debug
                 self.class.delete_cross_dashboard_cookie(@controller)
               end
-
+              
               return false
             end
-
+            
             # token is valid and domain matches -> create user from token and save token in session store
             create_user_from_token(token)
-
+            
             # Only update cross-dashboard cookie if the token value is different from what's already in the cookie
             should_update_cookie = session_token.present? && session_token != cross_dashboard_token
             cache_token(token, update_cross_dashboard_cookie: should_update_cookie)
-
+            
+            
             if logged_in?
               MonsoonOpenstackAuth.logger.info("validate_auth_token -> successful (username=#{@user.name}).") if @debug
               return true
@@ -459,35 +461,17 @@ module MonsoonOpenstackAuth
         @controller.request.cookies[cookie_name]
       end
 
-      # Check if the token's scope matches the requested scope
-      # Returns true if scopes match or if no scope check is needed, false otherwise
+      # Check if the token's domain matches the requested scope domain
+      # This method ONLY checks domain matching, NOT project matching
+      # Project rescoping is handled separately by rescope_token method
+      # Returns true if domains match or if no domain scope check is needed, false otherwise
       def token_domain_matches_scope_domain?(token)
         return false unless token
 
-        # If no scope is requested, any valid token is acceptable
-        # Check if all scope values are nil (not just if hash is empty)
-        return true if @scope.empty? || (@scope[:domain].nil? && @scope[:domain_name].nil? && @scope[:project].nil?)
+        # If no domain scope is requested, any valid token is acceptable
+        return true if @scope.empty? || (@scope[:domain].nil? && @scope[:domain_name].nil?)
 
-        # Check project scope first
-        token_scope_project_id = token.dig(:project, :id) || token.dig(:project, 'id')
-        if @scope[:project] && token_scope_project_id
-          # Project must match
-          return false unless token_scope_project_id == @scope[:project]
-
-          # If domain is also specified in scope, check it too
-          if @scope[:domain]
-            token_domain_id = token.dig(:project, :domain, :id) || token.dig(:project, :domain, 'id')
-            return token_domain_id == @scope[:domain]
-          elsif @scope[:domain_name]
-            token_domain_name = token.dig(:project, :domain, :name) || token.dig(:project, :domain, 'name')
-            return token_domain_name == @scope[:domain_name]
-          end
-
-          # Project matches and no domain check needed
-          return true
-        end
-
-        # Check domain scope (with user domain fallback for unscoped tokens)
+        # Extract token's domain from various possible locations:
         # For project-scoped tokens: project.domain
         # For domain-scoped tokens: domain
         # For unscoped tokens: user.domain (fallback)
@@ -495,23 +479,24 @@ module MonsoonOpenstackAuth
         token_domain_id ||= token.dig(:domain, :id) || token.dig(:domain, 'id')
         token_domain_id ||= token.dig(:user, :domain, :id) || token.dig(:user, :domain, 'id')
 
-        if @scope[:domain] && token_domain_id
-          return token_domain_id == @scope[:domain]
-        end
-
-        # Check domain name (with same fallback logic)
         token_domain_name = token.dig(:project, :domain, :name) || token.dig(:project, :domain, 'name')
         token_domain_name ||= token.dig(:domain, :name) || token.dig(:domain, 'name')
         token_domain_name ||= token.dig(:user, :domain, :name) || token.dig(:user, :domain, 'name')
 
+        # Check domain match by ID
+        if @scope[:domain] && token_domain_id
+          return token_domain_id == @scope[:domain]
+        end
+
+        # Check domain match by name
         if @scope[:domain_name] && token_domain_name
           return token_domain_name == @scope[:domain_name]
         end
 
-        # No scope requirements matched - reject token
+        # No domain scope requirements matched - reject token
         false
       rescue StandardError => e
-        MonsoonOpenstackAuth.logger.error "Failed to check token scope match: #{e}" if @debug
+        MonsoonOpenstackAuth.logger.error "Failed to check token domain match: #{e}" if @debug
         false  # On error, reject the token
       end
 
@@ -561,10 +546,12 @@ module MonsoonOpenstackAuth
       # login with auth token
       def login_auth_token(auth_token)
         return false unless auth_token
-
+        
         begin
           # create auth token
+        
           token = @api_client.authenticate_with_token(auth_token)
+        
           cache_token(token, update_cross_dashboard_cookie: true)
           # create auth user from token
           create_user_from_token(token)
