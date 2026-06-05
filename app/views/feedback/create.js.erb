@@ -1,0 +1,13 @@
+<% if @success %>
+$('#feedback_message').val('').prop('disabled', true);
+$('#feedback-message').removeClass('alert-danger').addClass('alert-success')
+  .text('<%= j(@message) %>').show();
+setTimeout(function() {
+  $('.modal').modal('hide');
+  $('#feedback-message').hide();
+}, 2000);
+<% else %>
+$('#feedback-message').removeClass('alert-success').addClass('alert-danger')
+  .text('<%= j(@message) %>').show();
+$('#feedback-form input[type="submit"]').prop('disabled', false).val('Send');
+<% end %>

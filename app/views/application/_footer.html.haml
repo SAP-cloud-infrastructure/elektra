@@ -27,5 +27,11 @@
               %a(href="#{sap_url_for('documentation')}" target='ccdocs') Documentation
 
       .col-sm-2
+        %ul.list-unstyled
+          %li
+            = link_to 'Send Feedback', main_app.feedback_path, data:{modal: true}
+
+      .col-sm-2
         - if Rails.env.development?
           = render partial: 'layouts/dev_tools'
+
