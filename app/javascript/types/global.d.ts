@@ -9,4 +9,12 @@ declare global {
   var jQuery: any
 }
 
+declare module "lib/policy" {
+  interface Policy {
+    isAllowed: (permission: string, options?: Record<string, unknown>) => boolean
+  }
+  export const policy: Policy
+  export function setPolicy(newPolicy: Policy): void
+}
+
 export {}
