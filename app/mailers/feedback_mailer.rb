@@ -6,6 +6,11 @@ class FeedbackMailer < CoreApplicationMailer
     @context = context
     @timestamp = Time.current
 
+    if recipient_email.blank?
+      Rails.logger.warn("No feedback recipient email configured. Set Rails.configuration.feedback_recipient_email to receive user feedback emails.")
+      return
+    end
+
     subject = "SAP Cloud Infrastructure: User Feedback"
 
     email_body = render_to_string('feedback_mailer/user_feedback', layout: false)
@@ -20,6 +25,6 @@ class FeedbackMailer < CoreApplicationMailer
   private
 
   def recipient_email
-    Rails.configuration.try(:feedback_recipient_email) || 'a.reuschenbach.puncernau@sap.com'
+    Rails.configuration.try(:feedback_recipient_email)
   end
 end

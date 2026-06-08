@@ -15,7 +15,8 @@
     = hidden_field_tag 'context[viewport]', '', id: 'context-viewport'
     .modal-footer
       = link_to 'Cancel', '#', data: {dismiss: "modal"}, class: "btn btn-default"
-      = submit_tag 'Send', class: "btn btn-primary"
+      = submit_tag 'Send', class: "btn btn-primary", id: 'feedback-submit-btn'
+      %button.btn.btn-primary#feedback-sending-btn{type: 'button', disabled: true, style: 'display:none;'} Sending...
 
 :javascript
   $(document).ready(function() {
@@ -23,31 +24,26 @@
     $('#context-browser').val(navigator.userAgent);
     $('#context-viewport').val(window.innerWidth + 'x' + window.innerHeight);
 
-    var $submitBtn = $('#feedback-form input[type="submit"]');
+    var $submitBtn = $('#feedback-submit-btn');
+    var $sendingBtn = $('#feedback-sending-btn');
     var $textarea = $('#feedback_message');
-    var submitted = false;
 
     // Disable submit button initially if textarea is empty
     function updateSubmitButton() {
-      if (!submitted) {
-        $submitBtn.prop('disabled', $textarea.val().trim() === '');
-      }
+      $submitBtn.prop('disabled', $textarea.val().trim() === '');
     }
 
     // Check on input
     $textarea.on('input', updateSubmitButton);
     updateSubmitButton(); // Initial check
 
-    // Show spinner on submit
+    // Switch buttons and disable textarea on submit
     $('#feedback-form').on('submit', function() {
-      submitted = true;
-      $submitBtn.prop('disabled', true).val('Sending...');
+      setTimeout(function() {
+        $submitBtn.hide();
+        $sendingBtn.show();
+        $textarea.prop('disabled', true);
+      }, 10);
     });
 
-    // Re-enable button if there's an error
-    $('#feedback-form').on('ajax:error', function() {
-      submitted = false;
-      $submitBtn.prop('disabled', false).val('Send');
-      updateSubmitButton();
-    });
   });

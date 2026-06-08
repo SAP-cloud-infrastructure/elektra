@@ -159,6 +159,9 @@ module MonsoonDashboard
     # Mailer configuration for inquiries/requests
     config.limes_mail_server_endpoint = ENV["LIMES_MAIL_SERVER_API_ENDPOINT"]
 
+    # Feedback recipient email address for the feedback form in the UI
+    config.feedback_recipient_email = ENV['FEEDBACK_RECIPIENT_EMAIL']
+
     # Cross-dashboard authentication cookie name for SSO (Elektra <-> Aurora)
     config.cross_dashboard_cookie_name = ENV['CROSS_DASHBOARD_COOKIE_NAME'] || 'dashboard-session-auth'
 
