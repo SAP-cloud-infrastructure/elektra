@@ -28,11 +28,11 @@
                 -# %div{data: {"react-quota-usage": true, type: plugin_name}} 
 
                 .quota-usage= javascript_include_tag 'resources_usage_widget', defer: true, data: { props: { |
-                  theme: "theme-light",                                        | 
+                  theme: "theme-light",                                        |
                   endpoint: "https://limes-3.#{current_region}.cloud.sap",     |
-                  domainID: "#{@scoped_domain_id}",                            | 
+                  domainID: "#{@scoped_domain_id}",                            |
                   projectID: "#{@scoped_project_id}",                          |
-                  quotaProject: "#{plugin_name}",                              |
+                  quotaProject: "#{@quota_service || plugin_name}",            |
                   getTokenFuncName: "_getCurrentToken",                        |
                   embedded: "true" } } 
                   

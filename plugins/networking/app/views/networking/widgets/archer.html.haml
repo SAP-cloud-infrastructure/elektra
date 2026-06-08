@@ -1,0 +1,2 @@
+- props = { embedded: true, theme: 'theme-light', endpoint: @archer_endpoint, projectID: @scoped_project_id, canEdit: current_user.is_allowed?('networking:archer_edit', {selected: {domain_id: @scoped_domain_id, project_id: @scoped_project_id} }), mockAPI: ENV['ARCHER_MOCK_API'].present?, getTokenFuncName: "_getCurrentToken", cloudAdmin: @scoped_domain_name == 'ccadmin' && @scoped_project_name == 'cloud_admin' }
+= javascript_include_tag 'networking_archer_widget', data: { props: props.to_json }

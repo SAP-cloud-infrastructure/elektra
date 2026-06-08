@@ -5,7 +5,7 @@ module Networking
     authorization_context "networking"
     # enforce permission checks. This will automatically
     # investigate the rule name.
-    authorization_required only: %i[ports bgp_vpns]
+    authorization_required only: %i[ports bgp_vpns archer]
 
     def bgp_vpns
     end
@@ -14,6 +14,12 @@ module Networking
     end
 
     def ports
+    end
+
+    def archer
+      @archer_endpoint = ENV['ARCHER_ENDPOINT'] ||
+        current_user.service_url('endpoint-services')
+      @quota_service = "endpoint_services"
     end
   end
 end

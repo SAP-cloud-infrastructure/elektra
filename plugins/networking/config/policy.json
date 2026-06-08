@@ -78,5 +78,8 @@
   "networking:bgp_vpn_create": "rule:context_is_network_editor",
   "networking:bgp_vpn_delete": "rule:context_is_network_editor",
 
-  "networking:ip_availability": "rule:context_is_network_viewer"
+  "networking:ip_availability": "rule:context_is_network_viewer",
+
+  "networking:widget_archer": "rule:context_is_network_viewer",
+  "networking:archer_edit": "rule:context_is_network_editor"
 }

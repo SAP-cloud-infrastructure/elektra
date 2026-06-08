@@ -6,6 +6,7 @@ Networking::Engine.routes.draw do
     get "bgp-vpns" => "widgets#bgp_vpns", :on => :collection
     get "security-groups" => "widgets#security_groups", :on => :collection
     get "ports", on: :collection
+    get "archer" => "widgets#archer", :on => :collection
   end
 
   resources :ports, except: %i[edit new] do
