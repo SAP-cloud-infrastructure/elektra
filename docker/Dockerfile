@@ -117,7 +117,8 @@ COPY --from=builder /usr/local/bundle/ /usr/local/bundle/
 COPY --from=builder $APP_PATH $APP_PATH
 
 RUN apk --no-cache add curl libsass-dev ca-certificates
-RUN curl -fL http://aia.pki.co.sap.com/aia/SAP%20Global%20Root%20CA.crt -o /usr/local/share/ca-certificates/SAP_Global_Root_CA.crt && \
+# Install SAP Global Root CA certificate to trust SAP internal resources
+RUN curl -fL https://aia.pki.co.sap.com/aia/SAP%20Global%20Root%20CA.crt -o /usr/local/share/ca-certificates/SAP_Global_Root_CA.crt && \
     update-ca-certificates
 
 # to upgrade the image to the latest

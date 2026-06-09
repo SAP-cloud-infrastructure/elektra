@@ -1,6 +1,6 @@
+import React, { useEffect, useCallback } from "react"
 import { Link } from "react-router-dom"
 import { policy } from "lib/policy"
-import React from "react"
 
 // availability_zone: "qa-de-1a"
 // cached_object_type: "share_replica"
@@ -14,8 +14,35 @@ import React from "react"
 // share_server_id: "dd24c960-27d0-4db0-94de-628177c17700"
 // status: "available"
 // updated_at: "2019-02-06T13:39:55.000000"
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-const ReplicaItem = ({
+interface Replica {
+  id: string
+  name?: string
+  share_id: string
+  replica_state?: string
+  status?: string
+  isFetching?: boolean
+  isDeleting?: boolean
+}
+
+interface Share {
+  id: string
+  name: string
+}
+
+interface ReplicaItemProps {
+  replica: Replica
+  share?: Share | string
+  handleDelete: (id: string) => void
+  reloadReplica: (id: string) => void
+  promoteReplica: () => void
+  resyncReplica: () => void
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+const ReplicaItem: React.FC<ReplicaItemProps> = ({
   replica,
   share,
   handleDelete,
@@ -23,26 +50,22 @@ const ReplicaItem = ({
   promoteReplica,
   resyncReplica,
 }) => {
-  React.useEffect(() => {
-    if (["replication_change", "creating"].indexOf(replica.status) < 0) return
+  useEffect(() => {
+    if (["replication_change", "creating"].indexOf(replica.status ?? "") < 0) return
     const polling = setInterval(() => reloadReplica(replica.id), 10000)
-
     return () => clearInterval(polling)
   }, [reloadReplica, replica.id, replica.status])
 
-  const canI = React.useCallback(
-    (permission) =>
-      policy.isAllowed(`shared_filesystem_storage:replica_${permission}`, {
-        replica,
-      }),
+  const canI = useCallback(
+    (permission: string) =>
+      policy.isAllowed(`shared_filesystem_storage:replica_${permission}`, { replica }),
     [replica]
   )
+
   return (
     <tr className={replica.isFetching || replica.isDeleting ? "updating" : ""}>
       <td>
-        <Link to={`/replicas/${replica.id}/show`}>
-          {replica.name || replica.id}
-        </Link>
+        <Link to={`/replicas/${replica.id}/show`}>{replica.name || replica.id}</Link>
         {replica.name && (
           <>
             <br />
@@ -51,7 +74,7 @@ const ReplicaItem = ({
         )}
       </td>
       <td>
-        {share ? (
+        {share && typeof share === "object" ? (
           <div>
             {share.name}
             <br />
@@ -61,17 +84,13 @@ const ReplicaItem = ({
           replica.share_id
         )}
       </td>
-
       <td>{replica.replica_state}</td>
       <td>
-        {replica.status == "creating" && <span className="spinner" />}{" "}
+        {replica.status === "creating" && <span className="spinner" />}{" "}
         {replica.status}
       </td>
       <td className="snug">
-        {(canI("promote") ||
-          canI("delete") ||
-          canI("resync") ||
-          canI("get_error_log")) && (
+        {(canI("promote") || canI("delete") || canI("resync") || canI("get_error_log")) && (
           <div className="btn-group">
             <button
               className="btn btn-default btn-sm dropdown-toggle"
@@ -82,7 +101,7 @@ const ReplicaItem = ({
               <i className="fa fa-cog"></i>
             </button>
             <ul className="dropdown-menu dropdown-menu-right" role="menu">
-              {canI("delete") && replica.status != "creating" && (
+              {canI("delete") && replica.status !== "creating" && (
                 <li>
                   <a
                     href="#"
@@ -98,11 +117,11 @@ const ReplicaItem = ({
               {canI("promote") && (
                 <li>
                   <a
+                    href="#"
                     onClick={(e) => {
                       e.preventDefault()
                       promoteReplica()
                     }}
-                    href="#"
                   >
                     Activate
                   </a>
@@ -111,11 +130,11 @@ const ReplicaItem = ({
               {canI("resync") && (
                 <li>
                   <a
+                    href="#"
                     onClick={(e) => {
                       e.preventDefault()
                       resyncReplica()
                     }}
-                    href="#"
                   >
                     Re-sync
                   </a>
@@ -123,9 +142,7 @@ const ReplicaItem = ({
               )}
               {canI("get_error_log") && (
                 <li>
-                  <Link to={`/replicas/${replica.id}/error-log`}>
-                    Error Log
-                  </Link>
+                  <Link to={`/replicas/${replica.id}/error-log`}>Error Log</Link>
                 </li>
               )}
             </ul>
@@ -135,4 +152,5 @@ const ReplicaItem = ({
     </tr>
   )
 }
+
 export default ReplicaItem
