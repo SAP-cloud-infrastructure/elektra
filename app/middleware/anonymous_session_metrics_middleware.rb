@@ -9,12 +9,12 @@ class AnonymousSessionMetricsMiddleware
     @app = app
     @registry = options[:registry] || Prometheus::Client.registry
 
-    # Counter: Unique sessions (increments once per session ID per request)
+    # Counter: Unique sessions (increments once per unique session)
     @unique_sessions =
       @registry.counter(
         :dashboard_unique_sessions_total,
-        docstring: "Total unique anonymous sessions",
-        labels: %i[anonymous_session_id domain],
+        docstring: "Unique anonymous sessions (increments once per session)",
+        labels: %i[anonymous_session_id],
       )
 
     # Gauge: Session start timestamps
@@ -78,16 +78,11 @@ class AnonymousSessionMetricsMiddleware
       project = path_params[:project_id] || "unknown"
       current_feature = extract_feature(path_params)
 
-      # Track unique session
-      @unique_sessions.increment(
-        labels: {
-          anonymous_session_id: anonymous_id,
-          domain: domain,
-        },
-      )
-
-      # Track session start (only on first request)
+      # Track unique session (only on first request)
       if first_request_for_session?(anonymous_id)
+        @unique_sessions.increment(
+          labels: { anonymous_session_id: anonymous_id },
+        )
         @session_start_time.set(
           Time.now.to_i,
           labels: { anonymous_session_id: anonymous_id },
