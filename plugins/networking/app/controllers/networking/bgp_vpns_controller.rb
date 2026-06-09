@@ -17,6 +17,22 @@ module Networking
       if code.to_i >= 400
         render json: { errors: bgp_vpns }, status: code
       else
+        # extend items with domain id, needed for url generation
+        projectsCache = {}
+        if @active_project 
+          projectsCache[@active_project.id] = @active_project
+        end
+
+        bgp_vpns["bgpvpns"].each do |item|
+          
+          if projectsCache.key?(item["project_id"])
+            item["domain_id"] = projectsCache[item["project_id"]].domain_name
+          else
+            project = services.identity.find_project(item["project_id"])
+            projectsCache[item["project_id"]] = project if project    
+            item["domain_id"] = project.domain_id if project
+          end
+        end
         render json: bgp_vpns
       end
     end
@@ -25,8 +41,12 @@ module Networking
       code, bgp_vpn = services.networking.create_bgp_vpn(params.require(:name))
 
       if code.to_i >= 400
-        render json: { errors: bgp_vpn }, status: code
+        render json: { errors: bgp_vpn.body }, status: code
       else
+        bgp_vpn = bgp_vpn.body
+        # extend items with domain id, needed for url generation
+        project = services.identity.find_project(bgp_vpn["bgpvpn"]["project_id"])
+        bgp_vpn["bgpvpn"]["domain_id"] = project.domain_id if project
         render json: bgp_vpn
       end
     end
