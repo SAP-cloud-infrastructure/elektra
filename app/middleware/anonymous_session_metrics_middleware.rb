@@ -68,69 +68,71 @@ class AnonymousSessionMetricsMiddleware
     # Call the app first so Rails routing populates path_parameters
     response = @app.call(env)
 
-    # Now extract context with full route information available
-    if session_token
-      anonymous_id = AnonymousMetrics.generate_id(session_token)
-      path_params = env["action_dispatch.request.path_parameters"] || {}
+    # Now extract context with full route information available (wrapped in rescue to prevent double execution)
+    begin
+      if session_token
+        anonymous_id = AnonymousMetrics.generate_id(session_token)
+        path_params = env["action_dispatch.request.path_parameters"] || {}
 
-      # Extract context
-      domain = path_params[:domain_id] || path_params[:domain_fid] || "unknown"
-      project = path_params[:project_id] || "unknown"
-      current_feature = extract_feature(path_params)
+        # Extract context
+        domain = path_params[:domain_id] || path_params[:domain_fid] || "unknown"
+        project = path_params[:project_id] || "unknown"
+        current_feature = extract_feature(path_params)
 
-      # Track unique session (only on first request)
-      if first_request_for_session?(anonymous_id)
-        @unique_sessions.increment(
-          labels: { anonymous_session_id: anonymous_id },
-        )
-        @session_start_time.set(
+        # Track unique session (only on first request)
+        if first_request_for_session?(anonymous_id)
+          @unique_sessions.increment(
+            labels: { anonymous_session_id: anonymous_id },
+          )
+          @session_start_time.set(
+            Time.now.to_i,
+            labels: { anonymous_session_id: anonymous_id },
+          )
+          @session_first_seen[anonymous_id] = Time.now
+        end
+
+        # Update last activity timestamp
+        @session_last_activity.set(
           Time.now.to_i,
-          labels: { anonymous_session_id: anonymous_id },
-        )
-        @session_first_seen[anonymous_id] = Time.now
-      end
-
-      # Update last activity timestamp
-      @session_last_activity.set(
-        Time.now.to_i,
-        labels: {
-          anonymous_session_id: anonymous_id,
-          domain: domain,
-          project: project,
-        },
-      )
-
-      # Track feature sequences
-      if current_feature
-        previous_feature = @session_features[anonymous_id]&.last
-
-        @feature_sequence.increment(
           labels: {
             anonymous_session_id: anonymous_id,
-            previous_feature: previous_feature || "entry",
-            current_feature: current_feature,
+            domain: domain,
+            project: project,
           },
         )
 
-        @session_features[anonymous_id] ||= []
-        @session_features[anonymous_id] << current_feature
-      end
+        # Track feature sequences
+        if current_feature
+          previous_feature = @session_features[anonymous_id]&.last
 
-      # Track cross-dashboard navigation
-      track_cross_dashboard_navigation(
-        request,
-        anonymous_id,
-        current_feature,
+          @feature_sequence.increment(
+            labels: {
+              anonymous_session_id: anonymous_id,
+              previous_feature: previous_feature || "entry",
+              current_feature: current_feature,
+            },
+          )
+
+          @session_features[anonymous_id] ||= []
+          @session_features[anonymous_id] << current_feature
+        end
+
+        # Track cross-dashboard navigation
+        track_cross_dashboard_navigation(
+          request,
+          anonymous_id,
+          current_feature,
+        )
+      end
+    rescue => e
+      Rails.logger.error(
+        "AnonymousSessionMetricsMiddleware error: #{e.message}",
       )
+      Rails.logger.error(e.backtrace.first(5).join("\n")) if Rails.env.development?
+      # Don't re-call app, just log and continue
     end
 
     response
-  rescue => e
-    Rails.logger.error(
-      "AnonymousSessionMetricsMiddleware error: #{e.message}",
-    )
-    Rails.logger.error(e.backtrace.first(5).join("\n")) if Rails.env.development?
-    @app.call(env) # Continue even if metrics fail
   end
 
   private
