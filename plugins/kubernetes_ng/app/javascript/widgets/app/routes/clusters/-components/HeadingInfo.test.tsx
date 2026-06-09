@@ -21,6 +21,6 @@ describe("HeadingInfo", () => {
 
     expect(button).toHaveAttribute("aria-expanded", "true")
     expect(screen.getByText(/hide kubectl setup instructions/i)).toBeInTheDocument()
-    expect(screen.getByText(/For conveniently managing your clusters with kubectl/i)).toBeInTheDocument()
+    expect(screen.getByText(/For managing your clusters with kubectl/i)).toBeInTheDocument()
   })
 })
