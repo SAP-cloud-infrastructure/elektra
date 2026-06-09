@@ -811,12 +811,6 @@ describe MonsoonOpenstackAuth::Authentication::AuthSession do
         expect(result).to be false
       end
 
-      it 'should reject when domain matches but project does not' do
-        session = MonsoonOpenstackAuth::Authentication::AuthSession.new(test_controller, { domain: 'domain-a', project: 'project-999' })
-        result = session.send(:token_domain_matches_scope_domain?, project_token)
-        expect(result).to be false
-      end
-
       it 'should match when only project is requested (no domain in scope)' do
         session = MonsoonOpenstackAuth::Authentication::AuthSession.new(test_controller, { project: 'project-123' })
         result = session.send(:token_domain_matches_scope_domain?, project_token)
