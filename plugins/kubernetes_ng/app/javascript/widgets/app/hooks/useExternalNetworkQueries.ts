@@ -14,5 +14,6 @@ export function useExternalNetworksQuery(apiClient: GardenerApi, enabled = true)
     enabled: enabled,
     staleTime: 0,
     cacheTime: 0,
+    refetchOnWindowFocus: false,
   })
 }
