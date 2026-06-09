@@ -2,8 +2,23 @@
 
 # Middleware for tracking anonymous session-based metrics
 # Tracks unique sessions, timestamps, feature navigation, and cross-dashboard flows
+#
+# NOTE: Uses in-memory state per process. In multi-process deployments (Passenger, Puma),
+# each worker maintains its own state, which may cause:
+# - Slight over-counting of unique sessions (same session counted once per worker)
+# - Inconsistent feature sequence tracking across workers
+# For production accuracy, consider Redis-backed storage.
 class AnonymousSessionMetricsMiddleware
   EXCLUDE_PATHS = %w[/metrics /assets /system /health].freeze
+
+  # TTL for session state cleanup (24 hours)
+  SESSION_TTL = 24 * 60 * 60
+
+  # Cleanup interval - run cleanup every N requests to avoid overhead
+  CLEANUP_INTERVAL = 1000
+
+  # Maximum features to track per session (sliding window)
+  MAX_FEATURES_PER_SESSION = 10
 
   def initialize(app, options = {})
     @app = app
@@ -49,15 +64,24 @@ class AnonymousSessionMetricsMiddleware
         labels: %i[anonymous_session_id from_dashboard to_dashboard from_feature],
       )
 
-    # In-memory tracking (simple hash, could use Redis for multi-process)
+    # In-memory tracking with TTL-based cleanup
+    # Structure: { session_id => timestamp }
     @session_first_seen = {}
+    # Structure: { session_id => [feature1, feature2, ...] } (limited by MAX_FEATURES_PER_SESSION)
     @session_features = {}
+
+    # Cleanup tracking
+    @request_count = 0
+    @mutex = Mutex.new
   end
 
   def call(env)
     # Skip excluded paths
     path_info = env["PATH_INFO"]
     return @app.call(env) if should_skip_path?(path_info)
+
+    # Periodic cleanup to prevent memory leaks
+    cleanup_expired_sessions
 
     # Extract request details
     request = ActionDispatch::Request.new(env)
@@ -81,14 +105,16 @@ class AnonymousSessionMetricsMiddleware
 
         # Track unique session (only on first request)
         if first_request_for_session?(anonymous_id)
-          @unique_sessions.increment(
-            labels: { anonymous_session_id: anonymous_id },
-          )
-          @session_start_time.set(
-            Time.now.to_i,
-            labels: { anonymous_session_id: anonymous_id },
-          )
-          @session_first_seen[anonymous_id] = Time.now
+          @mutex.synchronize do
+            @unique_sessions.increment(
+              labels: { anonymous_session_id: anonymous_id },
+            )
+            @session_start_time.set(
+              Time.now.to_i,
+              labels: { anonymous_session_id: anonymous_id },
+            )
+            @session_first_seen[anonymous_id] = Time.now
+          end
         end
 
         # Update last activity timestamp
@@ -103,18 +129,22 @@ class AnonymousSessionMetricsMiddleware
 
         # Track feature sequences
         if current_feature
-          previous_feature = @session_features[anonymous_id]&.last
+          @mutex.synchronize do
+            previous_feature = @session_features[anonymous_id]&.last
 
-          @feature_sequence.increment(
-            labels: {
-              anonymous_session_id: anonymous_id,
-              previous_feature: previous_feature || "entry",
-              current_feature: current_feature,
-            },
-          )
+            @feature_sequence.increment(
+              labels: {
+                anonymous_session_id: anonymous_id,
+                previous_feature: previous_feature || "entry",
+                current_feature: current_feature,
+              },
+            )
 
-          @session_features[anonymous_id] ||= []
-          @session_features[anonymous_id] << current_feature
+            @session_features[anonymous_id] ||= []
+            @session_features[anonymous_id] << current_feature
+            # Keep only the last N features (sliding window)
+            @session_features[anonymous_id] = @session_features[anonymous_id].last(MAX_FEATURES_PER_SESSION)
+          end
         end
 
         # Track cross-dashboard navigation
@@ -136,6 +166,31 @@ class AnonymousSessionMetricsMiddleware
   end
 
   private
+
+  def cleanup_expired_sessions
+    @request_count += 1
+    return unless @request_count % CLEANUP_INTERVAL == 0
+
+    @mutex.synchronize do
+      now = Time.now
+      cutoff = now - SESSION_TTL
+
+      # Remove expired sessions from first_seen tracking
+      @session_first_seen.delete_if { |_id, timestamp| timestamp < cutoff }
+
+      # Remove expired sessions from features tracking
+      # (use first_seen as source of truth for expiration)
+      @session_features.delete_if { |id, _features| !@session_first_seen.key?(id) }
+
+      Rails.logger.info(
+        "[AnonymousSessionMetrics] Cleanup: #{@session_first_seen.size} active sessions, " \
+        "#{@session_features.size} with feature tracking"
+      ) if Rails.env.development?
+    end
+  rescue => e
+    Rails.logger.error("[AnonymousSessionMetrics] Cleanup failed: #{e.message}")
+    # Don't let cleanup failures break request processing
+  end
 
   def should_skip_path?(path)
     EXCLUDE_PATHS.any? { |excluded| path.start_with?(excluded) }
