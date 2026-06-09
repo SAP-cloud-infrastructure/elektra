@@ -81,9 +81,16 @@ module MonsoonDashboard
     end
 
     # rack middlewares
+    # IMPORTANT: Order matters!
+    # 1. Anonymous session tracking (FIRST - for session ID generation)
+    config.middleware.use AnonymousSessionMetricsMiddleware
+    # 2. HTTP metrics collector (uses session context)
     config.middleware.use HttpMetricsCollectorMiddleware
+    # 3. SLI metrics
     config.middleware.use SLIMetricsMiddleware
+    # 4. Exporter (MUST BE LAST among metrics middlewares)
     config.middleware.use HttpMetricsExporterMiddleware
+    # 5. Revision middleware
     config.middleware.use RevisionMiddleware
 
     # Prevent oauth2-proxy redirect loops by intercepting 401/403 responses
