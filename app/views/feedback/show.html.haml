@@ -8,7 +8,7 @@
   %p
     Your feedback is anonymous and helps us improve the platform.
 
-  = form_tag feedback_path, method: :post, remote: true, id: 'feedback-form' do
+  = form_tag feedback_path(domain_id: @scoped_domain_fid, project_id: @scoped_project_fid), method: :post, remote: true, id: 'feedback-form' do
     = text_area_tag :feedback_message, nil, class: 'form-control', rows: 5, placeholder: 'Tell us what you think...'
     = hidden_field_tag 'context[page_url]', '', id: 'context-page-url'
     = hidden_field_tag 'context[browser]', '', id: 'context-browser'

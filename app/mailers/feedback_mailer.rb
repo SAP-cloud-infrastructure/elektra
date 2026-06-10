@@ -11,7 +11,7 @@ class FeedbackMailer < CoreApplicationMailer
       return
     end
 
-    subject = "SAP Cloud Infrastructure: User Feedback"
+    subject = "[Feedback] [Elektra]: New User Feedback"
 
     email_body = render_to_string('feedback_mailer/user_feedback', layout: false)
 

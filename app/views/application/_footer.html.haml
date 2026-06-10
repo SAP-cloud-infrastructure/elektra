@@ -30,7 +30,7 @@
         .col-sm-2
           %ul.list-unstyled
             %li
-              = link_to 'Send Feedback', main_app.feedback_path, data:{modal: true}
+              = link_to 'Send Feedback', main_app.feedback_path(domain_id: @scoped_domain_fid, project_id: @scoped_project_fid), data:{modal: true}
 
       .col-sm-2
         - if Rails.env.development?
