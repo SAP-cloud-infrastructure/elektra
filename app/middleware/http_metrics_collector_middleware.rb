@@ -25,6 +25,26 @@ class HttpMetricsCollectorMiddleware < Prometheus::Middleware::Collector
       )
   end
 
+  # Override trace method to properly catch exceptions
+  def trace(env)
+    response = nil
+    duration = realtime { response = yield }
+    record(env, response.first.to_s, duration)
+    return response
+  rescue => exception
+    # Track exception - using only exception label to match parent's counter definition
+    @exceptions.increment(labels: { exception: exception.class.name })
+
+    # Log with controller/action context for debugging
+    path_params = env["action_dispatch.request.path_parameters"] || {}
+    page = "#{path_params[:controller]}/#{path_params[:action]}"
+
+    Rails.logger.error("Exception in #{env['PATH_INFO']} (#{page}): #{exception.class.name} - #{exception.message}")
+    Rails.logger.error(exception.backtrace.first(10).join("\n"))
+
+    raise
+  end
+
   def record(env, code, duration)
     path = generate_path(env)
     return if path.starts_with? *EXCLUDE_PATHS
@@ -46,17 +66,11 @@ class HttpMetricsCollectorMiddleware < Prometheus::Middleware::Collector
       xhr: request.xhr?,
     }
 
-    # byebug
-
-    # pp custom_labels
-    # pp path_params
-
     @requests.increment(labels: custom_labels)
     @durations.observe(duration, labels: custom_labels)
   rescue => e
-    # TODO: log unexpected exception during request recording
-    pp "======================================ERROR"
-    pp e
+    Rails.logger.error("Failed to record HTTP metrics: #{e.class} - #{e.message}")
+    Rails.logger.error(e.backtrace.first(5).join("\n")) if Rails.env.development?
     nil
   end
 end
