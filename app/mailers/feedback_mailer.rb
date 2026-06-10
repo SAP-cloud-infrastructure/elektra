@@ -9,7 +9,7 @@ class FeedbackMailer < CoreApplicationMailer
     recipients = recipient_emails
     if recipients.blank?
       Rails.logger.warn("No feedback recipient emails configured. Set FEEDBACK_RECIPIENT_EMAIL environment variable (comma-separated for multiple recipients).")
-      return
+      raise ConfigurationError, "Feedback recipients not configured"
     end
 
     subject = "[Feedback] [Elektra]: New User Feedback"
@@ -22,6 +22,8 @@ class FeedbackMailer < CoreApplicationMailer
       body_html: email_body
     )
   end
+
+  class ConfigurationError < StandardError; end
 
   private
 

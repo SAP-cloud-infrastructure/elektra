@@ -18,6 +18,10 @@ class FeedbackController < DashboardController
 
     @message = 'Thank you for your feedback!'
     @success = true
+  rescue FeedbackMailer::ConfigurationError => e
+    Rails.logger.error "Feedback configuration error: #{e.message}"
+    @message = 'Feedback service is not configured. Please contact your administrator.'
+    @success = false
   rescue StandardError => e
     Rails.logger.error "Failed to send feedback: #{e.message}"
     @message = 'Failed to send feedback'
