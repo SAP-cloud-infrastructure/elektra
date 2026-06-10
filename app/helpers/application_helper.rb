@@ -532,6 +532,6 @@ module ApplicationHelper
   end
 
   def feedback_enabled?
-    Rails.configuration.try(:feedback_recipient_email).present?
+    Rails.configuration.try(:feedback_recipient_emails).present?
   end
 end

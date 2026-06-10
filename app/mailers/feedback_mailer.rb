@@ -6,8 +6,9 @@ class FeedbackMailer < CoreApplicationMailer
     @context = context
     @timestamp = Time.current
 
-    if recipient_email.blank?
-      Rails.logger.warn("No feedback recipient email configured. Set Rails.configuration.feedback_recipient_email to receive user feedback emails.")
+    recipients = recipient_emails
+    if recipients.blank?
+      Rails.logger.warn("No feedback recipient emails configured. Set FEEDBACK_RECIPIENT_EMAIL environment variable (comma-separated for multiple recipients).")
       return
     end
 
@@ -16,7 +17,7 @@ class FeedbackMailer < CoreApplicationMailer
     email_body = render_to_string('feedback_mailer/user_feedback', layout: false)
 
     send_custom_email(
-      recipient: recipient_email,
+      recipient: recipients,
       subject: subject,
       body_html: email_body
     )
@@ -24,7 +25,7 @@ class FeedbackMailer < CoreApplicationMailer
 
   private
 
-  def recipient_email
-    Rails.configuration.try(:feedback_recipient_email)
+  def recipient_emails
+    Rails.configuration.try(:feedback_recipient_emails)&.presence
   end
 end
