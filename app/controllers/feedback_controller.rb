@@ -1,4 +1,4 @@
-class FeedbackController < ScopeController
+class FeedbackController < DashboardController
   def show
     render :show
   end
