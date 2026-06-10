@@ -506,7 +506,7 @@ SimpleNavigation::Configuration.run do |navigation|
                           'Email',
                           -> { plugin('email_service').email_service_path },
                           if: -> {
-                            services.available?(:email_service)
+                            plugin_available?(:email_service) && services.available?(:email_service)
                           },
                           highlights_on: lambda {
                             params[:controller][%r{email_service/?.*}]
