@@ -34,14 +34,7 @@ class HttpMetricsCollectorMiddleware < Prometheus::Middleware::Collector
   rescue => exception
     # Track exception - using only exception label to match parent's counter definition
     @exceptions.increment(labels: { exception: exception.class.name })
-
-    # Log with controller/action context for debugging
-    path_params = env["action_dispatch.request.path_parameters"] || {}
-    page = "#{path_params[:controller]}/#{path_params[:action]}"
-
-    Rails.logger.error("Exception in #{env['PATH_INFO']} (#{page}): #{exception.class.name} - #{exception.message}")
-    Rails.logger.error(exception.backtrace.first(10).join("\n"))
-
+    
     raise
   end
 
