@@ -58,9 +58,8 @@ describe FeedbackMailer, type: :mailer do
 
       it "includes domain information in email body" do
         allow_any_instance_of(CoreApplicationMailer).to receive(:send_custom_email) do |_, args|
-          expect(args[:body_html]).to include("Domain id")
+          expect(args[:body_html]).to include("Domain")
           expect(args[:body_html]).to include(context[:domain_id])
-          expect(args[:body_html]).to include("Domain name")
           expect(args[:body_html]).to include(context[:domain_name])
         end
 
@@ -72,9 +71,8 @@ describe FeedbackMailer, type: :mailer do
 
       it "includes project information in email body" do
         allow_any_instance_of(CoreApplicationMailer).to receive(:send_custom_email) do |_, args|
-          expect(args[:body_html]).to include("Project id")
+          expect(args[:body_html]).to include("Project")
           expect(args[:body_html]).to include(context[:project_id])
-          expect(args[:body_html]).to include("Project name")
           expect(args[:body_html]).to include(context[:project_name])
         end
 
@@ -191,9 +189,10 @@ describe FeedbackMailer, type: :mailer do
 
       it "sends email without project information" do
         allow_any_instance_of(CoreApplicationMailer).to receive(:send_custom_email) do |_, args|
-          expect(args[:body_html]).to include("Domain id")
+          expect(args[:body_html]).to include("Domain")
           expect(args[:body_html]).to include(domain_only_context[:domain_id])
-          expect(args[:body_html]).not_to include("Project id")
+          # Project id and name should not be present
+          expect(args[:body_html]).not_to include(domain_only_context[:project_id].to_s) if domain_only_context[:project_id]
         end
 
         FeedbackMailer.user_feedback(

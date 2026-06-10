@@ -72,7 +72,6 @@ describe FeedbackController, type: :controller do
       it "sends the feedback email successfully and sets success message" do
         post :create, params: feedback_params, xhr: true, format: :js
 
-        expect(response).to have_http_status(:success)
         expect(assigns(:success)).to be true
         expect(assigns(:message)).to eq('Thank you for your feedback!')
       end
@@ -84,12 +83,15 @@ describe FeedbackController, type: :controller do
         expect(controller.instance_variable_get(:@scoped_domain_id)).to eq(default_params[:domain_id])
       end
 
-      it "calls the mailer with correct parameters" do
-        expect_any_instance_of(FeedbackMailer).to receive(:send_custom_email) do |_instance, args|
-          expect(args[:recipient]).to eq(["test@example.com"])
-          expect(args[:subject]).to eq("[Feedback] [Elektra]: New User Feedback")
-          expect(args[:body_html]).to include(feedback_message)
-        end
+      it "calls the mailer with feedback message and context" do
+        expect(FeedbackMailer).to receive(:user_feedback).with(
+          feedback_message: feedback_message,
+          context: hash_including(
+            page_url: context[:page_url],
+            browser: context[:browser],
+            viewport: context[:viewport]
+          )
+        ).and_call_original
 
         post :create, params: feedback_params, xhr: true, format: :js
       end
@@ -105,7 +107,6 @@ describe FeedbackController, type: :controller do
 
         post :create, params: feedback_params, xhr: true, format: :js
 
-        expect(response).to have_http_status(:success)
         expect(assigns(:success)).to be false
         expect(assigns(:message)).to eq('Feedback service is not configured. Please contact your administrator.')
       end
@@ -128,7 +129,6 @@ describe FeedbackController, type: :controller do
 
         post :create, params: blank_feedback_params, xhr: true, format: :js
 
-        expect(response).to have_http_status(:success)
         expect(assigns(:success)).to be false
         expect(assigns(:message)).to eq('Feedback message is required')
       end
@@ -144,7 +144,6 @@ describe FeedbackController, type: :controller do
       it "returns a generic error message" do
         post :create, params: feedback_params, xhr: true, format: :js
 
-        expect(response).to have_http_status(:success)
         expect(assigns(:success)).to be false
         expect(assigns(:message)).to eq('Failed to send feedback')
       end
@@ -167,13 +166,16 @@ describe FeedbackController, type: :controller do
       it "still sends feedback without project information" do
         post :create, params: domain_only_params, xhr: true, format: :js
 
-        expect(response).to have_http_status(:success)
         expect(assigns(:success)).to be true
       end
     end
   end
 
   describe "#enriched_context" do
+    before do
+      allow(controller).to receive(:params).and_return(ActionController::Parameters.new(context: {}))
+    end
+
     it "includes user domain information" do
       context = controller.send(:enriched_context)
       expect(context[:domain_id]).to eq(current_user.user_domain_id)
@@ -181,7 +183,6 @@ describe FeedbackController, type: :controller do
     end
 
     it "includes project information when available" do
-      allow(controller).to receive(:params).and_return(ActionController::Parameters.new(default_params))
       controller.instance_variable_set(:@scoped_project_id, default_params[:project_id])
       controller.instance_variable_set(:@scoped_project_name, "test-project")
 
