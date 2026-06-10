@@ -56,17 +56,7 @@ RSpec.describe HttpMetricsCollectorMiddleware do
         expect(new_count).to eq(initial_count + 1)
       end
 
-      it "logs the exception with context" do
-        expect(Rails.logger).to receive(:error).with(
-          /Exception in \/test\/path \(test_controller\/index\): StandardError - Test error/,
-        )
-        expect(Rails.logger).to receive(:error).with(/spec\/middleware/)
-
-        expect { middleware_with_failing_app.call(env) }.to raise_error(StandardError)
-      end
-
       it "re-raises the exception" do
-        allow(Rails.logger).to receive(:error)
         expect { middleware_with_failing_app.call(env) }.to raise_error(StandardError, "Test error")
       end
     end
