@@ -27,17 +27,19 @@ RSpec.describe HttpMetricsCollectorMiddleware do
   describe "#trace" do
     context "when the app raises an exception" do
       let(:exception) { StandardError.new("Test error") }
-      let(:app) { ->(_env) { raise exception } }
+      let(:failing_app) { ->(_env) { raise exception } }
+      let(:middleware_with_failing_app) { described_class.new(failing_app, registry: registry) }
+
+      before do
+        # Initialize the middleware by creating it - this sets up the metrics
+        middleware_with_failing_app
+      end
 
       it "increments the exceptions counter with exception class label" do
-        # Make a successful call first to initialize metrics
-        begin
-          middleware.call(Rack::MockRequest.env_for("/system"))
-        rescue StandardError
-          # First call might fail, that's ok
-        end
-
         exceptions_counter = registry.get(:http_server_exceptions_total)
+        expect(exceptions_counter).not_to be_nil
+
+        # Get initial count (should be 0 for new label)
         initial_count =
           begin
             exceptions_counter.get(labels: { exception: "StandardError" })
@@ -45,12 +47,10 @@ RSpec.describe HttpMetricsCollectorMiddleware do
             0
           end
 
-        begin
-          middleware.call(env)
-        rescue StandardError
-          # Expected to raise
-        end
+        # Call middleware with failing app - expect it to raise
+        expect { middleware_with_failing_app.call(env) }.to raise_error(StandardError)
 
+        # Verify counter was incremented
         new_count =
           exceptions_counter.get(labels: { exception: "StandardError" })
         expect(new_count).to eq(initial_count + 1)
@@ -62,12 +62,12 @@ RSpec.describe HttpMetricsCollectorMiddleware do
         )
         expect(Rails.logger).to receive(:error).with(/spec\/middleware/)
 
-        expect { middleware.call(env) }.to raise_error(StandardError)
+        expect { middleware_with_failing_app.call(env) }.to raise_error(StandardError)
       end
 
       it "re-raises the exception" do
         allow(Rails.logger).to receive(:error)
-        expect { middleware.call(env) }.to raise_error(StandardError, "Test error")
+        expect { middleware_with_failing_app.call(env) }.to raise_error(StandardError, "Test error")
       end
     end
 
