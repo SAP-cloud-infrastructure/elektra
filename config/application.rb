@@ -82,7 +82,6 @@ module MonsoonDashboard
 
     # rack middlewares
     config.middleware.use HttpMetricsCollectorMiddleware
-    config.middleware.use InquiryMetricsMiddleware
     config.middleware.use SLIMetricsMiddleware
     config.middleware.use HttpMetricsExporterMiddleware
     config.middleware.use RevisionMiddleware
