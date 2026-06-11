@@ -51,9 +51,14 @@ RSpec.describe AnonymousSessionMetricsMiddleware do
     return {} unless set_cookie_header
 
     cookies = {}
-    set_cookie_header.split("\n").each do |cookie_line|
-      name, value = cookie_line.split('=', 2).map(&:strip)
-      value = value.split(';').first if value
+    cookie_lines = set_cookie_header.is_a?(Array) ? set_cookie_header : [set_cookie_header]
+
+    cookie_lines.each do |cookie_line|
+      name, value = cookie_line.split('=', 2)
+      next unless name && value
+
+      name = name.strip
+      value = value.split(';').first.strip
       cookies[name] = value
     end
     cookies
@@ -114,9 +119,9 @@ RSpec.describe AnonymousSessionMetricsMiddleware do
         count = counter.get(labels: { session_hour: current_hour, platform: 'elektra' })
         expect(count).to eq(1)
 
-        # Check hourly cookie set
+        # Check hourly cookie set (now metrics_hours with comma-separated values)
         cookies = extract_cookies([nil, headers, nil])
-        expect(cookies["metrics_h#{current_hour}"]).to eq('1')
+        expect(cookies["metrics_hours"]).to eq(current_hour)
       end
 
       it 'does not count second request in same hour (cookie present)' do
@@ -124,10 +129,10 @@ RSpec.describe AnonymousSessionMetricsMiddleware do
         env1 = create_env(path: '/test', cookies: { 'dashboard-session-auth' => session_token })
         _status1, headers1, _body1 = middleware.call(env1)
 
-        # Second request with hourly cookie
+        # Second request with hourly cookie (new format: metrics_hours=13)
         cookies_with_hourly = {
           'dashboard-session-auth' => session_token,
-          "metrics_h#{current_hour}" => '1'
+          'metrics_hours' => current_hour
         }
         env2 = create_env(path: '/test', cookies: cookies_with_hourly)
         middleware.call(env2)
@@ -143,7 +148,8 @@ RSpec.describe AnonymousSessionMetricsMiddleware do
         _status, headers, _body = middleware.call(env)
 
         set_cookie = headers['Set-Cookie']
-        hourly_cookie = set_cookie.split("\n").find { |c| c.start_with?("metrics_h#{current_hour}") }
+        cookie_lines = set_cookie.is_a?(Array) ? set_cookie : [set_cookie]
+        hourly_cookie = cookie_lines.find { |c| c.start_with?("metrics_hours") }
 
         expect(hourly_cookie).to include('Domain=.qa-de-1.cloud.sap')
         expect(hourly_cookie).to include('HttpOnly')
@@ -162,8 +168,12 @@ RSpec.describe AnonymousSessionMetricsMiddleware do
         _status, headers, _body = middleware.call(env)
 
         cookies = extract_cookies([nil, headers, nil])
-        expect(cookies['metrics_session_start']).not_to be_nil
-        expect(cookies['metrics_session_start'].to_i).to be > 0
+        expect(cookies['metrics_session']).not_to be_nil
+
+        # Decode and verify session data structure
+        session_data = JSON.parse(Base64.decode64(cookies['metrics_session']))
+        expect(session_data['start']).to be > 0
+        expect(session_data['last_dur']).to be > 0
       end
 
       it 'records duration every 5 minutes' do
@@ -171,10 +181,13 @@ RSpec.describe AnonymousSessionMetricsMiddleware do
         start_time = Time.now.to_i - 600
         last_record = Time.now.to_i - 301  # 5+ minutes ago
 
+        # Encode session data in new format
+        session_data = { start: start_time, last_dur: last_record, features: [] }
+        encoded_session = Base64.strict_encode64(session_data.to_json)
+
         env = create_env(path: '/test', cookies: {
           'dashboard-session-auth' => session_token,
-          'metrics_session_start' => start_time.to_s,
-          'metrics_last_duration_record' => last_record.to_s
+          'metrics_session' => encoded_session
         })
         middleware.call(env)
 
@@ -188,10 +201,13 @@ RSpec.describe AnonymousSessionMetricsMiddleware do
         start_time = Time.now.to_i - 600
         last_record = Time.now.to_i - 100  # Only 100 seconds ago
 
+        # Encode session data in new format
+        session_data = { start: start_time, last_dur: last_record, features: [] }
+        encoded_session = Base64.strict_encode64(session_data.to_json)
+
         env = create_env(path: '/test', cookies: {
           'dashboard-session-auth' => session_token,
-          'metrics_session_start' => start_time.to_s,
-          'metrics_last_duration_record' => last_record.to_s
+          'metrics_session' => encoded_session
         })
 
         # Should not call observe (can't easily test without mocking)
@@ -241,22 +257,23 @@ RSpec.describe AnonymousSessionMetricsMiddleware do
         _status, headers, _body = middleware.call(env)
 
         cookies = extract_cookies([nil, headers, nil])
-        expect(cookies['metrics_features']).not_to be_nil
+        expect(cookies['metrics_session']).not_to be_nil
 
-        # Decode Base64
-        features = JSON.parse(Base64.decode64(cookies['metrics_features']))
-        expect(features).to eq(['compute_index'])
+        # Decode Base64 and check features array
+        session_data = JSON.parse(Base64.decode64(cookies['metrics_session']))
+        expect(session_data['features']).to eq(['compute_index'])
       end
 
       it 'tracks transitions from previous feature' do
-        # First request with previous feature in cookie
-        previous_features_encoded = Base64.strict_encode64(['compute_list'].to_json)
+        # First request with previous feature in session cookie
+        session_data = { start: Time.now.to_i, last_dur: Time.now.to_i, features: ['compute_list'] }
+        session_encoded = Base64.strict_encode64(session_data.to_json)
 
         env = create_env(
           path: '/test',
           cookies: {
             'dashboard-session-auth' => session_token,
-            'metrics_features' => previous_features_encoded
+            'metrics_session' => session_encoded
           }
         )
         middleware.call(env)
@@ -273,21 +290,22 @@ RSpec.describe AnonymousSessionMetricsMiddleware do
 
       it 'limits feature storage to MAX_FEATURES_PER_SESSION' do
         # Start with 5 features (max)
-        previous_features = %w[f1 f2 f3 f4 f5]
-        previous_features_encoded = Base64.strict_encode64(previous_features.to_json)
+        session_data = { start: Time.now.to_i, last_dur: Time.now.to_i, features: %w[f1 f2 f3 f4 f5] }
+        session_encoded = Base64.strict_encode64(session_data.to_json)
 
         env = create_env(
           path: '/test',
           cookies: {
             'dashboard-session-auth' => session_token,
-            'metrics_features' => previous_features_encoded
+            'metrics_session' => session_encoded
           }
         )
         _status, headers, _body = middleware.call(env)
 
         # Should have: f2, f3, f4, f5, compute_index (last 5)
         cookies = extract_cookies([nil, headers, nil])
-        features = JSON.parse(Base64.decode64(cookies['metrics_features']))
+        session_data = JSON.parse(Base64.decode64(cookies['metrics_session']))
+        features = session_data['features']
         expect(features.length).to eq(described_class::MAX_FEATURES_PER_SESSION)
         expect(features).to eq(%w[f2 f3 f4 f5 compute_index])
       end
@@ -298,14 +316,15 @@ RSpec.describe AnonymousSessionMetricsMiddleware do
       let(:current_hour) { Time.now.strftime("%H") }
 
       it 'tracks navigation from Aurora to Elektra' do
-        previous_features_encoded = Base64.strict_encode64(['compute_list'].to_json)
+        session_data = { start: Time.now.to_i, last_dur: Time.now.to_i, features: ['compute_list'] }
+        session_encoded = Base64.strict_encode64(session_data.to_json)
 
         env = create_env(
           path: '/test',
           host: 'dashboard.qa-de-1.cloud.sap',
           cookies: {
             'dashboard-session-auth' => session_token,
-            'metrics_features' => previous_features_encoded
+            'metrics_session' => session_encoded
           },
           referer: 'https://dashboard-aurora.qa-de-1.cloud.sap/domain/project/compute/instances'
         )
@@ -322,14 +341,15 @@ RSpec.describe AnonymousSessionMetricsMiddleware do
       end
 
       it 'tracks navigation from Elektra to Aurora' do
-        previous_features_encoded = Base64.strict_encode64(['network_list'].to_json)
+        session_data = { start: Time.now.to_i, last_dur: Time.now.to_i, features: ['network_list'] }
+        session_encoded = Base64.strict_encode64(session_data.to_json)
 
         env = create_env(
           path: '/test',
           host: 'dashboard-aurora.qa-de-1.cloud.sap',
           cookies: {
             'dashboard-session-auth' => session_token,
-            'metrics_features' => previous_features_encoded
+            'metrics_session' => session_encoded
           },
           referer: 'https://dashboard.qa-de-1.cloud.sap/domain/project/network/routers'
         )
@@ -403,17 +423,18 @@ RSpec.describe AnonymousSessionMetricsMiddleware do
         _status, headers, _body = middleware.call(env)
 
         set_cookie = headers['Set-Cookie']
-        expect(set_cookie).to include('Domain=.qa-de-1.cloud.sap')
+        cookie_lines = set_cookie.is_a?(Array) ? set_cookie : [set_cookie]
+        expect(cookie_lines.any? { |c| c.include?('Domain=.qa-de-1.cloud.sap') }).to be true
       end
 
       it 'respects hourly cookie from Aurora (shared domain)' do
-        # Simulate cookie set by Aurora
+        # Simulate cookie set by Aurora (new format: metrics_hours=14)
         env = create_env(
           path: '/test',
           host: 'dashboard.qa-de-1.cloud.sap',
           cookies: {
             'dashboard-session-auth' => session_token,
-            "metrics_h#{current_hour}" => '1'  # Set by Aurora
+            'metrics_hours' => current_hour  # Set by Aurora
           }
         )
         middleware.call(env)

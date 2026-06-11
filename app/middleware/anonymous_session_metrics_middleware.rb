@@ -99,22 +99,35 @@ class AnonymousSessionMetricsMiddleware
 
       Rails.logger.debug("[AnonymousMetrics] Hour: #{current_hour}, Feature: #{current_feature}, Domain: #{global_domain}")
 
+      # Read session data once at the beginning
+      session_data = read_session_data(request)
+      session_data_modified = false
+
       # Track unique session (cookie deduplication)
       track_unique_session(request, response, current_hour, global_domain)
 
-      # Track session duration (cookie-based)
-      track_session_duration(request, response, global_domain)
+      # Track session duration (updates session_data)
+      if track_session_duration_internal(session_data)
+        session_data_modified = true
+      end
+
+      # Track cross-dashboard navigation (BEFORE updating features)
+      track_cross_dashboard_navigation(request, session_data, current_feature, current_hour)
 
       # Track feature usage and transitions
       if current_feature
         track_feature_usage(current_feature, current_hour)
-        track_feature_transitions(request, response, current_feature, current_hour, global_domain)
+        if track_feature_transitions_internal(session_data, current_feature, current_hour)
+          session_data_modified = true
+        end
       else
         Rails.logger.debug("[AnonymousMetrics] No feature extracted from path_params: #{path_params.inspect}")
       end
 
-      # Track cross-dashboard navigation
-      track_cross_dashboard_navigation(request, current_feature, current_hour)
+      # Write session data once at the end if modified
+      if session_data_modified
+        store_session_data(response, session_data, global_domain)
+      end
 
     rescue => e
       Rails.logger.error("[AnonymousMetrics] Error: #{e.message}")
@@ -168,9 +181,7 @@ class AnonymousSessionMetricsMiddleware
   # SESSION DURATION TRACKING (cookie-based)
   # ==========================================
 
-  def track_session_duration(request, response, global_domain)
-    session_data = read_session_data(request)
-
+  def track_session_duration_internal(session_data)
     if session_data[:start]
       # Calculate current duration
       duration = Time.now.to_i - session_data[:start]
@@ -179,13 +190,15 @@ class AnonymousSessionMetricsMiddleware
       if (Time.now.to_i - session_data[:last_dur]) > 300  # 5 minutes
         @session_duration.observe(duration, labels: { platform: "elektra" })
         session_data[:last_dur] = Time.now.to_i
-        store_session_data(response, session_data, global_domain)
+        return true  # Modified
       end
+      return false  # Not modified
     else
       # First request - store session start time
       session_data[:start] = Time.now.to_i
       session_data[:last_dur] = Time.now.to_i
-      store_session_data(response, session_data, global_domain)
+      session_data[:features] ||= []  # Ensure features array exists
+      return true  # Modified
     end
   end
 
@@ -207,9 +220,8 @@ class AnonymousSessionMetricsMiddleware
   # FEATURE TRANSITIONS (cookie-based)
   # ==========================================
 
-  def track_feature_transitions(request, response, current_feature, current_hour, global_domain)
-    # Read session data (includes features)
-    session_data = read_session_data(request)
+  def track_feature_transitions_internal(session_data, current_feature, current_hour)
+    # Read previous features from session data
     previous_features = session_data[:features] || []
     previous_feature = previous_features.last
 
@@ -234,14 +246,14 @@ class AnonymousSessionMetricsMiddleware
     updated_features = (previous_features + [current_feature]).last(MAX_FEATURES_PER_SESSION)
     Rails.logger.debug("[AnonymousMetrics] Storing features in session: #{updated_features.inspect}")
     session_data[:features] = updated_features
-    store_session_data(response, session_data, global_domain)
+    return true  # Modified
   end
 
   # ==========================================
   # CROSS-DASHBOARD NAVIGATION
   # ==========================================
 
-  def track_cross_dashboard_navigation(request, current_feature, current_hour)
+  def track_cross_dashboard_navigation(request, session_data, current_feature, current_hour)
     referrer = request.referer
     return unless referrer
 
@@ -253,7 +265,6 @@ class AnonymousSessionMetricsMiddleware
     return unless current_dashboard
 
     # Get feature from referrer (stored in session data by other platform)
-    session_data = read_session_data(request)
     referrer_feature = (session_data[:features] || []).last || "unknown"
 
     @cross_dashboard_nav.increment(
