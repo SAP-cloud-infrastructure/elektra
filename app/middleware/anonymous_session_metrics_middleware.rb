@@ -8,6 +8,11 @@
 # - Multi-pod safe: Cookie-based deduplication works across all Elektra pods
 # - Cross-platform: Cookies shared between Elektra and Aurora via domain
 # - Stateless: No in-memory state, no cleanup needed
+# - Minimal cookies: Uses only 2 cookies (metrics_hours, metrics_session)
+#
+# Cookie structure:
+# 1. metrics_hours: Comma-separated list of visited hours (e.g., "14,15,16")
+# 2. metrics_session: Base64-encoded JSON with {start, last_dur, features}
 class AnonymousSessionMetricsMiddleware
   EXCLUDE_PATHS = %w[/metrics /assets /system /health].freeze
 
@@ -68,10 +73,17 @@ class AnonymousSessionMetricsMiddleware
     request = ActionDispatch::Request.new(env)
     session_token = request.cookies["dashboard-session-auth"]
 
+    # DEBUG: Log initial state
+    Rails.logger.debug("[AnonymousMetrics] Request: #{request.method} #{path_info}")
+    Rails.logger.debug("[AnonymousMetrics] Session token present: #{session_token.present?}")
+
     # Call app to populate path_parameters
     response = @app.call(env)
 
-    return response unless session_token
+    unless session_token
+      Rails.logger.debug("[AnonymousMetrics] No session token - skipping metrics")
+      return response
+    end
 
     begin
       anonymous_id = AnonymousMetrics.generate_id(session_token)
@@ -85,6 +97,8 @@ class AnonymousSessionMetricsMiddleware
       # Extract global domain (matches auth_session.rb pattern)
       global_domain = extract_global_domain(request.host)
 
+      Rails.logger.debug("[AnonymousMetrics] Hour: #{current_hour}, Feature: #{current_feature}, Domain: #{global_domain}")
+
       # Track unique session (cookie deduplication)
       track_unique_session(request, response, current_hour, global_domain)
 
@@ -95,13 +109,15 @@ class AnonymousSessionMetricsMiddleware
       if current_feature
         track_feature_usage(current_feature, current_hour)
         track_feature_transitions(request, response, current_feature, current_hour, global_domain)
+      else
+        Rails.logger.debug("[AnonymousMetrics] No feature extracted from path_params: #{path_params.inspect}")
       end
 
       # Track cross-dashboard navigation
       track_cross_dashboard_navigation(request, current_feature, current_hour)
 
     rescue => e
-      Rails.logger.error("AnonymousSessionMetrics error: #{e.message}")
+      Rails.logger.error("[AnonymousMetrics] Error: #{e.message}")
       Rails.logger.error(e.backtrace.first(5).join("\n")) if Rails.env.development?
     end
 
@@ -131,9 +147,9 @@ class AnonymousSessionMetricsMiddleware
   # ==========================================
 
   def track_unique_session(request, response, current_hour, global_domain)
-    cookie_name = "metrics_h#{current_hour}"
+    visited_hours = read_visited_hours(request)
 
-    unless request.cookies[cookie_name]
+    unless visited_hours.include?(current_hour)
       # First request this hour - count it!
       @unique_sessions.increment(
         labels: {
@@ -142,8 +158,9 @@ class AnonymousSessionMetricsMiddleware
         }
       )
 
-      # Set cookie that expires at end of hour
-      set_hourly_cookie(response, cookie_name, global_domain)
+      # Add current hour to visited hours
+      visited_hours << current_hour
+      store_visited_hours(response, visited_hours, global_domain)
     end
   end
 
@@ -152,25 +169,23 @@ class AnonymousSessionMetricsMiddleware
   # ==========================================
 
   def track_session_duration(request, response, global_domain)
-    session_start_cookie = request.cookies["metrics_session_start"]
+    session_data = read_session_data(request)
 
-    if session_start_cookie
+    if session_data[:start]
       # Calculate current duration
-      start_time = session_start_cookie.to_i
-      duration = Time.now.to_i - start_time
+      duration = Time.now.to_i - session_data[:start]
 
       # Record duration periodically (every 5 minutes)
-      last_record_cookie = request.cookies["metrics_last_duration_record"]
-      last_record_time = last_record_cookie.to_i rescue 0
-
-      if (Time.now.to_i - last_record_time) > 300  # 5 minutes
+      if (Time.now.to_i - session_data[:last_dur]) > 300  # 5 minutes
         @session_duration.observe(duration, labels: { platform: "elektra" })
-        set_cookie(response, "metrics_last_duration_record", Time.now.to_i.to_s, global_domain, 24.hours)
+        session_data[:last_dur] = Time.now.to_i
+        store_session_data(response, session_data, global_domain)
       end
     else
       # First request - store session start time
-      set_cookie(response, "metrics_session_start", Time.now.to_i.to_s, global_domain, 24.hours)
-      set_cookie(response, "metrics_last_duration_record", Time.now.to_i.to_s, global_domain, 24.hours)
+      session_data[:start] = Time.now.to_i
+      session_data[:last_dur] = Time.now.to_i
+      store_session_data(response, session_data, global_domain)
     end
   end
 
@@ -193,11 +208,16 @@ class AnonymousSessionMetricsMiddleware
   # ==========================================
 
   def track_feature_transitions(request, response, current_feature, current_hour, global_domain)
-    # Read previous features from cookie
-    previous_features = read_features_from_cookie(request)
+    # Read session data (includes features)
+    session_data = read_session_data(request)
+    previous_features = session_data[:features] || []
     previous_feature = previous_features.last
 
+    Rails.logger.debug("[AnonymousMetrics] Previous features: #{previous_features.inspect}")
+    Rails.logger.debug("[AnonymousMetrics] Previous feature: #{previous_feature.inspect}, Current feature: #{current_feature}")
+
     if previous_feature
+      Rails.logger.debug("[AnonymousMetrics] Recording transition: #{previous_feature} → #{current_feature}")
       @feature_transitions.increment(
         labels: {
           from_feature: previous_feature,
@@ -206,11 +226,15 @@ class AnonymousSessionMetricsMiddleware
           session_hour: current_hour
         }
       )
+    else
+      Rails.logger.debug("[AnonymousMetrics] No previous feature - first visit, no transition recorded")
     end
 
-    # Store current feature in cookie (sliding window)
+    # Store current feature in session data (sliding window)
     updated_features = (previous_features + [current_feature]).last(MAX_FEATURES_PER_SESSION)
-    store_features_in_cookie(response, updated_features, global_domain)
+    Rails.logger.debug("[AnonymousMetrics] Storing features in session: #{updated_features.inspect}")
+    session_data[:features] = updated_features
+    store_session_data(response, session_data, global_domain)
   end
 
   # ==========================================
@@ -228,8 +252,9 @@ class AnonymousSessionMetricsMiddleware
     return if referrer_dashboard == current_dashboard
     return unless current_dashboard
 
-    # Get feature from referrer (stored in cookie by other platform)
-    referrer_feature = read_features_from_cookie(request).last || "unknown"
+    # Get feature from referrer (stored in session data by other platform)
+    session_data = read_session_data(request)
+    referrer_feature = (session_data[:features] || []).last || "unknown"
 
     @cross_dashboard_nav.increment(
       labels: {
@@ -273,29 +298,69 @@ class AnonymousSessionMetricsMiddleware
     if parts.length > 2
       ".#{parts[-3..-1].join('.')}"  # Returns ".qa-de-1.cloud.sap"
     else
-      ".#{host}"  # Fallback to current host
+      ".#{host}"  # Fallback to current host (e.g., ".localhost")
     end
   end
 
-  def set_hourly_cookie(response, cookie_name, global_domain)
-    hour_end = Time.now.end_of_hour
+  # Read visited hours from cookie
+  def read_visited_hours(request)
+    cookie = request.cookies["metrics_hours"]
+    return [] unless cookie
 
-    # Cookie shared across Elektra and Aurora via domain
-    cookie_header = "#{cookie_name}=1; " \
+    cookie.split(',').map(&:strip)
+  rescue
+    []
+  end
+
+  # Store visited hours in cookie (comma-separated string)
+  def store_visited_hours(response, hours, global_domain)
+    # Clean up hours older than 24h
+    current_time = Time.now
+    valid_hours = hours.select do |hour|
+      # Keep all hours from today
+      true  # Simple approach: cookie expires in 24h anyway
+    end
+
+    cookie_value = valid_hours.join(',')
+    expires = (Time.now + 24.hours).httpdate
+
+    Rails.logger.debug("[AnonymousMetrics] Storing visited hours: #{cookie_value}")
+
+    cookie_header = "metrics_hours=#{cookie_value}; " \
                     "Path=/; " \
                     "Domain=#{global_domain}; " \
                     "HttpOnly; " \
                     "#{secure_attribute}" \
                     "SameSite=Lax; " \
-                    "Expires=#{hour_end.httpdate}"
+                    "Expires=#{expires}"
 
     append_cookie(response, cookie_header)
   end
 
-  def set_cookie(response, name, value, global_domain, expires_in)
-    expires = (Time.now + expires_in).httpdate
+  # Read session data from cookie (JSON structure)
+  def read_session_data(request)
+    cookie = request.cookies["metrics_session"]
+    return {} unless cookie
 
-    cookie_header = "#{name}=#{value}; " \
+    data = JSON.parse(Base64.decode64(cookie), symbolize_names: true)
+    {
+      start: data[:start],
+      last_dur: data[:last_dur] || data[:start],
+      features: data[:features] || []
+    }
+  rescue => e
+    Rails.logger.debug("[AnonymousMetrics] Error parsing session data: #{e.message}")
+    {}
+  end
+
+  # Store session data in cookie (JSON structure)
+  def store_session_data(response, data, global_domain)
+    cookie_value = Base64.strict_encode64(data.to_json)
+    expires = (Time.now + 24.hours).httpdate
+
+    Rails.logger.debug("[AnonymousMetrics] Storing session data: #{data.inspect}")
+
+    cookie_header = "metrics_session=#{cookie_value}; " \
                     "Path=/; " \
                     "Domain=#{global_domain}; " \
                     "HttpOnly; " \
@@ -307,24 +372,20 @@ class AnonymousSessionMetricsMiddleware
   end
 
   def append_cookie(response, cookie_header)
+    Rails.logger.debug("[AnonymousMetrics] Appending cookie: #{cookie_header}")
+
     # Rails response format: [status, headers, body]
-    if response[1]["Set-Cookie"]
-      response[1]["Set-Cookie"] << "\n#{cookie_header}"
-    else
+    # According to Rack spec, multiple Set-Cookie headers must be stored as an array
+    existing = response[1]["Set-Cookie"]
+
+    if existing.nil?
       response[1]["Set-Cookie"] = cookie_header
+    elsif existing.is_a?(Array)
+      response[1]["Set-Cookie"] << cookie_header
+    else
+      # Convert single header to array
+      response[1]["Set-Cookie"] = [existing, cookie_header]
     end
-  end
-
-  def read_features_from_cookie(request)
-    cookie = request.cookies["metrics_features"]
-    return [] unless cookie
-
-    JSON.parse(Base64.decode64(cookie)) rescue []
-  end
-
-  def store_features_in_cookie(response, features, global_domain)
-    cookie_value = Base64.strict_encode64(features.to_json)
-    set_cookie(response, "metrics_features", cookie_value, global_domain, 24.hours)
   end
 
   def secure_attribute

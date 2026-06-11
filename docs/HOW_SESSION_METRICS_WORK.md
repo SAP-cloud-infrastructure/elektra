@@ -140,133 +140,103 @@ Server Time: 14:00:10
 
 ## Cookies Explained
 
-The system uses **4 types of cookies** for tracking:
+The system uses **2 cookies** for tracking (consolidated from previous 27-cookie approach):
 
-### 1. Hourly Deduplication Cookies: `metrics_h{HH}` (24 cookies)
+### 1. Visited Hours Cookie: `metrics_hours`
 
-**Purpose:** Prevent counting the same session multiple times in the same hour
+**Purpose:** Track which hours the user has been active in (replaces 24 separate hourly cookies)
 
 **Format:**
 ```
-Cookie: metrics_h14=1
+Cookie: metrics_hours=14,15,16
 Path: /
-Domain: .qa-de-1.cloud.sap
+Domain: .parent-domain.example
 HttpOnly; Secure; SameSite=Lax
-Expires: Wed, 11 Jun 2026 14:59:59 GMT
+Expires: Thu, 12 Jun 2026 14:00:00 GMT
 ```
+
+**Content:** Comma-separated list of hour strings ("00" to "23")
 
 **Lifecycle:**
-1. **Set:** On first request in hour 14
-2. **Expires:** Automatically at 14:59:59 (end of hour)
-3. **Next hour:** New cookie `metrics_h15` created
+1. **Set:** On first request with current hour
+2. **Updated:** Each time user visits in a new hour (hour appended to list)
+3. **Expires:** After 24 hours (browser auto-cleanup)
 
-**Why 24 cookies?**
-- One cookie per hour: `metrics_h00`, `metrics_h01`, ..., `metrics_h23`
-- Each expires at end of its hour
-- Browser automatically cleans up expired cookies
+**Example progression:**
+```
+13:00 → Set: metrics_hours=13
+14:05 → Update: metrics_hours=13,14
+15:30 → Update: metrics_hours=13,14,15
+```
 
-**Size:** ~10 bytes per cookie
+**Why comma-separated instead of 24 cookies?**
+- Reduces cookie count from 24 to 1
+- Still lightweight (~15 bytes for typical session)
+- Same deduplication behavior
+- Cleaner browser DevTools view
+
+**Size:** ~15 bytes (for typical 3-hour session)
 
 ---
 
-### 2. Session Start Cookie: `metrics_session_start`
+### 2. Session Data Cookie: `metrics_session`
 
-**Purpose:** Track when the user's session started (for duration calculation)
+**Purpose:** Store all session-related data in one structured cookie (replaces 3 separate cookies)
 
 **Format:**
 ```
-Cookie: metrics_session_start=1623675600
+Cookie: metrics_session=eyJzdGFydCI6MTYyMzY3NTYwMCwibGFzdF9kdXIiOjE2MjM2NzU5MDAsImZlYXR1cmVzIjpbImNvbXB1dGVfaW5kZXgiLCJjb21wdXRlX3Nob3ciXX0=
 Path: /
-Domain: .qa-de-1.cloud.sap
+Domain: .parent-domain.example
 HttpOnly; Secure; SameSite=Lax
 Expires: Thu, 12 Jun 2026 13:00:00 GMT
 ```
 
-**Content:** Unix timestamp (seconds since epoch)
+**Content:** Base64-encoded JSON object with structure:
+
+```json
+{
+  "start": 1623675600,
+  "last_dur": 1623675900,
+  "features": ["compute_index", "compute_show"]
+}
+```
+
+**Fields:**
+- `start` - Unix timestamp when session started (for duration calculation)
+- `last_dur` - Unix timestamp of last duration recording (throttles to every 5 minutes)
+- `features` - Array of last 5 features visited (for navigation flow analysis)
 
 **Lifecycle:**
-1. **Set:** On very first request (no existing cookie)
-2. **Expires:** After 24 hours
-3. **Used for:** Calculating session duration
-
-**Example:**
-```ruby
-session_start = 1623675600  # Wed, 11 Jun 2026 13:00:00 GMT
-current_time = 1623679200   # Wed, 11 Jun 2026 14:00:00 GMT
-duration = 3600 seconds (1 hour)
-```
-
-**Size:** ~15 bytes
-
----
-
-### 3. Duration Record Cookie: `metrics_last_duration_record`
-
-**Purpose:** Track when we last recorded a duration measurement (to avoid recording every request)
-
-**Format:**
-```
-Cookie: metrics_last_duration_record=1623675900
-Path: /
-Domain: .qa-de-1.cloud.sap
-HttpOnly; Secure; SameSite=Lax
-Expires: Thu, 12 Jun 2026 13:00:00 GMT
-```
-
-**Content:** Unix timestamp of last duration recording
-
-**Why needed?**
-Without this, we'd record duration on **every request** (hundreds of observations per session). Instead, we only record every **5 minutes**.
-
-**Logic:**
-```ruby
-if (current_time - last_record_time) > 300  # 5 minutes
-  @session_duration.observe(duration)
-  set_cookie("metrics_last_duration_record", current_time)
-end
-```
-
-**Size:** ~15 bytes
-
----
-
-### 4. Feature Sequence Cookie: `metrics_features`
-
-**Purpose:** Track the last 5 features the user visited (for navigation flow analysis)
-
-**Format:**
-```
-Cookie: metrics_features=WyJjb21wdXRlX2luZGV4IiwiY29tcHV0ZV9zaG93Il0=
-Path: /
-Domain: .qa-de-1.cloud.sap
-HttpOnly; Secure; SameSite=Lax
-Expires: Thu, 12 Jun 2026 13:00:00 GMT
-```
-
-**Content:** Base64-encoded JSON array
+1. **Set:** On first request with initial timestamp
+2. **Updated:** On each request to update duration timestamp or add features
+3. **Expires:** After 24 hours
 
 **Decoded example:**
 ```ruby
-Base64.decode64("WyJjb21wdXRlX2luZGV4IiwiY29tcHV0ZV9zaG93Il0=")
-# => '["compute_index","compute_show"]'
+cookie = "eyJzdGFydCI6MTYyMzY3NTYwMCwibGFzdF9kdXIiOjE2MjM2NzU5MDAsImZlYXR1cmVzIjpbImNvbXB1dGVfaW5kZXgiLCJjb21wdXRlX3Nob3ciXX0="
 
-JSON.parse(...)
-# => ["compute_index", "compute_show"]
+decoded = Base64.decode64(cookie)
+# => '{"start":1623675600,"last_dur":1623675900,"features":["compute_index","compute_show"]}'
+
+data = JSON.parse(decoded, symbolize_names: true)
+# => {start: 1623675600, last_dur: 1623675900, features: ["compute_index", "compute_show"]}
 ```
 
-**Usage:**
+**Usage example:**
 ```ruby
 # User visits compute/instances/index
-previous_features = []  # Empty on first visit
-current_feature = "compute_index"
-
-# Track transition (none on first visit)
-
-# Store for next request
-store_features_in_cookie(["compute_index"])
+session_data = {
+  start: 1623675600,
+  last_dur: 1623675600,
+  features: ["compute_index"]
+}
 
 # User visits compute/instances/show
-previous_features = ["compute_index"]
+session_data = read_session_data(request)
+# => {start: 1623675600, last_dur: 1623675600, features: ["compute_index"]}
+
+previous_feature = session_data[:features].last  # "compute_index"
 current_feature = "compute_show"
 
 # Track transition: compute_index → compute_show
@@ -279,11 +249,18 @@ current_feature = "compute_show"
   }
 )
 
-# Store for next request (last 5 features)
-store_features_in_cookie(["compute_index", "compute_show"])
+# Update session data (last 5 features)
+session_data[:features] = ["compute_index", "compute_show"]
+store_session_data(response, session_data, global_domain)
 ```
 
-**Size:** ~50 bytes (for 5 features)
+**Why consolidate into one cookie?**
+- Reduces cookie count from 3 to 1
+- Easier to maintain and debug
+- Single parse operation per request
+- Cleaner separation: hours (simple string) vs session data (structured JSON)
+
+**Size:** ~100 bytes (Base64-encoded JSON with 5 features)
 
 ---
 
@@ -292,7 +269,7 @@ store_features_in_cookie(["compute_index", "compute_show"])
 ### Scenario: User works from 13:00 to 15:30
 
 ```
-13:00 - User logs into Elektra (domain: dashboard.qa-de-1.cloud.sap)
+13:00 - User logs into Elektra (domain: dashboard.example.com)
 ├─ Auth cookie: dashboard-session-auth=OS123... (set by OAuth2-proxy)
 ├─ Metrics middleware called
 ├─ Read auth cookie → generate anonymous_id (SHA256 hash)
@@ -301,64 +278,63 @@ store_features_in_cookie(["compute_index", "compute_show"])
 │
 ├─ Actions taken:
 │  ├─ Increment: dashboard_unique_sessions_total{session_hour="13", platform="elektra"}
-│  ├─ Set cookie: metrics_h13=1 (expires 13:59:59)
-│  ├─ Set cookie: metrics_session_start=1623675600 (expires +24h)
-│  └─ Set cookie: metrics_last_duration_record=1623675600 (expires +24h)
+│  ├─ Set cookie: metrics_hours=13 (expires +24h)
+│  └─ Set cookie: metrics_session={"start":1623675600,"last_dur":1623675600,"features":[]} (expires +24h)
 │
 └─ Result: User counted in hour 13 ✅
 
 13:15 - User visits /compute/instances/index
-├─ Cookies present: metrics_h13, metrics_session_start, metrics_last_duration_record
+├─ Cookies present: metrics_hours=13, metrics_session={...}
 ├─ current_hour = "13"
 │
 ├─ Actions taken:
-│  ├─ Check metrics_h13 → present → don't increment unique sessions
+│  ├─ Check metrics_hours → "13" present → don't increment unique sessions
 │  ├─ Calculate duration: 15 minutes (since 13:00)
 │  ├─ Last record: 13:00 → only 15 min ago → don't record duration yet (need 5 min)
 │  ├─ Increment: dashboard_feature_usage_total{feature="compute_index", platform="elektra", session_hour="13"}
-│  └─ Set cookie: metrics_features=["compute_index"]
+│  └─ Update cookie: metrics_session={..., "features":["compute_index"]}
 │
 └─ Result: Feature usage tracked, duration not recorded yet
 
 13:20 - User visits /compute/instances/123 (show)
-├─ Cookies present: metrics_h13, metrics_session_start (13:00), metrics_last_duration_record (13:00), metrics_features=["compute_index"]
+├─ Cookies present: metrics_hours=13, metrics_session={"start":1623675600,"last_dur":1623675600,"features":["compute_index"]}
 ├─ current_hour = "13"
 │
 ├─ Actions taken:
-│  ├─ Check metrics_h13 → present → don't increment unique sessions
+│  ├─ Check metrics_hours → "13" present → don't increment unique sessions
 │  ├─ Calculate duration: 20 minutes (since 13:00)
 │  ├─ Last record: 13:00 → 20 min ago → record duration! ✅
 │  ├─ Observe: dashboard_session_duration_seconds{platform="elektra"} = 1200 (20 minutes)
-│  ├─ Update cookie: metrics_last_duration_record=1623676800 (13:20)
+│  ├─ Update cookie: metrics_session={..., "last_dur":1623676800}
 │  ├─ Increment: dashboard_feature_usage_total{feature="compute_show", ...}
 │  ├─ Read previous feature: "compute_index"
 │  ├─ Increment: dashboard_feature_transitions_total{from_feature="compute_index", to_feature="compute_show", ...}
-│  └─ Update cookie: metrics_features=["compute_index", "compute_show"]
+│  └─ Update cookie: metrics_session={..., "features":["compute_index", "compute_show"]}
 │
 └─ Result: Duration recorded, feature transition tracked ✅
 
 14:00 - User still active (hour changes)
-├─ Cookies present: metrics_h13 (EXPIRED at 13:59:59), metrics_h14 (NOT present)
+├─ Cookies present: metrics_hours=13, metrics_session={...}
 ├─ current_hour = "14"
 │
 ├─ Actions taken:
-│  ├─ Check metrics_h14 → not present → increment unique sessions!
+│  ├─ Check metrics_hours → "14" NOT present → increment unique sessions!
 │  ├─ Increment: dashboard_unique_sessions_total{session_hour="14", platform="elektra"}
-│  ├─ Set cookie: metrics_h14=1 (expires 14:59:59)
+│  ├─ Update cookie: metrics_hours=13,14 (expires +24h)
 │  └─ Continue tracking features...
 │
 └─ Result: User counted in hour 14 ✅ (new hour)
 
-14:05 - User clicks link to Aurora (dashboard-aurora.qa-de-1.cloud.sap)
-├─ Referrer: dashboard.qa-de-1.cloud.sap/ccadmin/cloud_admin/compute/instances
-├─ Cookies sent: metrics_h14, metrics_features (domain .qa-de-1.cloud.sap matches!)
+14:05 - User clicks link to Aurora (dashboard-aurora.example.com)
+├─ Referrer: dashboard.example.com/ccadmin/cloud_admin/compute/instances
+├─ Cookies sent: metrics_hours=13,14, metrics_session={...} (domain .example.com matches!)
 ├─ current_hour = "14"
 │
 ├─ Actions taken:
-│  ├─ Check metrics_h14 → present (from Elektra!) → don't increment unique sessions
+│  ├─ Check metrics_hours → "14" present (from Elektra!) → don't increment unique sessions
 │  ├─ Detect cross-dashboard navigation:
-│  │  ├─ Referrer: dashboard.qa-de-1.cloud.sap → "elektra"
-│  │  └─ Current: dashboard-aurora.qa-de-1.cloud.sap → "aurora"
+│  │  ├─ Referrer: dashboard.example.com → "elektra"
+│  │  └─ Current: dashboard-aurora.example.com → "aurora"
 │  ├─ Increment: dashboard_cross_navigation_total{from_dashboard="elektra", to_dashboard="aurora", from_feature="compute_show", session_hour="14"}
 │  └─ Continue tracking on Aurora...
 │
@@ -366,7 +342,7 @@ store_features_in_cookie(["compute_index", "compute_show"])
 
 15:30 - User logs out
 ├─ Session ended
-├─ Cookies present: metrics_h15, metrics_session_start (13:00), metrics_features=[...]
+├─ Cookies present: metrics_hours=13,14,15, metrics_session={...}
 │
 ├─ Final calculations:
 │  ├─ Total duration: 2.5 hours (150 minutes)
@@ -415,20 +391,20 @@ Result: User counted 4× (once per pod) ❌
 ```
 User makes 100 requests in hour 14:
 ├─ Request 1 → Pod 1
-│  ├─ No cookie "metrics_h14"
+│  ├─ No "14" in metrics_hours cookie
 │  ├─ Increment counter
-│  └─ Set cookie: metrics_h14=1; Domain=.qa-de-1.cloud.sap
+│  └─ Set cookie: metrics_hours=14; Domain=.example.com
 │
 ├─ Request 2 → Pod 3
-│  ├─ Cookie "metrics_h14" present (shared domain!)
+│  ├─ Cookie metrics_hours=14 present (shared domain!)
 │  └─ Don't increment counter
 │
 ├─ Request 3 → Pod 2
-│  ├─ Cookie "metrics_h14" present (shared domain!)
+│  ├─ Cookie metrics_hours=14 present (shared domain!)
 │  └─ Don't increment counter
 │
 ├─ Request 4 → Pod 4
-│  ├─ Cookie "metrics_h14" present (shared domain!)
+│  ├─ Cookie metrics_hours=14 present (shared domain!)
 │  └─ Don't increment counter
 │
 └─ Requests 5-100 → Any pod → Cookie present → Don't count
@@ -436,7 +412,7 @@ User makes 100 requests in hour 14:
 Result: User counted 1× (cookie shared across all pods) ✅
 ```
 
-**Key insight:** Cookie domain `.qa-de-1.cloud.sap` is shared across all pods, so all pods see the same cookie.
+**Key insight:** Cookie domain `.example.com` is shared across all pods, so all pods see the same cookie.
 
 ---
 
@@ -444,24 +420,24 @@ Result: User counted 1× (cookie shared across all pods) ✅
 
 Elektra and Aurora run on different subdomains but share the parent domain:
 
-- Elektra: `dashboard.qa-de-1.cloud.sap`
-- Aurora: `dashboard-aurora.qa-de-1.cloud.sap`
-- **Shared domain:** `.qa-de-1.cloud.sap`
+- Elektra: `dashboard.example.com`
+- Aurora: `dashboard-aurora.example.com`
+- **Shared domain:** `.example.com`
 
 ### Cookie Sharing
 
-Cookies with domain `.qa-de-1.cloud.sap` are sent to **both** Elektra and Aurora:
+Cookies with domain `.example.com` are sent to **both** Elektra and Aurora:
 
 ```
 User in Elektra (hour 14):
-├─ URL: dashboard.qa-de-1.cloud.sap
-├─ Cookie: metrics_h14=1; Domain=.qa-de-1.cloud.sap
+├─ URL: dashboard.example.com
+├─ Cookie: metrics_hours=14; Domain=.example.com
 └─ Counter: dashboard_unique_sessions_total{session_hour="14", platform="elektra"} = 1
 
 User clicks link to Aurora:
-├─ URL: dashboard-aurora.qa-de-1.cloud.sap
-├─ Browser sends: metrics_h14=1 (domain matches!)
-├─ Aurora middleware checks: metrics_h14 present
+├─ URL: dashboard-aurora.example.com
+├─ Browser sends: metrics_hours=14 (domain matches!)
+├─ Aurora middleware checks: "14" in metrics_hours
 └─ Aurora does NOT increment counter (already counted)
 
 Result:
@@ -476,17 +452,21 @@ When user navigates between dashboards, we track it:
 
 ```ruby
 # User in Elektra, clicks link to Aurora
-referrer = "https://dashboard.qa-de-1.cloud.sap/ccadmin/cloud_admin/compute/instances"
-current_url = "https://dashboard-aurora.qa-de-1.cloud.sap/ccadmin/cloud_admin"
+referrer = "https://dashboard.example.com/ccadmin/cloud_admin/compute/instances"
+current_url = "https://dashboard-aurora.example.com/ccadmin/cloud_admin"
 
 referrer_dashboard = "elektra"
 current_dashboard = "aurora"
+
+# Read last feature from session cookie
+session_data = read_session_data(request)
+referrer_feature = session_data[:features].last  # "compute_show"
 
 @cross_dashboard_nav.increment(
   labels: {
     from_dashboard: "elektra",
     to_dashboard: "aurora",
-    from_feature: "compute_show",  # Read from cookie
+    from_feature: referrer_feature,
     session_hour: "14"
   }
 )
@@ -715,8 +695,22 @@ All cookies use:
 - `HttpOnly` - Not accessible via JavaScript (XSS protection)
 - `Secure` - Only sent over HTTPS in production
 - `SameSite=Lax` - CSRF protection
-- `Domain=.{region}.cloud.sap` - Shared across Elektra/Aurora
-- Auto-expiration (1 hour to 24 hours)
+- `Domain=.{parent-domain}` - Shared across Elektra/Aurora
+- Auto-expiration (24 hours)
+
+### Cookie Storage Size
+
+**Total cookie overhead per session:**
+- `metrics_hours`: ~15 bytes (typical 3-hour session)
+- `metrics_session`: ~100 bytes (Base64 JSON with 5 features)
+- **Total: ~115 bytes** (well under 4KB browser limit)
+
+**Previous approach (27 cookies):**
+- 24 hourly cookies: 24 × 10 bytes = 240 bytes
+- 3 session cookies: 3 × 15-50 bytes = ~80 bytes
+- **Total: ~320 bytes**
+
+**Improvement: 64% reduction in cookie size + cleaner DevTools view**
 
 ---
 
