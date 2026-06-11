@@ -82,7 +82,6 @@ module MonsoonDashboard
 
     # rack middlewares
     config.middleware.use HttpMetricsCollectorMiddleware
-    config.middleware.use InquiryMetricsMiddleware
     config.middleware.use SLIMetricsMiddleware
     config.middleware.use HttpMetricsExporterMiddleware
     config.middleware.use RevisionMiddleware
@@ -158,6 +157,10 @@ module MonsoonDashboard
 
     # Mailer configuration for inquiries/requests
     config.limes_mail_server_endpoint = ENV["LIMES_MAIL_SERVER_API_ENDPOINT"]
+
+    # Feedback recipient email address(es) for the feedback form in the UI
+    # Supports single email or comma-separated multiple emails: email1@example.com,email2@example.com
+    config.feedback_recipient_emails = ENV['FEEDBACK_RECIPIENT_EMAIL']&.split(',')&.map(&:strip)
 
     # Cross-dashboard authentication cookie name for SSO (Elektra <-> Aurora)
     config.cross_dashboard_cookie_name = ENV['CROSS_DASHBOARD_COOKIE_NAME'] || 'dashboard-session-auth'
