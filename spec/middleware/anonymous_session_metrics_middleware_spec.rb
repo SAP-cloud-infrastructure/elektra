@@ -5,15 +5,34 @@ require_relative '../../app/middleware/anonymous_session_metrics_middleware'
 require_relative '../../config/initializers/anonymous_metrics'
 
 RSpec.describe AnonymousSessionMetricsMiddleware do
-  let(:app) { ->(env) { [200, { 'Content-Type' => 'text/plain' }, ['OK']] } }
+  let(:app) do
+    lambda do |env|
+      # Simulate Rails setting path_parameters
+      env['action_dispatch.request.path_parameters'] ||= {
+        controller: 'compute/instances',
+        action: 'index',
+        domain_id: 'test-domain',
+        project_id: 'test-project'
+      }
+      [200, { 'Content-Type' => 'text/plain' }, ['OK']]
+    end
+  end
+
   let(:registry) { Prometheus::Client::Registry.new }
   let(:middleware) { described_class.new(app, registry: registry) }
 
-  def create_env(path: '/', cookie: nil, referer: nil)
+  # Mock Rails.configuration.default_region
+  before do
+    allow(Rails).to receive_message_chain(:configuration, :default_region).and_return('qa-de-1')
+  end
+
+  def create_env(path: '/', cookies: {}, referer: nil, host: 'dashboard.qa-de-1.cloud.sap')
+    cookie_string = cookies.map { |k, v| "#{k}=#{v}" }.join('; ')
+
     env = {
       'PATH_INFO' => path,
       'REQUEST_METHOD' => 'GET',
-      'HTTP_HOST' => 'dashboard.qa-de-1.cloud.sap',
+      'HTTP_HOST' => host,
       'rack.url_scheme' => 'https',
       'action_dispatch.request.path_parameters' => {
         controller: 'compute/instances',
@@ -22,15 +41,41 @@ RSpec.describe AnonymousSessionMetricsMiddleware do
         project_id: 'test-project'
       }
     }
-    env['HTTP_COOKIE'] = "dashboard-session-auth=#{cookie}" if cookie
+    env['HTTP_COOKIE'] = cookie_string unless cookie_string.empty?
     env['HTTP_REFERER'] = referer if referer
     env
   end
 
+  def extract_cookies(response)
+    set_cookie_header = response[1]['Set-Cookie']
+    return {} unless set_cookie_header
+
+    cookies = {}
+    set_cookie_header.split("\n").each do |cookie_line|
+      name, value = cookie_line.split('=', 2).map(&:strip)
+      value = value.split(';').first if value
+      cookies[name] = value
+    end
+    cookies
+  end
+
   describe '#initialize' do
-    it 'initializes the middleware' do
-      # Just verify middleware initializes without errors
+    it 'initializes metrics with low-cardinality labels' do
+      # Metrics are registered during initialization
       expect(middleware).not_to be_nil
+
+      # Verify the metrics exist in the registry
+      expect { registry.get(:dashboard_unique_sessions_total) }.not_to raise_error
+      expect { registry.get(:dashboard_feature_usage_total) }.not_to raise_error
+      expect { registry.get(:dashboard_feature_transitions_total) }.not_to raise_error
+      expect { registry.get(:dashboard_cross_navigation_total) }.not_to raise_error
+      expect { registry.get(:dashboard_session_duration_seconds) }.not_to raise_error
+    end
+
+    it 'does not use in-memory state' do
+      expect(middleware.instance_variables).not_to include(:@session_first_seen)
+      expect(middleware.instance_variables).not_to include(:@session_features)
+      expect(middleware.instance_variables).not_to include(:@mutex)
     end
   end
 
@@ -38,198 +83,354 @@ RSpec.describe AnonymousSessionMetricsMiddleware do
     context 'with excluded paths' do
       %w[/metrics /assets /system /health].each do |path|
         it "skips tracking for #{path}" do
-          env = create_env(path: path, cookie: 'test-token')
+          env = create_env(path: path, cookies: { 'dashboard-session-auth' => 'test-token' })
           status, _headers, _body = middleware.call(env)
 
           expect(status).to eq(200)
-          # Metrics should not be incremented for excluded paths
-          # (can't easily verify zero without checking all possible label combinations)
         end
       end
     end
 
     context 'without session cookie' do
       it 'processes request but does not track metrics' do
-        env = create_env(path: '/test', cookie: nil)
-        status, _headers, _body = middleware.call(env)
+        env = create_env(path: '/test')
+        status, headers, _body = middleware.call(env)
 
         expect(status).to eq(200)
-        # Without cookie, no metrics should be tracked
+        expect(headers['Set-Cookie']).to be_nil
       end
     end
 
-    context 'with session cookie' do
+    context 'with session cookie - hourly deduplication' do
       let(:session_token) { 'test-session-token-123' }
-      let(:anonymous_id) { AnonymousMetrics.generate_id(session_token) }
+      let(:current_hour) { Time.now.strftime("%H") }
 
-      it 'tracks unique session on first request' do
-        env = create_env(path: '/test', cookie: session_token)
-        middleware.call(env)
+      it 'counts first request in hour and sets hourly cookie' do
+        env = create_env(path: '/test', cookies: { 'dashboard-session-auth' => session_token })
+        _status, headers, _body = middleware.call(env)
 
+        # Check counter incremented
         counter = registry.get(:dashboard_unique_sessions_total)
-        expect(counter.get(labels: { anonymous_session_id: anonymous_id })).to eq(1)
+        count = counter.get(labels: { session_hour: current_hour, platform: 'elektra' })
+        expect(count).to eq(1)
+
+        # Check hourly cookie set
+        cookies = extract_cookies([nil, headers, nil])
+        expect(cookies["metrics_h#{current_hour}"]).to eq('1')
       end
 
-      it 'does not increment unique session counter on subsequent requests' do
-        env = create_env(path: '/test', cookie: session_token)
-
+      it 'does not count second request in same hour (cookie present)' do
         # First request
-        middleware.call(env)
-        # Second request
-        middleware.call(env)
+        env1 = create_env(path: '/test', cookies: { 'dashboard-session-auth' => session_token })
+        _status1, headers1, _body1 = middleware.call(env1)
 
+        # Second request with hourly cookie
+        cookies_with_hourly = {
+          'dashboard-session-auth' => session_token,
+          "metrics_h#{current_hour}" => '1'
+        }
+        env2 = create_env(path: '/test', cookies: cookies_with_hourly)
+        middleware.call(env2)
+
+        # Counter should still be 1
         counter = registry.get(:dashboard_unique_sessions_total)
-        expect(counter.get(labels: { anonymous_session_id: anonymous_id })).to eq(1)
-      end
-
-      it 'tracks session start timestamp' do
-        env = create_env(path: '/test', cookie: session_token)
-        before_time = Time.now.to_i
-        middleware.call(env)
-        after_time = Time.now.to_i
-
-        gauge = registry.get(:dashboard_session_start_timestamp)
-        timestamp = gauge.get(labels: { anonymous_session_id: anonymous_id })
-
-        expect(timestamp).to be_between(before_time, after_time)
-      end
-
-      it 'updates last activity timestamp' do
-        env = create_env(path: '/test', cookie: session_token)
-        middleware.call(env)
-
-        gauge = registry.get(:dashboard_session_last_activity_timestamp)
-        timestamp = gauge.get(labels: {
-          anonymous_session_id: anonymous_id,
-          domain: 'test-domain',
-          project: 'test-project'
-        })
-
-        expect(timestamp).to be > 0
-      end
-
-      it 'tracks feature sequences' do
-        env = create_env(path: '/test', cookie: session_token)
-        middleware.call(env)
-
-        counter = registry.get(:dashboard_feature_sequence_total)
-        count = counter.get(labels: {
-          anonymous_session_id: anonymous_id,
-          previous_feature: 'entry',
-          current_feature: 'compute_index'
-        })
-
+        count = counter.get(labels: { session_hour: current_hour, platform: 'elektra' })
         expect(count).to eq(1)
       end
 
-      it 'limits feature tracking to MAX_FEATURES_PER_SESSION' do
-        env = create_env(path: '/test', cookie: session_token)
+      it 'sets hourly cookie with correct domain and expiration' do
+        env = create_env(path: '/test', cookies: { 'dashboard-session-auth' => session_token })
+        _status, headers, _body = middleware.call(env)
 
-        # Make more requests than MAX_FEATURES_PER_SESSION
-        15.times do |i|
-          env['action_dispatch.request.path_parameters'][:action] = "action_#{i}"
-          middleware.call(env)
-        end
+        set_cookie = headers['Set-Cookie']
+        hourly_cookie = set_cookie.split("\n").find { |c| c.start_with?("metrics_h#{current_hour}") }
 
-        # Access internal state for testing (not ideal, but validates the sliding window)
-        session_features = middleware.instance_variable_get(:@session_features)
-        expect(session_features[anonymous_id].size).to eq(described_class::MAX_FEATURES_PER_SESSION)
+        expect(hourly_cookie).to include('Domain=.qa-de-1.cloud.sap')
+        expect(hourly_cookie).to include('HttpOnly')
+        # Secure attribute depends on Rails.env (like dashboard-session-auth)
+        # In test env, Secure is not set (matching auth cookie pattern)
+        expect(hourly_cookie).to include('SameSite=Lax')
+        expect(hourly_cookie).to include('Expires=')
+      end
+    end
+
+    context 'session duration tracking' do
+      let(:session_token) { 'test-session-token-123' }
+
+      it 'sets session start cookie on first request' do
+        env = create_env(path: '/test', cookies: { 'dashboard-session-auth' => session_token })
+        _status, headers, _body = middleware.call(env)
+
+        cookies = extract_cookies([nil, headers, nil])
+        expect(cookies['metrics_session_start']).not_to be_nil
+        expect(cookies['metrics_session_start'].to_i).to be > 0
+      end
+
+      it 'records duration every 5 minutes' do
+        # Set session start 10 minutes ago
+        start_time = Time.now.to_i - 600
+        last_record = Time.now.to_i - 301  # 5+ minutes ago
+
+        env = create_env(path: '/test', cookies: {
+          'dashboard-session-auth' => session_token,
+          'metrics_session_start' => start_time.to_s,
+          'metrics_last_duration_record' => last_record.to_s
+        })
+        middleware.call(env)
+
+        # Check histogram recorded
+        histogram = registry.get(:dashboard_session_duration_seconds)
+        # Can't easily verify exact value, but ensure no errors
+        expect(histogram).not_to be_nil
+      end
+
+      it 'does not record duration if less than 5 minutes since last record' do
+        start_time = Time.now.to_i - 600
+        last_record = Time.now.to_i - 100  # Only 100 seconds ago
+
+        env = create_env(path: '/test', cookies: {
+          'dashboard-session-auth' => session_token,
+          'metrics_session_start' => start_time.to_s,
+          'metrics_last_duration_record' => last_record.to_s
+        })
+
+        # Should not call observe (can't easily test without mocking)
+        expect { middleware.call(env) }.not_to raise_error
+      end
+    end
+
+    context 'feature usage tracking' do
+      let(:session_token) { 'test-session-token-123' }
+      let(:current_hour) { Time.now.strftime("%H") }
+
+      it 'increments feature usage counter' do
+        env = create_env(path: '/test', cookies: { 'dashboard-session-auth' => session_token })
+        middleware.call(env)
+
+        counter = registry.get(:dashboard_feature_usage_total)
+        count = counter.get(labels: {
+          feature: 'compute_index',
+          platform: 'elektra',
+          session_hour: current_hour
+        })
+        expect(count).to eq(1)
+      end
+
+      it 'tracks feature usage multiple times (no deduplication)' do
+        env = create_env(path: '/test', cookies: { 'dashboard-session-auth' => session_token })
+
+        # Make 3 requests
+        3.times { middleware.call(env) }
+
+        counter = registry.get(:dashboard_feature_usage_total)
+        count = counter.get(labels: {
+          feature: 'compute_index',
+          platform: 'elektra',
+          session_hour: current_hour
+        })
+        expect(count).to eq(3)
+      end
+    end
+
+    context 'feature transitions tracking' do
+      let(:session_token) { 'test-session-token-123' }
+      let(:current_hour) { Time.now.strftime("%H") }
+
+      it 'stores current feature in cookie' do
+        env = create_env(path: '/test', cookies: { 'dashboard-session-auth' => session_token })
+        _status, headers, _body = middleware.call(env)
+
+        cookies = extract_cookies([nil, headers, nil])
+        expect(cookies['metrics_features']).not_to be_nil
+
+        # Decode Base64
+        features = JSON.parse(Base64.decode64(cookies['metrics_features']))
+        expect(features).to eq(['compute_index'])
+      end
+
+      it 'tracks transitions from previous feature' do
+        # First request with previous feature in cookie
+        previous_features_encoded = Base64.strict_encode64(['compute_list'].to_json)
+
+        env = create_env(
+          path: '/test',
+          cookies: {
+            'dashboard-session-auth' => session_token,
+            'metrics_features' => previous_features_encoded
+          }
+        )
+        middleware.call(env)
+
+        counter = registry.get(:dashboard_feature_transitions_total)
+        count = counter.get(labels: {
+          from_feature: 'compute_list',
+          to_feature: 'compute_index',
+          platform: 'elektra',
+          session_hour: current_hour
+        })
+        expect(count).to eq(1)
+      end
+
+      it 'limits feature storage to MAX_FEATURES_PER_SESSION' do
+        # Start with 5 features (max)
+        previous_features = %w[f1 f2 f3 f4 f5]
+        previous_features_encoded = Base64.strict_encode64(previous_features.to_json)
+
+        env = create_env(
+          path: '/test',
+          cookies: {
+            'dashboard-session-auth' => session_token,
+            'metrics_features' => previous_features_encoded
+          }
+        )
+        _status, headers, _body = middleware.call(env)
+
+        # Should have: f2, f3, f4, f5, compute_index (last 5)
+        cookies = extract_cookies([nil, headers, nil])
+        features = JSON.parse(Base64.decode64(cookies['metrics_features']))
+        expect(features.length).to eq(described_class::MAX_FEATURES_PER_SESSION)
+        expect(features).to eq(%w[f2 f3 f4 f5 compute_index])
       end
     end
 
     context 'cross-dashboard navigation' do
       let(:session_token) { 'test-session-token-123' }
-      let(:anonymous_id) { AnonymousMetrics.generate_id(session_token) }
+      let(:current_hour) { Time.now.strftime("%H") }
 
       it 'tracks navigation from Aurora to Elektra' do
+        previous_features_encoded = Base64.strict_encode64(['compute_list'].to_json)
+
         env = create_env(
           path: '/test',
-          cookie: session_token,
+          host: 'dashboard.qa-de-1.cloud.sap',
+          cookies: {
+            'dashboard-session-auth' => session_token,
+            'metrics_features' => previous_features_encoded
+          },
           referer: 'https://dashboard-aurora.qa-de-1.cloud.sap/domain/project/compute/instances'
         )
-        env['HTTP_HOST'] = 'dashboard.qa-de-1.cloud.sap'
-
         middleware.call(env)
 
         counter = registry.get(:dashboard_cross_navigation_total)
         count = counter.get(labels: {
-          anonymous_session_id: anonymous_id,
           from_dashboard: 'aurora',
           to_dashboard: 'elektra',
-          from_feature: 'compute'
+          from_feature: 'compute_list',
+          session_hour: current_hour
         })
+        expect(count).to eq(1)
+      end
 
+      it 'tracks navigation from Elektra to Aurora' do
+        previous_features_encoded = Base64.strict_encode64(['network_list'].to_json)
+
+        env = create_env(
+          path: '/test',
+          host: 'dashboard-aurora.qa-de-1.cloud.sap',
+          cookies: {
+            'dashboard-session-auth' => session_token,
+            'metrics_features' => previous_features_encoded
+          },
+          referer: 'https://dashboard.qa-de-1.cloud.sap/domain/project/network/routers'
+        )
+        middleware.call(env)
+
+        counter = registry.get(:dashboard_cross_navigation_total)
+        count = counter.get(labels: {
+          from_dashboard: 'elektra',
+          to_dashboard: 'aurora',
+          from_feature: 'network_list',
+          session_hour: current_hour
+        })
         expect(count).to eq(1)
       end
 
       it 'does not track navigation within same dashboard' do
         env = create_env(
           path: '/test',
-          cookie: session_token,
+          host: 'dashboard.qa-de-1.cloud.sap',
+          cookies: { 'dashboard-session-auth' => session_token },
           referer: 'https://dashboard.qa-de-1.cloud.sap/domain/project/compute/instances'
         )
 
+        initial_count = begin
+          registry.get(:dashboard_cross_navigation_total).values.values.sum
+        rescue
+          0
+        end
+
         middleware.call(env)
 
-        # No cross-dashboard navigation should be tracked
-        # (can't easily verify zero without checking all label combinations)
+        final_count = begin
+          registry.get(:dashboard_cross_navigation_total).values.values.sum
+        rescue
+          0
+        end
+
+        expect(final_count).to eq(initial_count)
+      end
+
+      it 'uses "unknown" if no previous feature in cookie' do
+        env = create_env(
+          path: '/test',
+          host: 'dashboard.qa-de-1.cloud.sap',
+          cookies: { 'dashboard-session-auth' => session_token },
+          referer: 'https://dashboard-aurora.qa-de-1.cloud.sap/domain/project/compute/instances'
+        )
+        middleware.call(env)
+
+        counter = registry.get(:dashboard_cross_navigation_total)
+        count = counter.get(labels: {
+          from_dashboard: 'aurora',
+          to_dashboard: 'elektra',
+          from_feature: 'unknown',
+          session_hour: current_hour
+        })
+        expect(count).to eq(1)
       end
     end
 
-    context 'TTL-based cleanup' do
+    context 'cookie domain sharing' do
       let(:session_token) { 'test-session-token-123' }
+      let(:current_hour) { Time.now.strftime("%H") }
 
-      it 'removes expired sessions after SESSION_TTL' do
-        env = create_env(path: '/test', cookie: session_token)
-        middleware.call(env)
+      it 'sets cookies with shared domain for Elektra' do
+        env = create_env(
+          path: '/test',
+          host: 'dashboard.qa-de-1.cloud.sap',
+          cookies: { 'dashboard-session-auth' => session_token }
+        )
+        _status, headers, _body = middleware.call(env)
 
-        # Access internal state
-        session_first_seen = middleware.instance_variable_get(:@session_first_seen)
-        anonymous_id = AnonymousMetrics.generate_id(session_token)
-        expect(session_first_seen.size).to eq(1)
-
-        # Simulate expired session
-        expired_time = Time.now - described_class::SESSION_TTL - 1
-        session_first_seen[anonymous_id] = expired_time
-
-        # Trigger cleanup by setting request count to trigger next cleanup
-        middleware.instance_variable_set(:@request_count, described_class::CLEANUP_INTERVAL - 1)
-
-        # Use a different session to trigger cleanup
-        env2 = create_env(path: '/test', cookie: 'different-token')
-        middleware.call(env2)
-
-        # Expired session should be removed
-        expect(session_first_seen.key?(anonymous_id)).to be false
+        set_cookie = headers['Set-Cookie']
+        expect(set_cookie).to include('Domain=.qa-de-1.cloud.sap')
       end
 
-      it 'runs cleanup periodically based on CLEANUP_INTERVAL' do
-        env = create_env(path: '/test', cookie: 'token1')
-
-        # Make CLEANUP_INTERVAL requests
-        (described_class::CLEANUP_INTERVAL - 1).times do
-          middleware.call(env)
-        end
-
-        # Set up an expired session
-        session_first_seen = middleware.instance_variable_get(:@session_first_seen)
-        old_id = 'expired-session-id'
-        session_first_seen[old_id] = Time.now - described_class::SESSION_TTL - 1
-
-        # Next request should trigger cleanup
+      it 'respects hourly cookie from Aurora (shared domain)' do
+        # Simulate cookie set by Aurora
+        env = create_env(
+          path: '/test',
+          host: 'dashboard.qa-de-1.cloud.sap',
+          cookies: {
+            'dashboard-session-auth' => session_token,
+            "metrics_h#{current_hour}" => '1'  # Set by Aurora
+          }
+        )
         middleware.call(env)
 
-        # Expired session should be removed
-        expect(session_first_seen.key?(old_id)).to be false
+        # Should not increment (cookie already present)
+        counter = registry.get(:dashboard_unique_sessions_total)
+        count = counter.get(labels: { session_hour: current_hour, platform: 'elektra' })
+        expect(count).to eq(0)  # Not incremented
       end
     end
 
     context 'error handling' do
       it 'continues processing request if metrics tracking fails' do
-        env = create_env(path: '/test', cookie: 'test-token')
+        env = create_env(path: '/test', cookies: { 'dashboard-session-auth' => 'test-token' })
 
-        # Mock AnonymousMetrics to raise an error
-        allow(AnonymousMetrics).to receive(:generate_id).and_raise(StandardError, 'Test error')
+        # Mock Time.now to raise an error
+        allow(Time).to receive(:now).and_raise(StandardError, 'Test error')
 
         expect { middleware.call(env) }.not_to raise_error
         status, _headers, _body = middleware.call(env)

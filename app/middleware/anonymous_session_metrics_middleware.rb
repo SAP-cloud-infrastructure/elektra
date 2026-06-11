@@ -1,196 +1,114 @@
 # frozen_string_literal: true
 
 # Middleware for tracking anonymous session-based metrics
-# Tracks unique sessions, timestamps, feature navigation, and cross-dashboard flows
+# Phase 2: Hybrid solution with time-based windows + cookie deduplication
 #
-# NOTE: Uses in-memory state per process. In multi-process deployments (Passenger, Puma),
-# each worker maintains its own state, which may cause:
-# - Slight over-counting of unique sessions (same session counted once per worker)
-# - Inconsistent feature sequence tracking across workers
-# For production accuracy, consider Redis-backed storage.
+# Key improvements:
+# - Low cardinality: Uses session_hour labels instead of anonymous_session_id
+# - Multi-pod safe: Cookie-based deduplication works across all Elektra pods
+# - Cross-platform: Cookies shared between Elektra and Aurora via domain
+# - Stateless: No in-memory state, no cleanup needed
 class AnonymousSessionMetricsMiddleware
   EXCLUDE_PATHS = %w[/metrics /assets /system /health].freeze
 
-  # TTL for session state cleanup (24 hours)
-  SESSION_TTL = 24 * 60 * 60
-
-  # Cleanup interval - run cleanup every N requests to avoid overhead
-  CLEANUP_INTERVAL = 1000
-
   # Maximum features to track per session (sliding window)
-  MAX_FEATURES_PER_SESSION = 10
+  MAX_FEATURES_PER_SESSION = 5
 
   def initialize(app, options = {})
     @app = app
     @registry = options[:registry] || Prometheus::Client.registry
 
-    # Counter: Unique sessions (increments once per unique session)
-    @unique_sessions =
-      @registry.counter(
-        :dashboard_unique_sessions_total,
-        docstring: "Unique anonymous sessions (increments once per session)",
-        labels: %i[anonymous_session_id],
-      )
+    # Unique sessions by hour (cookie-deduplicated)
+    # Cardinality: 24 hours × 2 platforms = 48 time series
+    @unique_sessions = @registry.counter(
+      :dashboard_unique_sessions_total,
+      docstring: "Unique sessions by hour",
+      labels: %i[session_hour platform]
+    )
 
-    # Gauge: Session start timestamps
-    @session_start_time =
-      @registry.gauge(
-        :dashboard_session_start_timestamp,
-        docstring: "Session start timestamp (seconds since epoch)",
-        labels: %i[anonymous_session_id],
-      )
+    # Feature usage counter (no deduplication needed)
+    # Cardinality: ~50 features × 2 platforms × 24 hours = 2,400 time series
+    @feature_usage = @registry.counter(
+      :dashboard_feature_usage_total,
+      docstring: "Feature usage count",
+      labels: %i[feature platform session_hour]
+    )
 
-    # Gauge: Last activity timestamps
-    @session_last_activity =
-      @registry.gauge(
-        :dashboard_session_last_activity_timestamp,
-        docstring: "Last activity timestamp per session",
-        labels: %i[anonymous_session_id domain project],
-      )
+    # Feature transitions (navigation flow)
+    # Cardinality: 50 × 50 × 2 × 24 = 120,000 time series
+    @feature_transitions = @registry.counter(
+      :dashboard_feature_transitions_total,
+      docstring: "Feature navigation transitions",
+      labels: %i[from_feature to_feature platform session_hour]
+    )
 
-    # Counter: Feature sequences
-    @feature_sequence =
-      @registry.counter(
-        :dashboard_feature_sequence_total,
-        docstring: "Feature navigation sequences per session",
-        labels: %i[anonymous_session_id previous_feature current_feature],
-      )
+    # Cross-dashboard navigation
+    # Cardinality: 2 × 2 × 50 × 24 = 4,800 time series
+    @cross_dashboard_nav = @registry.counter(
+      :dashboard_cross_navigation_total,
+      docstring: "Cross-dashboard navigation events",
+      labels: %i[from_dashboard to_dashboard from_feature session_hour]
+    )
 
-    # Counter: Cross-dashboard navigation
-    @cross_dashboard_nav =
-      @registry.counter(
-        :dashboard_cross_navigation_total,
-        docstring: "Cross-dashboard navigation events",
-        labels: %i[anonymous_session_id from_dashboard to_dashboard from_feature],
-      )
+    # Session duration histogram
+    # Cardinality: 2 platforms × 8 buckets = 16 time series
+    @session_duration = @registry.histogram(
+      :dashboard_session_duration_seconds,
+      docstring: "Session duration distribution",
+      labels: %i[platform],
+      buckets: [60, 300, 600, 1800, 3600, 7200, 14400]  # 1m, 5m, 10m, 30m, 1h, 2h, 4h
+    )
 
-    # In-memory tracking with TTL-based cleanup
-    # Structure: { session_id => timestamp }
-    @session_first_seen = {}
-    # Structure: { session_id => [feature1, feature2, ...] } (limited by MAX_FEATURES_PER_SESSION)
-    @session_features = {}
-
-    # Cleanup tracking
-    @request_count = 0
-    @mutex = Mutex.new
   end
 
   def call(env)
-    # Skip excluded paths
     path_info = env["PATH_INFO"]
     return @app.call(env) if should_skip_path?(path_info)
 
-    # Periodic cleanup to prevent memory leaks
-    cleanup_expired_sessions
-
-    # Extract request details
     request = ActionDispatch::Request.new(env)
-
-    # Get session token and generate anonymous ID
     session_token = request.cookies["dashboard-session-auth"]
 
-    # Call the app first so Rails routing populates path_parameters
+    # Call app to populate path_parameters
     response = @app.call(env)
 
-    # Now extract context with full route information available (wrapped in rescue to prevent double execution)
+    return response unless session_token
+
     begin
-      if session_token
-        anonymous_id = AnonymousMetrics.generate_id(session_token)
-        path_params = env["action_dispatch.request.path_parameters"] || {}
+      anonymous_id = AnonymousMetrics.generate_id(session_token)
+      current_hour = Time.now.strftime("%H")  # "00" to "23"
+      path_params = env["action_dispatch.request.path_parameters"] || {}
 
-        # Extract context
-        domain = path_params[:domain_id] || path_params[:domain_fid] || "unknown"
-        project = path_params[:project_id] || "unknown"
-        current_feature = extract_feature(path_params)
+      domain = path_params[:domain_id] || path_params[:domain_fid] || "unknown"
+      project = path_params[:project_id] || "unknown"
+      current_feature = extract_feature(path_params)
 
-        # Track unique session (only on first request)
-        if first_request_for_session?(anonymous_id)
-          @mutex.synchronize do
-            @unique_sessions.increment(
-              labels: { anonymous_session_id: anonymous_id },
-            )
-            @session_start_time.set(
-              Time.now.to_i,
-              labels: { anonymous_session_id: anonymous_id },
-            )
-            @session_first_seen[anonymous_id] = Time.now
-          end
-        end
+      # Extract global domain (matches auth_session.rb pattern)
+      global_domain = extract_global_domain(request.host)
 
-        # Update last activity timestamp
-        @session_last_activity.set(
-          Time.now.to_i,
-          labels: {
-            anonymous_session_id: anonymous_id,
-            domain: domain,
-            project: project,
-          },
-        )
+      # Track unique session (cookie deduplication)
+      track_unique_session(request, response, current_hour, global_domain)
 
-        # Track feature sequences
-        if current_feature
-          @mutex.synchronize do
-            previous_feature = @session_features[anonymous_id]&.last
+      # Track session duration (cookie-based)
+      track_session_duration(request, response, global_domain)
 
-            @feature_sequence.increment(
-              labels: {
-                anonymous_session_id: anonymous_id,
-                previous_feature: previous_feature || "entry",
-                current_feature: current_feature,
-              },
-            )
-
-            @session_features[anonymous_id] ||= []
-            @session_features[anonymous_id] << current_feature
-            # Keep only the last N features (sliding window)
-            @session_features[anonymous_id] = @session_features[anonymous_id].last(MAX_FEATURES_PER_SESSION)
-          end
-        end
-
-        # Track cross-dashboard navigation
-        track_cross_dashboard_navigation(
-          request,
-          anonymous_id,
-          current_feature,
-        )
+      # Track feature usage and transitions
+      if current_feature
+        track_feature_usage(current_feature, current_hour)
+        track_feature_transitions(request, response, current_feature, current_hour, global_domain)
       end
+
+      # Track cross-dashboard navigation
+      track_cross_dashboard_navigation(request, current_feature, current_hour)
+
     rescue => e
-      Rails.logger.error(
-        "AnonymousSessionMetricsMiddleware error: #{e.message}",
-      )
+      Rails.logger.error("AnonymousSessionMetrics error: #{e.message}")
       Rails.logger.error(e.backtrace.first(5).join("\n")) if Rails.env.development?
-      # Don't re-call app, just log and continue
     end
 
     response
   end
 
   private
-
-  def cleanup_expired_sessions
-    @request_count += 1
-    return unless @request_count % CLEANUP_INTERVAL == 0
-
-    @mutex.synchronize do
-      now = Time.now
-      cutoff = now - SESSION_TTL
-
-      # Remove expired sessions from first_seen tracking
-      @session_first_seen.delete_if { |_id, timestamp| timestamp < cutoff }
-
-      # Remove expired sessions from features tracking
-      # (use first_seen as source of truth for expiration)
-      @session_features.delete_if { |id, _features| !@session_first_seen.key?(id) }
-
-      Rails.logger.info(
-        "[AnonymousSessionMetrics] Cleanup: #{@session_first_seen.size} active sessions, " \
-        "#{@session_features.size} with feature tracking"
-      ) if Rails.env.development?
-    end
-  rescue => e
-    Rails.logger.error("[AnonymousSessionMetrics] Cleanup failed: #{e.message}")
-    # Don't let cleanup failures break request processing
-  end
 
   def should_skip_path?(path)
     EXCLUDE_PATHS.any? { |excluded| path.start_with?(excluded) }
@@ -200,7 +118,6 @@ class AnonymousSessionMetricsMiddleware
     controller = path_params[:controller]
     return nil unless controller
 
-    # Extract plugin and action
     plugin = controller.split("/").first
     action = path_params[:action]
 
@@ -209,47 +126,132 @@ class AnonymousSessionMetricsMiddleware
     "#{plugin}_#{action}"
   end
 
-  def first_request_for_session?(anonymous_id)
-    !@session_first_seen.key?(anonymous_id)
+  # ==========================================
+  # UNIQUE SESSION TRACKING (cookie-based)
+  # ==========================================
+
+  def track_unique_session(request, response, current_hour, global_domain)
+    cookie_name = "metrics_h#{current_hour}"
+
+    unless request.cookies[cookie_name]
+      # First request this hour - count it!
+      @unique_sessions.increment(
+        labels: {
+          session_hour: current_hour,
+          platform: "elektra"
+        }
+      )
+
+      # Set cookie that expires at end of hour
+      set_hourly_cookie(response, cookie_name, global_domain)
+    end
   end
 
-  def track_cross_dashboard_navigation(request, anonymous_id, current_feature)
+  # ==========================================
+  # SESSION DURATION TRACKING (cookie-based)
+  # ==========================================
+
+  def track_session_duration(request, response, global_domain)
+    session_start_cookie = request.cookies["metrics_session_start"]
+
+    if session_start_cookie
+      # Calculate current duration
+      start_time = session_start_cookie.to_i
+      duration = Time.now.to_i - start_time
+
+      # Record duration periodically (every 5 minutes)
+      last_record_cookie = request.cookies["metrics_last_duration_record"]
+      last_record_time = last_record_cookie.to_i rescue 0
+
+      if (Time.now.to_i - last_record_time) > 300  # 5 minutes
+        @session_duration.observe(duration, labels: { platform: "elektra" })
+        set_cookie(response, "metrics_last_duration_record", Time.now.to_i.to_s, global_domain, 24.hours)
+      end
+    else
+      # First request - store session start time
+      set_cookie(response, "metrics_session_start", Time.now.to_i.to_s, global_domain, 24.hours)
+      set_cookie(response, "metrics_last_duration_record", Time.now.to_i.to_s, global_domain, 24.hours)
+    end
+  end
+
+  # ==========================================
+  # FEATURE USAGE (no deduplication needed)
+  # ==========================================
+
+  def track_feature_usage(feature, current_hour)
+    @feature_usage.increment(
+      labels: {
+        feature: feature,
+        platform: "elektra",
+        session_hour: current_hour
+      }
+    )
+  end
+
+  # ==========================================
+  # FEATURE TRANSITIONS (cookie-based)
+  # ==========================================
+
+  def track_feature_transitions(request, response, current_feature, current_hour, global_domain)
+    # Read previous features from cookie
+    previous_features = read_features_from_cookie(request)
+    previous_feature = previous_features.last
+
+    if previous_feature
+      @feature_transitions.increment(
+        labels: {
+          from_feature: previous_feature,
+          to_feature: current_feature,
+          platform: "elektra",
+          session_hour: current_hour
+        }
+      )
+    end
+
+    # Store current feature in cookie (sliding window)
+    updated_features = (previous_features + [current_feature]).last(MAX_FEATURES_PER_SESSION)
+    store_features_in_cookie(response, updated_features, global_domain)
+  end
+
+  # ==========================================
+  # CROSS-DASHBOARD NAVIGATION
+  # ==========================================
+
+  def track_cross_dashboard_navigation(request, current_feature, current_hour)
     referrer = request.referer
     return unless referrer
 
-    # Extract dashboard from referrer (e.g., "aurora" or "elektra")
     referrer_dashboard = extract_dashboard_from_url(referrer)
     return unless referrer_dashboard
 
-    # Extract current dashboard from request host
     current_dashboard = extract_dashboard_from_url(request.url)
     return if referrer_dashboard == current_dashboard
     return unless current_dashboard
 
-    # Extract feature from referrer URL
-    referrer_feature = extract_feature_from_url(referrer)
+    # Get feature from referrer (stored in cookie by other platform)
+    referrer_feature = read_features_from_cookie(request).last || "unknown"
 
     @cross_dashboard_nav.increment(
       labels: {
-        anonymous_session_id: anonymous_id,
         from_dashboard: referrer_dashboard,
         to_dashboard: current_dashboard,
-        from_feature: referrer_feature || "unknown",
-      },
+        from_feature: referrer_feature,
+        session_hour: current_hour
+      }
     )
   end
+
+  # ==========================================
+  # URL HELPERS
+  # ==========================================
 
   def extract_dashboard_from_url(url)
     return nil unless url
 
-    # Parse URL to extract host
     uri = URI.parse(url)
     host = uri.host
     return nil unless host
 
-    # URL patterns:
-    # Elektra: dashboard.{region}.cloud.sap (e.g., dashboard.qa-de-1.cloud.sap)
-    # Aurora: dashboard-aurora.{region}.cloud.sap (e.g., dashboard-aurora.qa-de-1.cloud.sap)
     if host.start_with?("dashboard-aurora.")
       "aurora"
     elsif host.start_with?("dashboard.")
@@ -261,14 +263,71 @@ class AnonymousSessionMetricsMiddleware
     nil
   end
 
-  def extract_feature_from_url(url)
-    uri = URI.parse(url)
-    path_segments = uri.path.split("/").reject(&:blank?)
+  # ==========================================
+  # COOKIE HELPERS
+  # ==========================================
 
-    # Path structure: /domain/project/plugin/action
-    # Extract plugin (3rd segment) if present
-    path_segments[2] if path_segments.length > 2
-  rescue
-    nil
+  # Extract global domain - matches auth_session.rb pattern (lines 170-176)
+  def extract_global_domain(host)
+    parts = host.split('.')
+    if parts.length > 2
+      ".#{parts[-3..-1].join('.')}"  # Returns ".qa-de-1.cloud.sap"
+    else
+      ".#{host}"  # Fallback to current host
+    end
+  end
+
+  def set_hourly_cookie(response, cookie_name, global_domain)
+    hour_end = Time.now.end_of_hour
+
+    # Cookie shared across Elektra and Aurora via domain
+    cookie_header = "#{cookie_name}=1; " \
+                    "Path=/; " \
+                    "Domain=#{global_domain}; " \
+                    "HttpOnly; " \
+                    "#{secure_attribute}" \
+                    "SameSite=Lax; " \
+                    "Expires=#{hour_end.httpdate}"
+
+    append_cookie(response, cookie_header)
+  end
+
+  def set_cookie(response, name, value, global_domain, expires_in)
+    expires = (Time.now + expires_in).httpdate
+
+    cookie_header = "#{name}=#{value}; " \
+                    "Path=/; " \
+                    "Domain=#{global_domain}; " \
+                    "HttpOnly; " \
+                    "#{secure_attribute}" \
+                    "SameSite=Lax; " \
+                    "Expires=#{expires}"
+
+    append_cookie(response, cookie_header)
+  end
+
+  def append_cookie(response, cookie_header)
+    # Rails response format: [status, headers, body]
+    if response[1]["Set-Cookie"]
+      response[1]["Set-Cookie"] << "\n#{cookie_header}"
+    else
+      response[1]["Set-Cookie"] = cookie_header
+    end
+  end
+
+  def read_features_from_cookie(request)
+    cookie = request.cookies["metrics_features"]
+    return [] unless cookie
+
+    JSON.parse(Base64.decode64(cookie)) rescue []
+  end
+
+  def store_features_in_cookie(response, features, global_domain)
+    cookie_value = Base64.strict_encode64(features.to_json)
+    set_cookie(response, "metrics_features", cookie_value, global_domain, 24.hours)
+  end
+
+  def secure_attribute
+    Rails.env.production? ? "Secure; " : ""
   end
 end
