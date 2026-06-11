@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 
 # Middleware for tracking anonymous session-based metrics
-# Phase 2: Hybrid solution with time-based windows + cookie deduplication
 #
-# Key improvements:
+# Keys:
 # - Low cardinality: Uses session_hour labels instead of anonymous_session_id
 # - Multi-pod safe: Cookie-based deduplication works across all Elektra pods
 # - Cross-platform: Cookies shared between Elektra and Aurora via domain
