@@ -2,7 +2,7 @@
 
 Rails.application.routes.draw do
   post '/verify-auth-token', to: 'auth_token#verify'
-
+  
 
   mount MonsoonOpenstackAuth::Engine => '/:domain_fid/auth'
 
@@ -70,6 +70,9 @@ Rails.application.routes.draw do
     match '/', to: 'pages#show', id: 'landing', via: :get, as: :landing_page
 
     scope '(/:project_id)' do
+      get 'feedback', to: 'feedback#show', as: :feedback
+      post 'feedback', to: 'feedback#create'
+
       scope module: 'dashboard' do
         post 'accept_terms_of_use'
         get 'terms_of_use'

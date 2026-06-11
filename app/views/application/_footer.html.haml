@@ -18,7 +18,7 @@
     = image_tag "monsoon_cloud.svg", alt: "Monsoon SAP Cloud Infrastructure", class: "pull-right"
 
     .row
-      .col-sm-3
+      .col-sm-2
         %ul.list-unstyled
           - unless @domain_config&.feature_hidden?('terms_of_use')
             %li= link_to "Terms of Use", main_app.terms_of_use_path, data:{modal: true} unless @scoped_domain_id.blank?
@@ -26,6 +26,13 @@
             %li
               %a(href="#{sap_url_for('documentation')}" target='ccdocs') Documentation
 
+      - if feedback_enabled?
+        .col-sm-2
+          %ul.list-unstyled
+            %li
+              = link_to 'Send Feedback', main_app.feedback_path(domain_id: @scoped_domain_fid, project_id: @scoped_project_fid), data:{modal: true}
+
       .col-sm-2
         - if Rails.env.development?
           = render partial: 'layouts/dev_tools'
+
