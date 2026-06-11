@@ -16,6 +16,9 @@
 class AnonymousSessionMetricsMiddleware
   EXCLUDE_PATHS = %w[/metrics /assets /system /health].freeze
 
+  # Features to exclude from tracking (e.g., utility endpoints, avatars)
+  EXCLUDE_FEATURES = %w[avatars_show].freeze
+
   # Maximum features to track per session (sliding window)
   MAX_FEATURES_PER_SESSION = 5
 
@@ -152,7 +155,12 @@ class AnonymousSessionMetricsMiddleware
 
     return nil unless plugin && action
 
-    "#{plugin}_#{action}"
+    feature = "#{plugin}_#{action}"
+
+    # Exclude specific features from tracking
+    return nil if EXCLUDE_FEATURES.include?(feature)
+
+    feature
   end
 
   # ==========================================
