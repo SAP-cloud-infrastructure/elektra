@@ -272,7 +272,7 @@ store_session_data(response, session_data, global_domain)
 13:00 - User logs into Elektra (domain: dashboard.example.com)
 ├─ Auth cookie: dashboard-session-auth=OS123... (set by OAuth2-proxy)
 ├─ Metrics middleware called
-├─ Read auth cookie → generate anonymous_id (SHA256 hash)
+├─ Read auth cookie → check session token
 ├─ current_hour = "13"
 ├─ No cookies present
 │

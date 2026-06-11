@@ -89,7 +89,6 @@ class AnonymousSessionMetricsMiddleware
     end
 
     begin
-      anonymous_id = AnonymousMetrics.generate_id(session_token)
       current_hour = Time.now.strftime("%H")  # "00" to "23"
       path_params = env["action_dispatch.request.path_parameters"] || {}
 

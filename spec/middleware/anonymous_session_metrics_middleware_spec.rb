@@ -2,7 +2,6 @@
 
 require 'spec_helper'
 require_relative '../../app/middleware/anonymous_session_metrics_middleware'
-require_relative '../../config/initializers/anonymous_metrics'
 
 RSpec.describe AnonymousSessionMetricsMiddleware do
   let(:app) do
@@ -457,33 +456,6 @@ RSpec.describe AnonymousSessionMetricsMiddleware do
         status, _headers, _body = middleware.call(env)
         expect(status).to eq(200)
       end
-    end
-  end
-
-  describe 'AnonymousMetrics.generate_id' do
-    it 'generates consistent IDs for same token' do
-      token = 'test-token'
-      id1 = AnonymousMetrics.generate_id(token)
-      id2 = AnonymousMetrics.generate_id(token)
-
-      expect(id1).to eq(id2)
-    end
-
-    it 'generates different IDs for different tokens' do
-      id1 = AnonymousMetrics.generate_id('token1')
-      id2 = AnonymousMetrics.generate_id('token2')
-
-      expect(id1).not_to eq(id2)
-    end
-
-    it 'returns nil for blank token' do
-      expect(AnonymousMetrics.generate_id(nil)).to be_nil
-      expect(AnonymousMetrics.generate_id('')).to be_nil
-    end
-
-    it 'generates 16-character hex string' do
-      id = AnonymousMetrics.generate_id('test-token')
-      expect(id).to match(/^[a-f0-9]{16}$/)
     end
   end
 end
