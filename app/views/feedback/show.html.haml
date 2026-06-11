@@ -1,0 +1,49 @@
+= content_for :title do
+  Feedback
+
+
+.modal-body
+  #feedback-message.alert{ style: "display:none; margin-top: 10px;" }
+
+  %p
+    Your feedback is anonymous and helps us improve the platform.
+
+  = form_tag feedback_path(domain_id: @scoped_domain_fid, project_id: @scoped_project_fid), method: :post, remote: true, id: 'feedback-form' do
+    = text_area_tag :feedback_message, nil, class: 'form-control', rows: 5, placeholder: 'Tell us what you think...'
+    = hidden_field_tag 'context[page_url]', '', id: 'context-page-url'
+    = hidden_field_tag 'context[browser]', '', id: 'context-browser'
+    = hidden_field_tag 'context[viewport]', '', id: 'context-viewport'
+    .modal-footer
+      = link_to 'Cancel', '#', data: {dismiss: "modal"}, class: "btn btn-default"
+      = submit_tag 'Send', class: "btn btn-primary", id: 'feedback-submit-btn'
+      %button.btn.btn-primary#feedback-sending-btn{type: 'button', disabled: true, style: 'display:none;'} Sending...
+
+:javascript
+  $(document).ready(function() {
+    $('#context-page-url').val(window.location.href);
+    $('#context-browser').val(navigator.userAgent);
+    $('#context-viewport').val(window.innerWidth + 'x' + window.innerHeight);
+
+    var $submitBtn = $('#feedback-submit-btn');
+    var $sendingBtn = $('#feedback-sending-btn');
+    var $textarea = $('#feedback_message');
+
+    // Disable submit button initially if textarea is empty
+    function updateSubmitButton() {
+      $submitBtn.prop('disabled', $textarea.val().trim() === '');
+    }
+
+    // Check on input
+    $textarea.on('input', updateSubmitButton);
+    updateSubmitButton(); // Initial check
+
+    // Switch buttons and disable textarea on submit
+    $('#feedback-form').on('submit', function() {
+      setTimeout(function() {
+        $submitBtn.hide();
+        $sendingBtn.show();
+        $textarea.prop('disabled', true);
+      }, 10);
+    });
+
+  });
