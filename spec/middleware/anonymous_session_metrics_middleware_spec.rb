@@ -69,7 +69,7 @@ RSpec.describe AnonymousSessionMetricsMiddleware do
       expect(middleware).not_to be_nil
 
       # Verify the metrics exist in the registry
-      expect { registry.get(:dashboard_unique_sessions_total) }.not_to raise_error
+      expect { registry.get(:dashboard_active_browser_hours_total) }.not_to raise_error
       expect { registry.get(:dashboard_feature_usage_total) }.not_to raise_error
       expect { registry.get(:dashboard_feature_transitions_total) }.not_to raise_error
       expect { registry.get(:dashboard_cross_navigation_total) }.not_to raise_error
@@ -114,7 +114,7 @@ RSpec.describe AnonymousSessionMetricsMiddleware do
         _status, headers, _body = middleware.call(env)
 
         # Check counter incremented
-        counter = registry.get(:dashboard_unique_sessions_total)
+        counter = registry.get(:dashboard_active_browser_hours_total)
         count = counter.get(labels: { session_hour: current_hour, platform: 'elektra' })
         expect(count).to eq(1)
 
@@ -137,7 +137,7 @@ RSpec.describe AnonymousSessionMetricsMiddleware do
         middleware.call(env2)
 
         # Counter should still be 1
-        counter = registry.get(:dashboard_unique_sessions_total)
+        counter = registry.get(:dashboard_active_browser_hours_total)
         count = counter.get(labels: { session_hour: current_hour, platform: 'elektra' })
         expect(count).to eq(1)
       end
@@ -439,7 +439,7 @@ RSpec.describe AnonymousSessionMetricsMiddleware do
         middleware.call(env)
 
         # Should not increment (cookie already present)
-        counter = registry.get(:dashboard_unique_sessions_total)
+        counter = registry.get(:dashboard_active_browser_hours_total)
         count = counter.get(labels: { session_hour: current_hour, platform: 'elektra' })
         expect(count).to eq(0)  # Not incremented
       end

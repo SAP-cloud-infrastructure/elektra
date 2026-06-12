@@ -25,11 +25,15 @@ class AnonymousSessionMetricsMiddleware
     @app = app
     @registry = options[:registry] || Prometheus::Client.registry
 
-    # Unique sessions by hour (cookie-deduplicated)
+    # Active browser instances by hour (cookie-deduplicated across pods)
     # Cardinality: 24 hours × 2 platforms = 48 time series
-    @unique_sessions = @registry.counter(
-      :dashboard_unique_sessions_total,
-      docstring: "Unique sessions by hour",
+    # Note: Counts active authenticated browser instances per hour, NOT unique users
+    # - Same browser in multiple hours = multiple counts
+    # - Same user on different browsers/devices = multiple counts
+    # - Same browser across multiple pods = single count (cookie deduplication)
+    @active_browser_hours = @registry.counter(
+      :dashboard_active_browser_hours_total,
+      docstring: "Active authenticated browser instances by hour",
       labels: %i[session_hour platform]
     )
 
@@ -167,8 +171,8 @@ class AnonymousSessionMetricsMiddleware
     visited_hours = read_visited_hours(request)
 
     unless visited_hours.include?(current_hour)
-      # First request this hour - count it!
-      @unique_sessions.increment(
+      # First request this hour from this browser - count it!
+      @active_browser_hours.increment(
         labels: {
           session_hour: current_hour,
           platform: "elektra"

@@ -35,16 +35,21 @@ The anonymous session metrics system tracks **how users interact with Elektra an
 ### The Problem It Solves
 
 **Without this system:**
-- Can't tell how many unique users visit per day/week/month
+- Can't tell how many active browser instances visit per day/week/month
 - Can't see which features are most used
 - Can't track cross-dashboard navigation (Elektra ↔ Aurora)
-- Same user counted 4× (once per pod)
+- Same browser instance counted 4× (once per pod)
 
 **With this system:**
-- Accurate unique session counts (deduplicated across pods)
+- Accurate browser-hour counts (deduplicated across pods, not across devices)
 - Feature usage and navigation patterns
 - Aurora adoption metrics
 - Session duration tracking
+
+**Important:** This tracks **active authenticated browser instances**, not unique users:
+- Same browser at 13:00 and 14:00 = 2 counts (2 browser-hours)
+- Same user on laptop + phone = 2 counts (2 browser instances)
+- Same browser across 4 pods = 1 count (cookie deduplication)
 
 ---
 
@@ -63,7 +68,7 @@ The system uses **hourly time windows** combined with **cookie-based deduplicati
 User Activity Timeline:
 ├─ 13:00 → First request in hour 13
 │  ├─ No cookie "metrics_h13" present
-│  ├─ Increment counter: dashboard_unique_sessions_total{session_hour="13", platform="elektra"}
+│  ├─ Increment counter: dashboard_active_browser_hours_total{session_hour="13", platform="elektra"}
 │  └─ Set cookie: metrics_h13=1 (expires at 13:59:59)
 │
 ├─ 13:15 → Second request in hour 13
@@ -77,7 +82,7 @@ User Activity Timeline:
 └─ 14:00 → First request in hour 14
    ├─ Cookie "metrics_h13" expired (browser deleted it)
    ├─ No cookie "metrics_h14" present
-   ├─ Increment counter: dashboard_unique_sessions_total{session_hour="14", platform="elektra"}
+   ├─ Increment counter: dashboard_active_browser_hours_total{session_hour="14", platform="elektra"}
    └─ Set cookie: metrics_h14=1 (expires at 14:59:59)
 
 Result:
@@ -94,7 +99,7 @@ Result:
 
 **Traditional approach (high cardinality):**
 ```ruby
-dashboard_unique_sessions_total{anonymous_session_id="a1b2c3d4e5f6g7h8"}
+dashboard_active_browser_hours_total{anonymous_session_id="a1b2c3d4e5f6g7h8"}
 ```
 - Creates 1 time series per unique session
 - 10,000 users = 10,000 time series
@@ -102,7 +107,7 @@ dashboard_unique_sessions_total{anonymous_session_id="a1b2c3d4e5f6g7h8"}
 
 **Our approach (low cardinality):**
 ```ruby
-dashboard_unique_sessions_total{session_hour="14", platform="elektra"}
+dashboard_active_browser_hours_total{session_hour="14", platform="elektra"}
 ```
 - Creates 1 time series per hour per platform
 - 24 hours × 2 platforms = only 48 time series
@@ -277,7 +282,7 @@ store_session_data(response, session_data, global_domain)
 ├─ No cookies present
 │
 ├─ Actions taken:
-│  ├─ Increment: dashboard_unique_sessions_total{session_hour="13", platform="elektra"}
+│  ├─ Increment: dashboard_active_browser_hours_total{session_hour="13", platform="elektra"}
 │  ├─ Set cookie: metrics_hours=13 (expires +24h)
 │  └─ Set cookie: metrics_session={"start":1623675600,"last_dur":1623675600,"features":[]} (expires +24h)
 │
@@ -319,7 +324,7 @@ store_session_data(response, session_data, global_domain)
 │
 ├─ Actions taken:
 │  ├─ Check metrics_hours → "14" NOT present → increment unique sessions!
-│  ├─ Increment: dashboard_unique_sessions_total{session_hour="14", platform="elektra"}
+│  ├─ Increment: dashboard_active_browser_hours_total{session_hour="14", platform="elektra"}
 │  ├─ Update cookie: metrics_hours=13,14 (expires +24h)
 │  └─ Continue tracking features...
 │
@@ -355,15 +360,15 @@ store_session_data(response, session_data, global_domain)
 
 At end of day, Prometheus has:
 ```promql
-dashboard_unique_sessions_total{session_hour="13", platform="elektra"} = 1
-dashboard_unique_sessions_total{session_hour="14", platform="elektra"} = 1
-dashboard_unique_sessions_total{session_hour="15", platform="aurora"} = 1
+dashboard_active_browser_hours_total{session_hour="13", platform="elektra"} = 1
+dashboard_active_browser_hours_total{session_hour="14", platform="elektra"} = 1
+dashboard_active_browser_hours_total{session_hour="15", platform="aurora"} = 1
 
 # Daily Active Users (sum all hours)
-sum(increase(dashboard_unique_sessions_total{platform="elektra"}[24h]))
+sum(increase(dashboard_active_browser_hours_total{platform="elektra"}[24h]))
 # Result: 2 (hours 13 + 14)
 
-sum(increase(dashboard_unique_sessions_total{platform="aurora"}[24h]))
+sum(increase(dashboard_active_browser_hours_total{platform="aurora"}[24h]))
 # Result: 1 (hour 15)
 ```
 
@@ -432,7 +437,7 @@ Cookies with domain `.example.com` are sent to **both** Elektra and Aurora:
 User in Elektra (hour 14):
 ├─ URL: dashboard.example.com
 ├─ Cookie: metrics_hours=14; Domain=.example.com
-└─ Counter: dashboard_unique_sessions_total{session_hour="14", platform="elektra"} = 1
+└─ Counter: dashboard_active_browser_hours_total{session_hour="14", platform="elektra"} = 1
 
 User clicks link to Aurora:
 ├─ URL: dashboard-aurora.example.com
@@ -480,7 +485,7 @@ referrer_feature = session_data[:features].last  # "compute_show"
 
 ### 1. Unique Sessions by Hour
 
-**Metric:** `dashboard_unique_sessions_total`
+**Metric:** `dashboard_active_browser_hours_total`
 
 **Labels:**
 - `session_hour`: "00" to "23"
@@ -490,9 +495,9 @@ referrer_feature = session_data[:features].last  # "compute_show"
 
 **Example:**
 ```promql
-dashboard_unique_sessions_total{session_hour="14", platform="elektra"} = 523
+dashboard_active_browser_hours_total{session_hour="14", platform="elektra"} = 523
 ```
-Meaning: 523 unique sessions were active in Elektra during hour 14 today
+Meaning: 523 active authenticated browser instances in Elektra during hour 14 today
 
 ---
 
@@ -592,27 +597,27 @@ histogram_quantile(0.5, dashboard_session_duration_seconds{platform="elektra"})
 
 ```promql
 # Elektra DAU
-sum(increase(dashboard_unique_sessions_total{platform="elektra"}[24h]))
+sum(increase(dashboard_active_browser_hours_total{platform="elektra"}[24h]))
 
 # Aurora DAU
-sum(increase(dashboard_unique_sessions_total{platform="aurora"}[24h]))
+sum(increase(dashboard_active_browser_hours_total{platform="aurora"}[24h]))
 
 # Total DAU (both platforms)
-sum(increase(dashboard_unique_sessions_total[24h]))
+sum(increase(dashboard_active_browser_hours_total[24h]))
 ```
 
 ### Weekly Active Users (WAU)
 
 ```promql
-sum(increase(dashboard_unique_sessions_total{platform="elektra"}[7d]))
+sum(increase(dashboard_active_browser_hours_total{platform="elektra"}[7d]))
 ```
 
 ### Aurora Adoption Rate
 
 ```promql
 # What percentage of users are on Aurora?
-sum(increase(dashboard_unique_sessions_total{platform="aurora"}[7d]))
-/ sum(increase(dashboard_unique_sessions_total[7d]))
+sum(increase(dashboard_active_browser_hours_total{platform="aurora"}[7d]))
+/ sum(increase(dashboard_active_browser_hours_total[7d]))
 * 100
 ```
 
@@ -624,7 +629,7 @@ sum(increase(dashboard_cross_navigation_total{
   from_dashboard="aurora",
   to_dashboard="elektra"
 }[7d]))
-/ sum(increase(dashboard_unique_sessions_total{platform="aurora"}[7d]))
+/ sum(increase(dashboard_active_browser_hours_total{platform="aurora"}[7d]))
 * 100
 ```
 
@@ -658,7 +663,7 @@ histogram_quantile(0.5, sum by (le) (rate(dashboard_session_duration_seconds_buc
 
 ```promql
 # Which hours are most active?
-sum by (session_hour) (increase(dashboard_unique_sessions_total{
+sum by (session_hour) (increase(dashboard_active_browser_hours_total{
   platform="elektra"
 }[24h]))
 ```
@@ -718,7 +723,7 @@ All cookies use:
 
 ### How It Works in One Sentence
 
-**"We use hourly cookies to deduplicate session counts across pods and platforms, recording when users are active (by hour), what features they use, and how they navigate between Elektra and Aurora."**
+**"We use hourly cookies to count active authenticated browser instances across pods and platforms, recording when browsers are active (by hour), what features they use, and how they navigate between Elektra and Aurora."**
 
 ### Key Takeaways
 
