@@ -82,7 +82,7 @@ module MonsoonDashboard
 
     # rack middlewares
     # IMPORTANT: Order matters!
-    # 1. Anonymous session tracking (FIRST - for session ID generation)
+    # 1. Anonymous session tracking
     config.middleware.use AnonymousSessionMetricsMiddleware
     # 2. HTTP metrics collector (uses session context)
     config.middleware.use HttpMetricsCollectorMiddleware

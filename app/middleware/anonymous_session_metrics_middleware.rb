@@ -91,8 +91,6 @@ class AnonymousSessionMetricsMiddleware
       current_hour = Time.now.strftime("%H")  # "00" to "23"
       path_params = env["action_dispatch.request.path_parameters"] || {}
 
-      domain = path_params[:domain_id] || path_params[:domain_fid] || "unknown"
-      project = path_params[:project_id] || "unknown"
       current_feature = extract_feature(path_params)
 
       # Extract global domain (matches auth_session.rb pattern)
