@@ -67,28 +67,27 @@ The system uses **hourly time windows** combined with **cookie-based deduplicati
 ```
 User Activity Timeline:
 ├─ 13:00 → First request in hour 13
-│  ├─ No cookie "metrics_h13" present
+│  ├─ Cookie metrics_hours doesn't contain "13"
 │  ├─ Increment counter: dashboard_active_browser_hours_total{session_hour="13", platform="elektra"}
-│  └─ Set cookie: metrics_h13=1 (expires at 13:59:59)
+│  └─ Update cookie: metrics_hours=13 (expires +24h)
 │
 ├─ 13:15 → Second request in hour 13
-│  ├─ Cookie "metrics_h13" present
+│  ├─ Cookie metrics_hours=13 (contains "13")
 │  └─ Don't increment counter (already counted this hour)
 │
 ├─ 13:45 → Third request in hour 13
-│  ├─ Cookie "metrics_h13" present
+│  ├─ Cookie metrics_hours=13 (contains "13")
 │  └─ Don't increment counter (already counted this hour)
 │
 └─ 14:00 → First request in hour 14
-   ├─ Cookie "metrics_h13" expired (browser deleted it)
-   ├─ No cookie "metrics_h14" present
+   ├─ Cookie metrics_hours=13 (doesn't contain "14")
    ├─ Increment counter: dashboard_active_browser_hours_total{session_hour="14", platform="elektra"}
-   └─ Set cookie: metrics_h14=1 (expires at 14:59:59)
+   └─ Update cookie: metrics_hours=13,14 (expires +24h)
 
 Result:
 - Hour 13: Counted once ✅
 - Hour 14: Counted once ✅
-- Daily total: 2 hourly counts (user active in 2 hours)
+- Daily total: 2 hourly counts (browser active in 2 hours)
 ```
 
 ---
@@ -130,16 +129,16 @@ The system uses **server time** (not user's local time):
 
 ```
 Server Time: 13:59:50
-├─ Cookie: metrics_h13 (expires in 10 seconds)
-└─ User counted in hour 13
+├─ Cookie: metrics_hours=13
+└─ Browser counted in hour 13
 
 Server Time: 14:00:10
-├─ Cookie: metrics_h13 expired (browser deleted it)
-├─ Cookie: metrics_h14 not present
-└─ User counted in hour 14 (new hour)
+├─ Cookie: metrics_hours=13 (doesn't contain "14")
+└─ Browser counted in hour 14 (new hour added)
+└─ Cookie updated to: metrics_hours=13,14
 ```
 
-**Important:** User active at 13:59 and 14:01 → counted in **both hours**
+**Important:** Browser active at 13:59 and 14:01 → counted in **both hours**
 
 ---
 
