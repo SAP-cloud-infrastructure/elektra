@@ -247,7 +247,7 @@ current_feature = "compute_show"
 # Track transition: compute_index → compute_show
 @feature_transitions.increment(
   labels: {
-    from_feature: "compute_index",
+    last_feature_before_switch: "compute_index",
     to_feature: "compute_show",
     platform: "elektra",
     session_hour: "14"
@@ -313,7 +313,7 @@ store_session_data(response, session_data, global_domain)
 │  ├─ Update cookie: metrics_session={..., "last_dur":1623676800}
 │  ├─ Increment: dashboard_feature_usage_total{feature="compute_show", ...}
 │  ├─ Read previous feature: "compute_index"
-│  ├─ Increment: dashboard_feature_transitions_total{from_feature="compute_index", to_feature="compute_show", ...}
+│  ├─ Increment: dashboard_feature_transitions_total{last_feature_before_switch="compute_index", to_feature="compute_show", ...}
 │  └─ Update cookie: metrics_session={..., "features":["compute_index", "compute_show"]}
 │
 └─ Result: Duration recorded, feature transition tracked ✅
@@ -340,7 +340,7 @@ store_session_data(response, session_data, global_domain)
 │  ├─ Detect cross-dashboard navigation:
 │  │  ├─ Referrer: dashboard.example.com → "elektra"
 │  │  └─ Current: dashboard-aurora.example.com → "aurora"
-│  ├─ Increment: dashboard_cross_navigation_total{from_dashboard="elektra", to_dashboard="aurora", from_feature="compute_show", session_hour="14"}
+│  ├─ Increment: dashboard_cross_navigation_total{from_dashboard="elektra", to_dashboard="aurora", last_feature_before_switch="compute_show", session_hour="14"}
 │  └─ Continue tracking on Aurora...
 │
 └─ Result: Cross-dashboard navigation tracked, not double-counted ✅
@@ -471,7 +471,7 @@ referrer_feature = session_data[:features].last  # "compute_show"
   labels: {
     from_dashboard: "elektra",
     to_dashboard: "aurora",
-    from_feature: referrer_feature,
+    last_feature_before_switch: referrer_feature,
     session_hour: "14"
   }
 )
@@ -525,7 +525,7 @@ Meaning: The compute/instances/index page was accessed 1,250 times in hour 14
 **Metric:** `dashboard_feature_transitions_total`
 
 **Labels:**
-- `from_feature`: Previous feature
+- `last_feature_before_switch`: Previous feature
 - `to_feature`: Current feature
 - `platform`: "elektra" or "aurora"
 - `session_hour`: "00" to "23"
@@ -535,7 +535,7 @@ Meaning: The compute/instances/index page was accessed 1,250 times in hour 14
 **Example:**
 ```promql
 dashboard_feature_transitions_total{
-  from_feature="compute_index",
+  last_feature_before_switch="compute_index",
   to_feature="compute_show",
   platform="elektra",
   session_hour="14"
@@ -552,17 +552,19 @@ Meaning: 342 times users navigated from compute index to compute show
 **Labels:**
 - `from_dashboard`: "elektra" or "aurora"
 - `to_dashboard`: "elektra" or "aurora"
-- `from_feature`: Feature user was on before switching
+- `last_feature_before_switch`: Feature user was on before switching
 - `session_hour`: "00" to "23"
 
 **Purpose:** Track when users switch between Elektra and Aurora
+
+**Important:** `last_feature_before_switch` represents the last feature stored in the cookie before the dashboard switch, which may not be the exact feature on the HTTP referrer page. This is a best-effort attribution based on cookie history.
 
 **Example:**
 ```promql
 dashboard_cross_navigation_total{
   from_dashboard="elektra",
   to_dashboard="aurora",
-  from_feature="compute_index",
+  last_feature_before_switch="compute_index",
   session_hour="14"
 } = 87
 ```

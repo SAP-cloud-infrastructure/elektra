@@ -333,7 +333,7 @@ RSpec.describe AnonymousSessionMetricsMiddleware do
         count = counter.get(labels: {
           from_dashboard: 'aurora',
           to_dashboard: 'elektra',
-          from_feature: 'compute_list',
+          last_feature_before_switch: 'compute_list',
           session_hour: current_hour
         })
         expect(count).to eq(1)
@@ -358,7 +358,7 @@ RSpec.describe AnonymousSessionMetricsMiddleware do
         count = counter.get(labels: {
           from_dashboard: 'elektra',
           to_dashboard: 'aurora',
-          from_feature: 'network_list',
+          last_feature_before_switch: 'network_list',
           session_hour: current_hour
         })
         expect(count).to eq(1)
@@ -402,7 +402,7 @@ RSpec.describe AnonymousSessionMetricsMiddleware do
         count = counter.get(labels: {
           from_dashboard: 'aurora',
           to_dashboard: 'elektra',
-          from_feature: 'unknown',
+          last_feature_before_switch: 'unknown',
           session_hour: current_hour
         })
         expect(count).to eq(1)

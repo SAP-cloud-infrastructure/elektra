@@ -55,10 +55,11 @@ class AnonymousSessionMetricsMiddleware
 
     # Cross-dashboard navigation
     # Cardinality: 2 × 2 × 50 × 24 = 4,800 time series
+    # Note: from_feature is the last known feature from cookie, not parsed from referrer URL
     @cross_dashboard_nav = @registry.counter(
       :dashboard_cross_navigation_total,
       docstring: "Cross-dashboard navigation events",
-      labels: %i[from_dashboard to_dashboard from_feature session_hour]
+      labels: %i[from_dashboard to_dashboard last_feature_before_switch session_hour]
     )
 
     # Session duration histogram
@@ -272,14 +273,16 @@ class AnonymousSessionMetricsMiddleware
     return if referrer_dashboard == current_dashboard
     return unless current_dashboard
 
-    # Get feature from referrer (stored in session data by other platform)
-    referrer_feature = (session_data[:features] || []).last || "unknown"
+    # Get last known feature from cookie (not parsed from referrer URL)
+    # This represents the last feature the user visited before switching dashboards,
+    # which may not be the exact feature on the referrer page
+    last_feature = (session_data[:features] || []).last || "unknown"
 
     @cross_dashboard_nav.increment(
       labels: {
         from_dashboard: referrer_dashboard,
         to_dashboard: current_dashboard,
-        from_feature: referrer_feature,
+        last_feature_before_switch: last_feature,
         session_hour: current_hour
       }
     )
