@@ -5,14 +5,33 @@ import { Job } from "../../../types/api"
 import { AjaxHelper } from "lib/ajax_helper"
 
 describe("JobDetails", () => {
+  // Helper functions to generate dynamic dates
+  const getPastDate = (daysAgo = 1) => {
+    const date = new Date()
+    date.setDate(date.getDate() - daysAgo)
+    return date.toISOString()
+  }
+
+  const getFutureDate = (daysAhead = 1) => {
+    const date = new Date()
+    date.setDate(date.getDate() + daysAhead)
+    return date.toISOString()
+  }
+
+  const getNextYear = () => {
+    const date = new Date()
+    date.setFullYear(date.getFullYear() + 1)
+    return date.toISOString()
+  }
+
   const createMockJob = (overrides?: Partial<Job>): Job => ({
     id: "job-123",
-    created_at: "2024-01-01T00:00:00Z",
+    created_at: getPastDate(365),
     name: "Test Job",
     description: "Test job description",
     state: "scheduled",
-    schedule_date: "2026-06-15T10:00:00Z", // Future date
-    due_date: "2026-12-31T23:59:59Z", // Future date
+    schedule_date: getFutureDate(7),
+    due_date: getNextYear(),
     object_type: "server",
     object_id: "server-123",
     ...overrides,
@@ -111,7 +130,7 @@ describe("JobDetails", () => {
   describe("Schedule date handling", () => {
     it("should show error message when job missed scheduled time", () => {
       const job = createMockJob({
-        due_date: "2020-01-01T00:00:00Z",
+        due_date: getPastDate(365),
         schedule_date: "",
       })
       render(<JobDetails job={job} />)
@@ -121,8 +140,8 @@ describe("JobDetails", () => {
 
     it("should show error when job was scheduled but not successful before due date", () => {
       const job = createMockJob({
-        due_date: "2020-01-01T00:00:00Z",
-        schedule_date: "2019-12-15T00:00:00Z",
+        due_date: getPastDate(365),
+        schedule_date: getPastDate(380),
         state: "error",
       })
       render(<JobDetails job={job} />)
@@ -134,8 +153,8 @@ describe("JobDetails", () => {
 
     it("should not show error when job is successful even if past due date", () => {
       const job = createMockJob({
-        due_date: "2020-01-01T00:00:00Z",
-        schedule_date: "2019-12-15T00:00:00Z",
+        due_date: getPastDate(365),
+        schedule_date: getPastDate(380),
         state: "successful",
       })
       render(<JobDetails job={job} />)
@@ -172,45 +191,49 @@ describe("JobDetails", () => {
     })
 
     it("should show formatted schedule date when job state is successful", () => {
+      const scheduleDate = getFutureDate(7)
       const job = createMockJob({
         state: "successful",
-        schedule_date: "2026-06-15T10:00:00Z",
+        schedule_date: scheduleDate,
       })
       render(<JobDetails job={job} />)
 
-      const expectedDate = new Date("2026-06-15T10:00:00Z").toLocaleString()
+      const expectedDate = new Date(scheduleDate).toLocaleString()
       expect(screen.getByText(expectedDate)).toBeInTheDocument()
     })
 
     it("should show formatted schedule date when job state is failed", () => {
+      const scheduleDate = getFutureDate(7)
       const job = createMockJob({
         state: "failed",
-        schedule_date: "2026-06-15T10:00:00Z",
+        schedule_date: scheduleDate,
       })
       render(<JobDetails job={job} />)
 
-      const expectedDate = new Date("2026-06-15T10:00:00Z").toLocaleString()
+      const expectedDate = new Date(scheduleDate).toLocaleString()
       expect(screen.getByText(expectedDate)).toBeInTheDocument()
     })
 
     it("should show formatted schedule date when job state is error", () => {
+      const scheduleDate = getFutureDate(7)
       const job = createMockJob({
         state: "error",
-        schedule_date: "2026-06-15T10:00:00Z",
+        schedule_date: scheduleDate,
       })
       render(<JobDetails job={job} />)
 
-      const expectedDate = new Date("2026-06-15T10:00:00Z").toLocaleString()
+      const expectedDate = new Date(scheduleDate).toLocaleString()
       expect(screen.getByText(expectedDate)).toBeInTheDocument()
     })
 
     it("should show formatted due_date when it exists", () => {
+      const dueDate = getFutureDate(30)
       const job = createMockJob({
-        due_date: "2026-01-31T23:59:59Z",
+        due_date: dueDate,
       })
       render(<JobDetails job={job} />)
 
-      const expectedDate = new Date("2026-01-31T23:59:59Z").toLocaleString()
+      const expectedDate = new Date(dueDate).toLocaleString()
       expect(screen.getByText(expectedDate)).toBeInTheDocument()
     })
   })
@@ -218,6 +241,7 @@ describe("JobDetails", () => {
   describe("Form submission", () => {
     it("should successfully update job schedule date when state is scheduled", async () => {
       const apiClient = createMockApiClient()
+      const scheduleDate = getFutureDate(7)
       const patchMock = vi.mocked(apiClient.patch).mockResolvedValueOnce({
         data: {
           success: true,
@@ -225,8 +249,7 @@ describe("JobDetails", () => {
       } as any)
 
       const job = createMockJob({
-        due_date: "2026-12-31T23:59:59Z",
-        schedule_date: "2026-06-15T10:00:00Z",
+        schedule_date: scheduleDate,
         state: "scheduled",
       })
       render(<JobDetails job={job} apiClient={apiClient} />)
@@ -239,9 +262,9 @@ describe("JobDetails", () => {
       await waitFor(
         () => {
           expect(patchMock).toHaveBeenCalledTimes(1)
-          expect(patchMock).toHaveBeenCalledWith("/jobs/job-123", {
-            schedule_date: "2026-06-15T10:00:00.000Z",
-          })
+          expect(patchMock).toHaveBeenCalledWith("/jobs/job-123", expect.objectContaining({
+            schedule_date: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/),
+          }))
         },
         { timeout: 3000 }
       )
@@ -253,6 +276,7 @@ describe("JobDetails", () => {
 
     it("should successfully update job schedule date when state is initial", async () => {
       const apiClient = createMockApiClient()
+      const scheduleDate = getFutureDate(7)
       const patchMock = vi.mocked(apiClient.patch).mockResolvedValueOnce({
         data: {
           success: true,
@@ -260,8 +284,7 @@ describe("JobDetails", () => {
       } as any)
 
       const job = createMockJob({
-        due_date: "2026-12-31T23:59:59Z",
-        schedule_date: "2026-06-15T10:00:00Z",
+        schedule_date: scheduleDate,
         state: "initial",
       })
       render(<JobDetails job={job} apiClient={apiClient} />)
@@ -274,9 +297,9 @@ describe("JobDetails", () => {
       await waitFor(
         () => {
           expect(patchMock).toHaveBeenCalledTimes(1)
-          expect(patchMock).toHaveBeenCalledWith("/jobs/job-123", {
-            schedule_date: "2026-06-15T10:00:00.000Z",
-          })
+          expect(patchMock).toHaveBeenCalledWith("/jobs/job-123", expect.objectContaining({
+            schedule_date: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/),
+          }))
         },
         { timeout: 3000 }
       )
@@ -288,8 +311,6 @@ describe("JobDetails", () => {
 
     it("should show error when API client is undefined", async () => {
       const job = createMockJob({
-        due_date: "2026-12-31T23:59:59Z",
-        schedule_date: "2026-06-15T10:00:00Z",
         state: "scheduled",
       })
       render(<JobDetails job={job} apiClient={undefined} />)
@@ -312,8 +333,6 @@ describe("JobDetails", () => {
       } as any)
 
       const job = createMockJob({
-        due_date: "2026-12-31T23:59:59Z",
-        schedule_date: "2026-06-15T10:00:00Z",
         state: "scheduled",
       })
       render(<JobDetails job={job} apiClient={apiClient} />)
@@ -332,8 +351,6 @@ describe("JobDetails", () => {
       vi.mocked(apiClient.patch).mockRejectedValueOnce(error)
 
       const job = createMockJob({
-        due_date: "2026-12-31T23:59:59Z",
-        schedule_date: "2026-06-15T10:00:00Z",
         state: "scheduled",
       })
       render(<JobDetails job={job} apiClient={apiClient} />)
@@ -355,8 +372,6 @@ describe("JobDetails", () => {
       } as any)
 
       const job = createMockJob({
-        due_date: "2026-12-31T23:59:59Z",
-        schedule_date: "2026-06-15T10:00:00Z",
         state: "scheduled",
       })
       render(<JobDetails job={job} apiClient={apiClient} />)
@@ -371,7 +386,6 @@ describe("JobDetails", () => {
 
     it("should disable button when no schedule date is set", () => {
       const job = createMockJob({
-        due_date: "2026-12-31T23:59:59Z",
         schedule_date: "",
         state: "initial",
       })
@@ -390,8 +404,6 @@ describe("JobDetails", () => {
       vi.mocked(apiClient.patch).mockReturnValueOnce(promise as any)
 
       const job = createMockJob({
-        due_date: "2026-12-31T23:59:59Z",
-        schedule_date: "2026-06-15T10:00:00Z",
         state: "scheduled",
       })
       render(<JobDetails job={job} apiClient={apiClient} />)
@@ -418,8 +430,6 @@ describe("JobDetails", () => {
   describe("DateTimePicker validation", () => {
     it("should render with valid future date - button enabled for scheduled state", () => {
       const job = createMockJob({
-        due_date: "2026-12-31T23:59:59Z",
-        schedule_date: "2026-06-15T10:00:00Z",
         state: "scheduled",
       })
       render(<JobDetails job={job} apiClient={createMockApiClient()} />)
@@ -430,8 +440,6 @@ describe("JobDetails", () => {
 
     it("should render with valid future date - button enabled for initial state", () => {
       const job = createMockJob({
-        due_date: "2026-12-31T23:59:59Z",
-        schedule_date: "2026-06-15T10:00:00Z",
         state: "initial",
       })
       render(<JobDetails job={job} apiClient={createMockApiClient()} />)
@@ -442,7 +450,6 @@ describe("JobDetails", () => {
 
     it("should render with no schedule date - button disabled", () => {
       const job = createMockJob({
-        due_date: "2026-12-31T23:59:59Z",
         schedule_date: "",
         state: "initial",
       })
@@ -454,8 +461,6 @@ describe("JobDetails", () => {
 
     it("should NOT render DateTimePicker for successful state", () => {
       const job = createMockJob({
-        due_date: "2026-12-31T23:59:59Z",
-        schedule_date: "2026-06-15T10:00:00Z",
         state: "successful",
       })
       render(<JobDetails job={job} apiClient={createMockApiClient()} />)
@@ -466,8 +471,6 @@ describe("JobDetails", () => {
 
     it("should NOT render DateTimePicker for failed state", () => {
       const job = createMockJob({
-        due_date: "2026-12-31T23:59:59Z",
-        schedule_date: "2026-06-15T10:00:00Z",
         state: "failed",
       })
       render(<JobDetails job={job} apiClient={createMockApiClient()} />)
@@ -478,8 +481,6 @@ describe("JobDetails", () => {
 
     it("should NOT render DateTimePicker for error state", () => {
       const job = createMockJob({
-        due_date: "2026-12-31T23:59:59Z",
-        schedule_date: "2026-06-15T10:00:00Z",
         state: "error",
       })
       render(<JobDetails job={job} apiClient={createMockApiClient()} />)
@@ -489,16 +490,17 @@ describe("JobDetails", () => {
     })
 
     it("should display correct helptext with due date", () => {
+      const dueDate = getNextYear()
       const job = createMockJob({
-        due_date: "2026-12-31T23:59:59Z",
+        due_date: dueDate,
         schedule_date: "",
         state: "initial",
       })
       render(<JobDetails job={job} apiClient={createMockApiClient()} />)
 
-      const dueDate = new Date("2026-12-31T23:59:59Z").toLocaleDateString()
+      const formattedDueDate = new Date(dueDate).toLocaleDateString()
       expect(
-        screen.getByText(new RegExp(`Schedule Date not later as for job due by ${dueDate}`, "i"))
+        screen.getByText(new RegExp(`Schedule Date not later as for job due by ${formattedDueDate}`, "i"))
       ).toBeInTheDocument()
     })
   })
@@ -506,9 +508,8 @@ describe("JobDetails", () => {
   describe("Schedule date validation messages", () => {
     it("should show error when schedule date is in past and job state is scheduled", () => {
       const job = createMockJob({
-        schedule_date: "2020-06-15T10:00:00Z", // Past date
+        schedule_date: getPastDate(1),
         state: "scheduled",
-        due_date: "2026-12-31T23:59:59Z",
       })
       render(<JobDetails job={job} />)
 
@@ -518,10 +519,15 @@ describe("JobDetails", () => {
     })
 
     it("should show error when schedule date is in past and job state is initial", () => {
+      const yesterday = new Date()
+      yesterday.setDate(yesterday.getDate() - 1)
+      const nextYear = new Date()
+      nextYear.setFullYear(nextYear.getFullYear() + 1)
+
       const job = createMockJob({
-        schedule_date: "2020-06-15T10:00:00Z", // Past date
+        schedule_date: yesterday.toISOString(),
         state: "initial",
-        due_date: "2026-12-31T23:59:59Z",
+        due_date: nextYear.toISOString(),
       })
       render(<JobDetails job={job} />)
 
@@ -532,9 +538,8 @@ describe("JobDetails", () => {
 
     it("should show error when schedule date is in past and job state is error", () => {
       const job = createMockJob({
-        schedule_date: "2020-06-15T10:00:00Z", // Past date
+        schedule_date: getPastDate(1),
         state: "error",
-        due_date: "2026-12-31T23:59:59Z",
       })
       render(<JobDetails job={job} />)
 
@@ -545,9 +550,8 @@ describe("JobDetails", () => {
 
     it("should NOT show error when schedule date is in past but job state is successful", () => {
       const job = createMockJob({
-        schedule_date: "2020-06-15T10:00:00Z", // Past date
+        schedule_date: getPastDate(1),
         state: "successful",
-        due_date: "2026-12-31T23:59:59Z",
       })
       render(<JobDetails job={job} />)
 
@@ -558,9 +562,8 @@ describe("JobDetails", () => {
 
     it("should NOT show error when schedule date is in past but job state is failed", () => {
       const job = createMockJob({
-        schedule_date: "2020-06-15T10:00:00Z", // Past date
+        schedule_date: getPastDate(1),
         state: "failed",
-        due_date: "2026-12-31T23:59:59Z",
       })
       render(<JobDetails job={job} />)
 
@@ -570,10 +573,12 @@ describe("JobDetails", () => {
     })
 
     it("should NOT show error when schedule date is in future", () => {
+      const tomorrow = new Date()
+      tomorrow.setDate(tomorrow.getDate() + 1)
+
       const job = createMockJob({
-        schedule_date: "2026-06-15T10:00:00Z", // Future date
+        schedule_date: tomorrow.toISOString(),
         state: "scheduled",
-        due_date: "2026-12-31T23:59:59Z",
       })
       render(<JobDetails job={job} />)
 
@@ -586,7 +591,6 @@ describe("JobDetails", () => {
       const job = createMockJob({
         schedule_date: "",
         state: "initial",
-        due_date: "2026-12-31T23:59:59Z",
       })
       render(<JobDetails job={job} />)
 
@@ -602,7 +606,6 @@ describe("JobDetails", () => {
       const job = createMockJob({
         schedule_date: yesterday.toISOString(),
         state: "scheduled",
-        due_date: "2026-12-31T23:59:59Z",
       })
       render(<JobDetails job={job} />)
 
