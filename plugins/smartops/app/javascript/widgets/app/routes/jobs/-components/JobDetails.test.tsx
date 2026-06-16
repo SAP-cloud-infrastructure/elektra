@@ -518,10 +518,15 @@ describe("JobDetails", () => {
     })
 
     it("should show error when schedule date is in past and job state is initial", () => {
+      const yesterday = new Date()
+      yesterday.setDate(yesterday.getDate() - 1)
+      const nextYear = new Date()
+      nextYear.setFullYear(nextYear.getFullYear() + 1)
+
       const job = createMockJob({
-        schedule_date: "2020-06-15T10:00:00Z", // Past date
+        schedule_date: yesterday.toISOString(),
         state: "initial",
-        due_date: "2026-12-31T23:59:59Z",
+        due_date: nextYear.toISOString(),
       })
       render(<JobDetails job={job} />)
 
@@ -570,8 +575,11 @@ describe("JobDetails", () => {
     })
 
     it("should NOT show error when schedule date is in future", () => {
+      const tomorrow = new Date()
+      tomorrow.setDate(tomorrow.getDate() + 1)
+
       const job = createMockJob({
-        schedule_date: "2026-06-15T10:00:00Z", // Future date
+        schedule_date: tomorrow.toISOString(),
         state: "scheduled",
         due_date: "2026-12-31T23:59:59Z",
       })
