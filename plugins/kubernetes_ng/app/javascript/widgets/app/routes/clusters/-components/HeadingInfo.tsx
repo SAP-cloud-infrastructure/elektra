@@ -38,7 +38,7 @@ export default function HeadingInfo() {
           <CodeBlock
             content={`# Install via Homebrew (macOS)
 brew tap sap-cloud-infrastructure/tap
-brew install scikube`}
+brew install sap-cloud-infrastructure/tap/scikube`}
           />
           <p className="tw-my-4">Then source your OpenStack credentials and generate a garden kubeconfig:</p>
 
