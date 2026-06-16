@@ -241,8 +241,11 @@ const cardStyle: React.CSSProperties = {
   boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
 }
 
-const truncate = (s: string | undefined, n: number) =>
-  s && s.length > n ? s.substring(0, n) + "…" : s || "-"
+const FullCell: React.FC<{ value: string | undefined; mono?: boolean }> = ({ value, mono }) => (
+  <span style={mono ? { fontFamily: "monospace", fontSize: 12, wordBreak: "break-all" } : { wordBreak: "break-word" }}>
+    {value || "-"}
+  </span>
+)
 
 const btnStyle = (disabled: boolean): React.CSSProperties => ({
   padding: "4px 12px", borderRadius: 4, border: "1px solid var(--color-border, #e0e0e0)",
@@ -277,21 +280,6 @@ const PaginationBar: React.FC<{
     </div>
   </div>
 )
-
-const TipCell: React.FC<{ value: string | undefined; max: number; mono?: boolean }> = ({ value, max, mono }) => {
-  const full = value || "-"
-  const short = truncate(value, max)
-  const style: React.CSSProperties = mono ? { fontFamily: "monospace", fontSize: 12 } : {}
-  if (full === short) return <span style={style}>{full}</span>
-  return (
-    <Tooltip triggerEvent="hover">
-      <TooltipTrigger asChild>
-        <span style={{ ...style, cursor: "default" }}>{short}</span>
-      </TooltipTrigger>
-      <TooltipContent>{full}</TooltipContent>
-    </Tooltip>
-  )
-}
 
 const fetchAllTagged = async (
   bearerToken: string,
@@ -407,7 +395,6 @@ const ErrorReport: React.FC = () => {
               <StatCard label="Total Error Events" value={fmt(allChartErrorEvents.length)} sub="All error events" borderColor="#038bc6" valueColor="#038bc6" />
               <StatCard label="Temporary (4xx)" value={fmt(chartTempErrs)} sub="Temp failures & retries" borderColor="#fcd34d" valueColor="#ca8a04" />
               <StatCard label="Permanent (5xx)" value={fmt(chartPermErrs)} sub="Perm delivery failures" borderColor="#fca5a5" valueColor="#991b1b" />
-              <StatCard label="Failed Mails" value={fmt(new Set(allChartErrorEvents.filter(e => e.type === "PERM").map(e => e.requestId)).size)} sub="Mails with final failure" />
             </div>
           )}
         </div>
@@ -415,7 +402,7 @@ const ErrorReport: React.FC = () => {
         {/* Top Error Responses */}
         <div style={{ ...cardStyle, padding: 24, marginBottom: 16 }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 16 }}>
-            <div style={{ fontWeight: 700, fontSize: 16 }}>Top Error Responses</div>
+            <div style={{ fontWeight: 700, fontSize: 16 }}>Error Summary</div>
             <div style={{ fontSize: 12, color: "#9ca3af" }}>click a row to filter the table</div>
           </div>
           {allMailsResult.isLoading ? (
@@ -483,13 +470,13 @@ const ErrorReport: React.FC = () => {
                         {moment(ev.time).format("YYYY-MM-DD, HH:mm:ss")}
                         <p>UTC: {moment(ev.time).utc().format("YYYY-MM-DD, HH:mm:ss")}</p>
                       </DataGridCell>
-                      <DataGridCell><TipCell value={ev.sender} max={30} /></DataGridCell>
-                      <DataGridCell><TipCell value={ev.recipient} max={30} /></DataGridCell>
-                      <DataGridCell><TipCell value={ev.response} max={40} /></DataGridCell>
+                      <DataGridCell><FullCell value={ev.sender} /></DataGridCell>
+                      <DataGridCell><FullCell value={ev.recipient} /></DataGridCell>
+                      <DataGridCell><FullCell value={ev.response} /></DataGridCell>
                       <DataGridCell>{ev.code || "-"}</DataGridCell>
                       <DataGridCell><TypeBadge type={ev.type} /></DataGridCell>
-                      <DataGridCell><TipCell value={ev.requestId} max={8} mono /></DataGridCell>
-                      <DataGridCell><TipCell value={ev.messageId} max={20} mono /></DataGridCell>
+                      <DataGridCell><FullCell value={ev.requestId} mono /></DataGridCell>
+                      <DataGridCell><FullCell value={ev.messageId} mono /></DataGridCell>
                     </DataGridRow>
                   ))
                 ) : (
