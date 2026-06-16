@@ -399,7 +399,7 @@ const ErrorReport: React.FC = () => {
           )}
         </div>
 
-        {/* Top Error Responses */}
+        {/* Error Summary */}
         <div style={{ ...cardStyle, padding: 24, marginBottom: 16 }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 16 }}>
             <div style={{ fontWeight: 700, fontSize: 16 }}>Error Summary</div>
