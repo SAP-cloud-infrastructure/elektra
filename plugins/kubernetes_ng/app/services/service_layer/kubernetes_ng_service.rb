@@ -32,13 +32,27 @@ module ServiceLayer
 
       # Cache per landscape to avoid issues when landscape changes
       @elektron_gardener_cache ||= {}
-      @elektron_gardener_cache[gardener_service_name] ||=
-        elektron.service(
+      @elektron_gardener_cache[gardener_service_name] ||= begin
+        # Try internal interface (default) first
+        service = elektron.service(
           gardener_service_name,
-           headers:{
+          headers:{
             "Authorization":"Bearer #{region}:#{elektron.token}"
           }
         )
+        # Verify the internal endpoint is available
+        service.endpoint_url
+        service
+      rescue Elektron::Errors::ServiceEndpointUnavailable
+        # Persephone runs in a different cluster, so fallback to public interface
+        elektron.service(
+          gardener_service_name,
+          interface: "public",
+          headers:{
+            "Authorization":"Bearer #{region}:#{elektron.token}"
+          }
+        )
+      end
     end
 
     private
