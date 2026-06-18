@@ -36,8 +36,13 @@ class DomainConfig
     @domain_config.fetch('disabled_plugins', []).include?(name.to_s)
   end
 
+  # Returns true if a feature is disabled for the current domain.
+  # A feature can be re-enabled for a specific domain using `enabled_features`,
+  # which takes precedence over `disabled_features`.
   def feature_hidden?(name)
-    @domain_config.fetch('disabled_features', []).include?(name.to_s)
+    disabled = @domain_config.fetch('disabled_features', []).include?(name.to_s)
+    enabled = @domain_config.fetch('enabled_features', []).include?(name.to_s)
+    disabled && !enabled  # enabled_features takes precedence
   end
 
   def federation?
