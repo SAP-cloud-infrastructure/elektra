@@ -81,10 +81,16 @@ module MonsoonDashboard
     end
 
     # rack middlewares
+    # IMPORTANT: Order matters!
+    # 1. Anonymous session tracking
+    config.middleware.use AnonymousSessionMetricsMiddleware
+    # 2. HTTP metrics collector (uses session context)
     config.middleware.use HttpMetricsCollectorMiddleware
-    config.middleware.use InquiryMetricsMiddleware
+    # 3. SLI metrics
     config.middleware.use SLIMetricsMiddleware
+    # 4. Exporter (MUST BE LAST among metrics middlewares)
     config.middleware.use HttpMetricsExporterMiddleware
+    # 5. Revision middleware
     config.middleware.use RevisionMiddleware
 
     # Prevent oauth2-proxy redirect loops by intercepting 401/403 responses
@@ -158,6 +164,10 @@ module MonsoonDashboard
 
     # Mailer configuration for inquiries/requests
     config.limes_mail_server_endpoint = ENV["LIMES_MAIL_SERVER_API_ENDPOINT"]
+
+    # Feedback recipient email address(es) for the feedback form in the UI
+    # Supports single email or comma-separated multiple emails: email1@example.com,email2@example.com
+    config.feedback_recipient_emails = ENV['FEEDBACK_RECIPIENT_EMAIL']&.split(',')&.map(&:strip)
 
     # Cross-dashboard authentication cookie name for SSO (Elektra <-> Aurora)
     config.cross_dashboard_cookie_name = ENV['CROSS_DASHBOARD_COOKIE_NAME'] || 'dashboard-session-auth'

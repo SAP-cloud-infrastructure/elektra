@@ -60,6 +60,11 @@ module Core
         @api_client = api_client
       end
 
+      def has_service_endpoint?(name_or_sym, options = {})
+        service_name = name_or_sym.to_s
+        @api_client.service_url(service_name, options) != nil
+      end
+
       def available?(service_name, action_name = nil)
         send(service_name.to_sym).send(:available?, action_name.try(:to_sym))
       rescue StandardError

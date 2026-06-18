@@ -1,0 +1,21 @@
+(function() {
+  var $messageDiv = $('#feedback-message');
+
+  <% if @success %>
+    $messageDiv.removeClass('alert-danger').addClass('alert-success')
+      .text('<%= j(@message) %>').show();
+    setTimeout(function() {
+      $('.modal').modal('hide');
+      $messageDiv.hide();
+    }, 2000);
+  <% else %>
+    var $submitBtn = $('#feedback-submit-btn');
+    var $sendingBtn = $('#feedback-sending-btn');
+    var $textarea = $('#feedback_message');
+    $messageDiv.removeClass('alert-success').addClass('alert-danger')
+      .text('<%= j(@message) %>').show();
+    $textarea.prop('disabled', false);
+    $sendingBtn.hide();
+    $submitBtn.show().prop('disabled', $textarea.val().trim() === '');
+  <% end %>
+})();

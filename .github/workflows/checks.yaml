@@ -95,10 +95,6 @@ jobs:
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "20.x"
-          registry-url: "https://npm.pkg.github.com"
-          scope: "@sapcc"
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.ELEKTRA_GITHUB_NPM_TOKEN }}
 
       - name: Install pnpm
         run: npm install -g pnpm
@@ -117,6 +113,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
+      # @sapcc/limes-ui is marked as optionalDependency and will be skipped if unavailable
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -143,10 +140,6 @@ jobs:
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "20.x"
-          registry-url: "https://npm.pkg.github.com"
-          scope: "@sapcc"
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.ELEKTRA_GITHUB_NPM_TOKEN }}
 
       - name: Install pnpm
         run: npm install -g pnpm
@@ -165,6 +158,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
+      # @sapcc/limes-ui is marked as optionalDependency and will be skipped if unavailable
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -191,10 +185,6 @@ jobs:
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "20.x"
-          registry-url: "https://npm.pkg.github.com"
-          scope: "@sapcc"
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.ELEKTRA_GITHUB_NPM_TOKEN }}
 
       - name: Install pnpm
         run: npm install -g pnpm
@@ -213,6 +203,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
+      # @sapcc/limes-ui is marked as optionalDependency and will be skipped if unavailable
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 

@@ -22,41 +22,48 @@ export default function HeadingInfo() {
       <Collapse isOpen={showInstructions} id="instructions" aria-labelledby="instructions-toggle">
         <div className="info tw-mt-4">
           <p className="tw-mb-4">
-            For conveniently managing your clusters with kubectl, first install the{" "}
+            For managing your clusters with kubectl, install the{" "}
             <a
-              href="https://github.wdf.sap.corp/sap-cloud-infrastructure/persephone"
+              href="https://documentation.global.cloud.sap/docs/customer/containers/persephone/getting-started/installing-scikube/"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Open scikube CLI in a new tab"
+              aria-label="Open scikube installation documentation in a new tab"
               className="tw-text-theme-link hover:tw-underline"
             >
               scikube CLI <Icon size="18" icon="openInNew" className="tw-inline" />
             </a>{" "}
-            utility, then generate the kubeconfig file for your OpenStack domain/project. Download the latest source
-            code zip/tarball, then:
+            utility:
           </p>
 
           <CodeBlock
-            content={`# Generic instructions: all platforms
-PERSEPHONE_VERSION='0.2.0'
-unzip persephone-"$PERSEPHONE_VERSION".zip
-cd persephone-"$PERSEPHONE_VERSION"
-make build/scikube && ./build/scikube -h`}
+            content={`# Install via Homebrew (macOS)
+brew tap sap-cloud-infrastructure/tap
+brew install sap-cloud-infrastructure/tap/scikube`}
           />
-          <p className="tw-my-4">
-            Make sure to include scikube in your shell PATH. Finally, set up your OpenStack variables and create your
-            "garden kubeconfig" file as follows:
-          </p>
+          <p className="tw-my-4">Then source your OpenStack credentials and generate a garden kubeconfig:</p>
 
           <CodeBlock
             content={`source "<your-openstack-rc-file.sh>"
-# create kubeconfig file
-scikube kubeconfig-for-garden --landscape canary > kubeconfig-for-garden.yaml
-# list your domain/project clusters
+# Create garden kubeconfig
+scikube kubeconfig-for-garden --landscape <landscape> > kubeconfig-for-garden.yaml
+# List clusters in your project
 KUBECONFIG=kubeconfig-for-garden.yaml kubectl get shoot
-# create a new cluster on your domain/project
-KUBECONFIG=kubeconfig-for-garden.yaml kubectl apply -f "<your-new-shoot-manifest.yaml>"`}
+# Connect to a cluster
+KUBECONFIG=kubeconfig-for-garden.yaml scikube kubeconfig-for-shoot --name <cluster-name> > kubeconfig-for-shoot.yaml
+KUBECONFIG=kubeconfig-for-shoot.yaml kubectl get nodes`}
           />
+          <p className="tw-mt-4">
+            For detailed instructions including binary installation and cluster management, see the{" "}
+            <a
+              href="https://documentation.global.cloud.sap/docs/customer/containers/persephone/getting-started/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="tw-text-theme-link hover:tw-underline"
+            >
+              Persephone documentation <Icon size="18" icon="openInNew" className="tw-inline" />
+            </a>
+            .
+          </p>
         </div>
       </Collapse>
     </Card>

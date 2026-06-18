@@ -71,6 +71,7 @@ SimpleNavigation::Configuration.run do |navigation|
                        plugin_available?(:compute) ||
                        plugin_available?(:image))
                    } do |compute_nav|
+             
       compute_nav.item :instances,
                        'Servers',
                        -> { plugin('compute').instances_path },
@@ -124,16 +125,17 @@ SimpleNavigation::Configuration.run do |navigation|
                      (plugin_available?(:kubernetes) && current_user &&
                        current_user.has_service?('kubernikus')) ||
                      # Or if any kubernetes_ng landscape is available with correct conditions
+                     # Production and canary landscapes are now globally available (no region restriction)
+                     # QA landscape remains restricted to qa-de-1 region only
                      (plugin_available?(:kubernetes_ng) && (
-                       # prod/canary with persephone tag OR in qa-de-1
-                       ((services.available?(:kubernetes_ng, :prod) || services.available?(:kubernetes_ng, :canary)) &&
-                         (current_region == "qa-de-1" || @active_project&.tags&.include?('persephone'))) ||
-                       # qa in qa-de-1 region
+                       # landscape prod/canary anywhere
+                       (services.available?(:kubernetes_ng, :prod) || services.available?(:kubernetes_ng, :canary)) ||
+                       # landscape qa in qa-de-1 region
                        (services.available?(:kubernetes_ng, :qa) && current_region == "qa-de-1")
                      ))
                    } do |containers_nav|
       containers_nav.item :kubernetes,
-                          'Kubernetes',
+                          'Kubernetes (Legacy)',
                           -> { plugin('kubernetes').root_path },
                           if:
                             lambda {
@@ -146,7 +148,7 @@ SimpleNavigation::Configuration.run do |navigation|
       # Generate navigation items for each kubernetes_ng landscape
       KubernetesNg::LANDSCAPES.each do |landscape_name, config|
         display_name = config[:display_name]
-        label = display_name.empty? ? "Kubernetes (Gardener)" : "Kubernetes (Gardener #{display_name})"
+        label = display_name.empty? ? "Kubernetes" : "Kubernetes (#{display_name})"
         containers_nav.item :"kubernetes_ng_#{landscape_name}",
                             label,
                             -> { plugin('kubernetes_ng').service_path(landscape_name: landscape_name) },
@@ -154,8 +156,8 @@ SimpleNavigation::Configuration.run do |navigation|
                               plugin_available?(:kubernetes_ng) &&
                                 services.available?(:kubernetes_ng, landscape_name.to_sym) &&
                                 if config[:user_facing]
-                                  # prod/canary: with persephone tag OR in qa-de-1
-                                  current_region == "qa-de-1" || @active_project&.tags&.include?('persephone')
+                                  # prod/canary: available everywhere (no region restriction)
+                                  true
                                 else
                                   # qa: only in qa-de-1 region
                                   current_region == "qa-de-1"
@@ -371,6 +373,7 @@ SimpleNavigation::Configuration.run do |navigation|
                        plugin_available?(:keppel) ||
                        plugin_available?(:shared_filesystem_storage)
                    } do |storage_nav|
+
       storage_nav.item :shared_storage,
                       capture {
                         concat 'Object Storage '
@@ -501,11 +504,13 @@ SimpleNavigation::Configuration.run do |navigation|
                      (plugin_available?(:email_service) && services.available?(:email_service)) ||
                       (plugin_available?(:smartops) && services.available?(:smartops))
                    } do |services_nav|
+
+
       services_nav.item :email_service,
                           'Email',
                           -> { plugin('email_service').email_service_path },
                           if: -> {
-                            services.available?(:email_service)
+                            plugin_available?(:email_service) && services.available?(:email_service)
                           },
                           highlights_on: lambda {
                             params[:controller][%r{email_service/?.*}]
@@ -521,6 +526,16 @@ SimpleNavigation::Configuration.run do |navigation|
                           highlights_on: lambda {
                               params[:controller][%r{smartops/.*}]
                             }
+      services_nav.item :pca_service,
+                        'Private Certificate Authority',
+                        -> {
+                          "https://dashboard-aurora.#{current_region}.cloud.sap/projects/#{@scoped_project_id}/services/pca"
+                        },
+                        link_html: { class: "aurora" },
+                        if: lambda {
+                          services.has_service_endpoint?("pca") &&
+                            !@domain_config&.feature_hidden?('pca')
+                        }
     end
 
     primary.item :cc_tools,
