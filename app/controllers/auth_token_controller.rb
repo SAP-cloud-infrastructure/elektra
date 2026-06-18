@@ -40,6 +40,7 @@ class AuthTokenController < ActionController::Base
           # Render the loading view while processing the redirect
           @domain_name = domain_name
           @auth_token = encode_auth_token(token)
+          
           render :redirect and return
         else
           # Token is valid but user has no domain/project access (no Keystone role assignments)
