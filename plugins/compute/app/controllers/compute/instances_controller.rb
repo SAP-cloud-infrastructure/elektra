@@ -89,8 +89,8 @@ module Compute
           @console = services.compute.remote_console(params[:id], "serial", "shellinabox")
         elsif hypervisor.to_s.match?(/node\d+-bb\d+/)
           # kvm hypervisors have the pattern nodeX-bbY
-          # Note this needs to be reviewed because it is not very generic, check also issue #1605
-          @console = services.compute.remote_console(params[:id], "vnc", "novnc")
+          # Use serial console for KVM instances
+          @console = services.compute.remote_console(params[:id], "serial", "serial")
         else
           @console = services.compute.remote_console(params[:id])
         end
