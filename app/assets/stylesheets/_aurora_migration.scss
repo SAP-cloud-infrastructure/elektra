@@ -13,7 +13,9 @@
   border-radius: 3px;
   padding: 1px;
   background: linear-gradient(80deg, #6637cd 0%, #b8149d 100%);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   pointer-events: none;
@@ -51,10 +53,16 @@
 
 .switcher-btn:hover {
   background: linear-gradient(80deg, #7c4fe0 0%, #d025b5 100%);
+  text-decoration: none;
+  border: none;
+  color: #fff;
 }
 
 .switcher-btn:active {
   background: linear-gradient(80deg, #4d1d93 0%, #8c0f77 100%);
+  text-decoration: none;
+  border: none;
+  color: #fff;
 }
 
 .switcher-btn svg {
@@ -306,7 +314,8 @@
   flex-shrink: 0;
   border-radius: 3px;
   background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 -960 960 960'%3E%3Cpath fill='%23ffffff' d='m98-537 168-168q14-14 33-20t39-2l52 11q-54 64-85 116t-60 126L98-537Zm205 91q23-72 62.5-136T461-702q88-88 201-131.5T873-860q17 98-26 211T716-448q-55 55-120 95.5T459-289L303-446Zm332.5-97q33.5 0 56.5-23t23-56.5q0-33.5-23-56.5t-56.5-23q-33.5 0-56.5 23t-23 56.5q0 33.5 23 56.5t56.5 23ZM551-85l-64-147q74-29 126.5-60T730-377l10 52q4 20-2 39.5T718-252L551-85ZM162-318q35-35 85-35.5t85 34.5q35 35 35 85t-35 85q-25 25-83.5 43T87-74q14-103 32-161t43-83Z'/%3E%3C/svg%3E") center / 0.75rem no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 -960 960 960'%3E%3Cpath fill='%23ffffff' d='m98-537 168-168q14-14 33-20t39-2l52 11q-54 64-85 116t-60 126L98-537Zm205 91q23-72 62.5-136T461-702q88-88 201-131.5T873-860q17 98-26 211T716-448q-55 55-120 95.5T459-289L303-446Zm332.5-97q33.5 0 56.5-23t23-56.5q0-33.5-23-56.5t-56.5-23q-33.5 0-56.5 23t-23 56.5q0 33.5 23 56.5t56.5 23ZM551-85l-64-147q74-29 126.5-60T730-377l10 52q4 20-2 39.5T718-252L551-85ZM162-318q35-35 85-35.5t85 34.5q35 35 35 85t-35 85q-25 25-83.5 43T87-74q14-103 32-161t43-83Z'/%3E%3C/svg%3E")
+      center / 0.75rem no-repeat,
     linear-gradient(80deg, #6637cd 0%, #b8149d 100%);
   vertical-align: middle;
 }
