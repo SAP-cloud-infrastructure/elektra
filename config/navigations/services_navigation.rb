@@ -71,6 +71,7 @@ SimpleNavigation::Configuration.run do |navigation|
                        plugin_available?(:compute) ||
                        plugin_available?(:image))
                    } do |compute_nav|
+             
       compute_nav.item :instances,
                        'Servers',
                        -> { plugin('compute').instances_path },
@@ -372,6 +373,7 @@ SimpleNavigation::Configuration.run do |navigation|
                        plugin_available?(:keppel) ||
                        plugin_available?(:shared_filesystem_storage)
                    } do |storage_nav|
+
       storage_nav.item :shared_storage,
                       capture {
                         concat 'Object Storage '
@@ -502,6 +504,8 @@ SimpleNavigation::Configuration.run do |navigation|
                      (plugin_available?(:email_service) && services.available?(:email_service)) ||
                       (plugin_available?(:smartops) && services.available?(:smartops))
                    } do |services_nav|
+
+
       services_nav.item :email_service,
                           'Email',
                           -> { plugin('email_service').email_service_path },
@@ -522,6 +526,16 @@ SimpleNavigation::Configuration.run do |navigation|
                           highlights_on: lambda {
                               params[:controller][%r{smartops/.*}]
                             }
+      services_nav.item :pca_service,
+                        'Private Certificate Authority',
+                        -> {
+                          "https://dashboard-aurora.#{current_region}.cloud.sap/projects/#{@scoped_project_id}/services/pca"
+                        },
+                        link_html: { class: "aurora" },
+                        if: lambda {
+                          services.has_service_endpoint?("pca") &&
+                            !@domain_config&.feature_hidden?('pca')
+                        }
     end
 
     primary.item :cc_tools,

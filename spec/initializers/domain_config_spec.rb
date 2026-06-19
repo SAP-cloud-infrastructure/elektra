@@ -39,6 +39,9 @@ test_config = {
         'terms_of_use',
         'networking_backup'
       ],
+      'enabled_features' => [
+        'support'  # re-enable support despite being in disabled_features
+      ],
       'terms_of_use_name' => 'marioworld_terms',
       'floating_ip_networks' => ['FloatingIP-external-marioworld-01'],
       'dns_c_subdomain' => false,
@@ -209,7 +212,6 @@ describe DomainConfig do
       it 'returns true if the feature is disabled in marioworld domain' do
         config = DomainConfig.new('marioworld-domain')
         expect(config.feature_hidden?('documentation')).to be true # from marioworld domain config
-        expect(config.feature_hidden?('support')).to be true # from marioworld domain config
         expect(config.feature_hidden?('domain_switcher')).to be true # from marioworld domain config
       end
 
@@ -218,10 +220,16 @@ describe DomainConfig do
         expect(config.feature_hidden?('some_other_feature')).to be false # not set in marioworld domain config
       end
 
+      it 'returns false if feature is in both disabled_features and enabled_features (enabled takes precedence)' do
+        config = DomainConfig.new('marioworld-domain')
+        # 'support' is in both disabled_features and enabled_features
+        expect(config.feature_hidden?('support')).to be false # enabled_features takes precedence
+      end
+
       it 'inherits disabled features for specific marioworld domain' do
         config = DomainConfig.new('marioworld-and-luigi-test')
         expect(config.feature_hidden?('documentation')).to be true # from marioworld domain config
-        expect(config.feature_hidden?('support')).to be true # from marioworld domain config
+        expect(config.feature_hidden?('support')).to be false # re-enabled via enabled_features
       end
     end
 
