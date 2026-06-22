@@ -54,17 +54,20 @@ RSpec.describe SLIMetricsMiddleware do
     context "when path is excluded" do
       it "does not record metrics for /metrics" do
         middleware.call(make_env("/metrics"))
-        expect(registry.get(:elektra_sli)).to be_nil
+        histogram = registry.get(:elektra_sli)
+        expect(histogram.values).to be_empty
       end
 
       it "does not record metrics for /assets/ paths" do
         middleware.call(make_env("/assets/application.js"))
-        expect(registry.get(:elektra_sli)).to be_nil
+        histogram = registry.get(:elektra_sli)
+        expect(histogram.values).to be_empty
       end
 
       it "does not record metrics for /system/ paths" do
         middleware.call(make_env("/system/health"))
-        expect(registry.get(:elektra_sli)).to be_nil
+        histogram = registry.get(:elektra_sli)
+        expect(histogram.values).to be_empty
       end
 
       it "still calls the app for excluded paths" do
@@ -80,28 +83,28 @@ RSpec.describe SLIMetricsMiddleware do
         middleware.call(make_env("/compute/instances"))
         histogram = registry.get(:elektra_sli)
         value = histogram.get(labels: { path: "compute", method: "get" })
-        expect(value["count"]).to eq(1)
+        expect(value["+Inf"]).to eq(1)
       end
 
       it "extracts correctly for any first segment" do
         middleware.call(make_env("/networking/routers"))
         histogram = registry.get(:elektra_sli)
         value = histogram.get(labels: { path: "networking", method: "get" })
-        expect(value["count"]).to eq(1)
+        expect(value["+Inf"]).to eq(1)
       end
 
       it "uses 'root' for the root path" do
         middleware.call(make_env("/"))
         histogram = registry.get(:elektra_sli)
         value = histogram.get(labels: { path: "root", method: "get" })
-        expect(value["count"]).to eq(1)
+        expect(value["+Inf"]).to eq(1)
       end
 
       it "captures the first segment even when it is a domain UUID" do
         middleware.call(make_env("/monsoon3-d2b33a9d-2fa7-4d3f-a946-4afdf59d995f/abc123/compute"))
         histogram = registry.get(:elektra_sli)
         value = histogram.get(labels: { path: "monsoon3-d2b33a9d-2fa7-4d3f-a946-4afdf59d995f", method: "get" })
-        expect(value["count"]).to eq(1)
+        expect(value["+Inf"]).to eq(1)
       end
     end
 
@@ -111,7 +114,7 @@ RSpec.describe SLIMetricsMiddleware do
           middleware.call(make_env("/compute/instances", method: http_method))
           histogram = registry.get(:elektra_sli)
           value = histogram.get(labels: { path: "compute", method: http_method.downcase })
-          expect(value["count"]).to eq(1)
+          expect(value["+Inf"]).to eq(1)
         end
       end
     end
@@ -128,7 +131,7 @@ RSpec.describe SLIMetricsMiddleware do
         3.times { middleware.call(make_env("/compute/instances")) }
         histogram = registry.get(:elektra_sli)
         value = histogram.get(labels: { path: "compute", method: "get" })
-        expect(value["count"]).to eq(3)
+        expect(value["+Inf"]).to eq(3)
       end
     end
 

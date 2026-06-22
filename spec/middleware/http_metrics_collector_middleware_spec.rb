@@ -117,7 +117,7 @@ RSpec.describe HttpMetricsCollectorMiddleware do
           middleware.call(excluded_env)
 
           requests_counter = registry.get(:http_server_requests_total)
-          expect(requests_counter).to be_nil
+          expect(requests_counter&.values).to be_nil.or be_empty
         end
       end
     end
