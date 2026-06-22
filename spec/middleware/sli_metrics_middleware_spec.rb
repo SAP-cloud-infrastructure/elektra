@@ -18,14 +18,14 @@ RSpec.describe SLIMetricsMiddleware do
     end
 
     it "registers the histogram with path and method labels" do
-      middleware.call(make_env("/monsoon3/abc123/compute/instances"))
+      middleware.call(make_env("/compute/instances"))
       histogram = registry.get(:elektra_sli)
       value = histogram.get(labels: { path: "compute", method: "get" })
       expect(value).to be_a(Hash)
     end
 
     it "uses API-proxy-appropriate histogram buckets" do
-      middleware.call(make_env("/monsoon3/abc123/compute/instances"))
+      middleware.call(make_env("/compute/instances"))
       histogram = registry.get(:elektra_sli)
       buckets = histogram.get(labels: { path: "compute", method: "get" })
 
@@ -40,7 +40,7 @@ RSpec.describe SLIMetricsMiddleware do
     end
 
     it "does not use the default sub-5ms buckets" do
-      middleware.call(make_env("/monsoon3/abc123/compute/instances"))
+      middleware.call(make_env("/compute/instances"))
       histogram = registry.get(:elektra_sli)
       buckets = histogram.get(labels: { path: "compute", method: "get" })
 
@@ -75,16 +75,16 @@ RSpec.describe SLIMetricsMiddleware do
       end
     end
 
-    context "plugin extraction from URL structure /:domain_id/:project_id/:plugin/..." do
-      it "extracts the plugin from the third path segment" do
-        middleware.call(make_env("/monsoon3/abc123/compute/instances"))
+    context "domain extraction from first path segment" do
+      it "extracts domain from the first path segment" do
+        middleware.call(make_env("/compute/instances"))
         histogram = registry.get(:elektra_sli)
         value = histogram.get(labels: { path: "compute", method: "get" })
         expect(value["count"]).to eq(1)
       end
 
-      it "extracts networking plugin correctly" do
-        middleware.call(make_env("/monsoon3/abc123/networking/routers"))
+      it "extracts correctly for any first segment" do
+        middleware.call(make_env("/networking/routers"))
         histogram = registry.get(:elektra_sli)
         value = histogram.get(labels: { path: "networking", method: "get" })
         expect(value["count"]).to eq(1)
@@ -97,24 +97,10 @@ RSpec.describe SLIMetricsMiddleware do
         expect(value["count"]).to eq(1)
       end
 
-      it "uses 'root' for domain-only paths (/:domain_id)" do
-        middleware.call(make_env("/monsoon3"))
+      it "captures the first segment even when it is a domain UUID" do
+        middleware.call(make_env("/monsoon3-d2b33a9d-2fa7-4d3f-a946-4afdf59d995f/abc123/compute"))
         histogram = registry.get(:elektra_sli)
-        value = histogram.get(labels: { path: "root", method: "get" })
-        expect(value["count"]).to eq(1)
-      end
-
-      it "uses 'root' for domain+project paths without plugin (/:domain_id/:project_id)" do
-        middleware.call(make_env("/monsoon3/abc123"))
-        histogram = registry.get(:elektra_sli)
-        value = histogram.get(labels: { path: "root", method: "get" })
-        expect(value["count"]).to eq(1)
-      end
-
-      it "does not capture domain UUID in the path label" do
-        middleware.call(make_env("/monsoon3-d2b33a9d-2fa7-4d3f-a946-4afdf59d995f/abc123/compute/instances"))
-        histogram = registry.get(:elektra_sli)
-        value = histogram.get(labels: { path: "compute", method: "get" })
+        value = histogram.get(labels: { path: "monsoon3-d2b33a9d-2fa7-4d3f-a946-4afdf59d995f", method: "get" })
         expect(value["count"]).to eq(1)
       end
     end
@@ -122,7 +108,7 @@ RSpec.describe SLIMetricsMiddleware do
     context "method label" do
       %w[GET POST PUT DELETE PATCH].each do |http_method|
         it "records lowercase method label for #{http_method}" do
-          middleware.call(make_env("/monsoon3/abc123/compute/instances", method: http_method))
+          middleware.call(make_env("/compute/instances", method: http_method))
           histogram = registry.get(:elektra_sli)
           value = histogram.get(labels: { path: "compute", method: http_method.downcase })
           expect(value["count"]).to eq(1)
@@ -132,14 +118,14 @@ RSpec.describe SLIMetricsMiddleware do
 
     context "duration recording" do
       it "records a positive duration" do
-        middleware.call(make_env("/monsoon3/abc123/compute/instances"))
+        middleware.call(make_env("/compute/instances"))
         histogram = registry.get(:elektra_sli)
         value = histogram.get(labels: { path: "compute", method: "get" })
         expect(value["sum"]).to be > 0
       end
 
       it "increments count on each request" do
-        3.times { middleware.call(make_env("/monsoon3/abc123/compute/instances")) }
+        3.times { middleware.call(make_env("/compute/instances")) }
         histogram = registry.get(:elektra_sli)
         value = histogram.get(labels: { path: "compute", method: "get" })
         expect(value["count"]).to eq(3)
@@ -150,7 +136,7 @@ RSpec.describe SLIMetricsMiddleware do
       it "returns the app response unchanged" do
         app_with_response = ->(_env) { [201, { "X-Custom" => "header" }, ["Created"]] }
         mw = described_class.new(app_with_response, registry: registry)
-        status, headers, body = mw.call(make_env("/monsoon3/abc123/compute/instances"))
+        status, headers, body = mw.call(make_env("/compute/instances"))
 
         expect(status).to eq(201)
         expect(headers["X-Custom"]).to eq("header")
@@ -161,7 +147,7 @@ RSpec.describe SLIMetricsMiddleware do
         failing_app = ->(_env) { raise RuntimeError, "app failure" }
         mw = described_class.new(failing_app, registry: registry)
 
-        expect { mw.call(make_env("/monsoon3/abc123/compute/instances")) }.to raise_error(RuntimeError, "app failure")
+        expect { mw.call(make_env("/compute/instances")) }.to raise_error(RuntimeError, "app failure")
       end
     end
   end

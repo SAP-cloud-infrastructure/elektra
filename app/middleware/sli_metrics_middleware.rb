@@ -25,8 +25,8 @@ class SLIMetricsMiddleware
       return @app.call(env)
     end
 
-    # Extract plugin from URL: /:domain_id/:project_id/:plugin/...
-    plugin = extract_plugin(path_info)
+    # Extract domain (first path segment)
+    domain = extract_domain(path_info)
 
     response = nil
     duration = Benchmark.realtime { response = @app.call(env) }
@@ -34,7 +34,7 @@ class SLIMetricsMiddleware
     @histogram.observe(
       duration,
       labels: {
-        path: plugin,
+        path: domain,
         method: env["REQUEST_METHOD"].downcase,
       },
     )
@@ -49,11 +49,9 @@ class SLIMetricsMiddleware
       path_info.start_with?("/assets/", "/system/")
   end
 
-  def extract_plugin(path_info)
-    # URL structure: /:domain_id/:project_id/:plugin/...
-    # The third segment is the plugin name (e.g. "compute", "networking")
-    # Falls back to "root" for shorter paths (domain landing pages, home, etc.)
+  def extract_domain(path_info)
+    # Extract first path segment, e.g., "/users/123" -> "users"
     segments = path_info.split("/").reject(&:empty?)
-    segments[2] || "root"
+    segments.first || "root"
   end
 end
