@@ -3,7 +3,6 @@ import { createWidget } from "lib/widget"
 import App from "./App"
 
 createWidget({ pluginName: "email_service", widgetName: "app" }).then((widget) => {
-  console.log("Initializing EmailService App Widget")
   widget.setPolicy()
   widget.render(App)
 })

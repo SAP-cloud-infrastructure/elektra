@@ -16,7 +16,7 @@ import {
 import Item from "./Item"
 import SearchBar from "./SearchBar"
 
-const ITEMS_PER_PAGE = 15
+const ITEMS_PER_PAGE = 100
 
 interface PaginationOptions {
   pageSize: number
@@ -152,15 +152,6 @@ const EventList: React.FC<EventListProps> = ({ props, onDataFetched }) => {
             pageOptions={paginationOptions}
             onDateChange={setDate}
           />
-          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 12 }}>
-            <Pagination
-              hits={tableData.hits || 0}
-              pageOptions={paginationOptions}
-              onChanged={setPaginationOptions}
-              isFetching={tableData.isFetching}
-              disabled={!!tableData.error}
-            />
-          </div>
         </div>
 
         {tableData.error && (
@@ -179,6 +170,14 @@ const EventList: React.FC<EventListProps> = ({ props, onDataFetched }) => {
         )}
 
         <div style={{ ...cardStyle, overflow: "hidden" }}>
+          <div style={{ fontWeight: 700, fontSize: 16, padding: "20px 24px 16px" }}>Mail Log</div>
+          <Pagination
+            hits={tableData.hits || 0}
+            pageOptions={paginationOptions}
+            onChanged={setPaginationOptions}
+            isFetching={tableData.isFetching}
+            disabled={!!tableData.error}
+          />
           <div className="datagrid-hover">
             <DataGrid columns={5}>
               <DataGridRow>
@@ -209,6 +208,13 @@ const EventList: React.FC<EventListProps> = ({ props, onDataFetched }) => {
               )}
             </DataGrid>
           </div>
+          <Pagination
+            hits={tableData.hits || 0}
+            pageOptions={paginationOptions}
+            onChanged={setPaginationOptions}
+            isFetching={tableData.isFetching}
+            disabled={!!tableData.error}
+          />
         </div>
       </Container>
     )

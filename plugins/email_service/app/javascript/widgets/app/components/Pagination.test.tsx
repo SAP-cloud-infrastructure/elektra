@@ -3,30 +3,13 @@ import userEvent from "@testing-library/user-event"
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import Pagination from "./Pagination"
 
-// Mock Juno UI components
 vi.mock("@cloudoperators/juno-ui-components", () => ({
-  Stack: ({ children, ...props }: any) => (
-    <div data-testid="stack" {...props}>
-      {children}
-    </div>
-  ),
-  Button: ({ label, onClick, disabled, ...props }: any) => (
-    <button onClick={onClick} disabled={disabled} data-testid={`button-${label}`} {...props}>
-      {label}
-    </button>
-  ),
-  Select: ({ children, onChange, value, placeholder, ...props }: any) => (
-    <select data-testid="page-size-select" onChange={(e) => onChange(e.target.value)} value={value} {...props}>
-      {children}
-    </select>
-  ),
-  SelectOption: ({ value, ...props }: any) => (
-    <option value={value} {...props}>
-      {value}
-    </option>
-  ),
   Spinner: () => <div data-testid="spinner">Loading...</div>,
 }))
+
+const prevBtn = () => screen.getByRole("button", { name: "‹ Prev" })
+const nextBtn = () => screen.getByRole("button", { name: "Next ›" })
+const pageSelect = () => screen.getByRole("combobox")
 
 describe("Pagination", () => {
   const mockOnChanged = vi.fn()
@@ -41,7 +24,7 @@ describe("Pagination", () => {
         <Pagination hits={100} onChanged={mockOnChanged} isFetching={false} pageOptions={{ page: 1, pageSize: 15 }} />
       )
 
-      expect(screen.getByText("1 / 7")).toBeInTheDocument()
+      expect(screen.getByText("Page 1 of 7")).toBeInTheDocument()
     })
 
     it("should render prev and next buttons", () => {
@@ -49,8 +32,8 @@ describe("Pagination", () => {
         <Pagination hits={100} onChanged={mockOnChanged} isFetching={false} pageOptions={{ page: 2, pageSize: 15 }} />
       )
 
-      expect(screen.getByTestId("button-<")).toBeInTheDocument()
-      expect(screen.getByTestId("button->")).toBeInTheDocument()
+      expect(prevBtn()).toBeInTheDocument()
+      expect(nextBtn()).toBeInTheDocument()
     })
 
     it("should render page size select with default options", () => {
@@ -58,7 +41,7 @@ describe("Pagination", () => {
         <Pagination hits={100} onChanged={mockOnChanged} isFetching={false} pageOptions={{ page: 1, pageSize: 15 }} />
       )
 
-      const select = screen.getByTestId("page-size-select")
+      const select = pageSelect()
       expect(select).toBeInTheDocument()
       expect(screen.getByText("15")).toBeInTheDocument()
       expect(screen.getByText("30")).toBeInTheDocument()
@@ -71,7 +54,7 @@ describe("Pagination", () => {
         <Pagination hits={100} onChanged={mockOnChanged} isFetching={false} pageOptions={{ page: 1, pageSize: 30 }} />
       )
 
-      const select = screen.getByTestId("page-size-select") as HTMLSelectElement
+      const select = pageSelect() as HTMLSelectElement
       expect(select.value).toBe("30")
     })
   })
@@ -82,7 +65,7 @@ describe("Pagination", () => {
         <Pagination hits={90} onChanged={mockOnChanged} isFetching={false} pageOptions={{ page: 1, pageSize: 30 }} />
       )
 
-      expect(screen.getByText("1 / 3")).toBeInTheDocument()
+      expect(screen.getByText("Page 1 of 3")).toBeInTheDocument()
     })
 
     it("should round up total pages for non-exact division", () => {
@@ -90,7 +73,7 @@ describe("Pagination", () => {
         <Pagination hits={95} onChanged={mockOnChanged} isFetching={false} pageOptions={{ page: 1, pageSize: 30 }} />
       )
 
-      expect(screen.getByText("1 / 4")).toBeInTheDocument()
+      expect(screen.getByText("Page 1 of 4")).toBeInTheDocument()
     })
 
     it("should show 0 pages when hits is 0", () => {
@@ -98,7 +81,7 @@ describe("Pagination", () => {
         <Pagination hits={0} onChanged={mockOnChanged} isFetching={false} pageOptions={{ page: 1, pageSize: 15 }} />
       )
 
-      expect(screen.getByText("1 / 0")).toBeInTheDocument()
+      expect(screen.getByText("Page 1 of 0")).toBeInTheDocument()
     })
 
     it("should handle undefined hits as 0", () => {
@@ -111,24 +94,24 @@ describe("Pagination", () => {
         />
       )
 
-      expect(screen.getByText("1 / 0")).toBeInTheDocument()
+      expect(screen.getByText("Page 1 of 0")).toBeInTheDocument()
     })
 
     it("should calculate total pages with different page sizes", () => {
       const { rerender } = render(
         <Pagination hits={100} onChanged={mockOnChanged} isFetching={false} pageOptions={{ page: 1, pageSize: 15 }} />
       )
-      expect(screen.getByText("1 / 7")).toBeInTheDocument()
+      expect(screen.getByText("Page 1 of 7")).toBeInTheDocument()
 
       rerender(
         <Pagination hits={100} onChanged={mockOnChanged} isFetching={false} pageOptions={{ page: 1, pageSize: 50 }} />
       )
-      expect(screen.getByText("1 / 2")).toBeInTheDocument()
+      expect(screen.getByText("Page 1 of 2")).toBeInTheDocument()
 
       rerender(
         <Pagination hits={100} onChanged={mockOnChanged} isFetching={false} pageOptions={{ page: 1, pageSize: 100 }} />
       )
-      expect(screen.getByText("1 / 1")).toBeInTheDocument()
+      expect(screen.getByText("Page 1 of 1")).toBeInTheDocument()
     })
   })
 
@@ -138,8 +121,7 @@ describe("Pagination", () => {
         <Pagination hits={100} onChanged={mockOnChanged} isFetching={false} pageOptions={{ page: 1, pageSize: 15 }} />
       )
 
-      const prevButton = screen.getByTestId("button-<")
-      expect(prevButton).toBeDisabled()
+      expect(prevBtn()).toBeDisabled()
     })
 
     it("should enable prev button on pages after first", () => {
@@ -147,8 +129,7 @@ describe("Pagination", () => {
         <Pagination hits={100} onChanged={mockOnChanged} isFetching={false} pageOptions={{ page: 2, pageSize: 15 }} />
       )
 
-      const prevButton = screen.getByTestId("button-<")
-      expect(prevButton).not.toBeDisabled()
+      expect(prevBtn()).not.toBeDisabled()
     })
 
     it("should disable next button on last page", () => {
@@ -156,8 +137,7 @@ describe("Pagination", () => {
         <Pagination hits={100} onChanged={mockOnChanged} isFetching={false} pageOptions={{ page: 7, pageSize: 15 }} />
       )
 
-      const nextButton = screen.getByTestId("button->")
-      expect(nextButton).toBeDisabled()
+      expect(nextBtn()).toBeDisabled()
     })
 
     it("should enable next button on pages before last", () => {
@@ -165,8 +145,7 @@ describe("Pagination", () => {
         <Pagination hits={100} onChanged={mockOnChanged} isFetching={false} pageOptions={{ page: 6, pageSize: 15 }} />
       )
 
-      const nextButton = screen.getByTestId("button->")
-      expect(nextButton).not.toBeDisabled()
+      expect(nextBtn()).not.toBeDisabled()
     })
 
     it("should disable both buttons when disabled prop is true", () => {
@@ -180,10 +159,8 @@ describe("Pagination", () => {
         />
       )
 
-      const prevButton = screen.getByTestId("button-<")
-      const nextButton = screen.getByTestId("button->")
-      expect(prevButton).toBeDisabled()
-      expect(nextButton).toBeDisabled()
+      expect(prevBtn()).toBeDisabled()
+      expect(nextBtn()).toBeDisabled()
     })
   })
 
@@ -194,8 +171,7 @@ describe("Pagination", () => {
         <Pagination hits={100} onChanged={mockOnChanged} isFetching={false} pageOptions={{ page: 3, pageSize: 15 }} />
       )
 
-      const prevButton = screen.getByTestId("button-<")
-      await user.click(prevButton)
+      await user.click(prevBtn())
 
       expect(mockOnChanged).toHaveBeenCalledWith({ page: 2, pageSize: 15 })
     })
@@ -206,8 +182,7 @@ describe("Pagination", () => {
         <Pagination hits={100} onChanged={mockOnChanged} isFetching={false} pageOptions={{ page: 3, pageSize: 15 }} />
       )
 
-      const nextButton = screen.getByTestId("button->")
-      await user.click(nextButton)
+      await user.click(nextBtn())
 
       expect(mockOnChanged).toHaveBeenCalledWith({ page: 4, pageSize: 15 })
     })
@@ -218,11 +193,9 @@ describe("Pagination", () => {
         <Pagination hits={100} onChanged={mockOnChanged} isFetching={false} pageOptions={{ page: 1, pageSize: 15 }} />
       )
 
-      mockOnChanged.mockClear() // Clear the useEffect call
-      const prevButton = screen.getByTestId("button-<")
-      await user.click(prevButton)
+      mockOnChanged.mockClear()
+      await user.click(prevBtn())
 
-      // Button is disabled, so click should not trigger anything
       expect(mockOnChanged).not.toHaveBeenCalled()
     })
 
@@ -232,11 +205,9 @@ describe("Pagination", () => {
         <Pagination hits={100} onChanged={mockOnChanged} isFetching={false} pageOptions={{ page: 7, pageSize: 15 }} />
       )
 
-      mockOnChanged.mockClear() // Clear the useEffect call
-      const nextButton = screen.getByTestId("button->")
-      await user.click(nextButton)
+      mockOnChanged.mockClear()
+      await user.click(nextBtn())
 
-      // Button is disabled, so click should not trigger anything
       expect(mockOnChanged).not.toHaveBeenCalled()
     })
   })
@@ -248,9 +219,8 @@ describe("Pagination", () => {
         <Pagination hits={100} onChanged={mockOnChanged} isFetching={false} pageOptions={{ page: 3, pageSize: 15 }} />
       )
 
-      mockOnChanged.mockClear() // Clear the useEffect call
-      const select = screen.getByTestId("page-size-select")
-      await user.selectOptions(select, "30")
+      mockOnChanged.mockClear()
+      await user.selectOptions(pageSelect(), "30")
 
       expect(mockOnChanged).toHaveBeenCalledWith({ page: 1, pageSize: 30 })
     })
@@ -262,8 +232,7 @@ describe("Pagination", () => {
       )
 
       mockOnChanged.mockClear()
-      const select = screen.getByTestId("page-size-select")
-      await user.selectOptions(select, "50")
+      await user.selectOptions(pageSelect(), "50")
 
       expect(mockOnChanged).toHaveBeenCalledWith({ page: 1, pageSize: 50 })
     })
@@ -275,8 +244,7 @@ describe("Pagination", () => {
       )
 
       mockOnChanged.mockClear()
-      const select = screen.getByTestId("page-size-select")
-      await user.selectOptions(select, "100")
+      await user.selectOptions(pageSelect(), "100")
 
       expect(mockOnChanged).toHaveBeenCalledWith({ page: 1, pageSize: 100 })
     })
@@ -288,8 +256,7 @@ describe("Pagination", () => {
       )
 
       mockOnChanged.mockClear()
-      const select = screen.getByTestId("page-size-select")
-      await user.selectOptions(select, "100")
+      await user.selectOptions(pageSelect(), "100")
 
       const call = mockOnChanged.mock.calls[0][0]
       expect(call.page).toBe(1)
@@ -341,9 +308,9 @@ describe("Pagination", () => {
         <Pagination hits={10} onChanged={mockOnChanged} isFetching={false} pageOptions={{ page: 1, pageSize: 15 }} />
       )
 
-      expect(screen.getByText("1 / 1")).toBeInTheDocument()
-      expect(screen.getByTestId("button-<")).toBeDisabled()
-      expect(screen.getByTestId("button->")).toBeDisabled()
+      expect(screen.getByText("Page 1 of 1")).toBeInTheDocument()
+      expect(prevBtn()).toBeDisabled()
+      expect(nextBtn()).toBeDisabled()
     })
 
     it("should handle large number of hits", () => {
@@ -351,7 +318,7 @@ describe("Pagination", () => {
         <Pagination hits={10000} onChanged={mockOnChanged} isFetching={false} pageOptions={{ page: 1, pageSize: 15 }} />
       )
 
-      expect(screen.getByText("1 / 667")).toBeInTheDocument()
+      expect(screen.getByText("Page 1 of 667")).toBeInTheDocument()
     })
 
     it("should handle very large page numbers", () => {
@@ -364,7 +331,7 @@ describe("Pagination", () => {
         />
       )
 
-      expect(screen.getByText("500 / 667")).toBeInTheDocument()
+      expect(screen.getByText("Page 500 of 667")).toBeInTheDocument()
     })
 
     it("should work correctly when hits equals pageSize", () => {
@@ -372,8 +339,8 @@ describe("Pagination", () => {
         <Pagination hits={15} onChanged={mockOnChanged} isFetching={false} pageOptions={{ page: 1, pageSize: 15 }} />
       )
 
-      expect(screen.getByText("1 / 1")).toBeInTheDocument()
-      expect(screen.getByTestId("button->")).toBeDisabled()
+      expect(screen.getByText("Page 1 of 1")).toBeInTheDocument()
+      expect(nextBtn()).toBeDisabled()
     })
 
     it("should work correctly when hits is one more than pageSize", () => {
@@ -381,8 +348,8 @@ describe("Pagination", () => {
         <Pagination hits={16} onChanged={mockOnChanged} isFetching={false} pageOptions={{ page: 1, pageSize: 15 }} />
       )
 
-      expect(screen.getByText("1 / 2")).toBeInTheDocument()
-      expect(screen.getByTestId("button->")).not.toBeDisabled()
+      expect(screen.getByText("Page 1 of 2")).toBeInTheDocument()
+      expect(nextBtn()).not.toBeDisabled()
     })
 
     it("should render pagination container with correct styles", () => {
@@ -401,7 +368,7 @@ describe("Pagination", () => {
         <Pagination hits={100} onChanged={mockOnChanged} isFetching={true} pageOptions={{ page: 1, pageSize: 15 }} />
       )
 
-      expect(screen.getByText("1 / 7")).toBeInTheDocument()
+      expect(screen.getByText("Page 1 of 7")).toBeInTheDocument()
     })
 
     it("should render when isFetching is false", () => {
@@ -409,10 +376,7 @@ describe("Pagination", () => {
         <Pagination hits={100} onChanged={mockOnChanged} isFetching={false} pageOptions={{ page: 1, pageSize: 15 }} />
       )
 
-      expect(screen.getByText("1 / 7")).toBeInTheDocument()
+      expect(screen.getByText("Page 1 of 7")).toBeInTheDocument()
     })
-
-    // Note: isFetching prop is passed but not used in current implementation
-    // This test documents the current behavior
   })
 })

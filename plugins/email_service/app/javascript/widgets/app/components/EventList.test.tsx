@@ -82,7 +82,7 @@ describe("EventList", () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByTestId("pagination")).toHaveTextContent("Hits: 2")
+      expect(screen.getAllByTestId("pagination")[0]).toHaveTextContent("Hits: 2")
       expect(screen.getAllByTestId("item")).toHaveLength(2)
     })
   })
@@ -198,7 +198,7 @@ describe("EventList", () => {
 
     await waitFor(() => {
       // The pagination component should receive disabled prop
-      expect(screen.getByTestId("pagination")).toBeInTheDocument()
+      expect(screen.getAllByTestId("pagination")[0]).toBeInTheDocument()
     })
   })
 
@@ -240,7 +240,7 @@ describe("EventList", () => {
 
     await waitFor(() => {
       expect(screen.getByTestId("item")).toBeInTheDocument()
-      expect(screen.getByTestId("pagination")).toHaveTextContent("Hits: 1")
+      expect(screen.getAllByTestId("pagination")[0]).toHaveTextContent("Hits: 1")
     })
   })
 

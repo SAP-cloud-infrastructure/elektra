@@ -1,17 +1,26 @@
 import { useQuery, UseQueryResult } from "@tanstack/react-query"
-import { dataFn, MailSearchOptions, MailSearchResponse, HTTPError, NetworkError } from "./actions"
+import {
+  dataFn,
+  reportDataFn,
+  MailSearchOptions,
+  MailSearchResponse,
+  ReportSearchOptions,
+  ReportSearchResponse,
+  HTTPError,
+  NetworkError,
+} from "./actions"
 
 // get all services
 export const useGetData = (
   bearerToken: string,
   endpoint: string,
-  options: MailSearchOptions
+  options: MailSearchOptions,
+  enabled = true
 ): UseQueryResult<MailSearchResponse, Error> => {
   return useQuery({
     queryKey: ["data", bearerToken, endpoint, options],
     queryFn: dataFn,
-    // The query will not execute until the bearerToken exists
-    enabled: !!bearerToken,
+    enabled: !!bearerToken && enabled,
     // The data from the last successful fetch available while new data is being requested, even though the query key has changed.
     // When the new data arrives, the previous data is seamlessly swapped to show the new data.
     // isPreviousData is made available to know what data the query is currently providing you
@@ -33,5 +42,28 @@ export const useGetData = (
       // Exponential backoff: 1s, 2s, 4s
       return Math.min(1000 * 2 ** attemptIndex, 30000)
     },
+  })
+}
+
+export const useGetReportData = (
+  bearerToken: string,
+  endpoint: string,
+  options: ReportSearchOptions
+): UseQueryResult<ReportSearchResponse, Error> => {
+  return useQuery({
+    queryKey: ["report", bearerToken, endpoint, options],
+    queryFn: reportDataFn,
+    enabled: !!bearerToken,
+    keepPreviousData: true,
+    retry: (failureCount: number, error: Error) => {
+      if ((error as HTTPError).statusCode === 401 || (error as HTTPError).statusCode === 403) {
+        return false
+      }
+      if ((error as HTTPError).statusCode >= 400 && (error as HTTPError).statusCode < 500) {
+        return false
+      }
+      return failureCount < 3
+    },
+    retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 30000),
   })
 }
