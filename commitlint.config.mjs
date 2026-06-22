@@ -2,6 +2,7 @@
 
 export const types = ["build", "chore", "fix", "feat", "refactor", "research", "style", "test"]
 export const scopes = [
+  "style",
   "build",
   "depth",
   "config",
