@@ -3,7 +3,7 @@ import { Stack } from "@cloudoperators/juno-ui-components"
 import DisableableButton from "../DisableableButton"
 import { useCodeMirror } from "./useCodeMirror"
 import { useEditorHeight } from "./useEditorHeight"
-import { useYamlSerialization } from "./useYamlSerialization"
+import { useSerialization } from "./useSerialization"
 import { useYamlEditorState } from "./useYamlEditorState"
 import { useNavigationBlock } from "./useNavigationBlock"
 import { CancelConfirmDialog, ResourceVersionConflictDialog, NavigationBlockDialog } from "./dialogs"
@@ -19,6 +19,7 @@ export interface YamlEditorProps extends Omit<React.HTMLAttributes<HTMLDivElemen
   disabled?: boolean
   disabledMessage?: string
   className?: string
+  format?: "yaml" | "json"
 }
 
 export default function YamlEditor({
@@ -30,13 +31,14 @@ export default function YamlEditor({
   disabled = false,
   disabledMessage,
   className = "",
+  format = "yaml",
   ...props
 }: YamlEditorProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const editorContainerRef = useRef<HTMLDivElement>(null)
 
-  // Serialize resource to YAML
-  const { yamlContent, error } = useYamlSerialization(resource, onError)
+  // Serialize resource to YAML or JSON
+  const { content, error } = useSerialization(resource, format, onError)
 
   // Calculate dynamic editor height
   const editorHeight = useEditorHeight(containerRef)
@@ -44,7 +46,8 @@ export default function YamlEditor({
   // Manage editor state and actions
   const editorState = useYamlEditorState({
     resource,
-    yamlContent,
+    content,
+    format,
     onSave,
     onError,
     onEdit,
@@ -54,13 +57,14 @@ export default function YamlEditor({
   // Initialize and manage CodeMirror editor
   useCodeMirror({
     containerRef: editorContainerRef,
-    initialContent: yamlContent,
+    initialContent: content,
     editorHeight,
+    format,
     isEditable: editorState.isEditable,
     error,
-    editedYaml: editorState.editedYaml,
-    yamlContent,
-    onDocChange: editorState.setEditedYaml,
+    editedContent: editorState.editedContent,
+    content,
+    onDocChange: editorState.setEditedContent,
   })
 
   // Block navigation when there are unsaved changes
@@ -75,7 +79,7 @@ export default function YamlEditor({
         style={{ height: `${TOOLBAR_HEIGHT}px` }}
       >
         <div className="tw-text-sm tw-text-theme-text-secondary">
-          {editorState.isEditable ? "Edit Mode" : "Read Mode"}
+          {editorState.isEditable ? `Edit Mode (${format.toUpperCase()})` : `Read Mode (${format.toUpperCase()})`}
         </div>
         <div className="tw-ml-auto">
           <Stack alignment="center" gap="2">
