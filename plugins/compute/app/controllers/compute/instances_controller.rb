@@ -96,12 +96,13 @@ module Compute
       begin
         # Determine console type based on hypervisor_type from flavor extra_specs
         # This is more reliable than hostname-based detection
-        if hypervisor_type == "ironic"
-          @console = services.compute.remote_console(params[:id], "serial", "shellinabox")
-        elsif hypervisor_type == "CH" || hypervisor_type == "QEMU"
+        if hypervisor_type == "CH" || hypervisor_type == "QEMU"
           # Cloud Hypervisor (CH) and QEMU/KVM instances use serial console
           # API call: POST /servers/{id}/remote-consoles -d '{"remote_console": {"protocol": "serial", "type": "serial"}}'
           @console = services.compute.remote_console(params[:id], "serial", "serial")
+        elsif hypervisor_type == "VMware vCenter Server"
+          # VMware instances use VNC/MKS console
+          @console = services.compute.remote_console(params[:id])
         elsif hypervisor_type.nil?
           # Fallback to hostname-based detection if extra_specs are not available
           if hypervisor_host.to_s.include?("nova-compute-ironic")
@@ -114,7 +115,7 @@ module Compute
             @console = services.compute.remote_console(params[:id])
           end
         else
-          # Default to VNC/MKS for VMware or other hypervisors
+          # Unknown hypervisor_type - default to VNC/MKS
           @console = services.compute.remote_console(params[:id])
         end
       rescue StandardError => e
