@@ -31,7 +31,23 @@ const DOMAINS = {
       description: "General purpose domain for SAP-internal applications that cannot be reached from the internet",
     },
   ],
-  special: ["BS", "BTP_FP", "CCADMIN", "CIS", "CP", "FSN", "HCM", "HDA", "HEC", "KYMA", "NEO", "ORA", "S4", "SOV", "WBS"],
+  special: [
+    "BS",
+    "BTP_FP",
+    "CCADMIN",
+    "CIS",
+    "CP",
+    "FSN",
+    "HCM",
+    "HDA",
+    "HEC",
+    "KYMA",
+    "NEO",
+    "ORA",
+    "S4",
+    "SOV",
+    "WBS",
+  ],
 }
 
 const DOMAIN_KEYS = DOMAINS.general.map((domain) => domain.name).concat(DOMAINS.special)
@@ -86,15 +102,15 @@ const REGIONS = {
     country: "Germany",
     icon: <FlagGermany />,
   },
+  "EU-DE-3": {
+    continent: "EMEA",
+    key: "EU-DE-3",
+    country: "Germany",
+    icon: <FlagGermany />,
+  },
   "AP-SA-1": {
     continent: "APJ",
     key: "AP-SA-1",
-    country: "Kingdom of Saudi Arabia",
-    icon: <FlagSaudiArabia />,
-  },
-  "AP-SA-2": {
-    continent: "APJ",
-    key: "AP-SA-2",
     country: "Kingdom of Saudi Arabia",
     icon: <FlagSaudiArabia />,
   },
