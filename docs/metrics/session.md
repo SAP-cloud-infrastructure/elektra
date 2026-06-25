@@ -1,8 +1,11 @@
 # How Anonymous Session Metrics Work
 
+[← Back to Metrics Overview](./README.md)
+
 **Date:** June 11, 2026  
 **Implementation:** Phase 2 - Hybrid Cookie-Based Solution  
-**File:** `app/middleware/anonymous_session_metrics_middleware.rb`
+**File:** `app/middleware/anonymous_session_metrics_middleware.rb`  
+**Tests:** `spec/middleware/anonymous_session_metrics_middleware_spec.rb`
 
 ---
 
