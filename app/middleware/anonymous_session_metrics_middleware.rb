@@ -65,13 +65,15 @@ class AnonymousSessionMetricsMiddleware
       labels: %i[from_feature to_feature platform session_hour]
     )
 
-    # Cross-dashboard navigation
-    # Cardinality: 2 × 2 × 50 × 24 = 4,800 time series
-    # Note: from_feature is the last known feature from cookie, not parsed from referrer URL
+    # Cross-dashboard navigation (outbound tracking via API endpoint)
+    # Cardinality: 2 × 2 × ~20 entry_points × ~50 features × 24 hours = ~96,000 time series
+    # Note: Tracked via POST /metrics/track_outbound API endpoint (called from JavaScript before navigation)
+    # entry_point describes WHERE the user clicked (e.g., "object_storage_ceph_banner")
+    # last_feature_before_switch is the actual feature/path they were on
     @cross_dashboard_nav = @registry.counter(
       :dashboard_cross_navigation_total,
       docstring: "Cross-dashboard navigation events",
-      labels: %i[from_dashboard to_dashboard last_feature_before_switch session_hour]
+      labels: %i[from_dashboard to_dashboard entry_point last_feature_before_switch session_hour]
     )
 
     # Session duration histogram
@@ -126,9 +128,6 @@ class AnonymousSessionMetricsMiddleware
       if track_session_duration_internal(session_data)
         session_data_modified = true
       end
-
-      # Track cross-dashboard navigation (BEFORE updating features)
-      track_cross_dashboard_navigation(request, session_data, current_feature, current_hour)
 
       # Track feature usage and transitions
       if current_feature
@@ -268,58 +267,6 @@ class AnonymousSessionMetricsMiddleware
     Rails.logger.debug("[AnonymousMetrics] Storing features in session: #{updated_features.inspect}")
     session_data[:features] = updated_features
     return true  # Modified
-  end
-
-  # ==========================================
-  # CROSS-DASHBOARD NAVIGATION
-  # ==========================================
-
-  def track_cross_dashboard_navigation(request, session_data, current_feature, current_hour)
-    referrer = request.referer
-    return unless referrer
-
-    referrer_dashboard = extract_dashboard_from_url(referrer)
-    return unless referrer_dashboard
-
-    current_dashboard = extract_dashboard_from_url(request.url)
-    return if referrer_dashboard == current_dashboard
-    return unless current_dashboard
-
-    # Get last known feature from cookie (not parsed from referrer URL)
-    # This represents the last feature the user visited before switching dashboards,
-    # which may not be the exact feature on the referrer page
-    last_feature = (session_data[:features] || []).last || "unknown"
-
-    @cross_dashboard_nav.increment(
-      labels: {
-        from_dashboard: referrer_dashboard,
-        to_dashboard: current_dashboard,
-        last_feature_before_switch: last_feature,
-        session_hour: current_hour
-      }
-    )
-  end
-
-  # ==========================================
-  # URL HELPERS
-  # ==========================================
-
-  def extract_dashboard_from_url(url)
-    return nil unless url
-
-    uri = URI.parse(url)
-    host = uri.host
-    return nil unless host
-
-    if host.start_with?("dashboard-aurora.")
-      "aurora"
-    elsif host.start_with?("dashboard.")
-      "elektra"
-    else
-      nil
-    end
-  rescue URI::InvalidURIError
-    nil
   end
 
   # ==========================================

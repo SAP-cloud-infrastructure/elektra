@@ -2,7 +2,9 @@
 
 Rails.application.routes.draw do
   post '/verify-auth-token', to: 'auth_token#verify'
-  
+
+  # Outbound navigation tracking endpoint (called before navigating to Aurora)
+  post '/metrics/track_outbound', to: 'metrics_tracking#track_outbound'
 
   mount MonsoonOpenstackAuth::Engine => '/:domain_fid/auth'
 

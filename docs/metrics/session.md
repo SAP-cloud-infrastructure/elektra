@@ -2,8 +2,7 @@
 
 [← Back to Metrics Overview](./README.md)
 
-**Date:** June 11, 2026  
-**Implementation:** Phase 2 - Hybrid Cookie-Based Solution  
+**Date:** June 25, 2026  
 **File:** `app/middleware/anonymous_session_metrics_middleware.rb`  
 **Tests:** `spec/middleware/anonymous_session_metrics_middleware_spec.rb`
 
@@ -431,6 +430,37 @@ Elektra and Aurora run on different subdomains but share the parent domain:
 - Aurora: `dashboard-aurora.example.com`
 - **Shared domain:** `.example.com`
 
+### Outbound Navigation Tracking
+
+**Important change:** Elektra now tracks **only outbound navigations** using a client-side API call before navigation (matching Aurora's implementation).
+
+This aligns with Aurora's approach where each dashboard tracks when users navigate **away** from it by detecting the `entryPoint` query parameter.
+
+### How to Track Outbound Navigation
+
+Simply add `?entryPoint=aurora` to any link that navigates to Aurora:
+
+```erb
+<%= link_to "View in Aurora", 
+    aurora_url(entryPoint: "aurora"),
+    class: "btn btn-primary" %>
+```
+
+**What happens:**
+
+1. User clicks the link in Elektra (e.g., from `compute_index` page)
+2. Request: `GET /some-path?entryPoint=aurora`
+3. Middleware detects `entryPoint=aurora` parameter
+4. Tracks: `elektra → aurora` with `last_feature_before_switch=compute_index`
+5. Returns early (doesn't track as normal page view)
+6. User navigates to Aurora
+
+**Key features:**
+- ✅ **Automatic** - Middleware handles tracking when it sees `entryPoint`
+- ✅ **Accurate** - Uses actual current feature from the page making the request
+- ✅ **Symmetric with Aurora** - Same pattern Aurora uses for tracking `aurora → elektra`
+- ✅ **No JavaScript required** - Pure server-side tracking
+
 ### Cookie Sharing
 
 Cookies with domain `.example.com` are sent to **both** Elektra and Aurora:
@@ -438,48 +468,69 @@ Cookies with domain `.example.com` are sent to **both** Elektra and Aurora:
 ```
 User in Elektra (hour 14):
 ├─ URL: dashboard.example.com
-├─ Cookie: metrics_hours=14; Domain=.example.com
+├─ Cookie: metrics_hours_elektra=14; Domain=.example.com
 └─ Counter: dashboard_active_browser_hours_total{session_hour="14", platform="elektra"} = 1
 
-User clicks link to Aurora:
-├─ URL: dashboard-aurora.example.com
-├─ Browser sends: metrics_hours=14 (domain matches!)
-├─ Aurora middleware checks: "14" in metrics_hours
-└─ Aurora does NOT increment counter (already counted)
+User clicks link to Aurora (with explicit tracking):
+├─ JavaScript calls /metrics/track_outbound before navigation
+├─ Increment: dashboard_cross_navigation_total{from_dashboard="elektra", to_dashboard="aurora", ...}
+├─ Then navigates to: dashboard-aurora.example.com
+├─ Browser sends: metrics_hours_elektra=14 (domain matches, but Aurora uses metrics_hours_aurora)
+└─ Aurora tracks its own session in metrics_hours_aurora cookie
 
 Result:
-- Elektra counted user: 1
-- Aurora did NOT count user: 0
-- Total: User counted once across both platforms ✅
+- Elektra counted user: 1 (in hour 14)
+- Elektra tracked outbound navigation: 1
+- Aurora counts separately: using its own platform-specific cookie
+- Each platform tracks independently with platform-specific cookies ✅
 ```
 
 ### Cross-Dashboard Navigation Tracking
 
-When user navigates between dashboards, we track it:
+When user navigates from Elektra to Aurora using the `entryPoint` parameter:
 
-```ruby
-# User in Elektra, clicks link to Aurora
-referrer = "https://dashboard.example.com/ccadmin/cloud_admin/compute/instances"
-current_url = "https://dashboard-aurora.example.com/ccadmin/cloud_admin"
+```erb
+# In a view with a link to Aurora:
+<%= link_to "View in Aurora", 
+    aurora_url(entryPoint: "aurora"),
+    class: "btn btn-primary" %>
 
-referrer_dashboard = "elektra"
-current_dashboard = "aurora"
-
-# Read last feature from session cookie
-session_data = read_session_data(request)
-referrer_feature = session_data[:features].last  # "compute_show"
-
-@cross_dashboard_nav.increment(
-  labels: {
-    from_dashboard: "elektra",
-    to_dashboard: "aurora",
-    last_feature_before_switch: referrer_feature,
-    session_hour: "14"
-  }
-)
+# When user clicks this link on compute_index page:
+# 1. Request: GET /some-path?entryPoint=aurora
+# 2. Middleware detects entryPoint parameter
+# 3. Records: dashboard_cross_navigation_total{
+#      from_dashboard="elektra",
+#      to_dashboard="aurora",
+#      last_feature_before_switch="compute_index",
+#      session_hour="14"
+#    }
+# 4. Early return - doesn't track as normal page view
+# 5. User navigates to Aurora
 ```
 
-**This answers:** "How many users are switching from Elektra to Aurora?"
+**This matches Aurora's pattern exactly:**
+
+```typescript
+// Aurora's trackUserBehavior.ts
+if (entryPoint) {
+  userBehaviorMetrics.trackCrossDashboardNavigation({
+    fromDashboard: "aurora",
+    toDashboard: "elektra", 
+    entryPoint,
+    lastFeatureBeforeSwitch: feature,
+    sessionHour: currentHour,
+  })
+  return  // Early return
+}
+```
+
+**Key differences from previous implementation:**
+
+- ✅ **entryPoint parameter:** Uses query parameter to trigger tracking
+- ✅ **Middleware-based:** Automatic tracking in middleware, no explicit calls needed
+- ✅ **Accurate feature:** Uses actual current feature from the request
+- ✅ **Symmetric with Aurora:** Both dashboards use identical pattern
+- ✅ **Early return:** When entryPoint is present, skips normal feature tracking
 
 ---
 
@@ -557,9 +608,9 @@ Meaning: 342 times users navigated from compute index to compute show
 - `last_feature_before_switch`: Feature user was on before switching
 - `session_hour`: "00" to "23"
 
-**Purpose:** Track when users switch between Elektra and Aurora
+**Purpose:** Track when users switch from Elektra to Aurora (outbound navigation via entryPoint)
 
-**Important:** `last_feature_before_switch` represents the last feature stored in the cookie before the dashboard switch, which may not be the exact feature on the HTTP referrer page. This is a best-effort attribution based on cookie history.
+**Important:** `last_feature_before_switch` represents the actual current feature extracted from the request path when the `entryPoint` parameter is detected.
 
 **Example:**
 ```promql
@@ -570,7 +621,12 @@ dashboard_cross_navigation_total{
   session_hour="14"
 } = 87
 ```
-Meaning: 87 times users switched from Elektra (compute index) to Aurora in hour 14
+Meaning: 87 times users navigated from Elektra (compute index) to Aurora in hour 14
+
+**How it's tracked:**
+- Automatically via middleware when `?entryPoint=aurora` parameter is detected
+- Middleware extracts current feature from the request path
+- Early return prevents double-tracking as both outbound nav AND normal page view
 
 ---
 
@@ -619,9 +675,12 @@ sum(increase(dashboard_active_browser_hours_total{platform="elektra"}[7d]))
 ### Aurora Adoption Rate
 
 ```promql
-# What percentage of users are on Aurora?
-sum(increase(dashboard_active_browser_hours_total{platform="aurora"}[7d]))
-/ sum(increase(dashboard_active_browser_hours_total[7d]))
+# What percentage of Elektra users navigate to Aurora?
+sum(increase(dashboard_cross_navigation_total{
+  from_dashboard="elektra",
+  to_dashboard="aurora"
+}[7d]))
+/ sum(increase(dashboard_active_browser_hours_total{platform="elektra"}[7d]))
 * 100
 ```
 
@@ -645,13 +704,13 @@ topk(10, sum by (feature) (increase(dashboard_feature_usage_total{
 }[7d])))
 ```
 
-### Drop-off Points (Aurora → Elektra)
+### Drop-off Points (Elektra → Aurora)
 
 ```promql
-# Which Aurora features do users leave from?
-topk(10, sum by (from_feature) (increase(dashboard_cross_navigation_total{
-  from_dashboard="aurora",
-  to_dashboard="elektra"
+# Which Elektra features do users leave from to go to Aurora?
+topk(10, sum by (last_feature_before_switch) (increase(dashboard_cross_navigation_total{
+  from_dashboard="elektra",
+  to_dashboard="aurora"
 }[7d])))
 ```
 
@@ -727,18 +786,19 @@ All cookies use:
 
 ### How It Works in One Sentence
 
-**"We use hourly cookies to count active authenticated browser instances across pods and platforms, recording when browsers are active (by hour), what features they use, and how they navigate between Elektra and Aurora."**
+**"We use hourly cookies to count active authenticated browser instances across pods, recording when browsers are active (by hour), what features they use, and explicitly track when users navigate from Elektra to Aurora."**
 
 ### Key Takeaways
 
 1. **Hourly windows** = Low Prometheus cardinality (48 time series vs millions)
-2. **Cookies** = Accurate deduplication (across 4 pods + 2 platforms)
-3. **Stateless** = No in-memory state, no cleanup, pod-safe
-4. **Privacy-first** = No PII tracked, only aggregate patterns
-5. **Real-time** = Users counted when actually active
+2. **Cookies** = Accurate deduplication (across 4 pods)
+3. **Platform-specific cookies** = Each platform (Elektra, Aurora) tracks independently
+4. **Outbound tracking** = Explicit API for tracking navigation from Elektra to Aurora
+5. **Stateless** = No in-memory state, no cleanup, pod-safe
+6. **Privacy-first** = No PII tracked, only aggregate patterns
+7. **Real-time** = Users counted when actually active
 
 ---
 
-**Last updated:** June 11, 2026  
-**Status:** Phase 2 implementation complete  
+**Last updated:** June 25, 2026  
 **Tests:** 29 tests passing ✅
