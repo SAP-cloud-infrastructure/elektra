@@ -4,7 +4,9 @@
 # This endpoint is called via JavaScript before navigating to other dashboards
 # Matches Aurora's analytics API pattern
 class MetricsTrackingController < ApplicationController
-  skip_before_action :verify_authenticity_token, only: [:track_outbound]
+  # Use :null_session for API-style endpoints that use fetch() with keepalive
+  # This allows CSRF token validation via X-CSRF-Token header
+  protect_from_forgery with: :null_session
 
   # POST /metrics/track_outbound
   # Body: { to_dashboard: "aurora", entry_point: "object_storage_ceph_banner" }
@@ -44,7 +46,8 @@ class MetricsTrackingController < ApplicationController
   # The cookie contains: {start, last_dur, features: ["feature1", "feature2"]}
   # We return the last feature in the array.
   def read_current_feature_from_cookie
-    cookie = cookies["metrics_session"]
+    # Read from request.cookies (raw cookies from the browser)
+    cookie = request.cookies["metrics_session"]
     return nil unless cookie
 
     data = JSON.parse(Base64.decode64(cookie), symbolize_names: true)
