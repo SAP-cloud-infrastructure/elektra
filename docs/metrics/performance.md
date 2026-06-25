@@ -13,12 +13,6 @@
 1. [Overview](#overview)
 2. [Metrics Reference](#metrics-reference)
 3. [How the Middleware Works](#how-the-middleware-works)
-4. [Dashboard: Elektra SLI (P0)](#dashboard-elektra-sli-p0)
-5. [Dashboard: Elektra Overview (P0)](#dashboard-elektra-overview-p0)
-6. [Dashboard: Elektra HTTP Details (P1)](#dashboard-elektra-http-details-p1)
-7. [Dashboard: Elektra HTTP Plugin Response Times (P1)](#dashboard-elektra-http-plugin-response-times-p1)
-8. [High-Cardinality Labels](#high-cardinality-labels)
-9. [PromQL Query Reference](#promql-query-reference)
 
 ---
 
@@ -132,8 +126,17 @@ Incoming: GET /monsoon3/abc-123/compute/instances
 
 Inherits from `Prometheus::Middleware::Collector`. Records both the counter and histogram on every request using 9 labels extracted from the Rails route parameters. Excludes paths starting with `/metrics`, `/system`, or `/assets` (prefix match).
 
+**Metric initialization:**
+
 ```ruby
-# Histogram configuration
+# Counter metric
+@requests = @registry.counter(
+  :"#{@metrics_prefix}_requests_total",
+  docstring: "The total number of HTTP requests handled by the Rack application.",
+  labels: LABELS,
+)
+
+# Histogram metric
 @durations = @registry.histogram(
   :"#{@metrics_prefix}_request_duration_seconds",
   docstring: "The HTTP response duration of the Rack application.",
@@ -141,6 +144,8 @@ Inherits from `Prometheus::Middleware::Collector`. Records both the counter and 
   buckets: [0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0],
 )
 ```
+
+Where `LABELS = %i[code method host domain project controller action plugin xhr]` (9 labels total).
 
 ```
 Incoming: GET /monsoon3/abc-123/compute/instances
@@ -174,4 +179,53 @@ Incoming: GET /monsoon3/abc-123/compute/instances
           http_server_request_duration_seconds.observe(duration, labels: ...)
 ```
 
+**Plugin validation:** The middleware extracts the first segment of the controller name and validates it against `Core::PluginsManager`. If not registered, the plugin label is set to an empty string.
+
+**Label details:**
+- `code` - HTTP status code as string (e.g., "200", "404", "500")
+- `method` - HTTP method in lowercase (e.g., "get", "post")
+- `host` - HTTP_HOST header value
+- `domain` - domain_id from route parameters (empty string if missing)
+- `project` - project_id from route parameters (empty string if missing)
+- `controller` - Full controller path from route parameters (e.g., "compute/os_instances")
+- `action` - Controller action name (e.g., "index", "show")
+- `plugin` - Validated plugin name or empty string
+- `xhr` - Boolean indicating if request was AJAX (X-Requested-With: XMLHttpRequest)
+
+**Error handling:** If recording fails for any reason, the error is logged and the request continues normally — metrics failures never affect users.
+
+```ruby
+rescue => e
+  Rails.logger.error("Failed to record HTTP metrics: #{e.class} - #{e.message}")
+  Rails.logger.error(e.backtrace.first(5).join("\n")) if Rails.env.development?
+  nil
+end
+```
+
+**Exception tracking:** The middleware overrides the `trace` method to catch and record exceptions:
+
+```ruby
+def trace(env)
+  response = nil
+  duration = realtime { response = yield }
+  record(env, response.first.to_s, duration)
+  return response
+rescue => exception
+  @exceptions.increment(labels: { exception: exception.class.name })
+  raise
+end
+```
+
+When an exception occurs during request processing:
+1. The exception class name is recorded to `http_server_exceptions_total`
+2. The exception is re-raised (request still fails as expected)
+3. This metric uses only the `exception` label to match the parent class's counter definition
+
 ---
+
+**Last updated:** June 25, 2026
+**Recent changes:**
+- Fixed `http_server_exceptions_total` metric recording
+- Added explicit histogram bucket configuration to both middlewares
+- Improved `elektra_sli` docstring from "A histogram of sli" to "Request duration for Elektra plugins in seconds."
+- Added comprehensive test coverage for both middlewares (excluded paths, bucket structure, label population, exception tracking)
