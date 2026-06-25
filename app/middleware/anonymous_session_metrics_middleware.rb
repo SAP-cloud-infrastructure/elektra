@@ -7,11 +7,14 @@
 # - Multi-pod safe: Cookie-based deduplication works across all Elektra pods
 # - Cross-platform: Cookies shared between Elektra and Aurora via domain
 # - Stateless: No in-memory state, no cleanup needed
-# - Minimal cookies: Uses only 2 cookies (metrics_hours, metrics_session)
+# - Minimal cookies: Uses only 2 cookies (metrics_hours_elektra, metrics_session)
 #
 # Cookie structure:
-# 1. metrics_hours: Comma-separated list of visited hours (e.g., "14,15,16")
-# 2. metrics_session: Base64-encoded JSON with {start, last_dur, features}
+# 1. metrics_hours_elektra: Platform-specific comma-separated list of visited hours (e.g., "14,15,16")
+# 2. metrics_session: Base64-encoded JSON with {start, last_dur, features} (SHARED with Aurora)
+#
+# This allows accurate adoption metrics since users may access both dashboards,
+# and we want to track each platform's usage independently.
 class AnonymousSessionMetricsMiddleware
   EXCLUDE_PATHS = %w[/metrics /assets /system /health].freeze
 
@@ -20,6 +23,15 @@ class AnonymousSessionMetricsMiddleware
 
   # Maximum features to track per session (sliding window)
   MAX_FEATURES_PER_SESSION = 5
+
+  # Platform-specific cookie for Elektra (Aurora uses metrics_hours_aurora)
+  METRICS_HOURS_COOKIE = "metrics_hours_elektra".freeze
+
+  # Shared session cookie for cross-dashboard tracking
+  METRICS_SESSION_COOKIE = "metrics_session".freeze
+
+  # Cookie expiry duration (24 hours)
+  COOKIE_MAX_AGE_SECONDS = 24 * 60 * 60
 
   def initialize(app, options = {})
     @app = app
@@ -326,7 +338,7 @@ class AnonymousSessionMetricsMiddleware
 
   # Read visited hours from cookie
   def read_visited_hours(request)
-    cookie = request.cookies["metrics_hours"]
+    cookie = request.cookies[METRICS_HOURS_COOKIE]
     return [] unless cookie
 
     cookie.split(',').map(&:strip)
@@ -344,16 +356,17 @@ class AnonymousSessionMetricsMiddleware
     end
 
     cookie_value = valid_hours.join(',')
-    expires = (Time.now + 24.hours).httpdate
+    expires = (Time.now + COOKIE_MAX_AGE_SECONDS.seconds).httpdate
 
     Rails.logger.debug("[AnonymousMetrics] Storing visited hours: #{cookie_value}")
 
-    cookie_header = "metrics_hours=#{cookie_value}; " \
+    cookie_header = "#{METRICS_HOURS_COOKIE}=#{cookie_value}; " \
                     "Path=/; " \
                     "Domain=#{global_domain}; " \
                     "HttpOnly; " \
                     "#{secure_attribute}" \
                     "SameSite=Lax; " \
+                    "Max-Age=#{COOKIE_MAX_AGE_SECONDS}; " \
                     "Expires=#{expires}"
 
     append_cookie(response, cookie_header)
@@ -361,7 +374,7 @@ class AnonymousSessionMetricsMiddleware
 
   # Read session data from cookie (JSON structure)
   def read_session_data(request)
-    cookie = request.cookies["metrics_session"]
+    cookie = request.cookies[METRICS_SESSION_COOKIE]
     return {} unless cookie
 
     data = JSON.parse(Base64.decode64(cookie), symbolize_names: true)
@@ -378,16 +391,17 @@ class AnonymousSessionMetricsMiddleware
   # Store session data in cookie (JSON structure)
   def store_session_data(response, data, global_domain)
     cookie_value = Base64.strict_encode64(data.to_json)
-    expires = (Time.now + 24.hours).httpdate
+    expires = (Time.now + COOKIE_MAX_AGE_SECONDS.seconds).httpdate
 
     Rails.logger.debug("[AnonymousMetrics] Storing session data: #{data.inspect}")
 
-    cookie_header = "metrics_session=#{cookie_value}; " \
+    cookie_header = "#{METRICS_SESSION_COOKIE}=#{cookie_value}; " \
                     "Path=/; " \
                     "Domain=#{global_domain}; " \
                     "HttpOnly; " \
                     "#{secure_attribute}" \
                     "SameSite=Lax; " \
+                    "Max-Age=#{COOKIE_MAX_AGE_SECONDS}; " \
                     "Expires=#{expires}"
 
     append_cookie(response, cookie_header)
