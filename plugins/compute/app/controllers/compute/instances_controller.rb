@@ -96,12 +96,16 @@ module Compute
       begin
         # Determine console type based on hypervisor_type from flavor extra_specs
         # This is more reliable than hostname-based detection
-        if hypervisor_type == "CH" || hypervisor_type == "QEMU"
-          # Cloud Hypervisor (CH) and QEMU/KVM instances use serial console
+        if hypervisor_type == "CH"
+          # Cloud Hypervisor (CH) instances use serial console
           # API call: POST /servers/{id}/remote-consoles -d '{"remote_console": {"protocol": "serial", "type": "serial"}}'
           @console = services.compute.remote_console(params[:id], "serial", "serial")
+        elsif hypervisor_type == "QEMU"
+          # QEMU/KVM instances use VNC console
+          # API call: POST /servers/{id}/remote-consoles -d '{"remote_console": {"protocol": "vnc", "type": "novnc"}}'
+          @console = services.compute.remote_console(params[:id], "vnc", "novnc")
         elsif hypervisor_type == "VMware vCenter Server"
-          # VMware instances use VNC/MKS console
+          # VMware instances use MKS console (default: mks/webmks)
           @console = services.compute.remote_console(params[:id])
         elsif hypervisor_type.nil?
           # Fallback to hostname-based detection if extra_specs are not available
