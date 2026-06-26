@@ -14,8 +14,8 @@
               %stop{offset: "100%", style: "stop-color:#b8149d"}
           %path{fill: "url(#rocketGradient)", d: "m98-537 168-168q14-14 33-20t39-2l52 11q-54 64-85 116t-60 126L98-537Zm205 91q23-72 62.5-136T461-702q88-88 201-131.5T873-860q17 98-26 211T716-448q-55 55-120 95.5T459-289L303-446Zm332.5-97q33.5 0 56.5-23t23-56.5q0-33.5-23-56.5t-56.5-23q-33.5 0-56.5 23t-23 56.5q0 33.5 23 56.5t56.5 23ZM551-85l-64-147q74-29 126.5-60T730-377l10 52q4 20-2 39.5T718-252L551-85ZM162-318q35-35 85-35.5t85 34.5q35 35 35 85t-35 85q-25 25-83.5 43T87-74q14-103 32-161t43-83Z"}
       .switcher-banner__text
-        %span.switcher-banner__title Want Fully-Featured, S3-compliant Ceph?
-        %span.switcher-banner__body For fully featured, accurate and fully S3-compatible access to all Ceph Object Storage Features, including versioned buckets, check out the Ceph Object Storage feature preview in our all-new dashboard Aurora.
+        %span.switcher-banner__title Want S3-compliant Ceph?
+        %span.switcher-banner__body For a preview on fully S3-compatible access to Ceph Object Storage, check out the early-access Ceph Object Storage feature in our all-new dashboard Aurora.
       .switcher-banner__button-wrap
         %a.switcher-btn{href: "https://dashboard-aurora.#{current_region}.cloud.sap/projects/#{@scoped_project_id}/storage/ceph/containers", onclick: track_outbound_navigation_js("object_storage_ceph_banner"), data: {turbo: false}}
           Have a Peek
@@ -30,10 +30,7 @@
     %p
       Buckets with S3 versioning enabled cannot be deleted using the dashboard and may only be fully inspected or
       managed via S3 CLI tools. This limitation is due to fundamental differences between the Swift and S3 APIs in
-      Ceph RGW. For full and accurate access to all Ceph object storage features, especially when working with
-      versioned buckets, we strongly recommend using S3-compatible tools such as
-      %code aws s3api
-      or other S3 CLI/SDK tools.
+      Ceph RGW. 
 
 -# base_name: is used by react router to determine the base path for the app
 -# service_endpoint: is used by the app to determine the endpoint to use in api client
