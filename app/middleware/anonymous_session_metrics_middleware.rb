@@ -288,7 +288,7 @@ class AnonymousSessionMetricsMiddleware
     end
   end
 
-  # Read visited hours from cookie
+  # Read visited hours from cookie (platform-specific)
   def read_visited_hours(request)
     cookie = request.cookies[METRICS_HOURS_COOKIE]
     return [] unless cookie

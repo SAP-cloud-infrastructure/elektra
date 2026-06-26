@@ -118,9 +118,14 @@ RSpec.describe AnonymousSessionMetricsMiddleware do
         count = counter.get(labels: { session_hour: current_hour, platform: 'elektra' })
         expect(count).to eq(1)
 
-        # Check hourly cookie set (now metrics_hours with comma-separated values)
-        cookies = extract_cookies([nil, headers, nil])
-        expect(cookies["metrics_hours"]).to eq(current_hour)
+        # Check hourly cookie set (platform-specific: metrics_hours_elektra)
+        # Cookie value is a comma-separated list, so just check it includes current hour
+        set_cookie = headers['Set-Cookie']
+        cookie_lines = set_cookie.is_a?(Array) ? set_cookie : [set_cookie]
+        hourly_cookie = cookie_lines.find { |c| c.start_with?("metrics_hours_elektra=") }
+
+        expect(hourly_cookie).not_to be_nil
+        expect(hourly_cookie).to include(current_hour)
       end
 
       it 'does not count second request in same hour (cookie present)' do
@@ -128,15 +133,16 @@ RSpec.describe AnonymousSessionMetricsMiddleware do
         env1 = create_env(path: '/test', cookies: { 'dashboard-session-auth' => session_token })
         _status1, headers1, _body1 = middleware.call(env1)
 
-        # Second request with hourly cookie (new format: metrics_hours=13)
+        # Second request with hourly cookie (platform-specific: metrics_hours_elektra contains current hour)
+        # Cookie format is comma-separated list of hours
         cookies_with_hourly = {
           'dashboard-session-auth' => session_token,
-          'metrics_hours' => current_hour
+          'metrics_hours_elektra' => current_hour  # Already visited this hour
         }
         env2 = create_env(path: '/test', cookies: cookies_with_hourly)
         middleware.call(env2)
 
-        # Counter should still be 1
+        # Counter should still be 1 (not incremented on second request)
         counter = registry.get(:dashboard_active_browser_hours_total)
         count = counter.get(labels: { session_hour: current_hour, platform: 'elektra' })
         expect(count).to eq(1)
@@ -310,104 +316,10 @@ RSpec.describe AnonymousSessionMetricsMiddleware do
       end
     end
 
-    context 'cross-dashboard navigation' do
-      let(:session_token) { 'test-session-token-123' }
-      let(:current_hour) { Time.now.strftime("%H") }
-
-      it 'tracks navigation from Aurora to Elektra' do
-        session_data = { start: Time.now.to_i, last_dur: Time.now.to_i, features: ['compute_list'] }
-        session_encoded = Base64.strict_encode64(session_data.to_json)
-
-        env = create_env(
-          path: '/test',
-          host: 'dashboard.qa-de-1.cloud.sap',
-          cookies: {
-            'dashboard-session-auth' => session_token,
-            'metrics_session' => session_encoded
-          },
-          referer: 'https://dashboard-aurora.qa-de-1.cloud.sap/domain/project/compute/instances'
-        )
-        middleware.call(env)
-
-        counter = registry.get(:dashboard_cross_navigation_total)
-        count = counter.get(labels: {
-          from_dashboard: 'aurora',
-          to_dashboard: 'elektra',
-          last_feature_before_switch: 'compute_list',
-          session_hour: current_hour
-        })
-        expect(count).to eq(1)
-      end
-
-      it 'tracks navigation from Elektra to Aurora' do
-        session_data = { start: Time.now.to_i, last_dur: Time.now.to_i, features: ['network_list'] }
-        session_encoded = Base64.strict_encode64(session_data.to_json)
-
-        env = create_env(
-          path: '/test',
-          host: 'dashboard-aurora.qa-de-1.cloud.sap',
-          cookies: {
-            'dashboard-session-auth' => session_token,
-            'metrics_session' => session_encoded
-          },
-          referer: 'https://dashboard.qa-de-1.cloud.sap/domain/project/network/routers'
-        )
-        middleware.call(env)
-
-        counter = registry.get(:dashboard_cross_navigation_total)
-        count = counter.get(labels: {
-          from_dashboard: 'elektra',
-          to_dashboard: 'aurora',
-          last_feature_before_switch: 'network_list',
-          session_hour: current_hour
-        })
-        expect(count).to eq(1)
-      end
-
-      it 'does not track navigation within same dashboard' do
-        env = create_env(
-          path: '/test',
-          host: 'dashboard.qa-de-1.cloud.sap',
-          cookies: { 'dashboard-session-auth' => session_token },
-          referer: 'https://dashboard.qa-de-1.cloud.sap/domain/project/compute/instances'
-        )
-
-        initial_count = begin
-          registry.get(:dashboard_cross_navigation_total).values.values.sum
-        rescue
-          0
-        end
-
-        middleware.call(env)
-
-        final_count = begin
-          registry.get(:dashboard_cross_navigation_total).values.values.sum
-        rescue
-          0
-        end
-
-        expect(final_count).to eq(initial_count)
-      end
-
-      it 'uses "unknown" if no previous feature in cookie' do
-        env = create_env(
-          path: '/test',
-          host: 'dashboard.qa-de-1.cloud.sap',
-          cookies: { 'dashboard-session-auth' => session_token },
-          referer: 'https://dashboard-aurora.qa-de-1.cloud.sap/domain/project/compute/instances'
-        )
-        middleware.call(env)
-
-        counter = registry.get(:dashboard_cross_navigation_total)
-        count = counter.get(labels: {
-          from_dashboard: 'aurora',
-          to_dashboard: 'elektra',
-          last_feature_before_switch: 'unknown',
-          session_hour: current_hour
-        })
-        expect(count).to eq(1)
-      end
-    end
+    # Note: Cross-dashboard navigation tracking was removed from this middleware.
+    # It's now handled via MetricsTrackingController#track_outbound endpoint,
+    # called from JavaScript before navigation (see PR #2107).
+    # The middleware only defines the metric counter; tracking happens in the controller.
 
     context 'cookie domain sharing' do
       let(:session_token) { 'test-session-token-123' }
@@ -426,22 +338,25 @@ RSpec.describe AnonymousSessionMetricsMiddleware do
         expect(cookie_lines.any? { |c| c.include?('Domain=.qa-de-1.cloud.sap') }).to be true
       end
 
-      it 'respects hourly cookie from Aurora (shared domain)' do
-        # Simulate cookie set by Aurora (new format: metrics_hours=14)
+      it 'uses platform-specific hourly cookies (not shared between platforms)' do
+        # Per PR #2107: Platform-specific cookies (metrics_hours_elektra vs metrics_hours_aurora)
+        # prevent session conflicts. Each platform tracks its own hourly visits independently.
+        # Aurora's cookie does NOT prevent Elektra from counting.
+
         env = create_env(
           path: '/test',
           host: 'dashboard.qa-de-1.cloud.sap',
           cookies: {
             'dashboard-session-auth' => session_token,
-            'metrics_hours' => current_hour  # Set by Aurora
+            'metrics_hours_aurora' => current_hour  # Set by Aurora (different platform)
           }
         )
         middleware.call(env)
 
-        # Should not increment (cookie already present)
+        # Should increment because Elektra only checks metrics_hours_elektra, not metrics_hours_aurora
         counter = registry.get(:dashboard_active_browser_hours_total)
         count = counter.get(labels: { session_hour: current_hour, platform: 'elektra' })
-        expect(count).to eq(0)  # Not incremented
+        expect(count).to eq(1)  # Incremented (Aurora's cookie doesn't affect Elektra)
       end
     end
 
