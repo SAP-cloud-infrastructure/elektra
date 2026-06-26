@@ -17,7 +17,7 @@
         %span.switcher-banner__title Want S3-compliant Ceph?
         %span.switcher-banner__body For a preview on fully S3-compatible access to Ceph Object Storage, check out the early-access Ceph Object Storage feature in our all-new dashboard Aurora.
       .switcher-banner__button-wrap
-        %a.switcher-btn{href: "https://dashboard-aurora.#{current_region}.cloud.sap/projects/#{@scoped_project_id}/storage/ceph/containers"}
+        %a.switcher-btn{href: "https://dashboard-aurora.#{current_region}.cloud.sap/projects/#{@scoped_project_id}/storage/ceph/containers", onclick: track_outbound_navigation_js("object_storage_ceph_banner"), data: {turbo: false}}
           Have a Peek
       %p= " "    
 
