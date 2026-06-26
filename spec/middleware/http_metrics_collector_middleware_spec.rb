@@ -31,7 +31,6 @@ RSpec.describe HttpMetricsCollectorMiddleware do
       let(:middleware_with_failing_app) { described_class.new(failing_app, registry: registry) }
 
       before do
-        # Initialize the middleware by creating it - this sets up the metrics
         middleware_with_failing_app
       end
 
@@ -39,7 +38,6 @@ RSpec.describe HttpMetricsCollectorMiddleware do
         exceptions_counter = registry.get(:http_server_exceptions_total)
         expect(exceptions_counter).not_to be_nil
 
-        # Get initial count (should be 0 for new label)
         initial_count =
           begin
             exceptions_counter.get(labels: { exception: "StandardError" })
@@ -47,12 +45,9 @@ RSpec.describe HttpMetricsCollectorMiddleware do
             0
           end
 
-        # Call middleware with failing app - expect it to raise
         expect { middleware_with_failing_app.call(env) }.to raise_error(StandardError)
 
-        # Verify counter was incremented
-        new_count =
-          exceptions_counter.get(labels: { exception: "StandardError" })
+        new_count = exceptions_counter.get(labels: { exception: "StandardError" })
         expect(new_count).to eq(initial_count + 1)
       end
 
@@ -63,18 +58,14 @@ RSpec.describe HttpMetricsCollectorMiddleware do
 
     context "when the app succeeds" do
       it "records the request metrics" do
-        # Make the call
         middleware.call(env)
 
-        # Verify counters were incremented
         requests_counter = registry.get(:http_server_requests_total)
-        durations_histogram =
-          registry.get(:http_server_request_duration_seconds)
+        durations_histogram = registry.get(:http_server_request_duration_seconds)
 
         expect(requests_counter).not_to be_nil
         expect(durations_histogram).not_to be_nil
 
-        # Check that metrics exist with our labels
         labels = {
           code: "200",
           method: "get",
@@ -88,7 +79,6 @@ RSpec.describe HttpMetricsCollectorMiddleware do
         }
 
         expect(requests_counter.get(labels: labels)).to eq(1)
-        # For histogram, just verify it was recorded (value exists)
         histogram_value = durations_histogram.get(labels: labels)
         expect(histogram_value).to be_a(Hash)
         expect(histogram_value).to have_key("sum")
@@ -117,6 +107,116 @@ RSpec.describe HttpMetricsCollectorMiddleware do
         allow(Rails.logger).to receive(:error)
 
         expect { middleware.call(env) }.not_to raise_error
+      end
+    end
+
+    context "when path is excluded" do
+      %w[/metrics /system/health /assets/application.js].each do |excluded_path|
+        it "does not record metrics for #{excluded_path}" do
+          excluded_env = Rack::MockRequest.env_for(excluded_path, method: "GET")
+          middleware.call(excluded_env)
+
+          requests_counter = registry.get(:http_server_requests_total)
+          expect(requests_counter&.values).to be_nil.or be_empty
+        end
+      end
+    end
+
+    context "histogram buckets" do
+      it "uses API-proxy-appropriate buckets on the duration histogram" do
+        middleware.call(env)
+
+        histogram = registry.get(:http_server_request_duration_seconds)
+        labels = {
+          code: "200",
+          method: "get",
+          host: "localhost",
+          domain: "default",
+          project: "test-project",
+          controller: "test_controller",
+          action: "index",
+          plugin: "",
+          xhr: false,
+        }
+        buckets = histogram.get(labels: labels)
+
+        expect(buckets).to have_key("0.05")
+        expect(buckets).to have_key("1.0")
+        expect(buckets).to have_key("10.0")
+        expect(buckets).to have_key("30.0")
+        expect(buckets).not_to have_key("0.005")
+        expect(buckets).not_to have_key("0.0025")
+      end
+    end
+
+    context "label population" do
+      it "sets plugin label when controller belongs to a known plugin" do
+        plugin_env = Rack::MockRequest.env_for(
+          "/compute/instances",
+          method: "GET",
+          "HTTP_HOST" => "localhost",
+          "action_dispatch.request.path_parameters" => {
+            controller: "compute/os_instances",
+            action: "index",
+            domain_id: "default",
+            project_id: "test-project",
+          },
+        )
+
+        allow(Core::PluginsManager).to receive(:has?).with("compute").and_return(true)
+        middleware.call(plugin_env)
+
+        requests_counter = registry.get(:http_server_requests_total)
+        labels = {
+          code: "200",
+          method: "get",
+          host: "localhost",
+          domain: "default",
+          project: "test-project",
+          controller: "compute/os_instances",
+          action: "index",
+          plugin: "compute",
+          xhr: false,
+        }
+        expect(requests_counter.get(labels: labels)).to eq(1)
+      end
+
+      it "sets empty plugin label when controller is unknown" do
+        allow(Core::PluginsManager).to receive(:has?).with("test_controller").and_return(false)
+        middleware.call(env)
+
+        requests_counter = registry.get(:http_server_requests_total)
+        labels = {
+          code: "200",
+          method: "get",
+          host: "localhost",
+          domain: "default",
+          project: "test-project",
+          controller: "test_controller",
+          action: "index",
+          plugin: "",
+          xhr: false,
+        }
+        expect(requests_counter.get(labels: labels)).to eq(1)
+      end
+
+      it "sets empty strings for missing path parameters" do
+        bare_env = Rack::MockRequest.env_for("/", method: "GET", "HTTP_HOST" => "localhost")
+        middleware.call(bare_env)
+
+        requests_counter = registry.get(:http_server_requests_total)
+        labels = {
+          code: "200",
+          method: "get",
+          host: "localhost",
+          domain: "",
+          project: "",
+          controller: "",
+          action: "",
+          plugin: "",
+          xhr: false,
+        }
+        expect(requests_counter.get(labels: labels)).to eq(1)
       end
     end
   end
