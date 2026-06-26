@@ -19,7 +19,12 @@ class AnonymousSessionMetricsMiddleware
   EXCLUDE_PATHS = %w[/metrics /assets /system /health].freeze
 
   # Features to exclude from tracking (e.g., utility endpoints, avatars)
-  EXCLUDE_FEATURES = %w[avatars_show].freeze
+  EXCLUDE_FEATURES = %w[
+    avatars_show
+    metrics_tracking_track_outbound
+    os_api_token
+    os_api_reverse_proxy
+  ].freeze
 
   # Maximum features to track per session (sliding window)
   MAX_FEATURES_PER_SESSION = 5

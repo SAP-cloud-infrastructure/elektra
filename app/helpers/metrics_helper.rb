@@ -2,8 +2,6 @@
 
 # Helper module for tracking cross-dashboard navigation metrics
 #
-# Matches Aurora's pattern where a client-side API call tracks navigation BEFORE the user leaves.
-#
 # The entry_point parameter should describe WHERE/HOW the user clicked:
 # - "object_storage_ceph_banner" - clicked banner in object storage
 # - "identity_project_banner" - clicked banner in identity project page
@@ -26,13 +24,18 @@
 module MetricsHelper
   # Generate JavaScript to track outbound navigation before link follows
   #
-  # The current feature is automatically read from the session cookie by the controller,
-  # so you only need to pass the entry_point identifier.
-  #
   # @param entry_point [String] Descriptive identifier for where user clicked
   # @return [String] JavaScript code for onclick handler
   def track_outbound_navigation_js(entry_point)
-    "trackOutboundNavigation('#{entry_point.to_s.gsub("'", "\\\\'")}')"
+    # Build the scoped path with friendly IDs (slugs), not UUIDs
+    # This matches the pattern used by feedback_path
+    if @scoped_project_fid.present?
+      route_path = "/#{@scoped_domain_fid}/#{@scoped_project_fid}/metrics/track_outbound"
+    else
+      route_path = "/#{@scoped_domain_fid}/metrics/track_outbound"
+    end
+
+    "trackOutboundNavigation('#{entry_point.to_s.gsub("'", "\\\\'")}', '#{route_path}')"
   end
 
   # Track outbound navigation programmatically (server-side)
@@ -41,11 +44,8 @@ module MetricsHelper
   # @param entry_point [String] Descriptive identifier for where user clicked
   # @param current_feature [String] The current feature user is on before leaving
   # @param session_hour [String] The current hour ("00" to "23")
-  # @param registry [Prometheus::Client::Registry] Optional registry (defaults to global)
-  def self.track_outbound_navigation(to_dashboard:, entry_point:, current_feature:, session_hour:, registry: nil)
-    registry ||= Prometheus::Client.registry
-
-    metric = registry.get(:dashboard_cross_navigation_total)
+  def self.track_outbound_navigation(to_dashboard:, entry_point:, current_feature:, session_hour:)
+    metric = Prometheus::Client.registry.get(:dashboard_cross_navigation_total)
     return unless metric
 
     metric.increment(

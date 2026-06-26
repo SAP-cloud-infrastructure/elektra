@@ -3,9 +3,6 @@
 Rails.application.routes.draw do
   post '/verify-auth-token', to: 'auth_token#verify'
 
-  # Outbound navigation tracking endpoint (called before navigating to Aurora)
-  post '/metrics/track_outbound', to: 'metrics_tracking#track_outbound'
-
   mount MonsoonOpenstackAuth::Engine => '/:domain_fid/auth'
 
   get '/error-404', to: 'errors#error_404'
@@ -74,6 +71,9 @@ Rails.application.routes.draw do
     scope '(/:project_id)' do
       get 'feedback', to: 'feedback#show', as: :feedback
       post 'feedback', to: 'feedback#create'
+
+      # Outbound navigation tracking endpoint (called before navigating to Aurora)
+      post 'metrics/track_outbound', to: 'metrics_tracking#track_outbound', as: :metrics_track_outbound
 
       scope module: 'dashboard' do
         post 'accept_terms_of_use'

@@ -3,10 +3,8 @@
 # Controller for tracking outbound navigation metrics
 # This endpoint is called via JavaScript before navigating to other dashboards
 # Matches Aurora's analytics API pattern
-class MetricsTrackingController < ApplicationController
-  # Use :null_session for API-style endpoints that use fetch() with keepalive
-  # This allows CSRF token validation via X-CSRF-Token header
-  protect_from_forgery with: :null_session
+class MetricsTrackingController < DashboardController
+  
 
   # POST /metrics/track_outbound
   # Body: { to_dashboard: "aurora", entry_point: "object_storage_ceph_banner" }

@@ -1,7 +1,6 @@
 /**
  * Analytics module for user behavior tracking in Elektra.
  *
- * Matches Aurora's pattern:
  * - Current feature is read from session cookie by the controller (server-side)
  * - Only need to pass entry_point from JavaScript
  */
@@ -13,17 +12,21 @@
  * The current feature is automatically read from the session cookie by the controller.
  *
  * @param {string} entryPoint - Identifier for where user clicked (e.g., "object_storage_ceph_banner")
+ * @param {string} url - The scoped route URL from Rails route helper
  *
  * @example
- * <a href="..." onclick="trackOutboundNavigation('object_storage_ceph_banner')">
+ * <a href="..." onclick="trackOutboundNavigation('object_storage_ceph_banner', '/:domain_id/:project_id/metrics/track_outbound')">
  *   Go to Aurora
  * </a>
  */
-window.trackOutboundNavigation = function (entryPoint) {
-  sendAnalytics({
-    to_dashboard: "aurora",
-    entry_point: entryPoint,
-  })
+window.trackOutboundNavigation = function (entryPoint, url) {
+  sendAnalytics(
+    {
+      to_dashboard: "aurora",
+      entry_point: entryPoint,
+    },
+    url
+  )
 }
 
 /**
@@ -37,7 +40,7 @@ function getCsrfToken() {
 /**
  * Send analytics data to server
  */
-function sendAnalytics(data) {
+function sendAnalytics(data, url) {
   try {
     const csrfToken = getCsrfToken()
 
@@ -46,7 +49,7 @@ function sendAnalytics(data) {
       return
     }
 
-    fetch("/metrics/track_outbound", {
+    fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
