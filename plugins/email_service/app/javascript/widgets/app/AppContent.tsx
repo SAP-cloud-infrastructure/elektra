@@ -6,6 +6,7 @@ import { widgetBasePath } from "lib/widget"
 import EventList from "./components/EventList"
 import ItemShow from "./components/ItemShow"
 import Setup from "./components/Setup"
+import ErrorReport from "./components/ErrorReport"
 import { MailLogEntry } from "./actions"
 
 interface AppContentProps {
@@ -14,17 +15,35 @@ interface AppContentProps {
 
 const baseName = widgetBasePath("email_service")
 
+const TAB_SLUGS = ["setup", "error-report", "maillog"]
+
+const getInitialTab = (): number => {
+  const hash = window.location.hash.replace("#", "")
+  const idx = TAB_SLUGS.indexOf(hash)
+  return idx >= 0 ? idx : 0
+}
+
 const AppContent: React.FC<AppContentProps> = ({ props }) => {
   const [mailLogData, setMailLogData] = useState<MailLogEntry[]>([])
+  const [activeTab, setActiveTab] = useState<number>(getInitialTab)
+
+  const handleTabChange = (index: number) => {
+    setActiveTab(index)
+    window.location.hash = TAB_SLUGS[index]
+  }
 
   return (
-    <Tabs>
+    <Tabs selectedIndex={activeTab} onSelect={handleTabChange}>
       <TabList>
         <Tab>Setup</Tab>
+        <Tab>Error Report</Tab>
         <Tab>Maillog</Tab>
       </TabList>
       <TabPanel>
         <Setup />
+      </TabPanel>
+      <TabPanel>
+        <ErrorReport />
       </TabPanel>
       <TabPanel>
         <BrowserRouter basename={baseName}>

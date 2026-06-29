@@ -33,6 +33,7 @@ export interface MailSearchOptions {
   headerFrom?: string
   relay?: string
   project?: string
+  tag?: string[]
   pageSize?: number
   page?: number
   start?: Date | null
@@ -84,11 +85,97 @@ export interface MailLogEntry {
   rcpts: Recipient[]
   attempts?: Attempt[]
   summary: Record<string, number>
+  response?: { code?: number; ext?: string; msg?: string }
   [key: string]: unknown
 }
 
 export interface QueryKeyParams {
   queryKey: [string, string, string, MailSearchOptions]
+}
+
+export interface ReportSearchOptions {
+  start?: Date | null
+  end?: Date | null
+  mta?: string
+  project?: string
+  rankingSize?: number
+}
+
+export interface Counters {
+  emails: number
+  recipients: number
+  bounces: number
+  success: number
+  errors: number
+  tempErrs: number
+  permErrs: number
+  others: number
+}
+
+export interface ResponseSet {
+  counters: Counters
+  byResponse: Record<string, number>
+}
+
+export interface RelayResponseMap {
+  counters: Counters
+  byPhase: Record<string, ResponseSet>
+  byHostname: Record<string, ResponseSet>
+  byUsername: Record<string, ResponseSet>
+  bySender: Record<string, ResponseSet>
+  byRecipient: Record<string, ResponseSet>
+  data: ResponseSet
+}
+
+export interface Report {
+  start: string
+  end: string
+  mta: string
+  projectId: string
+  projectName: string
+  totals: RelayResponseMap
+  byProjectId: Record<string, Counters>
+  incoming: RelayResponseMap
+  configErrs: number
+  outgoing: RelayResponseMap
+  byRelay: Record<string, RelayResponseMap>
+}
+
+export interface RankingEntry {
+  name: string
+  total: number
+  share: number
+}
+
+export interface Ranking {
+  name: string
+  key: string
+  total: number
+  entries: RankingEntry[]
+}
+
+export interface RankingList {
+  byProjectId?: Ranking
+  byPhase?: Ranking
+  byRelay?: Ranking
+  byHostname?: Ranking
+  bySender?: Ranking
+  byRecipient?: Ranking
+  byDataError?: Ranking
+}
+
+export interface ReportSearchResponse {
+  error?: string
+  message?: string
+  hits: number
+  reports: number
+  data?: Report
+  rankings?: RankingList
+  errorTags?: boolean
+}
+
+export interface ReportQueryKeyParams {
+  queryKey: [string, string, string, ReportSearchOptions]
 }
 
 export const encodeUrlParamsFromObject = (options: Record<string, unknown>): string => {
@@ -107,17 +194,6 @@ export const encodeUrlParamsFromObject = (options: Record<string, unknown>): str
   return `&${encodedOptions}`
 }
 
-const checkStatus = (response: Response): Promise<Response> => {
-  if (response.status < 400) {
-    return Promise.resolve(response)
-  } else {
-    return response.text().then((message) => {
-      const error = new HTTPError(response.status, message || response.statusText)
-      return Promise.reject(error)
-    })
-  }
-}
-
 //
 // SERVICES
 //
@@ -125,19 +201,25 @@ const checkStatus = (response: Response): Promise<Response> => {
 export const dataFn = ({ queryKey }: QueryKeyParams): Promise<MailSearchResponse> => {
   const [_key, bearerToken, endpoint, options] = queryKey
   const requestData = FormatRequestData(options)
-  return fetchFromAPI(bearerToken, endpoint, "/v1/mails/search", requestData)
+  return fetchFromAPI<MailSearchResponse>(bearerToken, endpoint, "/v1/mails/search", requestData)
+}
+
+export const reportDataFn = ({ queryKey }: ReportQueryKeyParams): Promise<ReportSearchResponse> => {
+  const [_key, bearerToken, endpoint, options] = queryKey
+  const requestData = FormatRequestData(options as Record<string, unknown>)
+  return fetchFromAPI<ReportSearchResponse>(bearerToken, endpoint, "/v1/report", requestData)
 }
 
 //
 // COMMONS
 //
 
-const fetchFromAPI = async (
+const fetchFromAPI = async <T>(
   bearerToken: string,
   endpoint: string,
   path: string,
   queryParams: string
-): Promise<MailSearchResponse> => {
+): Promise<T> => {
   const url = `${endpoint}${path}?${queryParams}`
 
   try {
@@ -157,7 +239,7 @@ const fetchFromAPI = async (
 
     // Check if the request was successful (status code 2xx)
     if (response.ok) {
-      const jsonResponse = (await response.json()) as MailSearchResponse
+      const jsonResponse = (await response.json()) as T
       return jsonResponse
     } else {
       // If the response status is not in the 2xx range, throw an error with proper categorization

@@ -1,12 +1,10 @@
 import React, { useEffect, useRef } from "react"
 import {
-  Button,
   Form,
   FormRow,
   DateTimePicker,
   Select,
   SelectOption,
-  ButtonRow,
   TextInput,
   Grid,
   GridRow,
@@ -271,11 +269,15 @@ const SearchBar: React.FC<SearchBarProps> = ({ onChange, searchOptions, onPageCh
         </GridRow>
       </Grid>
 
-      <ButtonRow>
-        <Button onClick={handleClear} variant="subdued">
+      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
+        <button
+          data-testid="clear-button"
+          onClick={handleClear}
+          style={{ padding: "6px 16px", borderRadius: 4, border: "1px solid #991b1b", color: "#991b1b", cursor: "pointer", background: "none", fontSize: 14 }}
+        >
           Clear All Filters
-        </Button>
-      </ButtonRow>
+        </button>
+      </div>
     </Form>
   )
 }

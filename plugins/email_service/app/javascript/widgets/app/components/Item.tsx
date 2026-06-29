@@ -61,7 +61,9 @@ const Item: React.FC<ItemProps> = ({ data, index = 0 }) => {
       <DataGridCell onClick={(e) => e.stopPropagation()}>
         <Tooltip triggerEvent="hover">
           <TooltipTrigger asChild>
-            <Icon color="jn-text-theme-info" onClick={downloadJsonFile} icon="download"></Icon>
+            <span style={{ color: "#038bc6" }}>
+              <Icon onClick={downloadJsonFile} icon="download" />
+            </span>
           </TooltipTrigger>
           <TooltipContent>Download JSON File</TooltipContent>
         </Tooltip>

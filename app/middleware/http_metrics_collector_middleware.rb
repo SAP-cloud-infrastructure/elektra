@@ -22,6 +22,7 @@ class HttpMetricsCollectorMiddleware < Prometheus::Middleware::Collector
         :"#{@metrics_prefix}_request_duration_seconds",
         docstring: "The HTTP response duration of the Rack application.",
         labels: LABELS,
+        buckets: [0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0],
       )
   end
 
@@ -34,7 +35,7 @@ class HttpMetricsCollectorMiddleware < Prometheus::Middleware::Collector
   rescue => exception
     # Track exception - using only exception label to match parent's counter definition
     @exceptions.increment(labels: { exception: exception.class.name })
-    
+
     raise
   end
 
