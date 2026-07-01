@@ -220,7 +220,7 @@ const extractErrorEvents = (entries: MailLogEntry[]): ErrorEvent[] => {
 const TypeBadge: React.FC<{ type: "PERM" | "TEMP" }> = ({ type }) => (
   <span
     style={{
-      display: "inline-block",
+      display: "inline",
       padding: "2px 8px",
       borderRadius: 4,
       fontSize: 11,
@@ -242,7 +242,7 @@ const cardStyle: React.CSSProperties = {
 }
 
 const FullCell: React.FC<{ value: string | undefined; mono?: boolean }> = ({ value, mono }) => (
-  <span style={mono ? { fontFamily: "monospace", fontSize: 12, wordBreak: "break-all" } : { wordBreak: "break-word" }}>
+  <span style={mono ? { fontFamily: "monospace", fontSize: 12, wordBreak: "break-all" } : { wordBreak: "break-all" }}>
     {value || "-"}
   </span>
 )
@@ -452,14 +452,12 @@ const ErrorReport: React.FC = () => {
             </Stack>
           ) : (
             <div className="datagrid-hover">
-              <DataGrid columns={8}>
+              <DataGrid columns={6}>
                 <DataGridRow>
                   <DataGridHeadCell>Time</DataGridHeadCell>
                   <DataGridHeadCell>Sender</DataGridHeadCell>
                   <DataGridHeadCell>Recipient</DataGridHeadCell>
                   <DataGridHeadCell>Response</DataGridHeadCell>
-                  <DataGridHeadCell>Code</DataGridHeadCell>
-                  <DataGridHeadCell>Type</DataGridHeadCell>
                   <DataGridHeadCell>Request ID</DataGridHeadCell>
                   <DataGridHeadCell>Message ID</DataGridHeadCell>
                 </DataGridRow>
@@ -467,21 +465,27 @@ const ErrorReport: React.FC = () => {
                   pagedErrorEvents.map((ev, i) => (
                     <DataGridRow key={i} style={{ background: i % 2 === 0 ? "#ffffff" : "#f9fafb" }}>
                       <DataGridCell>
-                        {moment(ev.time).format("YYYY-MM-DD, HH:mm:ss")}
-                        <p>UTC: {moment(ev.time).utc().format("YYYY-MM-DD, HH:mm:ss")}</p>
+                        <div style={{ fontSize: 14 }}>{moment(ev.time).format("YYYY-MM-DD, HH:mm:ss")}</div>
+                        <div style={{ marginTop: 2 }}>
+                          <div style={{ fontSize: 12 }}>UTC:</div>
+                          <div style={{ fontSize: 14 }}>{moment(ev.time).utc().format("YYYY-MM-DD, HH:mm:ss")}</div>
+                        </div>
                       </DataGridCell>
                       <DataGridCell><FullCell value={ev.sender} /></DataGridCell>
                       <DataGridCell><FullCell value={ev.recipient} /></DataGridCell>
-                      <DataGridCell><FullCell value={ev.response} /></DataGridCell>
-                      <DataGridCell>{ev.code || "-"}</DataGridCell>
-                      <DataGridCell><TypeBadge type={ev.type} /></DataGridCell>
-                      <DataGridCell><FullCell value={ev.requestId} mono /></DataGridCell>
-                      <DataGridCell><FullCell value={ev.messageId} mono /></DataGridCell>
+                      <DataGridCell>
+                        <span style={{ wordBreak: "break-word" }}>
+                          <TypeBadge type={ev.type} />{" "}
+                          {ev.response || "-"}
+                        </span>
+                      </DataGridCell>
+                      <DataGridCell><span style={{ fontFamily: "monospace", fontSize: 13, wordBreak: "break-all" }}>{ev.requestId || "-"}</span></DataGridCell>
+                      <DataGridCell><span style={{ fontFamily: "monospace", fontSize: 13, wordBreak: "break-all" }}>{ev.messageId || "-"}</span></DataGridCell>
                     </DataGridRow>
                   ))
                 ) : (
                   <DataGridRow>
-                    <DataGridCell colSpan={8}>
+                    <DataGridCell colSpan={6}>
                       <Stack alignment="center" distribution="center" style={{ minHeight: 80 }}>
                         No error events in the selected time range.
                       </Stack>
