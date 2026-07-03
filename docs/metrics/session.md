@@ -532,17 +532,29 @@ Result:
 
 **Metric:** `dashboard_active_browser_hours_total`
 
+**What it measures:**
+This counter tracks **browser-hours**, not unique users or unique sessions. A browser-hour means "one browser was active during one specific hour." The same browser active in multiple hours generates multiple counts, and the same user on different devices/browsers generates separate counts.
+
+**Key behaviors:**
+- **Cookie deduplication within hour:** A browser making 100 requests during hour 14 = counted once in hour 14
+- **No deduplication across hours:** Same browser active at 13:00 and 14:00 = 2 counts (one per hour)
+- **No deduplication across devices:** Same user on laptop and phone = 2 counts (different browsers)
+- **Multi-pod safe:** Same browser counted once even if requests hit different pods (shared cookie domain)
+
+**Why this design:**
+Using hourly buckets keeps Prometheus cardinality low (24 hours × 2 platforms = 48 time series) instead of creating one time series per unique session (which could be millions).
+
+**Important:** Summing across hours does NOT give you "unique users per day." It gives you "total browser-hours." A user active for 3 hours contributes 3 to the daily sum.
+
 **Labels:**
 - `session_hour`: "00" to "23"
 - `platform`: "elektra" or "aurora"
-
-**Purpose:** Count unique sessions per hour (deduplicated)
 
 **Example:**
 ```promql
 dashboard_active_browser_hours_total{session_hour="14", platform="elektra"} = 523
 ```
-Meaning: 523 active authenticated browser instances in Elektra during hour 14 today
+Meaning: 523 different browser instances were active in Elektra during hour 14 today (each counted once regardless of request count)
 
 ---
 
@@ -550,18 +562,34 @@ Meaning: 523 active authenticated browser instances in Elektra during hour 14 to
 
 **Metric:** `dashboard_feature_usage_total`
 
+**What it measures:**
+This counter increments on **every request** to a tracked feature (controller/action pair). Unlike session tracking, there is no deduplication - each page view increments the counter.
+
+**Key behaviors:**
+- **No deduplication:** Same user refreshing a page 10 times = 10 counts
+- **Granular tracking:** Tracks individual controller/action pairs (e.g., "compute_index", "compute_show")
+- **Excludes utility endpoints:** Some features are excluded (avatars, metrics endpoints, API proxies)
+- **Hour label:** Includes `session_hour` to see when features are most used
+
+**Why this design:**
+Provides raw traffic data per feature. Useful for understanding which features get the most requests (not just which features are visited by unique users).
+
+**Use cases:**
+- Identify most-accessed features
+- Detect unusual traffic patterns (spikes, drops)
+- Compare feature popularity across hours
+- Calculate feature usage rates (total requests / unique sessions)
+
 **Labels:**
 - `feature`: "compute_index", "compute_show", etc.
 - `platform`: "elektra" or "aurora"
 - `session_hour`: "00" to "23"
 
-**Purpose:** Count how many times each feature was accessed
-
 **Example:**
 ```promql
 dashboard_feature_usage_total{feature="compute_index", platform="elektra", session_hour="14"} = 1250
 ```
-Meaning: The compute/instances/index page was accessed 1,250 times in hour 14
+Meaning: The compute/instances/index page received 1,250 requests during hour 14 (includes multiple requests from same users)
 
 ---
 
@@ -569,24 +597,43 @@ Meaning: The compute/instances/index page was accessed 1,250 times in hour 14
 
 **Metric:** `dashboard_feature_transitions_total`
 
+**What it measures:**
+This counter tracks **sequential navigation** between features. It increments when a user moves from one feature to another, capturing workflow patterns.
+
+**Key behaviors:**
+- **Requires previous feature:** Only increments when transitioning from feature A to feature B (first page visit has no transition)
+- **Cookie-based state:** Uses `metrics_session` cookie to remember last 5 features visited
+- **One transition per request:** Each request can generate at most one transition (from previous feature to current feature)
+- **Not deduplicated:** User navigating compute_index → compute_show → compute_index → compute_show generates 3 transitions
+
+**Why this design:**
+Reveals user navigation patterns and workflows. Shows which features naturally lead to others, helping identify common user journeys and potential UX improvements.
+
+**Use cases:**
+- Identify common navigation paths (e.g., "users typically go from compute_index to compute_show")
+- Detect unexpected navigation patterns (e.g., users frequently backtracking)
+- Understand feature relationships (which features are used together)
+- Find navigation bottlenecks or dead ends
+
+**Implementation detail:**
+Stores last 5 features in cookie to handle back/forward navigation and refresh scenarios without losing context.
+
 **Labels:**
-- `last_feature_before_switch`: Previous feature
+- `from_feature`: Previous feature
 - `to_feature`: Current feature
 - `platform`: "elektra" or "aurora"
 - `session_hour`: "00" to "23"
 
-**Purpose:** Track navigation flow (which features lead to which)
-
 **Example:**
 ```promql
 dashboard_feature_transitions_total{
-  last_feature_before_switch="compute_index",
+  from_feature="compute_index",
   to_feature="compute_show",
   platform="elektra",
   session_hour="14"
 } = 342
 ```
-Meaning: 342 times users navigated from compute index to compute show
+Meaning: During hour 14, there were 342 navigation events where users went from the compute index page to a compute detail page
 
 ---
 
@@ -594,20 +641,35 @@ Meaning: 342 times users navigated from compute index to compute show
 
 **Metric:** `dashboard_cross_navigation_total`
 
+**What it measures:**
+This counter tracks **explicit cross-dashboard navigation events** when users click instrumented links to move between Elektra and Aurora. This is NOT automatically tracked - it requires JavaScript API calls.
+
+**Key behaviors:**
+- **Explicit tracking only:** Incremented via `POST /metrics/track_outbound` API endpoint (called from JavaScript)
+- **NOT automatic:** Middleware only defines the metric, it doesn't increment it automatically
+- **Requires instrumentation:** Each cross-dashboard link must have `onclick="trackOutboundNavigation('entry_point_name')"`
+- **Two-dimensional context:** Captures both WHERE user clicked (`entry_point`) and WHAT page they were on (`last_feature_before_switch`)
+
+**Why this design:**
+Provides rich context for understanding Aurora adoption. By tracking both the UI element clicked and the feature context, we can identify which entry points are most effective and which features drive users to try Aurora.
+
+**Use cases:**
+- Measure Aurora adoption rate (what % of Elektra users try Aurora)
+- Identify most effective entry points (which buttons/banners drive adoption)
+- Understand feature-specific adoption (which Elektra features lead users to try Aurora)
+- Track bidirectional flow (Elektra → Aurora vs Aurora → Elektra)
+
+**Important considerations:**
+- **Not all cross-navigation is tracked:** Only instrumented links increment this metric
+- **User could navigate without tracking:** Direct URL entry, bookmarks, or non-instrumented links won't be captured
+- **Entry point taxonomy:** Requires consistent naming convention for entry points across UI
+
 **Labels:**
 - `from_dashboard`: "elektra" or "aurora"
 - `to_dashboard`: "elektra" or "aurora"
 - `entry_point`: WHERE the user clicked (e.g., "object_storage_ceph_banner", "identity_users_table")
 - `last_feature_before_switch`: Feature user was on before switching (e.g., "compute_index")
 - `session_hour`: "00" to "23"
-
-**Purpose:** Track when users switch from Elektra to Aurora (via JavaScript API call)
-
-**Important:** 
-- Tracked via `POST /metrics/track_outbound` API endpoint (called from JavaScript)
-- **NOT** tracked automatically in middleware
-- `entry_point` describes WHERE the user clicked (specific button/link/banner)
-- `last_feature_before_switch` describes WHAT page they were on
 
 **Example:**
 ```promql
@@ -619,7 +681,7 @@ dashboard_cross_navigation_total{
   session_hour="14"
 } = 87
 ```
-Meaning: 87 times users clicked the "object_storage_ceph_banner" while on compute_index to navigate to Aurora in hour 14
+Meaning: During hour 14, 87 users clicked the object storage Ceph announcement banner while viewing the compute index page, which navigated them to Aurora
 
 **How it's tracked:**
 ```javascript
@@ -627,6 +689,14 @@ Meaning: 87 times users clicked the "object_storage_ceph_banner" while on comput
 trackOutboundNavigation('object_storage_ceph_banner');
 // → POST /metrics/track_outbound
 // → Controller increments dashboard_cross_navigation_total
+```
+
+**Adding tracking to new links:**
+```erb
+<%= link_to "Try Aurora", 
+    aurora_url,
+    onclick: "trackOutboundNavigation('new_feature_banner'); return true;",
+    class: "btn btn-primary" %>
 ```
 
 ---
@@ -637,18 +707,50 @@ trackOutboundNavigation('object_storage_ceph_banner');
 
 **Type:** Histogram
 
+**What it measures:**
+This histogram observes **elapsed session time** from session start to current request, recorded periodically (every 5 minutes) to reduce metric volume.
+
+**Key behaviors:**
+- **Calculated, not measured:** Duration = current_time - session_start_time (stored in cookie)
+- **Periodic observations:** Only records every 5 minutes (not on every request) to limit Prometheus cardinality
+- **Multiple observations per session:** A 2-hour session generates ~24 observations (one every 5 minutes)
+- **Histogram buckets:** Observations distributed across 7 buckets (1m, 5m, 10m, 30m, 1h, 2h, 4h) for quantile analysis
+
+**Why this design:**
+Provides distribution data (p50, p90, p99) without overwhelming Prometheus. The 5-minute throttle balances accuracy with cardinality.
+
+**Use cases:**
+- Calculate median/p90/p99 session duration
+- Identify short vs long sessions
+- Detect session length patterns by time of day
+- Compare session duration across platforms (Elektra vs Aurora)
+
+**Important considerations:**
+- **Not exact logout time:** Records during session, not at end (user may close browser without final observation)
+- **Last observation lag:** Final duration may be up to 5 minutes old (e.g., user active for 32 minutes might have last observation at 30 minutes)
+- **Multiple sessions sum:** Histogram counts observations, not sessions. One user with 3 sessions generates 3 sets of observations.
+
+**Histogram mechanics:**
+Each observation increments the bucket counter for all buckets >= the observed value. This allows Prometheus to calculate quantiles using `histogram_quantile()`.
+
 **Labels:**
 - `platform`: "elektra" or "aurora"
 
 **Buckets:** 60s, 300s (5m), 600s (10m), 1800s (30m), 3600s (1h), 7200s (2h), 14400s (4h)
 
-**Purpose:** Track how long users spend in their sessions
-
 **Example:**
 ```promql
 histogram_quantile(0.5, dashboard_session_duration_seconds{platform="elektra"})
 # => 1200 (median session is 20 minutes)
+
+histogram_quantile(0.9, dashboard_session_duration_seconds{platform="elektra"})
+# => 3600 (90th percentile session is 1 hour)
 ```
+
+**Reading histogram data:**
+- `p50` (median): Half of sessions are shorter, half are longer
+- `p90`: 90% of sessions are shorter than this duration
+- `p99`: Only 1% of sessions exceed this duration
 
 ---
 
