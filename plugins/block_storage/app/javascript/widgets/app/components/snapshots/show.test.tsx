@@ -6,6 +6,10 @@ import React from "react"
 import { BrowserRouter } from "react-router-dom"
 import ShowModal from "./show"
 
+// Generate dates dynamically (2 years ago from now)
+const twoYearsAgo = new Date()
+twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2)
+
 // Mock snapshot data
 const mockSnapshot = {
   id: "snapshot-123",
@@ -20,8 +24,8 @@ const mockSnapshot = {
     key1: "value1",
     key2: "value2",
   },
-  created_at: "2024-01-01T10:00:00Z",
-  updated_at: "2024-01-02T10:00:00Z",
+  created_at: twoYearsAgo.toISOString(),
+  updated_at: twoYearsAgo.toISOString(),
 }
 
 describe("ShowModal", () => {

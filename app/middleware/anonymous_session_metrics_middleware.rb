@@ -7,19 +7,36 @@
 # - Multi-pod safe: Cookie-based deduplication works across all Elektra pods
 # - Cross-platform: Cookies shared between Elektra and Aurora via domain
 # - Stateless: No in-memory state, no cleanup needed
-# - Minimal cookies: Uses only 2 cookies (metrics_hours, metrics_session)
+# - Minimal cookies: Uses only 2 cookies (metrics_hours_elektra, metrics_session)
 #
 # Cookie structure:
-# 1. metrics_hours: Comma-separated list of visited hours (e.g., "14,15,16")
-# 2. metrics_session: Base64-encoded JSON with {start, last_dur, features}
+# 1. metrics_hours_elektra: Platform-specific comma-separated list of visited hours (e.g., "14,15,16")
+# 2. metrics_session: Base64-encoded JSON with {start, last_dur, features} (SHARED with Aurora)
+#
+# This allows accurate adoption metrics since users may access both dashboards,
+# and we want to track each platform's usage independently.
 class AnonymousSessionMetricsMiddleware
   EXCLUDE_PATHS = %w[/metrics /assets /system /health].freeze
 
   # Features to exclude from tracking (e.g., utility endpoints, avatars)
-  EXCLUDE_FEATURES = %w[avatars_show].freeze
+  EXCLUDE_FEATURES = %w[
+    avatars_show
+    metrics_tracking_track_outbound
+    os_api_token
+    os_api_reverse_proxy
+  ].freeze
 
   # Maximum features to track per session (sliding window)
   MAX_FEATURES_PER_SESSION = 5
+
+  # Platform-specific cookie for Elektra (Aurora uses metrics_hours_aurora)
+  METRICS_HOURS_COOKIE = "metrics_hours_elektra".freeze
+
+  # Shared session cookie for cross-dashboard tracking
+  METRICS_SESSION_COOKIE = "metrics_session".freeze
+
+  # Cookie expiry duration (24 hours)
+  COOKIE_MAX_AGE_SECONDS = 24 * 60 * 60
 
   def initialize(app, options = {})
     @app = app
@@ -53,13 +70,15 @@ class AnonymousSessionMetricsMiddleware
       labels: %i[from_feature to_feature platform session_hour]
     )
 
-    # Cross-dashboard navigation
-    # Cardinality: 2 × 2 × 50 × 24 = 4,800 time series
-    # Note: from_feature is the last known feature from cookie, not parsed from referrer URL
+    # Cross-dashboard navigation (outbound tracking via API endpoint)
+    # Cardinality: 2 × 2 × ~20 entry_points × ~50 features × 24 hours = ~96,000 time series
+    # Note: Tracked via POST /metrics/track_outbound API endpoint (called from JavaScript before navigation)
+    # entry_point describes WHERE the user clicked (e.g., "object_storage_ceph_banner")
+    # last_feature_before_switch is the actual feature/path they were on
     @cross_dashboard_nav = @registry.counter(
       :dashboard_cross_navigation_total,
       docstring: "Cross-dashboard navigation events",
-      labels: %i[from_dashboard to_dashboard last_feature_before_switch session_hour]
+      labels: %i[from_dashboard to_dashboard entry_point last_feature_before_switch session_hour]
     )
 
     # Session duration histogram
@@ -114,9 +133,6 @@ class AnonymousSessionMetricsMiddleware
       if track_session_duration_internal(session_data)
         session_data_modified = true
       end
-
-      # Track cross-dashboard navigation (BEFORE updating features)
-      track_cross_dashboard_navigation(request, session_data, current_feature, current_hour)
 
       # Track feature usage and transitions
       if current_feature
@@ -259,58 +275,6 @@ class AnonymousSessionMetricsMiddleware
   end
 
   # ==========================================
-  # CROSS-DASHBOARD NAVIGATION
-  # ==========================================
-
-  def track_cross_dashboard_navigation(request, session_data, current_feature, current_hour)
-    referrer = request.referer
-    return unless referrer
-
-    referrer_dashboard = extract_dashboard_from_url(referrer)
-    return unless referrer_dashboard
-
-    current_dashboard = extract_dashboard_from_url(request.url)
-    return if referrer_dashboard == current_dashboard
-    return unless current_dashboard
-
-    # Get last known feature from cookie (not parsed from referrer URL)
-    # This represents the last feature the user visited before switching dashboards,
-    # which may not be the exact feature on the referrer page
-    last_feature = (session_data[:features] || []).last || "unknown"
-
-    @cross_dashboard_nav.increment(
-      labels: {
-        from_dashboard: referrer_dashboard,
-        to_dashboard: current_dashboard,
-        last_feature_before_switch: last_feature,
-        session_hour: current_hour
-      }
-    )
-  end
-
-  # ==========================================
-  # URL HELPERS
-  # ==========================================
-
-  def extract_dashboard_from_url(url)
-    return nil unless url
-
-    uri = URI.parse(url)
-    host = uri.host
-    return nil unless host
-
-    if host.start_with?("dashboard-aurora.")
-      "aurora"
-    elsif host.start_with?("dashboard.")
-      "elektra"
-    else
-      nil
-    end
-  rescue URI::InvalidURIError
-    nil
-  end
-
-  # ==========================================
   # COOKIE HELPERS
   # ==========================================
 
@@ -324,9 +288,9 @@ class AnonymousSessionMetricsMiddleware
     end
   end
 
-  # Read visited hours from cookie
+  # Read visited hours from cookie (platform-specific)
   def read_visited_hours(request)
-    cookie = request.cookies["metrics_hours"]
+    cookie = request.cookies[METRICS_HOURS_COOKIE]
     return [] unless cookie
 
     cookie.split(',').map(&:strip)
@@ -344,16 +308,17 @@ class AnonymousSessionMetricsMiddleware
     end
 
     cookie_value = valid_hours.join(',')
-    expires = (Time.now + 24.hours).httpdate
+    expires = (Time.now + COOKIE_MAX_AGE_SECONDS.seconds).httpdate
 
     Rails.logger.debug("[AnonymousMetrics] Storing visited hours: #{cookie_value}")
 
-    cookie_header = "metrics_hours=#{cookie_value}; " \
+    cookie_header = "#{METRICS_HOURS_COOKIE}=#{cookie_value}; " \
                     "Path=/; " \
                     "Domain=#{global_domain}; " \
                     "HttpOnly; " \
                     "#{secure_attribute}" \
                     "SameSite=Lax; " \
+                    "Max-Age=#{COOKIE_MAX_AGE_SECONDS}; " \
                     "Expires=#{expires}"
 
     append_cookie(response, cookie_header)
@@ -361,7 +326,7 @@ class AnonymousSessionMetricsMiddleware
 
   # Read session data from cookie (JSON structure)
   def read_session_data(request)
-    cookie = request.cookies["metrics_session"]
+    cookie = request.cookies[METRICS_SESSION_COOKIE]
     return {} unless cookie
 
     data = JSON.parse(Base64.decode64(cookie), symbolize_names: true)
@@ -378,16 +343,17 @@ class AnonymousSessionMetricsMiddleware
   # Store session data in cookie (JSON structure)
   def store_session_data(response, data, global_domain)
     cookie_value = Base64.strict_encode64(data.to_json)
-    expires = (Time.now + 24.hours).httpdate
+    expires = (Time.now + COOKIE_MAX_AGE_SECONDS.seconds).httpdate
 
     Rails.logger.debug("[AnonymousMetrics] Storing session data: #{data.inspect}")
 
-    cookie_header = "metrics_session=#{cookie_value}; " \
+    cookie_header = "#{METRICS_SESSION_COOKIE}=#{cookie_value}; " \
                     "Path=/; " \
                     "Domain=#{global_domain}; " \
                     "HttpOnly; " \
                     "#{secure_attribute}" \
                     "SameSite=Lax; " \
+                    "Max-Age=#{COOKIE_MAX_AGE_SECONDS}; " \
                     "Expires=#{expires}"
 
     append_cookie(response, cookie_header)

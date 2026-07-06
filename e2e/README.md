@@ -101,6 +101,8 @@ rm -rf e2e/playwright/ui/masterdata-admin-visual.spec.ts-snapshots/
 pnpm e2e:ui -- --host http://localhost:PORT --update-snapshots masterdata-admin-visual
 ```
 
+Note: if it breaks the first time let it run a second time and mostly all will be good
+
 ## Test Types
 
 ### Smoke Tests

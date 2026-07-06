@@ -29,4 +29,7 @@ import "./core/pagination_spinner"
 import "./core/cable"
 import "./core/current_user_token"
 
+// Analytics
+import "./elektra_analytics"
+
 import "./core/init"

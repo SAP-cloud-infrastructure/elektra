@@ -2,8 +2,7 @@
 
 [← Back to Metrics Overview](./README.md)
 
-**Date:** June 11, 2026  
-**Implementation:** Phase 2 - Hybrid Cookie-Based Solution  
+**Date:** June 25, 2026  
 **File:** `app/middleware/anonymous_session_metrics_middleware.rb`  
 **Tests:** `spec/middleware/anonymous_session_metrics_middleware_spec.rb`
 
@@ -70,22 +69,22 @@ The system uses **hourly time windows** combined with **cookie-based deduplicati
 ```
 User Activity Timeline:
 ├─ 13:00 → First request in hour 13
-│  ├─ Cookie metrics_hours doesn't contain "13"
+│  ├─ Cookie metrics_hours_elektra doesn't contain "13"
 │  ├─ Increment counter: dashboard_active_browser_hours_total{session_hour="13", platform="elektra"}
-│  └─ Update cookie: metrics_hours=13 (expires +24h)
+│  └─ Update cookie: metrics_hours_elektra=13 (expires +24h)
 │
 ├─ 13:15 → Second request in hour 13
-│  ├─ Cookie metrics_hours=13 (contains "13")
+│  ├─ Cookie metrics_hours_elektra=13 (contains "13")
 │  └─ Don't increment counter (already counted this hour)
 │
 ├─ 13:45 → Third request in hour 13
-│  ├─ Cookie metrics_hours=13 (contains "13")
+│  ├─ Cookie metrics_hours_elektra=13 (contains "13")
 │  └─ Don't increment counter (already counted this hour)
 │
 └─ 14:00 → First request in hour 14
-   ├─ Cookie metrics_hours=13 (doesn't contain "14")
+   ├─ Cookie metrics_hours_elektra=13 (doesn't contain "14")
    ├─ Increment counter: dashboard_active_browser_hours_total{session_hour="14", platform="elektra"}
-   └─ Update cookie: metrics_hours=13,14 (expires +24h)
+   └─ Update cookie: metrics_hours_elektra=13,14 (expires +24h)
 
 Result:
 - Hour 13: Counted once ✅
@@ -149,13 +148,13 @@ Server Time: 14:00:10
 
 The system uses **2 cookies** for tracking (consolidated from previous 27-cookie approach):
 
-### 1. Visited Hours Cookie: `metrics_hours`
+### 1. Visited Hours Cookie: `metrics_hours_elektra` (Platform-Specific)
 
-**Purpose:** Track which hours the user has been active in (replaces 24 separate hourly cookies)
+**Purpose:** Track which hours the user has been active in Elektra (Aurora uses `metrics_hours_aurora`)
 
 **Format:**
 ```
-Cookie: metrics_hours=14,15,16
+Cookie: metrics_hours_elektra=14,15,16
 Path: /
 Domain: .parent-domain.example
 HttpOnly; Secure; SameSite=Lax
@@ -164,6 +163,12 @@ Expires: Thu, 12 Jun 2026 14:00:00 GMT
 
 **Content:** Comma-separated list of hour strings ("00" to "23")
 
+**Platform-Specific Design (PR #2107):**
+- Elektra uses: `metrics_hours_elektra`
+- Aurora uses: `metrics_hours_aurora`
+- **No cross-platform deduplication** - each platform tracks independently
+- Prevents session conflicts when users navigate between dashboards
+
 **Lifecycle:**
 1. **Set:** On first request with current hour
 2. **Updated:** Each time user visits in a new hour (hour appended to list)
@@ -171,16 +176,16 @@ Expires: Thu, 12 Jun 2026 14:00:00 GMT
 
 **Example progression:**
 ```
-13:00 → Set: metrics_hours=13
-14:05 → Update: metrics_hours=13,14
-15:30 → Update: metrics_hours=13,14,15
+13:00 → Set: metrics_hours_elektra=13
+14:05 → Update: metrics_hours_elektra=13,14
+15:30 → Update: metrics_hours_elektra=13,14,15
 ```
 
-**Why comma-separated instead of 24 cookies?**
-- Reduces cookie count from 24 to 1
-- Still lightweight (~15 bytes for typical session)
-- Same deduplication behavior
-- Cleaner browser DevTools view
+**Why platform-specific cookies?**
+- Each platform tracks its own active browser instances
+- User visiting both Elektra AND Aurora in the same hour = 2 counts (intentional)
+- No cookie conflicts between platforms
+- Clearer adoption metrics (how many use ONLY Elektra vs BOTH)
 
 **Size:** ~15 bytes (for typical 3-hour session)
 
@@ -285,17 +290,17 @@ store_session_data(response, session_data, global_domain)
 │
 ├─ Actions taken:
 │  ├─ Increment: dashboard_active_browser_hours_total{session_hour="13", platform="elektra"}
-│  ├─ Set cookie: metrics_hours=13 (expires +24h)
+│  ├─ Set cookie: metrics_hours_elektra=13 (expires +24h)
 │  └─ Set cookie: metrics_session={"start":1623675600,"last_dur":1623675600,"features":[]} (expires +24h)
 │
 └─ Result: User counted in hour 13 ✅
 
 13:15 - User visits /compute/instances/index
-├─ Cookies present: metrics_hours=13, metrics_session={...}
+├─ Cookies present: metrics_hours_elektra=13, metrics_session={...}
 ├─ current_hour = "13"
 │
 ├─ Actions taken:
-│  ├─ Check metrics_hours → "13" present → don't increment unique sessions
+│  ├─ Check metrics_hours_elektra → "13" present → don't increment unique sessions
 │  ├─ Calculate duration: 15 minutes (since 13:00)
 │  ├─ Last record: 13:00 → only 15 min ago → don't record duration yet (need 5 min)
 │  ├─ Increment: dashboard_feature_usage_total{feature="compute_index", platform="elektra", session_hour="13"}
@@ -304,11 +309,11 @@ store_session_data(response, session_data, global_domain)
 └─ Result: Feature usage tracked, duration not recorded yet
 
 13:20 - User visits /compute/instances/123 (show)
-├─ Cookies present: metrics_hours=13, metrics_session={"start":1623675600,"last_dur":1623675600,"features":["compute_index"]}
+├─ Cookies present: metrics_hours_elektra=13, metrics_session={"start":1623675600,"last_dur":1623675600,"features":["compute_index"]}
 ├─ current_hour = "13"
 │
 ├─ Actions taken:
-│  ├─ Check metrics_hours → "13" present → don't increment unique sessions
+│  ├─ Check metrics_hours_elektra → "13" present → don't increment unique sessions
 │  ├─ Calculate duration: 20 minutes (since 13:00)
 │  ├─ Last record: 13:00 → 20 min ago → record duration! ✅
 │  ├─ Observe: dashboard_session_duration_seconds{platform="elektra"} = 1200 (20 minutes)
@@ -321,41 +326,46 @@ store_session_data(response, session_data, global_domain)
 └─ Result: Duration recorded, feature transition tracked ✅
 
 14:00 - User still active (hour changes)
-├─ Cookies present: metrics_hours=13, metrics_session={...}
+├─ Cookies present: metrics_hours_elektra=13, metrics_session={...}
 ├─ current_hour = "14"
 │
 ├─ Actions taken:
-│  ├─ Check metrics_hours → "14" NOT present → increment unique sessions!
+│  ├─ Check metrics_hours_elektra → "14" NOT present → increment unique sessions!
 │  ├─ Increment: dashboard_active_browser_hours_total{session_hour="14", platform="elektra"}
-│  ├─ Update cookie: metrics_hours=13,14 (expires +24h)
+│  ├─ Update cookie: metrics_hours_elektra=13,14 (expires +24h)
 │  └─ Continue tracking features...
 │
 └─ Result: User counted in hour 14 ✅ (new hour)
 
-14:05 - User clicks link to Aurora (dashboard-aurora.example.com)
-├─ Referrer: dashboard.example.com/ccadmin/cloud_admin/compute/instances
-├─ Cookies sent: metrics_hours=13,14, metrics_session={...} (domain .example.com matches!)
-├─ current_hour = "14"
-│
-├─ Actions taken:
-│  ├─ Check metrics_hours → "14" present (from Elektra!) → don't increment unique sessions
-│  ├─ Detect cross-dashboard navigation:
-│  │  ├─ Referrer: dashboard.example.com → "elektra"
-│  │  └─ Current: dashboard-aurora.example.com → "aurora"
-│  ├─ Increment: dashboard_cross_navigation_total{from_dashboard="elektra", to_dashboard="aurora", last_feature_before_switch="compute_show", session_hour="14"}
-│  └─ Continue tracking on Aurora...
-│
-└─ Result: Cross-dashboard navigation tracked, not double-counted ✅
+14:05 - User clicks link to Aurora with tracking
+├─ JavaScript calls: trackOutboundNavigation('object_storage_banner')
+├─ POST /metrics/track_outbound
+├─ Increment: dashboard_cross_navigation_total{
+│    from_dashboard="elektra",
+│    to_dashboard="aurora",
+│    entry_point="object_storage_banner",
+│    last_feature_before_switch="compute_show",
+│    session_hour="14"
+│  }
+├─ User navigates to: dashboard-aurora.example.com
+├─ Browser sends: metrics_hours_elektra=13,14 (Aurora ignores this)
+└─ Aurora creates: metrics_hours_aurora=14 (separate cookie)
+
+Result:
+- Elektra counted user in hour 14: 1 ✅
+- Outbound navigation tracked: 1 ✅
+- Aurora will count separately with its own cookie ✅
 
 15:30 - User logs out
 ├─ Session ended
-├─ Cookies present: metrics_hours=13,14,15, metrics_session={...}
+├─ Cookies present: metrics_hours_elektra=13,14, metrics_hours_aurora=14,15, metrics_session={...}
 │
 ├─ Final calculations:
 │  ├─ Total duration: 2.5 hours (150 minutes)
-│  └─ Hours active: 13, 14, 15 (3 hours)
+│  └─ Elektra hours: 13, 14 (2 hours)
+│  └─ Aurora hours: 14, 15 (2 hours)
 │
-└─ Result: 3 hourly counts recorded (user active in 3 different hours)
+└─ Result: Each platform tracked independently
 ```
 
 ### Daily Aggregation
@@ -398,20 +408,20 @@ Result: User counted 4× (once per pod) ❌
 ```
 User makes 100 requests in hour 14:
 ├─ Request 1 → Pod 1
-│  ├─ No "14" in metrics_hours cookie
+│  ├─ No "14" in metrics_hours_elektra cookie
 │  ├─ Increment counter
-│  └─ Set cookie: metrics_hours=14; Domain=.example.com
+│  └─ Set cookie: metrics_hours_elektra=14; Domain=.example.com
 │
 ├─ Request 2 → Pod 3
-│  ├─ Cookie metrics_hours=14 present (shared domain!)
+│  ├─ Cookie metrics_hours_elektra=14 present (shared domain!)
 │  └─ Don't increment counter
 │
 ├─ Request 3 → Pod 2
-│  ├─ Cookie metrics_hours=14 present (shared domain!)
+│  ├─ Cookie metrics_hours_elektra=14 present (shared domain!)
 │  └─ Don't increment counter
 │
 ├─ Request 4 → Pod 4
-│  ├─ Cookie metrics_hours=14 present (shared domain!)
+│  ├─ Cookie metrics_hours_elektra=14 present (shared domain!)
 │  └─ Don't increment counter
 │
 └─ Requests 5-100 → Any pod → Cookie present → Don't count
@@ -431,55 +441,88 @@ Elektra and Aurora run on different subdomains but share the parent domain:
 - Aurora: `dashboard-aurora.example.com`
 - **Shared domain:** `.example.com`
 
-### Cookie Sharing
+### Outbound Navigation Tracking (Via JavaScript API)
 
-Cookies with domain `.example.com` are sent to **both** Elektra and Aurora:
+**Important:** Cross-dashboard navigation is tracked via the **MetricsTrackingController** (`POST /metrics/track_outbound`), NOT in the middleware's `call` method.
+
+The middleware only **defines** the `dashboard_cross_navigation_total` counter. Actual tracking happens when JavaScript explicitly calls the API endpoint before navigation.
+
+### How It Works
+
+1. **JavaScript detects user will navigate to Aurora:**
+   ```javascript
+   // elektra_analytics.js
+   function trackOutboundNavigation(entryPoint) {
+     fetch('/metrics/track_outbound', {
+       method: 'POST',
+       headers: { 'Content-Type': 'application/json' },
+       body: JSON.stringify({
+         to_dashboard: 'aurora',
+         entry_point: entryPoint,
+         // Additional context sent by JavaScript
+       })
+     });
+   }
+   ```
+
+2. **Controller receives API call:**
+   ```ruby
+   # MetricsTrackingController#track_outbound
+   def track_outbound
+     # Extract parameters from request body
+     # Increment: dashboard_cross_navigation_total
+   end
+   ```
+
+3. **Metric is recorded with 5 labels:**
+   - `from_dashboard`: "elektra" (detected from request host)
+   - `to_dashboard`: "aurora" (from request body)
+   - `entry_point`: "object_storage_ceph_banner" (WHERE user clicked)
+   - `last_feature_before_switch`: "compute_index" (WHAT page they were on)
+   - `session_hour`: "14"
+
+### Adding Outbound Tracking to Links
+
+Add `onclick` handler to links that navigate to Aurora:
+
+```erb
+<%= link_to "View in Aurora", 
+    aurora_url,
+    onclick: "trackOutboundNavigation('object_storage_ceph_banner'); return true;",
+    class: "btn btn-primary" %>
+```
+
+**What happens:**
+1. User clicks link in Elektra (e.g., from `compute_index` page)
+2. JavaScript calls `/metrics/track_outbound` API
+3. API records: `elektra → aurora` with `entry_point=object_storage_ceph_banner`
+4. User navigates to Aurora
+
+### Platform-Specific Cookies (No Cross-Platform Deduplication)
+
+Each platform uses its own hourly cookie:
 
 ```
 User in Elektra (hour 14):
 ├─ URL: dashboard.example.com
-├─ Cookie: metrics_hours=14; Domain=.example.com
+├─ Cookie: metrics_hours_elektra=14; Domain=.example.com
 └─ Counter: dashboard_active_browser_hours_total{session_hour="14", platform="elektra"} = 1
 
-User clicks link to Aurora:
-├─ URL: dashboard-aurora.example.com
-├─ Browser sends: metrics_hours=14 (domain matches!)
-├─ Aurora middleware checks: "14" in metrics_hours
-└─ Aurora does NOT increment counter (already counted)
+User navigates to Aurora:
+├─ JavaScript calls /metrics/track_outbound first
+├─ Increment: dashboard_cross_navigation_total{from_dashboard="elektra", to_dashboard="aurora", ...}
+├─ Then navigates to: dashboard-aurora.example.com
+├─ Browser sends: metrics_hours_elektra=14 (domain matches, but Aurora ignores it)
+└─ Aurora creates NEW cookie: metrics_hours_aurora=14
 
 Result:
-- Elektra counted user: 1
-- Aurora did NOT count user: 0
-- Total: User counted once across both platforms ✅
+- Elektra counted user in hour 14: 1 ✅
+- Aurora counted user in hour 14: 1 ✅
+- Cross-navigation tracked: 1 ✅
+- Total counts: 2 (intentional - each platform tracks independently)
 ```
 
-### Cross-Dashboard Navigation Tracking
-
-When user navigates between dashboards, we track it:
-
-```ruby
-# User in Elektra, clicks link to Aurora
-referrer = "https://dashboard.example.com/ccadmin/cloud_admin/compute/instances"
-current_url = "https://dashboard-aurora.example.com/ccadmin/cloud_admin"
-
-referrer_dashboard = "elektra"
-current_dashboard = "aurora"
-
-# Read last feature from session cookie
-session_data = read_session_data(request)
-referrer_feature = session_data[:features].last  # "compute_show"
-
-@cross_dashboard_nav.increment(
-  labels: {
-    from_dashboard: "elektra",
-    to_dashboard: "aurora",
-    last_feature_before_switch: referrer_feature,
-    session_hour: "14"
-  }
-)
-```
-
-**This answers:** "How many users are switching from Elektra to Aurora?"
+**Key insight:** Each platform tracks its own active browser instances using platform-specific cookies. A user visiting BOTH dashboards in the same hour = 2 counts (one per platform), which gives accurate adoption metrics.
 
 ---
 
@@ -489,17 +532,29 @@ referrer_feature = session_data[:features].last  # "compute_show"
 
 **Metric:** `dashboard_active_browser_hours_total`
 
+**What it measures:**
+This counter tracks **browser-hours**, not unique users or unique sessions. A browser-hour means "one browser was active during one specific hour." The same browser active in multiple hours generates multiple counts, and the same user on different devices/browsers generates separate counts.
+
+**Key behaviors:**
+- **Cookie deduplication within hour:** A browser making 100 requests during hour 14 = counted once in hour 14
+- **No deduplication across hours:** Same browser active at 13:00 and 14:00 = 2 counts (one per hour)
+- **No deduplication across devices:** Same user on laptop and phone = 2 counts (different browsers)
+- **Multi-pod safe:** Same browser counted once even if requests hit different pods (shared cookie domain)
+
+**Why this design:**
+Using hourly buckets keeps Prometheus cardinality low (24 hours × 2 platforms = 48 time series) instead of creating one time series per unique session (which could be millions).
+
+**Important:** Summing across hours does NOT give you "unique users per day." It gives you "total browser-hours." A user active for 3 hours contributes 3 to the daily sum.
+
 **Labels:**
 - `session_hour`: "00" to "23"
 - `platform`: "elektra" or "aurora"
-
-**Purpose:** Count unique sessions per hour (deduplicated)
 
 **Example:**
 ```promql
 dashboard_active_browser_hours_total{session_hour="14", platform="elektra"} = 523
 ```
-Meaning: 523 active authenticated browser instances in Elektra during hour 14 today
+Meaning: 523 different browser instances were active in Elektra during hour 14 today (each counted once regardless of request count)
 
 ---
 
@@ -507,18 +562,34 @@ Meaning: 523 active authenticated browser instances in Elektra during hour 14 to
 
 **Metric:** `dashboard_feature_usage_total`
 
+**What it measures:**
+This counter increments on **every request** to a tracked feature (controller/action pair). Unlike session tracking, there is no deduplication - each page view increments the counter.
+
+**Key behaviors:**
+- **No deduplication:** Same user refreshing a page 10 times = 10 counts
+- **Granular tracking:** Tracks individual controller/action pairs (e.g., "compute_index", "compute_show")
+- **Excludes utility endpoints:** Some features are excluded (avatars, metrics endpoints, API proxies)
+- **Hour label:** Includes `session_hour` to see when features are most used
+
+**Why this design:**
+Provides raw traffic data per feature. Useful for understanding which features get the most requests (not just which features are visited by unique users).
+
+**Use cases:**
+- Identify most-accessed features
+- Detect unusual traffic patterns (spikes, drops)
+- Compare feature popularity across hours
+- Calculate feature usage rates (total requests / unique sessions)
+
 **Labels:**
 - `feature`: "compute_index", "compute_show", etc.
 - `platform`: "elektra" or "aurora"
 - `session_hour`: "00" to "23"
 
-**Purpose:** Count how many times each feature was accessed
-
 **Example:**
 ```promql
 dashboard_feature_usage_total{feature="compute_index", platform="elektra", session_hour="14"} = 1250
 ```
-Meaning: The compute/instances/index page was accessed 1,250 times in hour 14
+Meaning: The compute/instances/index page received 1,250 requests during hour 14 (includes multiple requests from same users)
 
 ---
 
@@ -526,24 +597,43 @@ Meaning: The compute/instances/index page was accessed 1,250 times in hour 14
 
 **Metric:** `dashboard_feature_transitions_total`
 
+**What it measures:**
+This counter tracks **sequential navigation** between features. It increments when a user moves from one feature to another, capturing workflow patterns.
+
+**Key behaviors:**
+- **Requires previous feature:** Only increments when transitioning from feature A to feature B (first page visit has no transition)
+- **Cookie-based state:** Uses `metrics_session` cookie to remember last 5 features visited
+- **One transition per request:** Each request can generate at most one transition (from previous feature to current feature)
+- **Not deduplicated:** User navigating compute_index → compute_show → compute_index → compute_show generates 3 transitions
+
+**Why this design:**
+Reveals user navigation patterns and workflows. Shows which features naturally lead to others, helping identify common user journeys and potential UX improvements.
+
+**Use cases:**
+- Identify common navigation paths (e.g., "users typically go from compute_index to compute_show")
+- Detect unexpected navigation patterns (e.g., users frequently backtracking)
+- Understand feature relationships (which features are used together)
+- Find navigation bottlenecks or dead ends
+
+**Implementation detail:**
+Stores last 5 features in cookie to handle back/forward navigation and refresh scenarios without losing context.
+
 **Labels:**
-- `last_feature_before_switch`: Previous feature
+- `from_feature`: Previous feature
 - `to_feature`: Current feature
 - `platform`: "elektra" or "aurora"
 - `session_hour`: "00" to "23"
 
-**Purpose:** Track navigation flow (which features lead to which)
-
 **Example:**
 ```promql
 dashboard_feature_transitions_total{
-  last_feature_before_switch="compute_index",
+  from_feature="compute_index",
   to_feature="compute_show",
   platform="elektra",
   session_hour="14"
 } = 342
 ```
-Meaning: 342 times users navigated from compute index to compute show
+Meaning: During hour 14, there were 342 navigation events where users went from the compute index page to a compute detail page
 
 ---
 
@@ -551,26 +641,63 @@ Meaning: 342 times users navigated from compute index to compute show
 
 **Metric:** `dashboard_cross_navigation_total`
 
+**What it measures:**
+This counter tracks **explicit cross-dashboard navigation events** when users click instrumented links to move between Elektra and Aurora. This is NOT automatically tracked - it requires JavaScript API calls.
+
+**Key behaviors:**
+- **Explicit tracking only:** Incremented via `POST /metrics/track_outbound` API endpoint (called from JavaScript)
+- **NOT automatic:** Middleware only defines the metric, it doesn't increment it automatically
+- **Requires instrumentation:** Each cross-dashboard link must have `onclick="trackOutboundNavigation('entry_point_name')"`
+- **Two-dimensional context:** Captures both WHERE user clicked (`entry_point`) and WHAT page they were on (`last_feature_before_switch`)
+
+**Why this design:**
+Provides rich context for understanding Aurora adoption. By tracking both the UI element clicked and the feature context, we can identify which entry points are most effective and which features drive users to try Aurora.
+
+**Use cases:**
+- Measure Aurora adoption rate (what % of Elektra users try Aurora)
+- Identify most effective entry points (which buttons/banners drive adoption)
+- Understand feature-specific adoption (which Elektra features lead users to try Aurora)
+- Track bidirectional flow (Elektra → Aurora vs Aurora → Elektra)
+
+**Important considerations:**
+- **Not all cross-navigation is tracked:** Only instrumented links increment this metric
+- **User could navigate without tracking:** Direct URL entry, bookmarks, or non-instrumented links won't be captured
+- **Entry point taxonomy:** Requires consistent naming convention for entry points across UI
+
 **Labels:**
 - `from_dashboard`: "elektra" or "aurora"
 - `to_dashboard`: "elektra" or "aurora"
-- `last_feature_before_switch`: Feature user was on before switching
+- `entry_point`: WHERE the user clicked (e.g., "object_storage_ceph_banner", "identity_users_table")
+- `last_feature_before_switch`: Feature user was on before switching (e.g., "compute_index")
 - `session_hour`: "00" to "23"
-
-**Purpose:** Track when users switch between Elektra and Aurora
-
-**Important:** `last_feature_before_switch` represents the last feature stored in the cookie before the dashboard switch, which may not be the exact feature on the HTTP referrer page. This is a best-effort attribution based on cookie history.
 
 **Example:**
 ```promql
 dashboard_cross_navigation_total{
   from_dashboard="elektra",
   to_dashboard="aurora",
+  entry_point="object_storage_ceph_banner",
   last_feature_before_switch="compute_index",
   session_hour="14"
 } = 87
 ```
-Meaning: 87 times users switched from Elektra (compute index) to Aurora in hour 14
+Meaning: During hour 14, 87 users clicked the object storage Ceph announcement banner while viewing the compute index page, which navigated them to Aurora
+
+**How it's tracked:**
+```javascript
+// JavaScript in Elektra view
+trackOutboundNavigation('object_storage_ceph_banner');
+// → POST /metrics/track_outbound
+// → Controller increments dashboard_cross_navigation_total
+```
+
+**Adding tracking to new links:**
+```erb
+<%= link_to "Try Aurora", 
+    aurora_url,
+    onclick: "trackOutboundNavigation('new_feature_banner'); return true;",
+    class: "btn btn-primary" %>
+```
 
 ---
 
@@ -580,18 +707,50 @@ Meaning: 87 times users switched from Elektra (compute index) to Aurora in hour 
 
 **Type:** Histogram
 
+**What it measures:**
+This histogram observes **elapsed session time** from session start to current request, recorded periodically (every 5 minutes) to reduce metric volume.
+
+**Key behaviors:**
+- **Calculated, not measured:** Duration = current_time - session_start_time (stored in cookie)
+- **Periodic observations:** Only records every 5 minutes (not on every request) to limit Prometheus cardinality
+- **Multiple observations per session:** A 2-hour session generates ~24 observations (one every 5 minutes)
+- **Histogram buckets:** Observations distributed across 7 buckets (1m, 5m, 10m, 30m, 1h, 2h, 4h) for quantile analysis
+
+**Why this design:**
+Provides distribution data (p50, p90, p99) without overwhelming Prometheus. The 5-minute throttle balances accuracy with cardinality.
+
+**Use cases:**
+- Calculate median/p90/p99 session duration
+- Identify short vs long sessions
+- Detect session length patterns by time of day
+- Compare session duration across platforms (Elektra vs Aurora)
+
+**Important considerations:**
+- **Not exact logout time:** Records during session, not at end (user may close browser without final observation)
+- **Last observation lag:** Final duration may be up to 5 minutes old (e.g., user active for 32 minutes might have last observation at 30 minutes)
+- **Multiple sessions sum:** Histogram counts observations, not sessions. One user with 3 sessions generates 3 sets of observations.
+
+**Histogram mechanics:**
+Each observation increments the bucket counter for all buckets >= the observed value. This allows Prometheus to calculate quantiles using `histogram_quantile()`.
+
 **Labels:**
 - `platform`: "elektra" or "aurora"
 
 **Buckets:** 60s, 300s (5m), 600s (10m), 1800s (30m), 3600s (1h), 7200s (2h), 14400s (4h)
 
-**Purpose:** Track how long users spend in their sessions
-
 **Example:**
 ```promql
 histogram_quantile(0.5, dashboard_session_duration_seconds{platform="elektra"})
 # => 1200 (median session is 20 minutes)
+
+histogram_quantile(0.9, dashboard_session_duration_seconds{platform="elektra"})
+# => 3600 (90th percentile session is 1 hour)
 ```
+
+**Reading histogram data:**
+- `p50` (median): Half of sessions are shorter, half are longer
+- `p90`: 90% of sessions are shorter than this duration
+- `p99`: Only 1% of sessions exceed this duration
 
 ---
 
@@ -619,9 +778,12 @@ sum(increase(dashboard_active_browser_hours_total{platform="elektra"}[7d]))
 ### Aurora Adoption Rate
 
 ```promql
-# What percentage of users are on Aurora?
-sum(increase(dashboard_active_browser_hours_total{platform="aurora"}[7d]))
-/ sum(increase(dashboard_active_browser_hours_total[7d]))
+# What percentage of Elektra users navigate to Aurora?
+sum(increase(dashboard_cross_navigation_total{
+  from_dashboard="elektra",
+  to_dashboard="aurora"
+}[7d]))
+/ sum(increase(dashboard_active_browser_hours_total{platform="elektra"}[7d]))
 * 100
 ```
 
@@ -645,13 +807,13 @@ topk(10, sum by (feature) (increase(dashboard_feature_usage_total{
 }[7d])))
 ```
 
-### Drop-off Points (Aurora → Elektra)
+### Drop-off Points (Elektra → Aurora)
 
 ```promql
-# Which Aurora features do users leave from?
-topk(10, sum by (from_feature) (increase(dashboard_cross_navigation_total{
-  from_dashboard="aurora",
-  to_dashboard="elektra"
+# Which Elektra features AND entry points do users leave from to go to Aurora?
+topk(10, sum by (last_feature_before_switch, entry_point) (increase(dashboard_cross_navigation_total{
+  from_dashboard="elektra",
+  to_dashboard="aurora"
 }[7d])))
 ```
 
@@ -710,16 +872,16 @@ All cookies use:
 ### Cookie Storage Size
 
 **Total cookie overhead per session:**
-- `metrics_hours`: ~15 bytes (typical 3-hour session)
+- `metrics_hours_elektra`: ~20 bytes (typical 3-hour session with platform-specific name)
 - `metrics_session`: ~100 bytes (Base64 JSON with 5 features)
-- **Total: ~115 bytes** (well under 4KB browser limit)
+- **Total: ~120 bytes** (well under 4KB browser limit)
 
 **Previous approach (27 cookies):**
 - 24 hourly cookies: 24 × 10 bytes = 240 bytes
 - 3 session cookies: 3 × 15-50 bytes = ~80 bytes
 - **Total: ~320 bytes**
 
-**Improvement: 64% reduction in cookie size + cleaner DevTools view**
+**Improvement: 63% reduction in cookie size + cleaner DevTools view**
 
 ---
 
@@ -727,18 +889,19 @@ All cookies use:
 
 ### How It Works in One Sentence
 
-**"We use hourly cookies to count active authenticated browser instances across pods and platforms, recording when browsers are active (by hour), what features they use, and how they navigate between Elektra and Aurora."**
+**"We use platform-specific hourly cookies to count active authenticated browser instances across pods, recording when browsers are active (by hour), what features they use, and explicitly track outbound navigation via JavaScript API calls."**
 
 ### Key Takeaways
 
 1. **Hourly windows** = Low Prometheus cardinality (48 time series vs millions)
-2. **Cookies** = Accurate deduplication (across 4 pods + 2 platforms)
-3. **Stateless** = No in-memory state, no cleanup, pod-safe
-4. **Privacy-first** = No PII tracked, only aggregate patterns
-5. **Real-time** = Users counted when actually active
+2. **Platform-specific cookies** = Each platform (Elektra, Aurora) tracks independently (no cross-platform deduplication)
+3. **Cookie deduplication** = Accurate counts across 4 Elektra pods
+4. **Outbound tracking** = Via JavaScript + API endpoint (`POST /metrics/track_outbound`), not automatic in middleware
+5. **Stateless** = No in-memory state, no cleanup, pod-safe
+6. **Privacy-first** = No PII tracked, only aggregate patterns
+7. **Real-time** = Users counted when actually active
 
 ---
 
-**Last updated:** June 11, 2026  
-**Status:** Phase 2 implementation complete  
-**Tests:** 29 tests passing ✅
+**Last updated:** June 26, 2026  
+**Tests:** 21 tests passing ✅
