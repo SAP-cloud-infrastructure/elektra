@@ -6,6 +6,10 @@ import React from "react"
 import { BrowserRouter } from "react-router-dom"
 import ShowModal from "./show"
 
+// Generate dates dynamically (2 years ago from now)
+const twoYearsAgo = new Date()
+twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2)
+
 // Mock volume data
 const mockVolume = {
   id: "volume-123",
@@ -28,15 +32,15 @@ const mockVolume = {
   snapshot_id: "snapshot-789",
   source_volid: "source-volume-012",
   consistencygroup_id: "cg-345",
-  created_at: "2024-01-01T10:00:00Z",
-  updated_at: "2024-01-02T10:00:00Z",
+  created_at: twoYearsAgo.toISOString(),
+  updated_at: twoYearsAgo.toISOString(),
   attachments: [
     {
       attachment_id: "attachment-111",
       server_id: "server-222",
       server_name: "Test Server",
       device: "/dev/vdb",
-      attached_at: "2024-01-03T10:00:00Z",
+      attached_at: twoYearsAgo.toISOString(),
     },
   ],
   volume_image_metadata: {
@@ -58,8 +62,8 @@ const mockVolumeWithoutOptionalFields = {
   bootable: "false",
   encrypted: "false",
   multiattach: "false",
-  created_at: "2024-01-01T10:00:00Z",
-  updated_at: "2024-01-02T10:00:00Z",
+  created_at: twoYearsAgo.toISOString(),
+  updated_at: twoYearsAgo.toISOString(),
 }
 
 describe("ShowModal (Volume)", () => {
