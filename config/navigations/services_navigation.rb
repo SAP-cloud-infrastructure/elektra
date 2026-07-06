@@ -396,6 +396,7 @@ SimpleNavigation::Configuration.run do |navigation|
                          )
                        },
                        -> { plugin('object_storage').service_path(service_name: 'ceph') },
+                       link_html: { class: @domain_config&.feature_hidden?('new_dashboard_banner') ? nil : 'aurora' },
                        if: lambda {
                          current_user.has_service?('object-store-ceph') &&
                            plugin_available?(:object_storage)
