@@ -298,7 +298,7 @@ const fetchAllTagged = async (
   return [...(first.data ?? []), ...rest.flatMap((r) => r.data ?? [])]
 }
 
-const ErrorReport: React.FC = () => {
+const ErrorReport: React.FC<{ onNavigateToMaillog?: (messageId: string) => void }> = ({ onNavigateToMaillog }) => {
   const token = useAuthData()
   const project = useAuthProject()
   const endpoint = useGlobalsEndpoint()
@@ -480,7 +480,22 @@ const ErrorReport: React.FC = () => {
                         </span>
                       </DataGridCell>
                       <DataGridCell><span style={{ fontFamily: "monospace", fontSize: 13, wordBreak: "break-all" }}>{ev.requestId || "-"}</span></DataGridCell>
-                      <DataGridCell><span style={{ fontFamily: "monospace", fontSize: 13, wordBreak: "break-all" }}>{ev.messageId || "-"}</span></DataGridCell>
+                      <DataGridCell>
+                        {ev.messageId && onNavigateToMaillog ? (
+                          <span
+                            onClick={() => onNavigateToMaillog(ev.messageId)}
+                            title="Search message ID in Maillog"
+                            style={{ fontFamily: "monospace", fontSize: 13, wordBreak: "break-all", color: "#038bc6", fontWeight: 600, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4 }}
+                          >
+                            {ev.messageId}
+                            <svg width="13" height="13" viewBox="0 0 96.21 96.21" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0, opacity: 0.7 }}>
+                              <path fill="#038bc6" d="M85.39,90.2c-1.23,0-2.46-.47-3.4-1.41l-17.9-17.9c-6.05,4.59-13.65,7.28-21.99,7.28-20.23,0-36.08-15.85-36.08-36.08S21.86,6.01,42.09,6.01s36.08,15.85,36.08,36.08c0,8.34-2.7,15.94-7.28,21.99l17.9,17.9c.94.94,1.41,2.17,1.41,3.4s-.47,2.46-1.41,3.4c-.94.94-2.17,1.41-3.4,1.41ZM42.09,15.63c-14.84,0-26.46,11.62-26.46,26.46s11.62,26.46,26.46,26.46,26.46-11.62,26.46-26.46-11.62-26.46-26.46-26.46Z"/>
+                            </svg>
+                          </span>
+                        ) : (
+                          <span style={{ fontFamily: "monospace", fontSize: 13, wordBreak: "break-all" }}>{ev.messageId || "-"}</span>
+                        )}
+                      </DataGridCell>
                     </DataGridRow>
                   ))
                 ) : (

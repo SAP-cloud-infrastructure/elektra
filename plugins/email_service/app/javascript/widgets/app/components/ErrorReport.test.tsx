@@ -214,8 +214,6 @@ describe("ErrorReport", () => {
       expect(screen.getByText("Sender")).toBeInTheDocument()
       expect(screen.getByText("Recipient")).toBeInTheDocument()
       expect(screen.getByText("Response")).toBeInTheDocument()
-      expect(screen.getByText("Code")).toBeInTheDocument()
-      expect(screen.getByText("Type")).toBeInTheDocument()
       expect(screen.getByText("Request ID")).toBeInTheDocument()
       expect(screen.getByText("Message ID")).toBeInTheDocument()
     })

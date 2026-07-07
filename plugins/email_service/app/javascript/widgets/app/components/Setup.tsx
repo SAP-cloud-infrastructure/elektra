@@ -209,17 +209,7 @@ const Setup: React.FC = () => (
       <ul style={{ listStyle: "none", paddingLeft: 24, fontSize: 16, color: "#374151" }}>
         <li style={{ marginBottom: 4, display: "flex", alignItems: "flex-start", gap: 10 }}>
           <BulletIcon />
-          <span>Email:{" "}
-          <a
-            href="mailto:cronus-support@sap.com"
-            style={{ color: "#2563eb", textDecoration: "underline" }}
-          >
-            cronus-support@sap.com
-          </a></span>
-        </li>
-        <li style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-          <BulletIcon />
-          <span>Incident Management:{" "}
+          <span>Open a ticket:{" "}
           <a
             href="https://documentation.global.cloud.sap/docs/customer/services/email-service/email-aws/incident-management/"
             style={{ color: "#2563eb", textDecoration: "underline" }}
@@ -227,6 +217,16 @@ const Setup: React.FC = () => (
             rel="noreferrer"
           >
             https://documentation.global.cloud.sap/docs/customer/services/email-service/email-aws/incident-management/
+          </a></span>
+        </li>
+        <li style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+          <BulletIcon />
+          <span>Contact us:{" "}
+          <a
+            href="mailto:cronus-support@sap.com"
+            style={{ color: "#2563eb", textDecoration: "underline" }}
+          >
+            cronus-support@sap.com
           </a></span>
         </li>
       </ul>

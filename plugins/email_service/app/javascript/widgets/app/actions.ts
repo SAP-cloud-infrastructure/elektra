@@ -441,17 +441,16 @@ const fetchFromAPI = async <T>(
   }
 }
 
-// ─── Cronus API (EC2 credentials) ────────────────────────────────────────────
+// ─── Cronus API (proxied through Rails) ──────────────────────────────────────
 
 const cronusFetch = async <T>(
-  ec2Access: string,
-  ec2Secret: string,
+  bearerToken: string,
   cronusEndpoint: string,
   path: string,
   method: "GET" | "POST" | "DELETE" | "PATCH" | "PUT",
   body?: unknown
 ): Promise<T> => {
-  const url = `${cronusEndpoint}${path}`
+  const url = `${cronusEndpoint.replace(/\/$/, "")}/cronus-proxy${path}`
   try {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS)
@@ -459,8 +458,7 @@ const cronusFetch = async <T>(
       method,
       headers: {
         "Content-Type": "application/json",
-        "X-Keystone-Access": ec2Access,
-        "X-Keystone-Secret": ec2Secret,
+        "X-Auth-Token": bearerToken,
       },
       signal: controller.signal,
     }
@@ -497,7 +495,7 @@ const cronusFetch = async <T>(
     } else if (response.status === 403) {
       throw new HTTPError(response.status, `Access forbidden (403). ${errorMessage || ""}`)
     } else if (response.status === 401) {
-      throw new HTTPError(response.status, `Authentication failed (401). ${errorMessage || "Check your EC2 credentials."}`)
+      throw new HTTPError(response.status, `Authentication failed (401). ${errorMessage || "Please refresh the page to re-authenticate."}`)
     } else if (response.status === 422) {
       throw new HTTPError(response.status, `Validation error (422). ${errorMessage || ""}`)
     } else {
@@ -519,8 +517,7 @@ const cronusFetch = async <T>(
 // Header Domains
 
 export const fetchHeaderDomains = (
-  ec2Access: string,
-  ec2Secret: string,
+  bearerToken: string,
   cronusEndpoint: string,
   size?: number,
   nextToken?: string
@@ -529,29 +526,26 @@ export const fetchHeaderDomains = (
   if (size !== undefined) params.set("size", String(size))
   if (nextToken) params.set("nextToken", nextToken)
   const qs = params.toString() ? `?${params.toString()}` : ""
-  return cronusFetch<HeaderDomainsListResponse>(ec2Access, ec2Secret, cronusEndpoint, `/v1/header-domains${qs}`, "GET")
+  return cronusFetch<HeaderDomainsListResponse>(bearerToken, cronusEndpoint, `/v1/header-domains${qs}`, "GET")
 }
 
 // Recipients
 
 export const fetchRecipients = (
-  ec2Access: string,
-  ec2Secret: string,
+  bearerToken: string,
   cronusEndpoint: string,
   domainId: string
 ): Promise<RecipientMap> =>
-  cronusFetch<RecipientMap>(ec2Access, ec2Secret, cronusEndpoint, `/v1/header-domains/${encodeURIComponent(domainId)}/recipients`, "GET")
+  cronusFetch<RecipientMap>(bearerToken, cronusEndpoint, `/v1/header-domains/${encodeURIComponent(domainId)}/recipients`, "GET")
 
 export const createRecipient = (
-  ec2Access: string,
-  ec2Secret: string,
+  bearerToken: string,
   cronusEndpoint: string,
   domainId: string,
   payload: AddRecipientPayload
 ): Promise<AddRecipientPayload> =>
   cronusFetch<AddRecipientPayload>(
-    ec2Access,
-    ec2Secret,
+    bearerToken,
     cronusEndpoint,
     `/v1/header-domains/${encodeURIComponent(domainId)}/recipients`,
     "POST",
@@ -559,30 +553,26 @@ export const createRecipient = (
   )
 
 export const deleteRecipient = (
-  ec2Access: string,
-  ec2Secret: string,
+  bearerToken: string,
   cronusEndpoint: string,
   domainId: string,
   localpart: string
 ): Promise<void> =>
   cronusFetch<void>(
-    ec2Access,
-    ec2Secret,
+    bearerToken,
     cronusEndpoint,
     `/v1/header-domains/${encodeURIComponent(domainId)}/recipients/${encodeURIComponent(localpart)}`,
     "DELETE"
   )
 
 export const patchRecipients = (
-  ec2Access: string,
-  ec2Secret: string,
+  bearerToken: string,
   cronusEndpoint: string,
   domainId: string,
   patches: Rfc6902Patch[]
 ): Promise<void> =>
   cronusFetch<void>(
-    ec2Access,
-    ec2Secret,
+    bearerToken,
     cronusEndpoint,
     `/v1/header-domains/${encodeURIComponent(domainId)}/recipients`,
     "PATCH",
@@ -592,29 +582,37 @@ export const patchRecipients = (
 // Compliance
 
 export const fetchCompliance = (
-  ec2Access: string,
-  ec2Secret: string,
+  bearerToken: string,
   cronusEndpoint: string
 ): Promise<CronusApiResponse<ComplianceResponse>> =>
-  cronusFetch<CronusApiResponse<ComplianceResponse>>(ec2Access, ec2Secret, cronusEndpoint, "/v1/compliance", "GET")
+  cronusFetch<CronusApiResponse<ComplianceResponse>>(bearerToken, cronusEndpoint, "/v1/compliance", "GET")
+
+export const fetchComplianceRule = (
+  bearerToken: string,
+  cronusEndpoint: string,
+  domain: string
+): Promise<CronusApiResponse<ComplianceRuleWithDefault>> =>
+  cronusFetch<CronusApiResponse<ComplianceRuleWithDefault>>(
+    bearerToken,
+    cronusEndpoint,
+    `/v1/compliance/rule/${encodeURIComponent(domain)}`,
+    "GET"
+  )
 
 export const upsertComplianceRule = (
-  ec2Access: string,
-  ec2Secret: string,
+  bearerToken: string,
   cronusEndpoint: string,
   rule: UpsertComplianceRuleRequest
 ): Promise<CronusApiResponse> =>
-  cronusFetch<CronusApiResponse>(ec2Access, ec2Secret, cronusEndpoint, "/v1/compliance/rule", "POST", rule)
+  cronusFetch<CronusApiResponse>(bearerToken, cronusEndpoint, "/v1/compliance/rule", "POST", rule)
 
 export const deleteComplianceRule = (
-  ec2Access: string,
-  ec2Secret: string,
+  bearerToken: string,
   cronusEndpoint: string,
   domain: string
 ): Promise<CronusApiResponse> =>
   cronusFetch<CronusApiResponse>(
-    ec2Access,
-    ec2Secret,
+    bearerToken,
     cronusEndpoint,
     `/v1/compliance/rule/${encodeURIComponent(domain)}`,
     "DELETE"
@@ -623,68 +621,59 @@ export const deleteComplianceRule = (
 // Receiving Configuration
 
 export const fetchReceivingConfig = (
-  ec2Access: string,
-  ec2Secret: string,
+  bearerToken: string,
   cronusEndpoint: string
 ): Promise<CronusApiResponse<ReceivingResponse>> =>
-  cronusFetch<CronusApiResponse<ReceivingResponse>>(ec2Access, ec2Secret, cronusEndpoint, "/v1/receiving", "GET")
+  cronusFetch<CronusApiResponse<ReceivingResponse>>(bearerToken, cronusEndpoint, "/v1/receiving", "GET")
 
 export const upsertReceivingConfig = (
-  ec2Access: string,
-  ec2Secret: string,
+  bearerToken: string,
   cronusEndpoint: string,
   config: UpsertReceivingConfigurationRequest
 ): Promise<CronusApiResponse> =>
-  cronusFetch<CronusApiResponse>(ec2Access, ec2Secret, cronusEndpoint, "/v1/receiving", "POST", config)
+  cronusFetch<CronusApiResponse>(bearerToken, cronusEndpoint, "/v1/receiving", "POST", config)
 
 export const deleteReceivingConfig = (
-  ec2Access: string,
-  ec2Secret: string,
+  bearerToken: string,
   cronusEndpoint: string
 ): Promise<CronusApiResponse> =>
-  cronusFetch<CronusApiResponse>(ec2Access, ec2Secret, cronusEndpoint, "/v1/receiving", "DELETE")
+  cronusFetch<CronusApiResponse>(bearerToken, cronusEndpoint, "/v1/receiving", "DELETE")
 
 // DKIM
 
 export const fetchDkim = (
-  ec2Access: string,
-  ec2Secret: string,
+  bearerToken: string,
   cronusEndpoint: string,
   headerDomain: string
 ): Promise<CronusApiResponse<DkimResponse[]>> =>
   cronusFetch<CronusApiResponse<DkimResponse[]>>(
-    ec2Access,
-    ec2Secret,
+    bearerToken,
     cronusEndpoint,
     `/v1/header-domains/${encodeURIComponent(headerDomain)}/dkim`,
     "GET"
   )
 
 export const fetchDkimSelector = (
-  ec2Access: string,
-  ec2Secret: string,
+  bearerToken: string,
   cronusEndpoint: string,
   headerDomain: string,
   selector: string
 ): Promise<CronusApiResponse<DkimResponse>> =>
   cronusFetch<CronusApiResponse<DkimResponse>>(
-    ec2Access,
-    ec2Secret,
+    bearerToken,
     cronusEndpoint,
     `/v1/header-domains/${encodeURIComponent(headerDomain)}/dkim/${encodeURIComponent(selector)}`,
     "GET"
   )
 
 export const createDkim = (
-  ec2Access: string,
-  ec2Secret: string,
+  bearerToken: string,
   cronusEndpoint: string,
   headerDomain: string,
   payload: PostDkimRequest
 ): Promise<CronusApiResponse<DkimResponse>> =>
   cronusFetch<CronusApiResponse<DkimResponse>>(
-    ec2Access,
-    ec2Secret,
+    bearerToken,
     cronusEndpoint,
     `/v1/header-domains/${encodeURIComponent(headerDomain)}/dkim`,
     "POST",
@@ -692,16 +681,14 @@ export const createDkim = (
   )
 
 export const updateDkim = (
-  ec2Access: string,
-  ec2Secret: string,
+  bearerToken: string,
   cronusEndpoint: string,
   headerDomain: string,
   selector: string,
   payload: PutDkimRequest
 ): Promise<CronusApiResponse<DkimResponse>> =>
   cronusFetch<CronusApiResponse<DkimResponse>>(
-    ec2Access,
-    ec2Secret,
+    bearerToken,
     cronusEndpoint,
     `/v1/header-domains/${encodeURIComponent(headerDomain)}/dkim/${encodeURIComponent(selector)}`,
     "PUT",
@@ -709,15 +696,13 @@ export const updateDkim = (
   )
 
 export const deleteDkim = (
-  ec2Access: string,
-  ec2Secret: string,
+  bearerToken: string,
   cronusEndpoint: string,
   headerDomain: string,
   selector: string
 ): Promise<CronusApiResponse> =>
   cronusFetch<CronusApiResponse>(
-    ec2Access,
-    ec2Secret,
+    bearerToken,
     cronusEndpoint,
     `/v1/header-domains/${encodeURIComponent(headerDomain)}/dkim/${encodeURIComponent(selector)}`,
     "DELETE"
@@ -726,24 +711,7 @@ export const deleteDkim = (
 // Whoami
 
 export const fetchWhoami = (
-  ec2Access: string,
-  ec2Secret: string,
+  bearerToken: string,
   cronusEndpoint: string
 ): Promise<WhoamiResponse> =>
-  cronusFetch<WhoamiResponse>(ec2Access, ec2Secret, cronusEndpoint, "/v1/whoami", "GET")
-
-// Compliance — single rule lookup
-
-export const fetchComplianceRule = (
-  ec2Access: string,
-  ec2Secret: string,
-  cronusEndpoint: string,
-  domain: string
-): Promise<CronusApiResponse<ComplianceRuleWithDefault>> =>
-  cronusFetch<CronusApiResponse<ComplianceRuleWithDefault>>(
-    ec2Access,
-    ec2Secret,
-    cronusEndpoint,
-    `/v1/compliance/rule/${encodeURIComponent(domain)}`,
-    "GET"
-  )
+  cronusFetch<WhoamiResponse>(bearerToken, cronusEndpoint, "/v1/whoami", "GET")

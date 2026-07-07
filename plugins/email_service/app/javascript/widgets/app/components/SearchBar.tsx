@@ -123,7 +123,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onChange, searchOptions, onPageCh
   }, [])
 
   return (
-    <Form key={formKey}>
+    <Form key={formKey} onKeyDown={(e: React.KeyboardEvent) => { if (e.key === "Enter") e.preventDefault() }}>
       <Grid>
         <GridRow>
           <GridColumn cols={4}>
@@ -272,6 +272,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onChange, searchOptions, onPageCh
       <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
         <button
           data-testid="clear-button"
+          type="button"
           onClick={handleClear}
           style={{ padding: "6px 16px", borderRadius: 4, border: "1px solid #991b1b", color: "#991b1b", cursor: "pointer", background: "none", fontSize: 14 }}
         >

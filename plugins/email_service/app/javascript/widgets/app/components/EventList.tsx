@@ -50,9 +50,10 @@ interface TableData {
 interface EventListProps {
   props?: Record<string, unknown>
   onDataFetched?: (data: MailLogEntry[]) => void
+  initialMessageId?: string
 }
 
-const EventList: React.FC<EventListProps> = ({ props, onDataFetched }) => {
+const EventList: React.FC<EventListProps> = ({ props, onDataFetched, initialMessageId }) => {
   const [paginationOptions, setPaginationOptions] = useState<PaginationOptions>({
     pageSize: ITEMS_PER_PAGE,
     page: 1,
@@ -62,10 +63,9 @@ const EventList: React.FC<EventListProps> = ({ props, onDataFetched }) => {
     subject: "",
     rcpt: [],
     id: "",
-    messageId: "",
+    messageId: initialMessageId ?? "",
     headerFrom: "",
     relay: "",
-    // IncludeAttempts: true,
   })
   const [dateOptions, setDateOptions] = useState<DateOptions>({ start: null, end: null })
   const endpoint = useGlobalsEndpoint()
@@ -105,6 +105,13 @@ const EventList: React.FC<EventListProps> = ({ props, onDataFetched }) => {
   const setDate = (date: DateOptions) => {
     setDateOptions((prev) => ({ ...prev, ...date }))
   }
+
+  useEffect(() => {
+    if (initialMessageId) {
+      setSearchOptions((prev) => ({ ...prev, messageId: initialMessageId }))
+      setPaginationOptions((prev) => ({ ...prev, page: 1 }))
+    }
+  }, [initialMessageId])
 
   useEffect(() => {
     // Always update table data state to reflect current fetch status

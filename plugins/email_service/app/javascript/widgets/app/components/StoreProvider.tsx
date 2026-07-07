@@ -36,6 +36,8 @@ export const useGlobalsEndpoint = () => useAppStore((state) => state.globals.end
 
 export const useGlobalsEmbedded = () => useAppStore((state) => state.globals.embedded)
 
+export const useGlobalsCronusEndpoint = () => useAppStore((state) => state.globals.cronusEndpoint)
+
 export const useGlobalsActions = () => useAppStore((state) => state.globals.actions)
 
 export default StoreProvider
