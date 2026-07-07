@@ -1,6 +1,6 @@
 module EmailService
   class CronusProxyController < ::DashboardController
-    skip_before_action :verify_authenticity_token
+    protect_from_forgery with: :exception
 
     ALLOWED_PREFIXES = %w[
       /v1/header-domains
@@ -59,7 +59,8 @@ module EmailService
 
     def ec2_credential
       all_creds = services.identity.ec2_credentials(current_user.id)
-      cred = all_creds.find { |c| (c.respond_to?(:tenant_id) ? c.tenant_id : c["tenant_id"]) == @scoped_project_id }
+      matching = all_creds.select { |c| (c.respond_to?(:tenant_id) ? c.tenant_id : c["tenant_id"]) == @scoped_project_id }
+      cred = matching.last
       return nil unless cred
       access = cred.respond_to?(:access) ? cred.access : cred["access"]
       secret = cred.respond_to?(:secret) ? cred.secret : cred["secret"]

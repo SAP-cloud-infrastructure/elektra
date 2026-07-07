@@ -17,7 +17,7 @@ interface AppContentProps {
 
 const baseName = widgetBasePath("email_service")
 
-const TAB_SLUGS = ["setup", "error-report", "maillog", "email-identity-domains", "suppression-list"]
+const TAB_SLUGS = ["setup", "error-report", "maillog", "email-identity-domains"]
 
 const getInitialTab = (): number => {
   const hash = window.location.hash.replace("#", "")
@@ -48,7 +48,6 @@ const AppContent: React.FC<AppContentProps> = ({ props }) => {
         <Tab>Error Report</Tab>
         <Tab>Maillog</Tab>
         <Tab>Email Identity Domains</Tab>
-        <Tab>Suppression List</Tab>
       </TabList>
       <TabPanel>
         <Setup />
@@ -64,9 +63,6 @@ const AppContent: React.FC<AppContentProps> = ({ props }) => {
       </TabPanel>
       <TabPanel>
         <EmailIdentityDomains />
-      </TabPanel>
-      <TabPanel>
-        <SuppressionList />
       </TabPanel>
     </Tabs>
   )

@@ -321,7 +321,11 @@ const DomainRow: React.FC<DomainRowProps> = ({ domain, bearerToken, cronusEndpoi
     <tr>
       <Td>{domain.domain}</Td>
       <Td>
-        <Badge label="Verified" variant="verified" />
+        {primaryDkim ? (
+          <Badge label={dkimLabel} variant={dkimVariant} />
+        ) : (
+          <span style={{ color: "#9ca3af", fontSize: 13 }}>—</span>
+        )}
       </Td>
       <Td>
         {primaryDkim ? (
@@ -450,7 +454,7 @@ const EmailIdentityDomains: React.FC = () => {
               <Th>Domain</Th>
               <Th width={120}>Status</Th>
               <Th width={140}>DKIM</Th>
-              <Th width={160}>Configuration Set</Th>
+              <Th width={200}>Configuration Set</Th>
               <Th width={160}>Actions</Th>
             </tr>
           </thead>

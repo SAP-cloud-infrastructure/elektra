@@ -443,6 +443,11 @@ const fetchFromAPI = async <T>(
 
 // ─── Cronus API (proxied through Rails) ──────────────────────────────────────
 
+const getCsrfToken = (): string => {
+  const tag = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
+  return tag?.content ?? ""
+}
+
 const cronusFetch = async <T>(
   bearerToken: string,
   cronusEndpoint: string,
@@ -454,12 +459,16 @@ const cronusFetch = async <T>(
   try {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS)
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      "X-Auth-Token": bearerToken,
+    }
+    if (method !== "GET") {
+      headers["X-CSRF-Token"] = getCsrfToken()
+    }
     const init: RequestInit = {
       method,
-      headers: {
-        "Content-Type": "application/json",
-        "X-Auth-Token": bearerToken,
-      },
+      headers,
       signal: controller.signal,
     }
     if (body !== undefined) {
