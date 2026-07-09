@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react"
 import moment from "moment"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useAuthData, useAuthProject, useGlobalsEndpoint } from "./StoreProvider"
 import { RankingEntry, MailLogEntry, MailSearchOptions, dataFn } from "../actions"
 import {
@@ -302,6 +302,7 @@ const ErrorReport: React.FC<{ onNavigateToMaillog?: (messageId: string) => void 
   const token = useAuthData()
   const project = useAuthProject()
   const endpoint = useGlobalsEndpoint()
+  const queryClient = useQueryClient()
 
   const [days, setDays] = useState<number>(getInitialDays)
   const [errorPage, setErrorPage] = useState(1)
@@ -323,7 +324,7 @@ const ErrorReport: React.FC<{ onNavigateToMaillog?: (messageId: string) => void 
     queryKey: ["chart-all", token, endpoint, start.toISOString(), now.toISOString(), project],
     queryFn: () => fetchAllTagged(token ?? "", endpoint ?? "", { start, end: now, project: project ?? undefined }),
     enabled: !!token,
-    keepPreviousData: true,
+    refetchOnWindowFocus: false,
   })
 
   const isFetching = allMailsResult.isFetching
@@ -378,13 +379,23 @@ const ErrorReport: React.FC<{ onNavigateToMaillog?: (messageId: string) => void 
 
       {/* Stats cards */}
       <div style={{ position: "relative" }}>
-        {isFetching && (
-          <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(255,255,255,0.7)", zIndex: 10, borderRadius: 12 }} />
-        )}
         <div style={{ ...cardStyle, padding: 24, marginBottom: 16 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
             <div style={{ fontWeight: 700, fontSize: 16 }}>Error Report</div>
-            <DaySelector selected={days} onChange={handleDaysChange} />
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <DaySelector selected={days} onChange={handleDaysChange} />
+              <div style={{ width: 1, height: 20, background: "#e5e7eb" }} />
+              <button
+                onClick={() => {
+                  queryClient.removeQueries({ queryKey: ["chart-all"] })
+                  allMailsResult.refetch()
+                }}
+                title="Reload"
+                style={{ padding: "4px 10px", borderRadius: 4, border: "1px solid #d1d5db", background: "#f9fafb", cursor: "pointer", fontSize: 14, color: "#374151", display: "flex", alignItems: "center", gap: 4 }}
+              >
+                ↻
+              </button>
+            </div>
           </div>
           {allMailsResult.isLoading ? (
             <Stack alignment="center" distribution="center" style={{ minHeight: 80 }}>

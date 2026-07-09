@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react"
+import { useHistory } from "react-router-dom"
 import { useAuthData, useAuthProject, useGlobalsEndpoint } from "./StoreProvider"
 import { useGetData } from "../queries"
 import { MailSearchOptions, MailLogEntry, HTTPError, NetworkError } from "../actions"
@@ -106,12 +107,27 @@ const EventList: React.FC<EventListProps> = ({ props, onDataFetched, initialMess
     setDateOptions((prev) => ({ ...prev, ...date }))
   }
 
+  const history = useHistory()
+
   useEffect(() => {
     if (initialMessageId) {
       setSearchOptions((prev) => ({ ...prev, messageId: initialMessageId }))
       setPaginationOptions((prev) => ({ ...prev, page: 1 }))
     }
   }, [initialMessageId])
+
+  const autoNavigatedRef = React.useRef<string | null>(null)
+
+  // Auto-open the item detail when navigating from Error Report via message ID
+  useEffect(() => {
+    if (!initialMessageId || !tableData.data || tableData.isLoading || tableData.isFetching) return
+    if (autoNavigatedRef.current === initialMessageId) return
+    const match = tableData.data.find((entry) => entry.messageId === initialMessageId)
+    if (match) {
+      autoNavigatedRef.current = initialMessageId
+      history.push(`/${match.id}/show`)
+    }
+  }, [initialMessageId, tableData.data?.length, tableData.isLoading, tableData.isFetching])
 
   useEffect(() => {
     // Always update table data state to reflect current fetch status

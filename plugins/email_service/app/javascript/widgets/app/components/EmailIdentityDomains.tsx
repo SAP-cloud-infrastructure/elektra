@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useAuthData, useGlobalsCronusEndpoint } from "./StoreProvider"
+import { LoadingIndicator, Stack } from "@cloudoperators/juno-ui-components"
 import {
   fetchHeaderDomains,
   fetchDkim,
@@ -389,11 +390,12 @@ const EmailIdentityDomains: React.FC = () => {
   const queryClient = useQueryClient()
   const [showModal, setShowModal] = useState(false)
 
-  const { data, isLoading, isError, error } = useQuery({
+  const { data, isLoading, isFetching, isError, error } = useQuery({
     queryKey: ["headerDomains", bearerToken, cronusEndpoint],
     queryFn: () => fetchHeaderDomains(bearerToken, cronusEndpoint),
     enabled: !!bearerToken && !!cronusEndpoint,
     staleTime: 30000,
+    keepPreviousData: true,
   })
 
   const removeMutation = useMutation({
@@ -425,7 +427,12 @@ const EmailIdentityDomains: React.FC = () => {
         </Modal>
       )}
 
-      <Card style={{ padding: 0, overflow: "hidden" }}>
+      <Card style={{ padding: 0, overflow: "hidden", position: "relative" }}>
+        {isFetching && !isLoading && (
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(255,255,255,0.7)", zIndex: 10, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <LoadingIndicator />
+          </div>
+        )}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px", borderBottom: "1px solid #f3f4f6" }}>
           <h2 style={{ fontSize: 17, fontWeight: 700, color: "#111827", margin: 0 }}>Email Identity Domains</h2>
           <button
@@ -461,8 +468,10 @@ const EmailIdentityDomains: React.FC = () => {
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={5} style={{ padding: 24, textAlign: "center", color: "#6b7280", fontSize: 13 }}>
-                  Loading…
+                <td colSpan={5} style={{ padding: 24, textAlign: "center" }}>
+                  <Stack alignment="center" distribution="center" style={{ minHeight: 80 }}>
+                    <LoadingIndicator />
+                  </Stack>
                 </td>
               </tr>
             ) : domains.length === 0 ? (

@@ -31,6 +31,14 @@ const ItemShow: React.FC<ItemShowProps> = ({ data }) => {
     history.replace(location.pathname.replace(/\/[^/]+\/show$/, ""))
   }
 
+  React.useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close()
+    }
+    document.addEventListener("keydown", handleKey)
+    return () => document.removeEventListener("keydown", handleKey)
+  }, [])
+
   const toggleJson = () => {
     setShowJson(!showJson)
   }
@@ -118,7 +126,13 @@ const ItemShow: React.FC<ItemShowProps> = ({ data }) => {
     .filter((item) => item !== null)
 
   return (
-    <Panel opened={true} onClose={close} heading="Mail Log Details">
+    <>
+      <div
+        onClick={close}
+        style={{ position: "fixed", inset: 0, zIndex: 9 }}
+        aria-hidden="true"
+      />
+      <Panel opened={true} onClose={close} heading="Mail Log Details">
       <PanelBody>
         <Stack direction="vertical" gap="3">
           <DataGrid columns={2}>
@@ -181,6 +195,7 @@ const ItemShow: React.FC<ItemShowProps> = ({ data }) => {
         </Stack>
       </PanelBody>
     </Panel>
+    </>
   )
 }
 

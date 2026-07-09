@@ -90,7 +90,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ onChange, searchOptions, onPageCh
   }
 
   const handleClear = () => {
-    // Clear debounce timer
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current)
     }
@@ -109,8 +108,12 @@ const SearchBar: React.FC<SearchBarProps> = ({ onChange, searchOptions, onPageCh
     onChange({ ...searchOptions, ...clearedOptions }, true)
     onPageChange({ ...pageOptions, page: 1 })
     handleDate({ start: null, end: null })
-    // Force form re-render to clear all inputs
     setFormKey((prev) => prev + 1)
+
+    // Clear messageId from URL hash if present
+    if (window.location.hash.includes("messageId")) {
+      window.location.hash = "maillog"
+    }
   }
 
   // Cleanup timer on unmount
