@@ -198,15 +198,7 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
                 <Form onSubmit={handleSubmit}>
                   <DateTimePicker
                     label="Schedule date and time (all times in UTC)"
-                    helptext={`Job will be scheduled in UTC timezone. Due date is ${new Date(job.due_date).toLocaleString('en-US', {
-                      timeZone: 'UTC',
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      hour12: false
-                    })} UTC`}
+                    helptext={`Job will be scheduled in UTC. Your timezone is UTC${new Date().getTimezoneOffset() <= 0 ? "+" : "-"}${Math.abs(Math.floor(new Date().getTimezoneOffset() / 60))}${new Date().getTimezoneOffset() % 60 !== 0 ? ":" + String(Math.abs(new Date().getTimezoneOffset() % 60)).padStart(2, "0") : ""}h.`}
                     value={scheduleDate}
                     maxDate={new Date(job.due_date)}
                     minDate={job.schedule_date ? new Date(job.schedule_date) : new Date()}
