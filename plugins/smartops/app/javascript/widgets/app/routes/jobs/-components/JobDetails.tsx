@@ -39,6 +39,7 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
   const [detailsError, setDetailsError] = useState<string | null>(null)
   const [scheduleDate, setScheduleDate] = useState(job.schedule_date || "")
   const [success, setSuccess] = useState(false)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
   const handleScheduleDateChange = (selectedDate: Date[] | undefined) => {
@@ -64,6 +65,7 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
     setScheduleError(null)
     setDetailsError(null)
     setSuccess(false)
+    setSuccessMessage(null)
 
     try {
       if (!apiClient) {
@@ -76,6 +78,38 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
           setDetailsError(response.data?.error || "Failed to update job")
         }
         setSuccess(true)
+        setSuccessMessage("Job updated successfully!")
+      }
+    } catch (err: unknown) {
+      setScheduleError(err instanceof Error ? err.message : "An unexpected error occurred")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleScheduleNow = async () => {
+    // Add 3 minute buffer to avoid "time is in the past" errors due to timing/drift differences
+    const nowPlusBuffer = new Date(Date.now() + 180000)
+    const scheduleTime = nowPlusBuffer.toISOString()
+    setIsLoading(true)
+    setScheduleError(null)
+    setDetailsError(null)
+    setSuccess(false)
+    setSuccessMessage(null)
+
+    try {
+      if (!apiClient) {
+        setDetailsError("API client is undefined")
+      } else {
+        const response = await apiClient.patch<ApiResponse>(`/jobs/${job.id}`, {
+          schedule_date: scheduleTime,
+        })
+        if (!response.data.success) {
+          setDetailsError(response.data?.error || "Failed to update job")
+        }
+        setScheduleDate(scheduleTime)
+        setSuccess(true)
+        setSuccessMessage("Job scheduled! It will be triggered in approximately 3 minutes.")
       }
     } catch (err: unknown) {
       setScheduleError(err instanceof Error ? err.message : "An unexpected error occurred")
@@ -88,7 +122,7 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
     <>
       {success && (
         <Message variant="success" className="mb-4">
-          Job updated successfully!
+          {successMessage || "Job updated successfully!"}
         </Message>
       )}
       {new Date(job.due_date) < new Date() && !job.schedule_date && (
@@ -205,7 +239,7 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
                   */}
                   <DateTimePicker
                     label="Schedule date and time (shown in your local time)"
-                    helptext={`Time displayed is your local timezone (UTC${new Date().getTimezoneOffset() <= 0 ? "+" : "-"}${Math.abs(Math.floor(new Date().getTimezoneOffset() / 60))}${new Date().getTimezoneOffset() % 60 !== 0 ? ":" + String(Math.abs(new Date().getTimezoneOffset() % 60)).padStart(2, "0") : ""}h). Job will be stored and executed in UTC.`}
+                    helptext={`Please be aware that the time is shown in your local time zone (UTC${new Date().getTimezoneOffset() <= 0 ? "+" : "-"}${Math.abs(Math.floor(new Date().getTimezoneOffset() / 60))}${new Date().getTimezoneOffset() % 60 !== 0 ? ":" + String(Math.abs(new Date().getTimezoneOffset() % 60)).padStart(2, "0") : ""}h), but the job will be stored and executed in UTC.`}
                     value={scheduleDate}
                     maxDate={new Date(job.due_date)}
                     minDate={job.schedule_date ? new Date(job.schedule_date) : new Date()}
@@ -220,6 +254,13 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
                     size="small"
                     variant="primary"
                     disabled={isLoading || !scheduleDate || !!scheduleError}
+                  />
+                  <Button
+                    label="Schedule Now"
+                    onClick={handleScheduleNow}
+                    size="small"
+                    variant="primary-danger"
+                    disabled={isLoading}
                   />
                 </ButtonRow>
               </>
