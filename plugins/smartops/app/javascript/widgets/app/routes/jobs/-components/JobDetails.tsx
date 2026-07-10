@@ -196,9 +196,16 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
             {job.state === "initial" || job.state === "scheduled" ? (
               <>
                 <Form onSubmit={handleSubmit}>
+                  {/*
+                    Note: DateTimePicker (Flatpickr-based) always displays times in the user's local timezone.
+                    There is no UTC mode available. The picker automatically converts:
+                    - Input: UTC ISO string → displayed as local time
+                    - Output: Local time selection → converted to UTC via toISOString()
+                    Labels are adjusted to make this behavior transparent to the user.
+                  */}
                   <DateTimePicker
-                    label="Schedule date and time (all times in UTC)"
-                    helptext={`Job will be scheduled in UTC. Your timezone is UTC${new Date().getTimezoneOffset() <= 0 ? "+" : "-"}${Math.abs(Math.floor(new Date().getTimezoneOffset() / 60))}${new Date().getTimezoneOffset() % 60 !== 0 ? ":" + String(Math.abs(new Date().getTimezoneOffset() % 60)).padStart(2, "0") : ""}h.`}
+                    label="Schedule date and time (shown in your local time)"
+                    helptext={`Time displayed is your local timezone (UTC${new Date().getTimezoneOffset() <= 0 ? "+" : "-"}${Math.abs(Math.floor(new Date().getTimezoneOffset() / 60))}${new Date().getTimezoneOffset() % 60 !== 0 ? ":" + String(Math.abs(new Date().getTimezoneOffset() % 60)).padStart(2, "0") : ""}h). Job will be stored and executed in UTC.`}
                     value={scheduleDate}
                     maxDate={new Date(job.due_date)}
                     minDate={job.schedule_date ? new Date(job.schedule_date) : new Date()}
