@@ -25,7 +25,7 @@ export function JobItem({ job, onSelect }: JobItemProps) {
         </Stack>
       </DataGridCell>
       <DataGridCell>{job.description || "No description"}</DataGridCell>
-      <DataGridCell>{new Date(job.due_date).toLocaleString()}</DataGridCell>
+      <DataGridCell>{new Date(job.due_date).toLocaleDateString()}</DataGridCell>
       <DataGridCell>{formatScheduleDate(job)}</DataGridCell>
       <DataGridCell>
         <Button

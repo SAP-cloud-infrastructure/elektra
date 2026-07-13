@@ -14,7 +14,7 @@ const JobsListHeader = () => (
     <DataGridHeadCell>Status</DataGridHeadCell>
     <DataGridHeadCell>Description</DataGridHeadCell>
     <DataGridHeadCell>Due Date</DataGridHeadCell>
-    <DataGridHeadCell>Schedule Date</DataGridHeadCell>
+    <DataGridHeadCell>Scheduled</DataGridHeadCell>
     <DataGridHeadCell></DataGridHeadCell>
   </DataGridRow>
 )
