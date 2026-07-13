@@ -11,24 +11,26 @@ class SLIMetricsMiddleware
       @registry.get(:elektra_sli) ||
         @registry.histogram(
           :elektra_sli,
-          docstring: "A histogram of sli",
+          docstring: "Request duration for Elektra plugins in seconds.",
           labels: %i[path method],
+          buckets: [0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0],
         )
   end
 
   def call(env)
     path_info = env["PATH_INFO"]
-    
+
     # ignore /metrics, /assets, and /system/* paths
     if should_skip_path?(path_info)
       return @app.call(env)
     end
+
     # Extract domain (first path segment)
     domain = extract_domain(path_info)
-    
+
     response = nil
     duration = Benchmark.realtime { response = @app.call(env) }
-    
+
     @histogram.observe(
       duration,
       labels: {
@@ -36,14 +38,14 @@ class SLIMetricsMiddleware
         method: env["REQUEST_METHOD"].downcase,
       },
     )
-    
+
     response
   end
 
   private
 
   def should_skip_path?(path_info)
-    path_info == "/metrics" || 
+    path_info == "/metrics" ||
       path_info.start_with?("/assets/", "/system/")
   end
 

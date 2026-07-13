@@ -74,12 +74,12 @@
             = link_to 'Terminate', plugin('compute').instance_path(id: instance.id, action_from_show: show_view), method: :delete, data: { confirm: "Are you sure you want to terminate instance '#{instance.name}'?", ok: "Yes, terminate it", confirmed: :loading_status}, remote: true
       -# Needs Microversion 2.9 to show locked status in UI and to react appropriate to it.
       -# We simulate for now the locked status and save it in metadata
+      -# Fix for issue #1666: Only show Lock when instance is NOT locked; only show Unlock when instance IS locked.
       - if current_user.is_allowed?("compute:instance_lock") || current_user.is_allowed?("compute:instance_unlock")
         %li.divider
-          - if current_user.is_allowed?("compute:instance_lock")
+          - if current_user.is_allowed?("compute:instance_lock") && !instance.locked?
             %li
               = link_to 'Lock', plugin('compute').lock_instance_path(id: instance.id, action_from_show: show_view), method: :put, data: { confirm: 'Are you sure you want to lock this instance?', ok: "Yes, lock it", confirmed: :loading_status }, remote: true
-          - if current_user.is_allowed?("compute:instance_unlock")
+          - if current_user.is_allowed?("compute:instance_unlock") && instance.locked?
             %li
               = link_to 'Unlock', plugin('compute').unlock_instance_path(id: instance.id, action_from_show: show_view), method: :put, data: { confirm: 'Are you sure you want to unlock this instance?', ok: "Yes, unlock it", confirmed: :loading_status }, remote: true
-

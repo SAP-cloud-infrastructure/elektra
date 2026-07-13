@@ -38,6 +38,8 @@ en:
     member: Member
     network_admin: Neutron Administrator
     network_viewer: Neutron Read-Only
+    pca_admin: PCA Administrator
+    pca_viewer: PCA Read-Only
     role_admin: Role Assignments (Authorizations) Administrator
     role_viewer: Role Assignments (Authorizations) Read-Only
     reader: Keystone Read-Only
