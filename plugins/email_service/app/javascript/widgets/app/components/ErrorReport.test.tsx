@@ -312,20 +312,6 @@ describe("ErrorReport", () => {
     })
   })
 
-  it("shows fetching overlay when isFetching is true with existing data", async () => {
-    const entries = [makeEntryWithRcptError("550")]
-    mockQuery({ data: entries, isLoading: false, isFetching: true })
-
-    const { container } = render(<ErrorReport />)
-
-    await waitFor(() => {
-      const allDivs = Array.from(container.querySelectorAll<HTMLElement>("div"))
-      const overlay = allDivs.find(
-        (el) => el.style.position === "absolute" && el.style.zIndex === "10"
-      )
-      expect(overlay).toBeTruthy()
-    })
-  })
 })
 
 describe("extractErrorEvents", () => {

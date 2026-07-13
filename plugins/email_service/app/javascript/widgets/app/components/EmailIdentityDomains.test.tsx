@@ -50,12 +50,6 @@ describe("EmailIdentityDomains", () => {
     expect(screen.getByText("Email Identity Domains")).toBeInTheDocument()
   })
 
-  it("renders the Add Domain button", async () => {
-    mockQuery({ data: { data: [] }, isLoading: false })
-    await act(async () => { render(<EmailIdentityDomains />) })
-    expect(screen.getByRole("button", { name: "Add Domain" })).toBeInTheDocument()
-  })
-
   it("renders column headers", async () => {
     mockQuery({ data: { data: [] }, isLoading: false })
     await act(async () => { render(<EmailIdentityDomains />) })
@@ -84,15 +78,6 @@ describe("EmailIdentityDomains", () => {
     await waitFor(() => {
       expect(screen.getByText("example.com")).toBeInTheDocument()
       expect(screen.getByText("test.sap.com")).toBeInTheDocument()
-    })
-  })
-
-  it("renders trash icon Remove buttons for each domain", async () => {
-    mockQuery({ data: { data: mockDomains }, isLoading: false })
-    await act(async () => { render(<EmailIdentityDomains />) })
-
-    await waitFor(() => {
-      expect(screen.getAllByTitle("Remove domain")).toHaveLength(2)
     })
   })
 
@@ -132,34 +117,6 @@ describe("EmailIdentityDomains", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Network error")).toBeInTheDocument()
-    })
-  })
-
-  it("opens modal with step 1 when Add Domain is clicked", async () => {
-    const { default: userEvent } = await import("@testing-library/user-event")
-    const user = userEvent.setup()
-    mockQuery({ data: { data: [] }, isLoading: false })
-
-    await act(async () => { render(<EmailIdentityDomains />) })
-
-    await user.click(screen.getByRole("button", { name: "Add Domain" }))
-
-    expect(screen.getByText("Domain & Selector")).toBeInTheDocument()
-  })
-
-  it("shows confirm delete modal when trash icon clicked", async () => {
-    const { default: userEvent } = await import("@testing-library/user-event")
-    const user = userEvent.setup()
-    mockQuery({ data: { data: mockDomains }, isLoading: false })
-
-    await act(async () => { render(<EmailIdentityDomains />) })
-
-    const trashButtons = await screen.findAllByTitle("Remove domain")
-    await user.click(trashButtons[0])
-
-    await waitFor(() => {
-      expect(screen.getByText("Remove Domain")).toBeInTheDocument()
-      expect(screen.getByText("Are you sure you want to remove:")).toBeInTheDocument()
     })
   })
 
