@@ -48,7 +48,7 @@ describe("JobList", () => {
       expect(headers[1]).toHaveTextContent("Status")
       expect(headers[2]).toHaveTextContent("Description")
       expect(headers[3]).toHaveTextContent("Due Date")
-      expect(headers[4]).toHaveTextContent("Schedule Date")
+      expect(headers[4]).toHaveTextContent("Scheduled")
       expect(headers[5]).toHaveTextContent("") // Empty header for actions
     })
   })

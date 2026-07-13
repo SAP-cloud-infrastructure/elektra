@@ -62,15 +62,25 @@ describe("JobItem", () => {
       expect(button).toBeInTheDocument()
     })
 
-    it("should render due date in locale string format", () => {
+    it("should render due date in locale date format", () => {
       render(<JobItem job={baseJob} />)
-      const expectedDate = new Date("2024-01-15T10:00:00Z").toLocaleString()
+      const expectedDate = new Date("2024-01-15T10:00:00Z").toLocaleDateString()
       expect(screen.getByText(expectedDate)).toBeInTheDocument()
     })
 
-    it("should render schedule date in locale string format", () => {
+    it("should render schedule date in UTC format", () => {
       render(<JobItem job={baseJob} />)
-      const expectedDate = new Date("2024-01-10T08:00:00Z").toLocaleString()
+      const date = new Date("2024-01-10T08:00:00Z")
+      const expectedDate = date.toLocaleString("en-US", {
+        timeZone: "UTC",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      }) + " UTC"
       expect(screen.getByText(expectedDate)).toBeInTheDocument()
     })
 
@@ -239,13 +249,23 @@ describe("JobItem", () => {
     it("should format due date correctly", () => {
       const job = { ...baseJob, due_date: "2024-12-25T15:30:00Z" }
       render(<JobItem job={job} />)
-      const expectedDate = new Date("2024-12-25T15:30:00Z").toLocaleString()
+      const expectedDate = new Date("2024-12-25T15:30:00Z").toLocaleDateString()
       expect(screen.getByText(expectedDate)).toBeInTheDocument()
     })
 
-    it("should display formatted schedule date", () => {
+    it("should display formatted schedule date in UTC", () => {
       render(<JobItem job={baseJob} />)
-      const expectedDate = new Date("2024-01-10T08:00:00Z").toLocaleString()
+      const date = new Date("2024-01-10T08:00:00Z")
+      const expectedDate = date.toLocaleString("en-US", {
+        timeZone: "UTC",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      }) + " UTC"
       expect(screen.getByText(expectedDate)).toBeInTheDocument()
     })
   })

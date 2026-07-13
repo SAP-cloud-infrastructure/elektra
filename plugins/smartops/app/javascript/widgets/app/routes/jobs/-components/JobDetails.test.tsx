@@ -174,7 +174,7 @@ describe("JobDetails", () => {
       })
       render(<JobDetails job={job} apiClient={createMockApiClient()} />)
 
-      expect(screen.getByText("Select the date and time to schedule the job.")).toBeInTheDocument()
+      expect(screen.getByText("Schedule date and time (shown in your local time)")).toBeInTheDocument()
     })
 
     it("should render DateTimePicker when job state is initial", () => {
@@ -187,7 +187,7 @@ describe("JobDetails", () => {
       })
       render(<JobDetails job={job} apiClient={createMockApiClient()} />)
 
-      expect(screen.getByText("Select the date and time to schedule the job.")).toBeInTheDocument()
+      expect(screen.getByText("Schedule date and time (shown in your local time)")).toBeInTheDocument()
     })
 
     it("should show formatted schedule date when job state is successful", () => {
@@ -198,7 +198,17 @@ describe("JobDetails", () => {
       })
       render(<JobDetails job={job} />)
 
-      const expectedDate = new Date(scheduleDate).toLocaleString()
+      const date = new Date(scheduleDate)
+      const expectedDate = date.toLocaleString("en-US", {
+        timeZone: "UTC",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      }) + " UTC"
       expect(screen.getByText(expectedDate)).toBeInTheDocument()
     })
 
@@ -210,7 +220,17 @@ describe("JobDetails", () => {
       })
       render(<JobDetails job={job} />)
 
-      const expectedDate = new Date(scheduleDate).toLocaleString()
+      const date = new Date(scheduleDate)
+      const expectedDate = date.toLocaleString("en-US", {
+        timeZone: "UTC",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      }) + " UTC"
       expect(screen.getByText(expectedDate)).toBeInTheDocument()
     })
 
@@ -222,7 +242,17 @@ describe("JobDetails", () => {
       })
       render(<JobDetails job={job} />)
 
-      const expectedDate = new Date(scheduleDate).toLocaleString()
+      const date = new Date(scheduleDate)
+      const expectedDate = date.toLocaleString("en-US", {
+        timeZone: "UTC",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      }) + " UTC"
       expect(screen.getByText(expectedDate)).toBeInTheDocument()
     })
 
@@ -233,7 +263,17 @@ describe("JobDetails", () => {
       })
       render(<JobDetails job={job} />)
 
-      const expectedDate = new Date(dueDate).toLocaleString()
+      const date = new Date(dueDate)
+      const expectedDate = date.toLocaleString("en-US", {
+        timeZone: "UTC",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      }) + " UTC"
       expect(screen.getByText(expectedDate)).toBeInTheDocument()
     })
   })
@@ -254,7 +294,7 @@ describe("JobDetails", () => {
       })
       render(<JobDetails job={job} apiClient={apiClient} />)
 
-      const scheduleButton = screen.getByRole("button", { name: /schedule/i })
+      const scheduleButton = screen.getByRole("button", { name: "Schedule" })
       expect(scheduleButton).not.toBeDisabled()
 
       fireEvent.click(scheduleButton)
@@ -289,7 +329,7 @@ describe("JobDetails", () => {
       })
       render(<JobDetails job={job} apiClient={apiClient} />)
 
-      const scheduleButton = screen.getByRole("button", { name: /schedule/i })
+      const scheduleButton = screen.getByRole("button", { name: "Schedule" })
       expect(scheduleButton).not.toBeDisabled()
 
       fireEvent.click(scheduleButton)
@@ -315,7 +355,7 @@ describe("JobDetails", () => {
       })
       render(<JobDetails job={job} apiClient={undefined} />)
 
-      const scheduleButton = screen.getByRole("button", { name: /schedule/i })
+      const scheduleButton = screen.getByRole("button", { name: "Schedule" })
       fireEvent.click(scheduleButton)
 
       await waitFor(() => {
@@ -337,7 +377,7 @@ describe("JobDetails", () => {
       })
       render(<JobDetails job={job} apiClient={apiClient} />)
 
-      const scheduleButton = screen.getByRole("button", { name: /schedule/i })
+      const scheduleButton = screen.getByRole("button", { name: "Schedule" })
       fireEvent.click(scheduleButton)
 
       await waitFor(() => {
@@ -355,7 +395,7 @@ describe("JobDetails", () => {
       })
       render(<JobDetails job={job} apiClient={apiClient} />)
 
-      const scheduleButton = screen.getByRole("button", { name: /schedule/i })
+      const scheduleButton = screen.getByRole("button", { name: "Schedule" })
       fireEvent.click(scheduleButton)
 
       await waitFor(() => {
@@ -376,7 +416,7 @@ describe("JobDetails", () => {
       })
       render(<JobDetails job={job} apiClient={apiClient} />)
 
-      const scheduleButton = screen.getByRole("button", { name: /schedule/i })
+      const scheduleButton = screen.getByRole("button", { name: "Schedule" })
       fireEvent.click(scheduleButton)
 
       await waitFor(() => {
@@ -391,7 +431,7 @@ describe("JobDetails", () => {
       })
       render(<JobDetails job={job} apiClient={createMockApiClient()} />)
 
-      const scheduleButton = screen.getByRole("button", { name: /schedule/i })
+      const scheduleButton = screen.getByRole("button", { name: "Schedule" })
       expect(scheduleButton).toBeDisabled()
     })
 
@@ -408,7 +448,7 @@ describe("JobDetails", () => {
       })
       render(<JobDetails job={job} apiClient={apiClient} />)
 
-      const scheduleButton = screen.getByRole("button", { name: /schedule/i })
+      const scheduleButton = screen.getByRole("button", { name: "Schedule" })
       fireEvent.click(scheduleButton)
 
       await waitFor(() => {
@@ -434,7 +474,7 @@ describe("JobDetails", () => {
       })
       render(<JobDetails job={job} apiClient={createMockApiClient()} />)
 
-      const scheduleButton = screen.getByRole("button", { name: /schedule/i })
+      const scheduleButton = screen.getByRole("button", { name: "Schedule" })
       expect(scheduleButton).not.toBeDisabled()
     })
 
@@ -444,7 +484,7 @@ describe("JobDetails", () => {
       })
       render(<JobDetails job={job} apiClient={createMockApiClient()} />)
 
-      const scheduleButton = screen.getByRole("button", { name: /schedule/i })
+      const scheduleButton = screen.getByRole("button", { name: "Schedule" })
       expect(scheduleButton).not.toBeDisabled()
     })
 
@@ -455,7 +495,7 @@ describe("JobDetails", () => {
       })
       render(<JobDetails job={job} apiClient={createMockApiClient()} />)
 
-      const scheduleButton = screen.getByRole("button", { name: /schedule/i })
+      const scheduleButton = screen.getByRole("button", { name: "Schedule" })
       expect(scheduleButton).toBeDisabled()
     })
 
@@ -489,7 +529,7 @@ describe("JobDetails", () => {
       expect(screen.queryByRole("button", { name: /schedule/i })).not.toBeInTheDocument()
     })
 
-    it("should display correct helptext with due date", () => {
+    it("should display helptext with timezone information", () => {
       const dueDate = getNextYear()
       const job = createMockJob({
         due_date: dueDate,
@@ -498,10 +538,11 @@ describe("JobDetails", () => {
       })
       render(<JobDetails job={job} apiClient={createMockApiClient()} />)
 
-      const formattedDueDate = new Date(dueDate).toLocaleDateString()
+      // Check that helptext contains timezone information
       expect(
-        screen.getByText(new RegExp(`Schedule Date not later as for job due by ${formattedDueDate}`, "i"))
+        screen.getByText(/Please be aware that the time is shown in your local time zone/i)
       ).toBeInTheDocument()
+      expect(screen.getByText(/but the job will be stored and executed in UTC/i)).toBeInTheDocument()
     })
   })
 
