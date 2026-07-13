@@ -62,14 +62,13 @@ describe("EmailIdentityDomains", () => {
     expect(screen.getByText("Domain")).toBeInTheDocument()
     expect(screen.getByText("Status")).toBeInTheDocument()
     expect(screen.getByText("DKIM")).toBeInTheDocument()
-    expect(screen.getByText("Configuration Set")).toBeInTheDocument()
-    expect(screen.getByText("Actions")).toBeInTheDocument()
   })
 
-  it("shows loading state", async () => {
-    mockQuery({ isLoading: true, data: undefined })
+  it("does not render Configuration Set or Actions column headers", async () => {
+    mockQuery({ data: { data: [] }, isLoading: false })
     await act(async () => { render(<EmailIdentityDomains />) })
-    expect(screen.getByText("Loading…")).toBeInTheDocument()
+    expect(screen.queryByText("Configuration Set")).not.toBeInTheDocument()
+    expect(screen.queryByText("Actions")).not.toBeInTheDocument()
   })
 
   it("shows empty state when no domains", async () => {
@@ -88,23 +87,12 @@ describe("EmailIdentityDomains", () => {
     })
   })
 
-  it("renders Verified badge for each domain", async () => {
+  it("renders trash icon Remove buttons for each domain", async () => {
     mockQuery({ data: { data: mockDomains }, isLoading: false })
     await act(async () => { render(<EmailIdentityDomains />) })
 
     await waitFor(() => {
-      const badges = screen.getAllByText("Verified")
-      expect(badges.length).toBeGreaterThanOrEqual(2)
-    })
-  })
-
-  it("renders Set Config and Remove buttons for each domain", async () => {
-    mockQuery({ data: { data: mockDomains }, isLoading: false })
-    await act(async () => { render(<EmailIdentityDomains />) })
-
-    await waitFor(() => {
-      expect(screen.getAllByRole("button", { name: "Set Config" })).toHaveLength(2)
-      expect(screen.getAllByRole("button", { name: "Remove" })).toHaveLength(2)
+      expect(screen.getAllByTitle("Remove domain")).toHaveLength(2)
     })
   })
 
@@ -147,7 +135,7 @@ describe("EmailIdentityDomains", () => {
     })
   })
 
-  it("opens modal when Add Domain is clicked", async () => {
+  it("opens modal with step 1 when Add Domain is clicked", async () => {
     const { default: userEvent } = await import("@testing-library/user-event")
     const user = userEvent.setup()
     mockQuery({ data: { data: [] }, isLoading: false })
@@ -156,7 +144,23 @@ describe("EmailIdentityDomains", () => {
 
     await user.click(screen.getByRole("button", { name: "Add Domain" }))
 
-    expect(screen.getByText("Verify New Domain")).toBeInTheDocument()
+    expect(screen.getByText("Domain & Selector")).toBeInTheDocument()
+  })
+
+  it("shows confirm delete modal when trash icon clicked", async () => {
+    const { default: userEvent } = await import("@testing-library/user-event")
+    const user = userEvent.setup()
+    mockQuery({ data: { data: mockDomains }, isLoading: false })
+
+    await act(async () => { render(<EmailIdentityDomains />) })
+
+    const trashButtons = await screen.findAllByTitle("Remove domain")
+    await user.click(trashButtons[0])
+
+    await waitFor(() => {
+      expect(screen.getByText("Remove Domain")).toBeInTheDocument()
+      expect(screen.getByText("Are you sure you want to remove:")).toBeInTheDocument()
+    })
   })
 
   it("shows not configured message when cronusEndpoint is empty", async () => {
@@ -168,7 +172,6 @@ describe("EmailIdentityDomains", () => {
     mockQuery({ data: { data: [] }, isLoading: false })
     await act(async () => { render(<EmailIdentityDomains />) })
 
-    // With empty endpoint, query is disabled — shows empty state
     expect(screen.queryByText("Loading…")).not.toBeInTheDocument()
   })
 })
