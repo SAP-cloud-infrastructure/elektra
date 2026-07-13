@@ -23,6 +23,10 @@ vi.mock("@tanstack/react-query", async (importOriginal) => {
   return {
     ...actual,
     useQuery: vi.fn(),
+    useQueryClient: vi.fn(() => ({
+      removeQueries: vi.fn(),
+      invalidateQueries: vi.fn(),
+    })),
   }
 })
 
