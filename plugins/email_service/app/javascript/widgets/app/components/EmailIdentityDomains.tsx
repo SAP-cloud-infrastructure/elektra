@@ -567,7 +567,7 @@ const EmailIdentityDomains: React.FC = () => {
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={5} style={{ padding: 24, textAlign: "center" }}>
+                <td colSpan={4} style={{ padding: 24, textAlign: "center" }}>
                   <Stack alignment="center" distribution="center" style={{ minHeight: 80 }}>
                     <LoadingIndicator />
                   </Stack>
@@ -575,7 +575,7 @@ const EmailIdentityDomains: React.FC = () => {
               </tr>
             ) : domains.length === 0 ? (
               <tr>
-                <td colSpan={5} style={{ padding: 24, textAlign: "center", color: "#9ca3af", fontSize: 13 }}>
+                <td colSpan={4} style={{ padding: 24, textAlign: "center", color: "#9ca3af", fontSize: 13 }}>
                   No domains configured.
                 </td>
               </tr>

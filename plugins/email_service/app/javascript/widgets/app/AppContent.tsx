@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { MemoryRouter, Route } from "react-router-dom"
+import { BrowserRouter, Route } from "react-router-dom"
 import { Tabs, TabList, Tab, TabPanel } from "@cloudoperators/juno-ui-components"
 import { useQueryClient } from "@tanstack/react-query"
 // @ts-expect-error - lib/widget doesn't have TypeScript types
@@ -67,10 +67,10 @@ const AppContent: React.FC<AppContentProps> = ({ props }) => {
         <ErrorReport onNavigateToMaillog={handleNavigateToMaillog} />
       </TabPanel>
       <TabPanel>
-        <MemoryRouter>
+        <BrowserRouter basename={baseName}>
           <Route path="/" render={() => <EventList props={props} onDataFetched={setMailLogData} initialMessageId={maillogMessageId} />} />
           <Route exact path="/:id/show" render={() => <ItemShow data={mailLogData} />} />
-        </MemoryRouter>
+        </BrowserRouter>
       </TabPanel>
       <TabPanel>
         <EmailIdentityDomains />
