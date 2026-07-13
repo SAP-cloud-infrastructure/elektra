@@ -23,6 +23,7 @@ const badgeStyle = (variant: BadgeVariant): React.CSSProperties => {
     fontSize: 12,
     fontWeight: 600,
     border: "1px solid",
+    whiteSpace: "nowrap",
   }
   if (variant === "verified") return { ...base, color: "#166534", background: "#dcfce7", borderColor: "#bbf7d0" }
   if (variant === "pending") return { ...base, color: "#92400e", background: "#fef3c7", borderColor: "#fde68a" }
@@ -378,7 +379,7 @@ interface DomainRowProps {
 
 const DomainRow: React.FC<DomainRowProps> = ({ domain, bearerToken, cronusEndpoint, onRemove }) => {
   const [showConfirm, setShowConfirm] = useState(false)
-  const { data: dkimData } = useQuery({
+  const { data: dkimData, isLoading: dkimLoading, isError: dkimError } = useQuery({
     queryKey: ["dkim", domain.domain, bearerToken, cronusEndpoint],
     queryFn: () => fetchDkim(bearerToken, cronusEndpoint, domain.domain),
     enabled: !!bearerToken && !!cronusEndpoint,
@@ -391,9 +392,13 @@ const DomainRow: React.FC<DomainRowProps> = ({ domain, bearerToken, cronusEndpoi
   const primaryDkim = dkimList[0]
   const dkimVariant = toBadgeVariant(primaryDkim?.verification_status)
   const dkimLabel = primaryDkim
-    ? primaryDkim.verification_status === "Success" || primaryDkim.verification_status === "success"
+    ? (primaryDkim.verification_status?.toUpperCase() === "SUCCESS"
       ? "Verified"
-      : primaryDkim.verification_status ?? "Pending DNS"
+      : primaryDkim.verification_status === "TEMPORARY_FAILURE" ? "Temp Failure"
+      : primaryDkim.verification_status === "NOT_STARTED" ? "Not Started"
+      : primaryDkim.verification_status
+        ? primaryDkim.verification_status.charAt(0) + primaryDkim.verification_status.slice(1).toLowerCase()
+        : "Pending DNS")
     : "—"
 
   return (
@@ -408,35 +413,28 @@ const DomainRow: React.FC<DomainRowProps> = ({ domain, bearerToken, cronusEndpoi
       <tr>
       <Td>{domain.domain}</Td>
       <Td>
-        {primaryDkim ? (
-          <Badge label={dkimLabel} variant={dkimVariant} />
+        {dkimLoading ? (
+          <span style={{ display: "inline-block", width: 16, height: 16, border: "2px solid #e5e7eb", borderTopColor: "#038bc6", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
+        ) : (dkimError && !(dkimError as Error)?.message?.includes("409")) ? (
+          <span style={{ fontSize: 12, color: "#9ca3af" }}>Unavailable</span>
+        ) : primaryDkim ? (
+          <span style={{ marginLeft: -10 }}><Badge label={dkimLabel} variant={dkimVariant} /></span>
         ) : (
-          <span style={{ color: "#9ca3af", fontSize: 13 }}>—</span>
+          <span style={{ fontSize: 12, color: "#9ca3af" }}>Not configured</span>
         )}
       </Td>
       <Td>
-        {primaryDkim ? (
-          <Badge label={dkimLabel} variant={dkimVariant} />
+        {dkimLoading ? (
+          <span style={{ display: "inline-block", width: 16, height: 16, border: "2px solid #e5e7eb", borderTopColor: "#038bc6", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
+        ) : (dkimError && !(dkimError as Error)?.message?.includes("409")) ? (
+          <span style={{ fontSize: 12, color: "#9ca3af" }}>Unavailable</span>
+        ) : primaryDkim ? (
+          <span style={{ marginLeft: -10 }}><Badge label={dkimLabel} variant={dkimVariant} /></span>
         ) : (
-          <span style={{ color: "#9ca3af", fontSize: 13 }}>—</span>
+          <span style={{ fontSize: 12, color: "#9ca3af" }}>Not configured</span>
         )}
       </Td>
-      <Td>
-        <span style={{ color: "#9ca3af", fontSize: 13 }}>—</span>
-      </Td>
-      <Td style={{ textAlign: "right", paddingRight: 16 }}>
-        <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <button
-            onClick={() => setShowConfirm(true)}
-            title="Remove domain"
-            style={{ padding: "4px 6px", borderRadius: 6, background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center" }}
-          >
-            <svg width="20" height="20" viewBox="0 0 96.21 96.21" xmlns="http://www.w3.org/2000/svg">
-              <path fill="#dc2626" d="M70.35,96.21H25.86c-5.97,0-10.82-4.86-10.82-10.82V30.07h-4.21c-2.66,0-4.81-2.15-4.81-4.81s2.15-4.81,4.81-4.81h13.23v-9.62c0-5.97,4.86-10.82,10.82-10.82h26.46c5.97,0,10.82,4.86,10.82,10.82v9.62h13.23c2.66,0,4.81,2.15,4.81,4.81s-2.15,4.81-4.81,4.81h-4.21v55.32c0,5.97-4.86,10.82-10.82,10.82ZM24.65,30.07v55.32c0,.66.54,1.2,1.2,1.2h44.5c.66,0,1.2-.54,1.2-1.2V30.07H24.65ZM33.67,20.44h28.86v-9.62c0-.66-.54-1.2-1.2-1.2h-26.46c-.66,0-1.2.54-1.2,1.2v9.62ZM58.93,78.17c-2.66,0-4.81-2.15-4.81-4.81v-26.46c0-2.66,2.15-4.81,4.81-4.81s4.81,2.15,4.81,4.81v26.46c0,2.66-2.15,4.81-4.81,4.81ZM37.28,78.17c-2.66,0-4.81-2.15-4.81-4.81v-26.46c0-2.66,2.15-4.81,4.81-4.81s4.81,2.15,4.81,4.81v26.46c0,2.66-2.15,4.81-4.81,4.81Z"/>
-            </svg>
-          </button>
-        </div>
-      </Td>
+      <Td />
     </tr>
     </>
   )
@@ -543,12 +541,6 @@ const EmailIdentityDomains: React.FC = () => {
         )}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px", borderBottom: "1px solid #f3f4f6" }}>
           <h2 style={{ fontSize: 17, fontWeight: 700, color: "#111827", margin: 0 }}>Email Identity Domains</h2>
-          <button
-            onClick={() => setShowModal(true)}
-            style={{ padding: "7px 18px", borderRadius: 8, fontSize: 14, fontWeight: 600, background: "#2563eb", color: "#fff", border: "none", cursor: "pointer" }}
-          >
-            Add Domain
-          </button>
         </div>
 
         {isError && (
@@ -569,8 +561,7 @@ const EmailIdentityDomains: React.FC = () => {
               <Th>Domain</Th>
               <Th width={120}>Status</Th>
               <Th width={140}>DKIM</Th>
-              <Th width={200}>Configuration Set</Th>
-              <Th width={160}></Th>
+              <Th width={60}></Th>
             </tr>
           </thead>
           <tbody>
@@ -589,15 +580,47 @@ const EmailIdentityDomains: React.FC = () => {
                 </td>
               </tr>
             ) : (
-              domains.map((d) => (
-                <DomainRow
-                  key={d.domain}
-                  domain={d}
-                  bearerToken={bearerToken}
-                  cronusEndpoint={cronusEndpoint}
-                  onRemove={(dom) => removeMutation.mutate(dom)}
-                />
-              ))
+              <>
+                {domains.map((d) => (
+                  <DomainRow
+                    key={d.domain}
+                    domain={d}
+                    bearerToken={bearerToken}
+                    cronusEndpoint={cronusEndpoint}
+                    onRemove={(dom) => removeMutation.mutate(dom)}
+                  />
+                ))}
+                {/* ── DEMO ROWS — DELETE BEFORE RELEASE ── */}
+                {[
+                  { domain: "success.example.com", status: "Success" },
+                  { domain: "pending.example.com", status: "PENDING" },
+                  { domain: "failed.example.com", status: "FAILED" },
+                  { domain: "temp-fail.example.com", status: "TEMPORARY_FAILURE" },
+                  { domain: "not-started.example.com", status: "NOT_STARTED" },
+                ].map(({ domain: d, status }) => {
+                  const variant = toBadgeVariant(status)
+                  const label = status === "Success" || status === "SUCCESS" ? "Verified"
+                    : status === "TEMPORARY_FAILURE" ? "Temp Failure"
+                    : status === "NOT_STARTED" ? "Not Started"
+                    : status.charAt(0) + status.slice(1).toLowerCase()
+                  return (
+                    <tr key={d}>
+                      <Td>{d}</Td>
+                      <Td><span style={{ marginLeft: -10 }}><Badge label={label} variant={variant} /></span></Td>
+                      <Td><span style={{ marginLeft: -10 }}><Badge label={label} variant={variant} /></span></Td>
+                      <Td style={{ textAlign: "right", paddingRight: 16 }}>
+                        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                          <button title="Remove domain" style={{ padding: "4px 6px", borderRadius: 6, background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center" }}>
+                            <svg width="20" height="20" viewBox="0 0 96.21 96.21" xmlns="http://www.w3.org/2000/svg">
+                              <path fill="#dc2626" d="M70.35,96.21H25.86c-5.97,0-10.82-4.86-10.82-10.82V30.07h-4.21c-2.66,0-4.81-2.15-4.81-4.81s2.15-4.81,4.81-4.81h13.23v-9.62c0-5.97,4.86-10.82,10.82-10.82h26.46c5.97,0,10.82,4.86,10.82,10.82v9.62h13.23c2.66,0,4.81,2.15,4.81,4.81s-2.15,4.81-4.81,4.81h-4.21v55.32c0,5.97-4.86,10.82-10.82,10.82ZM24.65,30.07v55.32c0,.66.54,1.2,1.2,1.2h44.5c.66,0,1.2-.54,1.2-1.2V30.07H24.65ZM33.67,20.44h28.86v-9.62c0-.66-.54-1.2-1.2-1.2h-26.46c-.66,0-1.2.54-1.2,1.2v9.62ZM58.93,78.17c-2.66,0-4.81-2.15-4.81-4.81v-26.46c0-2.66,2.15-4.81,4.81-4.81s4.81,2.15,4.81,4.81v26.46c0,2.66-2.15,4.81-4.81,4.81ZM37.28,78.17c-2.66,0-4.81-2.15-4.81-4.81v-26.46c0-2.66,2.15-4.81,4.81-4.81s4.81,2.15,4.81,4.81v26.46c0,2.66-2.15,4.81-4.81,4.81Z"/>
+                            </svg>
+                          </button>
+                        </div>
+                      </Td>
+                    </tr>
+                  )
+                })}
+              </>
             )}
           </tbody>
         </table>
