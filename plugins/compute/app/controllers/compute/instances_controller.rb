@@ -83,15 +83,43 @@ module Compute
       response.headers["Expires"] = "0"
 
       @instance = services.compute.find_server(params[:id])
-      hypervisor = @instance.attributes["OS-EXT-SRV-ATTR:host"] || ""
+
+      # Get the flavor to check hypervisor type via extra_specs
+      flavor = nil
+      if @instance.flavor && @instance.flavor["id"]
+        flavor = services.compute.find_flavor(@instance.flavor["id"], true)
+      end
+
+      hypervisor_type = flavor&.extra_specs&.dig("capabilities:hypervisor_type")
+      hypervisor_host = @instance.attributes["OS-EXT-SRV-ATTR:host"] || ""
+
       begin
-        if hypervisor.to_s.include?("nova-compute-ironic")
-          @console = services.compute.remote_console(params[:id], "serial", "shellinabox")
-        elsif hypervisor.to_s.match?(/node\d+-bb\d+/)
-          # kvm hypervisors have the pattern nodeX-bbY
-          # Use serial console for KVM instances
+        # Determine console type based on hypervisor_type from flavor extra_specs
+        # This is more reliable than hostname-based detection
+        if hypervisor_type == "CH"
+          # Cloud Hypervisor (CH) instances use serial console
+          # API call: POST /servers/{id}/remote-consoles -d '{"remote_console": {"protocol": "serial", "type": "serial"}}'
           @console = services.compute.remote_console(params[:id], "serial", "serial")
+        elsif hypervisor_type == "QEMU"
+          # QEMU/KVM instances use VNC console
+          # API call: POST /servers/{id}/remote-consoles -d '{"remote_console": {"protocol": "vnc", "type": "novnc"}}'
+          @console = services.compute.remote_console(params[:id], "vnc", "novnc")
+        elsif hypervisor_type == "VMware vCenter Server"
+          # VMware instances use MKS console (default: mks/webmks)
+          @console = services.compute.remote_console(params[:id])
+        elsif hypervisor_type.nil?
+          # Fallback to hostname-based detection if extra_specs are not available
+          if hypervisor_host.to_s.include?("nova-compute-ironic")
+            @console = services.compute.remote_console(params[:id], "serial", "shellinabox")
+          elsif hypervisor_host.to_s.match?(/node\d+-bb\d+/)
+            # KVM hypervisors have the pattern nodeX-bbY
+            @console = services.compute.remote_console(params[:id], "serial", "serial")
+          else
+            # Default to VNC/MKS for VMware or other hypervisors
+            @console = services.compute.remote_console(params[:id])
+          end
         else
+          # Unknown hypervisor_type - default to VNC/MKS
           @console = services.compute.remote_console(params[:id])
         end
       rescue StandardError => e
