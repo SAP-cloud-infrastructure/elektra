@@ -4,7 +4,7 @@
 
 - if params[:service_name] == "ceph"
 
-  - if !@domain_config&.feature_hidden?('ceph_s3') && services.has_service_endpoint?("ceph")
+  - unless @domain_config&.feature_hidden?('ceph_s3')
     .switcher-banner.switcher-border-gradient.margin-bottom
       .switcher-banner__icon
         %svg{xmlns: "http://www.w3.org/2000/svg", height: "40", width: "40", viewBox: "0 -960 960 960", "aria-hidden": "true"}
