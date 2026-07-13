@@ -57,25 +57,6 @@ const Card: React.FC<{ children: React.ReactNode; style?: React.CSSProperties }>
   </div>
 )
 
-// ─── Field row (label + value in a shaded box) ────────────────────────────────
-
-const FieldBox: React.FC<{ label: string; value: string; labelWidth?: number }> = ({ label, value, labelWidth = 90 }) => (
-  <div
-    style={{
-      display: "flex",
-      alignItems: "center",
-      background: "#f3f4f6",
-      border: "1px solid #e5e7eb",
-      borderRadius: 6,
-      padding: "10px 14px",
-      gap: 12,
-    }}
-  >
-    <span style={{ fontSize: 13, color: "#6b7280", fontWeight: 600, minWidth: labelWidth }}>{label}</span>
-    <span style={{ fontSize: 14, color: "#111827" }}>{value}</span>
-  </div>
-)
-
 // ─── Button ───────────────────────────────────────────────────────────────────
 
 type ButtonVariant = "primary" | "secondary" | "danger" | "ghost"
@@ -139,22 +120,77 @@ const Td: React.FC<{ children: React.ReactNode; style?: React.CSSProperties }> =
   </td>
 )
 
+// ─── Copy button ─────────────────────────────────────────────────────────────
+
+const CopyButton: React.FC<{ text: string }> = ({ text }) => {
+  const [copied, setCopied] = React.useState(false)
+  const handleCopy = () => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+  return (
+    <button
+      onClick={handleCopy}
+      type="button"
+      title="Copy to clipboard"
+      style={{ padding: "6px 8px", borderRadius: 6, fontSize: 14, fontWeight: 500, background: copied ? "#e0f2fe" : "#fff", color: copied ? "#038bc6" : "#374151", border: `1px solid ${copied ? "#038bc6" : "#d1d5db"}`, cursor: "pointer", transition: "all 0.2s", display: "flex", alignItems: "center", gap: 4 }}
+    >
+      {copied ? (
+        <span style={{ fontSize: 13, fontWeight: 600 }}>Copied!</span>
+      ) : (
+        <svg width="18" height="18" viewBox="0 0 96.21 96.21" xmlns="http://www.w3.org/2000/svg">
+          <path fill="#0070f2" d="M73.36,96.21h-32.47c-9.28,0-16.84-7.55-16.84-16.84v-44.5c0-9.28,7.55-16.84,16.84-16.84h32.47c9.28,0,16.84,7.55,16.84,16.84v44.5c0,9.28-7.55,16.84-16.84,16.84ZM40.89,27.66c-3.98,0-7.22,3.24-7.22,7.22v44.5c0,3.98,3.24,7.22,7.22,7.22h32.47c3.98,0,7.22-3.24,7.22-7.22v-44.5c0-3.98-3.24-7.22-7.22-7.22h-32.47Z"/>
+          <path fill="#0070f2" d="M10.82,72.16c-2.66,0-4.81-2.15-4.81-4.81V16.84C6.01,7.55,13.57,0,22.85,0h44.5c2.66,0,4.81,2.15,4.81,4.81s-2.15,4.81-4.81,4.81H22.85c-3.98,0-7.22,3.24-7.22,7.22v50.51c0,2.66-2.15,4.81-4.81,4.81Z"/>
+        </svg>
+      )}
+    </button>
+  )
+}
+
 // ─── Verify New Domain form ────────────────────────────────────────────────────
 
 interface VerifyFormProps {
   bearerToken: string
   cronusEndpoint: string
+  onSuccess?: () => void
 }
+
+
+const DOMAIN_REGEX = /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/
+
+const StepIndicator: React.FC<{ step: number }> = ({ step }) => (
+  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 24 }}>
+    {[1, 2, 3].map((s) => (
+      <React.Fragment key={s}>
+        <div style={{
+          width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 15, fontWeight: 700,
+          background: s === step ? "#2563eb" : s < step ? "#038bc6" : "#f3f4f6",
+          color: s === step ? "#fff" : s < step ? "#fff" : "#9ca3af",
+          border: "none",
+          flexShrink: 0,
+        }}>{s < step ? "✓" : s}</div>
+        {s < 3 && <div style={{ flex: 1, height: 2, background: s < step ? "#038bc6" : "#e5e7eb" }} />}
+      </React.Fragment>
+    ))}
+  </div>
+)
+
+const STEP_TITLES = ["Domain & Selector", "Private Key", "Confirm & Verify"]
 
 const VerifyNewDomain: React.FC<VerifyFormProps> = ({ bearerToken, cronusEndpoint, onSuccess }) => {
   const queryClient = useQueryClient()
+  const [step, setStep] = useState<1 | 2 | 3>(1)
   const [domain, setDomain] = useState("")
   const [selector, setSelector] = useState("")
   const [privateKey, setPrivateKey] = useState("")
   const [generatedPublicRecord, setGeneratedPublicRecord] = useState<string | null>(null)
-  const [storageRef, setStorageRef] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const isDomainValid = !!domain && DOMAIN_REGEX.test(domain)
 
   const createMutation = useMutation({
     mutationFn: (payload: PostDkimRequest) => createDkim(bearerToken, cronusEndpoint, domain, payload),
@@ -163,21 +199,47 @@ const VerifyNewDomain: React.FC<VerifyFormProps> = ({ bearerToken, cronusEndpoin
       queryClient.invalidateQueries({ queryKey: ["dkim", domain] })
       onSuccess?.()
     },
-    onError: (e: Error) => setError(e.message),
+    onError: (e: Error) => {
+      const msg = e.message ?? ""
+      if (msg.includes("409") || msg.includes("too many email providers")) {
+        setError("This domain is already configured with another email provider. Only one provider can be active at a time.")
+      } else {
+        setError(msg)
+      }
+    },
   })
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
+    e.target.value = ""
     if (!file) return
     const reader = new FileReader()
-    reader.onload = (ev) => {
+    reader.onload = async (ev) => {
       const text = ev.target?.result as string
+      if (!text.includes("PRIVATE KEY") && !text.includes("BEGIN RSA")) {
+        setError("The uploaded file does not appear to be a valid private key. Please upload a PEM-formatted private key.")
+        return
+      }
       const cleaned = text
         .replace(/-----BEGIN [^-]+-----/, "")
         .replace(/-----END [^-]+-----/, "")
         .replace(/\s+/g, "")
       setPrivateKey(cleaned)
       setGeneratedPublicRecord(null)
+      setError(null)
+      try {
+        const der = Uint8Array.from(atob(cleaned), (c) => c.charCodeAt(0))
+        const privCryptoKey = await window.crypto.subtle.importKey("pkcs8", der, { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, true, ["sign"])
+        const jwk = await window.crypto.subtle.exportKey("jwk", privCryptoKey)
+        const pubJwk: JsonWebKey = { kty: jwk.kty, n: jwk.n, e: jwk.e, alg: "RS256", use: "sig" }
+        const pubKey = await window.crypto.subtle.importKey("jwk", pubJwk, { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, true, ["verify"])
+        const pubDer = await window.crypto.subtle.exportKey("spki", pubKey)
+        const pubB64 = btoa(String.fromCharCode(...new Uint8Array(pubDer)))
+        setGeneratedPublicRecord(`${selector}._domainkey.${domain} TXT "v=DKIM1; k=rsa; p=${pubB64}"`)
+      } catch (err) {
+        console.error("Key derivation failed:", err)
+        setError("Could not derive public key from the uploaded file. Make sure it is an RSA private key in PEM format.")
+      }
     }
     reader.readAsText(file)
   }
@@ -186,19 +248,13 @@ const VerifyNewDomain: React.FC<VerifyFormProps> = ({ bearerToken, cronusEndpoin
     try {
       const keyPair = await window.crypto.subtle.generateKey(
         { name: "RSASSA-PKCS1-v1_5", modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256" },
-        true,
-        ["sign", "verify"]
+        true, ["sign", "verify"]
       )
       const privDer = await window.crypto.subtle.exportKey("pkcs8", keyPair.privateKey)
       const pubDer = await window.crypto.subtle.exportKey("spki", keyPair.publicKey)
       const toBase64 = (buf: ArrayBuffer) => btoa(String.fromCharCode(...new Uint8Array(buf)))
-      const privB64 = toBase64(privDer)
-      const pubB64 = toBase64(pubDer)
-      setPrivateKey(privB64)
-      setStorageRef(domain && selector ? `barbican://dkim/${domain}/${selector}` : "")
-      setGeneratedPublicRecord(
-        `${selector}._domainkey.${domain} TXT "v=DKIM1; k=rsa; p=${pubB64.slice(0, 40)}..."`
-      )
+      setPrivateKey(toBase64(privDer))
+      setGeneratedPublicRecord(`${selector}._domainkey.${domain} TXT "v=DKIM1; k=rsa; p=${toBase64(pubDer)}"`)
       setError(null)
     } catch {
       setError("Key generation failed.")
@@ -206,88 +262,107 @@ const VerifyNewDomain: React.FC<VerifyFormProps> = ({ bearerToken, cronusEndpoin
   }
 
   const handleVerify = () => {
-    if (!domain || !selector || !privateKey) {
-      setError("Domain, selector and private key are required.")
-      return
-    }
     createMutation.mutate({ selector, private_key: privateKey, enabled: true, rollover: true })
   }
 
+  const navBtnStyle = (primary?: boolean): React.CSSProperties => ({
+    padding: "8px 24px", borderRadius: 6, fontSize: 14, fontWeight: 600, cursor: "pointer",
+    background: primary ? "#2563eb" : "#fff",
+    color: primary ? "#fff" : "#374151",
+    border: primary ? "none" : "1px solid #d1d5db",
+  })
+
   return (
-    <div>
-      <h2 style={{ fontSize: 18, fontWeight: 700, color: "#111827", marginBottom: 16 }}>Verify New Domain</h2>
+    <div style={{ fontSize: 16 }}>
+      <StepIndicator step={step} />
+      <h2 style={{ fontSize: 18, fontWeight: 700, color: "#111827", marginBottom: 4 }}>{STEP_TITLES[step - 1]}</h2>
+      <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 20 }}>
+        {step === 1 && "Enter the domain you want to verify and a selector name."}
+        {step === 2 && "Upload an existing private key or generate a new one."}
+        {step === 3 && "Publish the DNS record below, then click Verify Domain."}
+      </p>
 
       {error && (
-        <div style={{ background: "#fee2e2", color: "#991b1b", border: "1px solid #fecaca", borderRadius: 6, padding: "8px 12px", fontSize: 13, marginBottom: 12 }}>
+        <div style={{ background: "#fee2e2", color: "#991b1b", border: "1px solid #fecaca", borderRadius: 6, padding: "8px 12px", fontSize: 13, marginBottom: 16 }}>
           {error}
         </div>
       )}
 
-      {/* Domain + Selector inputs */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
-        <div style={{ display: "flex", alignItems: "center", background: "#f3f4f6", border: "1px solid #e5e7eb", borderRadius: 6, padding: "4px 14px", gap: 12 }}>
-          <span style={{ fontSize: 13, color: "#6b7280", fontWeight: 600, minWidth: 90, flexShrink: 0 }}>Email / Domain</span>
-          <input
-            value={domain}
-            onChange={(e) => setDomain(e.target.value)}
-            placeholder="example.customer.com"
-            style={{ background: "transparent", border: "none", outline: "none", fontSize: 14, color: "#111827", width: "100%" }}
-          />
+      {/* ── Step 1 ── */}
+      {step === 1 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <div style={{ display: "flex", alignItems: "center", background: "#f3f4f6", border: `1px solid ${domain && !isDomainValid ? "#fca5a5" : "#e5e7eb"}`, borderRadius: 6, padding: "8px 14px", gap: 12 }}>
+              <span style={{ fontSize: 13, color: "#6b7280", fontWeight: 600, minWidth: 100, flexShrink: 0 }}>Email / Domain</span>
+              <input value={domain} onChange={(e) => setDomain(e.target.value)} placeholder="example.com"
+                style={{ background: "transparent", border: "none", outline: "none", fontSize: 14, color: "#111827", width: "100%" }} />
+            </div>
+            {domain && !isDomainValid && <span style={{ fontSize: 11, color: "#dc2626", paddingLeft: 4 }}>Enter a valid domain (e.g. example.com)</span>}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", background: "#f3f4f6", border: "1px solid #e5e7eb", borderRadius: 6, padding: "8px 14px", gap: 12 }}>
+            <span style={{ fontSize: 13, color: "#6b7280", fontWeight: 600, minWidth: 100, flexShrink: 0 }}>Selector</span>
+            <input value={selector} onChange={(e) => setSelector(e.target.value)} placeholder="selector1"
+              style={{ background: "transparent", border: "none", outline: "none", fontSize: 14, color: "#111827", width: "100%" }} />
+          </div>
+          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
+            <button onClick={() => { setError(null); setStep(2) }} disabled={!isDomainValid || !selector} style={{ ...navBtnStyle(true), opacity: (!isDomainValid || !selector) ? 0.5 : 1, cursor: (!isDomainValid || !selector) ? "not-allowed" : "pointer" }}>Next →</button>
+          </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", background: "#f3f4f6", border: "1px solid #e5e7eb", borderRadius: 6, padding: "4px 14px", gap: 12 }}>
-          <span style={{ fontSize: 13, color: "#6b7280", fontWeight: 600, minWidth: 60, flexShrink: 0 }}>Selector</span>
-          <input
-            value={selector}
-            onChange={(e) => setSelector(e.target.value)}
-            placeholder="selector1"
-            style={{ background: "transparent", border: "none", outline: "none", fontSize: 14, color: "#111827", width: "100%" }}
-          />
-        </div>
-      </div>
+      )}
 
-      {/* Private Key + Public DNS */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-        <div style={{ border: "1px solid #e5e7eb", borderRadius: 8, padding: 16 }}>
-          <div style={{ fontSize: 15, fontWeight: 600, color: "#111827", marginBottom: 12 }}>Private Key</div>
-          <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+      {/* ── Step 2 ── */}
+      {step === 2 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ display: "flex", gap: 8 }}>
             <Btn onClick={() => fileInputRef.current?.click()}>Upload Private Key</Btn>
-            <Btn variant="ghost" onClick={handleGenerate}>Generate New Key</Btn>
+            <Btn variant="primary" onClick={handleGenerate}>Generate New Key</Btn>
             <input ref={fileInputRef} type="file" accept=".pem,.key,.txt" style={{ display: "none" }} onChange={handleUpload} />
           </div>
-          <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 12 }}>
-            Upload an existing private key, or generate a new key pair and save the private key in Barbican.
-          </div>
-          {storageRef && <FieldBox label="Storage" value={storageRef} />}
-          {privateKey && !storageRef && (
-            <div style={{ background: "#f3f4f6", border: "1px solid #e5e7eb", borderRadius: 6, padding: "8px 10px", fontSize: 11, color: "#374151", wordBreak: "break-all", fontFamily: "monospace" }}>
-              {privateKey.slice(0, 60)}...
-            </div>
-          )}
-          <div style={{ marginTop: 12 }}>
-            <Btn variant="ghost" style={{ borderColor: "#6b7280", color: "#374151" }}>Save in Barbican</Btn>
-          </div>
-        </div>
-
-        <div style={{ border: "1px solid #e5e7eb", borderRadius: 8, padding: 16 }}>
-          <div style={{ fontSize: 15, fontWeight: 600, color: "#111827", marginBottom: 12 }}>Public DNS Record</div>
-          <div style={{ background: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: 6, padding: 12, fontSize: 12, fontFamily: "monospace", color: "#374151", minHeight: 80, marginBottom: 8, overflow: "auto" }}>
-            {generatedPublicRecord ? (
+          <div style={{ fontSize: 12, color: "#6b7280" }}>Upload an existing private key, or generate a new key pair.</div>
+          <div style={{ background: "#f3f4f6", border: "1px solid #e5e7eb", borderRadius: 6, padding: "8px 10px", fontSize: 11, color: "#374151", wordBreak: "break-all", fontFamily: "monospace", height: 120, overflowY: "auto", position: "relative" }}>
+            {privateKey ? (
               <>
-                <div style={{ fontWeight: 600, marginBottom: 4 }}>TXT Record</div>
-                <div style={{ wordBreak: "break-all" }}>{generatedPublicRecord}</div>
+                <div style={{ position: "absolute", top: 6, right: 6 }}><CopyButton text={privateKey} /></div>
+                {privateKey}
               </>
             ) : (
-              <span style={{ color: "#9ca3af" }}>Generate or upload a key to see the DNS record.</span>
+              <span style={{ color: "#9ca3af" }}>Your private key will appear here.</span>
             )}
           </div>
-          <div style={{ fontSize: 11, color: "#6b7280", marginBottom: 12 }}>
-            Publish this public key in DNS using: selector._domainkey.domain
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}>
+            <button onClick={() => { setError(null); setStep(1) }} style={navBtnStyle()}>← Back</button>
+            <button onClick={() => { setError(null); setStep(3) }} disabled={!privateKey} style={{ ...navBtnStyle(true), opacity: !privateKey ? 0.5 : 1, cursor: !privateKey ? "not-allowed" : "pointer" }}>Next →</button>
           </div>
-          <Btn variant="primary" onClick={handleVerify} loading={createMutation.isLoading}>
-            Verify Domain
-          </Btn>
         </div>
-      </div>
+      )}
+
+      {/* ── Step 3 ── */}
+      {step === 3 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {generatedPublicRecord ? (
+            <div style={{ background: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: 6, padding: 12, fontSize: 12, fontFamily: "monospace", color: "#374151", wordBreak: "break-all", whiteSpace: "pre-wrap", minHeight: 120, maxHeight: 200, overflowY: "auto", position: "relative" }}>
+              <div style={{ fontWeight: 600, marginBottom: 4 }}>TXT Record</div>
+              <div>{generatedPublicRecord}</div>
+              <div style={{ position: "absolute", top: 8, right: 8 }}><CopyButton text={generatedPublicRecord} /></div>
+            </div>
+          ) : (
+            <div style={{ background: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: 6, padding: 12, fontSize: 13, color: "#6b7280", minHeight: 80, display: "flex", alignItems: "center" }}>
+              No DNS record generated — go back and generate or upload a key.
+            </div>
+          )}
+          <div style={{ fontSize: 11, color: "#6b7280" }}>Publish this public key in DNS before verifying: <code>{selector}._domainkey.{domain}</code></div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
+            <button onClick={() => { setError(null); setStep(2) }} style={navBtnStyle()}>← Back</button>
+            <button
+              onClick={handleVerify}
+              disabled={createMutation.isLoading || !generatedPublicRecord}
+              style={{ ...navBtnStyle(true), padding: "10px 40px", fontSize: 15, opacity: (createMutation.isLoading || !generatedPublicRecord) ? 0.6 : 1, cursor: (createMutation.isLoading || !generatedPublicRecord) ? "not-allowed" : "pointer" }}
+            >
+              {createMutation.isLoading ? "Verifying…" : "Verify Domain"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -302,11 +377,14 @@ interface DomainRowProps {
 }
 
 const DomainRow: React.FC<DomainRowProps> = ({ domain, bearerToken, cronusEndpoint, onRemove }) => {
+  const [showConfirm, setShowConfirm] = useState(false)
   const { data: dkimData } = useQuery({
     queryKey: ["dkim", domain.domain, bearerToken, cronusEndpoint],
     queryFn: () => fetchDkim(bearerToken, cronusEndpoint, domain.domain),
     enabled: !!bearerToken && !!cronusEndpoint,
-    staleTime: 30000,
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+    onError: () => {},
   })
 
   const dkimList: DkimResponse[] = dkimData?.data ?? []
@@ -319,7 +397,15 @@ const DomainRow: React.FC<DomainRowProps> = ({ domain, bearerToken, cronusEndpoi
     : "—"
 
   return (
-    <tr>
+    <>
+      {showConfirm && (
+        <ConfirmDeleteModal
+          domain={domain.domain}
+          onConfirm={() => onRemove(domain.domain)}
+          onClose={() => setShowConfirm(false)}
+        />
+      )}
+      <tr>
       <Td>{domain.domain}</Td>
       <Td>
         {primaryDkim ? (
@@ -338,25 +424,46 @@ const DomainRow: React.FC<DomainRowProps> = ({ domain, bearerToken, cronusEndpoi
       <Td>
         <span style={{ color: "#9ca3af", fontSize: 13 }}>—</span>
       </Td>
-      <Td>
-        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+      <Td style={{ textAlign: "right", paddingRight: 16 }}>
+        <div style={{ display: "flex", justifyContent: "flex-end" }}>
           <button
-            onClick={() => setEditingConfig(true)}
-            style={{ padding: "4px 12px", borderRadius: 6, fontSize: 13, fontWeight: 500, background: "#fff", color: "#374151", border: "1px solid #d1d5db", cursor: "pointer", whiteSpace: "nowrap" }}
+            onClick={() => setShowConfirm(true)}
+            title="Remove domain"
+            style={{ padding: "4px 6px", borderRadius: 6, background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center" }}
           >
-            Set Config
-          </button>
-          <button
-            onClick={() => onRemove(domain.domain)}
-            style={{ padding: "4px 12px", borderRadius: 6, fontSize: 13, fontWeight: 500, background: "#fff", color: "#dc2626", border: "1px solid #fca5a5", cursor: "pointer", whiteSpace: "nowrap" }}
-          >
-            Remove
+            <svg width="20" height="20" viewBox="0 0 96.21 96.21" xmlns="http://www.w3.org/2000/svg">
+              <path fill="#dc2626" d="M70.35,96.21H25.86c-5.97,0-10.82-4.86-10.82-10.82V30.07h-4.21c-2.66,0-4.81-2.15-4.81-4.81s2.15-4.81,4.81-4.81h13.23v-9.62c0-5.97,4.86-10.82,10.82-10.82h26.46c5.97,0,10.82,4.86,10.82,10.82v9.62h13.23c2.66,0,4.81,2.15,4.81,4.81s-2.15,4.81-4.81,4.81h-4.21v55.32c0,5.97-4.86,10.82-10.82,10.82ZM24.65,30.07v55.32c0,.66.54,1.2,1.2,1.2h44.5c.66,0,1.2-.54,1.2-1.2V30.07H24.65ZM33.67,20.44h28.86v-9.62c0-.66-.54-1.2-1.2-1.2h-26.46c-.66,0-1.2.54-1.2,1.2v9.62ZM58.93,78.17c-2.66,0-4.81-2.15-4.81-4.81v-26.46c0-2.66,2.15-4.81,4.81-4.81s4.81,2.15,4.81,4.81v26.46c0,2.66-2.15,4.81-4.81,4.81ZM37.28,78.17c-2.66,0-4.81-2.15-4.81-4.81v-26.46c0-2.66,2.15-4.81,4.81-4.81s4.81,2.15,4.81,4.81v26.46c0,2.66-2.15,4.81-4.81,4.81Z"/>
+            </svg>
           </button>
         </div>
       </Td>
     </tr>
+    </>
   )
 }
+
+// ─── Confirm Delete Modal ─────────────────────────────────────────────────────
+
+const ConfirmDeleteModal: React.FC<{ domain: string; onConfirm: () => void; onClose: () => void }> = ({ domain, onConfirm, onClose }) => (
+  <div
+    style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}
+    onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+  >
+    <div style={{ background: "#fff", borderRadius: 10, padding: 32, width: "min(420px, 95vw)", position: "relative" }}>
+      <button onClick={onClose} style={{ position: "absolute", top: 16, right: 16, background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#6b7280", lineHeight: 1 }}>×</button>
+      <h2 style={{ fontSize: 18, fontWeight: 700, color: "#111827", marginBottom: 12 }}>Remove Domain</h2>
+      <p style={{ fontSize: 14, color: "#111827", marginBottom: 8 }}>Are you sure you want to remove:</p>
+      <div style={{ background: "#f3f4f6", border: "1px solid #e5e7eb", borderRadius: 8, padding: "12px 16px", marginBottom: 8, fontSize: 15, fontWeight: 700, color: "#111827", wordBreak: "break-all" }}>
+        {domain}
+      </div>
+      <p style={{ fontSize: 14, color: "#111827", marginBottom: 24 }}>This cannot be undone.</p>
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+        <button onClick={onClose} style={{ padding: "8px 18px", borderRadius: 6, fontSize: 14, fontWeight: 500, background: "#fff", color: "#374151", border: "1px solid #d1d5db", cursor: "pointer" }}>Cancel</button>
+        <button onClick={() => { onConfirm(); onClose() }} style={{ padding: "8px 18px", borderRadius: 6, fontSize: 14, fontWeight: 500, background: "#dc2626", color: "#fff", border: "none", cursor: "pointer" }}>Remove</button>
+      </div>
+    </div>
+  </div>
+)
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
 
@@ -369,7 +476,7 @@ const Modal: React.FC<{ onClose: () => void; children: React.ReactNode }> = ({ o
     }}
     onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
   >
-    <div style={{ background: "#fff", borderRadius: 10, padding: 32, width: "min(860px, 95vw)", maxHeight: "90vh", overflowY: "auto", position: "relative" }}>
+    <div style={{ background: "#fff", borderRadius: 10, padding: 32, width: "min(600px, 95vw)", maxHeight: "90vh", overflowY: "auto", position: "relative" }}>
       <button
         onClick={onClose}
         style={{ position: "absolute", top: 16, right: 16, background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#6b7280", lineHeight: 1 }}
@@ -396,6 +503,7 @@ const EmailIdentityDomains: React.FC = () => {
     enabled: !!bearerToken && !!cronusEndpoint,
     staleTime: 30000,
     keepPreviousData: true,
+    refetchOnWindowFocus: false,
   })
 
   const removeMutation = useMutation({
@@ -462,7 +570,7 @@ const EmailIdentityDomains: React.FC = () => {
               <Th width={120}>Status</Th>
               <Th width={140}>DKIM</Th>
               <Th width={200}>Configuration Set</Th>
-              <Th width={160}>Actions</Th>
+              <Th width={160}></Th>
             </tr>
           </thead>
           <tbody>

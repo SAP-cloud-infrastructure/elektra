@@ -20,7 +20,6 @@ module EmailService
       unless cred
         render json: { error: "No EC2 credentials found for this project." }, status: :unprocessable_entity and return
       end
-
       base_url = cronus_endpoint
       query    = request.query_string.present? ? "?#{request.query_string}" : ""
       uri      = URI.parse("#{base_url}#{cronus_path}#{query}")
@@ -58,14 +57,21 @@ module EmailService
     end
 
     def ec2_credential
+      cache_key = "cronus_ec2_#{@scoped_project_id}"
+      cached = session[cache_key]
+      if cached && cached["expires_at"] && Time.parse(cached["expires_at"]) > Time.now
+        return { "access" => cached["access"], "secret" => cached["secret"] }
+      end
+
       all_creds = services.identity.ec2_credentials(current_user.id)
-      matching = all_creds.select { |c| (c.respond_to?(:tenant_id) ? c.tenant_id : c["tenant_id"]) == @scoped_project_id }
-      cred = matching.last
-      return nil unless cred
-      access = cred.respond_to?(:access) ? cred.access : cred["access"]
-      secret = cred.respond_to?(:secret) ? cred.secret : cred["secret"]
-      return nil if access.blank? || secret.blank?
-      { "access" => access, "secret" => secret }
+      cred = all_creds.select { |c| (c.respond_to?(:tenant_id) ? c.tenant_id : c["tenant_id"]) == @scoped_project_id }.last
+      result = if cred
+        access = cred.respond_to?(:access) ? cred.access : cred["access"]
+        secret = cred.respond_to?(:secret) ? cred.secret : cred["secret"]
+        (access.blank? || secret.blank?) ? nil : { "access" => access, "secret" => secret }
+      end
+      session[cache_key] = result.merge("expires_at" => (Time.now + 10.minutes).to_s) if result
+      result
     rescue => e
       Rails.logger.error("EmailService: EC2 credential error: #{e.class} #{e.message}")
       nil

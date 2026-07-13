@@ -41,10 +41,6 @@ const AppContent: React.FC<AppContentProps> = ({ props }) => {
     setActiveTab(index)
     window.location.hash = TAB_SLUGS[index]
     if (index !== 2) setMaillogMessageId(undefined)
-    if (index === 3) {
-      queryClient.invalidateQueries({ queryKey: ["headerDomains"] })
-      queryClient.invalidateQueries({ queryKey: ["dkim"] })
-    }
     if (index === 2) {
       queryClient.invalidateQueries({ queryKey: ["data"] })
     }
