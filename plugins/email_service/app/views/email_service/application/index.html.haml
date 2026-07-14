@@ -3,5 +3,6 @@
 
 = javascript_include_tag 'email_service_app_widget', data: {               |
   endpoint: "https://maillog.#{current_region}.cloud.sap",           |
+  "cronus-endpoint": plugin('email_service').root_path, |
   "project": "#{@scoped_project_id}",                                |
-  "getTokenFuncName": "_getCurrentToken" } 
+  "getTokenFuncName": "_getCurrentToken" }

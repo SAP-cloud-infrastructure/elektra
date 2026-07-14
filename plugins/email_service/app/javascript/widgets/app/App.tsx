@@ -13,6 +13,7 @@ const URL_STATE_KEY = "email_service"
 interface AppProps {
   props: {
     endpoint?: string
+    cronusEndpoint?: string
     project?: string
     currentHost?: string
     embedded?: boolean | string
@@ -35,11 +36,14 @@ declare global {
 }
 
 const App: React.FC<AppProps> = ({ props }) => {
-  const { setEndpoint, setUrlStateKey, setEmbedded } = useGlobalsActions()
+  const { setEndpoint, setUrlStateKey, setEmbedded, setCronusEndpoint } = useGlobalsActions()
   const { setAuthData } = useAuthActions()
 
   if (props.endpoint) {
     setEndpoint(props.endpoint)
+  }
+  if (props.cronusEndpoint) {
+    setCronusEndpoint(props.cronusEndpoint)
   }
   if (props.project) {
     setAuthData({ project: props.project, token: null })

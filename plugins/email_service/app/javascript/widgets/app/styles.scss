@@ -3,6 +3,10 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .juno-tooltip {
   z-index: 20 !important;
 }

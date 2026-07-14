@@ -960,6 +960,49 @@ describe("SearchBar", () => {
     })
   })
 
+  describe("Enter key behaviour", () => {
+    it("Clear All Filters button has type=button so Enter does not trigger it", () => {
+      render(
+        <SearchBar
+          onChange={mockOnChange}
+          searchOptions={defaultSearchOptions}
+          onPageChange={mockOnPageChange}
+          onDateChange={mockOnDateChange}
+          pageOptions={defaultPageOptions}
+          dateOptions={defaultDateOptions}
+        />
+      )
+
+      const clearButton = screen.getByTestId("clear-button")
+      expect(clearButton).toHaveAttribute("type", "button")
+    })
+
+    it("pressing Enter in a text input does not call onChange with cleared values", async () => {
+      const user = userEvent.setup({ delay: null })
+      render(
+        <SearchBar
+          onChange={mockOnChange}
+          searchOptions={{ ...defaultSearchOptions, from: "test@example.com" }}
+          onPageChange={mockOnPageChange}
+          onDateChange={mockOnDateChange}
+          pageOptions={defaultPageOptions}
+          dateOptions={defaultDateOptions}
+        />
+      )
+
+      const input = screen.getByTestId("input-from")
+      await user.click(input)
+      await user.keyboard("{Enter}")
+
+      // onChange should not have been called with empty/cleared values
+      const calls = mockOnChange.mock.calls
+      calls.forEach((call) => {
+        expect(call[0].from).not.toBe("")
+      })
+    })
+  })
+
+
   describe("Integration Scenarios", () => {
     it("should handle multiple field changes in sequence", async () => {
       const user = userEvent.setup({ delay: null })
