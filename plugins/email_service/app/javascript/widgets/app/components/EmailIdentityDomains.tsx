@@ -461,7 +461,7 @@ const ConfirmDeleteModal: React.FC<{ domain: string; onConfirm: () => void; onCl
   >
     <div style={{ background: "#fff", borderRadius: 10, padding: 32, width: "min(420px, 95vw)", position: "relative" }}>
       <button onClick={onClose} style={{ position: "absolute", top: 16, right: 16, background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#6b7280", lineHeight: 1 }}>×</button>
-      <h2 style={{ fontSize: 18, fontWeight: 700, color: "#111827", marginBottom: 12 }}>Remove Domain</h2>
+      <h2 style={{ fontSize: 18, fontWeight: 700, color: "#111827", marginBottom: 12 }}>Delete {domain}</h2>
       <p style={{ fontSize: 14, color: "#111827", marginBottom: 8 }}>Are you sure you want to remove:</p>
       <div style={{ background: "#f3f4f6", border: "1px solid #e5e7eb", borderRadius: 8, padding: "12px 16px", marginBottom: 8, fontSize: 15, fontWeight: 700, color: "#111827", wordBreak: "break-all" }}>
         {domain}
