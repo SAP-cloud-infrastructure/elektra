@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react"
 import moment from "moment"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useAuthData, useAuthProject, useGlobalsEndpoint } from "./StoreProvider"
 import { RankingEntry, MailLogEntry, MailSearchOptions, dataFn } from "../actions"
 import {
@@ -220,7 +220,7 @@ const extractErrorEvents = (entries: MailLogEntry[]): ErrorEvent[] => {
 const TypeBadge: React.FC<{ type: "PERM" | "TEMP" }> = ({ type }) => (
   <span
     style={{
-      display: "inline-block",
+      display: "inline",
       padding: "2px 8px",
       borderRadius: 4,
       fontSize: 11,
@@ -242,7 +242,7 @@ const cardStyle: React.CSSProperties = {
 }
 
 const FullCell: React.FC<{ value: string | undefined; mono?: boolean }> = ({ value, mono }) => (
-  <span style={mono ? { fontFamily: "monospace", fontSize: 12, wordBreak: "break-all" } : { wordBreak: "break-word" }}>
+  <span style={mono ? { fontFamily: "monospace", fontSize: 12, wordBreak: "break-all" } : { wordBreak: "break-all" }}>
     {value || "-"}
   </span>
 )
@@ -298,10 +298,11 @@ const fetchAllTagged = async (
   return [...(first.data ?? []), ...rest.flatMap((r) => r.data ?? [])]
 }
 
-const ErrorReport: React.FC = () => {
+const ErrorReport: React.FC<{ onNavigateToMaillog?: (messageId: string) => void }> = ({ onNavigateToMaillog }) => {
   const token = useAuthData()
   const project = useAuthProject()
   const endpoint = useGlobalsEndpoint()
+  const queryClient = useQueryClient()
 
   const [days, setDays] = useState<number>(getInitialDays)
   const [errorPage, setErrorPage] = useState(1)
@@ -323,7 +324,7 @@ const ErrorReport: React.FC = () => {
     queryKey: ["chart-all", token, endpoint, start.toISOString(), now.toISOString(), project],
     queryFn: () => fetchAllTagged(token ?? "", endpoint ?? "", { start, end: now, project: project ?? undefined }),
     enabled: !!token,
-    keepPreviousData: true,
+    refetchOnWindowFocus: false,
   })
 
   const isFetching = allMailsResult.isFetching
@@ -378,13 +379,23 @@ const ErrorReport: React.FC = () => {
 
       {/* Stats cards */}
       <div style={{ position: "relative" }}>
-        {isFetching && (
-          <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(255,255,255,0.7)", zIndex: 10, borderRadius: 12 }} />
-        )}
         <div style={{ ...cardStyle, padding: 24, marginBottom: 16 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
             <div style={{ fontWeight: 700, fontSize: 16 }}>Error Report</div>
-            <DaySelector selected={days} onChange={handleDaysChange} />
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <DaySelector selected={days} onChange={handleDaysChange} />
+              <div style={{ width: 1, height: 20, background: "#e5e7eb" }} />
+              <button
+                onClick={() => {
+                  queryClient.removeQueries({ queryKey: ["chart-all"] })
+                  allMailsResult.refetch()
+                }}
+                title="Reload"
+                style={{ padding: "4px 10px", borderRadius: 4, border: "1px solid #d1d5db", background: "#f9fafb", cursor: "pointer", fontSize: 14, color: "#374151", display: "flex", alignItems: "center", gap: 4 }}
+              >
+                ↻
+              </button>
+            </div>
           </div>
           {allMailsResult.isLoading ? (
             <Stack alignment="center" distribution="center" style={{ minHeight: 80 }}>
@@ -452,14 +463,12 @@ const ErrorReport: React.FC = () => {
             </Stack>
           ) : (
             <div className="datagrid-hover">
-              <DataGrid columns={8}>
+              <DataGrid columns={6}>
                 <DataGridRow>
                   <DataGridHeadCell>Time</DataGridHeadCell>
                   <DataGridHeadCell>Sender</DataGridHeadCell>
                   <DataGridHeadCell>Recipient</DataGridHeadCell>
                   <DataGridHeadCell>Response</DataGridHeadCell>
-                  <DataGridHeadCell>Code</DataGridHeadCell>
-                  <DataGridHeadCell>Type</DataGridHeadCell>
                   <DataGridHeadCell>Request ID</DataGridHeadCell>
                   <DataGridHeadCell>Message ID</DataGridHeadCell>
                 </DataGridRow>
@@ -467,21 +476,42 @@ const ErrorReport: React.FC = () => {
                   pagedErrorEvents.map((ev, i) => (
                     <DataGridRow key={i} style={{ background: i % 2 === 0 ? "#ffffff" : "#f9fafb" }}>
                       <DataGridCell>
-                        {moment(ev.time).format("YYYY-MM-DD, HH:mm:ss")}
-                        <p>UTC: {moment(ev.time).utc().format("YYYY-MM-DD, HH:mm:ss")}</p>
+                        <div style={{ fontSize: 14 }}>{moment(ev.time).format("YYYY-MM-DD, HH:mm:ss")}</div>
+                        <div style={{ marginTop: 2 }}>
+                          <div style={{ fontSize: 12 }}>UTC:</div>
+                          <div style={{ fontSize: 14 }}>{moment(ev.time).utc().format("YYYY-MM-DD, HH:mm:ss")}</div>
+                        </div>
                       </DataGridCell>
                       <DataGridCell><FullCell value={ev.sender} /></DataGridCell>
                       <DataGridCell><FullCell value={ev.recipient} /></DataGridCell>
-                      <DataGridCell><FullCell value={ev.response} /></DataGridCell>
-                      <DataGridCell>{ev.code || "-"}</DataGridCell>
-                      <DataGridCell><TypeBadge type={ev.type} /></DataGridCell>
-                      <DataGridCell><FullCell value={ev.requestId} mono /></DataGridCell>
-                      <DataGridCell><FullCell value={ev.messageId} mono /></DataGridCell>
+                      <DataGridCell>
+                        <span style={{ wordBreak: "break-word" }}>
+                          <TypeBadge type={ev.type} />{" "}
+                          {ev.response || "-"}
+                        </span>
+                      </DataGridCell>
+                      <DataGridCell><span style={{ fontFamily: "monospace", fontSize: 13, wordBreak: "break-all" }}>{ev.requestId || "-"}</span></DataGridCell>
+                      <DataGridCell>
+                        {ev.messageId && onNavigateToMaillog ? (
+                          <span
+                            onClick={() => onNavigateToMaillog(ev.messageId)}
+                            title="Search message ID in Maillog"
+                            style={{ fontFamily: "monospace", fontSize: 13, wordBreak: "break-all", color: "#038bc6", fontWeight: 600, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4 }}
+                          >
+                            {ev.messageId}
+                            <svg width="13" height="13" viewBox="0 0 96.21 96.21" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0, opacity: 0.7 }}>
+                              <path fill="#038bc6" d="M85.39,90.2c-1.23,0-2.46-.47-3.4-1.41l-17.9-17.9c-6.05,4.59-13.65,7.28-21.99,7.28-20.23,0-36.08-15.85-36.08-36.08S21.86,6.01,42.09,6.01s36.08,15.85,36.08,36.08c0,8.34-2.7,15.94-7.28,21.99l17.9,17.9c.94.94,1.41,2.17,1.41,3.4s-.47,2.46-1.41,3.4c-.94.94-2.17,1.41-3.4,1.41ZM42.09,15.63c-14.84,0-26.46,11.62-26.46,26.46s11.62,26.46,26.46,26.46,26.46-11.62,26.46-26.46-11.62-26.46-26.46-26.46Z"/>
+                            </svg>
+                          </span>
+                        ) : (
+                          <span style={{ fontFamily: "monospace", fontSize: 13, wordBreak: "break-all" }}>{ev.messageId || "-"}</span>
+                        )}
+                      </DataGridCell>
                     </DataGridRow>
                   ))
                 ) : (
                   <DataGridRow>
-                    <DataGridCell colSpan={8}>
+                    <DataGridCell colSpan={6}>
                       <Stack alignment="center" distribution="center" style={{ minHeight: 80 }}>
                         No error events in the selected time range.
                       </Stack>

@@ -178,6 +178,126 @@ export interface ReportQueryKeyParams {
   queryKey: [string, string, string, ReportSearchOptions]
 }
 
+// ─── Cronus API types ────────────────────────────────────────────────────────
+
+export interface CronusApiResponse<T = unknown> {
+  data?: T
+  error?: string
+  errorDetails?: unknown
+  message?: string
+}
+
+export interface HeaderDomain {
+  domain: string
+  object: string
+}
+
+export interface HeaderDomainsListResponse {
+  data: HeaderDomain[]
+  next_token?: string
+}
+
+export interface CronusReceiptRule {
+  maildrop: string[]
+}
+
+export type RecipientMap = Record<string, CronusReceiptRule>
+
+export interface AddRecipientPayload {
+  localpart: string
+  maildrop: string[]
+}
+
+export interface Rfc6902Patch {
+  op: "add" | "remove"
+  path: string
+  value?: CronusReceiptRule
+}
+
+export interface ComplianceRule {
+  technicalSenderDomain: string
+  legalEntityName: string
+  countryCode: string
+  enabled?: boolean
+  logStorageDays?: number
+  logVisibilityDays?: number
+}
+
+export interface ComplianceRuleWithDefault {
+  technicalSenderDomain: string
+  effectiveCountryCode: string
+  domainRule?: ComplianceRule
+  defaultRule?: ComplianceRule
+}
+
+export interface ComplianceResponse {
+  rules: ComplianceRule[]
+}
+
+export interface UpsertComplianceRuleRequest {
+  technicalSenderDomain: string
+  legalEntityName?: string
+  countryCode: string
+}
+
+export interface DkimResponse {
+  domain: string
+  selector: string
+  object: string
+  project: string
+  enabled: boolean
+  dkim_record_p: string
+  verification_status: string
+}
+
+export interface PostDkimRequest {
+  selector: string
+  private_key: string
+  enabled: boolean
+  rollover: boolean
+}
+
+export interface PutDkimRequest {
+  enabled: boolean
+  private_key?: string
+}
+
+export interface WhoamiResponse {
+  projectId: string
+  projectName: string
+  domainId: string
+  domainName: string
+  userId: string
+  userName: string
+  enabled: boolean
+  enabledProviders: string[]
+  receivingEnabled: boolean
+  ownerEmails: string[]
+  roles: string[]
+}
+
+export interface ReceivingResponse {
+  enabled: boolean
+  notificationQueue?: string
+  storageContainerName?: string
+  storageDomainName?: string
+  storageFormat?: string
+  storageProjectName?: string
+  storageType?: string
+}
+
+export interface UpsertReceivingConfigurationRequest {
+  enabled: boolean
+  storageContainerName: string
+  storageType?: string
+  storageFormat?: string
+  storageDomainName?: string
+  storageProjectName?: string
+  notificationQueue?: string
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export const encodeUrlParamsFromObject = (options: Record<string, unknown>): string => {
   if (!options) return ""
   const encodedOptions = Object.keys(options)
@@ -320,3 +440,287 @@ const fetchFromAPI = async <T>(
     throw new NetworkError(`An unexpected error occurred: ${errorMessage}`)
   }
 }
+
+// ─── Cronus API (proxied through Rails) ──────────────────────────────────────
+
+const getCsrfToken = (): string => {
+  const tag = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
+  return tag?.content ?? ""
+}
+
+const cronusFetch = async <T>(
+  bearerToken: string,
+  cronusEndpoint: string,
+  path: string,
+  method: "GET" | "POST" | "DELETE" | "PATCH" | "PUT",
+  body?: unknown
+): Promise<T> => {
+  const url = `${cronusEndpoint.replace(/\/$/, "")}/cronus-proxy${path}`
+  try {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS)
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      "X-Auth-Token": bearerToken,
+    }
+    if (method !== "GET") {
+      headers["X-CSRF-Token"] = getCsrfToken()
+    }
+    const init: RequestInit = {
+      method,
+      headers,
+      signal: controller.signal,
+    }
+    if (body !== undefined) {
+      init.body = JSON.stringify(body)
+    }
+    const response = await fetch(url, init)
+    clearTimeout(timeoutId)
+
+    if (response.status === 204) {
+      return undefined as unknown as T
+    }
+
+    if (response.ok) {
+      return (await response.json()) as T
+    }
+
+    let errorMessage = ""
+    try {
+      const errorDetails = (await response.json()) as { message?: string; error?: string }
+      errorMessage = errorDetails?.message || errorDetails?.error || response.statusText
+    } catch {
+      try {
+        errorMessage = await response.text()
+      } catch {
+        errorMessage = response.statusText
+      }
+    }
+
+    if (response.status >= 500) {
+      throw new HTTPError(response.status, `Service temporarily unavailable (${response.status}). ${errorMessage || "Please try again later."}`)
+    } else if (response.status === 404) {
+      throw new HTTPError(response.status, `Not found (404). ${errorMessage || ""}`)
+    } else if (response.status === 403) {
+      throw new HTTPError(response.status, `Access forbidden (403). ${errorMessage || ""}`)
+    } else if (response.status === 401) {
+      throw new HTTPError(response.status, `Authentication failed (401). ${errorMessage || "Please refresh the page to re-authenticate."}`)
+    } else if (response.status === 422) {
+      throw new HTTPError(response.status, `Validation error (422). ${errorMessage || ""}`)
+    } else {
+      throw new HTTPError(response.status, `Request failed (${response.status}). ${errorMessage || ""}`)
+    }
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new NetworkError("Request timeout. The API is taking too long to respond.")
+    }
+    if (error instanceof TypeError) {
+      throw new NetworkError("Network error. Unable to connect to the Cronus API.")
+    }
+    if (error instanceof HTTPError || error instanceof NetworkError) throw error
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    throw new NetworkError(`An unexpected error occurred: ${errorMessage}`)
+  }
+}
+
+// Header Domains
+
+export const fetchHeaderDomains = (
+  bearerToken: string,
+  cronusEndpoint: string,
+  size?: number,
+  nextToken?: string
+): Promise<HeaderDomainsListResponse> => {
+  const params = new URLSearchParams()
+  if (size !== undefined) params.set("size", String(size))
+  if (nextToken) params.set("nextToken", nextToken)
+  const qs = params.toString() ? `?${params.toString()}` : ""
+  return cronusFetch<HeaderDomainsListResponse>(bearerToken, cronusEndpoint, `/v1/header-domains${qs}`, "GET")
+}
+
+// Recipients
+
+export const fetchRecipients = (
+  bearerToken: string,
+  cronusEndpoint: string,
+  domainId: string
+): Promise<RecipientMap> =>
+  cronusFetch<RecipientMap>(bearerToken, cronusEndpoint, `/v1/header-domains/${encodeURIComponent(domainId)}/recipients`, "GET")
+
+export const createRecipient = (
+  bearerToken: string,
+  cronusEndpoint: string,
+  domainId: string,
+  payload: AddRecipientPayload
+): Promise<AddRecipientPayload> =>
+  cronusFetch<AddRecipientPayload>(
+    bearerToken,
+    cronusEndpoint,
+    `/v1/header-domains/${encodeURIComponent(domainId)}/recipients`,
+    "POST",
+    payload
+  )
+
+export const deleteRecipient = (
+  bearerToken: string,
+  cronusEndpoint: string,
+  domainId: string,
+  localpart: string
+): Promise<void> =>
+  cronusFetch<void>(
+    bearerToken,
+    cronusEndpoint,
+    `/v1/header-domains/${encodeURIComponent(domainId)}/recipients/${encodeURIComponent(localpart)}`,
+    "DELETE"
+  )
+
+export const patchRecipients = (
+  bearerToken: string,
+  cronusEndpoint: string,
+  domainId: string,
+  patches: Rfc6902Patch[]
+): Promise<void> =>
+  cronusFetch<void>(
+    bearerToken,
+    cronusEndpoint,
+    `/v1/header-domains/${encodeURIComponent(domainId)}/recipients`,
+    "PATCH",
+    patches
+  )
+
+// Compliance
+
+export const fetchCompliance = (
+  bearerToken: string,
+  cronusEndpoint: string
+): Promise<CronusApiResponse<ComplianceResponse>> =>
+  cronusFetch<CronusApiResponse<ComplianceResponse>>(bearerToken, cronusEndpoint, "/v1/compliance", "GET")
+
+export const fetchComplianceRule = (
+  bearerToken: string,
+  cronusEndpoint: string,
+  domain: string
+): Promise<CronusApiResponse<ComplianceRuleWithDefault>> =>
+  cronusFetch<CronusApiResponse<ComplianceRuleWithDefault>>(
+    bearerToken,
+    cronusEndpoint,
+    `/v1/compliance/rule/${encodeURIComponent(domain)}`,
+    "GET"
+  )
+
+export const upsertComplianceRule = (
+  bearerToken: string,
+  cronusEndpoint: string,
+  rule: UpsertComplianceRuleRequest
+): Promise<CronusApiResponse> =>
+  cronusFetch<CronusApiResponse>(bearerToken, cronusEndpoint, "/v1/compliance/rule", "POST", rule)
+
+export const deleteComplianceRule = (
+  bearerToken: string,
+  cronusEndpoint: string,
+  domain: string
+): Promise<CronusApiResponse> =>
+  cronusFetch<CronusApiResponse>(
+    bearerToken,
+    cronusEndpoint,
+    `/v1/compliance/rule/${encodeURIComponent(domain)}`,
+    "DELETE"
+  )
+
+// Receiving Configuration
+
+export const fetchReceivingConfig = (
+  bearerToken: string,
+  cronusEndpoint: string
+): Promise<CronusApiResponse<ReceivingResponse>> =>
+  cronusFetch<CronusApiResponse<ReceivingResponse>>(bearerToken, cronusEndpoint, "/v1/receiving", "GET")
+
+export const upsertReceivingConfig = (
+  bearerToken: string,
+  cronusEndpoint: string,
+  config: UpsertReceivingConfigurationRequest
+): Promise<CronusApiResponse> =>
+  cronusFetch<CronusApiResponse>(bearerToken, cronusEndpoint, "/v1/receiving", "POST", config)
+
+export const deleteReceivingConfig = (
+  bearerToken: string,
+  cronusEndpoint: string
+): Promise<CronusApiResponse> =>
+  cronusFetch<CronusApiResponse>(bearerToken, cronusEndpoint, "/v1/receiving", "DELETE")
+
+// DKIM
+
+export const fetchDkim = (
+  bearerToken: string,
+  cronusEndpoint: string,
+  headerDomain: string
+): Promise<CronusApiResponse<DkimResponse[]>> =>
+  cronusFetch<CronusApiResponse<DkimResponse[]>>(
+    bearerToken,
+    cronusEndpoint,
+    `/v1/header-domains/${encodeURIComponent(headerDomain)}/dkim`,
+    "GET"
+  )
+
+export const fetchDkimSelector = (
+  bearerToken: string,
+  cronusEndpoint: string,
+  headerDomain: string,
+  selector: string
+): Promise<CronusApiResponse<DkimResponse>> =>
+  cronusFetch<CronusApiResponse<DkimResponse>>(
+    bearerToken,
+    cronusEndpoint,
+    `/v1/header-domains/${encodeURIComponent(headerDomain)}/dkim/${encodeURIComponent(selector)}`,
+    "GET"
+  )
+
+export const createDkim = (
+  bearerToken: string,
+  cronusEndpoint: string,
+  headerDomain: string,
+  payload: PostDkimRequest
+): Promise<CronusApiResponse<DkimResponse>> =>
+  cronusFetch<CronusApiResponse<DkimResponse>>(
+    bearerToken,
+    cronusEndpoint,
+    `/v1/header-domains/${encodeURIComponent(headerDomain)}/dkim`,
+    "POST",
+    payload
+  )
+
+export const updateDkim = (
+  bearerToken: string,
+  cronusEndpoint: string,
+  headerDomain: string,
+  selector: string,
+  payload: PutDkimRequest
+): Promise<CronusApiResponse<DkimResponse>> =>
+  cronusFetch<CronusApiResponse<DkimResponse>>(
+    bearerToken,
+    cronusEndpoint,
+    `/v1/header-domains/${encodeURIComponent(headerDomain)}/dkim/${encodeURIComponent(selector)}`,
+    "PUT",
+    payload
+  )
+
+export const deleteDkim = (
+  bearerToken: string,
+  cronusEndpoint: string,
+  headerDomain: string,
+  selector: string
+): Promise<CronusApiResponse> =>
+  cronusFetch<CronusApiResponse>(
+    bearerToken,
+    cronusEndpoint,
+    `/v1/header-domains/${encodeURIComponent(headerDomain)}/dkim/${encodeURIComponent(selector)}`,
+    "DELETE"
+  )
+
+// Whoami
+
+export const fetchWhoami = (
+  bearerToken: string,
+  cronusEndpoint: string
+): Promise<WhoamiResponse> =>
+  cronusFetch<WhoamiResponse>(bearerToken, cronusEndpoint, "/v1/whoami", "GET")

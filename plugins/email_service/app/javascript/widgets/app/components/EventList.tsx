@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react"
+import { useHistory } from "react-router-dom"
 import { useAuthData, useAuthProject, useGlobalsEndpoint } from "./StoreProvider"
 import { useGetData } from "../queries"
 import { MailSearchOptions, MailLogEntry, HTTPError, NetworkError } from "../actions"
@@ -50,9 +51,10 @@ interface TableData {
 interface EventListProps {
   props?: Record<string, unknown>
   onDataFetched?: (data: MailLogEntry[]) => void
+  initialMessageId?: string
 }
 
-const EventList: React.FC<EventListProps> = ({ props, onDataFetched }) => {
+const EventList: React.FC<EventListProps> = ({ props, onDataFetched, initialMessageId }) => {
   const [paginationOptions, setPaginationOptions] = useState<PaginationOptions>({
     pageSize: ITEMS_PER_PAGE,
     page: 1,
@@ -62,10 +64,9 @@ const EventList: React.FC<EventListProps> = ({ props, onDataFetched }) => {
     subject: "",
     rcpt: [],
     id: "",
-    messageId: "",
+    messageId: initialMessageId ?? "",
     headerFrom: "",
     relay: "",
-    // IncludeAttempts: true,
   })
   const [dateOptions, setDateOptions] = useState<DateOptions>({ start: null, end: null })
   const endpoint = useGlobalsEndpoint()
@@ -105,6 +106,28 @@ const EventList: React.FC<EventListProps> = ({ props, onDataFetched }) => {
   const setDate = (date: DateOptions) => {
     setDateOptions((prev) => ({ ...prev, ...date }))
   }
+
+  const history = useHistory()
+
+  useEffect(() => {
+    if (initialMessageId) {
+      setSearchOptions((prev) => ({ ...prev, messageId: initialMessageId }))
+      setPaginationOptions((prev) => ({ ...prev, page: 1 }))
+    }
+  }, [initialMessageId])
+
+  const autoNavigatedRef = React.useRef<string | null>(null)
+
+  // Auto-open the item detail when navigating from Error Report via message ID
+  useEffect(() => {
+    if (!initialMessageId || !tableData.data || tableData.isLoading || tableData.isFetching) return
+    if (autoNavigatedRef.current === initialMessageId) return
+    const match = tableData.data.find((entry) => entry.messageId === initialMessageId)
+    if (match) {
+      autoNavigatedRef.current = initialMessageId
+      history.push(`/${match.id}/show`)
+    }
+  }, [initialMessageId, tableData.data?.length, tableData.isLoading, tableData.isFetching])
 
   useEffect(() => {
     // Always update table data state to reflect current fetch status
