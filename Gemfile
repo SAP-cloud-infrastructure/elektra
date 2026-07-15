@@ -56,10 +56,6 @@ gem 'config', '~> 2.2.1'
 # Prometheus instrumentation
 gem 'prometheus-client'
 
-# Sentry client
-gem 'httpclient' # The only faraday backend that handled no_proxy :|
-gem 'sentry-raven'
-gem 'faraday-httpclient', '~> 2.0'
 
 # See https://github.com/sstephenson/execjs#readme for more supported runtimes
 # gem 'therubyracer', platforms: :ruby
