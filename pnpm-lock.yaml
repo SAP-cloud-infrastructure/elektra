@@ -255,8 +255,8 @@ dependencies:
 
 optionalDependencies:
   '@sapcc/limes-ui':
-    specifier: 1.18.4
-    version: 1.18.4(@types/node@24.10.9)(@types/react@18.2.0)(postcss@8.5.6)(react-dom@18.2.0)(react@18.2.0)(sonner@2.0.7)(typescript@5.9.3)
+    specifier: 1.18.6
+    version: 1.18.6(@types/node@24.10.9)(@types/react@18.2.0)(postcss@8.5.6)(react-dom@18.2.0)(react@18.2.0)(sonner@2.0.7)(typescript@5.9.3)
 
 devDependencies:
   '@babel/preset-env':
@@ -3791,8 +3791,8 @@ packages:
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
     dev: true
 
-  /@sapcc/limes-ui@1.18.4(@types/node@24.10.9)(@types/react@18.2.0)(postcss@8.5.6)(react-dom@18.2.0)(react@18.2.0)(sonner@2.0.7)(typescript@5.9.3):
-    resolution: {integrity: sha512-cBD2aH0wRd5TGs0FgctHAfMlYcAfVCLXUzRvJTC0WViRYV4tj9Si0ArNILOCHgfv+8J0dxO16h34oPXyj4HxcQ==, tarball: https://npm.pkg.github.com/download/@sapcc/limes-ui/1.18.4/3a05db1224588868f5bf47aff20ac9a02ef75b98}
+  /@sapcc/limes-ui@1.18.6(@types/node@24.10.9)(@types/react@18.2.0)(postcss@8.5.6)(react-dom@18.2.0)(react@18.2.0)(sonner@2.0.7)(typescript@5.9.3):
+    resolution: {integrity: sha512-yTCSdspdj/9EkmykfON1YeEY0IwCda9oPZOHyLKN00eJvZV8G0yl7z2u0acFAgFR7HY9T0IG6ok62eXQYBHRBA==, tarball: https://npm.pkg.github.com/download/@sapcc/limes-ui/1.18.6/9bb9b1c2ab2c662b390c67e909add30f9d8e632d}
     requiresBuild: true
     dependencies:
       '@cj-tech-master/excelts': 10.2.0
