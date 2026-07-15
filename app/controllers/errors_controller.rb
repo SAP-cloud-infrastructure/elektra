@@ -21,7 +21,7 @@ class ErrorsController < ActionController::Base
     @status_code = @exception_wrapper.status_code
     @rescue_response =
       ActionDispatch::ExceptionWrapper.rescue_responses[@exception.class.name]
-    @sentry_event_id = Raven.last_event_id
+    @sentry_event_id = request.uuid
     @sentry_user_context =
       if current_user
         {
@@ -60,7 +60,7 @@ class ErrorsController < ActionController::Base
         key = @exception.class.name.underscore
         name = @exception.class.name
         message = @exception.message
-        token = Raven.last_event_id || request.uuid || "n/a"
+        token = request.uuid || "n/a"
         description = "There are no further details available. Sorry!"
 
         I18n.with_options scope: [:exception, :show, @rescue_response],
