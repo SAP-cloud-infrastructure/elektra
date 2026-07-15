@@ -22,12 +22,11 @@ module Rescue
       rescue_from "ActionView::MissingTemplate" do |exception|
         options = {
           warning: true,
-          sentry: true,
           title: "Page not Found",
           description:
             "The page you are looking for doesn't exist. Please verify the url",
         }
-        render_exception_page(exception, options.merge(sentry: true))
+        render_exception_page(exception, options)
       end
 
       # handle Token issues
@@ -61,7 +60,6 @@ module Rescue
             title: "Access Forbidden",
             description: "Your account is not associated with any OpenStack domain or project. Please contact your cloud administrator to request access.",
             warning: true,
-            sentry: false,
             status: 403
           )
         else
@@ -78,7 +76,6 @@ module Rescue
           title: exception.code_type,
           description: :message,
           warning: true,
-          sentry: false,
         }
 
         case exception.code.to_i
@@ -99,26 +96,26 @@ module Rescue
             :description
           ] = "The object you are looking for doesn't exist. \
         Please verify your input. (#{exception.message})"
-          render_exception_page(exception, options.merge(sentry: false))
+          render_exception_page(exception, options)
         when 403 # forbidden
           options[:title] = "Permission Denied"
           options[:description] = exception.message ||
             "You are not authorized to request this page."
-          render_exception_page(exception, options.merge(sentry: false))
+          render_exception_page(exception, options)
         when 422 # UNPROCESSABLE ENTITY
           options[:title] = "Unprocessable Entity"
           options[:description] = exception.message || "Backend Error."
-          render_exception_page(exception, options.merge(sentry: false))
+          render_exception_page(exception, options)
         when 429 # too many requests
           options[:title] = "Too Many Requests"
           options[:description] = exception.message ||
             "You have made too many requests to identity. Please try again later."
-          render_exception_page(exception, options.merge(sentry: false))
+          render_exception_page(exception, options)
         when 501 # Not implemented
           options[:title] = "Not Implemented"
           options[:description] = exception.message ||
             "The requested functionality is not supported."
-          render_exception_page(exception, options.merge(sentry: false))
+          render_exception_page(exception, options)
         end
       end
 
@@ -127,7 +124,6 @@ module Rescue
                                          {
                                            "MonsoonOpenstackAuth::Authorization::SecurityViolation" => {
                                              title: "Forbidden",
-                                             sentry: false,
                                              warning: true,
                                              status: 403,
                                              description:
@@ -150,7 +146,6 @@ module Rescue
                                          {
                                            "Core::Error::ProjectNotFound" => {
                                              title: "Project Not Found",
-                                             sentry: false,
                                              warning: true,
                                            },
                                          },
