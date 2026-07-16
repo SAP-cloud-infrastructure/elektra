@@ -16,7 +16,8 @@ Rails.application.configure do
   # Show full error reports.
   config.consider_all_requests_local = true
   # Do not render the standard error page in development.
-  config.action_dispatch.show_exceptions = false
+  # Rails 7.2+ uses :none/:all/:rescuable instead of true/false
+  config.action_dispatch.show_exceptions = :none
 
   # Enable server timing
   config.server_timing = true

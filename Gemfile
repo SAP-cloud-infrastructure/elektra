@@ -13,7 +13,7 @@ gem 'unf', '>= 0.2.0beta2'
 
 gem 'jsbundling-rails'
 # https://rubygems.org/gems/rails/versions
-gem 'rails', '7.1.6'
+gem 'rails', '7.2.3.1'
 # Security fixes for Rack CVEs (multipart parsing, DoS, file exposure)
 gem 'rack', '>= 3.2.6'
 # Security fix for rack-session CVE (session forgery and Marshal deserialization)
