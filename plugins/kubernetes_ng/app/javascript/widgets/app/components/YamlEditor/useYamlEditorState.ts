@@ -1,10 +1,11 @@
 import { useState, useRef } from "react"
 import { useMutation } from "@tanstack/react-query"
-import { parseYamlToObject } from "./yamlParser"
+import { parseContentToObject } from "./yamlParser"
 
 interface UseYamlEditorStateOptions {
   resource: Record<string, unknown>
-  yamlContent: string
+  content: string
+  format: "yaml" | "json"
   onSave: (resource: Record<string, unknown>) => Promise<void>
   onError?: (error: Error) => void
   onEdit?: () => void
@@ -13,14 +14,15 @@ interface UseYamlEditorStateOptions {
 
 export function useYamlEditorState({
   resource,
-  yamlContent,
+  content,
+  format,
   onSave,
   onError,
   onEdit,
   onRefresh,
 }: UseYamlEditorStateOptions) {
   const [isEditable, setIsEditable] = useState<boolean>(false)
-  const [editedYaml, setEditedYaml] = useState<string>("")
+  const [editedContent, setEditedContent] = useState<string>("")
   const [showCancelDialog, setShowCancelDialog] = useState<boolean>(false)
   const [showVersionConflictDialog, setShowVersionConflictDialog] = useState<boolean>(false)
   const [pendingSaveData, setPendingSaveData] = useState<Record<string, unknown> | null>(null)
@@ -30,20 +32,20 @@ export function useYamlEditorState({
     mutationFn: onSave,
     onSuccess: () => {
       setIsEditable(false)
-      setEditedYaml("")
+      setEditedContent("")
     },
   })
 
   const exitEditMode = () => {
     setIsEditable(false)
-    setEditedYaml("")
+    setEditedContent("")
     mutation.reset()
   }
 
   const handleEditClick = () => {
     onEdit?.()
     if (!isEditable) {
-      setEditedYaml(yamlContent)
+      setEditedContent(content)
       mutation.reset()
       setIsEditable(true)
       // Capture initial resourceVersion when entering edit mode
@@ -51,7 +53,7 @@ export function useYamlEditorState({
       initialResourceVersionRef.current = metadata?.resourceVersion as string | undefined
     } else {
       // Check if there are unsaved changes
-      const hasChanges = editedYaml !== yamlContent
+      const hasChanges = editedContent !== content
       if (hasChanges) {
         setShowCancelDialog(true)
       } else {
@@ -109,7 +111,7 @@ export function useYamlEditorState({
 
   const handleSaveClick = async () => {
     try {
-      const validatedObject = parseYamlToObject(editedYaml)
+      const validatedObject = parseContentToObject(editedContent, format)
 
       // Refresh the resource to get the latest resourceVersion before saving
       if (onRefresh) {
@@ -140,18 +142,18 @@ export function useYamlEditorState({
       // No conflict - proceed with save
       mutation.mutate(validatedObject)
     } catch (err) {
-      // Show error if YAML is invalid (error already has "Invalid YAML:" prefix from parser)
+      // Show error if content is invalid (error already has "Invalid YAML:" or "Invalid JSON:" prefix from parser)
       onError?.(err as Error)
     }
   }
 
-  const hasChanges = isEditable && editedYaml !== yamlContent
+  const hasChanges = isEditable && editedContent !== content
   const isLoading = mutation.isPending || false
 
   return {
     isEditable,
-    editedYaml,
-    setEditedYaml,
+    editedContent,
+    setEditedContent,
     showCancelDialog,
     showVersionConflictDialog,
     hasChanges,
