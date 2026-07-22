@@ -21,20 +21,6 @@ class ErrorsController < ActionController::Base
     @status_code = @exception_wrapper.status_code
     @rescue_response =
       ActionDispatch::ExceptionWrapper.rescue_responses[@exception.class.name]
-    @sentry_event_id = Raven.last_event_id
-    @sentry_user_context =
-      if current_user
-        {
-          ip_address: request.ip,
-          id: current_user.id,
-          email: current_user.email,
-          username: current_user.name,
-          domain: current_user.user_domain_name,
-          name: current_user.full_name,
-        }.reject { |_, v| v.nil? }
-      else
-        {}
-      end
 
     respond_to do |format|
       format.html { render :show, status: @status_code, layout: !request.xhr? }
@@ -60,7 +46,7 @@ class ErrorsController < ActionController::Base
         key = @exception.class.name.underscore
         name = @exception.class.name
         message = @exception.message
-        token = Raven.last_event_id || request.uuid || "n/a"
+        token = request.uuid || "n/a"
         description = "There are no further details available. Sorry!"
 
         I18n.with_options scope: [:exception, :show, @rescue_response],

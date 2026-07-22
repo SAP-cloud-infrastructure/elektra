@@ -17,7 +17,6 @@ class DashboardController < ::ScopeController
 
   before_action { params.delete(:after_login) }                    
   before_action :check_terms_of_use, except: %i[accept_terms_of_use terms_of_use]
-  before_action :raven_context, except: [:terms_of_use]
   before_action :load_active_project, except: %i[terms_of_use]
   before_action :set_mailer_host, except: %i[terms_of_use]
   before_action :load_help_text, except: [:terms_of_use]
@@ -177,35 +176,6 @@ class DashboardController < ::ScopeController
     ActionMailer::Base.default_url_options[:host] = request.host_with_port
     ActionMailer::Base.default_url_options[:protocol] = request.protocol
   end
-
-  def raven_context
-    @sentry_user_context =
-      {
-        ip_address: request.ip,
-        id: current_user.id,
-        email: current_user.email,
-        username: current_user.name,
-        domain: current_user.user_domain_name,
-        name: current_user.full_name
-      }.reject { |_, v| v.nil? }
-
-    Raven.user_context(@sentry_user_context)
-
-    tags = {}
-    tags[:request_id] = request.uuid if request.uuid
-    tags[:plugin] = plugin_name if try(:plugin_name).present?
-    if current_user.domain_id
-      tags[:domain_id] = current_user.domain_id
-      tags[:domain_name] = current_user.domain_name
-    elsif current_user.project_id
-      tags[:project_id] = current_user.project_id
-      tags[:project_name] = current_user.project_name
-      tags[:project_domain_id] = current_user.project_domain_id
-      tags[:project_domain_name] = current_user.project_domain_name
-    end
-    @sentry_tags_context = tags
-    Raven.tags_context(tags)
-  end  
 
   def load_help_text
     # Different types of help files are supported:

@@ -7,14 +7,6 @@
   <%= details[:description] %>
 </p>
 
-<% if @sentry_event_id && $sentry_public_dsn %>
-  <script>
-  Raven.showReportDialog({
-    eventId: '<%= @sentry_event_id -%>'
-  });
-  </script>
-<% end %>
-
 <% if debug_visible? %>
   <h3>Staff Info</h3>
 

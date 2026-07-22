@@ -106,20 +106,6 @@ module ErrorRenderer
       else
         logger.error("#{@exception_id}: #{@title}. #{@description}")
 
-        unless map[:sentry] == false
-          Raven::Rack.capture_exception(exception, request.env)
-          @exception_id = Raven.last_event_id if Raven.last_event_id
-        end
-        @sentry_event_id = Raven.last_event_id
-        @sentry_public_dsn =
-          URI.parse(ENV["SENTRY_DSN"]).tap { |u| u.password = nil }.to_s if ENV[
-          "SENTRY_DSN"
-        ]
-        @sentry_user = {
-          name: current_user.full_name || current_user.name,
-          email: current_user.email,
-        } if current_user
-
         # no render error if polling service
         unless params[:polling_service]
           respond_to do |format|

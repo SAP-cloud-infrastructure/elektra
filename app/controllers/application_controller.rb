@@ -48,11 +48,7 @@ class ApplicationController < ActionController::Base
           'backend calls. This should be fixed momentarily. Please ' \
           'try again in a couple of minutes.',
       warning: true,
-      sentry: false
     }
-
-    # send to sentry if exception isn't a timeout error
-    options[:sentry] = true unless exception.message == 'Net::ReadTimeout'
 
     render_exception_page(exception, options)
   end
