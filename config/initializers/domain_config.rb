@@ -103,11 +103,8 @@ class DomainConfig
       merged_config = merged_config.merge(config)
     end 
     
-    Rails.logger.debug "DomainConfig: Merging configs for #{scoped_domain_name} with #{matching_configs.size} matching domains"
-    # better logging for debugging in development
-    output = StringIO.new # use StringIO to capture output
-    PP.pp(merged_config, output) # pretty print the merged config to the StringIO object
-    Rails.logger.debug "DomainConfig: Merged config:\n#{output.string}"
+    Rails.logger.debug { "DomainConfig: Merging configs for #{scoped_domain_name} with #{matching_configs.size} matching domains" }
+    Rails.logger.debug { "DomainConfig: Merged config:\n#{merged_config.inspect}" }
 
     return merged_config if merged_config.is_a?(Hash)
     raise "DomainConfig: Invalid domain config for #{scoped_domain_name}, expected a Hash, got #{merged_config.class}"
