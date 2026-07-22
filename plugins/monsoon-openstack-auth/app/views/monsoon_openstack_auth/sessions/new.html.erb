@@ -1,5 +1,14 @@
 <%= inside_layout 'monsoon_openstack_auth/application' do %>
 
+  <%# SSO meta tags: enable browser-side mTLS fetch to Keystone %>
+  <% keystone_url = begin URI.parse(ENV['MONSOON_OPENSTACK_AUTH_API_ENDPOINT']).origin rescue nil end %>
+  <% if keystone_url && (@domain_name.present? || @domain_id.present?) %>
+    <meta name="keystone-url" content="<%= keystone_url %>">
+    <meta name="sso-domain-name" content="<%= @domain_name %>">
+    <meta name="sso-domain-id" content="<%= @domain_id %>">
+    <%= javascript_include_tag "sso_login", defer: true %>
+  <% end %>
+
   <%= form_tag sessions_path, id: "monsoon_openstack_auth_login" do %>
     <% if @error%>  
       <div class="error"><i class="fa fa-exclamation-triangle"></i><%= @error %></div>
