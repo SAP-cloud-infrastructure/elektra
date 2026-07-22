@@ -16,6 +16,8 @@ module MonsoonOpenstackAuth
       MonsoonOpenstackAuth::Authentication::AuthSession.logout(
         self, (@domain_id || @domain_name)
       )
+
+      @keystone_endpoint = keystone_tokens_url
     end
 
     def consume_auth_token
@@ -176,6 +178,22 @@ module MonsoonOpenstackAuth
     end
 
     private
+
+      def keystone_tokens_url
+        endpoint = ENV['MONSOON_OPENSTACK_AUTH_API_ENDPOINT']
+        return nil if endpoint.blank?
+
+        base_uri = URI.parse(endpoint)
+        # base_uri.origin already includes the scheme (e.g., "https://example.com")
+        origin = base_uri.origin || "#{base_uri.scheme}://#{base_uri.host}#{":#{base_uri.port}" if base_uri.port && !standard_port?(base_uri)}"
+        "#{origin.chomp('/')}/v3/auth/tokens"
+      rescue URI::InvalidURIError
+        nil
+      end
+
+      def standard_port?(uri)
+        (uri.scheme == 'http' && uri.port == 80) || (uri.scheme == 'https' && uri.port == 443)
+      end
 
     def load_auth_params
       @username = params[:username]
