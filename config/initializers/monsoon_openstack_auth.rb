@@ -20,7 +20,7 @@ MonsoonOpenstackAuth.configure do |auth|
   # optional, default=true
   auth.basic_auth_allowed = true
   # optional, default=true
-  auth.sso_auth_allowed = true
+  auth.sso_auth_allowed = ENV['SSO_PRECHECK_ENABLED'].to_s != 'true' 
   # optional, default=true
   auth.form_auth_allowed = true
 

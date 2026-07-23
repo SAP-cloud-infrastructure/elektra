@@ -1,3 +1,9 @@
+#login-content {
+  &.login-hidden {
+    display: none;
+  }
+}
+
 .form-signin {
   max-width: $login-max-width;
   padding: 15px;
@@ -57,4 +63,14 @@
 
   input {
   }
+}
+
+// SSO Precheck Loader
+.sso-precheck-loader {
+  max-width: 360px;
+  margin: 20px auto;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
