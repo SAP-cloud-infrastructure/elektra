@@ -6,7 +6,7 @@
       .spinner
       Checking for SSO session...
 
-#login-content{ style: sso_precheck_enabled ? "display: none" : "" }
+#login-content{ class: ("login-hidden" if sso_precheck_enabled) }
   = form_tag(sessions_path(after_login: params[:after_login]), class: "form-signin") do
     = hidden_field_tag :domain_id, @domain_id
     = hidden_field_tag :domain_name, @domain_name
@@ -56,6 +56,11 @@
                   Request access in CAM
 
 - if sso_precheck_enabled
-  #sso-config{ "data-keystone-url" => @keystone_endpoint, "data-domain-name" => @domain_name, "data-verify-url" => main_app.verify_auth_token_path }
+  #sso-config{  "data-keystone-url" => @keystone_endpoint, 
+                "data-domain-name" => @domain_name, 
+                "data-verify-url" => main_app.verify_auth_token_path, 
+                "data-login-form-id" => "login-content", 
+                "data-spinner-id" => "sso-precheck-container", 
+                "data-hidden-class" => "login-hidden" }
 
   = javascript_include_tag "monsoon-openstack-auth_plugin"
