@@ -42,7 +42,7 @@ Rails.application.configure do
   config.active_storage.service = :local
 
   # Print deprecation notices to the Rails logger.
-  config.active_support.deprecation = :log
+  config.active_support.report_deprecations = true
 
   # Raise exceptions for disallowed deprecations.
   config.active_support.disallowed_deprecation = :raise
