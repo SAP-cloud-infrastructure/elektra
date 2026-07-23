@@ -7,11 +7,6 @@
 
     %title= page_title
     = stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track' => true
-    = javascript_include_tag 'raven'
-    - if $sentry_public_dsn
-      :javascript
-        Raven.config('#{$sentry_public_dsn}').install();
-        Raven.setUserContext(#{@sentry_user_context ? @sentry_user_context.to_json.html_safe : ''});
     = javascript_include_tag 'essentials', 'data-turbolinks-track' => true
 
     = render "layouts/favicon" 

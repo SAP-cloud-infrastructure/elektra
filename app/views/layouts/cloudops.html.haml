@@ -18,12 +18,6 @@
       window.scopedProjectFid = "#{@scoped_project_fid}";
       window.region = "#{current_region}";
 
-    = javascript_include_tag 'raven'
-    - if $sentry_public_dsn
-      :javascript
-        Raven.config('#{$sentry_public_dsn}').install();
-        Raven.setUserContext(#{@sentry_user_context ? @sentry_user_context.to_json.html_safe : ''});
-        Raven.setTagsContext(#{@sentry_tags_context ? @sentry_tags_context.to_json.html_safe : '{}' })
     = javascript_include_tag 'policy_engine', 'data-turbolinks-track' => true
     = javascript_include_tag 'essentials', 'data-turbolinks-track' => true
     = javascript_include_tag 'application', 'data-turbolinks-track' => true
