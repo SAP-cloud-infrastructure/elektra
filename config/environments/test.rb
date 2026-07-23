@@ -39,11 +39,8 @@ Rails.application.configure do
 
   config.active_job.queue_adapter = :test
 
-  # Print deprecation notices to the stderr.
-  config.active_support.deprecation = :stderr
-
-  # Suppress specific deprecation warnings
-  config.active_support.deprecation = :silence
+  # Suppress deprecation notices in test output.
+  config.active_support.report_deprecations = false
 
   # Raise exceptions for disallowed deprecations.
   config.active_support.disallowed_deprecation = :raise
