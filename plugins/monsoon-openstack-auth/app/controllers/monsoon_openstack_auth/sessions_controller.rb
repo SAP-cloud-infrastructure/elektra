@@ -180,7 +180,8 @@ module MonsoonOpenstackAuth
     private
 
       def keystone_tokens_url
-        endpoint = ENV['MONSOON_OPENSTACK_AUTH_API_ENDPOINT']
+        endpoint = ENV['MONSOON_OPENSTACK_AUTH_API_PUBLIC_ENDPOINT'].presence ||
+                  ENV['MONSOON_OPENSTACK_AUTH_API_ENDPOINT']
         return nil if endpoint.blank?
 
         base_uri = URI.parse(endpoint)
@@ -195,32 +196,32 @@ module MonsoonOpenstackAuth
         (uri.scheme == 'http' && uri.port == 80) || (uri.scheme == 'https' && uri.port == 443)
       end
 
-    def load_auth_params
-      @username = params[:username]
-      @password = params[:password]
-      @passcode = params[:passcode]
-      @domain_id = params[:domain_id].presence
-      @domain_name = params[:domain_name].presence || params[:domain_fid]
-      @two_factor = params[:two_factor].to_s == 'true'
-    end
-
-    def decode_auth_token(encoded_token)
-      @verifier = ActiveSupport::MessageVerifier.new(Rails.application.secret_key_base)
-      @verifier.verify(encoded_token)
-    rescue ActiveSupport::MessageVerifier::InvalidSignature
-      nil # Return nil if the token is invalid
-    end
-
-    def safe_redirect_url?(url)
-      return false if url.blank?
-      
-      begin
-        uri = URI.parse(url)
-        # Allow relative URLs and URLs from your domain
-        uri.host.nil? || uri.host == request.host
-      rescue URI::InvalidURIError
-        false
+      def load_auth_params
+        @username = params[:username]
+        @password = params[:password]
+        @passcode = params[:passcode]
+        @domain_id = params[:domain_id].presence
+        @domain_name = params[:domain_name].presence || params[:domain_fid]
+        @two_factor = params[:two_factor].to_s == 'true'
       end
-    end
+
+      def decode_auth_token(encoded_token)
+        @verifier = ActiveSupport::MessageVerifier.new(Rails.application.secret_key_base)
+        @verifier.verify(encoded_token)
+      rescue ActiveSupport::MessageVerifier::InvalidSignature
+        nil # Return nil if the token is invalid
+      end
+
+      def safe_redirect_url?(url)
+        return false if url.blank?
+        
+        begin
+          uri = URI.parse(url)
+          # Allow relative URLs and URLs from your domain
+          uri.host.nil? || uri.host == request.host
+        rescue URI::InvalidURIError
+          false
+        end
+      end
   end
 end
