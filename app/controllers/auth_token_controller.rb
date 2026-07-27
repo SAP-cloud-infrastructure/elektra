@@ -76,7 +76,11 @@ class AuthTokenController < ActionController::Base
 
   def allowed_origin?
     # Define your trusted domains
-    trusted_origins = ["https://identity-3.#{ENV['MONSOON_DASHBOARD_REGION']}.cloud.sap"]
+    # Include both identity provider and dashboard domains
+    trusted_origins = [
+      "https://identity-3.#{ENV['MONSOON_DASHBOARD_REGION']}.cloud.sap",
+      "https://dashboard.#{ENV['MONSOON_DASHBOARD_REGION']}.cloud.sap"
+    ]
 
     # Check the Origin header
     origin = request.headers['Origin']
