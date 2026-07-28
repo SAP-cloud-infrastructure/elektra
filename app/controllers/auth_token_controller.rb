@@ -37,11 +37,22 @@ class AuthTokenController < ActionController::Base
         domain_name = response_body.dig('token', 'user', 'domain', 'name')
 
         if domain_name
-          # Render the loading view while processing the redirect
-          @domain_name = domain_name
-          @auth_token = encode_auth_token(token)
-          
-          render :redirect and return
+          # Create authentication session directly - no redirect needed
+          # Since MonsoonOpenstackAuth is now part of the same codebase,
+          # we can call it directly instead of going through consume_auth_token
+          auth_session = MonsoonOpenstackAuth::Authentication::AuthSession.create_from_auth_token(self, token)
+
+          if auth_session&.logged_in?
+            # Get after_login URL from localStorage (will be in query param from identity provider)
+            after_login_url = params[:after_login].presence || "/#{domain_name}/home"
+
+            Rails.logger.info "SSO login successful: domain=#{domain_name}, user=#{auth_session.user&.name || 'unknown'}"
+            redirect_to after_login_url
+            return
+          else
+            @error = 'Failed to create authentication session'
+            Rails.logger.warn "SSO auth session creation failed for domain: #{domain_name}"
+          end
         else
           # Token is valid but user has no domain/project access (no Keystone role assignments)
           if MonsoonOpenstackAuth.configuration.block_login_fallback_after_sso?
@@ -85,10 +96,5 @@ class AuthTokenController < ActionController::Base
     # Check the Origin header
     origin = request.headers['Origin']
     trusted_origins.include?(origin)
-  end
-
-  def encode_auth_token(auth_token)
-    @verifier = ActiveSupport::MessageVerifier.new(Rails.application.secret_key_base)
-    @verifier.generate(auth_token)
   end
 end
