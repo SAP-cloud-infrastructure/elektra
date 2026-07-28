@@ -43,8 +43,8 @@
 
   "shared_filesystem_storage:replica_create": "rule:context_is_sharedfilesystem_admin",
   "shared_filesystem_storage:replica_delete": "rule:context_is_sharedfilesystem_admin and not (%(replica.replica_state)s=='active')",
-  "shared_filesystem_storage:replica_get": "rule:context_is_sharedfilesystem_admin",
-  "shared_filesystem_storage:replica_list": "rule:context_is_sharedfilesystem_admin",
+  "shared_filesystem_storage:replica_get": "rule:context_is_share_viewer",
+  "shared_filesystem_storage:replica_list": "rule:context_is_share_viewer",
   "shared_filesystem_storage:replica_resync": "rule:context_is_sharedfilesystem_admin and (%(replica.replica_state)s=='out_of_sync')",
   "shared_filesystem_storage:replica_promote": "rule:context_is_sharedfilesystem_admin and not (%(replica.replica_state)s=='active') and %(replica.status)s=='available'",
   "shared_filesystem_storage:replica_get_error_log": "rule:context_is_sharedfilesystem_admin and not (%(replica.replica_state)s=='active')",
