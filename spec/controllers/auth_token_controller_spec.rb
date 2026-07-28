@@ -42,27 +42,30 @@ RSpec.describe AuthTokenController, type: :controller do
         }
       end
 
+      let(:mock_auth_session) do
+        double('auth_session', logged_in?: true, user: double('user', name: 'testuser', domain_name: domain_name))
+      end
+
       before do
         stub_keystone_request(valid_token, Net::HTTPOK.new('1.1', '200', 'OK'), success_response_body)
+        allow(MonsoonOpenstackAuth::Authentication::AuthSession)
+          .to receive(:create_from_auth_token)
+          .with(controller, valid_token)
+          .and_return(mock_auth_session)
       end
 
-      it 'successfully verifies token and renders redirect view' do
+      it 'successfully verifies token and redirects to domain home' do
         post :verify, params: { token: valid_token }
-        
-        expect(response).to have_http_status(:ok)
-        expect(response).to render_template(:redirect)
-        expect(assigns(:domain_name)).to eq(domain_name)
-        expect(assigns(:auth_token)).to be_present
+
+        expect(response).to have_http_status(:found)
+        expect(response).to redirect_to("/#{domain_name}/home")
       end
 
-      it 'encodes the auth token' do
-        verifier = instance_double(ActiveSupport::MessageVerifier)
-        allow(ActiveSupport::MessageVerifier).to receive(:new).and_return(verifier)
-        allow(verifier).to receive(:generate).with(valid_token).and_return('encoded_token')
-        
-        post :verify, params: { token: valid_token }
-        
-        expect(assigns(:auth_token)).to eq('encoded_token')
+      it 'redirects to after_login URL when provided' do
+        post :verify, params: { token: valid_token, after_login: '/custom/path' }
+
+        expect(response).to have_http_status(:found)
+        expect(response).to redirect_to('/custom/path')
       end
     end
 
@@ -134,12 +137,22 @@ RSpec.describe AuthTokenController, type: :controller do
 
     context 'when keystone returns invalid JSON' do
       before do
-        stub_keystone_request_with_invalid_json(valid_token)
+        http_mock = instance_double(Net::HTTP)
+        request_mock = instance_double(Net::HTTP::Get)
+        response_mock = Net::HTTPOK.new('1.1', '200', 'OK')
+
+        allow(Net::HTTP).to receive(:new).and_return(http_mock)
+        allow(Net::HTTP::Get).to receive(:new).and_return(request_mock)
+        allow(http_mock).to receive(:use_ssl=)
+        allow(http_mock).to receive(:verify_mode=)
+        allow(http_mock).to receive(:request).and_return(response_mock)
+        allow(request_mock).to receive(:[]=)
+        allow(response_mock).to receive(:body).and_return('invalid json response')
       end
 
       it 'handles JSON parsing error' do
         post :verify, params: { token: valid_token }
-        
+
         expect(response).to have_http_status(:ok)
         expect(assigns(:error)).to eq('Invalid JSON response')
         expect(assigns(:details)).to be_present
@@ -148,7 +161,6 @@ RSpec.describe AuthTokenController, type: :controller do
 
     context 'when network error occurs' do
       before do
-        # Mock the HTTP request to raise an error when request is made
         http_mock = instance_double(Net::HTTP)
         allow(Net::HTTP).to receive(:new).and_return(http_mock)
         allow(http_mock).to receive(:use_ssl=)
@@ -158,7 +170,7 @@ RSpec.describe AuthTokenController, type: :controller do
 
       it 'handles network errors' do
         post :verify, params: { token: valid_token }
-        
+
         expect(response).to have_http_status(:ok)
         expect(assigns(:error)).to eq('An error occurred')
         expect(assigns(:details)).to eq('Network error')
@@ -255,37 +267,28 @@ RSpec.describe AuthTokenController, type: :controller do
     end
   end
 
-  describe '#allowed_origin?' do
+  describe '#trusted_sso_origin?' do
     before do
       allow(ENV).to receive(:[]).with('MONSOON_DASHBOARD_REGION').and_return('eu-de-1')
     end
 
-    it 'returns true for trusted origin' do
+    it 'returns true for trusted identity provider origin' do
       request.headers['Origin'] = 'https://identity-3.eu-de-1.cloud.sap'
-      expect(controller.send(:allowed_origin?)).to be true
+      expect(controller.send(:trusted_sso_origin?)).to be true
+    end
+
+    it 'returns true for trusted dashboard origin' do
+      request.headers['Origin'] = 'https://dashboard.eu-de-1.cloud.sap'
+      expect(controller.send(:trusted_sso_origin?)).to be true
     end
 
     it 'returns false for untrusted origin' do
       request.headers['Origin'] = 'https://malicious-site.com'
-      expect(controller.send(:allowed_origin?)).to be false
+      expect(controller.send(:trusted_sso_origin?)).to be false
     end
 
     it 'returns false when origin header is missing' do
-      expect(controller.send(:allowed_origin?)).to be false
-    end
-  end
-
-  describe '#encode_auth_token' do
-    it 'uses MessageVerifier to encode token' do
-      verifier = instance_double(ActiveSupport::MessageVerifier)
-      allow(ActiveSupport::MessageVerifier).to receive(:new)
-        .with(Rails.application.secret_key_base)
-        .and_return(verifier)
-      allow(verifier).to receive(:generate).with('test_token').and_return('encoded_token')
-
-      result = controller.send(:encode_auth_token, 'test_token')
-      
-      expect(result).to eq('encoded_token')
+      expect(controller.send(:trusted_sso_origin?)).to be false
     end
   end
 
@@ -294,31 +297,15 @@ RSpec.describe AuthTokenController, type: :controller do
   def stub_keystone_request(token, response_object, response_body)
     http_mock = instance_double(Net::HTTP)
     request_mock = instance_double(Net::HTTP::Get)
-    
+
     allow(Net::HTTP).to receive(:new).and_return(http_mock)
     allow(Net::HTTP::Get).to receive(:new).and_return(request_mock)
-    
+
     allow(http_mock).to receive(:use_ssl=)
     allow(http_mock).to receive(:verify_mode=)
     allow(request_mock).to receive(:[]=)
-    
+
     allow(response_object).to receive(:body).and_return(response_body.to_json)
     allow(http_mock).to receive(:request).and_return(response_object)
-  end
-
-  def stub_keystone_request_with_invalid_json(token)
-    http_mock = instance_double(Net::HTTP)
-    request_mock = instance_double(Net::HTTP::Get)
-    response_mock = Net::HTTPOK.new('1.1', '200', 'OK')
-    
-    allow(Net::HTTP).to receive(:new).and_return(http_mock)
-    allow(Net::HTTP::Get).to receive(:new).and_return(request_mock)
-    
-    allow(http_mock).to receive(:use_ssl=)
-    allow(http_mock).to receive(:verify_mode=)
-    allow(request_mock).to receive(:[]=)
-    
-    allow(response_mock).to receive(:body).and_return('invalid json response')
-    allow(http_mock).to receive(:request).and_return(response_mock)
   end
 end
