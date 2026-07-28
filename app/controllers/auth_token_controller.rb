@@ -12,31 +12,27 @@ require 'json'
 class AuthTokenController < ActionController::Base
   layout 'plain'
 
-  # Backend uses internal endpoint (server-to-server communication)
-  # Public endpoint is only needed for browser JavaScript (SSO precheck)
-  KEYSTONE_ENDPOINT = if ENV['MONSOON_OPENSTACK_AUTH_API_ENDPOINT']
-                        URI.parse(ENV['MONSOON_OPENSTACK_AUTH_API_ENDPOINT']).origin
-                      else
-                        ''
-                      end
-
   def verify
     token = params[:token]
     return render json: { error: 'Auth token is required' }, status: :bad_request if token.blank?
 
     # Step 1: Validate token with Keystone (GET request)
     # This is a security check - we don't trust the token until Keystone confirms it
-    token_data = validate_token_with_keystone(token)
-
-    # Return early if validation failed (error already set in validate_token_with_keystone)
-    return if token_data.nil? && @error
-
-    unless token_data
-      @error = 'Authentication failed' unless @error
+    # Uses MonsoonOpenstackAuth's API client which handles connection pooling and caching
+    begin
+      token_data = MonsoonOpenstackAuth.api_client.validate_token(token)
+    rescue StandardError => e
+      @error = 'An error occurred'
+      @details = e.message
       return
     end
 
-    domain_name = token_data.dig('token', 'user', 'domain', 'name')
+    unless token_data
+      @error = 'Authentication failed'
+      return
+    end
+
+    domain_name = token_data.dig('user', 'domain', 'name')
 
     if domain_name
       # Step 2: Create authentication session (POST request to Keystone)
@@ -70,39 +66,6 @@ class AuthTokenController < ActionController::Base
   end
 
   private
-
-  # Validates the token with Keystone via GET request
-  # Returns parsed response body if successful, nil otherwise
-  def validate_token_with_keystone(token)
-    url = URI.parse("#{KEYSTONE_ENDPOINT}/v3/auth/tokens")
-    http = configure_http_client(url)
-
-    request = Net::HTTP::Get.new(url)
-    request['X-Subject-Token'] = token
-    request['X-Auth-Token'] = token
-
-    begin
-      response = http.request(request)
-      return JSON.parse(response.body) if response.is_a?(Net::HTTPSuccess)
-      nil
-    rescue JSON::ParserError => e
-      @error = 'Invalid JSON response'
-      @details = e.message
-      nil
-    rescue StandardError => e
-      @error = 'An error occurred'
-      @details = e.message
-      nil
-    end
-  end
-
-  # Configures HTTP client with SSL settings
-  def configure_http_client(url)
-    http = Net::HTTP.new(url.host, url.port)
-    http.use_ssl = true if url.scheme == 'https'
-    http.verify_mode = 0 if ENV['ELEKTRA_SSL_VERIFY_PEER'] == 'false'
-    http
-  end
 
   # Handles case where token is valid but user has no Keystone access
   def handle_missing_domain_access
