@@ -1,7 +1,3 @@
-require 'net/http'
-require 'uri'
-require 'json'
-
 # SSO Authentication Controller
 #
 # Handles token verification for two SSO flows:
