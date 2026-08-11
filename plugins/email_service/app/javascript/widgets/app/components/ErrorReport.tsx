@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react"
 import moment from "moment"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useAuthData, useAuthProject, useGlobalsEndpoint } from "./StoreProvider"
-import { RankingEntry, MailLogEntry, MailSearchOptions, dataFn } from "../actions"
+import { RankingEntry, MailLogEntry, MailSearchOptions, MailSearchResponse, HTTPError, dataFn } from "../actions"
 import {
   Container,
   DataGrid,
@@ -281,21 +281,61 @@ const PaginationBar: React.FC<{
   </div>
 )
 
-const fetchAllTagged = async (
+interface FetchAllResult {
+  data: MailLogEntry[]
+  partial: boolean
+  total: number
+}
+
+const isTransientError = (e: unknown): boolean => {
+  if (e instanceof HTTPError) return e.statusCode >= 500
+  return true
+}
+
+const fetchPageWithRetry = async (fn: () => Promise<MailSearchResponse>): Promise<MailSearchResponse | null> => {
+  try {
+    return await fn()
+  } catch (e) {
+    if (!isTransientError(e)) return null
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    try {
+      return await fn()
+    } catch {
+      return null
+    }
+  }
+}
+
+export const fetchAllTagged = async (
   bearerToken: string,
   endpoint: string,
   options: Omit<MailSearchOptions, "page" | "pageSize">
-): Promise<MailLogEntry[]> => {
-  const first = await dataFn({ queryKey: ["data", bearerToken, endpoint, { ...options, page: 1, pageSize: 100 }] })
+): Promise<FetchAllResult> => {
+  const page1Fn = () => dataFn({ queryKey: ["data", bearerToken, endpoint, { ...options, page: 1, pageSize: 100 }] })
+  let first: MailSearchResponse
+  try {
+    first = await page1Fn()
+  } catch (e) {
+    if (!isTransientError(e)) throw e
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    first = await page1Fn()
+  }
+
   const total = first.hits
-  if (total <= 100) return first.data ?? []
+  if (total <= 100) return { data: first.data ?? [], partial: false, total }
   const extraPages = Math.ceil((total - 100) / 100)
-  const rest = await Promise.all(
+  const rest = await Promise.allSettled(
     Array.from({ length: extraPages }, (_, i) =>
-      dataFn({ queryKey: ["data", bearerToken, endpoint, { ...options, page: i + 2, pageSize: 100 }] })
+      fetchPageWithRetry(() => dataFn({ queryKey: ["data", bearerToken, endpoint, { ...options, page: i + 2, pageSize: 100 }] }))
     )
   )
-  return [...(first.data ?? []), ...rest.flatMap((r) => r.data ?? [])]
+  let partial = false
+  const restData = rest.flatMap((r) => {
+    if (r.status === "fulfilled" && r.value !== null) return r.value.data ?? []
+    partial = true
+    return []
+  })
+  return { data: [...(first.data ?? []), ...restData], partial, total }
 }
 
 const ErrorReport: React.FC<{ onNavigateToMaillog?: (messageId: string) => void }> = ({ onNavigateToMaillog }) => {
@@ -308,11 +348,12 @@ const ErrorReport: React.FC<{ onNavigateToMaillog?: (messageId: string) => void 
   const [errorPage, setErrorPage] = useState(1)
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
   const [selectedCode, setSelectedCode] = useState<string | null>(null)
-  const now = useMemo(() => new Date(), [])
+  const [now, setNow] = useState(() => new Date())
   const start = useMemo(() => new Date(now.getTime() - days * 24 * 60 * 60 * 1000), [now, days])
 
   const handleDaysChange = (d: number) => {
     setDays(d)
+    setNow(new Date())
     setErrorPage(1)
     setSelectedCode(null)
     localStorage.setItem(DAYS_KEY, String(d))
@@ -320,7 +361,7 @@ const ErrorReport: React.FC<{ onNavigateToMaillog?: (messageId: string) => void 
 
   // Fetch ALL mails (no tag filter) so we capture 4xx errors on mails that
   // eventually delivered (not in tag=failed or tag=delayed)
-  const allMailsResult = useQuery<MailLogEntry[], Error>({
+  const allMailsResult = useQuery<FetchAllResult, Error>({
     queryKey: ["chart-all", token, endpoint, start.toISOString(), now.toISOString(), project],
     queryFn: () => fetchAllTagged(token ?? "", endpoint ?? "", { start, end: now, project: project ?? undefined }),
     enabled: !!token,
@@ -334,7 +375,7 @@ const ErrorReport: React.FC<{ onNavigateToMaillog?: (messageId: string) => void 
   const tableError = allMailsResult.error
 
   const allChartErrorEvents = useMemo(() => {
-    const events = extractErrorEvents(allMailsResult.data ?? [])
+    const events = extractErrorEvents(allMailsResult.data?.data ?? [])
     return events.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
   }, [allMailsResult.data])
 
@@ -377,6 +418,12 @@ const ErrorReport: React.FC<{ onNavigateToMaillog?: (messageId: string) => void 
   return (
     <Container style={{ paddingTop: 16 }}>
 
+      {allMailsResult.data?.partial && (
+        <div style={{ marginBottom: 12, padding: "10px 16px", background: "#fffbeb", border: "1px solid #fcd34d", borderRadius: 6, fontSize: 13, color: "#92400e" }}>
+          Showing {allMailsResult.data.data.length} of {allMailsResult.data.total} mail records — some data could not be loaded. Try refreshing.
+        </div>
+      )}
+
       {/* Stats cards */}
       <div style={{ position: "relative" }}>
         <div style={{ ...cardStyle, padding: 24, marginBottom: 16 }}>
@@ -388,7 +435,7 @@ const ErrorReport: React.FC<{ onNavigateToMaillog?: (messageId: string) => void 
               <button
                 onClick={() => {
                   queryClient.removeQueries({ queryKey: ["chart-all"] })
-                  allMailsResult.refetch()
+                  setNow(new Date())
                 }}
                 title="Reload"
                 style={{ padding: "4px 10px", borderRadius: 4, border: "1px solid #d1d5db", background: "#f9fafb", cursor: "pointer", fontSize: 14, color: "#374151", display: "flex", alignItems: "center", gap: 4 }}

@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import { render, screen, waitFor, act, fireEvent } from "@testing-library/react"
 import "@testing-library/jest-dom/vitest"
-import ErrorReport from "./ErrorReport"
-import { MailLogEntry } from "../actions"
+import ErrorReport, { fetchAllTagged } from "./ErrorReport"
+import { MailLogEntry, dataFn, HTTPError } from "../actions"
 
 vi.mock("./StoreProvider", () => ({
   useAuthData: () => "test-token",
@@ -72,6 +72,12 @@ const makeEntryWithRcptError = (code: string): MailLogEntry =>
     rcpts: [{ rcpt: "fail@example.com", relay: "r.example.com", response: { code, ext: "5.1.1", msg: "user unknown" } }],
   })
 
+const makeResult = (entries: MailLogEntry[], partial = false) => ({
+  data: entries,
+  partial,
+  total: entries.length,
+})
+
 const mockQuery = (overrides: object = {}) =>
   vi.mocked(useQuery).mockReturnValue({
     data: undefined,
@@ -94,7 +100,7 @@ describe("ErrorReport", () => {
 
   it("renders stat cards when data is loaded", async () => {
     const entries = [makeEntryWithRcptError("550")]
-    mockQuery({ data: entries, isLoading: false })
+    mockQuery({ data: makeResult(entries), isLoading: false })
 
     await act(async () => { render(<ErrorReport />) })
 
@@ -106,7 +112,7 @@ describe("ErrorReport", () => {
   })
 
   it("shows 'No error responses' when there are no errors in range", async () => {
-    mockQuery({ data: [], isLoading: false })
+    mockQuery({ data: makeResult([]), isLoading: false })
 
     await act(async () => { render(<ErrorReport />) })
 
@@ -116,12 +122,23 @@ describe("ErrorReport", () => {
   })
 
   it("shows 'No error events' row when table is empty", async () => {
-    mockQuery({ data: [], isLoading: false })
+    mockQuery({ data: makeResult([]), isLoading: false })
 
     await act(async () => { render(<ErrorReport />) })
 
     await waitFor(() => {
       expect(screen.getByText(/No error events in the selected time range/)).toBeInTheDocument()
+    })
+  })
+
+  it("shows partial data warning with counts when some pages failed", async () => {
+    const entries = [makeEntryWithRcptError("550")]
+    mockQuery({ data: makeResult(entries, true), isLoading: false })
+
+    await act(async () => { render(<ErrorReport />) })
+
+    await waitFor(() => {
+      expect(screen.getByText(/Showing 1 of 1 mail records/)).toBeInTheDocument()
     })
   })
 
@@ -136,7 +153,7 @@ describe("ErrorReport", () => {
   })
 
   it("renders DaySelector with 7 day buttons", async () => {
-    mockQuery({ data: [], isLoading: false })
+    mockQuery({ data: makeResult([]), isLoading: false })
 
     await act(async () => { render(<ErrorReport />) })
 
@@ -148,7 +165,7 @@ describe("ErrorReport", () => {
   })
 
   it("persists selected day to localStorage", async () => {
-    mockQuery({ data: [], isLoading: false })
+    mockQuery({ data: makeResult([]), isLoading: false })
 
     await act(async () => { render(<ErrorReport />) })
 
@@ -160,7 +177,7 @@ describe("ErrorReport", () => {
 
   it("reads initial day from localStorage", async () => {
     localStorage.setItem("email_service_report_days", "5")
-    mockQuery({ data: [], isLoading: false })
+    mockQuery({ data: makeResult([]), isLoading: false })
 
     await act(async () => { render(<ErrorReport />) })
 
@@ -170,7 +187,7 @@ describe("ErrorReport", () => {
 
   it("ignores invalid day value in localStorage and defaults to 1", async () => {
     localStorage.setItem("email_service_report_days", "99")
-    mockQuery({ data: [], isLoading: false })
+    mockQuery({ data: makeResult([]), isLoading: false })
 
     await act(async () => { render(<ErrorReport />) })
 
@@ -179,7 +196,7 @@ describe("ErrorReport", () => {
   })
 
   it("renders the 'Error Report' heading", async () => {
-    mockQuery({ data: [], isLoading: false })
+    mockQuery({ data: makeResult([]), isLoading: false })
 
     await act(async () => { render(<ErrorReport />) })
 
@@ -189,7 +206,7 @@ describe("ErrorReport", () => {
   })
 
   it("renders the 'Top Error Responses' heading", async () => {
-    mockQuery({ data: [], isLoading: false })
+    mockQuery({ data: makeResult([]), isLoading: false })
 
     await act(async () => { render(<ErrorReport />) })
 
@@ -199,7 +216,7 @@ describe("ErrorReport", () => {
   })
 
   it("renders the 'Error Events' heading", async () => {
-    mockQuery({ data: [], isLoading: false })
+    mockQuery({ data: makeResult([]), isLoading: false })
 
     await act(async () => { render(<ErrorReport />) })
 
@@ -209,7 +226,7 @@ describe("ErrorReport", () => {
   })
 
   it("renders data grid column headers", async () => {
-    mockQuery({ data: [], isLoading: false })
+    mockQuery({ data: makeResult([]), isLoading: false })
 
     await act(async () => { render(<ErrorReport />) })
 
@@ -225,7 +242,7 @@ describe("ErrorReport", () => {
 
   it("shows pagination with correct total count", async () => {
     const entries = [makeEntryWithRcptError("550")]
-    mockQuery({ data: entries, isLoading: false })
+    mockQuery({ data: makeResult(entries), isLoading: false })
 
     await act(async () => { render(<ErrorReport />) })
 
@@ -236,7 +253,7 @@ describe("ErrorReport", () => {
 
   it("renders PERM badge for 5xx error codes", async () => {
     const entries = [makeEntryWithRcptError("550")]
-    mockQuery({ data: entries, isLoading: false })
+    mockQuery({ data: makeResult(entries), isLoading: false })
 
     await act(async () => { render(<ErrorReport />) })
 
@@ -247,7 +264,7 @@ describe("ErrorReport", () => {
 
   it("renders TEMP badge for 4xx error codes", async () => {
     const entries = [makeEntryWithRcptError("421")]
-    mockQuery({ data: entries, isLoading: false })
+    mockQuery({ data: makeResult(entries), isLoading: false })
 
     await act(async () => { render(<ErrorReport />) })
 
@@ -258,7 +275,7 @@ describe("ErrorReport", () => {
 
   it("clicking a bar row selects the code as a filter", async () => {
     const entries = [makeEntryWithRcptError("550")]
-    mockQuery({ data: entries, isLoading: false })
+    mockQuery({ data: makeResult(entries), isLoading: false })
 
     await act(async () => { render(<ErrorReport />) })
 
@@ -273,7 +290,7 @@ describe("ErrorReport", () => {
 
   it("clicking the × clear button removes the active filter", async () => {
     const entries = [makeEntryWithRcptError("550")]
-    mockQuery({ data: entries, isLoading: false })
+    mockQuery({ data: makeResult(entries), isLoading: false })
 
     await act(async () => { render(<ErrorReport />) })
 
@@ -298,7 +315,7 @@ describe("ErrorReport", () => {
         rcpts: [{ rcpt: `r${i}@x.com`, relay: "r", response: { code: "550", ext: "5.1.1", msg: "fail" } }],
       })
     )
-    mockQuery({ data: entries, isLoading: false })
+    mockQuery({ data: makeResult(entries), isLoading: false })
 
     await act(async () => { render(<ErrorReport />) })
 
@@ -322,7 +339,7 @@ describe("extractErrorEvents", () => {
 
   it("extracts rcpt-level errors", async () => {
     const entry = makeEntryWithRcptError("550")
-    mockQuery({ data: [entry], isLoading: false })
+    mockQuery({ data: makeResult([entry]), isLoading: false })
 
     await act(async () => { render(<ErrorReport />) })
 
@@ -336,7 +353,7 @@ describe("extractErrorEvents", () => {
       rcpts: [{ rcpt: "fail@example.com", relay: "r", response: { code: "0" } }],
       response: { code: 550, ext: "5.1.1", msg: "rejected by policy" },
     })
-    mockQuery({ data: [entry], isLoading: false })
+    mockQuery({ data: makeResult([entry]), isLoading: false })
 
     await act(async () => { render(<ErrorReport />) })
 
@@ -359,7 +376,7 @@ describe("extractErrorEvents", () => {
         },
       ],
     })
-    mockQuery({ data: [entry], isLoading: false })
+    mockQuery({ data: makeResult([entry]), isLoading: false })
 
     await act(async () => { render(<ErrorReport />) })
 
@@ -372,7 +389,7 @@ describe("extractErrorEvents", () => {
     const permEntry1 = makeEntryWithRcptError("550")
     const permEntry2 = makeEntryWithRcptError("553")
     const tempEntry = makeEntryWithRcptError("421")
-    mockQuery({ data: [permEntry1, permEntry2, tempEntry], isLoading: false })
+    mockQuery({ data: makeResult([permEntry1, permEntry2, tempEntry]), isLoading: false })
 
     await act(async () => { render(<ErrorReport />) })
 
@@ -386,7 +403,7 @@ describe("extractErrorEvents", () => {
     const cleanEntry = makeEntry({
       rcpts: [{ rcpt: "ok@example.com", relay: "relay.example.com", response: { code: "250", msg: "OK" } }],
     })
-    mockQuery({ data: [cleanEntry], isLoading: false })
+    mockQuery({ data: makeResult([cleanEntry]), isLoading: false })
 
     await act(async () => { render(<ErrorReport />) })
 
@@ -399,7 +416,7 @@ describe("extractErrorEvents", () => {
     const entry = makeEntry({
       rcpts: [{ rcpt: "ok@example.com", relay: "relay.example.com" }],
     })
-    mockQuery({ data: [entry], isLoading: false })
+    mockQuery({ data: makeResult([entry]), isLoading: false })
 
     await act(async () => { render(<ErrorReport />) })
 
@@ -429,7 +446,7 @@ describe("top error responses", () => {
         ],
       })
     )
-    mockQuery({ data: entries, isLoading: false })
+    mockQuery({ data: makeResult(entries), isLoading: false })
 
     await act(async () => { render(<ErrorReport />) })
 
@@ -440,21 +457,97 @@ describe("top error responses", () => {
   })
 
   it("uses longest response string as the fullName for the bar label", async () => {
-    // Two entries with same base code but different detail lengths
+    // Two entries with the same key ("550 5.1.1") but different message lengths.
+    // The bar label should show the longer one.
     const entry1 = makeEntry({
       id: "r1",
-      rcpts: [{ rcpt: "a@x.com", relay: "r", response: { code: "550", msg: "short" } }],
+      rcpts: [{ rcpt: "a@x.com", relay: "r", response: { code: "550", ext: "5.1.1", msg: "short" } }],
     })
     const entry2 = makeEntry({
       id: "r2",
       rcpts: [{ rcpt: "b@x.com", relay: "r", response: { code: "550", ext: "5.1.1", msg: "a much longer error message with details" } }],
     })
-    mockQuery({ data: [entry1, entry2], isLoading: false })
+    mockQuery({ data: makeResult([entry1, entry2]), isLoading: false })
 
     await act(async () => { render(<ErrorReport />) })
 
     await waitFor(() => {
       expect(screen.getAllByText("2 total")).toHaveLength(2)
+      // Both entries share key "550 5.1.1" → one bar row → one tooltip with the longer string
+      const tooltips = screen.getAllByTestId("tooltip-content")
+      expect(tooltips).toHaveLength(1)
+      expect(tooltips[0]).toHaveTextContent("550 5.1.1 a much longer error message with details")
     })
+  })
+})
+
+describe("fetchAllTagged", () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+    localStorage.clear()
+  })
+
+  it("returns full result without partial flag when total fits in one page", async () => {
+    const entries = [makeEntry()]
+    vi.mocked(dataFn).mockResolvedValueOnce({ data: entries, hits: 1 })
+
+    const result = await fetchAllTagged("token", "https://api.example.com", {})
+
+    expect(result).toEqual({ data: entries, partial: false, total: 1 })
+    expect(vi.mocked(dataFn)).toHaveBeenCalledTimes(1)
+  })
+
+  it("fetches extra pages and merges all data when total > 100", async () => {
+    const page1 = Array.from({ length: 100 }, (_, i) => makeEntry({ id: `r${i}` }))
+    const page2 = [makeEntry({ id: "r100" })]
+    vi.mocked(dataFn)
+      .mockResolvedValueOnce({ data: page1, hits: 101 })
+      .mockResolvedValueOnce({ data: page2, hits: 101 })
+
+    const result = await fetchAllTagged("token", "https://api.example.com", {})
+
+    expect(result.data).toHaveLength(101)
+    expect(result.partial).toBe(false)
+    expect(result.total).toBe(101)
+    expect(vi.mocked(dataFn)).toHaveBeenCalledTimes(2)
+  })
+
+  it("sets partial=true and returns available data when an extra page fails after retry", async () => {
+    const page1 = Array.from({ length: 100 }, (_, i) => makeEntry({ id: `r${i}` }))
+    vi.mocked(dataFn)
+      .mockResolvedValueOnce({ data: page1, hits: 200 })
+      .mockRejectedValue(new HTTPError(500, "Server Error"))
+
+    const result = await fetchAllTagged("token", "https://api.example.com", {})
+
+    expect(result.partial).toBe(true)
+    expect(result.data).toHaveLength(100)
+    expect(result.total).toBe(200)
+  })
+
+  it("does not retry on non-transient (4xx) errors for extra pages", async () => {
+    const page1 = Array.from({ length: 100 }, (_, i) => makeEntry({ id: `r${i}` }))
+    vi.mocked(dataFn)
+      .mockResolvedValueOnce({ data: page1, hits: 101 })
+      .mockRejectedValueOnce(new HTTPError(403, "Forbidden"))
+
+    const result = await fetchAllTagged("token", "https://api.example.com", {})
+
+    expect(result.partial).toBe(true)
+    expect(vi.mocked(dataFn)).toHaveBeenCalledTimes(2) // page1 + page2 first attempt only, no retry
+  })
+
+  it("throws when the first page fails after retry", async () => {
+    vi.mocked(dataFn).mockRejectedValue(new HTTPError(500, "Server Error"))
+
+    await expect(fetchAllTagged("token", "https://api.example.com", {})).rejects.toThrow("Server Error")
+    expect(vi.mocked(dataFn)).toHaveBeenCalledTimes(2) // initial attempt + one retry
+  })
+
+  it("throws immediately on non-transient first page error without retrying", async () => {
+    vi.mocked(dataFn).mockRejectedValueOnce(new HTTPError(401, "Unauthorized"))
+
+    await expect(fetchAllTagged("token", "https://api.example.com", {})).rejects.toThrow("Unauthorized")
+    expect(vi.mocked(dataFn)).toHaveBeenCalledTimes(1) // no retry on 401
   })
 })
