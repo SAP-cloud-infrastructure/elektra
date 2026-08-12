@@ -306,7 +306,7 @@ const fetchPageWithRetry = async (fn: () => Promise<MailSearchResponse>): Promis
   }
 }
 
-const MAX_PAGES = 10
+const CONCURRENT_PAGES = 50
 
 export const fetchAllTagged = async (
   bearerToken: string,
@@ -326,21 +326,24 @@ export const fetchAllTagged = async (
   const total = first.hits
   if (total <= 100) return { data: first.data ?? [], partial: false, total }
 
-  const totalPages = Math.ceil(total / 100)
-  const pagesToFetch = Math.min(totalPages - 1, MAX_PAGES - 1)
-  const cappedByLimit = totalPages > MAX_PAGES
+  const extraPages = Math.ceil(total / 100) - 1
+  let partial = false
+  const restData: MailLogEntry[] = []
 
-  const rest = await Promise.allSettled(
-    Array.from({ length: pagesToFetch }, (_, i) =>
-      fetchPageWithRetry(() => dataFn({ queryKey: ["data", bearerToken, endpoint, { ...options, page: i + 2, pageSize: 100 }] }))
+  for (let i = 0; i < extraPages; i += CONCURRENT_PAGES) {
+    const batch = Array.from(
+      { length: Math.min(CONCURRENT_PAGES, extraPages - i) },
+      (_, j) => fetchPageWithRetry(() =>
+        dataFn({ queryKey: ["data", bearerToken, endpoint, { ...options, page: i + j + 2, pageSize: 100 }] })
+      )
     )
-  )
-  let partial = cappedByLimit
-  const restData = rest.flatMap((r) => {
-    if (r.status === "fulfilled" && r.value !== null) return r.value.data ?? []
-    partial = true
-    return []
-  })
+    const results = await Promise.allSettled(batch)
+    for (const r of results) {
+      if (r.status === "fulfilled" && r.value !== null) restData.push(...(r.value.data ?? []))
+      else partial = true
+    }
+  }
+
   return { data: [...(first.data ?? []), ...restData], partial, total }
 }
 
@@ -424,7 +427,7 @@ const ErrorReport: React.FC<{ onNavigateToMaillog?: (messageId: string) => void 
 
       {allMailsResult.data?.partial && (
         <div style={{ marginBottom: 12, padding: "10px 16px", background: "#fffbeb", border: "1px solid #fcd34d", borderRadius: 6, fontSize: 13, color: "#92400e" }}>
-          Showing {allMailsResult.data.data.length.toLocaleString()} of {allMailsResult.data.total.toLocaleString()} mail records — results may be incomplete.
+          Some mail records could not be loaded — results may be incomplete.
         </div>
       )}
 

@@ -138,7 +138,7 @@ describe("ErrorReport", () => {
     await act(async () => { render(<ErrorReport />) })
 
     await waitFor(() => {
-      expect(screen.getByText(/Showing 1 of 1 mail records/)).toBeInTheDocument()
+      expect(screen.getByText(/Some mail records could not be loaded/)).toBeInTheDocument()
     })
   })
 
@@ -537,17 +537,19 @@ describe("fetchAllTagged", () => {
     expect(vi.mocked(dataFn)).toHaveBeenCalledTimes(2) // page1 + page2 first attempt only, no retry
   })
 
-  it("caps at 10 pages and sets partial=true when total exceeds 1000", async () => {
+  it("fetches all pages even when total exceeds 1000", async () => {
     const page1 = Array.from({ length: 100 }, (_, i) => makeEntry({ id: `r${i}` }))
+    const extraPage = [makeEntry({ id: "extra" })]
     vi.mocked(dataFn)
       .mockResolvedValueOnce({ data: page1, hits: 1100 })
-      .mockResolvedValue({ data: [makeEntry({ id: "extra" })], hits: 1100 })
+      .mockResolvedValue({ data: extraPage, hits: 1100 })
 
     const result = await fetchAllTagged("token", "https://api.example.com", {})
 
-    expect(result.partial).toBe(true)
+    expect(result.partial).toBe(false)
     expect(result.total).toBe(1100)
-    expect(vi.mocked(dataFn)).toHaveBeenCalledTimes(10) // page 1 + 9 extra (MAX_PAGES cap)
+    expect(vi.mocked(dataFn)).toHaveBeenCalledTimes(11) // page 1 + 10 extra (no cap)
+    expect(result.data).toHaveLength(110)
   })
 
   it("throws on transient first page error after one retry", async () => {
