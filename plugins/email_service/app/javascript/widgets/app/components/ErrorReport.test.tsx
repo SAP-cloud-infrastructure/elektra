@@ -537,7 +537,20 @@ describe("fetchAllTagged", () => {
     expect(vi.mocked(dataFn)).toHaveBeenCalledTimes(2) // page1 + page2 first attempt only, no retry
   })
 
-  it("throws when the first page fails after retry", async () => {
+  it("caps at 10 pages and sets partial=true when total exceeds 1000", async () => {
+    const page1 = Array.from({ length: 100 }, (_, i) => makeEntry({ id: `r${i}` }))
+    vi.mocked(dataFn)
+      .mockResolvedValueOnce({ data: page1, hits: 1100 })
+      .mockResolvedValue({ data: [makeEntry({ id: "extra" })], hits: 1100 })
+
+    const result = await fetchAllTagged("token", "https://api.example.com", {})
+
+    expect(result.partial).toBe(true)
+    expect(result.total).toBe(1100)
+    expect(vi.mocked(dataFn)).toHaveBeenCalledTimes(10) // page 1 + 9 extra (MAX_PAGES cap)
+  })
+
+  it("throws on transient first page error after one retry", async () => {
     vi.mocked(dataFn).mockRejectedValue(new HTTPError(500, "Server Error"))
 
     await expect(fetchAllTagged("token", "https://api.example.com", {})).rejects.toThrow("Server Error")

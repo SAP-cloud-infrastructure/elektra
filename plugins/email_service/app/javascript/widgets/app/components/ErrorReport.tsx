@@ -306,6 +306,8 @@ const fetchPageWithRetry = async (fn: () => Promise<MailSearchResponse>): Promis
   }
 }
 
+const MAX_PAGES = 10
+
 export const fetchAllTagged = async (
   bearerToken: string,
   endpoint: string,
@@ -323,13 +325,17 @@ export const fetchAllTagged = async (
 
   const total = first.hits
   if (total <= 100) return { data: first.data ?? [], partial: false, total }
-  const extraPages = Math.ceil((total - 100) / 100)
+
+  const totalPages = Math.ceil(total / 100)
+  const pagesToFetch = Math.min(totalPages - 1, MAX_PAGES - 1)
+  const cappedByLimit = totalPages > MAX_PAGES
+
   const rest = await Promise.allSettled(
-    Array.from({ length: extraPages }, (_, i) =>
+    Array.from({ length: pagesToFetch }, (_, i) =>
       fetchPageWithRetry(() => dataFn({ queryKey: ["data", bearerToken, endpoint, { ...options, page: i + 2, pageSize: 100 }] }))
     )
   )
-  let partial = false
+  let partial = cappedByLimit
   const restData = rest.flatMap((r) => {
     if (r.status === "fulfilled" && r.value !== null) return r.value.data ?? []
     partial = true
@@ -367,8 +373,6 @@ const ErrorReport: React.FC<{ onNavigateToMaillog?: (messageId: string) => void 
     enabled: !!token,
     refetchOnWindowFocus: false,
   })
-
-  const isFetching = allMailsResult.isFetching
 
   const tableIsLoading = allMailsResult.isLoading
   const tableIsError = allMailsResult.isError
@@ -420,7 +424,7 @@ const ErrorReport: React.FC<{ onNavigateToMaillog?: (messageId: string) => void 
 
       {allMailsResult.data?.partial && (
         <div style={{ marginBottom: 12, padding: "10px 16px", background: "#fffbeb", border: "1px solid #fcd34d", borderRadius: 6, fontSize: 13, color: "#92400e" }}>
-          Showing {allMailsResult.data.data.length} of {allMailsResult.data.total} mail records — some data could not be loaded. Try refreshing.
+          Showing {allMailsResult.data.data.length.toLocaleString()} of {allMailsResult.data.total.toLocaleString()} mail records — results may be incomplete.
         </div>
       )}
 
