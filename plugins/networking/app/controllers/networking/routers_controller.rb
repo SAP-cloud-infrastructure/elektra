@@ -8,6 +8,7 @@ module Networking
     def index
       ################# NEW
       @routers = []
+      @flavors_by_id = services.networking.flavors.index_by(&:id)
 
       if current_user.is_allowed?("context_is_cloud_network_admin")
         @routers =

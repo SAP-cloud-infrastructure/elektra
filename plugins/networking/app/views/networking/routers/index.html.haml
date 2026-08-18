@@ -14,6 +14,7 @@
       %th External Network
       %th External Subnet
       %th Private Network
+      %th Flavor
       %th Status
       %th.snug
   %tbody
@@ -49,6 +50,10 @@
               %br
               %span.info-text= net.id
 
+          %td
+            - flavor = @flavors_by_id[router.flavor_id]
+            - if flavor
+              %span.label.label-default= flavor.name
           %td= router.status
           %td.snug
             = render partial: 'item_actions', locals: {router:router, show_view:false}

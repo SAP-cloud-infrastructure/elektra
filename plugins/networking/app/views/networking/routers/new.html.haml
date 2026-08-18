@@ -11,7 +11,7 @@
       collection:         [['UP', 'true'],['DOWN', 'false']]}
 
     - if @flavors.present?
-      - flavor_options = @flavors.select(&:enabled).map { |fl| [fl.description.present? ? "#{fl.name} – #{fl.description}" : fl.name, fl.id] }
+      - flavor_options = @flavors.select(&:enabled).map { |fl| [fl.description.present? ? "#{fl.name} (#{fl.description})" : fl.name, fl.id] }
       = f.input :flavor_id, label: 'Network Flavor', 
         as: :select, 
         include_blank: 'None (standard router)', 
