@@ -53,7 +53,7 @@
           %td
             - flavor = @flavors_by_id[router.flavor_id]
             - if flavor
-              %span.label.label-default= flavor.name
+              %span.label.label-default{title: flavor.description}= flavor.name
           %td
             - status_class = case router.status
               - when 'ACTIVE' then 'label-success'
