@@ -86,6 +86,7 @@ const handleFlavorChange = function () {
 
   const $azHint = $("#availability_zone_group .col-sm-8 > p.help-block")
   const $azLabel = $("#availability_zone_group label")
+  const $internalSubnets = $("#router_internal_subnets").closest(".form-group")
   const requiredMarker = '<abbr id="az_required_marker" title="required">*</abbr> '
 
   const update = function () {
@@ -96,9 +97,11 @@ const handleFlavorChange = function () {
         $azLabel.prepend(requiredMarker)
         $azLabel.addClass("required")
       }
+      $internalSubnets.hide()
     } else {
       $("#az_required_marker").remove()
       $azLabel.removeClass("required")
+      $internalSubnets.show()
     }
   }
 

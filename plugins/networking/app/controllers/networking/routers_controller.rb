@@ -212,6 +212,7 @@ module Networking
             data["subnet_id"]
           end
         end
+      @router_flavor = services.networking.find_flavor(@router.flavor_id) if @router.flavor_id.present?
     end
 
     def update
@@ -219,7 +220,7 @@ module Networking
         params[:router].delete(:action_from_show) == "true" || false
       # get selected subnets and remove them from params
       @selected_internal_subnet_ids =
-        (params[:router].delete(:internal_subnets) || []).reject(&:empty?)
+        Array(params[:router].delete(:internal_subnets)).reject(&:empty?)
 
       # build new router object
       @router = services.networking.new_router(params[:router].to_unsafe_hash)
