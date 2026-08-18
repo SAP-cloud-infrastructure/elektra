@@ -34,10 +34,10 @@
             %td
               - if @router_flavor
                 = @router_flavor.name
-                - if @router_flavor.description.present?
-                  \–
-                  = @router_flavor.description
                 %br
+                - if @router_flavor.description.present?
+                  %small.text-muted= @router_flavor.description
+                  %br
                 %small.text-muted= @router_flavor.id
               - else
                 None
