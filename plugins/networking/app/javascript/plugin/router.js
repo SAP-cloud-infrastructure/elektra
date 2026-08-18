@@ -74,6 +74,34 @@ const init = function () {
   if ($("#router_external_gateway_info_network_id").val()) {
     loadSubnets($("#router_external_gateway_info_network_id").val())
   }
+
+  handleFlavorChange()
 }
 
 $(document).on("modal:contentUpdated", (e) => init())
+
+const handleFlavorChange = function () {
+  const $flavorSelect = $("#router_flavor_id")
+  if ($flavorSelect.length === 0) return
+
+  const $azHint = $("#availability_zone_group .col-sm-8 > p.help-block")
+  const $azLabel = $("#availability_zone_group label")
+  const requiredMarker = '<abbr id="az_required_marker" title="required">*</abbr> '
+
+  const update = function () {
+    const isVpnaas = $flavorSelect.find("option:selected").text().toLowerCase().includes("vpnaas")
+    $azHint.toggle(isVpnaas)
+    if (isVpnaas) {
+      if ($("#az_required_marker").length === 0) {
+        $azLabel.prepend(requiredMarker)
+        $azLabel.addClass("required")
+      }
+    } else {
+      $("#az_required_marker").remove()
+      $azLabel.removeClass("required")
+    }
+  }
+
+  $flavorSelect.on("change", update)
+  update()
+}
