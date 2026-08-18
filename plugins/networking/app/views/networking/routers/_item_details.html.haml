@@ -30,6 +30,18 @@
             %th Admin State
             %td= @router.admin_state_up ? 'UP' : 'DOWN'
           %tr
+            %th Network Flavor
+            %td
+              - if @router_flavor
+                = @router_flavor.name
+                - if @router_flavor.description.present?
+                  \–
+                  = @router_flavor.description
+                %br
+                %small.text-muted= @router_flavor.id
+              - else
+                None
+          %tr
             %th Hosting Device
             %td= @router.hosting_device
           - unless @router.role.nil?

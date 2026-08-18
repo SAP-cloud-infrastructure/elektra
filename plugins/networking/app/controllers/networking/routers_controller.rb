@@ -135,6 +135,7 @@ module Networking
           device_id: @router.id,
           device_owner: "network:router_interface",
         )
+      @router_flavor = services.networking.find_flavor(@router.flavor_id) if @router.flavor_id.present?
     end
 
     def new
