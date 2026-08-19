@@ -5,6 +5,9 @@
       %p.alert.alert-error
         = @router.errors.full_messages.to_sentence + '.'
 
+    %p.alert.alert-warning#flavor_immutable_warning{style: 'display:none'}
+      The selected flavor cannot be changed after the router is created.
+
     = f.input :name
     = f.input :admin_state_up, {label: 'Admin State',
       as:                 :select,
@@ -12,11 +15,11 @@
 
     - if @flavors.present?
       - flavor_options = @flavors.select(&:enabled).map { |fl| [fl.description.present? ? "#{fl.name} (#{fl.description})" : fl.name, fl.id] }
-      = f.input :flavor_id, label: 'Network Flavor', 
-        as: :select, 
-        include_blank: 'None (standard router)', 
-        collection: flavor_options, 
-        required: false, 
+      = f.input :flavor_id, label: 'Network Flavor',
+        as: :select,
+        include_blank: 'None (standard router)',
+        collection: flavor_options,
+        required: false,
         input_html: { id: 'router_flavor_id' },
         icon_hint: "The flavor cannot be changed after the router is created."
 

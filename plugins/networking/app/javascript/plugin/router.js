@@ -87,11 +87,14 @@ const handleFlavorChange = function () {
   const $azHint = $("#availability_zone_group .col-sm-8 > p.help-block")
   const $azLabel = $("#availability_zone_group label")
   const $internalSubnets = $("#router_internal_subnets").closest(".form-group")
+  const $immutableWarning = $("#flavor_immutable_warning")
   const requiredMarker = '<abbr id="az_required_marker" title="required">*</abbr> '
 
   const update = function () {
     const isVpnaas = $flavorSelect.find("option:selected").text().toLowerCase().includes("vpnaas")
+    const hasFlavorSelected = $flavorSelect.val() !== ""
     $azHint.toggle(isVpnaas)
+    $immutableWarning.toggle(hasFlavorSelected)
     if (isVpnaas) {
       if ($("#az_required_marker").length === 0) {
         $azLabel.prepend(requiredMarker)
