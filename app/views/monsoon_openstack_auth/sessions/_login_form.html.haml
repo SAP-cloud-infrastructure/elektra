@@ -1,0 +1,66 @@
+- sso_precheck_enabled = ENV['SSO_PRECHECK_ENABLED'].to_s == 'true'
+
+- if sso_precheck_enabled
+  #sso-precheck-container
+    .sso-precheck-loader
+      .spinner
+      Checking for SSO session...
+
+#login-content{ class: ("login-hidden" if sso_precheck_enabled) }
+  = form_tag(sessions_path(after_login: params[:after_login]), class: "form-signin") do
+    = hidden_field_tag :domain_id, @domain_id
+    = hidden_field_tag :domain_name, @domain_name
+    = hidden_field_tag :two_factor, @two_factor
+    = hidden_field_tag :password_sync, 'true' if password_sync_mode
+
+    %h2.form-signin-heading
+      = password_sync_mode ? 'Sync Password' : 'Please sign in'
+
+    .flashes
+      - flash.each do |name, msg|
+        .alert{class: "alert-#{name}"}= msg
+
+    %label.sr-only{:for => "domain"} Domain
+    - if @domain_name
+      = text_field_tag :domain, @domain_name, placeholder: "Domain", class: "form-control top-input", disabled: "true"
+
+    %label.sr-only{:for => "username"} User ID
+    = text_field_tag :username, @username, autofocus: "", placeholder: "User ID", required: "", class: "form-control"
+
+    %label.sr-only{:for => "password"} Password
+    = password_field_tag :password, nil, placeholder: "Password", required: "", class: "form-control bottom-input"
+
+    %button.btn.btn-lg.btn-primary.btn-block{:type => "submit"} Sign in
+
+
+    %section
+      - if password_sync_mode
+        .bs-callout.bs-callout-info.bs-callout-emphasize
+          Log in with your new global SAP Password
+      - else
+        - unless domain_config.feature_hidden?('internal_help_links')
+          .bs-callout.bs-callout-info.bs-callout-emphasize
+            %h4 Don't have access yet?
+            %p
+              Request the profile
+              %i= "\"CC #{@domain_name.blank? ? "<domain-name>" : @domain_name.upcase} Openstack Domain Access\""
+              in Cloud Access Manager (CAM)
+            %p
+              - if @domain_name.blank?
+                = link_to "#{ENV['MONSOON_DASHBOARD_CAM_URL']}?item=request", target: '_blank' do
+                  %i.fa.fa-external-link.fa-fw
+                  Request access in CAM
+              - else
+                = link_to "#{ENV['MONSOON_DASHBOARD_CAM_URL']}?item=request&profile=CC%20#{@domain_name.upcase}%20Openstack%20Domain%20Access", target: '_blank' do
+                  %i.fa.fa-external-link.fa-fw
+                  Request access in CAM
+
+- if sso_precheck_enabled
+  #sso-config{  "data-keystone-url" => @keystone_endpoint, 
+                "data-domain-name" => @domain_name, 
+                "data-verify-url" => main_app.verify_auth_token_path, 
+                "data-login-form-id" => "login-content", 
+                "data-spinner-id" => "sso-precheck-container", 
+                "data-hidden-class" => "login-hidden" }
+
+  = javascript_include_tag "monsoon-openstack-auth_plugin"

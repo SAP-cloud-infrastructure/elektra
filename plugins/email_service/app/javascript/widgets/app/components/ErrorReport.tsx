@@ -1,8 +1,7 @@
-import React, { useMemo, useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import moment from "moment"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useAuthData, useAuthProject, useGlobalsEndpoint } from "./StoreProvider"
-import { RankingEntry, MailLogEntry, MailSearchOptions, dataFn } from "../actions"
+import { RankingEntry, MailLogEntry, MailSearchOptions, MailSearchResponse, HTTPError, dataFn } from "../actions"
 import {
   Container,
   DataGrid,
@@ -281,62 +280,198 @@ const PaginationBar: React.FC<{
   </div>
 )
 
-const fetchAllTagged = async (
+interface FetchAllResult {
+  data: MailLogEntry[]
+  partial: boolean
+  total: number
+}
+
+interface MailState {
+  data: MailLogEntry[]
+  total: number
+  partial: boolean
+  isLoading: boolean
+  loadingMore: boolean
+  pagesLoaded: number
+  pagesTotal: number
+  isError: boolean
+  error: Error | null
+}
+
+const isTransientError = (e: unknown): boolean => {
+  if (e instanceof HTTPError) return e.statusCode >= 500
+  return true
+}
+
+const fetchPageWithRetry = async (fn: () => Promise<MailSearchResponse>): Promise<MailSearchResponse | null> => {
+  try {
+    return await fn()
+  } catch (e) {
+    if (!isTransientError(e)) return null
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    try {
+      return await fn()
+    } catch {
+      return null
+    }
+  }
+}
+
+const CONCURRENT_PAGES = 10
+
+const fetchWithPool = async (
+  tasks: (() => Promise<MailSearchResponse | null>)[],
+  limit: number
+): Promise<PromiseSettledResult<MailSearchResponse | null>[]> => {
+  const results: PromiseSettledResult<MailSearchResponse | null>[] = new Array(tasks.length)
+  let idx = 0
+  const worker = async () => {
+    while (idx < tasks.length) {
+      const i = idx++
+      try { results[i] = { status: "fulfilled", value: await tasks[i]() } }
+      catch (e) { results[i] = { status: "rejected", reason: e } }
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, tasks.length) }, worker))
+  return results
+}
+
+export const fetchAllTagged = async (
   bearerToken: string,
   endpoint: string,
   options: Omit<MailSearchOptions, "page" | "pageSize">
-): Promise<MailLogEntry[]> => {
-  const first = await dataFn({ queryKey: ["data", bearerToken, endpoint, { ...options, page: 1, pageSize: 100 }] })
+): Promise<FetchAllResult> => {
+  const page1Fn = () => dataFn({ queryKey: ["data", bearerToken, endpoint, { ...options, page: 1, pageSize: 100 }] })
+  let first: MailSearchResponse
+  try {
+    first = await page1Fn()
+  } catch (e) {
+    if (!isTransientError(e)) throw e
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    first = await page1Fn()
+  }
+
   const total = first.hits
-  if (total <= 100) return first.data ?? []
-  const extraPages = Math.ceil((total - 100) / 100)
-  const rest = await Promise.all(
-    Array.from({ length: extraPages }, (_, i) =>
+  if (total <= 100) return { data: first.data ?? [], partial: false, total }
+
+  const extraPages = Math.ceil(total / 100) - 1
+  let partial = false
+  const restData: MailLogEntry[] = []
+
+  const tasks = Array.from({ length: extraPages }, (_, i) =>
+    () => fetchPageWithRetry(() =>
       dataFn({ queryKey: ["data", bearerToken, endpoint, { ...options, page: i + 2, pageSize: 100 }] })
     )
   )
-  return [...(first.data ?? []), ...rest.flatMap((r) => r.data ?? [])]
+  const results = await fetchWithPool(tasks, CONCURRENT_PAGES)
+  for (const r of results) {
+    if (r.status === "fulfilled" && r.value !== null) restData.push(...(r.value.data ?? []))
+    else partial = true
+  }
+
+  return { data: [...(first.data ?? []), ...restData], partial, total }
 }
 
 const ErrorReport: React.FC<{ onNavigateToMaillog?: (messageId: string) => void }> = ({ onNavigateToMaillog }) => {
   const token = useAuthData()
   const project = useAuthProject()
   const endpoint = useGlobalsEndpoint()
-  const queryClient = useQueryClient()
 
   const [days, setDays] = useState<number>(getInitialDays)
   const [errorPage, setErrorPage] = useState(1)
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
   const [selectedCode, setSelectedCode] = useState<string | null>(null)
-  const now = useMemo(() => new Date(), [])
+  const [now, setNow] = useState(() => new Date())
   const start = useMemo(() => new Date(now.getTime() - days * 24 * 60 * 60 * 1000), [now, days])
 
   const handleDaysChange = (d: number) => {
     setDays(d)
+    setNow(new Date())
     setErrorPage(1)
     setSelectedCode(null)
     localStorage.setItem(DAYS_KEY, String(d))
   }
 
-  // Fetch ALL mails (no tag filter) so we capture 4xx errors on mails that
-  // eventually delivered (not in tag=failed or tag=delayed)
-  const allMailsResult = useQuery<MailLogEntry[], Error>({
-    queryKey: ["chart-all", token, endpoint, start.toISOString(), now.toISOString(), project],
-    queryFn: () => fetchAllTagged(token ?? "", endpoint ?? "", { start, end: now, project: project ?? undefined }),
-    enabled: !!token,
-    refetchOnWindowFocus: false,
+  const [mailState, setMailState] = useState<MailState>({
+    data: [], total: 0, partial: false, isLoading: true, loadingMore: false, pagesLoaded: 0, pagesTotal: 0, isError: false, error: null,
   })
 
-  const isFetching = allMailsResult.isFetching
+  useEffect(() => {
+    if (!token) {
+      setMailState((s) => ({ ...s, isLoading: false }))
+      return
+    }
+    let cancelled = false
+    setMailState({ data: [], total: 0, partial: false, isLoading: true, loadingMore: false, pagesLoaded: 0, pagesTotal: 0, isError: false, error: null })
 
-  const tableIsLoading = allMailsResult.isLoading
-  const tableIsError = allMailsResult.isError
-  const tableError = allMailsResult.error
+    const fetchPage = (page: number) =>
+      dataFn({ queryKey: ["data", token, endpoint ?? "", { start, end: now, project: project ?? undefined, page, pageSize: 100 }] })
+
+    ;(async () => {
+      let first: MailSearchResponse
+      try {
+        first = await fetchPage(1)
+      } catch (e) {
+        if (!isTransientError(e)) {
+          if (!cancelled) setMailState((s) => ({ ...s, isLoading: false, isError: true, error: e instanceof Error ? e : new Error(String(e)) }))
+          return
+        }
+        await new Promise((r) => setTimeout(r, 300))
+        try {
+          first = await fetchPage(1)
+        } catch (e2) {
+          if (!cancelled) setMailState((s) => ({ ...s, isLoading: false, isError: true, error: e2 instanceof Error ? e2 : new Error(String(e2)) }))
+          return
+        }
+      }
+
+      if (cancelled) return
+
+      const total = first.hits
+      const page1Data = first.data ?? []
+      // OpenSearch default max_result_window is 10,000 — pages beyond 100 will fail
+      const pagesTotal = Math.min(Math.ceil(total / 100), 100)
+      const extraPages = pagesTotal - 1
+
+      if (extraPages === 0) {
+        if (!cancelled) setMailState({ data: page1Data, total: page1Data.length, partial: false, isLoading: false, loadingMore: false, pagesLoaded: 1, pagesTotal: 1, isError: false, error: null })
+        return
+      }
+
+      if (!cancelled) setMailState({ data: page1Data, total, partial: false, isLoading: false, loadingMore: true, pagesLoaded: 1, pagesTotal, isError: false, error: null })
+
+      let allData = [...page1Data]
+      let partial = false
+
+      for (let batchStart = 0; batchStart < extraPages && !cancelled; batchStart += CONCURRENT_PAGES) {
+        const batchSize = Math.min(CONCURRENT_PAGES, extraPages - batchStart)
+        const results = await Promise.allSettled(
+          Array.from({ length: batchSize }, (_, j) =>
+            fetchPageWithRetry(() => fetchPage(batchStart + j + 2))
+          )
+        )
+        if (cancelled) return
+        for (const r of results) {
+          if (r.status === "fulfilled" && r.value !== null) allData = [...allData, ...(r.value.data ?? [])]
+          else partial = true
+        }
+        const pagesLoaded = 1 + batchStart + batchSize
+        const done = pagesLoaded >= pagesTotal
+        setMailState({ data: allData, total: done ? allData.length : total, partial, isLoading: false, loadingMore: !done, pagesLoaded, pagesTotal, isError: false, error: null })
+      }
+    })()
+
+    return () => { cancelled = true }
+  }, [token, endpoint, start, now, project])
+
+  const tableIsLoading = mailState.isLoading
+  const tableIsError = mailState.isError
+  const tableError = mailState.error
 
   const allChartErrorEvents = useMemo(() => {
-    const events = extractErrorEvents(allMailsResult.data ?? [])
+    const events = extractErrorEvents(mailState.data)
     return events.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
-  }, [allMailsResult.data])
+  }, [mailState.data])
 
   const chartPermErrs = useMemo(() => allChartErrorEvents.filter((e) => e.type === "PERM").length, [allChartErrorEvents])
   const chartTempErrs = useMemo(() => allChartErrorEvents.filter((e) => e.type === "TEMP").length, [allChartErrorEvents])
@@ -377,6 +512,12 @@ const ErrorReport: React.FC<{ onNavigateToMaillog?: (messageId: string) => void 
   return (
     <Container style={{ paddingTop: 16 }}>
 
+      {mailState.partial && (
+        <div style={{ marginBottom: 12, padding: "10px 16px", background: "#fffbeb", border: "1px solid #fcd34d", borderRadius: 6, fontSize: 13, color: "#92400e" }}>
+          Some mail records could not be loaded — results may be incomplete.
+        </div>
+      )}
+
       {/* Stats cards */}
       <div style={{ position: "relative" }}>
         <div style={{ ...cardStyle, padding: 24, marginBottom: 16 }}>
@@ -386,18 +527,34 @@ const ErrorReport: React.FC<{ onNavigateToMaillog?: (messageId: string) => void 
               <DaySelector selected={days} onChange={handleDaysChange} />
               <div style={{ width: 1, height: 20, background: "#e5e7eb" }} />
               <button
-                onClick={() => {
-                  queryClient.removeQueries({ queryKey: ["chart-all"] })
-                  allMailsResult.refetch()
-                }}
-                title="Reload"
-                style={{ padding: "4px 10px", borderRadius: 4, border: "1px solid #d1d5db", background: "#f9fafb", cursor: "pointer", fontSize: 14, color: "#374151", display: "flex", alignItems: "center", gap: 4 }}
-              >
-                ↻
-              </button>
+                  onClick={() => setNow(new Date())}
+                  disabled={mailState.isLoading || mailState.loadingMore}
+                  title="Reload"
+                  style={{ padding: "4px 10px", borderRadius: 4, border: "1px solid #d1d5db", background: "#f9fafb", cursor: mailState.isLoading || mailState.loadingMore ? "default" : "pointer", opacity: mailState.isLoading || mailState.loadingMore ? 0.4 : 1, fontSize: 14, color: "#374151", display: "flex", alignItems: "center", gap: 4 }}
+                >
+                  ↻
+                </button>
             </div>
           </div>
-          {allMailsResult.isLoading ? (
+          {mailState.loadingMore && (
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ height: 4, background: "#e5e7eb", borderRadius: 2, overflow: "hidden" }}>
+                <div
+                  style={{
+                    width: `${Math.round((mailState.pagesLoaded / mailState.pagesTotal) * 100)}%`,
+                    height: "100%",
+                    background: "#038bc6",
+                    borderRadius: 2,
+                    transition: "width 0.4s ease",
+                  }}
+                />
+              </div>
+              <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 4 }}>
+                Fetching… {allChartErrorEvents.length.toLocaleString()} error events found ({Math.round((mailState.pagesLoaded / mailState.pagesTotal) * 100)}%)
+              </div>
+            </div>
+          )}
+          {mailState.isLoading ? (
             <Stack alignment="center" distribution="center" style={{ minHeight: 80 }}>
               <LoadingIndicator />
             </Stack>
@@ -416,7 +573,7 @@ const ErrorReport: React.FC<{ onNavigateToMaillog?: (messageId: string) => void 
             <div style={{ fontWeight: 700, fontSize: 16 }}>Error Summary</div>
             <div style={{ fontSize: 12, color: "#9ca3af" }}>click a row to filter the table</div>
           </div>
-          {allMailsResult.isLoading ? (
+          {mailState.isLoading ? (
             <Stack alignment="center" distribution="center" style={{ minHeight: 80 }}>
               <LoadingIndicator />
             </Stack>

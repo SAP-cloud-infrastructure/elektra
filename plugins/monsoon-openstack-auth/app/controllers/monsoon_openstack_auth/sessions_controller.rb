@@ -16,6 +16,8 @@ module MonsoonOpenstackAuth
       MonsoonOpenstackAuth::Authentication::AuthSession.logout(
         self, (@domain_id || @domain_name)
       )
+
+      @keystone_endpoint = keystone_tokens_url
     end
 
     def consume_auth_token
@@ -177,32 +179,49 @@ module MonsoonOpenstackAuth
 
     private
 
-    def load_auth_params
-      @username = params[:username]
-      @password = params[:password]
-      @passcode = params[:passcode]
-      @domain_id = params[:domain_id].presence
-      @domain_name = params[:domain_name].presence || params[:domain_fid]
-      @two_factor = params[:two_factor].to_s == 'true'
-    end
+      def keystone_tokens_url
+        endpoint = ENV['MONSOON_OPENSTACK_AUTH_API_PUBLIC_ENDPOINT'].presence ||
+                  ENV['MONSOON_OPENSTACK_AUTH_API_ENDPOINT']
+        return nil if endpoint.blank?
 
-    def decode_auth_token(encoded_token)
-      @verifier = ActiveSupport::MessageVerifier.new(Rails.application.secret_key_base)
-      @verifier.verify(encoded_token)
-    rescue ActiveSupport::MessageVerifier::InvalidSignature
-      nil # Return nil if the token is invalid
-    end
-
-    def safe_redirect_url?(url)
-      return false if url.blank?
-      
-      begin
-        uri = URI.parse(url)
-        # Allow relative URLs and URLs from your domain
-        uri.host.nil? || uri.host == request.host
+        base_uri = URI.parse(endpoint)
+        # base_uri.origin already includes the scheme (e.g., "https://example.com")
+        origin = base_uri.origin || "#{base_uri.scheme}://#{base_uri.host}#{":#{base_uri.port}" if base_uri.port && !standard_port?(base_uri)}"
+        "#{origin.chomp('/')}/v3/auth/tokens"
       rescue URI::InvalidURIError
-        false
+        nil
       end
-    end
+
+      def standard_port?(uri)
+        (uri.scheme == 'http' && uri.port == 80) || (uri.scheme == 'https' && uri.port == 443)
+      end
+
+      def load_auth_params
+        @username = params[:username]
+        @password = params[:password]
+        @passcode = params[:passcode]
+        @domain_id = params[:domain_id].presence
+        @domain_name = params[:domain_name].presence || params[:domain_fid]
+        @two_factor = params[:two_factor].to_s == 'true'
+      end
+
+      def decode_auth_token(encoded_token)
+        @verifier = ActiveSupport::MessageVerifier.new(Rails.application.secret_key_base)
+        @verifier.verify(encoded_token)
+      rescue ActiveSupport::MessageVerifier::InvalidSignature
+        nil # Return nil if the token is invalid
+      end
+
+      def safe_redirect_url?(url)
+        return false if url.blank?
+        
+        begin
+          uri = URI.parse(url)
+          # Allow relative URLs and URLs from your domain
+          uri.host.nil? || uri.host == request.host
+        rescue URI::InvalidURIError
+          false
+        end
+      end
   end
 end
