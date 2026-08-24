@@ -55,6 +55,7 @@
             - if flavor
               %span.label.label-default{title: flavor.description}= flavor.name
           %td
+
             - status_class = case router.status
               - when 'ACTIVE' then 'label-success'
               - when 'ERROR' then 'label-danger'
