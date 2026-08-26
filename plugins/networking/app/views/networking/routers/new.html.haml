@@ -5,10 +5,25 @@
       %p.alert.alert-error
         = @router.errors.full_messages.to_sentence + '.'
 
+    %p.alert.alert-warning#flavor_immutable_warning{style: 'display:none'}
+      The selected flavor cannot be changed after the router is created.
+
     = f.input :name
     = f.input :admin_state_up, {label: 'Admin State',
       as:                 :select,
       collection:         [['UP', 'true'],['DOWN', 'false']]}
+
+    - if @flavors.present?
+      - flavor_options = @flavors.select(&:enabled).map { |fl| [fl.description.present? ? "#{fl.name} (#{fl.description})" : fl.name, fl.id] }
+      = f.input :flavor_id, label: 'Network Flavor',
+        as: :select,
+        include_blank: 'None (standard router)',
+        collection: flavor_options,
+        required: false,
+        input_html: { id: 'router_flavor_id' },
+        icon_hint: "The flavor cannot be changed after the router is created."
+
+    = f.input :availability_zone_hints, label: 'Availability Zone', as: :string, required: false, placeholder: 'e.g. qa-de-1a', input_html: { id: 'router_availability_zone_hints' }, icon_hint: "VPNaaS routers require an availability zone. For redundancy, consider creating a second VPN router in a different availability zone.", wrapper_html: { id: 'availability_zone_group' }
 
 
     = f.simple_fields_for :external_gateway_info do |info|
