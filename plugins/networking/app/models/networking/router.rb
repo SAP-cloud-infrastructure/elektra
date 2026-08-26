@@ -4,8 +4,13 @@ module Networking
   # represents the Openstack Router
   class Router < Core::ServiceLayer::Model
     validates :name, presence: { message: "Please provide a name" }
+    validates :availability_zone_hints, presence: { message: "is required for VPNaaS routers" }, if: :vpnaas_flavor?
 
-    attr_accessor :internal_subnets
+    attr_accessor :internal_subnets, :flavor_name
+
+    def vpnaas_flavor?
+      flavor_name.to_s.downcase.include?("vpnaas")
+    end
 
     def ip_subnet_objects
       return @ip_subnet_objects if @ip_subnet_objects
