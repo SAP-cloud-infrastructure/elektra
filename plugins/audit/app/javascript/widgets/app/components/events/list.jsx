@@ -170,7 +170,7 @@ const EventList = ({
             className="btn btn-default btn-sm"
             onClick={onDownloadClick}
             disabled={isDownloading || isFetching}
-            title="Download all matching events as JSON"
+            title="Download all matching events as JSONL"
           >
             {isDownloading ? (
               <>
