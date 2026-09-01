@@ -312,12 +312,18 @@ export const downloadEvents = () => (dispatch, getState) => {
   activeFilters.forEach((filter) => (params[filter[0]] = filter[1]))
 
   return ajaxHelper
-    .get("/events/download", { params, responseType: "blob" })
+    .get("/events/download", { params })
     .then((response) => {
-      const blob =
+      const content =
         response.data instanceof Blob
           ? response.data
-          : new Blob([JSON.stringify(response.data)], { type: "application/json" })
+          : typeof response.data === "string"
+          ? response.data
+          : JSON.stringify(response.data)
+      const blob =
+        content instanceof Blob
+          ? content
+          : new Blob([content], { type: "application/x-ndjson" })
       const objectUrl = URL.createObjectURL(blob)
       const link = document.createElement("a")
       link.href = objectUrl
