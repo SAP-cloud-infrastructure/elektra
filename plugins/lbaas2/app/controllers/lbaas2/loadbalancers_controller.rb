@@ -227,9 +227,9 @@ module Lbaas2
               ) unless subnets[subid]
               sub = subnets[subid]
               cidr = NetAddr.parse_net(sub.cidr)
-              unless cidr.contains(NetAddr.parse_ip(fip.floating_ip_address))
-                next
-              end
+              parsed_fip = NetAddr.parse_ip(fip.floating_ip_address)
+              # Skip if IP versions differ (e.g. IPv4 CIDR vs IPv6 FIP)
+              next unless cidr.version == parsed_fip.version && cidr.contains(parsed_fip)
 
               grouped_fips[sub.name] ||= []
               # add the description to the label ip
