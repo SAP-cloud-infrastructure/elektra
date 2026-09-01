@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react"
 import { EditorView, highlightWhitespace, highlightActiveLine, lineNumbers, keymap } from "@codemirror/view"
 import { EditorState, Compartment } from "@codemirror/state"
 import { yaml } from "@codemirror/lang-yaml"
+import { json } from "@codemirror/lang-json"
 import { defaultHighlightStyle, syntaxHighlighting } from "@codemirror/language"
 import { indentWithTab } from "@codemirror/commands"
 
@@ -9,6 +10,7 @@ import { indentWithTab } from "@codemirror/commands"
 const editableCompartment = new Compartment()
 const heightCompartment = new Compartment()
 const ariaCompartment = new Compartment()
+const languageCompartment = new Compartment()
 
 function createEditableExtension(value: boolean) {
   return EditorView.editable.of(value)
@@ -25,21 +27,27 @@ function createHeightExtension(height: string) {
   })
 }
 
-function createAriaExtension(isEditable: boolean) {
+function createAriaExtension(isEditable: boolean, format: "yaml" | "json") {
+  const formatName = format.toUpperCase()
   return EditorView.contentAttributes.of({
-    "aria-label": isEditable ? "YAML data editor" : "YAML data viewer (read-only)",
+    "aria-label": isEditable ? `${formatName} data editor` : `${formatName} data viewer (read-only)`,
     "aria-readonly": isEditable ? "false" : "true",
   })
 }
 
+function createLanguageExtension(format: "yaml" | "json") {
+  return format === "json" ? json() : yaml()
+}
+
 function createEditorExtensions(
   editorHeight: string,
+  format: "yaml" | "json",
   isEditable: boolean,
   onDocChange: (value: string) => void,
   isUpdatingProgrammaticallyRef: React.MutableRefObject<boolean>
 ) {
   return [
-    yaml(),
+    languageCompartment.of(createLanguageExtension(format)),
     syntaxHighlighting(defaultHighlightStyle),
     highlightWhitespace(),
     highlightActiveLine(),
@@ -60,7 +68,7 @@ function createEditorExtensions(
       },
     }),
     EditorView.editorAttributes.of({ class: "yaml-editor-content" }),
-    ariaCompartment.of(createAriaExtension(isEditable)),
+    ariaCompartment.of(createAriaExtension(isEditable, format)),
     editableCompartment.of(createEditableExtension(false)),
     heightCompartment.of(createHeightExtension(editorHeight)),
     EditorView.updateListener.of((update) => {
@@ -97,10 +105,11 @@ interface UseCodeMirrorOptions {
   containerRef: React.RefObject<HTMLDivElement>
   initialContent: string
   editorHeight: string
+  format: "yaml" | "json"
   isEditable: boolean
   error: string
-  editedYaml: string
-  yamlContent: string
+  editedContent: string
+  content: string
   onDocChange: (value: string) => void
 }
 
@@ -108,10 +117,11 @@ export function useCodeMirror({
   containerRef,
   initialContent,
   editorHeight,
+  format,
   isEditable,
   error,
-  editedYaml,
-  yamlContent,
+  editedContent,
+  content,
   onDocChange,
 }: UseCodeMirrorOptions) {
   const editorViewRef = useRef<EditorView | null>(null)
@@ -120,6 +130,7 @@ export function useCodeMirror({
   // Store initial values in refs to avoid triggering effect re-runs
   const initialContentRef = useRef(initialContent)
   const initialHeightRef = useRef(editorHeight)
+  const initialFormatRef = useRef(format)
   const onDocChangeRef = useRef(onDocChange)
 
   // Keep onDocChange ref up to date
@@ -135,6 +146,7 @@ export function useCodeMirror({
       doc: initialContentRef.current,
       extensions: createEditorExtensions(
         initialHeightRef.current,
+        initialFormatRef.current,
         false,
         (value) => onDocChangeRef.current(value),
         isUpdatingProgrammaticallyRef
@@ -168,10 +180,10 @@ export function useCodeMirror({
     editorViewRef.current.dispatch({
       effects: [
         editableCompartment.reconfigure(createEditableExtension(currentEditable)),
-        ariaCompartment.reconfigure(createAriaExtension(currentEditable)),
+        ariaCompartment.reconfigure(createAriaExtension(currentEditable, format)),
       ],
     })
-  }, [isEditable, error])
+  }, [isEditable, error, format])
 
   // Update height dynamically
   useEffect(() => {
@@ -181,25 +193,33 @@ export function useCodeMirror({
     })
   }, [editorHeight])
 
-  // Update editor content when yamlContent changes (external updates) - only in read-only mode
+  // Update language mode when format changes
+  useEffect(() => {
+    if (!editorViewRef.current) return
+    editorViewRef.current.dispatch({
+      effects: languageCompartment.reconfigure(createLanguageExtension(format)),
+    })
+  }, [format])
+
+  // Update editor content when content changes (external updates) - only in read-only mode
   useEffect(() => {
     if (!editorViewRef.current || isEditable) return
 
     const currentDoc = editorViewRef.current.state.doc.toString()
-    if (currentDoc !== yamlContent) {
-      updateEditorContent(editorViewRef.current, yamlContent, isUpdatingProgrammaticallyRef)
+    if (currentDoc !== content) {
+      updateEditorContent(editorViewRef.current, content, isUpdatingProgrammaticallyRef)
     }
-  }, [yamlContent, isEditable])
+  }, [content, isEditable])
 
   // Update editor content when entering edit mode
   useEffect(() => {
     if (!editorViewRef.current || !isEditable) return
 
     const currentDoc = editorViewRef.current.state.doc.toString()
-    if (editedYaml && currentDoc !== editedYaml) {
-      updateEditorContent(editorViewRef.current, editedYaml, isUpdatingProgrammaticallyRef)
+    if (editedContent && currentDoc !== editedContent) {
+      updateEditorContent(editorViewRef.current, editedContent, isUpdatingProgrammaticallyRef)
     }
-  }, [isEditable, editedYaml])
+  }, [isEditable, editedContent])
 
   return editorViewRef
 }
