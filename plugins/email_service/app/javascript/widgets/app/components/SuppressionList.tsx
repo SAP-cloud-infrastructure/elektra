@@ -69,6 +69,7 @@ const SuppressionList: React.FC = () => {
     reason: "",
     originalMessageId: "",
   })
+  const [confirmId, setConfirmId] = useState<string | null>(null)
 
   const handleAdd = () => {
     if (!newRow.email.trim()) return
@@ -85,6 +86,7 @@ const SuppressionList: React.FC = () => {
 
   const handleRemove = (id: string) => {
     setRows((prev) => prev.filter((r) => r.id !== id))
+    setConfirmId(null)
   }
 
   const formatDate = (d: Date | null) => {
@@ -92,8 +94,31 @@ const SuppressionList: React.FC = () => {
     return moment.utc(d).format("YYYY-MM-DD HH:mm [UTC]")
   }
 
+  const confirmRow = rows.find((r) => r.id === confirmId)
+
   return (
-    <div
+    <>
+      {confirmId && confirmRow && (
+        <div
+          style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setConfirmId(null) }}
+        >
+          <div style={{ background: "#fff", borderRadius: 10, padding: 32, width: "min(420px, 95vw)", position: "relative" }}>
+            <button onClick={() => setConfirmId(null)} style={{ position: "absolute", top: 16, right: 16, background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#6b7280", lineHeight: 1 }}>×</button>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: "#111827", marginBottom: 12 }}>Delete {confirmRow.email}</h2>
+            <p style={{ fontSize: 14, color: "#111827", marginBottom: 8 }}>Are you sure you want to remove:</p>
+            <div style={{ background: "#f3f4f6", border: "1px solid #e5e7eb", borderRadius: 8, padding: "12px 16px", marginBottom: 8, fontSize: 15, fontWeight: 700, color: "#111827", wordBreak: "break-all" }}>
+              {confirmRow.email}
+            </div>
+            <p style={{ fontSize: 14, color: "#111827", marginBottom: 24 }}>This cannot be undone.</p>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+              <button onClick={() => setConfirmId(null)} style={{ padding: "8px 18px", borderRadius: 6, fontSize: 14, fontWeight: 500, background: "#fff", color: "#374151", border: "1px solid #d1d5db", cursor: "pointer" }}>Cancel</button>
+              <button onClick={() => handleRemove(confirmId)} style={{ padding: "8px 18px", borderRadius: 6, fontSize: 14, fontWeight: 500, background: "#dc2626", color: "#fff", border: "none", cursor: "pointer" }}>Remove</button>
+            </div>
+          </div>
+        </div>
+      )}
+      <div
       style={{
         background: "#fff",
         border: "1px solid #e5e7eb",
@@ -111,8 +136,8 @@ const SuppressionList: React.FC = () => {
             <Th>Email</Th>
             <Th>Reason</Th>
             <Th>Original Message ID</Th>
-            <Th width={180}>Added</Th>
-            <Th width={100}>Actions</Th>
+            <Th width={180}>Date Added</Th>
+            <Th width={60} style={{ textAlign: "center" }}>Actions</Th>
           </tr>
         </thead>
         <tbody>
@@ -128,21 +153,15 @@ const SuppressionList: React.FC = () => {
               <EditableCell value={newRow.originalMessageId} onChange={(v) => setNewRow((r) => ({ ...r, originalMessageId: v }))} placeholder="<orig-12345@cronus.eu-de-1.cloud.sap>" />
             </Td>
             <Td style={{ color: "#9ca3af", fontSize: 13 }}>Now</Td>
-            <Td>
+            <Td style={{ textAlign: "center" }}>
               <button
                 onClick={handleAdd}
-                style={{
-                  padding: "5px 14px",
-                  borderRadius: 6,
-                  fontSize: 13,
-                  fontWeight: 500,
-                  background: "#fff",
-                  color: "#2563eb",
-                  border: "1px solid #bfdbfe",
-                  cursor: "pointer",
-                }}
+                title="Add"
+                style={{ padding: "4px 6px", borderRadius: 6, background: "none", border: "none", cursor: "pointer", display: "inline-flex", alignItems: "center" }}
               >
-                Add
+                <svg width="20" height="20" viewBox="0 0 96.21 96.21" xmlns="http://www.w3.org/2000/svg">
+                  <path fill="#0070f2" d="M48.1,90.2c-2.66,0-4.81-2.15-4.81-4.81v-32.47H10.82c-2.66,0-4.81-2.15-4.81-4.81s2.15-4.81,4.81-4.81h32.47V10.82c0-2.66,2.15-4.81,4.81-4.81s4.81,2.15,4.81,4.81v32.47h32.47c2.66,0,4.81,2.15,4.81,4.81s-2.15,4.81-4.81,4.81h-32.47v32.47c0,2.66-2.15,4.81-4.81,4.81Z"/>
+                </svg>
               </button>
             </Td>
           </tr>
@@ -154,21 +173,15 @@ const SuppressionList: React.FC = () => {
               <Td>{row.reason}</Td>
               <Td style={{ color: "#6b7280", fontSize: 13 }}>{row.originalMessageId || "—"}</Td>
               <Td style={{ color: "#6b7280", fontSize: 13 }}>{formatDate(row.addedAt)}</Td>
-              <Td>
+              <Td style={{ textAlign: "center" }}>
                 <button
-                  onClick={() => handleRemove(row.id)}
-                  style={{
-                    padding: "5px 14px",
-                    borderRadius: 6,
-                    fontSize: 13,
-                    fontWeight: 500,
-                    background: "#fff",
-                    color: "#dc2626",
-                    border: "1px solid #fca5a5",
-                    cursor: "pointer",
-                  }}
+                  onClick={() => setConfirmId(row.id)}
+                  title="Remove"
+                  style={{ padding: "4px 6px", borderRadius: 6, background: "none", border: "none", cursor: "pointer", display: "inline-flex", alignItems: "center" }}
                 >
-                  Remove
+                  <svg width="20" height="20" viewBox="0 0 96.21 96.21" xmlns="http://www.w3.org/2000/svg">
+                    <path fill="#dc2626" d="M70.35,96.21H25.86c-5.97,0-10.82-4.86-10.82-10.82V30.07h-4.21c-2.66,0-4.81-2.15-4.81-4.81s2.15-4.81,4.81-4.81h13.23v-9.62c0-5.97,4.86-10.82,10.82-10.82h26.46c5.97,0,10.82,4.86,10.82,10.82v9.62h13.23c2.66,0,4.81,2.15,4.81,4.81s-2.15,4.81-4.81,4.81h-4.21v55.32c0,5.97-4.86,10.82-10.82,10.82ZM24.65,30.07v55.32c0,.66.54,1.2,1.2,1.2h44.5c.66,0,1.2-.54,1.2-1.2V30.07H24.65ZM33.67,20.44h28.86v-9.62c0-.66-.54-1.2-1.2-1.2h-26.46c-.66,0-1.2.54-1.2,1.2v9.62ZM58.93,78.17c-2.66,0-4.81-2.15-4.81-4.81v-26.46c0-2.66,2.15-4.81,4.81-4.81s4.81,2.15,4.81,4.81v26.46c0,2.66-2.15,4.81-4.81,4.81ZM37.28,78.17c-2.66,0-4.81-2.15-4.81-4.81v-26.46c0-2.66,2.15-4.81,4.81-4.81s4.81,2.15,4.81,4.81v26.46c0,2.66-2.15,4.81-4.81,4.81Z"/>
+                  </svg>
                 </button>
               </Td>
             </tr>
@@ -180,6 +193,7 @@ const SuppressionList: React.FC = () => {
         Add a new suppressed email directly in the table.
       </div>
     </div>
+    </>
   )
 }
 
