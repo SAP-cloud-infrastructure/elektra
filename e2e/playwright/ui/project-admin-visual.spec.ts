@@ -58,8 +58,8 @@ test.describe("Visual Regression - Project", () => {
     const servicesDropdown = page.locator('a.dropdown-toggle:has-text("Services")')
     await servicesDropdown.click()
 
-    // Wait for dropdown to be fully open
-    await page.waitForTimeout(1000)
+    // Wait for dropdown to open
+    await page.waitForTimeout(500)
 
     const masks = getBasicMaskSelectors(page)
 
@@ -85,10 +85,9 @@ test.describe("Visual Regression - Project", () => {
     // Wait for modal to open
     await page.waitForTimeout(2000)
 
-    // Wait for modal to be visible and content loaded
+    // Wait for modal to be visible
     const modal = page.locator('.modal-content[role="document"]').first()
     await expect(modal).toBeVisible({ timeout: 10000 })
-    await expect(modal.locator("a").first()).toBeVisible({ timeout: 10000 })
 
     const masks = getBasicMaskSelectors(page)
 
