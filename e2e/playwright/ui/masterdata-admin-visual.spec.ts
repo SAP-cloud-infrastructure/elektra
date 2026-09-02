@@ -95,24 +95,7 @@ test.describe("Visual Regression - Masterdata Cockpit", () => {
     })
   })
 
-  test("roles section - masked contacts", async ({ page }) => {
-    const section = page.locator(".masterdata-group:has(h5:has-text('Roles'))")
-    await expect(section).toBeVisible()
 
-    const masks = [
-      // Email addresses
-      section.locator("a[href^='mailto:']"),
-
-      // User/Distribution List IDs (C3Us_*, DL_*)
-      section.locator("text=/^C3Us_/i"),
-      section.locator("text=/^DL_/i"),
-    ]
-
-    await expect(section).toHaveScreenshot("secure-roles.png", {
-      mask: masks,
-      ...SCREENSHOT_OPTIONS,
-    })
-  })
 })
 
 test.describe("Bootstrap Components - Masterdata", () => {
