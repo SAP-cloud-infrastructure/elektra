@@ -17,9 +17,10 @@ module ServiceLayer
       end
 
       def pool_shares(pool_id)
-        elektron_dns.get("pools/#{pool_id}/shares", all_projects: true).map_to("body.shares")
-      rescue Elektron::Errors::ApiResponse
-        []
+        response = elektron_dns.get("pools/#{pool_id}/shares", all_projects: true)
+        response.body.fetch("shared_pools", [])
+      rescue Elektron::Errors::ApiResponse => e
+        nil
       end
 
       # Returns only pools that have been shared to the given keystone domain_id.
@@ -28,9 +29,12 @@ module ServiceLayer
         all_pools = pools[:items]
         return all_pools if domain_id.blank?
 
+        # nil from pool_shares means the API is not supported — fall back to all pools
+        shares_by_pool = all_pools.index_with { |pool| pool_shares(pool.id) }
+        return all_pools if shares_by_pool.values.any?(&:nil?)
+
         all_pools.select do |pool|
-          shares = pool_shares(pool.id)
-          shares.any? { |s| s["target_keystone_id"] == domain_id }
+          shares_by_pool[pool].any? { |s| s["target_domain_id"] == domain_id }
         end
       rescue StandardError
         pools[:items]

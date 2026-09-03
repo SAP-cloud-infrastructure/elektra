@@ -23,21 +23,21 @@ describe ServiceLayer::DnsServiceServices::Pool do
     context "when the API returns shares" do
       it "returns the list of shares" do
         response = double("response")
-        allow(response).to receive(:map_to).with("body.shares").and_return(
-          [{ "target_keystone_id" => "domain-111" }],
+        allow(response).to receive(:body).and_return(
+          { "shared_pools" => [{ "target_domain_id" => "domain-111" }] },
         )
         allow(elektron_dns).to receive(:get).with("pools/pool-aaa/shares", all_projects: true).and_return(response)
 
-        expect(service.pool_shares("pool-aaa")).to eq([{ "target_keystone_id" => "domain-111" }])
+        expect(service.pool_shares("pool-aaa")).to eq([{ "target_domain_id" => "domain-111" }])
       end
     end
 
     context "when the API returns an error" do
-      it "returns an empty array" do
+      it "returns nil" do
         response_double = double("response", code: "404", code_type: nil, error_type: nil, body: {}, message: "not found")
         allow(elektron_dns).to receive(:get).and_raise(Elektron::Errors::ApiResponse.new(response_double))
 
-        expect(service.pool_shares("pool-aaa")).to eq([])
+        expect(service.pool_shares("pool-aaa")).to be_nil
       end
     end
   end
@@ -63,7 +63,7 @@ describe ServiceLayer::DnsServiceServices::Pool do
     context "when pool_a is shared to the domain" do
       before do
         allow(service).to receive(:pool_shares).with("pool-aaa").and_return(
-          [{ "target_keystone_id" => "domain-111" }],
+          [{ "target_domain_id" => "domain-111" }],
         )
         allow(service).to receive(:pool_shares).with("pool-bbb").and_return([])
       end
@@ -85,6 +85,16 @@ describe ServiceLayer::DnsServiceServices::Pool do
 
       it "returns an empty list" do
         expect(service.pools_for_domain("domain-111")).to eq([])
+      end
+    end
+
+    context "when pool_shares API is unavailable (returns nil)" do
+      before do
+        allow(service).to receive(:pool_shares).and_return(nil)
+      end
+
+      it "falls back to all pools" do
+        expect(service.pools_for_domain("domain-111")).to eq([pool_a, pool_b])
       end
     end
 
