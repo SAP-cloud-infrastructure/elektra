@@ -97,7 +97,7 @@ jobs:
           node-version: "22.x"
 
       - name: Install pnpm
-        run: npm install -g pnpm
+        run: npm install -g pnpm@8.15.0
 
       - name: Get pnpm store directory
         id: pnpm-cache
@@ -142,7 +142,7 @@ jobs:
           node-version: "22.x"
 
       - name: Install pnpm
-        run: npm install -g pnpm
+        run: npm install -g pnpm@8.15.0
 
       - name: Get pnpm store directory
         id: pnpm-cache
@@ -187,7 +187,7 @@ jobs:
           node-version: "22.x"
 
       - name: Install pnpm
-        run: npm install -g pnpm
+        run: npm install -g pnpm@8.15.0
 
       - name: Get pnpm store directory
         id: pnpm-cache
