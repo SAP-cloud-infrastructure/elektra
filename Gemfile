@@ -12,8 +12,9 @@ source 'https://rubygems.org'
 gem 'unf', '>= 0.2.0beta2'
 
 gem 'jsbundling-rails'
+gem 'sprockets-rails'
 # https://rubygems.org/gems/rails/versions
-gem 'rails', '7.2.3.1'
+gem 'rails', '8.0.5'
 # Security fixes for Rack CVEs (multipart parsing, DoS, file exposure)
 gem 'rack', '>= 3.2.6'
 # Security fix for rack-session CVE (session forgery and Marshal deserialization)
@@ -39,7 +40,7 @@ gem 'nokogiri', '>= 1.19.1'
 gem 'responders'
 
 # Database
-gem 'pg', '1.3.4'
+gem 'pg', '>= 1.3.4'
 
 # Openstack
 gem 'net-ssh'
@@ -51,7 +52,7 @@ gem 'netaddr', '2.0.4'
 gem 'ruby-radius'
 
 # Extras
-gem 'config', '~> 2.2.1'
+gem 'config', '>= 2.2'
 
 # Prometheus instrumentation
 gem 'prometheus-client'
@@ -118,9 +119,6 @@ group :development, :test do
 
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug'
-
-  # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
-  gem 'spring'
 
   gem 'foreman', '~> 0.87.0'
 
