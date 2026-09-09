@@ -7,7 +7,7 @@ module DnsService
 
     def new
       @zone_request = ::DnsService::ZoneRequest.new(nil)
-      @pools = cloud_admin.dns_service.pools[:items]
+      @pools = cloud_admin.dns_service.pools_for_domain(@scoped_domain_id)
       domain_config = DomainConfig.new(@scoped_domain_name)
       disabled_providers = domain_config.disabled_dns_providers?
 
@@ -71,7 +71,7 @@ module DnsService
         )
         render template: "dns_service/request_zone_wizard/create", formats: :js
       else
-        @pools = cloud_admin.dns_service.pools[:items]
+        @pools = cloud_admin.dns_service.pools_for_domain(@scoped_domain_id)
         render action: :new
       end
     end
