@@ -96,8 +96,12 @@ jobs:
         with:
           node-version: "22.x"
 
+      # Pin pnpm to the version declared in package.json ("packageManager": "pnpm@8.15.0").
+      # An unpinned "npm install -g pnpm" pulls the latest pnpm, which no longer supports
+      # our lockfileVersion 6.0 (ERR_PNPM_BROKEN_LOCKFILE) and skips optional native
+      # bindings on --frozen-lockfile. Keep this in sync with package.json.
       - name: Install pnpm
-        run: npm install -g pnpm
+        run: npm install -g pnpm@8.15.0
 
       - name: Get pnpm store directory
         id: pnpm-cache
@@ -141,8 +145,12 @@ jobs:
         with:
           node-version: "22.x"
 
+      # Pin pnpm to the version declared in package.json ("packageManager": "pnpm@8.15.0").
+      # An unpinned "npm install -g pnpm" pulls the latest pnpm, which no longer supports
+      # our lockfileVersion 6.0 (ERR_PNPM_BROKEN_LOCKFILE) and skips optional native
+      # bindings on --frozen-lockfile. Keep this in sync with package.json.
       - name: Install pnpm
-        run: npm install -g pnpm
+        run: npm install -g pnpm@8.15.0
 
       - name: Get pnpm store directory
         id: pnpm-cache
@@ -186,8 +194,12 @@ jobs:
         with:
           node-version: "22.x"
 
+      # Pin pnpm to the version declared in package.json ("packageManager": "pnpm@8.15.0").
+      # An unpinned "npm install -g pnpm" pulls the latest pnpm, which no longer supports
+      # our lockfileVersion 6.0 (ERR_PNPM_BROKEN_LOCKFILE) and skips optional native
+      # bindings on --frozen-lockfile. Keep this in sync with package.json.
       - name: Install pnpm
-        run: npm install -g pnpm
+        run: npm install -g pnpm@8.15.0
 
       - name: Get pnpm store directory
         id: pnpm-cache
