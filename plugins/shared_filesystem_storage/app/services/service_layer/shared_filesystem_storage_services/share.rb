@@ -90,7 +90,16 @@ module ServiceLayer
 
       ################# INTERFACE METHODS ######################
       def create_share(params)
-        elektron_shares.post("shares") { { share: params } }.body["share"]
+        elektron_shares
+          .post(
+            "shares",
+            headers: {
+              "X-OpenStack-Manila-API-Version" => "2.84",
+            },
+          ) do
+            { share: params }
+          end
+          .body["share"]
       end
 
       def update_share(share_id, params)
