@@ -176,7 +176,7 @@ module MonsoonOpenstackAuth
 
       # Convenience wrapper for instance method
       def ensure_authorization_performed(options = {})
-        after_filter(options.slice(:only, :except)) do |controller_instance|
+        after_action(options.slice(:only, :except)) do |controller_instance|
           controller_instance.ensure_authorization_performed(options)
         end
       end
