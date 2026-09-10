@@ -5,7 +5,7 @@
 ![React Version](https://img.shields.io/badge/react-18.2.0-blue.svg)
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)
 
-# Elektra
+# Elektra test
 
 ![Elektra Landing Page](https://github.com/sapcc/documents/raw/master/screenshots/sapcc_elektra_landing_page.png)
 
