@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-# Regression test for the HSTS security finding (CVSS 5.6, configuration):
+# Regression test for the HSTS security finding:
 # the Strict-Transport-Security header must be set on *every* production response
 # — including the unauthenticated 302 redirect to the login form — so browsers
 # learn the HTTPS-only policy on first contact and are protected against
