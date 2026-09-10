@@ -61,6 +61,14 @@ Rails.application.configure do
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
   # config.force_ssl = true
 
+  # Set HSTS on every response — including the unauthenticated 302 redirect to the login
+  # form — so browsers learn the HTTPS-only policy on first contact, protecting against
+  # SSL-stripping. We set the header directly instead of enabling config.force_ssl: TLS is
+  # terminated at the nginx ingress and the container serves plain HTTP on port 80, so
+  # force_ssl would 301-redirect the internal HTTP health probes and break the deployment.
+  config.action_dispatch.default_headers["Strict-Transport-Security"] =
+    "max-age=31536000; includeSubDomains"
+
   # Prepend all log lines with the following tags.
   config.log_tags = [:uuid]
   config.logger = RailsStdoutLogging::Rails.heroku_stdout_logger
