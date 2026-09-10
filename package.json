@@ -125,7 +125,7 @@
     "vitest": "^3.2.4"
   },
   "optionalDependencies": {
-    "@sapcc/limes-ui": "1.19.0"
+    "@sapcc/limes-ui": "1.20.0"
   },
   "scripts": {
     "test": "vitest run",
@@ -149,6 +149,7 @@
   "version": "2.0.0",
   "repository": "https://github.com/sapcc/elektra.git",
   "main": "index.js",
+  "//packageManager": "Keep in sync with .github/workflows/checks.yaml (npm install -g pnpm@8.15.0). Our pnpm-lock.yaml uses lockfileVersion 6.0, which newer pnpm majors no longer support. When bumping pnpm: update this field AND checks.yaml to the same version, run `pnpm install` (without --frozen-lockfile) to migrate the lockfile, and commit the regenerated pnpm-lock.yaml.",
   "packageManager": "pnpm@8.15.0",
   "engines": {
     "node": ">=16.14.0",
@@ -162,7 +163,7 @@
       "rollup": ">=4.59.0",
       "flatted": ">=3.4.0",
       "immutable": ">=5.1.5",
-      "vite": ">=8.0.0",
+      "vite": ">=8.2.2",
       "esbuild": ">=0.27.0"
     }
   }

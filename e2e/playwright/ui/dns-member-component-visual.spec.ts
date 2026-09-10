@@ -47,9 +47,9 @@ test.describe("Visual Regression - DNS Service Components", () => {
     await expect(page.locator("[data-test=page-title]")).toContainText("DNS")
     await page.waitForTimeout(2000)
 
-    // Click on "Create New Zone" button (or "Request New Zone" depending on permissions)
+    // Click on "Create New Domain" button (or "Request New Domain" depending on permissions)
     const createButton = page
-      .locator('a[data-modal="true"]:has-text("Create New Zone"), a[data-modal="true"]:has-text("Request New Zone")')
+      .locator('a[data-modal="true"]:has-text("Create New Domain"), a[data-modal="true"]:has-text("Request New Domain")')
       .first()
     await expect(createButton).toBeVisible({ timeout: 10000 })
     await createButton.click()

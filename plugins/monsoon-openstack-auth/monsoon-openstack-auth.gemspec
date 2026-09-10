@@ -14,7 +14,6 @@ Gem::Specification.new do |s|
   s.test_files = Dir["spec/**/*"]
 
   s.add_dependency 'hashie'
-  s.add_dependency 'uglifier', '>= 1.3.0'
   s.add_dependency 'rails'
   s.add_dependency 'excon'
 end

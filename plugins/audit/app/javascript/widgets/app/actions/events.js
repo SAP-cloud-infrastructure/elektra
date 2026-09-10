@@ -299,6 +299,45 @@ const loadAttributeValues = (attribute) => (dispatch, getState) => {
   //       dispatch(requestAttributeValuesFailure(jqXHR.responseText))
 }
 
+// ----------- DOWNLOAD -----------
+
+export const downloadEvents = () => (dispatch, getState) => {
+  const events = getState().events
+  const { activeFilters, filterStartTime, filterEndTime, searchTerm } = events
+
+  let params = {
+    search: searchTerm || "",
+    time: buildTimeFilter(filterStartTime, filterEndTime) || "",
+  }
+  activeFilters.forEach((filter) => (params[filter[0]] = filter[1]))
+
+  return ajaxHelper
+    .get("/events/download", { params })
+    .then((response) => {
+      const content =
+        response.data instanceof Blob
+          ? response.data
+          : typeof response.data === "string"
+          ? response.data
+          : JSON.stringify(response.data)
+      const blob =
+        content instanceof Blob
+          ? content
+          : new Blob([content], { type: "application/x-ndjson" })
+      const objectUrl = URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      link.href = objectUrl
+      link.download = "audit-events.jsonl"
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(objectUrl)
+    })
+    .catch((error) => {
+      addError(`Could not download events (${error.message})`)
+    })
+}
+
 // ----------- EVENT DETAILS -----------
 
 export const toggleEventDetails = (event) => (dispatch) => {

@@ -5,7 +5,7 @@ require_dependency 'monsoon_openstack_auth/application_controller'
 module MonsoonOpenstackAuth
   # Sessions Handler
   class SessionsController < ActionController::Base
-    before_action :load_auth_params, except: %i[destroy consume_auth_token]
+    before_action :load_auth_params, except: %i[destroy]
 
     def new
       unless MonsoonOpenstackAuth.configuration.form_auth_allowed?
@@ -18,30 +18,6 @@ module MonsoonOpenstackAuth
       )
 
       @keystone_endpoint = keystone_tokens_url
-    end
-
-    def consume_auth_token
-      domain_fid = params[:domain_fid]
-      domain_id = params[:domain_id]
-
-      # Determine the URL to redirect the user after login
-      after_login_url = if safe_redirect_url?(params[:after_login]) 
-        params[:after_login]
-      else 
-        # default after login url
-        main_app.root_url(domain_id: domain_id)
-      end
-
-      auth_token = params[:auth_token]
-      auth_token = decode_auth_token(auth_token) if request.get?
-      # Attempt to create an authentication session using the provided token
-      auth_session = MonsoonOpenstackAuth::Authentication::AuthSession.create_from_auth_token(self, auth_token)
-
-      if auth_session.nil? || !auth_session.logged_in?
-        redirect_to new_session_path(domain_fid: domain_fid, domain_id: domain_id), alert: 'Invalid token.' and return
-      else
-        redirect_to after_login_url
-      end
     end
 
     def create
@@ -203,13 +179,6 @@ module MonsoonOpenstackAuth
         @domain_id = params[:domain_id].presence
         @domain_name = params[:domain_name].presence || params[:domain_fid]
         @two_factor = params[:two_factor].to_s == 'true'
-      end
-
-      def decode_auth_token(encoded_token)
-        @verifier = ActiveSupport::MessageVerifier.new(Rails.application.secret_key_base)
-        @verifier.verify(encoded_token)
-      rescue ActiveSupport::MessageVerifier::InvalidSignature
-        nil # Return nil if the token is invalid
       end
 
       def safe_redirect_url?(url)

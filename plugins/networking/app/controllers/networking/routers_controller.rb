@@ -8,6 +8,7 @@ module Networking
     def index
       ################# NEW
       @routers = []
+      @flavors_by_id = services.networking.flavors.index_by(&:id)
 
       if current_user.is_allowed?("context_is_cloud_network_admin")
         @routers =
@@ -135,17 +136,24 @@ module Networking
           device_id: @router.id,
           device_owner: "network:router_interface",
         )
+      @router_flavor = services.networking.find_flavor(@router.flavor_id) if @router.flavor_id.present?
     end
 
     def new
       # build new router object (no api call done yet!)
       @router = services.networking.new_router("admin_state_up" => true)
+      @flavors = services.networking.flavors(service_type: "L3_ROUTER_NAT")
     end
 
     def create
       if params["router"]["external_gateway_info"]["network_id"].blank?
         params["router"].delete("external_gateway_info")
       end
+      # remove blank flavor_id so it's not sent to the API
+      flavor_id = params["router"].delete("flavor_id")
+      params["router"]["flavor_id"] = flavor_id if flavor_id.present?
+      # keep availability_zone_hints as string in model (for form re-render), convert to array before API call
+      az = (params["router"]["availability_zone_hints"] || "").strip
       # get selected subnets and remove them from params
       @selected_internal_subnets =
         (params[:router].delete(:internal_subnets) || []).reject(&:empty?)
@@ -153,7 +161,17 @@ module Networking
       @router = services.networking.new_router(params[:router])
       @router.internal_subnets = @selected_internal_subnets
 
-      if @router.save
+      # pass flavor name to model so it can validate AZ requirement for VPNaaS
+      if flavor_id.present?
+        @flavors = services.networking.flavors(service_type: "L3_ROUTER_NAT")
+        selected_flavor = @flavors.find { |f| f.id == flavor_id }
+        @router.flavor_name = selected_flavor&.name.to_s
+      end
+
+      if @router.valid?
+        # convert AZ string to array before saving to API
+        @router.write("availability_zone_hints", az.blank? ? [] : [az])
+        @router.save
         # router is created -> add subnets as interfaces
         services.networking.add_router_interfaces(
           @router.id,
@@ -164,7 +182,7 @@ module Networking
         flash.now[:notice] = "Router successfully created."
         redirect_to plugin("networking").routers_path
       else
-        # didn't save -> render new
+        @flavors ||= services.networking.flavors(service_type: "L3_ROUTER_NAT")
         render action: :new
       end
     end
@@ -195,6 +213,7 @@ module Networking
             data["subnet_id"]
           end
         end
+      @router_flavor = services.networking.find_flavor(@router.flavor_id) if @router.flavor_id.present?
     end
 
     def update
@@ -202,7 +221,7 @@ module Networking
         params[:router].delete(:action_from_show) == "true" || false
       # get selected subnets and remove them from params
       @selected_internal_subnet_ids =
-        (params[:router].delete(:internal_subnets) || []).reject(&:empty?)
+        Array(params[:router].delete(:internal_subnets)).reject(&:empty?)
 
       # build new router object
       @router = services.networking.new_router(params[:router].to_unsafe_hash)

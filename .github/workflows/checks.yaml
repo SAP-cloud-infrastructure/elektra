@@ -94,10 +94,14 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: "20.x"
+          node-version: "22.x"
 
+      # Pin pnpm to the version declared in package.json ("packageManager": "pnpm@8.15.0").
+      # An unpinned "npm install -g pnpm" pulls the latest pnpm, which no longer supports
+      # our lockfileVersion 6.0 (ERR_PNPM_BROKEN_LOCKFILE) and skips optional native
+      # bindings on --frozen-lockfile. Keep this in sync with package.json.
       - name: Install pnpm
-        run: npm install -g pnpm
+        run: npm install -g pnpm@8.15.0
 
       - name: Get pnpm store directory
         id: pnpm-cache
@@ -139,10 +143,14 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: "20.x"
+          node-version: "22.x"
 
+      # Pin pnpm to the version declared in package.json ("packageManager": "pnpm@8.15.0").
+      # An unpinned "npm install -g pnpm" pulls the latest pnpm, which no longer supports
+      # our lockfileVersion 6.0 (ERR_PNPM_BROKEN_LOCKFILE) and skips optional native
+      # bindings on --frozen-lockfile. Keep this in sync with package.json.
       - name: Install pnpm
-        run: npm install -g pnpm
+        run: npm install -g pnpm@8.15.0
 
       - name: Get pnpm store directory
         id: pnpm-cache
@@ -184,10 +192,14 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: "20.x"
+          node-version: "22.x"
 
+      # Pin pnpm to the version declared in package.json ("packageManager": "pnpm@8.15.0").
+      # An unpinned "npm install -g pnpm" pulls the latest pnpm, which no longer supports
+      # our lockfileVersion 6.0 (ERR_PNPM_BROKEN_LOCKFILE) and skips optional native
+      # bindings on --frozen-lockfile. Keep this in sync with package.json.
       - name: Install pnpm
-        run: npm install -g pnpm
+        run: npm install -g pnpm@8.15.0
 
       - name: Get pnpm store directory
         id: pnpm-cache

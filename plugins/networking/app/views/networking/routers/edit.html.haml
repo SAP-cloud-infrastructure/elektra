@@ -5,6 +5,10 @@
       %p.alert.alert-error
         = @router.errors.full_messages.to_sentence + '.'
 
+    - if @router_flavor&.name.to_s.include?("vpnaas")
+      %p.alert.alert-info
+        VPNaaS routers cannot have internal networks attached. Use BGPVPN for connectivity.
+
     = f.input :action_from_show, :as => :hidden, :input_html => { :value => @action_from_show }
     
     = f.input :name
@@ -25,13 +29,26 @@
             collection: @subnets,
             selected: @router_external_subnet_ids
 
-    = f.input :internal_subnets, 
-      label:      "Private Network Subnets",
-      wrapper:    :horizontal_radio_and_checkboxes_4x8_scrollable,
-      required:   true,
-      as:         :check_boxes, 
-      collection: @internal_subnets.sort{|a,b| a.network_name<=>b.network_name}.map{|n| ["#{n.name} (#{n.network_name})",n.id]},
-      checked:   @router_internal_subnet_ids
+    - if @router_flavor&.name.to_s.include?("vpnaas")
+      .form-group
+        %label.col-sm-4.control-label Network Flavor
+        .col-sm-8
+          %p.form-control-static
+            = @router_flavor.name
+            - if @router_flavor.description.present?
+              \–
+              = @router_flavor.description
+            %br
+            %small.text-muted= @router_flavor.id
+      = f.input :internal_subnets, as: :hidden
+    - else
+      = f.input :internal_subnets,
+        label:      "Private Network Subnets",
+        wrapper:    :horizontal_radio_and_checkboxes_4x8_scrollable,
+        required:   true,
+        as:         :check_boxes,
+        collection: @internal_subnets.sort{|a,b| a.network_name<=>b.network_name}.map{|n| ["#{n.name} (#{n.network_name})",n.id]},
+        checked:   @router_internal_subnet_ids
     
 
 
