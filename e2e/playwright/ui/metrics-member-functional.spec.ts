@@ -25,7 +25,7 @@ test.describe("Metrics - Member", () => {
     await expect(page.locator("[data-test=page-title]")).toContainText("Metrics")
     await page.waitForTimeout(2000)
 
-    // Verify "Open Maia Dashboard" link is visible
-    await expect(page.locator("a:has-text('Open Maia Dashboard')")).toBeVisible()
+    // Verify "Open Maia Dashboard" button is visible
+    await expect(page.locator("button:has-text('Open Maia Dashboard')")).toBeVisible()
   })
 })
