@@ -48,26 +48,23 @@ export default function ProjectResourceCheck({ opened, onClose }) {
   }, [data, searchText])
 
   const onConfirm = () => {
-    console.log("Deleting project...")
     setLoading(true)
+    setApiError(null)
     apiClient
       .osApi("prodel")
       .delete(`/api/v1/projects/${window.scopedProjectId}`)
       .then(() => {
-        setLoading(false)
-        // after success
         var scopedDomainName = window.location.pathname.split("/")[1]
         var url = window.location.protocol + "//" + window.location.host + "/" + scopedDomainName
-        console.log("Redirecting to: " + url)
         window.location.href = url
       })
       .catch((error) => {
         setLoading(false)
-        setApiError(error.data)
-        console.error(error.data)
-      })
-      .finally(() => {
-        setLoading(false)
+        const errorData = error.data
+        // prodel returns flat {"message": "..."} wrapped in {"error": ...} by os_api_controller
+        const message =
+          errorData?.error?.message || errorData?.message || errorData?.error || error.message || "Unknown error"
+        setApiError(message)
       })
   }
 
@@ -88,8 +85,10 @@ export default function ProjectResourceCheck({ opened, onClose }) {
         if (!mounted.current) return
         setData(null)
         setLoading(false)
-        setApiError(error.data)
-        console.error(error.data)
+        const errorData = error.data
+        const message =
+          errorData?.error?.message || errorData?.message || errorData?.error || error.message || "Unknown error"
+        setApiError(message)
       })
       .finally(() => {
         setLoading(false)
@@ -219,15 +218,12 @@ export default function ProjectResourceCheck({ opened, onClose }) {
               Help
             </Button>
           </ContentAreaToolbar>
-          {data && !loading ? (
+          {apiError && (
+            <Message onDismiss={() => setApiError(null)} text={apiError} variant="error" />
+          )}
+          {loading && <p>Loading...</p>}
+          {data && !loading && (
             <>
-              {apiError && (
-                <Message
-                  onDismiss={function noRefCheck() {}}
-                  text={`An error occurred: ${apiError.error.message}`}
-                  variant="error"
-                />
-              )}
               {filteredData.length === 0 ? (
                 <IntroBox text="No resources found. You can delete the Project." />
               ) : (
@@ -272,8 +268,6 @@ export default function ProjectResourceCheck({ opened, onClose }) {
                 </TabPanel>
               </Tabs>
             </>
-          ) : (
-            <p>Loading...</p>
           )}
         </PanelBody>
       </Panel>
