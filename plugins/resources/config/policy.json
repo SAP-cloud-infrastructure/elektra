@@ -1,8 +1,4 @@
 {
-  /*****************************************************************************
-   * building blocks - do not use directly
-   */
-
   "limes_project_scope": "project_domain_id:%(selected.domain_id)s and project_id:%(selected.project_id)s",
   "limes_domain_scope": "domain_id:%(selected.domain_id)s",
 
@@ -16,12 +12,6 @@
   "limes_project_viewer": "rule:limes_domain_viewer or (rule:limes_project_scope and rule:limes_project_view_roles) or rule:limes_project_editor",
   "limes_can_goto_cluster": "role:cloud_support_tools_viewer",
 
-  /*****************************************************************************
-   * All these rules expect a hash in auth_params[:selected] containing a
-   * cluster_id and potentially domain_id and project_id. If you don't know
-   * what to give for cluster_id, give "current".
-   */
-
   "resources:project:show": "rule:limes_project_viewer",
   "resources:project:edit": "rule:limes_project_editor",
   "resources:project:goto_cluster": "rule:limes_can_goto_cluster",
@@ -30,12 +20,6 @@
   "resources:domain:goto_cluster": "rule:limes_can_goto_cluster",
   "resources:cluster:show": "rule:limes_cluster_viewer",
   "resources:cluster:edit": "rule:limes_cluster_editor",
-
-  /*****************************************************************************
-   * These are specifalized rules that check read-only authorization for the
-   * current scope only. They're used to determine whether to show links to the
-   * resources plugin in menus or other plugins.
-   */
 
    "resources:project:access": "(rule:limes_project_view_roles or role:resource_admin) and not project_id:nil",
    "resources:project:write_access": "role:resource_admin and not project_id:nil",
