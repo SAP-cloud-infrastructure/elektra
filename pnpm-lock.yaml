@@ -252,8 +252,8 @@ dependencies:
 
 optionalDependencies:
   '@sapcc/limes-ui':
-    specifier: 1.21.0
-    version: 1.21.0(@types/node@24.10.9)(@types/react@18.2.0)(postcss@8.5.6)(react-dom@18.2.0)(react@18.2.0)(sonner@2.0.8)(typescript@5.9.3)
+    specifier: 1.21.1
+    version: 1.21.1(@types/node@24.10.9)(@types/react@18.2.0)(postcss@8.5.6)(react-dom@18.2.0)(react@18.2.0)(sonner@2.0.8)(typescript@5.9.3)
 
 devDependencies:
   '@babel/preset-env':
@@ -2843,7 +2843,7 @@ packages:
   /@jridgewell/gen-mapping@0.3.13:
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
     dependencies:
-      '@jridgewell/sourcemap-codec': 1.5.5
+      '@jridgewell/sourcemap-codec': 1.6.0
       '@jridgewell/trace-mapping': 0.3.31
 
   /@jridgewell/remapping@2.3.5:
@@ -2860,11 +2860,15 @@ packages:
   /@jridgewell/sourcemap-codec@1.5.5:
     resolution: {integrity: sha512-cYQ9310grqxueWbl+WuIUIaiUaDcj7WOq5fVhEljNVgRfOUhY9fy2zTvfoqWsnebh8Sl70VScFbICvJnLKB0Og==}
 
+  /@jridgewell/sourcemap-codec@1.6.0:
+    resolution: {integrity: sha512-T7jf+5zgsZHwNJ4lvQ7/aezbyk0nNX+zJVWpmHA7VYsEx7a7qr5Rg5IbtJFqkgze5Y2sruq1RUY8Q837Od7iFw==}
+    requiresBuild: true
+
   /@jridgewell/trace-mapping@0.3.31:
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
-      '@jridgewell/sourcemap-codec': 1.5.5
+      '@jridgewell/sourcemap-codec': 1.6.0
 
   /@lezer/common@1.5.1:
     resolution: {integrity: sha512-6YRVG9vBkaY7p1IVxL4s44n5nUnaNnGM2/AckNgYOnxTG2kWh1vR8BMxPseWPjRNpb5VtXnMpeYAEAADoRV1Iw==}
@@ -3700,8 +3704,8 @@ packages:
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
     dev: true
 
-  /@sapcc/limes-ui@1.21.0(@types/node@24.10.9)(@types/react@18.2.0)(postcss@8.5.6)(react-dom@18.2.0)(react@18.2.0)(sonner@2.0.8)(typescript@5.9.3):
-    resolution: {integrity: sha512-SDfbaYQFe1J5p4VVR0vCTM/1JgOnQmBrSfzSzXyt0PQNKkDSds/jS9mmUXMp/VsaXsa2ALdZPzBWzLgBsFz5YA==, tarball: https://npm.pkg.github.com/download/@sapcc/limes-ui/1.21.0/512d7a3250e02f56c07c368e67a95df3c2c696de}
+  /@sapcc/limes-ui@1.21.1(@types/node@24.10.9)(@types/react@18.2.0)(postcss@8.5.6)(react-dom@18.2.0)(react@18.2.0)(sonner@2.0.8)(typescript@5.9.3):
+    resolution: {integrity: sha512-1k+hDD5czouWAYKn+kY86T7FVh4KDfIErQVPoHgY/AXIZfw+To7GRmW42W4salmSjvjVFNAhKEV4YP0OG2qoFw==, tarball: https://npm.pkg.github.com/download/@sapcc/limes-ui/1.21.1/5a4b2b48a244bea85e8534c8087eb732c563abc4}
     requiresBuild: true
     dependencies:
       '@cj-tech-master/excelts': 10.2.0
@@ -5194,8 +5198,8 @@ packages:
     dev: false
     optional: true
 
-  /baseline-browser-mapping@2.11.21:
-    resolution: {integrity: sha512-uh8vpY/1/YyFkunIDFH/12p7/7VdPKA1hejMVEbdkEaWnUz0Hesvx5EbiU6XxjyHZIOju+ZMbQJkRh+es3/spQ==}
+  /baseline-browser-mapping@2.11.22:
+    resolution: {integrity: sha512-pWc4w51fBFd7mav43/zKRC+RI6f4yfzQoVlfvE8dECePyfkn1bzLp01Fj0QACcyCZyFhiEMyD2qScfKRWgWibA==}
     engines: {node: '>=6.0.0'}
     hasBin: true
     dev: true
@@ -5291,11 +5295,11 @@ packages:
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
     hasBin: true
     dependencies:
-      baseline-browser-mapping: 2.11.21
+      baseline-browser-mapping: 2.11.22
       caniuse-lite: 1.0.30001810
-      electron-to-chromium: 1.5.426
+      electron-to-chromium: 1.5.427
       node-releases: 2.0.55
-      update-browserslist-db: 1.3.2(browserslist@4.28.9)
+      update-browserslist-db: 1.3.3(browserslist@4.28.9)
     dev: true
 
   /buffer@5.7.1:
@@ -6302,8 +6306,8 @@ packages:
     resolution: {integrity: sha512-wKXFZw4erWmmOz5N/grBoJ2XrNJGDFMu2+W5ACHza5rHtvsqrK4gb6rnLC7XxKB9WlJ+RmyQatuEXmtm86xbnw==}
     dev: true
 
-  /electron-to-chromium@1.5.426:
-    resolution: {integrity: sha512-2Gcq6inCQs/AqfHP3f5ftCzk+pqeW2VlA1LgmPqEj2hfBO8HiZRspNYkD4HzFBe4u6lGqca4BspFr6Ix4Q400g==}
+  /electron-to-chromium@1.5.427:
+    resolution: {integrity: sha512-n14zb3FdsChZ2BNobqNHAJMcP3ifFv4paox2LvCrfVAQcqGiSURgbJl+PfMpHVCNFkStnNc+RRVtPBTVW5PDgw==}
     dev: true
 
   /emoji-regex@10.6.0:
@@ -6485,7 +6489,7 @@ packages:
       es-errors: 1.3.0
       get-intrinsic: 1.3.0
       has-tostringtag: 1.0.2
-      hasown: 2.0.2
+      hasown: 2.0.4
 
   /es-shim-unscopables@1.1.0:
     resolution: {integrity: sha512-d9T8ucsEhh8Bi1woXCf+TIKDIROLG5WCkxg8geBCbvk22kzwC5G2OnXVMO6FUsvQlgUUXQ2itephWDLqDzbeCw==}
@@ -7362,8 +7366,6 @@ packages:
     requiresBuild: true
     dependencies:
       function-bind: 1.1.2
-    dev: false
-    optional: true
 
   /headers-polyfill@5.0.1:
     resolution: {integrity: sha512-1TJ6Fih/b8h5TIcv+1+Hw0PDQWJTKDKzFZzcKOiW1wJza3XoAQlkCuXLbymPYB8+ZQyw8mHvdw560e8zVFIWyA==}
@@ -7530,7 +7532,7 @@ packages:
     dependencies:
       es-errors: 1.3.0
       hasown: 2.0.2
-      side-channel: 1.1.0
+      side-channel: 1.1.1
     dev: true
 
   /internmap@1.0.1:
@@ -8749,11 +8751,10 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
-  /nanoid@3.3.18:
-    resolution: {integrity: sha512-DTg4MJbGMWkfi6VZFdNt2/caMbQy4Ou+Op/hJQvGEWcnVfoA1QA+xzRKAzw9jD6+GVOOeYr/mIcuDSdug6F6+w==}
+  /nanoid@3.3.19:
+    resolution: {integrity: sha512-Y2tUNy4ouw6tq5oDSKeQYGOyhkUBhNOcGV/02KC+6kd9eDGqdZd++mjMiIDilrBYvjEnCYvVtsuHCuP+okSfug==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
-    requiresBuild: true
 
   /natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
@@ -9227,7 +9228,7 @@ packages:
     resolution: {integrity: sha512-u82N74LFzG8ca+dD8puPnplTXoGH4fTPpVGuIbt36G3qvNlkvfD0lEAZSxaly3KX8TS/L1A1gsCEmvKmBcVbkQ==}
     engines: {node: ^10 || ^12 || >=14}
     dependencies:
-      nanoid: 3.3.18
+      nanoid: 3.3.19
       picocolors: 1.1.1
       source-map-js: 1.2.1
     dev: true
@@ -9236,7 +9237,7 @@ packages:
     resolution: {integrity: sha512-RRuzqDtt5Y9h3quz5hWhK+TPnsmVs6WwSU6LkJMeY4HstUEDuYTG8UJSdawMRzmzAtV+KEoG8N3Qg2qLy5vM/A==}
     engines: {node: ^10 || ^12 || >=14}
     dependencies:
-      nanoid: 3.3.18
+      nanoid: 3.3.19
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
@@ -11065,8 +11066,8 @@ packages:
       picocolors: 1.1.1
     dev: true
 
-  /update-browserslist-db@1.3.2(browserslist@4.28.9):
-    resolution: {integrity: sha512-UQ+MSxlhRm1bzjhU+DcuXfjFO1FzNtqhK5+9Yvlp90ItDLk5vT932A0rFu619nf7RVS+Y/VeaUW1jaRDqZ8VJw==}
+  /update-browserslist-db@1.3.3(browserslist@4.28.9):
+    resolution: {integrity: sha512-pJ2sYawQS0R/WI928Gj5GlPhTGzbMelq0+4INtSYNDV9ErKJcX6xjGWkoG/VnB3dpUm00zALaqkrUD77pO5TDQ==}
     hasBin: true
     peerDependencies:
       browserslist: '>= 4.21.0'
