@@ -60,6 +60,7 @@ const DetailsContent = ({
   const [isEditingWorkers, setIsEditingWorkers] = useState(false)
   const [isEditingMaintenance, setIsEditingMaintenance] = useState(false)
   const [showVersionUpdateDialog, setShowVersionUpdateDialog] = useState(false)
+  const [yamlFormat, setYamlFormat] = useState<"yaml" | "json">("yaml")
   const { apiClient } = useRouteContext({ strict: false }) as RouterContext
   const params = useParams({ from: CLUSTER_DETAIL_ROUTE_ID })
   const navigate = useNavigate({ from: CLUSTER_DETAIL_ROUTE_ID })
@@ -451,6 +452,23 @@ const DetailsContent = ({
               </TabPanel>
               <TabPanel>
                 <Container py px={false}>
+                  <div className="tw-mb-4 tw-flex tw-justify-end">
+                    <Stack gap="2" alignment="center">
+                      <span className="tw-text-sm tw-text-theme-text-secondary">Format:</span>
+                      <Button
+                        size="small"
+                        variant={yamlFormat === "yaml" ? "primary" : "subdued"}
+                        onClick={() => setYamlFormat("yaml")}
+                        label="YAML"
+                      />
+                      <Button
+                        size="small"
+                        variant={yamlFormat === "json" ? "primary" : "subdued"}
+                        onClick={() => setYamlFormat("json")}
+                        label="JSON"
+                      />
+                    </Stack>
+                  </div>
                   <YamlEditor
                     resource={cluster.raw}
                     onSave={handleSaveCluster}
@@ -459,6 +477,7 @@ const DetailsContent = ({
                     onRefresh={handleRefreshCluster}
                     disabled={yamlEditorState.disabled}
                     disabledMessage={yamlEditorState.disabledMessage}
+                    format={yamlFormat}
                   />
                 </Container>
               </TabPanel>

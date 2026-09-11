@@ -43,3 +43,36 @@ export function parseYamlToObject(yamlContent: string): Record<string, unknown> 
     throw new Error(`Invalid YAML: ${errorMessage}`)
   }
 }
+
+export function parseJsonToObject(jsonContent: string): Record<string, unknown> {
+  try {
+    const parsedObject = JSON.parse(jsonContent)
+
+    // Reject null, undefined, non-objects, or arrays
+    if (!parsedObject || typeof parsedObject !== "object" || Array.isArray(parsedObject)) {
+      throw new Error("Invalid JSON: document must be a valid object, not an array or primitive")
+    }
+
+    // Validate it's a plain object (not Date, Map, Set, etc.)
+    const isPlainObject = Object.prototype.toString.call(parsedObject) === "[object Object]"
+    if (!isPlainObject) {
+      throw new Error(
+        "Invalid JSON: document must be a plain object compatible with JSON (no custom types like Date, Map, etc.)"
+      )
+    }
+
+    return parsedObject as Record<string, unknown>
+  } catch (err) {
+    // Wrap any JSON parsing error with "Invalid JSON:" prefix
+    const errorMessage = (err as Error).message
+    if (errorMessage.startsWith("Invalid JSON:")) {
+      throw err
+    }
+    throw new Error(`Invalid JSON: ${errorMessage}`)
+  }
+}
+
+export function parseContentToObject(content: string, format: "yaml" | "json"): Record<string, unknown> {
+  return format === "json" ? parseJsonToObject(content) : parseYamlToObject(content)
+}
+
