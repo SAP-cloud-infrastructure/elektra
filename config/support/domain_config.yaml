@@ -72,9 +72,12 @@
 #   oidc_provider          true/false. Marks the domain as using an OIDC provider.
 #                          When true, the "Log out" link also signs the user out of the
 #                          OIDC provider (oauth2-proxy). Default: false. (application nav)
-#   idp                    Identity Provider URL for the domain's federated login flow.
-#                          When set, appended as the `&idp=` parameter on the WebSSO auth
-#                          URL. Value is URL-encoded when read. (federation login view)
+#   idp                    Identity Provider redirect URL for the domain's federated login
+#                          flow. When set, appended as the `&idp=` parameter on the WebSSO
+#                          auth URL. Value is URL-encoded when read. (federation login view)
+#                          NOTE: `idp` (this redirect URL) and `idp_name` are kept as two
+#                          flat keys for backward compatibility, but are bundled into a
+#                          single Idp object (url + name) in the code (DomainConfig#idp?).
 #   idp_name               Keystone identity provider entity name, used as the
 #                          `identity_providers/<idp_name>` segment of the WebSSO auth URL.
 #                          Default: "sap-ias". (federation login view)
