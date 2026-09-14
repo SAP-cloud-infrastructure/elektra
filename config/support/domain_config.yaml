@@ -31,7 +31,7 @@
 #     ┌─────────────────────────────────────────────┐
 #     │ "marioworld-and-luigi"                      │  ← most specific (bottom/special)
 #     │   regex: "^marioworld-and-luigi.*$"         │
-#     │   idp (overrides the one above)             │
+#     │   idp, idp_name (override the ones above)   │
 #     └───────────────────────┬─────────────────────┘
 #                             │
 #                             ▼
