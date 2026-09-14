@@ -48,8 +48,16 @@ domains:
     federation: true
     oidc_provider: true
     idp: "https://mario.world.corp"
+    # Keystone identity provider entity name (URL segment identity_providers/<idp_name>).
+    # Optional, defaults to "sap-ias".
+    idp_name: "sap-ias"
+    # Federation protocol used by the identity provider (URL segment protocols/<protocol>).
+    # Optional, defaults to "openid".
+    federation_protocol: "openid"
 
   # Most specific first
   - name: marioworld-and-luigi
     regex: "^marioworld-and-luigi.*$"
     idp: "https://marioworld-and-luigi.world.corp"
+    idp_name: "luigi-ias"
+    federation_protocol: "saml2"
