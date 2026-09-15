@@ -9,7 +9,6 @@ import {
   performSsoPrecheck,
   verifyAndRedirect,
   showLoginForm,
-  getCsrfToken,
 } from "./sso_precheck"
 
 const KEYSTONE_URL = "https://identity-3.eu-de-1.cloud.sap/v3/auth/tokens"
@@ -31,16 +30,6 @@ function setupDom({ afterLogin } = {}) {
          data-spinner-id="sso-precheck-container"
          data-hidden-class="login-hidden"></div>
   `
-}
-
-function setCsrfMeta(token) {
-  const existing = document.querySelector('meta[name="csrf-token"]')
-  if (existing) existing.remove()
-  if (token === null) return
-  const meta = document.createElement("meta")
-  meta.setAttribute("name", "csrf-token")
-  meta.setAttribute("content", token)
-  document.head.append(meta)
 }
 
 // Minimal fetch Response stub.
@@ -66,18 +55,6 @@ afterAll(() => {
   global.fetch = window.fetch = originalFetch
 })
 
-describe("getCsrfToken", () => {
-  it("returns the token from the csrf-token meta tag", () => {
-    setCsrfMeta("MY-CSRF-TOKEN")
-    expect(getCsrfToken()).toBe("MY-CSRF-TOKEN")
-  })
-
-  it("returns null when the meta tag is absent", () => {
-    setCsrfMeta(null)
-    expect(getCsrfToken()).toBeNull()
-  })
-})
-
 describe("showLoginForm", () => {
   it("hides the spinner and reveals the login form", () => {
     setupDom()
@@ -100,8 +77,7 @@ describe("verifyAndRedirect", () => {
     setupDom()
   })
 
-  it("sends the token and CSRF header, then navigates to redirect_to", async () => {
-    setCsrfMeta("CSRF-123")
+  it("sends the token and navigates to redirect_to", async () => {
     const redirectTo = `/${DOMAIN}/home`
     window.fetch = vi.fn().mockReturnValue(mockResponse({ json: { redirect_to: redirectTo } }))
 
@@ -111,7 +87,6 @@ describe("verifyAndRedirect", () => {
     const [calledUrl, options] = window.fetch.mock.calls[0]
     expect(calledUrl).toBe(VERIFY_URL)
     expect(options.method).toBe("POST")
-    expect(options.headers["X-CSRF-Token"]).toBe("CSRF-123")
     expect(options.headers["Content-Type"]).toBe("application/json")
     expect(options.headers.Accept).toBe("application/json")
     expect(JSON.parse(options.body)).toEqual({
@@ -122,23 +97,12 @@ describe("verifyAndRedirect", () => {
   })
 
   it("omits after_login from the body when not provided", async () => {
-    setCsrfMeta("CSRF-123")
     window.fetch = vi.fn().mockReturnValue(mockResponse({ json: { redirect_to: "/x" } }))
 
     await verifyAndRedirect(VERIFY_URL, "subject-token")
 
     const options = window.fetch.mock.calls[0][1]
     expect(JSON.parse(options.body)).toEqual({ token: "subject-token" })
-  })
-
-  it("omits the CSRF header when no meta tag is present", async () => {
-    setCsrfMeta(null)
-    window.fetch = vi.fn().mockReturnValue(mockResponse({ json: { redirect_to: "/x" } }))
-
-    await verifyAndRedirect(VERIFY_URL, "subject-token")
-
-    const options = window.fetch.mock.calls[0][1]
-    expect(options.headers["X-CSRF-Token"]).toBeUndefined()
   })
 
   it("falls back to the login form when the response is not ok", async () => {
@@ -208,7 +172,6 @@ describe("performSsoPrecheck", () => {
 
   it("verifies the subject token and navigates on a successful keystone response", async () => {
     setupDom({ afterLogin: "/custom/path" })
-    setCsrfMeta("CSRF-123")
     const redirectTo = "/custom/path"
 
     window.fetch = vi
