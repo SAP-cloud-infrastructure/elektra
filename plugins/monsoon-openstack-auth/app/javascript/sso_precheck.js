@@ -68,12 +68,21 @@ async function verifyAndRedirect(url, token, afterLogin) {
     if (afterLogin) {
       body.after_login = afterLogin
     }
+
+    const headers = {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    }
+    // Same-origin precheck must send the Rails CSRF token so the verify
+    // endpoint can enforce CSRF protection for this flow.
+    const csrfToken = getCsrfToken()
+    if (csrfToken) {
+      headers["X-CSRF-Token"] = csrfToken
+    }
+
     const response = await fetch(url, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
+      headers: headers,
       body: JSON.stringify(body),
     })
 
@@ -110,8 +119,15 @@ function showLoginForm() {
   if (content) content.classList.remove(hiddenClass)
 }
 
+// Reads the Rails CSRF token from the standard meta tag rendered by
+// csrf_meta_tags in the layout. Returns null when absent.
+function getCsrfToken() {
+  const meta = document.querySelector('meta[name="csrf-token"]')
+  return (meta && meta.getAttribute("content")) || null
+}
+
 // Auto-initialize on DOM load
 document.addEventListener("DOMContentLoaded", performSsoPrecheck)
 
 // Export for testing
-export { performSsoPrecheck, verifyAndRedirect, showLoginForm }
+export { performSsoPrecheck, verifyAndRedirect, showLoginForm, getCsrfToken }

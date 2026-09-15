@@ -205,8 +205,36 @@ RSpec.describe AuthTokenController, type: :controller do
         request.headers['Origin'] = 'https://identity-3.eu-de-1.cloud.sap'
       end
 
-      it 'allows request from trusted origin' do
+      it 'allows token-less request from trusted origin (IdP redirect flow)' do
         expect(controller.send(:verify_authenticity_token)).to be true
+      end
+    end
+
+    context 'in production when a CSRF token is present (precheck flow)' do
+      before do
+        allow(Rails.env).to receive(:development?).and_return(false)
+        allow(Rails.env).to receive(:test?).and_return(false)
+      end
+
+      it 'always runs the standard CSRF check when an X-CSRF-Token header is sent' do
+        request.headers['X-CSRF-Token'] = 'some-token'
+        expect(controller).to receive(:csrf_token_present?).and_call_original
+        # The token presence must take priority over the trusted-origin bypass,
+        # so the standard Rails verification (super) must be invoked.
+        expect(controller).to receive(:handle_unverified_request).never
+        allow(controller).to receive(:valid_authenticity_token?).and_return(true)
+
+        expect { controller.send(:verify_authenticity_token) }.not_to raise_error
+      end
+
+      it 'rejects a bad token even from a trusted origin' do
+        allow(ENV).to receive(:[]).with('MONSOON_DASHBOARD_REGION').and_return('eu-de-1')
+        request.headers['Origin'] = 'https://identity-3.eu-de-1.cloud.sap'
+        request.headers['X-CSRF-Token'] = 'wrong-token'
+        allow(controller).to receive(:valid_authenticity_token?).and_return(false)
+
+        expect(controller).to receive(:handle_unverified_request)
+        controller.send(:verify_authenticity_token)
       end
     end
   end
