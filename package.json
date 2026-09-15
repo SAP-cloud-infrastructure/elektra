@@ -125,7 +125,7 @@
     "vitest": "^3.2.4"
   },
   "optionalDependencies": {
-    "@sapcc/limes-ui": "1.21.1"
+    "@sapcc/limes-ui": "1.21.2"
   },
   "scripts": {
     "test": "vitest run",
