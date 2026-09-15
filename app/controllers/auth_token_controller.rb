@@ -62,36 +62,13 @@ class AuthTokenController < ActionController::Base
 
   protected
 
-  # CSRF protection override for the two SSO flows reaching #verify:
-  #
-  # 1. SSO Precheck (same-origin JavaScript fetch): CAN and MUST supply a valid
-  #    CSRF token. Whenever a token is present we always run the standard Rails
-  #    check via `super`, so the precheck flow is fully CSRF-protected. This also
-  #    means a request that sends a *wrong* token is rejected even if it happens
-  #    to originate from a trusted Origin.
-  #
-  # 2. Identity Provider redirect (cross-origin top-level navigation): the
-  #    external IdP has no access to our CSRF token and therefore cannot send
-  #    one. For these token-less requests we fall back to verifying the request
-  #    comes from a trusted SSO Origin.
+  # CSRF protection override for SSO flows
+  # Allows cross-origin requests from trusted SSO providers
   def verify_authenticity_token
     return true if Rails.env.development? || Rails.env.test?
-
-    # A present CSRF token is always authoritative (precheck flow).
-    return super if csrf_token_present?
-
-    # Token-less requests are only accepted from trusted SSO origins (IdP flow).
     return true if trusted_sso_origin?
 
-    super # No token and untrusted origin -> raise InvalidAuthenticityToken
-  end
-
-  # True when the request carries a CSRF token, either as the standard form
-  # parameter or the X-CSRF-Token header used by the precheck fetch call.
-  def csrf_token_present?
-    params[request_forgery_protection_token].present? ||
-      request.headers['X-CSRF-Token'].present? ||
-      request.headers['X-Csrf-Token'].present?
+    super # Will raise InvalidAuthenticityToken if CSRF check fails
   end
 
   private
