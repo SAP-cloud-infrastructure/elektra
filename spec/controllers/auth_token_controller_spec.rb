@@ -95,6 +95,25 @@ RSpec.describe AuthTokenController, type: :controller do
           expect(JSON.parse(response.body)).to eq({ 'redirect_to' => "/#{domain_name}/home" })
         end
       end
+
+      context 'when the request is a top-level HTML POST (Identity Provider redirect flow)' do
+        # Regression guard: the external IdP posts the token via a cross-origin
+        # top-level navigation. It carries a trusted Origin but NO CSRF token,
+        # and must receive a real 302 redirect (never JSON, never rejected).
+        before do
+          allow(Rails.env).to receive(:development?).and_return(false)
+          allow(Rails.env).to receive(:test?).and_return(false)
+          allow(ENV).to receive(:[]).with('MONSOON_DASHBOARD_REGION').and_return('eu-de-1')
+          request.headers['Origin'] = 'https://identity-3.eu-de-1.cloud.sap'
+        end
+
+        it 'issues a 302 redirect to the domain home' do
+          post :verify, params: { token: valid_token }
+
+          expect(response).to have_http_status(:found)
+          expect(response).to redirect_to("/#{domain_name}/home")
+        end
+      end
     end
 
     context 'when keystone returns success but domain name is missing' do
