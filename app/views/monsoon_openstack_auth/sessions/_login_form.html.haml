@@ -59,6 +59,7 @@
   #sso-config{  "data-keystone-url" => @keystone_endpoint, 
                 "data-domain-name" => @domain_name, 
                 "data-verify-url" => main_app.verify_auth_token_path, 
+                "data-after-login" => params[:after_login], 
                 "data-login-form-id" => "login-content", 
                 "data-spinner-id" => "sso-precheck-container", 
                 "data-hidden-class" => "login-hidden" }

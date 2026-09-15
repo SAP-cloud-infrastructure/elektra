@@ -65,6 +65,36 @@ RSpec.describe AuthTokenController, type: :controller do
         expect(response).to have_http_status(:found)
         expect(response).to redirect_to('/custom/path')
       end
+
+      it 'ignores an unsafe after_login URL and falls back to domain home' do
+        post :verify, params: { token: valid_token, after_login: 'http://evil.com/phishing' }
+
+        expect(response).to have_http_status(:found)
+        expect(response).to redirect_to("/#{domain_name}/home")
+      end
+
+      context 'when the request is JSON (SSO precheck flow)' do
+        it 'returns the redirect target as JSON instead of a 302' do
+          post :verify, params: { token: valid_token }, format: :json
+
+          expect(response).to have_http_status(:ok)
+          expect(JSON.parse(response.body)).to eq({ 'redirect_to' => "/#{domain_name}/home" })
+        end
+
+        it 'returns the after_login URL as JSON when provided' do
+          post :verify, params: { token: valid_token, after_login: '/custom/path' }, format: :json
+
+          expect(response).to have_http_status(:ok)
+          expect(JSON.parse(response.body)).to eq({ 'redirect_to' => '/custom/path' })
+        end
+
+        it 'ignores an unsafe after_login URL and falls back to domain home' do
+          post :verify, params: { token: valid_token, after_login: 'http://evil.com/phishing' }, format: :json
+
+          expect(response).to have_http_status(:ok)
+          expect(JSON.parse(response.body)).to eq({ 'redirect_to' => "/#{domain_name}/home" })
+        end
+      end
     end
 
     context 'when keystone returns success but domain name is missing' do
