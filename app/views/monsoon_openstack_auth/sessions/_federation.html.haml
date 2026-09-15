@@ -13,4 +13,10 @@
 .form-signin
     .bs-callout.bs-callout-info.bs-callout-emphasize
         Click the "Sign In with Identity Provider" button to initiate the authentication process, and after a successful login, you will be redirected back to your dashboard.
-    %a.btn.btn-lg.btn-primary.btn-block{ href:auth_url} Sign In with Identity Provider
+    %a.btn.btn-lg.btn-primary.btn-block{ href:auth_url, onclick: "storeCurrentUrl()"} Sign In with Identity Provider
+
+:javascript
+    //function which is called onclick and store the current url in local storage
+    function storeCurrentUrl(e){
+        localStorage.setItem("after_login", "#{params[:after_login]}");
+    } 

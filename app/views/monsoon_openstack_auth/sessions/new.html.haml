@@ -4,7 +4,7 @@
   .container
 
     - if domain_config.federation?
-      = render partial: 'monsoon_openstack_auth/sessions/federation', locals: { domain_config: domain_config }
+      = render partial: 'monsoon_openstack_auth/sessions/federation', locals: { params: params, domain_config: domain_config }
     - else
       = render partial: 'monsoon_openstack_auth/sessions/login_form', locals: { password_sync_mode: password_sync_mode, domain_config: domain_config}
 

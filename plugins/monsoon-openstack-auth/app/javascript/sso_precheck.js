@@ -14,7 +14,6 @@ async function performSsoPrecheck() {
   const keystoneUrl = configEl.dataset.keystoneUrl
   const domainName = configEl.dataset.domainName
   const verifyUrl = configEl.dataset.verifyUrl
-  const afterLogin = configEl.dataset.afterLogin
 
   if (!keystoneUrl || !domainName) {
     showLoginForm()
@@ -47,7 +46,7 @@ async function performSsoPrecheck() {
     if (response.ok) {
       const subjectToken = response.headers.get("X-Subject-Token")
       if (subjectToken) {
-        await verifyAndRedirect(verifyUrl, subjectToken, afterLogin)
+        await verifyAndRedirect(verifyUrl, subjectToken)
         return
       }
     }
@@ -62,39 +61,21 @@ async function performSsoPrecheck() {
   showLoginForm()
 }
 
-async function verifyAndRedirect(url, token, afterLogin) {
+async function verifyAndRedirect(url, token) {
   try {
-    const body = { token: token }
-    if (afterLogin) {
-      body.after_login = afterLogin
-    }
-
-    const headers = {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    }
-    // Same-origin precheck must send the Rails CSRF token so the verify
-    // endpoint can enforce CSRF protection for this flow.
-    const csrfToken = getCsrfToken()
-    if (csrfToken) {
-      headers["X-CSRF-Token"] = csrfToken
-    }
-
     const response = await fetch(url, {
       method: "POST",
-      headers: headers,
-      body: JSON.stringify(body),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ token: token }),
     })
 
     if (response.ok) {
-      const data = await response.json()
-      if (data && data.redirect_to) {
-        // Real top-level navigation so the URL bar updates and the target
-        // page's scripts/assets load normally.
-        window.location.assign(data.redirect_to)
-      } else {
-        showLoginForm()
-      }
+      const html = await response.text()
+      document.open()
+      document.write(html)
+      document.close()
     } else {
       showLoginForm()
     }
@@ -119,15 +100,8 @@ function showLoginForm() {
   if (content) content.classList.remove(hiddenClass)
 }
 
-// Reads the Rails CSRF token from the standard meta tag rendered by
-// csrf_meta_tags in the layout. Returns null when absent.
-function getCsrfToken() {
-  const meta = document.querySelector('meta[name="csrf-token"]')
-  return (meta && meta.getAttribute("content")) || null
-}
-
 // Auto-initialize on DOM load
 document.addEventListener("DOMContentLoaded", performSsoPrecheck)
 
 // Export for testing
-export { performSsoPrecheck, verifyAndRedirect, showLoginForm, getCsrfToken }
+export { performSsoPrecheck, verifyAndRedirect, showLoginForm }
