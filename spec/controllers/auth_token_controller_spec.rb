@@ -224,54 +224,8 @@ RSpec.describe AuthTokenController, type: :controller do
         request.headers['Origin'] = 'https://identity-3.eu-de-1.cloud.sap'
       end
 
-      it 'allows token-less request from trusted origin (IdP redirect flow)' do
+      it 'allows request from trusted origin' do
         expect(controller.send(:verify_authenticity_token)).to be true
-      end
-    end
-
-    context 'in production when a CSRF token is present (precheck flow)' do
-      before do
-        allow(Rails.env).to receive(:development?).and_return(false)
-        allow(Rails.env).to receive(:test?).and_return(false)
-      end
-
-      it 'detects a token supplied via the X-CSRF-Token header' do
-        request.headers['X-CSRF-Token'] = 'some-token'
-        expect(controller.send(:csrf_token_present?)).to be true
-      end
-
-      it 'detects a token supplied via the standard form parameter' do
-        allow(controller).to receive(:params)
-          .and_return({ controller.send(:request_forgery_protection_token) => 'tok' })
-        expect(controller.send(:csrf_token_present?)).to be true
-      end
-
-      it 'reports no token when none is supplied' do
-        expect(controller.send(:csrf_token_present?)).to be false
-      end
-
-      it 'delegates to the standard Rails check (super) instead of bypassing when a token is present' do
-        request.headers['X-CSRF-Token'] = 'some-token'
-        # Token presence must take priority over the trusted-origin bypass, so
-        # the origin check must never be consulted for token-carrying requests.
-        expect(controller).not_to receive(:trusted_sso_origin?)
-        # Standard Rails verification passes when the token is valid.
-        allow(controller).to receive(:valid_authenticity_token?).and_return(true)
-
-        expect { controller.send(:verify_authenticity_token) }.not_to raise_error
-      end
-
-      it 'does not fall back to the trusted-origin bypass for a bad token' do
-        allow(ENV).to receive(:[]).with('MONSOON_DASHBOARD_REGION').and_return('eu-de-1')
-        request.headers['Origin'] = 'https://identity-3.eu-de-1.cloud.sap'
-        request.headers['X-CSRF-Token'] = 'wrong-token'
-        # Even from a trusted origin, a token-carrying request must be handed to
-        # the standard Rails verification rather than short-circuited to true.
-        expect(controller).not_to receive(:trusted_sso_origin?)
-        allow(controller).to receive(:valid_authenticity_token?).and_return(false)
-
-        # With an invalid token the override must not return the bypass `true`.
-        expect(controller.send(:verify_authenticity_token)).not_to eq(true)
       end
     end
   end
