@@ -133,6 +133,7 @@ export const CASTELLUM_ASSET_SCRAPE = { key: "assets", endpoint: "/projects/:id/
 
 //####################### SHARE STATES ########################
 export const SHARE_STATE_CREATING = "creating" //The share is being created.
+export const SHARE_STATE_CREATING_FROM_SNAPSHOT = "creating_from_snapshot" //The share is being created from a snapshot.
 export const SHARE_STATE_AVAILABLE = "available" //The share is ready to use.
 export const SHARE_STATE_DELETING = "deleting" //The share is being deleted.
 export const SHARE_STATE_ERROR = "error" //A share creation error occurred.
@@ -143,6 +144,7 @@ export const SHARE_STATE_MIGRATING_TO = "migrating_to" //A share deletion error 
 
 const SHARE_PENDING_STATUS = [
   SHARE_STATE_CREATING,
+  SHARE_STATE_CREATING_FROM_SNAPSHOT,
   SHARE_STATE_DELETING,
   SHARE_STATE_MIGRATING,
   SHARE_STATE_MIGRATING_TO,

@@ -14,6 +14,7 @@ async function performSsoPrecheck() {
   const keystoneUrl = configEl.dataset.keystoneUrl
   const domainName = configEl.dataset.domainName
   const verifyUrl = configEl.dataset.verifyUrl
+  const afterLogin = configEl.dataset.afterLogin
 
   if (!keystoneUrl || !domainName) {
     showLoginForm()
@@ -46,7 +47,7 @@ async function performSsoPrecheck() {
     if (response.ok) {
       const subjectToken = response.headers.get("X-Subject-Token")
       if (subjectToken) {
-        await verifyAndRedirect(verifyUrl, subjectToken)
+        await verifyAndRedirect(verifyUrl, subjectToken, afterLogin)
         return
       }
     }
@@ -61,21 +62,31 @@ async function performSsoPrecheck() {
   showLoginForm()
 }
 
-async function verifyAndRedirect(url, token) {
+async function verifyAndRedirect(url, token, afterLogin) {
   try {
+    const body = { token: token }
+    if (afterLogin) {
+      body.after_login = afterLogin
+    }
+
     const response = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Accept: "application/json",
       },
-      body: JSON.stringify({ token: token }),
+      body: JSON.stringify(body),
     })
 
     if (response.ok) {
-      const html = await response.text()
-      document.open()
-      document.write(html)
-      document.close()
+      const data = await response.json()
+      if (data && data.redirect_to) {
+        // Real top-level navigation so the URL bar updates and the target
+        // page's scripts/assets load normally.
+        window.location.assign(data.redirect_to)
+      } else {
+        showLoginForm()
+      }
     } else {
       showLoginForm()
     }
