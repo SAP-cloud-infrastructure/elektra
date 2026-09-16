@@ -5,6 +5,7 @@ import { Link } from "react-router-dom"
 import React from "react"
 
 const protocols = ["NFS", "CIFS", "MULTI"]
+const mountPointNamePattern = /^[a-zA-Z0-9_-]{0,255}$/
 
 export default class NewShareForm extends React.Component {
   constructor(props) {
@@ -20,7 +21,17 @@ export default class NewShareForm extends React.Component {
   }
 
   validate(values) {
-    return values.share_proto && values.size && values.share_network_id && true
+    const isValidMountPointName =
+      !values.mount_point_name ||
+      mountPointNamePattern.test(values.mount_point_name)
+
+    return (
+      values.share_proto &&
+      values.size &&
+      values.share_network_id &&
+      isValidMountPointName &&
+      true
+    )
   }
 
   close(e) {
@@ -141,6 +152,26 @@ export default class NewShareForm extends React.Component {
               />
               <p className="help-block">
                 The UUID of the share’s base snapshot.
+              </p>
+            </Form.ElementHorizontal>
+
+            <Form.ElementHorizontal
+              label="Mount Point Name"
+              name="mount_point_name"
+              required={false}
+            >
+              <Form.Input
+                elementType="input"
+                className="optional form-control"
+                type="text"
+                name="mount_point_name"
+                maxLength={255}
+                pattern="[a-zA-Z0-9_-]*"
+                title="Use only letters, numbers, underscores, and hyphens."
+              />
+              <p className="help-block">
+                Optional human-readable mount point name, reflected in the
+                share's export location once created.
               </p>
             </Form.ElementHorizontal>
 
