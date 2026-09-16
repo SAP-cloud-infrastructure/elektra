@@ -36,9 +36,19 @@ class AuthTokenController < ActionController::Base
       auth_session = MonsoonOpenstackAuth::Authentication::AuthSession.create_from_auth_token(self, token)
 
       if auth_session&.logged_in?
-        after_login_url = params[:after_login].presence || "/#{domain_name}/home"
+        after_login_url = safe_after_login_url(params[:after_login], domain_name)
         Rails.logger.info "SSO login successful: domain=#{domain_name}, user=#{auth_session.user&.name || 'unknown'}"
-        redirect_to after_login_url
+
+        # Two callers reach this action:
+        # 1. SSO Precheck (JavaScript fetch): expects JSON so it can navigate itself.
+        #    A 302 here would be silently followed by fetch and its body injected via
+        #    document.write, which never changes the URL bar. Return the target URL instead.
+        # 2. Identity Provider redirect (top-level navigation): a real 302 is correct.
+        if request.format.json? || request.xhr?
+          render json: { redirect_to: after_login_url }
+        else
+          redirect_to after_login_url
+        end
         return
       else
         @error = 'Failed to create authentication session'
@@ -62,6 +72,27 @@ class AuthTokenController < ActionController::Base
   end
 
   private
+
+  # Returns a validated post-login redirect target, falling back to the domain
+  # home page when the requested URL is missing or not safe (open-redirect guard).
+  def safe_after_login_url(url, domain_name)
+    return url if safe_redirect_url?(url)
+
+    "/#{domain_name}/home"
+  end
+
+  # Only allow relative URLs or URLs pointing at the current host to prevent
+  # open redirects to attacker-controlled destinations.
+  def safe_redirect_url?(url)
+    return false if url.blank?
+
+    begin
+      uri = URI.parse(url)
+      uri.host.nil? || uri.host == request.host
+    rescue URI::InvalidURIError
+      false
+    end
+  end
 
   # Handles case where token is valid but user has no Keystone access
   def handle_missing_domain_access

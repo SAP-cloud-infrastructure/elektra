@@ -28,6 +28,8 @@ const mockIsShareStatusPending = vi.hoisted(() => vi.fn().mockReturnValue(false)
 
 vi.mock("../../constants", () => ({
   isShareStatusPending: mockIsShareStatusPending,
+  SHARE_STATE_CREATING: "creating",
+  SHARE_STATE_CREATING_FROM_SNAPSHOT: "creating_from_snapshot",
 }))
 
 vi.mock("./actions", () => ({
@@ -116,6 +118,12 @@ describe("ShareItem", () => {
 
     it("shows spinner when status is creating", () => {
       const share = { ...mockShare, status: "creating" }
+      render(<table><tbody><ShareItem {...defaultProps} share={share} /></tbody></table>)
+      expect(document.querySelector(".spinner")).toBeInTheDocument()
+    })
+
+    it("shows spinner when status is creating from snapshot", () => {
+      const share = { ...mockShare, status: "creating_from_snapshot" }
       render(<table><tbody><ShareItem {...defaultProps} share={share} /></tbody></table>)
       expect(document.querySelector(".spinner")).toBeInTheDocument()
     })
