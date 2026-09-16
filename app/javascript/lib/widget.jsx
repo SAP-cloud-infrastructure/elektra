@@ -1,5 +1,8 @@
 /* eslint no-console:0 */
 
+// Must be first: reattaches ReactDOM.findDOMNode (removed in React 19) for
+// legacy libraries such as react-bootstrap@0.33 / react-overlays.
+import "./react19-finddomnode-shim.js"
 import React from "react"
 import { createRoot } from "react-dom/client"
 import { Provider } from "react-redux"

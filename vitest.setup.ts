@@ -1,3 +1,6 @@
+// React 19 removed ReactDOM.findDOMNode; reattach it for legacy libraries
+// (react-bootstrap@0.33 / react-overlays@0.9.3). Must run before any render.
+import "./app/javascript/lib/react19-finddomnode-shim.js"
 import { expect } from "vitest"
 import * as matchers from "@testing-library/jest-dom/matchers"
 import { vi } from "vitest"
