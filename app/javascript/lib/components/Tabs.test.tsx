@@ -80,4 +80,23 @@ describe("Tabs", () => {
     await user.click(screen.getByRole("tab", { name: "Beta" }))
     expect(onSelect).toHaveBeenCalledWith("b")
   })
+
+  it("supports numeric eventKeys (react-bootstrap 0.33 compatibility)", async () => {
+    const user = userEvent.setup()
+    render(
+      <Tabs defaultActiveKey={1} id="t">
+        <Tab eventKey={1} title="One">
+          <div>Content One</div>
+        </Tab>
+        <Tab eventKey={2} title="Two">
+          <div>Content Two</div>
+        </Tab>
+      </Tabs>
+    )
+    expect(screen.getByRole("tab", { name: "One" })).toHaveAttribute("aria-selected", "true")
+    await user.click(screen.getByRole("tab", { name: "Two" }))
+    await waitFor(() => {
+      expect(screen.getByRole("tab", { name: "Two" })).toHaveAttribute("aria-selected", "true")
+    })
+  })
 })
