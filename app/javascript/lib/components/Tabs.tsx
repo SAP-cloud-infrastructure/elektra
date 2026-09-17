@@ -7,8 +7,12 @@ import React, { useEffect, useMemo, useState } from "react"
 // but hidden via CSS (`.tab-pane` without `.active`), matching Bootstrap 3 — they
 // are NOT aria-hidden, so their content remains queryable.
 
+// react-bootstrap@0.33 allowed numeric event keys, so accept both and
+// normalize to string internally.
+type EventKey = string | number
+
 interface TabProps {
-  eventKey: string
+  eventKey: EventKey
   title: React.ReactNode
   disabled?: boolean
   children?: React.ReactNode
@@ -19,8 +23,8 @@ export const Tab: React.FC<TabProps> = () => null
 
 interface TabsProps {
   id?: string
-  defaultActiveKey?: string
-  activeKey?: string
+  defaultActiveKey?: EventKey
+  activeKey?: EventKey
   onSelect?: (key: string) => void
   className?: string
   children?: React.ReactNode
@@ -44,15 +48,16 @@ export const Tabs: React.FC<TabsProps> = ({
   )
 
   const isControlled = activeKey !== undefined
-  const firstKey = tabs[0]?.props.eventKey
-  const [internalKey, setInternalKey] = useState<string | undefined>(defaultActiveKey ?? firstKey)
+  const norm = (k: EventKey | undefined): string | undefined => (k === undefined ? undefined : String(k))
+  const firstKey = norm(tabs[0]?.props.eventKey)
+  const [internalKey, setInternalKey] = useState<string | undefined>(norm(defaultActiveKey) ?? firstKey)
 
-  const currentKey = isControlled ? activeKey : internalKey
+  const currentKey = isControlled ? norm(activeKey) : internalKey
 
   // If the active tab disappears (e.g. its condition became false), fall back to the first tab.
   useEffect(() => {
     if (isControlled) return
-    if (!tabs.some((t) => t.props.eventKey === internalKey)) {
+    if (!tabs.some((t) => norm(t.props.eventKey) === internalKey)) {
       setInternalKey(firstKey)
     }
   }, [tabs, internalKey, firstKey, isControlled])
@@ -69,7 +74,8 @@ export const Tabs: React.FC<TabsProps> = ({
     <div className={className}>
       <ul className="nav nav-tabs" role="tablist">
         {tabs.map((tab) => {
-          const { eventKey, title, disabled } = tab.props
+          const { eventKey: rawKey, title, disabled } = tab.props
+          const eventKey = String(rawKey)
           const active = eventKey === currentKey
           const tabId = `${baseId}-tab-${eventKey}`
           const panelId = `${baseId}-pane-${eventKey}`
@@ -99,7 +105,8 @@ export const Tabs: React.FC<TabsProps> = ({
       </ul>
       <div className="tab-content">
         {tabs.map((tab) => {
-          const { eventKey, children: tabChildren } = tab.props
+          const { eventKey: rawKey, children: tabChildren } = tab.props
+          const eventKey = String(rawKey)
           const active = eventKey === currentKey
           const tabId = `${baseId}-tab-${eventKey}`
           const panelId = `${baseId}-pane-${eventKey}`
