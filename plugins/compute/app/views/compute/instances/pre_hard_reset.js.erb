@@ -1,11 +1,7 @@
-//close the create request window
+// close the confirmation modal
 Dashboard.hideModal();
 
-// trigger hard reset
-$.post("<%=plugin('compute').hard_reset_instance_path({id:@instance.id})%>");
-
-//close the create request window
-Dashboard.hideModal();
-
+// the hard reset has already been triggered server-side in the
+// pre_hard_reset action; just inform the user in the console view
 $('#console').html("<div class='countdown'/>");
 $('.countdown').html('Hard Reset was triggered 🚀<br>Please wait a short while and reload the web console if you had it opened');
