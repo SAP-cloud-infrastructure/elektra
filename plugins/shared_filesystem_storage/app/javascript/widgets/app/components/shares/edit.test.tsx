@@ -1,30 +1,10 @@
 import React from "react"
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import { render, screen, fireEvent } from "@testing-library/react"
+import { render, screen, fireEvent, act, within } from "@testing-library/react"
 import "@testing-library/jest-dom/vitest"
 import EditShareForm from "./edit"
 
 // ─── Module mocks ─────────────────────────────────────────────────────────────
-
-vi.mock("react-bootstrap", () => ({
-  Modal: Object.assign(
-    ({ show, onHide, children }: any) =>
-      show ? (
-        <div data-testid="modal">{children}</div>
-      ) : null,
-    {
-      Header: ({ children }: any) => <div data-testid="modal-header">{children}</div>,
-      Title: ({ children }: any) => <h1 data-testid="modal-title">{children}</h1>,
-      Body: ({ children }: any) => <div data-testid="modal-body">{children}</div>,
-      Footer: ({ children }: any) => <div data-testid="modal-footer">{children}</div>,
-    }
-  ),
-  Button: ({ onClick, children }: any) => (
-    <button data-testid="cancel-btn" onClick={onClick}>
-      {children}
-    </button>
-  ),
-}))
 
 vi.mock("lib/elektra-form", () => ({
   Form: Object.assign(
@@ -83,28 +63,31 @@ describe("EditShareForm", () => {
   describe("Modal visibility", () => {
     it("renders modal when share is set", () => {
       render(<EditShareForm {...defaultProps} />)
-      expect(screen.getByTestId("modal")).toBeInTheDocument()
+      expect(screen.getByRole("dialog")).toBeInTheDocument()
     })
 
     it("does not render modal when share is null", () => {
       render(<EditShareForm {...defaultProps} share={null} />)
-      expect(screen.queryByTestId("modal")).not.toBeInTheDocument()
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
     })
 
     it("hides modal when share changes to null", () => {
       const { rerender } = render(<EditShareForm {...defaultProps} />)
-      expect(screen.getByTestId("modal")).toBeInTheDocument()
+      expect(screen.getByRole("dialog")).toBeInTheDocument()
 
       rerender(<EditShareForm {...defaultProps} share={null} />)
-      expect(screen.queryByTestId("modal")).not.toBeInTheDocument()
+      act(() => {
+        vi.runAllTimers()
+      })
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
     })
 
     it("shows modal when share changes from null to a value", () => {
       const { rerender } = render(<EditShareForm {...defaultProps} share={null} />)
-      expect(screen.queryByTestId("modal")).not.toBeInTheDocument()
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
 
       rerender(<EditShareForm {...defaultProps} share={mockShare} />)
-      expect(screen.getByTestId("modal")).toBeInTheDocument()
+      expect(screen.getByRole("dialog")).toBeInTheDocument()
     })
   })
 
@@ -118,7 +101,7 @@ describe("EditShareForm", () => {
   describe("Form fields", () => {
     it("renders modal title", () => {
       render(<EditShareForm {...defaultProps} />)
-      expect(screen.getByTestId("modal-title")).toHaveTextContent("Edit Share")
+      expect(document.querySelector(".modal-title")).toHaveTextContent("Edit Share")
     })
 
     it("renders Name and Description fields", () => {
@@ -131,18 +114,23 @@ describe("EditShareForm", () => {
   describe("Cancel button", () => {
     it("hides modal and navigates to parent route on cancel", () => {
       render(<EditShareForm {...defaultProps} />)
-      fireEvent.click(screen.getByTestId("cancel-btn"))
+      const footer = document.querySelector(".modal-footer") as HTMLElement
+      fireEvent.click(within(footer).getByRole("button", { name: "Cancel" }))
 
-      expect(screen.queryByTestId("modal")).not.toBeInTheDocument()
-      vi.runAllTimers()
+      act(() => {
+        vi.runAllTimers()
+      })
       expect(mockHistory.replace).toHaveBeenCalledWith("/shares")
     })
   })
 
   describe("Form submission", () => {
-    it("calls handleSubmit with form values on submit", () => {
+    it("calls handleSubmit with form values on submit", async () => {
       render(<EditShareForm {...defaultProps} />)
-      fireEvent.submit(screen.getByTestId("form"))
+      await act(async () => {
+        fireEvent.submit(screen.getByTestId("form"))
+        await vi.runAllTimersAsync()
+      })
       expect(defaultProps.handleSubmit).toHaveBeenCalledWith(mockShare)
     })
 
@@ -150,7 +138,9 @@ describe("EditShareForm", () => {
       render(<EditShareForm {...defaultProps} />)
       fireEvent.submit(screen.getByTestId("form"))
 
-      await vi.runAllTimersAsync()
+      await act(async () => {
+        await vi.runAllTimersAsync()
+      })
       expect(mockHistory.replace).toHaveBeenCalledWith("/shares")
     })
   })

@@ -1,6 +1,6 @@
 import React from "react"
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import { render, screen, fireEvent } from "@testing-library/react"
+import { render, screen, fireEvent, act, within } from "@testing-library/react"
 import "@testing-library/jest-dom/vitest"
 import ShowShareNetwork from "./show"
 
@@ -8,30 +8,6 @@ import ShowShareNetwork from "./show"
 
 vi.mock("react-router-dom", () => ({
   Link: ({ to, children }: any) => <a href={to}>{children}</a>,
-}))
-
-vi.mock("react-bootstrap", () => ({
-  Modal: Object.assign(
-    ({ show, onHide, children }: any) =>
-      show ? (
-        <div data-testid="modal">{children}</div>
-      ) : null,
-    {
-      Header: ({ children }: any) => <div data-testid="modal-header">{children}</div>,
-      Title: ({ children }: any) => <h1 data-testid="modal-title">{children}</h1>,
-      Body: ({ children }: any) => <div data-testid="modal-body">{children}</div>,
-      Footer: ({ children }: any) => <div data-testid="modal-footer">{children}</div>,
-    }
-  ),
-  Button: ({ onClick, children }: any) => (
-    <button data-testid="close-btn" onClick={onClick}>
-      {children}
-    </button>
-  ),
-  Tabs: ({ children }: any) => <div data-testid="tabs">{children}</div>,
-  Tab: ({ title, children }: any) => (
-    <div data-testid={`tab-${title.toLowerCase().replace(/\s+/g, "-")}`}>{children}</div>
-  ),
 }))
 
 vi.mock("@cloudoperators/juno-ui-components", () => ({
@@ -94,20 +70,24 @@ describe("ShowShareNetwork", () => {
   describe("Modal visibility", () => {
     it("renders modal when shareNetwork is set", () => {
       render(<ShowShareNetwork {...defaultProps} />)
-      expect(screen.getByTestId("modal")).toBeInTheDocument()
+      expect(screen.getByRole("dialog")).toBeInTheDocument()
     })
 
     it("does not render modal when shareNetwork is null", () => {
       render(<ShowShareNetwork {...defaultProps} shareNetwork={null} />)
-      expect(screen.queryByTestId("modal")).not.toBeInTheDocument()
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
     })
 
     it("hides modal when shareNetwork changes to null", () => {
       const { rerender } = render(<ShowShareNetwork {...defaultProps} />)
-      expect(screen.getByTestId("modal")).toBeInTheDocument()
+      expect(screen.getByRole("dialog")).toBeInTheDocument()
 
       rerender(<ShowShareNetwork {...defaultProps} shareNetwork={null} />)
-      expect(screen.queryByTestId("modal")).not.toBeInTheDocument()
+      // Close transition (300ms) then unmount
+      act(() => {
+        vi.runAllTimers()
+      })
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
     })
   })
 
@@ -121,12 +101,12 @@ describe("ShowShareNetwork", () => {
   describe("Modal title", () => {
     it("renders the share network name in the title", () => {
       render(<ShowShareNetwork {...defaultProps} />)
-      expect(screen.getByTestId("modal-title")).toHaveTextContent("My Network")
+      expect(document.querySelector(".modal-title")).toHaveTextContent("My Network")
     })
 
     it("renders empty title when shareNetwork has no name", () => {
       render(<ShowShareNetwork {...defaultProps} shareNetwork={{ ...mockShareNetwork, name: undefined }} />)
-      expect(screen.getByTestId("modal-title")).toBeInTheDocument()
+      expect(document.querySelector(".modal-title")).toBeInTheDocument()
     })
   })
 
@@ -143,13 +123,13 @@ describe("ShowShareNetwork", () => {
     it("shows Share Servers tab for admins", () => {
       mockIsAllowed.mockReturnValue(true)
       render(<ShowShareNetwork {...defaultProps} />)
-      expect(screen.getByTestId("tab-share-servers")).toBeInTheDocument()
+      expect(screen.getByRole("tab", { name: "Share Servers" })).toBeInTheDocument()
     })
 
     it("hides Share Servers tab for non-admins", () => {
       mockIsAllowed.mockReturnValue(false)
       render(<ShowShareNetwork {...defaultProps} />)
-      expect(screen.queryByTestId("tab-share-servers")).not.toBeInTheDocument()
+      expect(screen.queryByRole("tab", { name: "Share Servers" })).not.toBeInTheDocument()
     })
 
     it("shows spinner while share servers are loading", () => {
@@ -182,10 +162,14 @@ describe("ShowShareNetwork", () => {
   describe("Close button", () => {
     it("hides modal and navigates to /share-networks on close", () => {
       render(<ShowShareNetwork {...defaultProps} />)
-      fireEvent.click(screen.getByTestId("close-btn"))
+      // Footer "Close" button (the header X also has aria-label="Close")
+      const footer = document.querySelector(".modal-footer") as HTMLElement
+      fireEvent.click(within(footer).getByRole("button", { name: "Close" }))
 
-      expect(screen.queryByTestId("modal")).not.toBeInTheDocument()
-      vi.runAllTimers()
+      // Component's own 300ms setTimeout triggers the navigation
+      act(() => {
+        vi.runAllTimers()
+      })
       expect(mockHistory.replace).toHaveBeenCalledWith("/share-networks")
     })
   })
