@@ -1,5 +1,6 @@
 /* eslint-disable react/no-unescaped-entities */
-import { Modal, Button } from "react-bootstrap"
+import { Button } from "react-bootstrap"
+import { Modal } from "lib/components/Modal"
 import { Form } from "lib/elektra-form"
 import React from "react"
 
