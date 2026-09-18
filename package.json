@@ -75,7 +75,7 @@
     "redux-devtools-extension": "^2.13.5",
     "redux-thunk": "^2.2.0",
     "topojson-client": "^3.1.0",
-    "uuid": "^3.4.0",
+    "uuid": "^11.0.0",
     "zod": "^4.1.12",
     "zustand": "^4.3.6"
   },
