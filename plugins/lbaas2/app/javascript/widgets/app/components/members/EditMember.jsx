@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react"
-import { Modal, Button } from "react-bootstrap"
+import { Button } from "react-bootstrap"
+import { Modal } from "lib/components/Modal"
 import Log from "../shared/logger"
 import ExistingMembersDropDown from "./ExistingMembersDropDown"
 import EditMemberForm from "./EditMemberForm"

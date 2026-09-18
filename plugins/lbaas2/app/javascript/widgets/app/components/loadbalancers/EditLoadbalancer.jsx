@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react"
-import { Modal, Button } from "react-bootstrap"
+import { Button } from "react-bootstrap"
+import { Modal } from "lib/components/Modal"
 import useLoadbalancer from "../../lib/hooks/useLoadbalancer"
 import ErrorPage from "../ErrorPage"
 import { Form } from "lib/elektra-form"
