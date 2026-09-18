@@ -99,4 +99,49 @@ describe("Tabs", () => {
       expect(screen.getByRole("tab", { name: "Two" })).toHaveAttribute("aria-selected", "true")
     })
   })
+
+  it("mountOnEnter: renders an inactive pane's content only after it first becomes active", async () => {
+    const user = userEvent.setup()
+    render(
+      <Tabs defaultActiveKey="a" id="t" mountOnEnter>
+        <Tab eventKey="a" title="Alpha">
+          <div>Content A</div>
+        </Tab>
+        <Tab eventKey="b" title="Beta">
+          <div>Content B</div>
+        </Tab>
+      </Tabs>
+    )
+    // Inactive pane content is not mounted yet.
+    expect(screen.queryByText("Content B")).not.toBeInTheDocument()
+    await user.click(screen.getByRole("tab", { name: "Beta" }))
+    await waitFor(() => {
+      expect(screen.getByText("Content B")).toBeInTheDocument()
+    })
+    // Once mounted, it stays mounted after switching away again.
+    await user.click(screen.getByRole("tab", { name: "Alpha" }))
+    expect(screen.getByText("Content B")).toBeInTheDocument()
+  })
+
+  it("unmountOnExit: renders only the active pane's content", async () => {
+    const user = userEvent.setup()
+    render(
+      <Tabs defaultActiveKey="a" id="t" unmountOnExit>
+        <Tab eventKey="a" title="Alpha">
+          <div>Content A</div>
+        </Tab>
+        <Tab eventKey="b" title="Beta">
+          <div>Content B</div>
+        </Tab>
+      </Tabs>
+    )
+    expect(screen.getByText("Content A")).toBeInTheDocument()
+    expect(screen.queryByText("Content B")).not.toBeInTheDocument()
+    await user.click(screen.getByRole("tab", { name: "Beta" }))
+    await waitFor(() => {
+      expect(screen.getByText("Content B")).toBeInTheDocument()
+    })
+    // The now-inactive pane is unmounted.
+    expect(screen.queryByText("Content A")).not.toBeInTheDocument()
+  })
 })
