@@ -1,5 +1,4 @@
 import React from "react"
-// import { Modal, Button } from "react-bootstrap"
 import { useHistory, useLocation, useParams } from "react-router-dom"
 import { useGlobalState } from "../StateProvider"
 
