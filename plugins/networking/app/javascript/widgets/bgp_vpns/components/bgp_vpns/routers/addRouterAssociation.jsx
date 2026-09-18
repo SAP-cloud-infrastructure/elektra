@@ -1,5 +1,4 @@
 import React from "react"
-import { DropdownButton, MenuItem, ButtonGroup } from "react-bootstrap"
 
 const AddRouterAssociation = ({ routers, onSelect, disabled, routerID }) => {
   const selected = React.useMemo(
@@ -8,31 +7,42 @@ const AddRouterAssociation = ({ routers, onSelect, disabled, routerID }) => {
   )
 
   return (
-    <ButtonGroup bsSize="small">
-      <DropdownButton
+    <div className="btn-group btn-group-sm">
+      <button
+        type="button"
+        className="btn btn-default btn-sm dropdown-toggle"
+        data-toggle="dropdown"
+        aria-expanded="false"
         disabled={disabled}
-        title={selected?.name || "Select a router"}
-        id="add-router"
-        bsSize="small"
-        onSelect={onSelect}
       >
+        {selected?.name || "Select a router"} <span className="caret" />
+      </button>
+      <ul className="dropdown-menu" role="menu">
         {routers.map((router, i) => (
-          <MenuItem key={i} eventKey={router.id}>
-            <div>{router.name}</div>
-            {router.subnets && (
-              <div className="info-text">
-                {(router.subnets || []).map((s, j) => (
-                  <React.Fragment key={j}>
-                    {s.name} {s.cidr}
-                    <br />
-                  </React.Fragment>
-                ))}
-              </div>
-            )}
-          </MenuItem>
+          <li key={i}>
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault()
+                onSelect(router.id)
+              }}
+            >
+              <div>{router.name}</div>
+              {router.subnets && (
+                <div className="info-text">
+                  {(router.subnets || []).map((s, j) => (
+                    <React.Fragment key={j}>
+                      {s.name} {s.cidr}
+                      <br />
+                    </React.Fragment>
+                  ))}
+                </div>
+              )}
+            </a>
+          </li>
         ))}
-      </DropdownButton>
-    </ButtonGroup>
+      </ul>
+    </div>
   )
 }
 
