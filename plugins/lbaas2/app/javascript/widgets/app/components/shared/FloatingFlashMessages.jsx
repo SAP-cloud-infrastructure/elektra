@@ -1,5 +1,4 @@
 import React from "react"
-import ReactDOM from "react-dom"
 import { FlashMessages } from "lib/flashes"
 import { Overlay, Popover, Alert } from "react-bootstrap"
 import uniqueId from "lodash/uniqueId"
@@ -13,18 +12,6 @@ class FloatingFlashMessages extends React.Component {
           <FlashMessages />
         </div>
       </Popover>
-    )
-
-    const overlay = (
-      <Overlay
-        show={true}
-        placement="right"
-        container={this}
-        // eslint-disable-next-line react/no-find-dom-node
-        target={() => ReactDOM.findDOMNode(this.target)}
-      >
-        {popOver}
-      </Overlay>
     )
 
     return (

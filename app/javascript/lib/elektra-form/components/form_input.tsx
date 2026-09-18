@@ -3,7 +3,7 @@ import { FormContext } from "./form_context"
 
 export interface FormInputProps extends React.HTMLAttributes<HTMLElement> {
   testId?: string
-  elementType: keyof JSX.IntrinsicElements
+  elementType: keyof React.JSX.IntrinsicElements
   id?: string
   className?: string
   required?: boolean
