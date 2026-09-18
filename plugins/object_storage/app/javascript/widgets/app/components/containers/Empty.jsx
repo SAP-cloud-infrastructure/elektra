@@ -1,5 +1,6 @@
 import React from "react"
-import { Modal, Button, Alert } from "react-bootstrap"
+import { Button, Alert } from "react-bootstrap"
+import { Modal } from "lib/components/Modal"
 import { useHistory, useParams } from "react-router-dom"
 import useActions from "../../hooks/useActions"
 import { useGlobalState } from "../../StateProvider"

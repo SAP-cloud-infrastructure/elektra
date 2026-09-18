@@ -1,6 +1,7 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { Modal, Button } from "react-bootstrap"
+import { Button } from "react-bootstrap"
+import { Modal } from "lib/components/Modal"
 import { useHistory, useParams } from "react-router-dom"
 import useActions from "../../hooks/useActions"
 import { Unit } from "lib/unit"
