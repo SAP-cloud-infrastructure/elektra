@@ -27,6 +27,11 @@ interface TabsProps {
   activeKey?: EventKey
   onSelect?: (key: string) => void
   className?: string
+  // react-bootstrap@0.33 lazy-mounting props: `mountOnEnter` renders a pane only
+  // after it first becomes active; `unmountOnExit` drops it again once inactive.
+  // Without either, panes stay mounted-but-hidden (Bootstrap 3 default).
+  mountOnEnter?: boolean
+  unmountOnExit?: boolean
   children?: React.ReactNode
 }
 
@@ -39,6 +44,8 @@ export const Tabs: React.FC<TabsProps> = ({
   activeKey,
   onSelect,
   className,
+  mountOnEnter,
+  unmountOnExit,
   children,
 }) => {
   // Only real <Tab> children count; conditionally-rendered falsy children are filtered.
@@ -53,6 +60,13 @@ export const Tabs: React.FC<TabsProps> = ({
   const [internalKey, setInternalKey] = useState<string | undefined>(norm(defaultActiveKey) ?? firstKey)
 
   const currentKey = isControlled ? norm(activeKey) : internalKey
+
+  // Track which panes have ever been active, to support `mountOnEnter`.
+  const [seen, setSeen] = useState<Set<string>>(() => (currentKey ? new Set([currentKey]) : new Set()))
+  useEffect(() => {
+    if (!mountOnEnter || currentKey === undefined) return
+    setSeen((prev) => (prev.has(currentKey) ? prev : new Set(prev).add(currentKey)))
+  }, [mountOnEnter, currentKey])
 
   // If the active tab disappears (e.g. its condition became false), fall back to the first tab.
   useEffect(() => {
@@ -110,6 +124,9 @@ export const Tabs: React.FC<TabsProps> = ({
           const active = eventKey === currentKey
           const tabId = `${baseId}-tab-${eventKey}`
           const panelId = `${baseId}-pane-${eventKey}`
+          // unmountOnExit: render only the active pane. mountOnEnter: render a pane
+          // once it has been active at least once. Otherwise render all (hidden).
+          const shouldRender = unmountOnExit ? active : mountOnEnter ? active || seen.has(eventKey) : true
           return (
             <div
               key={eventKey}
@@ -119,7 +136,7 @@ export const Tabs: React.FC<TabsProps> = ({
               className={`tab-pane${active ? " active" : ""}`}
               style={active ? undefined : { display: "none" }}
             >
-              {tabChildren}
+              {shouldRender ? tabChildren : null}
             </div>
           )
         })}

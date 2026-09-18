@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import { render, screen, fireEvent } from "@testing-library/react"
+import { render, screen, fireEvent, act } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import "@testing-library/jest-dom/vitest"
 import React from "react"
@@ -293,7 +293,9 @@ describe("EditPortForm Component", () => {
 
       // Modal should close (show state becomes false)
       // After 300ms timeout, history.replace should be called
-      vi.advanceTimersByTime(300)
+      act(() => {
+        vi.advanceTimersByTime(300)
+      })
 
       expect(mockHistoryReplace).toHaveBeenCalledWith("/ports")
     })
@@ -309,7 +311,9 @@ describe("EditPortForm Component", () => {
       expect(mockHistoryReplace).not.toHaveBeenCalled()
 
       // Should navigate after 300ms
-      vi.advanceTimersByTime(300)
+      act(() => {
+        vi.advanceTimersByTime(300)
+      })
       expect(mockHistoryReplace).toHaveBeenCalledWith("/ports")
     })
 
