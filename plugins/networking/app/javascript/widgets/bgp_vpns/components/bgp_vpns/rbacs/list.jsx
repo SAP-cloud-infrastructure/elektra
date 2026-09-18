@@ -1,7 +1,6 @@
 /* eslint-disable no-undef */
 import React from "react"
-import { Button, Alert } from "react-bootstrap"
-import { Modal } from "lib/components/Modal"
+import { Alert } from "react-bootstrap"
 import { AutocompleteField } from "lib/components/autocomplete_field"
 import Item from "./item"
 import * as apiClient from "../../../apiClient"
