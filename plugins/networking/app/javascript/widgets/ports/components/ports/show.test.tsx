@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import { render, screen, fireEvent } from "@testing-library/react"
+import { render, screen, fireEvent, act } from "@testing-library/react"
 import "@testing-library/jest-dom/vitest"
 import ShowPortModal from "./show"
 
@@ -12,29 +12,9 @@ vi.mock("react-router-dom", () => ({
   ),
 }))
 
-// Mock react-bootstrap components
-vi.mock("react-bootstrap", () => ({
-  Modal: Object.assign(
-    ({ show, onHide, children }: any) => (
-      <div data-testid="modal" data-show={show}>
-        {children}
-      </div>
-    ),
-    {
-      Body: ({ children }: any) => <div data-testid="modal-body">{children}</div>,
-      Header: ({ children }: any) => <div data-testid="modal-header">{children}</div>,
-      Title: ({ children }: any) => <h1 data-testid="modal-title">{children}</h1>,
-      Footer: ({ children }: any) => <div data-testid="modal-footer">{children}</div>,
-    }
-  ),
-  Button: ({ children, onClick, ...props }: any) => (
-    <button onClick={onClick} {...props}>
-      {children}
-    </button>
-  ),
-  Tabs: ({ children }: any) => <div data-testid="tabs">{children}</div>,
-  Tab: ({ children }: any) => <div data-testid="tab">{children}</div>,
-}))
+// react-bootstrap is intentionally NOT mocked: the in-house lib/components/Modal
+// must render real Bootstrap 3 modal DOM (single role="dialog", .modal-title,
+// .modal-body, .modal-footer) under React 19, so we assert against that.
 
 // Type definitions
 interface Port {
@@ -197,8 +177,7 @@ describe("ShowPortModal Component", () => {
   describe("Initial Rendering", () => {
     it("renders the modal", () => {
       renderComponent()
-      expect(screen.getByTestId("modal")).toBeInTheDocument()
-      expect(screen.getByTestId("modal")).toHaveAttribute("data-show", "true")
+      expect(screen.getByRole("dialog")).toBeInTheDocument()
     })
 
     it("calls load dependencies on mount", () => {
@@ -211,15 +190,13 @@ describe("ShowPortModal Component", () => {
 
     it("renders modal title with port description", () => {
       renderComponent()
-      // Note: The component uses this.port (which is undefined) instead of this.props.port
-      // This is likely a bug, but we test the actual behavior
-      expect(screen.getByTestId("modal-title")).toHaveTextContent("Port")
+      expect(document.querySelector(".modal-title")).toHaveTextContent("Port Test Port Description")
     })
 
     it("renders modal title with port ID when description is not available", () => {
       const portWithoutDescription = { ...mockPort, description: undefined }
       renderComponent({ port: portWithoutDescription })
-      expect(screen.getByTestId("modal-title")).toHaveTextContent("Port")
+      expect(document.querySelector(".modal-title")).toHaveTextContent("Port port-1")
     })
 
     it("renders Close button", () => {
@@ -415,8 +392,10 @@ describe("ShowPortModal Component", () => {
       const closeButton = screen.getByText("Close")
       fireEvent.click(closeButton)
 
-      // Fast-forward timers to trigger navigation
-      vi.advanceTimersByTime(300)
+      // Fast-forward timers to trigger navigation (300ms close transition)
+      act(() => {
+        vi.advanceTimersByTime(300)
+      })
 
       expect(mockHistoryReplace).toHaveBeenCalledWith("/ports")
 
@@ -518,8 +497,8 @@ describe("ShowPortModal Component", () => {
     it("shows spinner in modal body when port is loading", () => {
       renderComponent({ port: undefined })
 
-      const modalBody = screen.getByTestId("modal-body")
-      const spinner = modalBody.querySelector(".spinner")
+      const modalBody = document.querySelector(".modal-body")
+      const spinner = modalBody?.querySelector(".spinner")
       expect(spinner).toBeInTheDocument()
     })
 

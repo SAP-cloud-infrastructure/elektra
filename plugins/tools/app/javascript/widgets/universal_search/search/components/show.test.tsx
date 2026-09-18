@@ -14,6 +14,14 @@ import { projectUrl, objectUrl, vCenterUrl } from "../../shared/object_link_help
 // ─── Module mocks ─────────────────────────────────────────────────────────────
 
 vi.mock("react-bootstrap", () => ({
+  Button: ({ children, onClick }: any) => (
+    <button data-testid="close-btn" onClick={onClick}>
+      {children}
+    </button>
+  ),
+}))
+
+vi.mock("lib/components/Modal", () => ({
   Modal: Object.assign(
     ({ show, onHide, children }: any) => (
       <div data-testid="modal" data-show={String(show)} onClick={onHide}>
@@ -27,11 +35,9 @@ vi.mock("react-bootstrap", () => ({
       Footer: ({ children }: any) => <div data-testid="modal-footer">{children}</div>,
     }
   ),
-  Button: ({ children, onClick }: any) => (
-    <button data-testid="close-btn" onClick={onClick}>
-      {children}
-    </button>
-  ),
+}))
+
+vi.mock("lib/components/Tabs", () => ({
   Tabs: ({ children, defaultActiveKey }: any) => (
     <div data-testid="tabs" data-default-key={defaultActiveKey}>
       {children}

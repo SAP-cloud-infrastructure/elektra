@@ -544,25 +544,18 @@ describe("ShowModal (Volume)", () => {
       })
     })
 
-    // TODO(react-bootstrap-v2): react-bootstrap@0.33 Modal renders nested
-    // role="dialog" nodes and does not unmount cleanly on close under React 19.
-    // Re-enable after migrating to react-bootstrap v2.
-    it.skip("closes modal when X button in header is clicked", async () => {
+    it("closes modal when X button in header is clicked", async () => {
       renderComponent({ id: "volume-123", volume: mockVolume })
 
-      // Bootstrap modal close button
-      const closeButtons = screen.getAllByRole("button")
-      const headerCloseButton = closeButtons.find(
-        (button) => button.className.includes("close") || button.getAttribute("aria-label") === "Close"
-      )
+      // Bootstrap modal close (X) button in the header
+      const headerCloseButton = document.querySelector("button.close") as HTMLElement
+      expect(headerCloseButton).toBeInTheDocument()
 
-      if (headerCloseButton) {
-        await user.click(headerCloseButton)
+      await user.click(headerCloseButton)
 
-        await waitFor(() => {
-          expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
-        })
-      }
+      await waitFor(() => {
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+      })
     })
 
     it("restores URL when modal is closed", async () => {
@@ -626,8 +619,7 @@ describe("ShowModal (Volume)", () => {
       const { rerender } = renderComponent({ id: "volume-123", volume: mockVolume })
 
       // Check modal is visible
-      const modal = screen.getByLabelText(/volume/i).closest(".modal")
-      expect(modal).toHaveClass("fade in")
+      expect(screen.getByRole("dialog")).toBeInTheDocument()
 
       rerender(
         <BrowserRouter>
@@ -641,10 +633,9 @@ describe("ShowModal (Volume)", () => {
         </BrowserRouter>
       )
 
-      // Wait for modal to hide (Bootstrap animations)
+      // Modal unmounts cleanly on close
       await waitFor(() => {
-        const modal = document.querySelector(".modal")
-        expect(modal).not.toHaveClass("in")
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
       })
     })
 
@@ -773,10 +764,7 @@ describe("ShowModal (Volume)", () => {
     })
   })
 
-  // TODO(react-bootstrap-v2): react-bootstrap@0.33 <Tabs> is non-functional
-  // under React 19 (active tab-pane/aria-selected never update, tab switching
-  // does not work). Re-enable after migrating to react-bootstrap v2.
-  describe.skip("Tabs Navigation", () => {
+  describe("Tabs Navigation", () => {
     it("defaults to overview tab", () => {
       renderComponent({ id: "volume-123", volume: mockVolume })
 

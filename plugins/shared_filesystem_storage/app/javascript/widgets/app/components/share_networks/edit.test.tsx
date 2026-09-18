@@ -1,32 +1,10 @@
 import React from "react"
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { render, screen, fireEvent } from "@testing-library/react"
+import { render, screen, fireEvent, act, within } from "@testing-library/react"
 import "@testing-library/jest-dom/vitest"
 import EditShareNetworkForm from "./edit"
 
 // ─── Module mocks ─────────────────────────────────────────────────────────────
-
-vi.mock("react-bootstrap", () => ({
-  Modal: Object.assign(
-    ({ show, onHide, children }: any) =>
-      show ? (
-        <div data-testid="modal" onClick={onHide}>
-          {children}
-        </div>
-      ) : null,
-    {
-      Header: ({ children }: any) => <div data-testid="modal-header">{children}</div>,
-      Title: ({ children }: any) => <h1 data-testid="modal-title">{children}</h1>,
-      Body: ({ children }: any) => <div data-testid="modal-body">{children}</div>,
-      Footer: ({ children }: any) => <div data-testid="modal-footer">{children}</div>,
-    }
-  ),
-  Button: ({ onClick, children }: any) => (
-    <button data-testid="cancel-btn" onClick={onClick}>
-      {children}
-    </button>
-  ),
-}))
 
 vi.mock("lib/elektra-form", () => ({
   Form: Object.assign(
@@ -83,28 +61,31 @@ describe("EditShareNetworkForm", () => {
   describe("Modal visibility", () => {
     it("renders modal when shareNetwork is set", () => {
       render(<EditShareNetworkForm {...defaultProps} />)
-      expect(screen.getByTestId("modal")).toBeInTheDocument()
+      expect(screen.getByRole("dialog")).toBeInTheDocument()
     })
 
     it("does not render modal when shareNetwork is null", () => {
       render(<EditShareNetworkForm {...defaultProps} shareNetwork={null} />)
-      expect(screen.queryByTestId("modal")).not.toBeInTheDocument()
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
     })
 
     it("hides modal when shareNetwork changes to null", () => {
       const { rerender } = render(<EditShareNetworkForm {...defaultProps} />)
-      expect(screen.getByTestId("modal")).toBeInTheDocument()
+      expect(screen.getByRole("dialog")).toBeInTheDocument()
 
       rerender(<EditShareNetworkForm {...defaultProps} shareNetwork={null} />)
-      expect(screen.queryByTestId("modal")).not.toBeInTheDocument()
+      act(() => {
+        vi.runAllTimers()
+      })
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
     })
 
     it("shows modal when shareNetwork changes from null to a value", () => {
       const { rerender } = render(<EditShareNetworkForm {...defaultProps} shareNetwork={null} />)
-      expect(screen.queryByTestId("modal")).not.toBeInTheDocument()
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
 
       rerender(<EditShareNetworkForm {...defaultProps} shareNetwork={mockShareNetwork} />)
-      expect(screen.getByTestId("modal")).toBeInTheDocument()
+      expect(screen.getByRole("dialog")).toBeInTheDocument()
     })
   })
 
@@ -117,17 +98,19 @@ describe("EditShareNetworkForm", () => {
 
     it("renders modal title", () => {
       render(<EditShareNetworkForm {...defaultProps} />)
-      expect(screen.getByTestId("modal-title")).toHaveTextContent("Edit Share Network")
+      expect(document.querySelector(".modal-title")).toHaveTextContent("Edit Share Network")
     })
   })
 
   describe("Cancel button", () => {
     it("hides modal and navigates to /share-networks on cancel", () => {
       render(<EditShareNetworkForm {...defaultProps} />)
-      fireEvent.click(screen.getByTestId("cancel-btn"))
+      const footer = document.querySelector(".modal-footer") as HTMLElement
+      fireEvent.click(within(footer).getByRole("button", { name: "Cancel" }))
 
-      expect(screen.queryByTestId("modal")).not.toBeInTheDocument()
-      vi.runAllTimers()
+      act(() => {
+        vi.runAllTimers()
+      })
       expect(mockHistory.replace).toHaveBeenCalledWith("/share-networks")
     })
   })
@@ -135,7 +118,10 @@ describe("EditShareNetworkForm", () => {
   describe("Form submission", () => {
     it("calls handleSubmit with form values on submit", async () => {
       render(<EditShareNetworkForm {...defaultProps} />)
-      fireEvent.submit(screen.getByTestId("form"))
+      await act(async () => {
+        fireEvent.submit(screen.getByTestId("form"))
+        await vi.runAllTimersAsync()
+      })
       expect(defaultProps.handleSubmit).toHaveBeenCalledWith(mockShareNetwork)
     })
 
@@ -143,7 +129,9 @@ describe("EditShareNetworkForm", () => {
       render(<EditShareNetworkForm {...defaultProps} />)
       fireEvent.submit(screen.getByTestId("form"))
 
-      await vi.runAllTimersAsync()
+      await act(async () => {
+        await vi.runAllTimersAsync()
+      })
       expect(mockHistory.replace).toHaveBeenCalledWith("/share-networks")
     })
   })

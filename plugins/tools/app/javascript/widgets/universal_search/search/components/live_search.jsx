@@ -1,4 +1,5 @@
-import { Modal, Button, Tabs, Tab } from "react-bootstrap"
+import { Button } from "react-bootstrap"
+import { Modal } from "lib/components/Modal"
 import { Link } from "react-router-dom"
 import { SearchField } from "lib/components/search_field"
 import React from "react"

@@ -1,5 +1,6 @@
 import React from "react"
-import { Modal, Button } from "react-bootstrap"
+import { Button } from "react-bootstrap"
+import { Modal } from "lib/components/Modal"
 import List from "./list"
 
 const ModalAuth = (props) => (
