@@ -1,5 +1,6 @@
 import moment from "moment"
-import { Modal, Button } from "react-bootstrap"
+import { Button } from "react-bootstrap"
+import { Modal } from "lib/components/Modal"
 import { Link } from "react-router-dom"
 import React from "react"
 import { Form } from "lib/elektra-form"
