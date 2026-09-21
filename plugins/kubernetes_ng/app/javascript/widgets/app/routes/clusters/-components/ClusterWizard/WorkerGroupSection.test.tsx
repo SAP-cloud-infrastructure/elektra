@@ -216,4 +216,84 @@ describe("WorkerGroupSection", () => {
     expect(within(section).getByLabelText("Max Nodes")).not.toBeDisabled()
     expect(within(section).getByLabelText("Availability Zones")).not.toHaveAttribute("disabled")
   })
+
+  it("disables machine type field when no availability zone is selected", () => {
+    const workerWithoutZone = { ...validWorkerGroupFormData, zones: [] }
+    const wrapper = TestWrapper(workerWithoutZone, 1, 0)
+    render(wrapper())
+
+    const section = screen.getByRole("region", { name: new RegExp(workerWithoutZone.name, "i") })
+    expect(within(section).getByLabelText("Machine Type")).toHaveAttribute("disabled")
+  })
+
+  it("shows correct help text for machine type when no zone is selected", () => {
+    const workerWithoutZone = { ...validWorkerGroupFormData, zones: [] }
+    const wrapper = TestWrapper(workerWithoutZone, 1, 0)
+    render(wrapper())
+
+    const section = screen.getByRole("region", { name: new RegExp(workerWithoutZone.name, "i") })
+    expect(within(section).getByText("Select an availability zone first")).toBeInTheDocument()
+  })
+
+  it("shows correct help text for machine type when zone is selected", () => {
+    const wrapper = TestWrapper(validWorkerGroupFormData, 1, 0)
+    render(wrapper())
+
+    const section = screen.getByRole("region", { name: new RegExp(validWorkerGroupFormData.name, "i") })
+    expect(
+      within(section).getByText("Select the machine type for the worker nodes. Available types vary by zone.")
+    ).toBeInTheDocument()
+  })
+
+  it("filters out unavailable machine types for selected zone", () => {
+    const wrapper = TestWrapper(validWorkerGroupFormData, 1, 0)
+    render(wrapper())
+
+    const section = screen.getByRole("region", { name: new RegExp(validWorkerGroupFormData.name, "i") })
+    const machineTypeSelect = within(section).getByLabelText("Machine Type")
+
+    // Click to open the select dropdown
+    fireEvent.click(machineTypeSelect)
+
+    // us-east-1a has unavailable-type in its unavailableMachineTypes
+    // So it should not be available in the dropdown
+    expect(screen.queryByText("unavailable-type")).not.toBeInTheDocument()
+
+    // Available types should be present
+    expect(screen.getByText("m5.large")).toBeInTheDocument()
+    expect(screen.getByText("m5.xlarge")).toBeInTheDocument()
+    expect(screen.getByText("c5.large")).toBeInTheDocument()
+  })
+
+  it("resets machine type when availability zone changes", () => {
+    const onChange = vi.fn()
+    const wrapper = TestWrapper(validWorkerGroupFormData, 1, 0, { onChange })
+    render(wrapper())
+
+    const section = screen.getByRole("region", { name: new RegExp(validWorkerGroupFormData.name, "i") })
+    const zoneSelect = within(section).getByLabelText("Availability Zones")
+
+    // Change the zone
+    fireEvent.change(zoneSelect, { target: { value: "us-east-1b" } })
+
+    // Check that onChange was called with machineType reset to empty string
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        zones: ["us-east-1b"],
+        machineType: "",
+      })
+    )
+  })
+
+  it("does not show error for machine type when it is disabled", () => {
+    const workerWithoutZone = { ...validWorkerGroupFormData, zones: [] }
+    const formErrors = {
+      [`workers.${validWorkerGroupFormData.id}.machineType`]: ["Machine Type is required"],
+    }
+    const wrapper = TestWrapper(workerWithoutZone, 1, 0, { formErrors })
+    render(wrapper())
+
+    const section = screen.getByRole("region", { name: new RegExp(workerWithoutZone.name, "i") })
+    expect(within(section).queryByText("Machine Type is required")).not.toBeInTheDocument()
+  })
 })

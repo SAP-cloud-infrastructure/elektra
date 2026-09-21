@@ -1,7 +1,7 @@
 import React from "react"
 import { FormRow, Select, SelectOption, TextInput, FormSection, Button } from "@cloudoperators/juno-ui-components"
 import { WorkerGroup } from "./types"
-import { MachineType, MachineImage } from "../../../../types/cloudProfiles"
+import { MachineType, MachineImage, Zone } from "../../../../types/cloudProfiles"
 
 type WorkerGroupProps = {
   workerGroup: WorkerGroup
@@ -11,7 +11,7 @@ type WorkerGroupProps = {
   onDelete: () => void
   availableMachineTypes: MachineType[]
   availableMachineImages: MachineImage[]
-  availableZones: string[]
+  availableZones: Zone[]
   cloudProfileIsLoading?: boolean
   cloudProfileError?: Error | null
   formErrors?: Record<string, string[]>
@@ -41,6 +41,17 @@ const WorkerGroupSection = ({
 
   // Allow deletion if there's more than one worker (must keep at least one)
   const canDelete = totalWorkers > 1
+
+  // Find the selected zone to get unavailable machine types
+  const selectedZone = availableZones.find((zone) => workerGroup.zones.includes(zone.name))
+  const unavailableMachineTypes = selectedZone?.unavailableMachineTypes ?? []
+
+  // Filter out unavailable machine types for the selected zone
+  const availableMachineTypesForZone = availableMachineTypes.filter(
+    (mt) => !unavailableMachineTypes.includes(mt.name)
+  )
+
+  const machineTypeDisabled = !workerGroup.zones.length || workerGroup.zones[0] === ""
 
   const handleFieldChange = (field: string, value: unknown) => {
     onChange({
@@ -92,14 +103,15 @@ const WorkerGroupSection = ({
               onChange({
                 ...workerGroup,
                 zones: e ? [e.toString()] : [],
+                machineType: "", // reset machine type when zone changes
               })
             }
             onBlur={() => validateSingleField(`workers.${workerGroup.id}.zones`)}
             truncateOptions
           >
-            {availableZones.map((opt) => (
-              <SelectOption key={opt} value={opt}>
-                {opt}
+            {availableZones.map((zone) => (
+              <SelectOption key={zone.name} value={zone.name}>
+                {zone.name}
               </SelectOption>
             ))}
           </Select>
@@ -149,12 +161,21 @@ const WorkerGroupSection = ({
             loading={cloudProfileIsLoading}
             value={workerGroup.machineType}
             onChange={(e) => handleFieldChange("machineType", e?.toString())}
-            helptext="Select the machine type for the worker nodes."
-            errortext={cloudProfileError?.message || formErrors[`workers.${workerGroup.id}.machineType`]?.[0]}
+            helptext={
+              machineTypeDisabled
+                ? "Select an availability zone first"
+                : "Select the machine type for the worker nodes. Available types vary by zone."
+            }
+            errortext={
+              machineTypeDisabled
+                ? undefined
+                : cloudProfileError?.message || formErrors[`workers.${workerGroup.id}.machineType`]?.[0]
+            }
             onBlur={() => validateSingleField(`workers.${workerGroup.id}.machineType`)}
+            disabled={machineTypeDisabled}
             truncateOptions
           >
-            {availableMachineTypes.map((opt) => (
+            {availableMachineTypesForZone.map((opt) => (
               <SelectOption key={opt.name} value={opt.name}>
                 {opt.name}
               </SelectOption>
