@@ -1,5 +1,4 @@
 {
-  "admin_required": "role:admin",
   "cloud_admin": "rule:admin_required and domain_id:default",
   "service_role": "role:service",
   "service_or_admin": "rule:admin_required or rule:service_role",

@@ -34,7 +34,8 @@ module ServiceLayer
         return all_pools if shares_by_pool.values.any?(&:nil?)
 
         all_pools.select do |pool|
-          shares_by_pool[pool].any? { |s| s["target_domain_id"] == domain_id }
+          shares = shares_by_pool[pool]
+          shares.empty? || shares.any? { |s| s["target_domain_id"] == domain_id }
         end
       rescue StandardError
         pools[:items]

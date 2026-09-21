@@ -31,7 +31,6 @@ Compute::Engine.routes.draw do
       put "assign_securitygroups"
       put "lock"
       put "unlock"
-      post "hard_reset"
       get "confirm_hard_reset"
       post "pre_hard_reset"
     end
