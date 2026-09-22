@@ -41,4 +41,60 @@ describe Compute::InstancesController, type: :controller do
       expect(response).to be_successful
     end
   end
+
+  describe "POST 'pre_hard_reset'" do
+    let(:instance) do
+      double(
+        "server",
+        id: "instance-id",
+        name: "my-instance",
+        task_state: nil,
+      )
+    end
+
+    before :each do
+      allow_any_instance_of(ServiceLayer::ComputeService).to receive(
+        :find_server,
+      ).and_return(instance)
+      allow(instance).to receive(:task_state=)
+    end
+
+    it "triggers the hard reset when the typed name matches" do
+      expect(instance).to receive(:reboot).with("HARD").and_return(true)
+
+      post :pre_hard_reset,
+           params:
+             default_params.merge(
+               id: "instance-id",
+               forms_confirm_hard_reset: {
+                 name: "my-instance",
+                 instance_name: "my-instance",
+               },
+             ),
+           format: :js
+    end
+
+    it "does not trigger the hard reset when the typed name does not match" do
+      expect(instance).not_to receive(:reboot)
+
+      post :pre_hard_reset,
+           params:
+             default_params.merge(
+               id: "instance-id",
+               forms_confirm_hard_reset: {
+                 name: "wrong-name",
+                 instance_name: "my-instance",
+               },
+             ),
+           format: :js
+
+      expect(response).to render_template("confirm_hard_reset")
+    end
+  end
+
+  it "no longer exposes a standalone hard_reset route" do
+    expect { post "hard_reset", params: default_params.merge(id: "x") }.to raise_error(
+      ActionController::UrlGenerationError,
+    )
+  end
 end
