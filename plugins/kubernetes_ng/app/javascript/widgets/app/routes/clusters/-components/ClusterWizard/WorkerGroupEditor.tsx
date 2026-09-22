@@ -3,14 +3,14 @@ import { Stack, Button, Container, Message } from "@cloudoperators/juno-ui-compo
 import WorkerGroupSection from "./WorkerGroupSection"
 import { WorkerGroup } from "./types"
 import { DEFAULT_WORKER_GROUP, generateRandomSuffix } from "./defaults"
-import { MachineType, MachineImage } from "../../../../types/cloudProfiles"
+import { MachineType, MachineImage, Zone } from "../../../../types/cloudProfiles"
 
 type WorkerGroupEditorProps = {
   workers: WorkerGroup[]
   onChange: (workers: WorkerGroup[]) => void
   availableMachineTypes: MachineType[]
   availableMachineImages: MachineImage[]
-  availableZones: string[]
+  availableZones: Zone[]
   cloudProfileIsLoading?: boolean
   cloudProfileError?: Error | null
   formErrors?: Record<string, string[]>

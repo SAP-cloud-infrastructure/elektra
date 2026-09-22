@@ -136,7 +136,22 @@ module ServiceLayer
         regions.filter_map do |region|
           next unless region.is_a?(Hash) && region['name']
 
-          zones = region['zones'].is_a?(Array) ? region['zones'].filter_map { |z| z['name'] if z.is_a?(Hash) } : []
+          zones = if region['zones'].is_a?(Array)
+            region['zones'].filter_map do |z|
+              next unless z.is_a?(Hash) && z['name']
+
+              zone_data = { name: z['name'] }
+
+              # Add unavailableMachineTypes if present
+              if z['unavailableMachineTypes'].is_a?(Array) && !z['unavailableMachineTypes'].empty?
+                zone_data[:unavailableMachineTypes] = z['unavailableMachineTypes']
+              end
+
+              zone_data
+            end
+          else
+            []
+          end
 
           {
             name: region['name'],
