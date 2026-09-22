@@ -42,7 +42,7 @@ interface InlineErrorProps {
   className?: string
 }
 
-const InlineError = ({ error, className, ...props }: InlineErrorProps) => {
+const InlineError = ({ error, className }: InlineErrorProps) => {
   const normalizedError = normalizeError(error)
 
   // Check if error has details
