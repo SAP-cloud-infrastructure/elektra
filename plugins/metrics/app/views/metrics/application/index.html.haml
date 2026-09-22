@@ -29,8 +29,10 @@
           series and perform ad-hoc queries leveraging all of PromQL's rich query syntax.
         %p
 %p
-- maia_dashboard_url = "https://maia.#{current_region}.cloud.sap/#{@scoped_domain_name}?x-auth-token=#{current_user.token}"
+- maia_dashboard_url = "https://maia.#{current_region}.cloud.sap/#{@scoped_domain_name}"
 %p
-  = link_to maia_dashboard_url, class: 'btn btn-primary', target: '_blank' do
-    %i.fa.fa-external-link
-    Open Maia Dashboard
+  = form_tag maia_dashboard_url, method: :post, target: '_blank', class: 'd-inline' do
+    = hidden_field_tag 'x-auth-token', current_user.token
+    = button_tag class: 'btn btn-primary' do
+      %i.fa.fa-external-link
+      Open Maia Dashboard

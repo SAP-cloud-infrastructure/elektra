@@ -60,7 +60,7 @@ describe ServiceLayer::DnsServiceServices::Pool do
       end
     end
 
-    context "when pool_a is shared to the domain" do
+    context "when pool_a is shared to the domain and pool_b has no shares" do
       before do
         allow(service).to receive(:pool_shares).with("pool-aaa").and_return(
           [{ "target_domain_id" => "domain-111" }],
@@ -68,23 +68,38 @@ describe ServiceLayer::DnsServiceServices::Pool do
         allow(service).to receive(:pool_shares).with("pool-bbb").and_return([])
       end
 
-      it "returns only the shared pool" do
+      it "returns both pools (shared pool and pool without shares)" do
+        expect(service.pools_for_domain("domain-111")).to eq([pool_a, pool_b])
+      end
+    end
+
+    context "when pool_a is shared to the domain and pool_b is shared to a different domain" do
+      before do
+        allow(service).to receive(:pool_shares).with("pool-aaa").and_return(
+          [{ "target_domain_id" => "domain-111" }],
+        )
+        allow(service).to receive(:pool_shares).with("pool-bbb").and_return(
+          [{ "target_domain_id" => "domain-999" }],
+        )
+      end
+
+      it "returns only the pool shared to the current domain" do
         expect(service.pools_for_domain("domain-111")).to eq([pool_a])
       end
 
-      it "excludes pools not shared to the domain" do
+      it "excludes pools shared only to other domains" do
         result = service.pools_for_domain("domain-111")
         expect(result).not_to include(pool_b)
       end
     end
 
-    context "when no pools are shared to the domain" do
+    context "when no pools have shares configured" do
       before do
         allow(service).to receive(:pool_shares).and_return([])
       end
 
-      it "returns an empty list" do
-        expect(service.pools_for_domain("domain-111")).to eq([])
+      it "returns all pools (pools without shares are treated as publicly accessible)" do
+        expect(service.pools_for_domain("domain-111")).to eq([pool_a, pool_b])
       end
     end
 

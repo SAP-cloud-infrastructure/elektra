@@ -14,7 +14,10 @@ gem 'unf', '>= 0.2.0beta2'
 gem 'jsbundling-rails'
 gem 'sprockets-rails'
 # https://rubygems.org/gems/rails/versions
-gem 'rails', '8.0.5'
+gem 'rails', '8.1.3.1'
+# Pin json to 2.x: json 3.0 changed JSON.parse to accept only one positional
+# argument, which breaks ActiveSupport 8.1.3.1's JSON.decode (calls JSON.parse(json, options)).
+gem 'json', '~> 2.21'
 # Security fixes for Rack CVEs (multipart parsing, DoS, file exposure)
 gem 'rack', '>= 3.2.6'
 # Security fix for rack-session CVE (session forgery and Marshal deserialization)
