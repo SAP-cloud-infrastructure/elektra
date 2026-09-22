@@ -86,7 +86,7 @@ describe("Step2 Component", () => {
       expect(screen.getByText(mockMachineTypes[0].name)).toBeInTheDocument()
     })
     expect(screen.getByText(mockMachineImages[0].name)).toBeInTheDocument()
-    expect(screen.getByText(mockRegions[0].zones[0])).toBeInTheDocument()
+    expect(screen.getByText(mockRegions[0].zones[0].name)).toBeInTheDocument()
   })
 
   it("passes form errors to WorkerGroupEditor", () => {

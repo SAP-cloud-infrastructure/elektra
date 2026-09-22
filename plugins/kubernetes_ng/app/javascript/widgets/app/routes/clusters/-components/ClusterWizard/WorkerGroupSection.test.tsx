@@ -1,5 +1,5 @@
 import React from "react"
-import { render, screen, within, fireEvent } from "@testing-library/react"
+import { render, screen, within, fireEvent, waitFor } from "@testing-library/react"
 import { PortalProvider } from "@cloudoperators/juno-ui-components"
 import { DEFAULT_WORKER_GROUP } from "./defaults"
 import WorkerGroupSection from "./WorkerGroupSection"
@@ -114,45 +114,102 @@ describe("WorkerGroupSection", () => {
     })
   })
 
-  it("updates field values when inputs change", () => {
+  it("updates field values when inputs change", async () => {
     const onChange = vi.fn()
     const wrapper = TestWrapper(validWorkerGroupFormData, 1, 0, { onChange })
     render(wrapper())
 
-    const textFields = [
-      { label: "Name", key: "name", value: "new-name" },
-      { label: "Min Nodes", key: "minimum", value: 2 },
-      { label: "Max Nodes", key: "maximum", value: 3 },
-    ]
-
-    const selects = [
-      { label: "Machine Type", key: "machineType" },
-      { label: "Machine Image", key: "machineImage.name" },
-      { label: "Image Version", key: "machineImage.version" },
-      { label: "Availability Zones", key: "zones" },
-    ]
-
     const section = screen.getByRole("region", { name: new RegExp(validWorkerGroupFormData.name, "i") })
     expect(section).toBeInTheDocument()
 
-    textFields.forEach(({ label, value }) => {
-      const input = within(section).getByLabelText(label)
-      fireEvent.change(input, { target: { value: value } })
-      expect(input).toHaveValue(value)
-    })
+    // Test text fields
+    const nameInput = within(section).getByLabelText("Name")
+    fireEvent.change(nameInput, { target: { value: "new-name" } })
+    expect(nameInput).toHaveValue("new-name")
 
-    selects.forEach(async ({ label }) => {
-      const select = within(section).getByLabelText(label)
-      const firstOption = await within(section).findAllByRole("option")
-      await userEvent.click(select)
-      await userEvent.click(firstOption[1])
-      expect(select).toHaveValue(firstOption[0].getAttribute("value"))
-      if (label === "Machine Type") {
-        // selecting machine type should reset image version
-        const imageVersionSelect = within(section).getByLabelText("Image Version")
-        expect(imageVersionSelect).toHaveValue("")
-      }
-    })
+    const minNodesInput = within(section).getByLabelText("Min Nodes")
+    fireEvent.change(minNodesInput, { target: { value: 2 } })
+    expect(minNodesInput).toHaveValue(2)
+
+    const maxNodesInput = within(section).getByLabelText("Max Nodes")
+    fireEvent.change(maxNodesInput, { target: { value: 3 } })
+    expect(maxNodesInput).toHaveValue(3)
+
+    // Test Availability Zones select
+    const zonesSelect = within(section).getByLabelText("Availability Zones")
+    expect(zonesSelect).toHaveTextContent(validWorkerGroupFormData.zones[0])
+    await waitFor(() => userEvent.click(zonesSelect))
+    expect(screen.getByRole("listbox")).toBeInTheDocument()
+    const zoneOptions = screen.getAllByRole("option")
+    expect(zoneOptions.length).toBeGreaterThan(0)
+    await waitFor(() => userEvent.click(zoneOptions[1]))
+    expect(onChange).toHaveBeenCalled()
+    onChange.mockClear()
+
+    // Test Machine Type select (enabled after zone is selected)
+    const machineTypeSelect = within(section).getByLabelText("Machine Type")
+    await waitFor(() => userEvent.click(machineTypeSelect))
+    expect(screen.getByRole("listbox")).toBeInTheDocument()
+    const machineTypeOptions = screen.getAllByRole("option")
+    expect(machineTypeOptions.length).toBeGreaterThan(0)
+    await waitFor(() => userEvent.click(machineTypeOptions[0]))
+    expect(onChange).toHaveBeenCalled()
+    onChange.mockClear()
+
+    // Test Machine Image select
+    const machineImageSelect = within(section).getByLabelText("Machine Image")
+    await waitFor(() => userEvent.click(machineImageSelect))
+    expect(screen.getByRole("listbox")).toBeInTheDocument()
+    const imageOptions = screen.getAllByRole("option")
+    expect(imageOptions.length).toBeGreaterThan(0)
+    await waitFor(() => userEvent.click(imageOptions[1]))
+    expect(onChange).toHaveBeenCalled()
+    onChange.mockClear()
+
+    // Test Image Version select (enabled after image is selected)
+    const imageVersionSelect = within(section).getByLabelText("Image Version")
+    await waitFor(() => userEvent.click(imageVersionSelect))
+    expect(screen.getByRole("listbox")).toBeInTheDocument()
+    const versionOptions = screen.getAllByRole("option")
+    expect(versionOptions.length).toBeGreaterThan(0)
+    await waitFor(() => userEvent.click(versionOptions[0]))
+    expect(onChange).toHaveBeenCalled()
+  })
+
+  it("resets image version when machine image changes", async () => {
+    const onChange = vi.fn()
+    const workerWithImageVersion = {
+      ...validWorkerGroupFormData,
+      machineImage: {
+        name: "ubuntu",
+        version: "20.04",
+      },
+    }
+    const wrapper = TestWrapper(workerWithImageVersion, 1, 0, { onChange })
+    render(wrapper())
+
+    const section = screen.getByRole("region", { name: new RegExp(workerWithImageVersion.name, "i") })
+    const machineImageSelect = within(section).getByLabelText("Machine Image")
+
+    // Open the machine image dropdown
+    await waitFor(() => userEvent.click(machineImageSelect))
+    expect(screen.getByRole("listbox")).toBeInTheDocument()
+
+    const imageOptions = screen.getAllByRole("option")
+    expect(imageOptions.length).toBeGreaterThan(1)
+
+    // Select a different image (second option)
+    await waitFor(() => userEvent.click(imageOptions[1]))
+
+    // Verify onChange was called with version reset to empty string
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        machineImage: expect.objectContaining({
+          name: mockMachineImages[1].name,
+          version: "", // version should be reset when image changes
+        }),
+      })
+    )
   })
 
   it("displays errors for all fields", () => {
@@ -215,5 +272,109 @@ describe("WorkerGroupSection", () => {
     expect(within(section).getByLabelText("Min Nodes")).not.toBeDisabled()
     expect(within(section).getByLabelText("Max Nodes")).not.toBeDisabled()
     expect(within(section).getByLabelText("Availability Zones")).not.toHaveAttribute("disabled")
+  })
+
+  it("disables machine type field when no availability zone is selected", () => {
+    const workerWithoutZone = { ...validWorkerGroupFormData, zones: [] }
+    const wrapper = TestWrapper(workerWithoutZone, 1, 0)
+    render(wrapper())
+
+    const section = screen.getByRole("region", { name: new RegExp(workerWithoutZone.name, "i") })
+    expect(within(section).getByLabelText("Machine Type")).toHaveAttribute("disabled")
+  })
+
+  it("shows correct help text for machine type when no zone is selected", () => {
+    const workerWithoutZone = { ...validWorkerGroupFormData, zones: [] }
+    const wrapper = TestWrapper(workerWithoutZone, 1, 0)
+    render(wrapper())
+
+    const section = screen.getByRole("region", { name: new RegExp(workerWithoutZone.name, "i") })
+    expect(within(section).getByText("Select an availability zone first")).toBeInTheDocument()
+  })
+
+  it("shows correct help text for machine type when zone is selected", () => {
+    const wrapper = TestWrapper(validWorkerGroupFormData, 1, 0)
+    render(wrapper())
+
+    const section = screen.getByRole("region", { name: new RegExp(validWorkerGroupFormData.name, "i") })
+    expect(
+      within(section).getByText("Select the machine type for the worker nodes. Available types vary by zone.")
+    ).toBeInTheDocument()
+  })
+
+  it("filters out unavailable machine types for selected zone", async () => {
+    // Create a worker with zone us-east-1a selected
+    const workerWithZone = { ...validWorkerGroupFormData, zones: ["us-east-1a"] }
+    const wrapper = TestWrapper(workerWithZone, 1, 0)
+    render(wrapper())
+
+    const section = screen.getByRole("region", { name: new RegExp(workerWithZone.name, "i") })
+    const machineTypeSelect = within(section).getByLabelText("Machine Type")
+
+    // Verify the select is enabled (zone is selected)
+    expect(machineTypeSelect).not.toHaveAttribute("disabled")
+
+    // Click to open the dropdown
+    await waitFor(() => userEvent.click(machineTypeSelect))
+
+    // Get all options (they're in a portal, so use screen not within)
+    expect(screen.getByRole("listbox")).toBeInTheDocument()
+    const options = screen.getAllByRole("option")
+
+    // us-east-1a has "unavailable-type" in its unavailableMachineTypes
+    // So we should only see 3 options: m5.large, m5.xlarge, c5.large
+    expect(options).toHaveLength(3)
+    expect(options[0]).toHaveTextContent("m5.large")
+    expect(options[1]).toHaveTextContent("m5.xlarge")
+    expect(options[2]).toHaveTextContent("c5.large")
+
+    // Verify "unavailable-type" is NOT in the list
+    const optionTexts = options.map((opt) => opt.textContent)
+    expect(optionTexts).not.toContain("unavailable-type")
+
+    // Verify help text shows zone-aware message
+    expect(
+      within(section).getByText("Select the machine type for the worker nodes. Available types vary by zone.")
+    ).toBeInTheDocument()
+  })
+
+  it("shows all machine types when zone has no unavailable types", async () => {
+    // Create a worker with zone us-east-1b selected (no unavailable types)
+    const workerWithZone = { ...validWorkerGroupFormData, zones: ["us-east-1b"] }
+    const wrapper = TestWrapper(workerWithZone, 1, 0)
+    render(wrapper())
+
+    const section = screen.getByRole("region", { name: new RegExp(workerWithZone.name, "i") })
+    const machineTypeSelect = within(section).getByLabelText("Machine Type")
+
+    // Verify the select is enabled
+    expect(machineTypeSelect).not.toHaveAttribute("disabled")
+
+    // Click to open the dropdown
+    await waitFor(() => userEvent.click(machineTypeSelect))
+
+    // Get all options (they're in a portal, so use screen not within)
+    expect(screen.getByRole("listbox")).toBeInTheDocument()
+    const options = screen.getAllByRole("option")
+
+    // us-east-1b has NO unavailableMachineTypes
+    // So we should see all 4 machine types: m5.large, m5.xlarge, c5.large, unavailable-type
+    expect(options).toHaveLength(4)
+    expect(options[0]).toHaveTextContent("m5.large")
+    expect(options[1]).toHaveTextContent("m5.xlarge")
+    expect(options[2]).toHaveTextContent("c5.large")
+    expect(options[3]).toHaveTextContent("unavailable-type")
+  })
+
+  it("does not show error for machine type when it is disabled", () => {
+    const workerWithoutZone = { ...validWorkerGroupFormData, zones: [] }
+    const formErrors = {
+      [`workers.${validWorkerGroupFormData.id}.machineType`]: ["Machine Type is required"],
+    }
+    const wrapper = TestWrapper(workerWithoutZone, 1, 0, { formErrors })
+    render(wrapper())
+
+    const section = screen.getByRole("region", { name: new RegExp(workerWithoutZone.name, "i") })
+    expect(within(section).queryByText("Machine Type is required")).not.toBeInTheDocument()
   })
 })
