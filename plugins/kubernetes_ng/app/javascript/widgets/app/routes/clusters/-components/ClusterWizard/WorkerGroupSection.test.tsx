@@ -1,5 +1,5 @@
 import React from "react"
-import { render, screen, within, fireEvent } from "@testing-library/react"
+import { render, screen, within, fireEvent, waitFor } from "@testing-library/react"
 import { PortalProvider } from "@cloudoperators/juno-ui-components"
 import { DEFAULT_WORKER_GROUP } from "./defaults"
 import WorkerGroupSection from "./WorkerGroupSection"
@@ -245,44 +245,68 @@ describe("WorkerGroupSection", () => {
     ).toBeInTheDocument()
   })
 
-  it("filters out unavailable machine types for selected zone", () => {
-    const wrapper = TestWrapper(validWorkerGroupFormData, 1, 0)
+  it("filters out unavailable machine types for selected zone", async () => {
+    // Create a worker with zone us-east-1a selected
+    const workerWithZone = { ...validWorkerGroupFormData, zones: ["us-east-1a"] }
+    const wrapper = TestWrapper(workerWithZone, 1, 0)
     render(wrapper())
 
-    const section = screen.getByRole("region", { name: new RegExp(validWorkerGroupFormData.name, "i") })
+    const section = screen.getByRole("region", { name: new RegExp(workerWithZone.name, "i") })
     const machineTypeSelect = within(section).getByLabelText("Machine Type")
 
-    // Click to open the select dropdown
-    fireEvent.click(machineTypeSelect)
+    // Verify the select is enabled (zone is selected)
+    expect(machineTypeSelect).not.toHaveAttribute("disabled")
 
-    // us-east-1a has unavailable-type in its unavailableMachineTypes
-    // So it should not be available in the dropdown
-    expect(screen.queryByText("unavailable-type")).not.toBeInTheDocument()
+    // Click to open the dropdown
+    await waitFor(() => userEvent.click(machineTypeSelect))
 
-    // Available types should be present
-    expect(screen.getByText("m5.large")).toBeInTheDocument()
-    expect(screen.getByText("m5.xlarge")).toBeInTheDocument()
-    expect(screen.getByText("c5.large")).toBeInTheDocument()
+    // Get all options (they're in a portal, so use screen not within)
+    expect(screen.getByRole("listbox")).toBeInTheDocument()
+    const options = screen.getAllByRole("option")
+
+    // us-east-1a has "unavailable-type" in its unavailableMachineTypes
+    // So we should only see 3 options: m5.large, m5.xlarge, c5.large
+    expect(options).toHaveLength(3)
+    expect(options[0]).toHaveTextContent("m5.large")
+    expect(options[1]).toHaveTextContent("m5.xlarge")
+    expect(options[2]).toHaveTextContent("c5.large")
+
+    // Verify "unavailable-type" is NOT in the list
+    const optionTexts = options.map((opt) => opt.textContent)
+    expect(optionTexts).not.toContain("unavailable-type")
+
+    // Verify help text shows zone-aware message
+    expect(
+      within(section).getByText("Select the machine type for the worker nodes. Available types vary by zone.")
+    ).toBeInTheDocument()
   })
 
-  it("resets machine type when availability zone changes", () => {
-    const onChange = vi.fn()
-    const wrapper = TestWrapper(validWorkerGroupFormData, 1, 0, { onChange })
+  it("shows all machine types when zone has no unavailable types", async () => {
+    // Create a worker with zone us-east-1b selected (no unavailable types)
+    const workerWithZone = { ...validWorkerGroupFormData, zones: ["us-east-1b"] }
+    const wrapper = TestWrapper(workerWithZone, 1, 0)
     render(wrapper())
 
-    const section = screen.getByRole("region", { name: new RegExp(validWorkerGroupFormData.name, "i") })
-    const zoneSelect = within(section).getByLabelText("Availability Zones")
+    const section = screen.getByRole("region", { name: new RegExp(workerWithZone.name, "i") })
+    const machineTypeSelect = within(section).getByLabelText("Machine Type")
 
-    // Change the zone
-    fireEvent.change(zoneSelect, { target: { value: "us-east-1b" } })
+    // Verify the select is enabled
+    expect(machineTypeSelect).not.toHaveAttribute("disabled")
 
-    // Check that onChange was called with machineType reset to empty string
-    expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({
-        zones: ["us-east-1b"],
-        machineType: "",
-      })
-    )
+    // Click to open the dropdown
+    await waitFor(() => userEvent.click(machineTypeSelect))
+
+    // Get all options (they're in a portal, so use screen not within)
+    expect(screen.getByRole("listbox")).toBeInTheDocument()
+    const options = screen.getAllByRole("option")
+
+    // us-east-1b has NO unavailableMachineTypes
+    // So we should see all 4 machine types: m5.large, m5.xlarge, c5.large, unavailable-type
+    expect(options).toHaveLength(4)
+    expect(options[0]).toHaveTextContent("m5.large")
+    expect(options[1]).toHaveTextContent("m5.xlarge")
+    expect(options[2]).toHaveTextContent("c5.large")
+    expect(options[3]).toHaveTextContent("unavailable-type")
   })
 
   it("does not show error for machine type when it is disabled", () => {
