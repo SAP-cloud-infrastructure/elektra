@@ -20,6 +20,9 @@ KubernetesNg::Engine.routes.draw do
 
     # Gardener API kubeconfig endpoint
     get 'gardener-api/kubeconfig', to: 'gardener_api#kubeconfig'
+
+    # SciKube getting started ConfigMap
+    get 'scikube-getting-started', to: 'scikube_getting_started#show'
   end
 
   # Catch-all for frontend routes → let React handle routing
