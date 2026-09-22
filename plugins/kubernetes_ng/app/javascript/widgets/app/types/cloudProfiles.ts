@@ -12,6 +12,11 @@ const machineImageSchema = z.object({
   versions: z.array(z.string()),
 })
 
+const zoneSchema = z.object({
+  name: z.string(),
+  unavailableMachineTypes: z.array(z.string()).optional(),
+})
+
 export const cloudProfileSchema = z.object({
   uid: z.string().uuid(),
   name: z.string(),
@@ -26,7 +31,7 @@ export const cloudProfileSchema = z.object({
     .array(
       z.object({
         name: z.string(),
-        zones: z.array(z.string()).optional(),
+        zones: z.array(zoneSchema).optional(),
       })
     )
     .optional(),
@@ -36,3 +41,4 @@ export const CloudProfilesSchema = z.array(cloudProfileSchema)
 export type CloudProfile = z.infer<typeof cloudProfileSchema>
 export type MachineType = z.infer<typeof machineTypeSchema>
 export type MachineImage = z.infer<typeof machineImageSchema>
+export type Zone = z.infer<typeof zoneSchema>

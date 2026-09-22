@@ -46,7 +46,11 @@ RSpec.describe ServiceLayer::KubernetesNgServices::CloudProfiles do
                 {
                   "name" => "qa-de-1",
                   "zones" => [
-                    { "name" => "qa-de-1a" }
+                    { "name" => "qa-de-1a" },
+                    {
+                      "name" => "qa-de-1b",
+                      "unavailableMachineTypes" => ["g_c4_m16"]
+                    }
                   ]
                 }
               ],
@@ -290,17 +294,129 @@ RSpec.describe ServiceLayer::KubernetesNgServices::CloudProfiles do
     it "correctly maps regions with zones" do
       result = list_cloud_profiles
       cloud_profile = result.first
-      
+
       # Test regions array structure
       expect(cloud_profile[:regions]).to be_an(Array)
       expect(cloud_profile[:regions].length).to eq(1)
-      
+
       region = cloud_profile[:regions].first
       expect(region).to include(
-        name: "qa-de-1",
-        zones: ["qa-de-1a"]
+        name: "qa-de-1"
       )
       expect(region[:zones]).to be_an(Array)
+      expect(region[:zones].length).to eq(2)
+
+      # Test first zone (without unavailableMachineTypes)
+      zone_a = region[:zones].first
+      expect(zone_a).to include(name: "qa-de-1a")
+      expect(zone_a).not_to have_key(:unavailableMachineTypes)
+
+      # Test second zone (with unavailableMachineTypes)
+      zone_b = region[:zones].last
+      expect(zone_b).to include(
+        name: "qa-de-1b",
+        unavailableMachineTypes: ["g_c4_m16"]
+      )
+    end
+
+    context "when zones have unavailableMachineTypes" do
+      let(:mock_response_with_unavailable_types) do
+        double('response', body: {
+          "items" => [
+            {
+              "metadata" => {
+                "uid" => "test-uid",
+                "name" => "openstack"
+              },
+              "spec" => {
+                "type" => "openstack",
+                "kubernetes" => { "versions" => [] },
+                "machineTypes" => [],
+                "machineImages" => [],
+                "regions" => [
+                  {
+                    "name" => "na-us-1",
+                    "zones" => [
+                      {
+                        "name" => "na-us-1a",
+                        "unavailableMachineTypes" => ["m_k_c8_m64_v2", "g_k_c32_m128_v2"],
+                        "unavailableVolumeTypes" => ["premium"]
+                      },
+                      {
+                        "name" => "na-us-1b"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        })
+      end
+
+      before do
+        allow(elektron_gardener).to receive(:get).and_return(mock_response_with_unavailable_types)
+      end
+
+      it "includes unavailableMachineTypes in zones when present" do
+        result = list_cloud_profiles
+        cloud_profile = result.first
+        region = cloud_profile[:regions].first
+
+        zone_a = region[:zones].first
+        expect(zone_a).to include(
+          name: "na-us-1a",
+          unavailableMachineTypes: ["m_k_c8_m64_v2", "g_k_c32_m128_v2"]
+        )
+        # Should not include unavailableVolumeTypes (we only handle machine types)
+        expect(zone_a).not_to have_key(:unavailableVolumeTypes)
+      end
+
+      it "does not include unavailableMachineTypes key when not present" do
+        result = list_cloud_profiles
+        cloud_profile = result.first
+        region = cloud_profile[:regions].first
+
+        zone_b = region[:zones].last
+        expect(zone_b).to include(name: "na-us-1b")
+        expect(zone_b).not_to have_key(:unavailableMachineTypes)
+      end
+
+      it "does not include unavailableMachineTypes when array is empty" do
+        empty_array_response = double('response', body: {
+          "items" => [
+            {
+              "metadata" => { "uid" => "test-uid", "name" => "openstack" },
+              "spec" => {
+                "type" => "openstack",
+                "kubernetes" => { "versions" => [] },
+                "machineTypes" => [],
+                "machineImages" => [],
+                "regions" => [
+                  {
+                    "name" => "test-region",
+                    "zones" => [
+                      {
+                        "name" => "test-zone-a",
+                        "unavailableMachineTypes" => []
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        })
+
+        allow(elektron_gardener).to receive(:get).and_return(empty_array_response)
+
+        result = list_cloud_profiles
+        cloud_profile = result.first
+        zone = cloud_profile[:regions].first[:zones].first
+
+        expect(zone).to include(name: "test-zone-a")
+        expect(zone).not_to have_key(:unavailableMachineTypes)
+      end
     end
 
     context "when API returns empty response" do

@@ -142,6 +142,11 @@ module Compute
         render action: "confirm_hard_reset"
         return
       end
+
+      # Trigger the hard reset server-side only after the confirmation form has
+      # been validated. This avoids exposing a separate, unguarded endpoint that
+      # could be POSTed directly to bypass the name confirmation.
+      execute_instance_action("reboot", "HARD", false)
     end
 
     def confirm_hard_reset
@@ -770,10 +775,6 @@ module Compute
 
     def unlock
       execute_instance_action
-    end
-
-    def hard_reset
-      execute_instance_action("reboot", "HARD")
     end
 
     def two_factor_required?

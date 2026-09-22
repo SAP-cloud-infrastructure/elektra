@@ -131,6 +131,7 @@ module SharedFilesystemStorage
         :share_network_id,
         :consistency_group_id,
         :availability_zone,
+        :mount_point_name,
       )
     end
   end

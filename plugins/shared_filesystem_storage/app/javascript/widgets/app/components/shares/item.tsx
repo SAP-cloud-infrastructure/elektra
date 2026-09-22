@@ -69,6 +69,9 @@ const ShareItem: React.FC<ShareItemProps> = ({
 }) => {
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const isPending = constants.isShareStatusPending(share.status)
+  const isCreating =
+    share.status === constants.SHARE_STATE_CREATING ||
+    share.status === constants.SHARE_STATE_CREATING_FROM_SNAPSHOT
 
   useEffect(() => {
     loadShareRulesOnce(share.id)
@@ -104,7 +107,7 @@ const ShareItem: React.FC<ShareItemProps> = ({
       <td>{share.share_proto}</td>
       <td>{(share.size || 0) + " GB"}</td>
       <td>
-        {share.status === "creating" && <span className="spinner"></span>}
+        {isCreating && <span className="spinner"></span>}
         {share.status}
       </td>
       <td>

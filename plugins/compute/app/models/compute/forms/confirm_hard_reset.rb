@@ -6,7 +6,7 @@ module Compute
       end
 
       validates_presence_of :name
-      validate { errors[:name] << "not correct!" if name != instance_name }
+      validate { errors.add(:name, "not correct!") if name != instance_name }
     end
   end
 end

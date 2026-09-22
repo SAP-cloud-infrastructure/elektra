@@ -152,6 +152,8 @@ export const externalNetworks: ExternalNetwork[] = [
 export const mockMachineTypes = [
   { name: "m5.large", cpu: "2", memory: "8Gi" },
   { name: "m5.xlarge", cpu: "4", memory: "16Gi", architecture: "x86_64" },
+  { name: "c5.large", cpu: "2", memory: "4Gi" },
+  { name: "unavailable-type", cpu: "8", memory: "32Gi" },
 ]
 
 export const mockMachineImages = [
@@ -160,8 +162,17 @@ export const mockMachineImages = [
 ]
 
 export const mockRegions = [
-  { name: "us-east-1", zones: ["us-east-1a", "us-east-1b"] },
-  { name: "us-west-1", zones: ["us-west-1a", "us-west-1b"] },
+  {
+    name: "us-east-1",
+    zones: [
+      { name: "us-east-1a", unavailableMachineTypes: ["unavailable-type"] },
+      { name: "us-east-1b" },
+    ],
+  },
+  {
+    name: "us-west-1",
+    zones: [{ name: "us-west-1a" }, { name: "us-west-1b" }],
+  },
 ]
 
 export const cloudProfiles: CloudProfile[] = [

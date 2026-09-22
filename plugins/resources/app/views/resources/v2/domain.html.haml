@@ -1,7 +1,8 @@
 = javascript_include_tag 'resources_limes-ui_widget', data: { props: { |
   embedded: true,                                                      |
-  theme: 'theme-light',                                                |  
+  theme: 'theme-light',                                                |
   endpoint: "https://limes-3.#{current_region}.cloud.sap",             |
   "domainID": "#{@scoped_domain_id}",                                  |
   "getTokenFuncName": "_getCurrentToken",                              |
-  "canEdit": "#{current_user.is_allowed?('resources:project:edit', {selected: {domain_id: @scoped_domain_id} })}" } }
+  "canEdit": "#{current_user.is_allowed?('resources:project:edit', {selected: {domain_id: @scoped_domain_id} })}", |
+  "documentationLinks": resource_documentation_links } }
