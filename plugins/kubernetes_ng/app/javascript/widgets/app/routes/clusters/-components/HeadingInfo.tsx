@@ -1,17 +1,18 @@
-import React, { useState, useEffect } from "react"
+import React, { useState } from "react"
 import { CodeBlock, Icon } from "@cloudoperators/juno-ui-components"
 import Collapse from "../../../components/Collapse"
 import Card from "../../../components/Card"
 import { parseMarkdown } from "./markdownParser"
-import { fetchScikubeInstructions } from "./fetchScikubeInstructions"
+import { useRouteContext } from "@tanstack/react-router"
+import { RouterContext } from "../../__root"
+import { useScikubeInstructions } from "../../../hooks/useScikubeInstructions"
+import InlineError from "../../../components/InlineError"
+import { Status } from "../../../components/Status"
 
 export default function HeadingInfo() {
+  const { apiClient } = useRouteContext({ strict: false }) as RouterContext
   const [showInstructions, setShowInstructions] = useState(false)
-  const [instructions, setInstructions] = useState("")
-
-  useEffect(() => {
-    fetchScikubeInstructions().then(setInstructions)
-  }, [])
+  const { data: instructions, error, isLoading } = useScikubeInstructions(apiClient)
 
   return (
     <Card>
@@ -28,7 +29,13 @@ export default function HeadingInfo() {
       </button>
       <Collapse isOpen={showInstructions} id="instructions" aria-labelledby="instructions-toggle">
         <div className="info tw-mt-4">
-          {instructions && parseMarkdown(instructions, CodeBlock)}
+          {isLoading ? (
+            <Status status="progress" title="Loading instructions..." />
+          ) : error ? (
+            <InlineError error={error} />
+          ) : (
+            instructions && parseMarkdown(instructions, CodeBlock)
+          )}
         </div>
       </Collapse>
     </Card>
