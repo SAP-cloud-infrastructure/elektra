@@ -1,5 +1,6 @@
 import PropTypes from "prop-types"
-import { Modal, Button } from "react-bootstrap"
+import { Button } from "react-bootstrap"
+import { Modal } from "lib/components/Modal"
 import { Form } from "lib/elektra-form"
 import { Link } from "react-router-dom"
 import React from "react"

@@ -1,5 +1,6 @@
 import React from "react"
-import { Modal, Button } from "react-bootstrap"
+import { Button } from "react-bootstrap"
+import { Modal } from "lib/components/Modal"
 import { FormErrors } from "lib/elektra-form/components/form_errors"
 import { v4 as uuidv4 } from "uuid"
 import { validatePolicy } from "./utils"

@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 import { SearchField } from "lib/components/search_field"
-import { Alert, MenuItem, Dropdown } from "react-bootstrap"
+import { Alert } from "react-bootstrap"
 import { Link } from "react-router-dom"
 import React, { useCallback } from "react"
 import * as apiClient from "../../apiClient"
@@ -179,27 +179,56 @@ const BgpVpns = () => {
                 <td>{`${item.shared}`}</td>
                 <td>
                   {!item.isDeleting && (
-                    <Dropdown id={`bgpvpns-dropdown-${item.id}`} pullRight>
-                      <Dropdown.Toggle noCaret className="btn-sm">
+                    <div className="btn-group">
+                      <button
+                        className="btn btn-default btn-sm dropdown-toggle"
+                        type="button"
+                        data-toggle="dropdown"
+                        aria-expanded="false"
+                      >
                         <span className="fa fa-cog" />
-                      </Dropdown.Toggle>
-                      <Dropdown.Menu className="super-colors">
-                        <MenuItem onClick={() => history.push(`/${item.id}/2`)}>
-                          Manage Routers
-                        </MenuItem>
-                        <MenuItem onClick={() => history.push(`/${item.id}/3`)}>
-                          Access Control
-                        </MenuItem>
+                      </button>
+                      <ul className="dropdown-menu dropdown-menu-right super-colors" role="menu">
+                        <li>
+                          <a
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault()
+                              history.push(`/${item.id}/2`)
+                            }}
+                          >
+                            Manage Routers
+                          </a>
+                        </li>
+                        <li>
+                          <a
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault()
+                              history.push(`/${item.id}/3`)
+                            }}
+                          >
+                            Access Control
+                          </a>
+                        </li>
                         {policy.isAllowed("networking:bgp_vpn_delete") && (
                           <>
-                            <MenuItem divider />
-                            <MenuItem onClick={() => deleteBgpvpn(item.id)}>
-                              Delete
-                            </MenuItem>
+                            <li className="divider"></li>
+                            <li>
+                              <a
+                                href="#"
+                                onClick={(e) => {
+                                  e.preventDefault()
+                                  deleteBgpvpn(item.id)
+                                }}
+                              >
+                                Delete
+                              </a>
+                            </li>
                           </>
                         )}
-                      </Dropdown.Menu>
-                    </Dropdown>
+                      </ul>
+                    </div>
                   )}
                 </td>
               </tr>

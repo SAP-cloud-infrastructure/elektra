@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import { render, screen, fireEvent, waitFor } from "@testing-library/react"
+import { render, screen, fireEvent, waitFor, act } from "@testing-library/react"
 import React from "react"
 import "@testing-library/jest-dom/vitest"
 import NewPortForm from "./new"
@@ -29,31 +29,9 @@ vi.mock("react-router-dom", () => ({
   ),
 }))
 
-// Mock react-bootstrap components
-vi.mock("react-bootstrap", () => {
-  const Modal = ({ children, show, onHide, ...props }: any) => {
-    if (!show) return null
-    return (
-      <div data-testid="modal" {...props}>
-        {children}
-      </div>
-    )
-  }
-
-  Modal.Body = ({ children }: any) => <div data-testid="modal-body">{children}</div>
-  Modal.Header = ({ children }: any) => <div data-testid="modal-header">{children}</div>
-  Modal.Title = ({ children }: any) => <h1 data-testid="modal-title">{children}</h1>
-  Modal.Footer = ({ children }: any) => <div data-testid="modal-footer">{children}</div>
-
-  return {
-    Modal,
-    Button: ({ children, onClick, ...props }: any) => (
-      <button onClick={onClick} {...props}>
-        {children}
-      </button>
-    ),
-  }
-})
+// react-bootstrap is intentionally NOT mocked: the in-house lib/components/Modal
+// must render real Bootstrap 3 modal DOM (single role="dialog", .modal-title,
+// .modal-footer) under React 19, so we assert against that.
 
 // Mock the Form component from lib/elektra-form
 vi.mock("lib/elektra-form", () => {
@@ -317,7 +295,7 @@ describe("NewPortForm Component", () => {
   describe("Initial Rendering", () => {
     it("renders the modal with correct title", () => {
       renderComponent()
-      expect(screen.getByTestId("modal-title")).toHaveTextContent("New Fixed IP Reservation")
+      expect(document.querySelector(".modal-title")).toHaveTextContent("New Fixed IP Reservation")
     })
 
     it("calls load dependencies on mount", () => {
@@ -645,8 +623,10 @@ describe("NewPortForm Component", () => {
       const cancelButton = screen.getByText("Cancel")
       fireEvent.click(cancelButton)
 
-      // Fast-forward timers to trigger navigation
-      vi.advanceTimersByTime(300)
+      // Fast-forward timers to trigger navigation (300ms close transition)
+      act(() => {
+        vi.advanceTimersByTime(300)
+      })
 
       expect(mockHistoryReplace).toHaveBeenCalledWith("/ports")
 

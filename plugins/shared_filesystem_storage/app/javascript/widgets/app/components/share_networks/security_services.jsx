@@ -1,4 +1,5 @@
-import { Modal, Button } from "react-bootstrap"
+import { Button } from "react-bootstrap"
+import { Modal } from "lib/components/Modal"
 import ShareNetworkSecurityServiceItem from "./security_service_item"
 import ShareNetworkSecurityServiceForm from "./security_service_form"
 import { TransitionGroup } from "react-transition-group"

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react"
-import { DropdownButton, MenuItem } from "react-bootstrap"
 import uniqueId from "lodash/uniqueId"
 
 // Custom Bootstrap Dropdown

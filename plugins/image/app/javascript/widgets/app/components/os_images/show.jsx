@@ -1,4 +1,6 @@
-import { Modal, Button, Tabs, Tab } from "react-bootstrap"
+import { Button } from "react-bootstrap"
+import { Modal } from "lib/components/Modal"
+import { Tabs, Tab } from "lib/components/Tabs"
 import { PrettyDate } from "lib/components/pretty_date"
 import { PrettySize } from "lib/components/pretty_size"
 import { JsonViewer } from "@cloudoperators/juno-ui-components"

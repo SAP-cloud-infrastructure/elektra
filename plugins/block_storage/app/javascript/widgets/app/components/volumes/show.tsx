@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react"
-import { Modal, Button, Tabs, Tab } from "react-bootstrap"
+import { Button } from "react-bootstrap"
+import { Modal } from "lib/components/Modal"
+import { Tabs, Tab } from "lib/components/Tabs"
 // @ts-expect-error - pretty_date has no types
 import { PrettyDate } from "lib/components/pretty_date"
 

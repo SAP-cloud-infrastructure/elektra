@@ -254,25 +254,18 @@ describe("ShowModal", () => {
       })
     })
 
-    // TODO(react-bootstrap-v2): react-bootstrap@0.33 Modal renders nested
-    // role="dialog" nodes and does not unmount cleanly on close under React 19.
-    // Re-enable after migrating to react-bootstrap v2.
-    it.skip("closes modal when X button in header is clicked", async () => {
+    it("closes modal when X button in header is clicked", async () => {
       renderComponent({ id: "snapshot-123", snapshot: mockSnapshot })
 
-      // Bootstrap modal close button
-      const closeButtons = screen.getAllByRole("button")
-      const headerCloseButton = closeButtons.find(
-        (button) => button.className.includes("close") || button.getAttribute("aria-label") === "Close"
-      )
+      // Bootstrap modal close (X) button in the header
+      const headerCloseButton = document.querySelector("button.close") as HTMLElement
+      expect(headerCloseButton).toBeInTheDocument()
 
-      if (headerCloseButton) {
-        await user.click(headerCloseButton)
+      await user.click(headerCloseButton)
 
-        await waitFor(() => {
-          expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
-        })
-      }
+      await waitFor(() => {
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+      })
     })
 
     it("restores URL when modal is closed", async () => {
@@ -314,8 +307,7 @@ describe("ShowModal", () => {
       const { rerender } = renderComponent({ id: "snapshot-123", snapshot: mockSnapshot })
 
       // Check modal is visible
-      const modal = screen.getByLabelText(/snapshot/i).closest(".modal")
-      expect(modal).toHaveClass("fade in")
+      expect(screen.getAllByRole("dialog").pop()).toBeInTheDocument()
 
       rerender(
         <BrowserRouter>
@@ -323,10 +315,9 @@ describe("ShowModal", () => {
         </BrowserRouter>
       )
 
-      // Wait for modal to hide (Bootstrap animations)
+      // Modal unmounts cleanly once the close transition completes
       await waitFor(() => {
-        const modal = document.querySelector(".modal")
-        expect(modal).not.toHaveClass("in")
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
       })
     })
 
