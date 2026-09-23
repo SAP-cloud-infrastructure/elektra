@@ -31,8 +31,6 @@
 %p
 - maia_dashboard_url = "https://maia.#{current_region}.cloud.sap/#{@scoped_domain_name}"
 %p
-  = form_tag maia_dashboard_url, method: :post, target: '_blank', class: 'd-inline' do
-    = hidden_field_tag 'x-auth-token', current_user.token
-    = button_tag class: 'btn btn-primary' do
-      %i.fa.fa-external-link
-      Open Maia Dashboard
+  = link_to maia_dashboard_url, class: 'btn btn-primary', target: '_blank', rel: 'noopener noreferrer' do
+    %i.fa.fa-external-link
+    Open Maia Dashboard
