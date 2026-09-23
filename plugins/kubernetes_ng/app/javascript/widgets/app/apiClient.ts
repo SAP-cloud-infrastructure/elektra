@@ -4,6 +4,7 @@ import { Permissions, PermissionsSchema } from "./types/permissions"
 import { CloudProfile, CloudProfilesSchema } from "./types/cloudProfiles"
 import { ClusterFormData, ClusterUpdateData } from "./routes/clusters/-components/ClusterWizard/types"
 import { ExternalNetwork, ExternalNetworksSchema } from "./types/network"
+import { ScikubeConfigMapResponse, ScikubeConfigMapSchema } from "./types/scikubeConfigMap"
 
 // Helper to check if response data contains an API error (even with 200 status due to oauth2-proxy middleware)
 function checkForApiError(data: unknown): void {
@@ -195,8 +196,23 @@ export function createGardenerApi(basepath: string) {
         }),
   }
 
+  const scikubeApi = {
+    getScikubeInstructions: () =>
+      apiClient.get<ScikubeConfigMapResponse>("/api/scikube-getting-started").then((res) => {
+        checkForApiError(res.data)
+        const parsed = ScikubeConfigMapSchema.safeParse(res.data)
+        if (!parsed.success) {
+          const error = new Error("Invalid response") as Error & { details?: unknown }
+          error.name = "Failed to fetch scikube instructions"
+          error.details = parsed.error.issues
+          throw error
+        }
+        return parsed.data.data["README.md"]
+      }),
+  }
+
   return {
-    gardener: { ...shootApi, ...permissionsApi, ...cloudProfilesApi, ...networkApi, ...gardenApi },
+    gardener: { ...shootApi, ...permissionsApi, ...cloudProfilesApi, ...networkApi, ...gardenApi, ...scikubeApi },
   }
 }
 
