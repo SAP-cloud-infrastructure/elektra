@@ -401,7 +401,7 @@ module ServiceLayer
             max: worker['maximum'],
             actual: nil, # Would need separate API call
             maxSurge: worker['maxSurge'],
-            zones: worker['zones']
+            zones: worker['zones'] || []
           }.compact
         end
       end
