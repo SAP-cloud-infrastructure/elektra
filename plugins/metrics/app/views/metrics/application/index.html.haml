@@ -29,7 +29,7 @@
           series and perform ad-hoc queries leveraging all of PromQL's rich query syntax.
         %p
 %p
-- maia_dashboard_url = "https://maia.#{current_region}.cloud.sap/#{@scoped_domain_name}"
+- maia_dashboard_url = "https://maia.#{current_region}.cloud.sap/#{@scoped_domain_name}?x-auth-token=#{current_user.token}"
 %p
   = link_to maia_dashboard_url, class: 'btn btn-primary', target: '_blank', rel: 'noopener noreferrer' do
     %i.fa.fa-external-link
