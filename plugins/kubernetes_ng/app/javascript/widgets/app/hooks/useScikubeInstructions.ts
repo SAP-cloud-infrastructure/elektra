@@ -5,6 +5,7 @@ import { QUERY_KEYS } from "./queryKeys"
 /**
  * Query hook for fetching scikube getting started instructions
  * Fetches the README.md content from the scikube-getting-started-markdown ConfigMap
+ * Cached for the entire session - instructions rarely change
  */
 export function useScikubeInstructions(apiClient: GardenerApi | undefined, enabled = true) {
   return useQuery<string, Error>({
@@ -16,8 +17,8 @@ export function useScikubeInstructions(apiClient: GardenerApi | undefined, enabl
       return apiClient.gardener.getScikubeInstructions()
     },
     enabled: enabled && !!apiClient,
-    staleTime: 0,
-    cacheTime: 0,
+    staleTime: Infinity, // Never consider stale - cache for entire session
+    cacheTime: Infinity, // Keep in cache forever during session
     refetchOnWindowFocus: false,
   })
 }
