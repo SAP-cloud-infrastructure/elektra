@@ -10,6 +10,7 @@ import {
 } from "@tanstack/react-router"
 import { PortalProvider } from "@cloudoperators/juno-ui-components/index"
 import { render } from "@testing-library/react"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { RouterContext } from "../routes/__root"
 import { defaultCluster, permissionsAllTrue, externalNetworks, cloudProfiles } from "./data"
 import { GardenerApi } from "../apiClient"
@@ -45,7 +46,14 @@ export function deferredPromise<T>() {
   return { promise, resolve, reject }
 }
 
-export const renderComponent = (component: React.ReactNode, path = "/test/") => {
+export const renderComponent = (component: React.ReactNode, path = "/test/", apiClient = defaultMockClient) => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  })
+
   const rootRoute = createRootRoute({
     component: () => <Outlet />,
   })
@@ -61,10 +69,15 @@ export const renderComponent = (component: React.ReactNode, path = "/test/") => 
     history: createMemoryHistory({
       initialEntries: [path],
     }),
+    context: { apiClient, region: "test-region", projectid: "test-project" },
   })
 
   return {
-    ...render(<RouterProvider router={router} />),
+    ...render(
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    ),
     router,
   }
 }
@@ -86,5 +99,6 @@ export const defaultMockClient: GardenerApi = {
     getCloudProfiles: () => Promise.resolve(cloudProfiles),
 
     getGardenerApiKubeconfig: () => Promise.resolve("kubeconfig-data"),
+    getScikubeInstructions: () => Promise.resolve("Mock instructions"),
   },
 }
