@@ -135,7 +135,7 @@ const MaintenanceWindowEditModal: React.FC<MaintenanceWindowEditModalProps> = ({
       onSuccess()
     } catch (error) {
       const errText = normalizeError(error)
-      setErrorMessage(`${errText.title}${errText.message}`)
+      setErrorMessage(`${errText.title}: ${errText.message}`)
     }
   }
 

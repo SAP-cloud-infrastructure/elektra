@@ -1,5 +1,5 @@
 import React from "react"
-import { Stack, Icon } from "@cloudoperators/juno-ui-components"
+import { Status } from "./Status"
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null
@@ -29,7 +29,7 @@ export function normalizeError(error: unknown): { title: string; message: string
 
   if (error instanceof Error) {
     return {
-      title: error.name ? `${error.name}: ` : "Error: ",
+      title: error.name ? `${error.name}` : "",
       message: error.message.replace(/^[,\s]+/, "") || "An unknown error occurred. Try again.",
     }
   }
@@ -42,16 +42,30 @@ interface InlineErrorProps {
   className?: string
 }
 
-const InlineError = ({ error, className, ...props }: InlineErrorProps) => {
+const InlineError = ({ error, className }: InlineErrorProps) => {
   const normalizedError = normalizeError(error)
+
+  // Check if error has details
+  let details: string | undefined
+  if (error && typeof error === "object" && "details" in error) {
+    const errorDetails = (error as { details: unknown }).details
+    if (errorDetails) {
+      try {
+        details = typeof errorDetails === "string" ? errorDetails : JSON.stringify(errorDetails, null, 2)
+      } catch {
+        // Ignore if serialization fails
+      }
+    }
+  }
+
   return (
-    <Stack gap="2" alignment="center" className={`inline-error ${className}`} {...props}>
-      <Icon color="tw-text-theme-danger" icon="danger" />
-      <p>
-        {normalizedError.title}
-        {normalizedError.message}
-      </p>
-    </Stack>
+    <Status
+      status="error"
+      title={normalizedError.title}
+      body={normalizedError.message}
+      details={details}
+      className={className}
+    />
   )
 }
 

@@ -104,7 +104,7 @@ export const VersionUpdateDialog: React.FC<VersionUpdateDialogProps> = ({
       onSuccess()
     } catch (error) {
       const errText = normalizeError(error)
-      setErrorMessage(`${errText.title}${errText.message}`)
+      setErrorMessage(`${errText.title}: ${errText.message}`)
     }
   }
 

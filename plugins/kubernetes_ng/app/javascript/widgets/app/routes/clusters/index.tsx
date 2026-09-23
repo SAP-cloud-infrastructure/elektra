@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { createFileRoute } from "@tanstack/react-router"
-import { Container, Stack } from "@cloudoperators/juno-ui-components"
+import { Container, Stack, Modal } from "@cloudoperators/juno-ui-components"
 import ClusterList from "./-components/ClusterList"
 import PageHeader from "../../components/PageHeader"
 import { Permissions } from "../../types/permissions"
@@ -203,7 +203,22 @@ function Clusters(props: ClustersViewProps) {
       <HeadingInfo />
 
       {showWizardModal && (!client || !region) && (
-        <InlineError error={new Error("Cannot open cluster creation wizard: missing client or region.")} />
+        <Modal
+          className="tw-w-[76.75rem]"
+          size="large"
+          aria-modal={true}
+          title="Create Cluster"
+          open={true}
+          onCancel={() => setShowWizardModal(false)}
+        >
+          <InlineError
+            error={(() => {
+              const error = new Error("Missing client or region")
+              error.name = "Cannot open cluster creation wizard"
+              return error
+            })()}
+          />
+        </Modal>
       )}
       {showWizardModal && client && region && (
         <CreateClusterWizard
