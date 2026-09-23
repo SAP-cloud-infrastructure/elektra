@@ -143,7 +143,6 @@ describe("SearchBar", () => {
         return
       }
     })
-    vi.useFakeTimers()
     mockOnChange.mockClear()
     mockOnPageChange.mockClear()
     mockOnDateChange.mockClear()
@@ -151,15 +150,12 @@ describe("SearchBar", () => {
 
   afterEach(() => {
     consoleErrorSpy.mockRestore()
-    vi.runOnlyPendingTimers()
-    vi.useRealTimers()
   })
 
-  // Helper to advance timers after text input (for debouncing)
+  // Helper to wait for the 500ms debounce to flush (uses real timers so that
+  // it works with @testing-library/user-event on React 19).
   const advanceTimersForDebounce = async () => {
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(500)
-    })
+    await new Promise((resolve) => setTimeout(resolve, 550))
   }
 
   describe("Basic Rendering", () => {
