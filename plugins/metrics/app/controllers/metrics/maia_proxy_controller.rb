@@ -45,7 +45,7 @@ module Metrics
       Rails.logger.error("Metrics: Maia proxy timeout: #{e.class}")
       render json: { error: "Upstream timeout" }, status: :gateway_timeout
     rescue SocketError, SystemCallError, IOError, Timeout::Error, OpenSSL::SSL::SSLError,
-           Net::HTTPBadResponse, Net::ProtocolError, URI::InvalidURIError => e
+           Net::HTTPBadResponse, Net::ProtocolError, URI::InvalidURIError, URI::InvalidComponentError => e
       Rails.logger.error("Metrics: Maia proxy error: #{e.class}")
       render json: { error: "Proxy error" }, status: :bad_gateway
     end
