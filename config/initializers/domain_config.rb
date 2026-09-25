@@ -77,9 +77,36 @@ class DomainConfig
     @domain_config.fetch('oidc_provider', false)
   end
 
+  # IdP object bundling the identity provider infos for the federation login.
+  # Note: the config is kept flat and backward compatible on purpose (the
+  # production domain_config is often maintained externally via secret/helm), so
+  # the two fields are read from two separate top-level config keys:
+  #   - url:  from the flat `idp` key - the redirect hint passed as the &idp=
+  #           query param (URL-encoded). This is NOT the Keystone registration.
+  #   - name: from the `idp_name` key - the IdP entity registered in Keystone
+  #           (identity_providers/<name>).
+  # Guard against re-definition, since this file is loaded both as a Rails
+  # initializer and via require_relative in the spec.
+  Idp = Struct.new(:url, :name) unless const_defined?(:Idp)
+
+  # Returns an Idp object if an idp is configured for the domain, false otherwise.
+  # The guard on false is used by the federation view to decide whether to append
+  # the &idp= query param.
   def idp?
     idp_value = @domain_config.fetch('idp', false)
-    idp_value ? URI.encode_www_form_component(idp_value.to_s) : false
+    return false unless idp_value
+
+    Idp.new(URI.encode_www_form_component(idp_value.to_s), idp_name)
+  end
+
+  # The identity provider entity name in Keystone (identity_providers/<idp_name>).
+  def idp_name
+    @domain_config.fetch('idp_name', 'sap-ias')
+  end
+
+  # The federation protocol used by the identity provider (protocols/<protocol>).
+  def federation_protocol
+    @domain_config.fetch('federation_protocol', 'openid')
   end
 
   def group_management?
