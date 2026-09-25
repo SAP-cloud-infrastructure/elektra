@@ -309,7 +309,7 @@ var WebconsoleContainer = (function () {
         .error(function (jqXHR, textStatus, errorThrown) {
           const redirectTo = jqXHR.getResponseHeader("Location")
           if (redirectTo && redirectTo.indexOf("/auth/login/") > -1) {
-            return window.location.reload()
+            return (window.location.href = redirectTo)
           }
           // ADD: Handle other errors
           $loadingHint.html(
