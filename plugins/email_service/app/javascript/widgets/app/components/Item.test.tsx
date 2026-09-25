@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest"
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import { render, screen, fireEvent } from "@testing-library/react"
 import "@testing-library/jest-dom/vitest"
 import { MemoryRouter } from "react-router-dom"
@@ -23,16 +23,6 @@ vi.mock("moment", () => ({
 // Mock URL.createObjectURL
 global.URL.createObjectURL = vi.fn(() => "blob:mock-url")
 
-// Mock link.click to prevent JSDOM navigation errors
-const originalCreateElement = document.createElement.bind(document)
-document.createElement = ((tagName: string) => {
-  const element = originalCreateElement(tagName)
-  if (tagName === "a") {
-    element.click = vi.fn()
-  }
-  return element
-}) as typeof document.createElement
-
 // Helper function to render with Router
 const renderWithRouter = (ui: React.ReactElement) => {
   return render(<MemoryRouter>{ui}</MemoryRouter>)
@@ -55,6 +45,12 @@ describe("Item", () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    // Suppress JSDOM click navigation errors for anchor elements
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
   })
 
   it("should render all mail log data", () => {
@@ -126,16 +122,21 @@ describe("Item", () => {
   })
 
   it("should create download link with correct filename", () => {
-    const realCreateElement = document.createElement.bind(document)
-    const createElementSpy = vi.spyOn(document, "createElement")
-    let linkElement: HTMLAnchorElement | null = null
+    let capturedDownload: string | undefined
+    const nativeCreateElement = HTMLDocument.prototype.createElement.bind(document)
 
-    createElementSpy.mockImplementation((tagName: string) => {
-      const element = realCreateElement(tagName) as HTMLElement
+    vi.spyOn(document, "createElement").mockImplementation((tagName: string) => {
+      const element = nativeCreateElement(tagName) as HTMLElement
       if (tagName === "a") {
-        linkElement = element as HTMLAnchorElement
-        // Mock the click method
-        element.click = vi.fn()
+        Object.defineProperty(element, "download", {
+          get() {
+            return capturedDownload
+          },
+          set(value: string) {
+            capturedDownload = value
+          },
+          configurable: true,
+        })
       }
       return element
     })
@@ -145,8 +146,7 @@ describe("Item", () => {
     const downloadButton = screen.getByRole("button", { name: "download" })
     fireEvent.click(downloadButton)
 
-    expect(linkElement).not.toBeNull()
-    expect(linkElement!.download).toBe("test-id-123")
+    expect(capturedDownload).toBe("test-id-123")
   })
 
   it("should create download link with data.json as default filename when id is empty", () => {
@@ -155,15 +155,21 @@ describe("Item", () => {
       id: "",
     }
 
-    const realCreateElement = document.createElement.bind(document)
-    const createElementSpy = vi.spyOn(document, "createElement")
-    let linkElement: HTMLAnchorElement | null = null
+    let capturedDownload: string | undefined
+    const nativeCreateElement = HTMLDocument.prototype.createElement.bind(document)
 
-    createElementSpy.mockImplementation((tagName: string) => {
-      const element = realCreateElement(tagName) as HTMLElement
+    vi.spyOn(document, "createElement").mockImplementation((tagName: string) => {
+      const element = nativeCreateElement(tagName) as HTMLElement
       if (tagName === "a") {
-        linkElement = element as HTMLAnchorElement
-        element.click = vi.fn()
+        Object.defineProperty(element, "download", {
+          get() {
+            return capturedDownload
+          },
+          set(value: string) {
+            capturedDownload = value
+          },
+          configurable: true,
+        })
       }
       return element
     })
@@ -173,7 +179,7 @@ describe("Item", () => {
     const downloadButton = screen.getByRole("button", { name: "download" })
     fireEvent.click(downloadButton)
 
-    expect(linkElement!.download).toBe("data.json")
+    expect(capturedDownload).toBe("data.json")
   })
 
   it("should create JSON blob with correct structure", () => {

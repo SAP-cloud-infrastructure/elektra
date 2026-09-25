@@ -9,6 +9,7 @@ import Summary from "./Summary"
 import { validClusterFormData } from "../../../../mocks/data"
 import { DEFAULT_CLUSTER_FORM_DATA } from "./defaults"
 import { MessagesProvider } from "@cloudoperators/juno-messages-provider"
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 
 const TestWrapper =
   (queryClient: QueryClient) =>
@@ -42,6 +43,10 @@ describe("Summary Component", () => {
         mutations: { retry: false },
       },
     })
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
   })
 
   it("renders basic cluster info", () => {
