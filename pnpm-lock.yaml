@@ -79,8 +79,8 @@ dependencies:
     specifier: ^4.0.2
     version: 4.0.2
   bootstrap-multiselect:
-    specifier: 0.9.15
-    version: 0.9.15
+    specifier: 2.0.0
+    version: 2.0.0(@popperjs/core@2.11.8)
   bootstrap-select:
     specifier: 1.13.6
     version: 1.13.6(bootstrap@3.4.1)(jquery@1.12.4)
@@ -5104,10 +5104,13 @@ packages:
     engines: {node: ~0.10.1}
     dev: false
 
-  /bootstrap-multiselect@0.9.15:
-    resolution: {integrity: sha512-UwF32a0QR82xkEEGpuNrn57Bu0b/7DfCuoiOaziSHfQKFj5arR6c7+MYLs5RiIf3zl4XZ+YnY7ZBi6/EN3vEZA==}
+  /bootstrap-multiselect@2.0.0(@popperjs/core@2.11.8):
+    resolution: {integrity: sha512-m8dTwF+mLlpt8PtXfAXyERJLOGNuNrVuU9aQi2WMfwfwSzhgN+LbTaRuTk8Y15NZiMzy2m/FPfhKKgOOJxk2WQ==}
     dependencies:
-      jquery: 2.1.4
+      bootstrap: 5.3.8(@popperjs/core@2.11.8)
+      jquery: 4.0.0
+    transitivePeerDependencies:
+      - '@popperjs/core'
     dev: false
 
   /bootstrap-select@1.13.6(bootstrap@3.4.1)(jquery@1.12.4):
@@ -5128,6 +5131,14 @@ packages:
     resolution: {integrity: sha512-yN5oZVmRCwe5aKwzRj6736nSmKDX7pLYwsXiCj/EYmo16hODaBiT4En5btW/jhBF/seV+XMx3aYwukYC3A49DA==}
     engines: {node: '>=6'}
     deprecated: This version of Bootstrap is no longer supported. Please upgrade to the latest version.
+    dev: false
+
+  /bootstrap@5.3.8(@popperjs/core@2.11.8):
+    resolution: {integrity: sha512-HP1SZDqaLDPwsNiqRqi5NcP0SSXciX2s9E+RyqJIIqGo+vJeN5AJVM98CXmW/Wux0nQ5L7jeWUdplCEf0Ee+tg==}
+    peerDependencies:
+      '@popperjs/core': ^2.11.8
+    dependencies:
+      '@popperjs/core': 2.11.8
     dev: false
 
   /brace-expansion@5.0.3:
@@ -7774,9 +7785,8 @@ packages:
     deprecated: This version is deprecated. Please upgrade to the latest version or find support at https://www.herodevs.com/support/jquery-nes.
     dev: false
 
-  /jquery@2.1.4:
-    resolution: {integrity: sha512-wWR+eCq/T/Qt0NcFyM+QVho0ZVzWxFYANijmSMImXiM5mjr1aOaf4SF0eOEPc92bbK2L2vDpxw3lIszus7eO8Q==}
-    deprecated: This version is deprecated. Please upgrade to the latest version or find support at https://www.herodevs.com/support/jquery-nes.
+  /jquery@4.0.0:
+    resolution: {integrity: sha512-TXCHVR3Lb6TZdtw1l3RTLf8RBWVGexdxL6AC8/e0xZKEpBflBsjh9/8LXw+dkNFuOyW9B7iB3O1sP7hS0Kiacg==}
     dev: false
 
   /js-base64@2.6.4:
