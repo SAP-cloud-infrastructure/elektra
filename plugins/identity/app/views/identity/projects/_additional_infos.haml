@@ -56,7 +56,8 @@
         Your feedback is essential to shaping the future of the SAP Cloud Infrastructure (SCI) platform. This short, confidential survey will help us improve SCI to better meet your needs - let's get started! 
       %a{href: "https://employeeexperience.surveys.sap.com/jfe/form/SV_6DtUh3mnElq4i3Q", target: "_blank"} Click here to go to survey
 
-- if !@domain_config&.feature_hidden?('new_dashboard_banner') && (services.has_service_endpoint?("pca") || services.has_service_endpoint?("ceph"))
+
+- if !@domain_config&.feature_hidden?('new_dashboard_banner')
   .switcher-notice.switcher-notice--big.switcher-border-gradient.switcher-border-gradient--rounded-5
     .switcher-notice__header
       %p.switcher-notice__body-text.switcher-notice__body-text--bold New Dashboard in Development
