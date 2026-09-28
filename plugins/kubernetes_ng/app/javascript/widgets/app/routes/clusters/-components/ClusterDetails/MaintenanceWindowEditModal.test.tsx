@@ -318,7 +318,8 @@ describe("MaintenanceWindowEditModal", () => {
       saveButton.click()
     })
     await waitFor(() => {
-      expect(screen.getByText(/Error:.*Update failed/i)).toBeInTheDocument()
+      // Error is displayed as: title + message = "Error" + "Update failed" = "ErrorUpdate failed"
+      expect(screen.getByText(/Error.*Update failed/i)).toBeInTheDocument()
     })
 
     consoleErrorSpy.mockRestore()
@@ -362,7 +363,8 @@ describe("MaintenanceWindowEditModal", () => {
       saveButton.click()
     })
     await waitFor(() => {
-      expect(screen.getByText(/Error:.*Update failed/i)).toBeInTheDocument()
+      // Error is displayed as: title + message = "Error" + "Update failed" = "ErrorUpdate failed"
+      expect(screen.getByText(/Error.*Update failed/i)).toBeInTheDocument()
     })
     // Modal should still be visible
     expect(screen.getByText("Edit Maintenance Window")).toBeInTheDocument()

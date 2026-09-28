@@ -9,6 +9,7 @@ module ServiceLayer
     include KubernetesNgServices::Clusters
     include KubernetesNgServices::Permissions
     include KubernetesNgServices::GardenerApi
+    include KubernetesNgServices::ScikubeGettingStarted
 
     def available?(landscape_name_or_action = nil)
       service_to_check = KubernetesNg.service_for(landscape_name_or_action.to_s)
