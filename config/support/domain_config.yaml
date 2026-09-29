@@ -1,7 +1,91 @@
-# this config is used to control the visibility of plugins in the navigation,
-# to define floating ip networks.
+# Domain-specific configuration for Elektra.
+#
+# This file controls per-domain behaviour such as plugin/feature visibility in
+# the navigation, floating IP networks, DNS options, terms of use and
+# federation/SSO settings.
+#
+# Loading & matching (see config/initializers/domain_config.rb):
+#   - If config/support/domain_config.local.yaml exists it is loaded instead of
+#     this file (useful for local development). Otherwise this file is used.
+#   - For a given scoped domain name, ALL entries whose `regex` matches are
+#     collected and MERGED into one config. More specific entries override more
+#     general ones, so list general patterns FIRST and specific ones LAST
+#     (later entries win on conflicting keys).
+#
+# Inheritance / merge order (example for domain "marioworld-and-luigi-prod"):
+#
+#     ┌─────────────────────────────────────────────┐
+#     │ "any domain"        regex: ".*"             │  ← base layer (top/general)
+#     │   dns_c_subdomain, check_cidr_range,        │
+#     │   floating_ip_networks, terms_of_use_name…  │
+#     └───────────────────────┬─────────────────────┘
+#                             │  merge (child keys win)
+#                             ▼
+#     ┌─────────────────────────────────────────────┐
+#     │ "marioworld"        regex: "^marioworld-.*$"│  ← middle layer
+#     │   disabled_plugins, disabled_features,      │
+#     │   federation, idp, idp_name…                │
+#     └───────────────────────┬─────────────────────┘
+#                             │  merge (child keys win)
+#                             ▼
+#     ┌─────────────────────────────────────────────┐
+#     │ "marioworld-and-luigi"                      │  ← most specific (bottom/special)
+#     │   regex: "^marioworld-and-luigi.*$"         │
+#     │   idp, idp_name (override the ones above)   │
+#     └───────────────────────┬─────────────────────┘
+#                             │
+#                             ▼
+#                   effective config for the domain
+#
+#   A key set only in "any domain" is inherited all the way down unless a lower
+#   layer overrides it; the bottom-most matching layer always wins on conflicts.
+#
+# Available options per domain entry:
+#   name                   Human-readable label for the entry (documentation only,
+#                          not used by the code).
+#   regex                  Regular expression matched against the scoped domain name.
+#                          Every matching entry is merged (see above).
+#   floating_ip_networks   List of candidate floating IP network names searched when
+#                          assigning a floating IP. `%DOMAIN_NAME%` is replaced with
+#                          the scoped domain name. (networking plugin)
+#   disabled_dns_providers List of DNS provider pool labels hidden in the DNS zone
+#                          creation UI. (dns_service plugin)
+#   dns_c_subdomain        true/false. Shows the "Subdomain" radio option in the DNS
+#                          zone request wizard. Default: false. (dns_service plugin)
+#   check_cidr_range       true/false. Enforces subnet CIDR validation (10.180.x.x range)
+#                          when creating a subnet. Default: true. (networking plugin)
+#   terms_of_use_name      Settings key used to look up the current Terms of Use version
+#                          for the domain. Default: "actual_terms". (dashboard)
+#   disabled_plugins       List of plugin names hidden from the navigation and blocked
+#                          (404) for the domain. (scope_controller / navigation)
+#   disabled_features      List of named UI features hidden for the domain. Can be
+#                          re-enabled per domain via `enabled_features`, which takes
+#                          precedence. (dashboard)
+#   enabled_features       List of feature names that override `disabled_features`
+#                          (re-enables a feature that a more general entry disabled).
+#   group_management       true/false. Enables the group management feature. Default: false.
+#                          (Note: in this file group_management is toggled via
+#                          disabled_features instead.)
+#   federation             true/false. When true, the login page shows the federated
+#                          "Sign In with Identity Provider" flow. Default: false.
+#                          (monsoon-openstack-auth login views)
+#   oidc_provider          true/false. Marks the domain as using an OIDC provider.
+#                          When true, the "Log out" link also signs the user out of the
+#                          OIDC provider (oauth2-proxy). Default: false. (application nav)
+#   idp                    Identity Provider redirect URL for the domain's federated login
+#                          flow. When set, appended as the `&idp=` parameter on the WebSSO
+#                          auth URL. Value is URL-encoded when read. (federation login view)
+#                          NOTE: `idp` (this redirect URL) and `idp_name` are kept as two
+#                          flat keys for backward compatibility, but are bundled into a
+#                          single Idp object (url + name) in the code (DomainConfig#idp?).
+#   idp_name               Keystone identity provider entity name, used as the
+#                          `identity_providers/<idp_name>` segment of the WebSSO auth URL.
+#                          Default: "sap-ias". (federation login view)
+#   federation_protocol    Federation protocol used by the identity provider, used as the
+#                          `protocols/<federation_protocol>` segment of the WebSSO auth URL.
+#                          Default: "openid". (federation login view)
 domains:
-  # Most general pattern last
+  # Most general pattern first (merged, then overridden by more specific entries below)
   - name: any domain
     regex: ".*"
     floating_ip_networks:
@@ -23,7 +107,7 @@ domains:
     disabled_features:
       - group_management
 
-  # More general pattern
+  # More specific pattern (overrides "any domain" on conflicting keys)
   - name: marioworld
     regex: "^marioworld-.*$"
     disabled_plugins:
@@ -48,8 +132,12 @@ domains:
     federation: true
     oidc_provider: true
     idp: "https://mario.world.corp"
+    idp_name: "sap-ias"
+    federation_protocol: "openid"
 
-  # Most specific first
+  # Most specific pattern last (wins over all matching entries above)
   - name: marioworld-and-luigi
     regex: "^marioworld-and-luigi.*$"
     idp: "https://marioworld-and-luigi.world.corp"
+    idp_name: "luigi-ias"
+    federation_protocol: "saml2"
