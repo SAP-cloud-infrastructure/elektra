@@ -71,7 +71,7 @@ gem 'sdoc', '~> 2.6.0', group: :doc
 
 # if you update puma check Dockerfile for Version dependencies!
 # gem 'puma', '= 4.3.9', require: false
-gem 'puma', '6.4.3'
+gem 'puma', '7.2.1'
 ###################### PLUGINS #####################
 
 # backlist plugins (global)
