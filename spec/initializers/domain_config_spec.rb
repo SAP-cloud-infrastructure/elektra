@@ -53,7 +53,9 @@ test_config = {
     {
       'name' => 'marioworld-and-luigi',
       'regex' => '^marioworld-and-luigi.*$',
-      'idp' => 'https://marioworld-and-luigi.world.corp'
+      'idp' => 'https://marioworld-and-luigi.world.corp',
+      'idp_name' => 'luigi-ias',
+      'federation_protocol' => 'saml2'
     }
   ]
 }
@@ -273,14 +275,50 @@ describe DomainConfig do
         expect(config.idp?).to be false
       end
 
-      it 'returns marioworld idp for general marioworld domain' do
+      it 'returns marioworld idp object for general marioworld domain' do
         config = DomainConfig.new('marioworld-domain')
-        expect(config.idp?).to eq(URI.encode_www_form_component('https://mario.world.corp')) # from marioworld domain config
+        expect(config.idp?.url).to eq(URI.encode_www_form_component('https://mario.world.corp')) # from marioworld domain config
+        expect(config.idp?.name).to eq('sap-ias') # default idp_name
       end
 
-      it 'returns overridden idp for specific marioworld domain' do
+      it 'returns overridden idp object for specific marioworld domain' do
         config = DomainConfig.new('marioworld-and-luigi-test')
-        expect(config.idp?).to eq(URI.encode_www_form_component('https://marioworld-and-luigi.world.corp')) # from marioworld child config
+        expect(config.idp?.url).to eq(URI.encode_www_form_component('https://marioworld-and-luigi.world.corp')) # from marioworld child config
+        expect(config.idp?.name).to eq('luigi-ias') # overridden idp_name
+      end
+    end
+
+    describe '#idp_name' do
+      it 'returns default sap-ias for regular domain' do
+        config = DomainConfig.new('regular-domain')
+        expect(config.idp_name).to eq('sap-ias') # default
+      end
+
+      it 'returns default sap-ias for marioworld domain (not overridden)' do
+        config = DomainConfig.new('marioworld-domain')
+        expect(config.idp_name).to eq('sap-ias') # default, not set in marioworld config
+      end
+
+      it 'returns overridden idp_name for specific marioworld domain' do
+        config = DomainConfig.new('marioworld-and-luigi-test')
+        expect(config.idp_name).to eq('luigi-ias') # from marioworld child config
+      end
+    end
+
+    describe '#federation_protocol' do
+      it 'returns default openid for regular domain' do
+        config = DomainConfig.new('regular-domain')
+        expect(config.federation_protocol).to eq('openid') # default
+      end
+
+      it 'returns default openid for marioworld domain (not overridden)' do
+        config = DomainConfig.new('marioworld-domain')
+        expect(config.federation_protocol).to eq('openid') # default, not set in marioworld config
+      end
+
+      it 'returns overridden federation_protocol for specific marioworld domain' do
+        config = DomainConfig.new('marioworld-and-luigi-test')
+        expect(config.federation_protocol).to eq('saml2') # from marioworld child config
       end
     end
 
@@ -315,7 +353,7 @@ describe DomainConfig do
         expect(config.oidc_provider?).to be false 
         
         # From "marioworld-and-luigi" (top layer) - overrides middle
-        expect(config.idp?).to eq(URI.encode_www_form_component('https://marioworld-and-luigi.world.corp'))
+        expect(config.idp?.url).to eq(URI.encode_www_form_component('https://marioworld-and-luigi.world.corp'))
       end
 
       it 'shows different marioworld for different domains' do
@@ -332,13 +370,13 @@ describe DomainConfig do
         expect(marioworld_config.dns_c_subdomain?).to be false
         expect(marioworld_config.federation?).to be true
         expect(marioworld_config.oidc_provider?).to be false
-        expect(marioworld_config.idp?).to eq(URI.encode_www_form_component('https://mario.world.corp'))
+        expect(marioworld_config.idp?.url).to eq(URI.encode_www_form_component('https://mario.world.corp'))
         
         # Specific marioworld (marioworld-and-luigi) domain - inherits from all three
         expect(specific_config.dns_c_subdomain?).to be false
         expect(specific_config.federation?).to be true
         expect(specific_config.oidc_provider?).to be false
-        expect(specific_config.idp?).to eq(URI.encode_www_form_component('https://marioworld-and-luigi.world.corp'))
+        expect(specific_config.idp?.url).to eq(URI.encode_www_form_component('https://marioworld-and-luigi.world.corp'))
       end
     end
   end
