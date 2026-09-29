@@ -11,12 +11,12 @@
     :javascript
       window.policyConfig = #{policy.try(:to_js).try(:html_safe) || {}}
       //window.History = { options: { html4Mode: true} };
-      window.pluginName = "#{plugin_name}";
-      window.scopedDomainId = "#{@scoped_domain_id}";
-      window.scopedDomainFid = "#{@scoped_domain_fid}";
-      window.scopedProjectId = "#{@scoped_project_id}";
-      window.scopedProjectFid = "#{@scoped_project_fid}";
-      window.region = "#{current_region}";
+      window.pluginName = "#{j plugin_name}";
+      window.scopedDomainId = "#{j @scoped_domain_id}";
+      window.scopedDomainFid = "#{j @scoped_domain_fid}";
+      window.scopedProjectId = "#{j @scoped_project_id}";
+      window.scopedProjectFid = "#{j @scoped_project_fid}";
+      window.region = "#{j current_region}";
 
     = javascript_include_tag 'policy_engine', 'data-turbolinks-track' => true
     = javascript_include_tag 'essentials', 'data-turbolinks-track' => true

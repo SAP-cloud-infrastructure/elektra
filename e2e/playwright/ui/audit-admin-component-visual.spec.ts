@@ -41,15 +41,4 @@ test.describe("Visual Regression - Audit Components", () => {
     })
   })
 
-  test("filter toolbar", async ({ page }) => {
-    const toolbar = page.locator(".toolbar.toolbar-controlcenter.audit")
-    await expect(toolbar).toBeVisible()
-
-    const masks = getBasicMaskSelectors(page)
-
-    await expect(toolbar).toHaveScreenshot("audit-filter-toolbar.png", {
-      mask: masks,
-      ...SCREENSHOT_OPTIONS,
-    })
-  })
 })

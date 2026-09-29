@@ -9,4 +9,5 @@ export const QUERY_KEYS = {
   kubeconfigPermissions: ["kubeconfig-permissions"] as const,
   cloudProfiles: ["cloudProfiles"] as const,
   externalNetworks: ["external-networks"] as const,
+  scikubeInstructions: ["scikube-instructions"] as const,
 } as const

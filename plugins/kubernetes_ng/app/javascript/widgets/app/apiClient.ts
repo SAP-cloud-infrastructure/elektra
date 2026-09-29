@@ -4,10 +4,17 @@ import { Permissions, PermissionsSchema } from "./types/permissions"
 import { CloudProfile, CloudProfilesSchema } from "./types/cloudProfiles"
 import { ClusterFormData, ClusterUpdateData } from "./routes/clusters/-components/ClusterWizard/types"
 import { ExternalNetwork, ExternalNetworksSchema } from "./types/network"
+import { ScikubeConfigMapResponse, ScikubeConfigMapSchema } from "./types/scikubeConfigMap"
 
 // Helper to check if response data contains an API error (even with 200 status due to oauth2-proxy middleware)
 function checkForApiError(data: unknown): void {
-  if (data && typeof data === "object" && "error" in data && "code" in data && typeof (data as { code: unknown }).code === "number") {
+  if (
+    data &&
+    typeof data === "object" &&
+    "error" in data &&
+    "code" in data &&
+    typeof (data as { code: unknown }).code === "number"
+  ) {
     const errorData = data as { error: string; code: number; message?: string }
     const errorMessage = errorData.message || errorData.error || "API Error"
     const error = new Error(`${errorMessage} (HTTP ${errorData.code})`) as Error & { data: unknown; status: number }
@@ -27,7 +34,10 @@ export function createGardenerApi(basepath: string) {
         checkForApiError(res.data)
         const parsed = ClustersSchema.safeParse(res.data)
         if (!parsed.success) {
-          throw new Error("Failed to fetch clusters: invalid response")
+          const error = new Error("Invalid response") as Error & { details?: unknown }
+          error.name = "Failed to fetch clusters"
+          error.details = parsed.error.issues
+          throw error
         }
         return res.data
       }),
@@ -36,7 +46,10 @@ export function createGardenerApi(basepath: string) {
         checkForApiError(res.data)
         const parsed = ClusterSchema.safeParse(res.data)
         if (!parsed.success) {
-          throw new Error("Failed to fetch cluster: invalid response")
+          const error = new Error("Invalid response") as Error & { details?: unknown }
+          error.name = "Failed to fetch cluster"
+          error.details = parsed.error.issues
+          throw error
         }
         return res.data
       }),
@@ -45,7 +58,10 @@ export function createGardenerApi(basepath: string) {
         checkForApiError(res.data)
         const parsed = ClusterSchema.safeParse(res.data)
         if (!parsed.success) {
-          throw new Error("Failed to create cluster: invalid response")
+          const error = new Error("Invalid response") as Error & { details?: unknown }
+          error.name = "Failed to create cluster"
+          error.details = parsed.error.issues
+          throw error
         }
         return res.data
       }),
@@ -59,7 +75,10 @@ export function createGardenerApi(basepath: string) {
         checkForApiError(res.data)
         const parsed = ClusterSchema.safeParse(res.data)
         if (!parsed.success) {
-          throw new Error("Failed to replace cluster: invalid response")
+          const error = new Error("Invalid response") as Error & { details?: unknown }
+          error.name = "Failed to replace cluster"
+          error.details = parsed.error.issues
+          throw error
         }
         return res.data
       }),
@@ -87,7 +106,10 @@ export function createGardenerApi(basepath: string) {
         checkForApiError(res.data)
         const parsed = ClusterSchema.safeParse(res.data)
         if (!parsed.success) {
-          throw new Error("Failed to delete cluster: invalid response")
+          const error = new Error("Invalid response") as Error & { details?: unknown }
+          error.name = "Failed to delete cluster"
+          error.details = parsed.error.issues
+          throw error
         }
         return res.data
       }),
@@ -99,7 +121,10 @@ export function createGardenerApi(basepath: string) {
         checkForApiError(res.data)
         const parsed = PermissionsSchema.safeParse(res.data)
         if (!parsed.success) {
-          throw new Error("Failed to fetch permissions: invalid response")
+          const error = new Error("Invalid response") as Error & { details?: unknown }
+          error.name = "Failed to fetch permissions"
+          error.details = parsed.error.issues
+          throw error
         }
         return res.data
       }),
@@ -108,7 +133,10 @@ export function createGardenerApi(basepath: string) {
         checkForApiError(res.data)
         const parsed = PermissionsSchema.safeParse(res.data)
         if (!parsed.success) {
-          throw new Error("Failed to fetch kubeconfig permissions: invalid response")
+          const error = new Error("Invalid response") as Error & { details?: unknown }
+          error.name = "Failed to fetch kubeconfig permissions"
+          error.details = parsed.error.issues
+          throw error
         }
         return res.data
       }),
@@ -120,7 +148,10 @@ export function createGardenerApi(basepath: string) {
         checkForApiError(res.data)
         const parsed = ExternalNetworksSchema.safeParse(res.data)
         if (!parsed.success) {
-          throw new Error("Failed to fetch external networks: invalid response")
+          const error = new Error("Invalid response") as Error & { details?: unknown }
+          error.name = "Failed to fetch external networks"
+          error.details = parsed.error.issues
+          throw error
         }
         return res.data
       }),
@@ -132,7 +163,10 @@ export function createGardenerApi(basepath: string) {
         checkForApiError(res.data)
         const parsed = CloudProfilesSchema.safeParse(res.data)
         if (!parsed.success) {
-          throw new Error("Failed to fetch cloud profiles: invalid response")
+          const error = new Error("Invalid response") as Error & { details?: unknown }
+          error.name = "Failed to fetch cloud profiles"
+          error.details = parsed.error.issues
+          throw error
         }
         return res.data
       }),
@@ -155,13 +189,30 @@ export function createGardenerApi(basepath: string) {
             }
           }
 
-          // Fallback to normal Error
-          throw new Error(err instanceof Error ? err.message : "Failed to fetch garden kubeconfig")
+          // Fallback to structured error
+          const error = new Error(err instanceof Error ? err.message : "Request failed")
+          error.name = "Failed to fetch garden kubeconfig"
+          throw error
         }),
   }
 
+  const scikubeApi = {
+    getScikubeInstructions: () =>
+      apiClient.get<ScikubeConfigMapResponse>("/api/scikube-getting-started").then((res) => {
+        checkForApiError(res.data)
+        const parsed = ScikubeConfigMapSchema.safeParse(res.data)
+        if (!parsed.success) {
+          const error = new Error("Invalid response") as Error & { details?: unknown }
+          error.name = "Failed to fetch scikube instructions"
+          error.details = parsed.error.issues
+          throw error
+        }
+        return parsed.data.data["README.md"]
+      }),
+  }
+
   return {
-    gardener: { ...shootApi, ...permissionsApi, ...cloudProfilesApi, ...networkApi, ...gardenApi },
+    gardener: { ...shootApi, ...permissionsApi, ...cloudProfilesApi, ...networkApi, ...gardenApi, ...scikubeApi },
   }
 }
 

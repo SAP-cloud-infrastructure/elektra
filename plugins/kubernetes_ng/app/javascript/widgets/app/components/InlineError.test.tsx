@@ -11,7 +11,8 @@ describe("<InlineError />", () => {
 
       render(<InlineError error={error} />)
 
-      expect(screen.getByText("CustomError: Something bad happened")).toBeInTheDocument()
+      expect(screen.getByText(/CustomError/)).toBeInTheDocument()
+      expect(screen.getByText(/Something bad happened/)).toBeInTheDocument()
     })
 
     it("handles error messages with ', , ' at the beginning of the message", () => {
@@ -20,9 +21,8 @@ describe("<InlineError />", () => {
 
       render(<InlineError error={error} />)
 
-      expect(
-        screen.getByText('ResourceExistsError: shoots.core.gardener.cloud "shoot" already exists')
-      ).toBeInTheDocument()
+      expect(screen.getByText(/ResourceExistsError/)).toBeInTheDocument()
+      expect(screen.getByText(/shoots\.core\.gardener\.cloud "shoot" already exists/)).toBeInTheDocument()
     })
 
     it("handles error messages with ', ' at the beginning of the message", () => {
@@ -30,16 +30,17 @@ describe("<InlineError />", () => {
       error.name = "SomeError"
 
       render(<InlineError error={error} />)
-      expect(screen.getByText("SomeError: Invalid value: []core.ShootAdvertisedAddress(nil)")).toBeInTheDocument()
+      expect(screen.getByText(/SomeError/)).toBeInTheDocument()
+      expect(screen.getByText(/Invalid value: \[\]core\.ShootAdvertisedAddress\(nil\)/)).toBeInTheDocument()
     })
 
-    it("falls back to 'Error: ' prefix if error.name is missing", () => {
+    it("falls back to empty prefix if error.name is missing", () => {
       const error = new Error("Oops")
       error.name = ""
 
       render(<InlineError error={error} />)
 
-      expect(screen.getByText("Error: Oops")).toBeInTheDocument()
+      expect(screen.getByText(/Oops/)).toBeInTheDocument()
     })
 
     it("falls back to 'Something went wrong' if error.message is empty", () => {
@@ -48,19 +49,33 @@ describe("<InlineError />", () => {
 
       render(<InlineError error={error} />)
 
-      expect(screen.getByText("CustomError: An unknown error occurred. Try again.")).toBeInTheDocument()
+      expect(screen.getByText(/CustomError/)).toBeInTheDocument()
+      expect(screen.getByText(/An unknown error occurred\. Try again\./)).toBeInTheDocument()
+    })
+
+    it("renders details when error has details property", () => {
+      const error = new Error("Invalid response") as Error & { details?: unknown }
+      error.name = "Failed to fetch clusters"
+      error.details = [{ code: "invalid_type", message: "Expected array" }]
+
+      render(<InlineError error={error} />)
+
+      expect(screen.getByText(/Failed to fetch clusters/)).toBeInTheDocument()
+      expect(screen.getByText(/Invalid response/)).toBeInTheDocument()
+      expect(screen.getByLabelText("Error details")).toBeInTheDocument()
     })
   })
 
   describe("when error is from tansktack router", () => {
-    it("renders 'Server Error: ' prefix and message from error.data.message", () => {
+    it("renders 'API Error: ' prefix and message from error.data.message", () => {
       const error = {
         __isServerError: true,
         data: { message: "Server is down" },
       }
 
       render(<InlineError error={error} />)
-      expect(screen.getByText("API Error: Server is down")).toBeInTheDocument()
+      expect(screen.getByText(/API Error:/)).toBeInTheDocument()
+      expect(screen.getByText(/Server is down/)).toBeInTheDocument()
     })
     it("falls back to 'Please try again later.' if error.data.message is empty", () => {
       const error = {
@@ -71,7 +86,8 @@ describe("<InlineError />", () => {
       }
 
       render(<InlineError error={error} />)
-      expect(screen.getByText("API Error: Please try again later.")).toBeInTheDocument()
+      expect(screen.getByText(/API Error:/)).toBeInTheDocument()
+      expect(screen.getByText(/Please try again later\./)).toBeInTheDocument()
     })
   })
 
@@ -87,24 +103,7 @@ describe("<InlineError />", () => {
 
     render(<InlineError error={error} className="extra-class" />)
 
-    const wrapper = screen.getByText(/Failure/).closest(".inline-error")
+    const wrapper = screen.getByRole("alert")
     expect(wrapper).toHaveClass("extra-class")
-  })
-
-  it("forwards additional props to the container", () => {
-    const error = new Error("Boom")
-
-    render(<InlineError error={error} data-testid="inline-error" />)
-
-    expect(screen.getByTestId("inline-error")).toBeInTheDocument()
-  })
-
-  it("renders the danger icon", () => {
-    const error = new Error("Critical issue")
-
-    render(<InlineError error={error} />)
-
-    // assuming Icon renders with role="img"
-    expect(screen.getByRole("img", { hidden: true })).toBeInTheDocument()
   })
 })

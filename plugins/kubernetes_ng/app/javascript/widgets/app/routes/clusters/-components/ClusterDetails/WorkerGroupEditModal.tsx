@@ -117,7 +117,7 @@ const WorkerGroupEditModal: React.FC<WorkerGroupEditModalProps> = ({
       onSuccess()
     } catch (error) {
       const errText = normalizeError(error)
-      setErrorMessage(`${errText.title}${errText.message}`)
+      setErrorMessage(`${errText.title}: ${errText.message}`)
     }
   }
 
