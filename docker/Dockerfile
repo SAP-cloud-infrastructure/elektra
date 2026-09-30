@@ -80,15 +80,17 @@ RUN script/organize_plugins_gemspecs
 # Anonymous git clones are rate-limited by GitHub; when the limit is hit the
 # clone falls back to an interactive credential prompt and fails in CI with
 # "could not read Username for 'https://github.com'". Authenticate the clone
-# with the build token (the same sapcc-bot token the CI already uses to clone
-# GitHub repos) so it counts against the higher authenticated rate limit.
+# with the build token so it counts against the higher authenticated rate
+# limit. The "x-access-token" username is a generic placeholder; GitHub only
+# evaluates the token, so any valid GITHUB_TOKEN works (not tied to a specific
+# bot account).
 ARG GITHUB_TOKEN
 # install gems
 RUN apk --no-cache add yaml-dev \
-    && git config --global url."https://sapcc-bot:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/" \
+    && git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/" \
     && bundle config set --local without 'development integration_tests' \
     && bundle install --jobs=$(nproc) \
-    && git config --global --unset url."https://sapcc-bot:${GITHUB_TOKEN}@github.com/".insteadOf
+    && git config --global --unset url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf
 
 # add elektra sources into image
 # Set the GITHUB_TOKEN environment variable
