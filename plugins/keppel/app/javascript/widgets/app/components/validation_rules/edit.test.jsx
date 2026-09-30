@@ -7,7 +7,18 @@ describe("validation_rules tests", () => {
   it("submit a basic form without errors", async () => {
     const putAccount = vi.fn(() => Promise.resolve())
     const history = { replace: vi.fn() }
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
+    // react-bootstrap@0.33 (via react-overlays@0.9.3) logs a legacy
+    // childContextTypes deprecation warning under React 19. Ignore that known
+    // library warning; it is unrelated to the form submit under test.
+    // TODO(react-bootstrap-v2): drop this filter after migrating react-bootstrap.
+    const unexpectedErrors = []
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation((...args) => {
+      const message = args[0]?.toString() || ""
+      if (message.includes("childContextTypes") || message.includes("legacy context")) {
+        return
+      }
+      unexpectedErrors.push(args)
+    })
 
     const account = {
       validation: { rule_for_manifest: "rule" },
@@ -26,7 +37,8 @@ describe("validation_rules tests", () => {
       ...account,
     })
 
-    expect(consoleErrorSpy).not.toHaveBeenCalled()
+    expect(unexpectedErrors).toEqual([])
     await waitFor(() => expect(history.replace).toHaveBeenCalledWith("/accounts"))
+    consoleErrorSpy.mockRestore()
   })
 })
