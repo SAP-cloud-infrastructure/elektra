@@ -79,18 +79,23 @@ RUN script/organize_plugins_gemspecs
 # The elektron gem is pulled from a public GitHub repo via `git` (see Gemfile).
 # Anonymous git clones are rate-limited by GitHub; when the limit is hit the
 # clone falls back to an interactive credential prompt and fails in CI with
-# "could not read Username for 'https://github.com'". Authenticate the clone
-# with the build token so it counts against the higher authenticated rate
-# limit. The "x-access-token" username is a generic placeholder; GitHub only
-# evaluates the token, so any valid GITHUB_TOKEN works (not tied to a specific
-# bot account).
+# "could not read Username for 'https://github.com'". When a GITHUB_TOKEN is
+# provided, authenticate the clone so it counts against the higher
+# authenticated rate limit. The "x-access-token" username is a generic
+# placeholder; GitHub only evaluates the token, so any valid GITHUB_TOKEN works
+# (not tied to a specific bot account). Without a token the clone falls back to
+# an anonymous clone, so local builds work without credentials.
 ARG GITHUB_TOKEN
 # install gems
 RUN apk --no-cache add yaml-dev \
-    && git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/" \
+    && if [ -n "$GITHUB_TOKEN" ]; then \
+         git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"; \
+       fi \
     && bundle config set --local without 'development integration_tests' \
     && bundle install --jobs=$(nproc) \
-    && git config --global --unset url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf
+    && if [ -n "$GITHUB_TOKEN" ]; then \
+         git config --global --unset url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf; \
+       fi
 
 # add elektra sources into image
 # Set the GITHUB_TOKEN environment variable
