@@ -1,5 +1,6 @@
 import React from "react"
-import { Modal, Button } from "react-bootstrap"
+import { Button } from "react-bootstrap"
+import { Modal } from "lib/components/Modal"
 
 export class ModalDialog extends React.Component {
   constructor(props) {

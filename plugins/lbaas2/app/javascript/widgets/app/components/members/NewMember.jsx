@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react"
-import { Modal, Button } from "react-bootstrap"
+import { Button } from "react-bootstrap"
+import { Modal } from "lib/components/Modal"
 import useMember from "../../lib/hooks/useMember"
 import Log from "../shared/logger"
 import { FormStateProvider } from "./FormState"

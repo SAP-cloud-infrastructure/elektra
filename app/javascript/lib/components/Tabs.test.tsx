@@ -1,0 +1,147 @@
+import { describe, it, expect, vi, afterEach } from "vitest"
+import { render, screen, waitFor, within, cleanup } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
+import "@testing-library/jest-dom"
+import React from "react"
+import { Tabs, Tab } from "./Tabs"
+
+describe("Tabs", () => {
+  afterEach(() => {
+    cleanup()
+  })
+
+  const renderTabs = (props = {}) =>
+    render(
+      <Tabs defaultActiveKey="a" id="t" {...props}>
+        <Tab eventKey="a" title="Alpha">
+          <div>Content A</div>
+        </Tab>
+        <Tab eventKey="b" title="Beta">
+          <div>Content B</div>
+        </Tab>
+      </Tabs>
+    )
+
+  it("renders a tablist with role=tab per tab", () => {
+    renderTabs()
+    expect(screen.getByRole("tablist")).toBeInTheDocument()
+    expect(screen.getAllByRole("tab")).toHaveLength(2)
+  })
+
+  it("marks the default tab as selected", () => {
+    renderTabs()
+    expect(screen.getByRole("tab", { name: "Alpha" })).toHaveAttribute("aria-selected", "true")
+    expect(screen.getByRole("tab", { name: "Beta" })).toHaveAttribute("aria-selected", "false")
+  })
+
+  it("switches the active tab on click (the React 19 bugfix)", async () => {
+    const user = userEvent.setup()
+    renderTabs()
+    const beta = screen.getByRole("tab", { name: "Beta" })
+    await user.click(beta)
+    await waitFor(() => {
+      expect(beta).toHaveAttribute("aria-selected", "true")
+    })
+    expect(screen.getByRole("tab", { name: "Alpha" })).toHaveAttribute("aria-selected", "false")
+  })
+
+  it("shows the active panel content and keeps inactive queryable but hidden", async () => {
+    const user = userEvent.setup()
+    renderTabs()
+    const activePanel = screen.getByRole("tabpanel", { name: "Alpha" })
+    expect(within(activePanel).getByText("Content A")).toBeVisible()
+    await user.click(screen.getByRole("tab", { name: "Beta" }))
+    await waitFor(() => {
+      expect(within(screen.getByRole("tabpanel", { name: "Beta" })).getByText("Content B")).toBeVisible()
+    })
+  })
+
+  it("filters out falsy (conditionally rendered) children", () => {
+    render(
+      <Tabs defaultActiveKey="a" id="t">
+        <Tab eventKey="a" title="Alpha">
+          A
+        </Tab>
+        {false && (
+          <Tab eventKey="hidden" title="Hidden">
+            H
+          </Tab>
+        )}
+        {null}
+      </Tabs>
+    )
+    expect(screen.getAllByRole("tab")).toHaveLength(1)
+  })
+
+  it("calls onSelect with the clicked key", async () => {
+    const user = userEvent.setup()
+    const onSelect = vi.fn()
+    renderTabs({ onSelect })
+    await user.click(screen.getByRole("tab", { name: "Beta" }))
+    expect(onSelect).toHaveBeenCalledWith("b")
+  })
+
+  it("supports numeric eventKeys (react-bootstrap 0.33 compatibility)", async () => {
+    const user = userEvent.setup()
+    render(
+      <Tabs defaultActiveKey={1} id="t">
+        <Tab eventKey={1} title="One">
+          <div>Content One</div>
+        </Tab>
+        <Tab eventKey={2} title="Two">
+          <div>Content Two</div>
+        </Tab>
+      </Tabs>
+    )
+    expect(screen.getByRole("tab", { name: "One" })).toHaveAttribute("aria-selected", "true")
+    await user.click(screen.getByRole("tab", { name: "Two" }))
+    await waitFor(() => {
+      expect(screen.getByRole("tab", { name: "Two" })).toHaveAttribute("aria-selected", "true")
+    })
+  })
+
+  it("mountOnEnter: renders an inactive pane's content only after it first becomes active", async () => {
+    const user = userEvent.setup()
+    render(
+      <Tabs defaultActiveKey="a" id="t" mountOnEnter>
+        <Tab eventKey="a" title="Alpha">
+          <div>Content A</div>
+        </Tab>
+        <Tab eventKey="b" title="Beta">
+          <div>Content B</div>
+        </Tab>
+      </Tabs>
+    )
+    // Inactive pane content is not mounted yet.
+    expect(screen.queryByText("Content B")).not.toBeInTheDocument()
+    await user.click(screen.getByRole("tab", { name: "Beta" }))
+    await waitFor(() => {
+      expect(screen.getByText("Content B")).toBeInTheDocument()
+    })
+    // Once mounted, it stays mounted after switching away again.
+    await user.click(screen.getByRole("tab", { name: "Alpha" }))
+    expect(screen.getByText("Content B")).toBeInTheDocument()
+  })
+
+  it("unmountOnExit: renders only the active pane's content", async () => {
+    const user = userEvent.setup()
+    render(
+      <Tabs defaultActiveKey="a" id="t" unmountOnExit>
+        <Tab eventKey="a" title="Alpha">
+          <div>Content A</div>
+        </Tab>
+        <Tab eventKey="b" title="Beta">
+          <div>Content B</div>
+        </Tab>
+      </Tabs>
+    )
+    expect(screen.getByText("Content A")).toBeInTheDocument()
+    expect(screen.queryByText("Content B")).not.toBeInTheDocument()
+    await user.click(screen.getByRole("tab", { name: "Beta" }))
+    await waitFor(() => {
+      expect(screen.getByText("Content B")).toBeInTheDocument()
+    })
+    // The now-inactive pane is unmounted.
+    expect(screen.queryByText("Content A")).not.toBeInTheDocument()
+  })
+})

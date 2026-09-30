@@ -1,6 +1,7 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { Modal, Button, Alert } from "react-bootstrap"
+import { Button, Alert } from "react-bootstrap"
+import { Modal } from "lib/components/Modal"
 import { Form } from "lib/elektra-form"
 import { useHistory, useParams, Link } from "react-router-dom"
 import { useGlobalState } from "../../StateProvider"

@@ -1,7 +1,8 @@
 /* eslint-disable no-undef */
 import React, { useState, useEffect } from "react"
 // @ts-expect-error: Ignore missing type definitions for policy
-import { Modal, Button } from "react-bootstrap"
+import { Button } from "react-bootstrap"
+import { Modal } from "lib/components/Modal"
 import { CSSTransition, TransitionGroup } from "react-transition-group"
 import ImageMemberItem from "./image_member_item"
 import ImageMemberForm from "./image_member_form"

@@ -1,5 +1,5 @@
 import { useCallback } from "react"
-import { Tabs, Tab } from "react-bootstrap"
+import { Tabs, Tab } from "lib/components/Tabs"
 import ProjectRoleAssignments from "../containers/project_role_assignments"
 import RoleInfos from "../containers/RoleInfos"
 import React from "react"

@@ -1,4 +1,5 @@
-import { Modal, Button } from "react-bootstrap"
+import { Button } from "react-bootstrap"
+import { Modal } from "lib/components/Modal"
 import { CSSTransition, TransitionGroup } from "react-transition-group"
 import AccessControlItem from "./access_control_item"
 import AccessControlForm from "./access_control_form"
