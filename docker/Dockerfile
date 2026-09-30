@@ -55,7 +55,7 @@ RUN apk --no-cache add postgresql16-dev ruby-sassc \
     nio4r:2.7.5 \
     nokogiri:1.19.1 \
     pg:1.3.4 \
-    puma:6.4.3  \
+    puma:7.2.1  \
     redcarpet:3.6.1 \
     unf:0.2.0 \
     websocket-driver:0.8.0 \

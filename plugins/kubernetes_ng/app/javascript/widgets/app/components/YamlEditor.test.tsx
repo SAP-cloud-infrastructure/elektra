@@ -59,12 +59,14 @@ describe("<YamlEditor />", () => {
     mockOnError = vi.fn()
     mockOnEdit = vi.fn()
 
-    // Mock ResizeObserver
-    global.ResizeObserver = vi.fn().mockImplementation(() => ({
-      observe: vi.fn(),
-      unobserve: vi.fn(),
-      disconnect: vi.fn(),
-    }))
+    // Mock ResizeObserver - use a class-based mock for Vitest 4 compatibility
+    global.ResizeObserver = vi.fn(function () {
+      return {
+        observe: vi.fn(),
+        unobserve: vi.fn(),
+        disconnect: vi.fn(),
+      }
+    }) as unknown as typeof ResizeObserver
     // Mock getBoundingClientRect
     Element.prototype.getBoundingClientRect = vi.fn(() => ({
       top: 100,
@@ -282,11 +284,13 @@ describe("<YamlEditor />", () => {
     const disconnectSpy = vi.fn()
     const removeEventListenerSpy = vi.spyOn(window, "removeEventListener")
 
-    global.ResizeObserver = vi.fn().mockImplementation(() => ({
-      observe: vi.fn(),
-      unobserve: vi.fn(),
-      disconnect: disconnectSpy,
-    }))
+    global.ResizeObserver = vi.fn(function () {
+      return {
+        observe: vi.fn(),
+        unobserve: vi.fn(),
+        disconnect: disconnectSpy,
+      }
+    }) as unknown as typeof ResizeObserver
 
     const { unmount } = await act(async () =>
       renderYamlEditor({ resource: mockResource, onSave: mockOnSave, "data-testid": "yaml-editor" })
