@@ -107,6 +107,18 @@ describe("Modal", () => {
     expect(document.querySelector(".modal-dialog")).toHaveClass("modal-xl")
   })
 
+  it("marks the .modal-content with role=document (react-bootstrap 0.33 markup)", () => {
+    render(<Sample show />)
+    expect(document.querySelector(".modal-content")).toHaveAttribute("role", "document")
+  })
+
+  it("prefixes extra bsClass tokens onto modal/dialog/content (bsClass='lbaas2 modal')", () => {
+    render(<Sample show bsClass="lbaas2 modal" />)
+    expect(document.querySelector(".lbaas2.modal")).toBeInTheDocument()
+    expect(document.querySelector(".lbaas2.modal-dialog")).toBeInTheDocument()
+    expect(document.querySelector(".lbaas2.modal-content")).toBeInTheDocument()
+  })
+
   it("does not close on static backdrop click", async () => {
     const user = userEvent.setup()
     const onHide = vi.fn()

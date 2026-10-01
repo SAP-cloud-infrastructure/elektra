@@ -17,6 +17,10 @@ interface ModalProps {
   onEnter?: () => void
   dialogClassName?: string
   className?: string
+  // react-bootstrap 0.33 class prefix (default "modal"). Extra tokens like
+  // "lbaas2 modal" are prefixed onto the modal/dialog/content classes so legacy
+  // callers and the `.lbaas2.modal-dialog` scoping keep working.
+  bsClass?: string
   size?: "lg" | "sm" | "large" | "small" | string
   bsSize?: "lg" | "sm" | "large" | "small" | string
   backdrop?: BackdropOption
@@ -102,6 +106,7 @@ const ModalBase: React.FC<ModalProps> = ({
   className,
   size,
   bsSize,
+  bsClass,
   backdrop = true,
   keyboard = true,
   animation = true,
@@ -159,6 +164,13 @@ const ModalBase: React.FC<ModalProps> = ({
   const sizeClass = normalizeSize(size ?? bsSize)
   const fadeClass = animation ? "fade" : ""
   const inClass = visible ? "in" : ""
+  // react-bootstrap 0.33 treated bsClass as the class prefix: "lbaas2 modal"
+  // yielded `.lbaas2.modal-dialog` etc. Reproduce that by prefixing every extra
+  // token (anything other than "modal") onto the modal/dialog/content classes.
+  const bsPrefix = (bsClass ?? "")
+    .split(/\s+/)
+    .filter((t) => t && t !== "modal")
+    .join(" ")
 
   const onBackdropClick = () => {
     if (backdrop === "static") return
@@ -167,11 +179,9 @@ const ModalBase: React.FC<ModalProps> = ({
 
   return createPortal(
     <>
-      {backdrop !== false && (
-        <div className={["modal-backdrop", fadeClass, inClass].filter(Boolean).join(" ")} />
-      )}
+      {backdrop !== false && <div className={["modal-backdrop", fadeClass, inClass].filter(Boolean).join(" ")} />}
       <div
-        className={["modal", fadeClass, inClass, className].filter(Boolean).join(" ")}
+        className={[bsPrefix, "modal", fadeClass, inClass, className].filter(Boolean).join(" ")}
         role="dialog"
         tabIndex={-1}
         aria-labelledby={ariaLabelledBy}
@@ -179,10 +189,12 @@ const ModalBase: React.FC<ModalProps> = ({
         onClick={onBackdropClick}
       >
         <div
-          className={["modal-dialog", sizeClass, dialogClassName].filter(Boolean).join(" ")}
+          className={[bsPrefix, "modal-dialog", sizeClass, dialogClassName].filter(Boolean).join(" ")}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="modal-content">{wireHeader(children, onHide)}</div>
+          <div className={[bsPrefix, "modal-content"].filter(Boolean).join(" ")} role="document">
+            {wireHeader(children, onHide)}
+          </div>
         </div>
       </div>
     </>,
