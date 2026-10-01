@@ -11,7 +11,6 @@
     = hidden_field_tag :domain_id, @domain_id
     = hidden_field_tag :domain_name, @domain_name
     = hidden_field_tag :two_factor, @two_factor
-    = hidden_field_tag :password_sync, 'true' if password_sync_mode
 
     %h2.form-signin-heading
       = password_sync_mode ? 'Sync Password' : 'Please sign in'

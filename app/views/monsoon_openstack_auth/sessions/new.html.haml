@@ -1,5 +1,5 @@
 - domain_config = DomainConfig.new(@domain_name)
-- password_sync_mode = params[:password_sync].present? || !MonsoonOpenstackAuth.configuration.password_session_auth_allowed?
+- password_sync_mode = params[:password_sync].present?
 = inside_layout 'login' do
   .container
 
