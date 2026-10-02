@@ -1,0 +1,44 @@
+= inside_layout 'login' do
+  .container
+    = form_tag(create_password_sync_path(domain_fid: params[:domain_fid]), class: "form-signin") do
+      %h2.form-signin-heading
+        Sync Password
+
+      .flashes
+        - flash.each do |name, msg|
+          .alert{ class: "alert-#{name}" }= msg
+
+      - if @synced
+        %section
+          .bs-callout.bs-callout-success.bs-callout-emphasize
+            %p
+              Your password has been synchronized.
+            %p
+              Please use Single Sign-On to access the dashboard.
+        = link_to 'Go to home', '/', class: 'btn btn-lg btn-primary btn-block'
+
+      - elsif @service_unavailable
+        %section
+          .bs-callout.bs-callout-warning.bs-callout-emphasize
+            %p
+              The authentication service is temporarily unavailable. Please try again later.
+
+      - else
+        %section
+          .bs-callout.bs-callout-info.bs-callout-emphasize
+            Enter your User ID and your new global SAP Password to synchronize it.
+
+        - if @domain_name
+          %label.sr-only{ for: "domain" } Domain
+          = text_field_tag :domain, @domain_name, placeholder: "Domain", class: "form-control top-input", disabled: "true"
+
+        %label.sr-only{ for: "username" } User ID
+        = text_field_tag :username, @username, autofocus: "", placeholder: "User ID", required: "", class: "form-control top-input"
+
+        %label.sr-only{ for: "password" } Password
+        = password_field_tag :password, nil, placeholder: "New Password", required: "", class: "form-control bottom-input"
+
+        %button.btn.btn-lg.btn-primary.btn-block{ type: "submit" } Sync Password
+
+      %p.text-center
+        = link_to 'Return to dashboard', '/'
