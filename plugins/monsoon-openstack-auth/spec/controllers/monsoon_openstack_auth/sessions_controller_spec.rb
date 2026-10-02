@@ -61,7 +61,7 @@ describe MonsoonOpenstackAuth::SessionsController, type: :controller do
 
       it 'handles missing domain parameters' do
         expect(MonsoonOpenstackAuth::Authentication::AuthSession)
-          .to receive(:logout).with(controller, domain_id)
+          .to receive(:logout).with(controller, nil)
 
         get :new, params: { domain_fid: domain_id }
       end
@@ -96,7 +96,6 @@ describe MonsoonOpenstackAuth::SessionsController, type: :controller do
     before do
       allow(MonsoonOpenstackAuth.configuration).to receive(:form_auth_allowed?).and_return(true)
       allow(MonsoonOpenstackAuth.configuration).to receive(:enforce_natural_user).and_return(false)
-      allow(MonsoonOpenstackAuth.configuration).to receive(:password_session_auth_allowed?).and_return(true)
     end
 
     context 'when form auth is allowed' do
@@ -139,7 +138,7 @@ describe MonsoonOpenstackAuth::SessionsController, type: :controller do
         it 'calls create_from_login_form with correct parameters' do
           expect(MonsoonOpenstackAuth::Authentication::AuthSession)
             .to receive(:create_from_login_form)
-            .with(controller, username, password, domain_id: domain_id, domain_name: domain_id)
+            .with(controller, username, password, domain_id: domain_id, domain_name: nil)
             .and_return(mock_auth_session)
 
           post :create, params: {
@@ -474,7 +473,7 @@ describe MonsoonOpenstackAuth::SessionsController, type: :controller do
     it 'loads user from session' do
       expect(MonsoonOpenstackAuth::Authentication::AuthSession)
         .to receive(:load_user_from_session)
-        .with(controller, domain: domain_id, domain_name: domain_id)
+        .with(controller, domain: domain_id, domain_name: nil)
 
       get :two_factor, params: { domain_fid: domain_id, domain_id: domain_id }
     end
@@ -733,7 +732,6 @@ describe MonsoonOpenstackAuth::SessionsController, type: :controller do
 
     before do
       allow(MonsoonOpenstackAuth.configuration).to receive(:form_auth_allowed?).and_return(true)
-      allow(MonsoonOpenstackAuth.configuration).to receive(:password_session_auth_allowed?).and_return(true)
       allow(MonsoonOpenstackAuth::Authentication::AuthSession)
         .to receive(:create_from_login_form)
         .and_return(mock_auth_session)
@@ -811,171 +809,6 @@ describe MonsoonOpenstackAuth::SessionsController, type: :controller do
 
         # Should redirect to the safe default (root_url with domain_id)
         expect(response).to redirect_to(controller.main_app.root_url(domain_id: domain_id))
-      end
-    end
-
-    context 'with password_session_auth_allowed disabled' do
-      before do
-        allow(MonsoonOpenstackAuth.configuration).to receive(:password_session_auth_allowed?).and_return(false)
-      end
-
-      context 'with valid credentials (normal login form)' do
-        before do
-          allow(MonsoonOpenstackAuth::Authentication::AuthSession)
-            .to receive(:create_from_login_form)
-            .and_return(mock_auth_session)
-        end
-
-        it 'validates credentials but does NOT create session' do
-          post :create, params: {
-            domain_fid: domain_id,
-            username: username,
-            password: password,
-            domain_id: domain_id
-          }
-
-          expect(response).to have_http_status(:ok)
-          expect(flash[:notice]).to eq('Password login is disabled. Please use Single Sign-On to access the dashboard.')
-        end
-
-        it 'triggers password sync via Keystone authentication' do
-          # Verify create_from_login_form is called (which triggers Keystone validation and password sync)
-          expect(MonsoonOpenstackAuth::Authentication::AuthSession)
-            .to receive(:create_from_login_form)
-            .with(controller, username, password, domain_id: domain_id, domain_name: domain_id)
-            .and_return(mock_auth_session)
-
-          post :create, params: {
-            domain_fid: domain_id,
-            username: username,
-            password: password,
-            domain_id: domain_id
-          }
-        end
-
-        it 'does not redirect to dashboard even with valid credentials' do
-          post :create, params: {
-            domain_fid: domain_id,
-            username: username,
-            password: password,
-            domain_id: domain_id,
-            after_login: after_login_url
-          }
-
-          expect(response).to have_http_status(:ok)
-        end
-      end
-
-      context 'with valid credentials (password sync form)' do
-        before do
-          allow(MonsoonOpenstackAuth::Authentication::AuthSession)
-            .to receive(:create_from_login_form)
-            .and_return(mock_auth_session)
-        end
-
-        it 'shows sync-specific notice when password_sync param is present' do
-          post :create, params: {
-            domain_fid: domain_id,
-            username: username,
-            password: password,
-            domain_id: domain_id,
-            password_sync: 'true'
-          }
-
-          expect(response).to have_http_status(:ok)
-          expect(flash[:notice]).to eq('Password validation successful. Please use Single Sign-On to access the dashboard.')
-        end
-
-        it 'shows generic notice when password_sync param is absent' do
-          post :create, params: {
-            domain_fid: domain_id,
-            username: username,
-            password: password,
-            domain_id: domain_id
-          }
-
-          expect(response).to have_http_status(:ok)
-          expect(flash[:notice]).to eq('Password login is disabled. Please use Single Sign-On to access the dashboard.')
-        end
-
-        it 'does not create a session even via the sync form' do
-          post :create, params: {
-            domain_fid: domain_id,
-            username: username,
-            password: password,
-            domain_id: domain_id,
-            password_sync: 'true',
-            after_login: after_login_url
-          }
-
-          expect(response).to have_http_status(:ok)
-        end
-      end
-
-      context 'with invalid credentials' do
-        before do
-          allow(MonsoonOpenstackAuth::Authentication::AuthSession)
-            .to receive(:create_from_login_form)
-            .and_return(nil)
-        end
-
-        it 'shows error message for invalid credentials' do
-          post :create, params: {
-            domain_fid: domain_id,
-            username: username,
-            password: 'wrong_password',
-            domain_id: domain_id
-          }
-
-          expect(response).to render_template(:new)
-          expect(flash[:alert]).to eq('Invalid username/password combination.')
-          expect(assigns(:error)).to eq('Invalid username/password combination.')
-        end
-      end
-
-      context 'when authentication raises exception' do
-        before do
-          allow(MonsoonOpenstackAuth::Authentication::AuthSession)
-            .to receive(:create_from_login_form)
-            .and_raise(StandardError.new('Keystone unavailable'))
-        end
-
-        it 'renders login form with error message' do
-          post :create, params: {
-            domain_fid: domain_id,
-            username: username,
-            password: password,
-            domain_id: domain_id
-          }
-
-          expect(response).to render_template(:new)
-          expect(flash[:alert]).to eq('Keystone unavailable')
-          expect(assigns(:error)).to eq('Keystone unavailable')
-        end
-      end
-    end
-
-    # Verify backward compatibility
-    context 'with password_session_auth_allowed enabled (backward compatible)' do
-      before do
-        allow(MonsoonOpenstackAuth.configuration).to receive(:password_session_auth_allowed?).and_return(true)
-        allow(MonsoonOpenstackAuth::Authentication::AuthSession)
-          .to receive(:create_from_login_form)
-          .and_return(mock_auth_session)
-      end
-
-      it 'creates session and redirects to dashboard (normal behavior)' do
-        post :create, params: {
-          domain_fid: domain_id,
-          username: username,
-          password: password,
-          domain_id: domain_id,
-          after_login: after_login_url
-        }
-
-        # Normal behavior: redirect to after_login_url
-        expect(response).to redirect_to(after_login_url)
-        expect(flash[:notice]).to be_nil
       end
     end
   end

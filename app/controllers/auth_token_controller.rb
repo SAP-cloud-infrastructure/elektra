@@ -96,12 +96,7 @@ class AuthTokenController < ActionController::Base
 
   # Handles case where token is valid but user has no Keystone access
   def handle_missing_domain_access
-    if MonsoonOpenstackAuth.configuration.block_login_fallback_after_sso?
-      @error = 'Access Forbidden'
-      @oidc_authorization_failure = true
-    else
-      @error = 'Domain ID not found in response'
-    end
+    @error = 'Domain ID not found in response'
   end
 
   # Checks if request comes from a trusted SSO origin
