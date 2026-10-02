@@ -109,6 +109,38 @@ MonsoonOpenstackAuth.configure do |config|
 end
 ```
 
+### Password login, SSO-only mode and password sync
+
+The password login form has one legitimate remaining purpose besides login:
+after a company-policy password rotation, a user must sync the new password to
+the backend (validating credentials against Keystone triggers the sync as a
+side effect).
+
+`password_auth_allowed` (env `MONSOON_OPENSTACK_PASSWORD_AUTH_ALLOWED`, default
+`true`) controls this:
+
+- **`true` (dev/QA, default):** the login page shows the password form and
+  password login works as before.
+- **`false` (SSO-only, e.g. production regions with OIDC-as-TFA):** the login
+  page shows an SSO-only message instead of the form, and password submissions
+  are rejected without creating a session. If SSO authentication succeeds but
+  the user has no Keystone access, the SSO verify flow returns a terminal
+  "no access" response (HTTP 200; JSON callers receive
+  `{ "status": "AUTH_NO_ACCESS" }`, top-level navigations get a terminal page) —
+  it never exposes 401/403 and never redirects, to avoid an OAuth proxy loop.
+
+Regardless of the flag, the dedicated password-sync endpoint stays available:
+
+- Routes: `GET`/`POST /:domain_fid/auth/password_sync`.
+- It validates the user's **user id** + new password **unscoped** against
+  Keystone (triggering the backend sync) and **never creates a session**.
+- State machine: attempt 1 returns `201` if the password is already current, or
+  `401` if it was outdated (which triggers the sync); a single retry then
+  returns `201` (synced) or `401` (password genuinely wrong). Any `5xx` maps to
+  a "service temporarily unavailable" result.
+- The endpoint is rate-limited and renders a four-state page (initial, success,
+  invalid, service-unavailable), always offering a "Return to dashboard" link.
+
 ### Session Store
 
 If this gem should support the form based login then the session store must be anything but cookie_store.
