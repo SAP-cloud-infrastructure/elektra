@@ -34,8 +34,10 @@ pick up is re-forged into a typed `.tsx` blade before you move on — touch it, 
 **🧪 Dungeon 3 — The jQuery Widget Swamp.**
 > **BOSS: the Five Plugin Golems** (select, multiselect, slider, typeahead, datetimepicker).
 They have no BS5 form — you cannot upgrade them, you must *replace* them. House rule: reforge
-each as a **React component** (don't summon a new vanilla-JS golem — one undead variant is
-enough for this dungeon). ~31 view sites + ~46 core call-sites.
+each as a **typed React component** — or, for a lone leaf widget whose React form would summon a
+whole dependency horde, a **small vanilla-TS trinket** instead. Never summon a new vanilla-JS
+*jQuery* golem — one undead variant is enough for this dungeon. ~31 view sites + ~46 core
+call-sites.
 
 **🧹 Dungeon 4 — The View Markup Sprawl (open-world grind).** The biggest map, cleared
 **plugin by plugin, Tier A → B → C**. Mostly trash mobs: `btn-default`→`btn-secondary` (155
@@ -56,7 +58,9 @@ and spacing. A deliberate design pass on stable ground, not a migration task. Ro
 jQuery removal is a future expansion pack). Juno is untouched allied territory. We **embrace the
 BS5 look** as we go (no fighting to look like BS3); the *compat-shim* is a translator that keeps
 old BS3-named markup functional on BS5 styling until each region is migrated — it is **not** a
-second Bootstrap and gets deleted in Dungeon 5.
+second Bootstrap and gets deleted in Dungeon 5. **Loot discipline:** we leave the dungeon with a
+*lighter* pack than we entered — no hoarding new dependencies; a single-purpose npm trinket is a
+cursed item, so we forge a small typed tool ourselves instead.
 
 ---
 
@@ -85,13 +89,24 @@ markup/`data-*` attributes in HAML/ERB views.
    **Full jQuery removal is explicitly out of scope** — see below.
 2. **react-bootstrap 0.33 → v2** (BS5-compatible). After this, the `findDOMNode` shim and its 3
    consumers can be deleted (closes #2190).
-3. **Prefer React when replacing old pieces — consolidation over patching.** Elektra grew in
-   three layers: originally no React (logic as inline JS/jQuery in views), then React for new
-   features only, then Juno on top. The result is a mix of generations. Wherever this migration
-   forces us to touch an old jQuery/inline piece (e.g. the BS3 jQuery-plugin widgets), we
-   **replace it with a React component** rather than swapping in another vanilla-JS lib — this
-   unifies the stack instead of adding a fourth variant. We do this opportunistically (when we
-   already have the file open for BS5 reasons), not as a separate rewrite project.
+3. **Prefer React when replacing old pieces — but weigh it per case; consolidation over
+   patching.** Elektra grew in three layers: originally no React (logic as inline JS/jQuery in
+   views), then React for new features only, then Juno on top. The result is a mix of
+   generations. Wherever this migration forces us to touch an old jQuery/inline piece (e.g. the
+   BS3 jQuery-plugin widgets), the **default is to replace it with a (typed) React component**
+   rather than swap in another jQuery/vanilla-JS *library* — this unifies the stack instead of
+   adding a fourth variant. **But React is not automatic.** We judge each site: pulling a widget
+   into React can drag in a dependency tail (react-bootstrap/Juno, context providers, mount
+   plumbing into a HAML view) that is heavier than the problem. Where the piece is small, mostly
+   presentational, or isolated — a date field, a toggle, a bit of show/hide — a **small,
+   self-contained vanilla-TS module** (plain DOM, no framework, strictly typed) is often the
+   lighter, lower-dependency choice and is explicitly allowed. Decision guide: **React** when it
+   shares state/props with surrounding React, reuses an existing component, or lives inside a
+   React tree already; **vanilla TS** when it is a leaf widget whose React version would exist
+   only to avoid vanilla and would import a dependency chain "all the way to the White House" for
+   it. What we do **not** do is add a new *jQuery* plugin or a new third-party UI lib. Either way
+   the result is TypeScript (decision 7). We decide this opportunistically, when the file is
+   already open for BS5 reasons — not as a separate rewrite project.
 4. **Phase 4 is hybrid and strictly per plugin.** For each plugin we first clear the bulk
    **programmatically** (scripted class renames for the unambiguous static-markup cases), then
    do a **manual step-by-step pass** on what's left (dynamic classes, jQuery selectors in inline
@@ -132,6 +147,20 @@ markup/`data-*` attributes in HAML/ERB views.
    TypeScript is **already in use, but only partially** (today ~193 `.tsx`/56 `.ts` vs. ~388
    `.jsx`/430 `.js`) — another historically-grown patchwork. This rule **shrinks** that patchwork
    as we go rather than cementing it, without opening a separate project-wide TS rewrite.
+8. **No new complex dependencies — simplify, don't accumulate.** The overarching goal of this
+   migration is to make Elektra *simpler*, so adding libraries works against it. We **do not add
+   new runtime dependencies** to replace the things we remove — especially not a small
+   single-purpose npm package that does one trivial job. **In doubt, build it ourselves**: a
+   short, typed, well-named in-house helper/module almost always beats pulling in a micro-package
+   (and its transitive tail, supply-chain surface, version churn, and the risk it goes
+   unmaintained). This directly supports decision 3's vanilla-TS option: when we replace a jQuery
+   widget, the lighter path is often ~30 lines of our own typed code, not another dependency.
+   Allowed exceptions, by exception only: the already-planned framework bumps (`bootstrap@5`,
+   `react-bootstrap@2`, `react-bootstrap-typeahead`) and a genuinely non-trivial, well-maintained,
+   broadly-used library where re-implementing it correctly would be unreasonable (e.g. a real
+   date/time or a11y-critical widget) — decided consciously in the PR, not reached for by reflex.
+   Net direction: every phase should leave the dependency list **smaller or equal**, never
+   casually larger.
 
 ## What we gain (the payoff)
 
@@ -149,15 +178,22 @@ This is not a cosmetic upgrade — it buys down real, accumulating risk and debt
   dependency on jQuery and makes the *eventual* full jQuery removal (future expansion) a
   tractable, isolated effort instead of an all-or-nothing knot.
 - **One less generation in the "Frankenstein" stack.** Elektra carries three UI eras (inline
-  jQuery → React → Juno). Decision 3 (replace touched jQuery widgets with React) means the
-  migration actively **retires old inline/jQuery widgets** instead of preserving them — the
-  codebase gets *more* consistent, not just newer.
+  jQuery → React → Juno). Decision 3 (replace touched jQuery widgets with a typed React component,
+  or a small vanilla-TS module where that is lighter) means the migration actively **retires old
+  inline/jQuery widgets** instead of preserving them — the codebase gets *more* consistent, not
+  just newer, without over-reaching for React where it would add dependency weight.
 - **Modern, lighter, more accessible baseline.** BS5 drops the icon font (`glyphicon`), ships
   CSS custom properties, better responsive/grid utilities, improved form controls and ARIA
   defaults — a stronger foundation for the facelift (Phase 6) and for new UI going forward.
 - **Removes maintenance drag.** No more pinning around dead gems, no more shimming new React
   releases, fewer "why is this on jQuery 1.12" surprises. New contributors meet a current,
   documented framework instead of a 2015-era one.
+- **A smaller, simpler dependency surface.** Net, the migration **removes** more than it adds:
+  out go `bootstrap-sass`, `@types/react-bootstrap`, the 5 BS3 jQuery-plugin packages and their
+  vendor CSS, the `bootstrap-kaminari-views` gem, and the `findDOMNode` shim. Decision 8 keeps it
+  that way — no new micro-dependencies sneak in; trivial needs are built in-house as small typed
+  helpers. Fewer deps = less supply-chain surface, less version churn, less unmaintained-package
+  risk.
 - **Type safety where we work ("touch it, type it").** Every file we open for the migration is
   moved from `.js`/`.jsx` to `.ts`/`.tsx` and typed in the same PR (decision 7). The react-bootstrap
   layer alone is **94 untyped `.jsx` files** today; migrating pays down that debt exactly where we
@@ -283,23 +319,31 @@ Steps:
 
 ### Phase 3 — Replace BS3 jQuery plugins
 
-**Goal:** no BS3-only jQuery widgets remain — replaced with **React components** (per decision 3).
+**Goal:** no BS3-only jQuery widgets remain — replaced with a **typed React component or a
+small vanilla-TS module**, chosen per widget (per decision 3).
 
 Steps:
-1. Replace each widget with a React component (the consolidation path): bootstrap-select,
-   -multiselect, -slider, -3-typeahead, -datetimepicker have **no BS5 drop-in** anyway, so this
-   is the moment to retire the jQuery-in-HAML variant rather than add another vanilla-JS lib.
-   Reuse existing React patterns / Juno where a suitable component already exists. Author these
-   **new components in TypeScript (`.tsx`)** from the start (decision 7).
+1. Replace each widget with its best-fit modern equivalent (the consolidation path):
+   bootstrap-select, -multiselect, -slider, -3-typeahead, -datetimepicker have **no BS5 drop-in**
+   anyway, so this is the moment to retire the jQuery-in-HAML variant. **Per decision 3, weigh
+   React vs. vanilla-TS for each widget:** default to a React component when it reuses an existing
+   component or lives in a React tree; choose a small, self-contained **vanilla-TS** module for
+   isolated leaf widgets where a React port would only drag in a dependency tail. Either way:
+   TypeScript, no new jQuery/third-party UI lib. Reuse existing React patterns / Juno where a
+   suitable component already exists. **No new npm dependency to replace a widget (decision 8)** —
+   if the need is small, build a short typed in-house module instead of pulling a single-purpose
+   package.
 2. Replace each usage site — `.selectpicker()`, `.multiselect()`, `.slider()`, `.typeahead()`,
    `datetimepicker` (~31 view files, concentrated in `compute`/`identity`/`dns_service`/`image`
-   wizards and ~46 core call-sites). Where the widget sits in a HAML view, mount the React
-   component into that spot (the same pattern used for existing React widgets).
+   wizards and ~46 core call-sites). Where the widget sits in a HAML view, mount the replacement
+   into that spot (the React-widget mount pattern, or a scoped vanilla-TS init for the lighter
+   cases).
 3. Remove the npm packages and their SCSS/vendor CSS once no longer referenced.
 
-- **Risk:** medium-high (behavioral + markup→React conversion). **Depends on:** Phase 1.
+- **Risk:** medium-high (behavioral + markup→component conversion). **Depends on:** Phase 1.
 - **Test:** migration specs that interact with each widget (open select, pick date, drag slider,
-  type-ahead). **Exit:** every call-site is now a React component; jQuery widget packages removed.
+  type-ahead). **Exit:** every call-site is now a typed React or vanilla-TS replacement; jQuery
+  widget packages removed.
 
 ### Phase 4 — View markup: classes + data attributes (per plugin, by tier)
 
@@ -395,13 +439,16 @@ Plus the usual unit layer each phase: `docker exec elektra pnpm test` and
   JSX — to be refined when Phase 4 starts.
 - Phase 6 facelift scope: how far to modernize vs. keep familiar (own follow-up issue).
 
-> Decided: Phase 3 replacement = **React components** (consolidation, see decision 3).
+> Decided: Phase 3 replacement = **typed React component by default, small vanilla-TS where React
+> would drag in a disproportionate dependency tail; no new jQuery/UI lib** (see decision 3).
 > Decided: Phase 4 approach = **hybrid, per plugin** (see decision 4).
 > Decided: rollout = **incremental PRs to `master` + temporary compat-shim** (see decision 5);
 > no single giant branch/merge.
 > Decided: **embrace BS5 look during migration; deliberate facelift in Phase 6** (see decision 6).
 > Decided: **touch it, type it** — every `.js`/`.jsx` we open migrates to `.ts`/`.tsx` in the
 > same PR (see decision 7).
+> Decided: **no new complex dependencies — simplify; build small things ourselves rather than
+> pull a single-purpose npm** (see decision 8).
 
 ## Effort summary (relative)
 
