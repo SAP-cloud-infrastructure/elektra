@@ -12,6 +12,11 @@ module MonsoonOpenstackAuth
         raise MonsoonOpenstackAuth::ConnectionDriver::InterfaceNotImplementedError.new("authenticate_with_credentials is not implemented yet!")
       end
 
+      # returns a token as hash; raises AuthenticationError on failure (no error swallowing)
+      def validate_credentials(username, password)
+        raise MonsoonOpenstackAuth::ConnectionDriver::InterfaceNotImplementedError.new("validate_credentials is not implemented yet!")
+      end
+
       # returns a token as hash
       def authenticate_with_token(token, scope=nil)
         raise MonsoonOpenstackAuth::ConnectionDriver::InterfaceNotImplementedError.new("authenticate_with_token is not implemented yet!")
