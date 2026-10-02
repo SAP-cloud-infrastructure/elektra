@@ -1,6 +1,6 @@
 = inside_layout 'login' do
   .container
-    = form_tag(create_password_sync_path, class: "form-signin") do
+    = form_tag(create_password_sync_path(domain_fid: params[:domain_fid]), class: "form-signin") do
       %h2.form-signin-heading
         Sync Password
 
@@ -28,8 +28,12 @@
           .bs-callout.bs-callout-info.bs-callout-emphasize
             Enter your User ID and your new global SAP Password to synchronize it.
 
+        - if @domain_name
+          %label.sr-only{ for: "domain" } Domain
+          = text_field_tag :domain, @domain_name, placeholder: "Domain", class: "form-control top-input", disabled: "true"
+
         %label.sr-only{ for: "username" } User ID
-        = text_field_tag :username, @user_id, autofocus: "", placeholder: "User ID", required: "", class: "form-control top-input"
+        = text_field_tag :username, @username, autofocus: "", placeholder: "User ID", required: "", class: "form-control top-input"
 
         %label.sr-only{ for: "password" } Password
         = password_field_tag :password, nil, placeholder: "New Password", required: "", class: "form-control bottom-input"

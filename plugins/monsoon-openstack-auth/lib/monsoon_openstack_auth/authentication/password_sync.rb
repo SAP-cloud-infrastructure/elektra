@@ -28,20 +28,22 @@ module MonsoonOpenstackAuth
         @logger = logger
       end
 
-      # Runs the sync for the given user id and new password.
+      # Runs the sync for the given username and new password.
+      #
+      # The user is identified by name within the given domain (what users type).
       #
       # @return [Result]
-      def call(user_id, password)
-        return invalid_credentials if user_id.to_s.empty? || password.to_s.empty?
+      def call(username, password, domain_name = nil)
+        return invalid_credentials if username.to_s.empty? || password.to_s.empty?
 
         # Attempt 1: already current -> done; outdated -> 401 but sync fired.
-        attempt(user_id, password)
+        attempt(username, password, domain_name)
       rescue MonsoonOpenstackAuth::ConnectionDriver::AuthenticationError => e
         if server_error?(e)
           service_unavailable
         else
           # Attempt 2: the sync from attempt 1 should now have landed.
-          retry_after_sync(user_id, password)
+          retry_after_sync(username, password, domain_name)
         end
       rescue StandardError => e
         @logger.error "PasswordSync -> unexpected error: #{e.class}: #{e.message}"
@@ -50,8 +52,8 @@ module MonsoonOpenstackAuth
 
       private
 
-      def retry_after_sync(user_id, password)
-        attempt(user_id, password)
+      def retry_after_sync(username, password, domain_name)
+        attempt(username, password, domain_name)
       rescue MonsoonOpenstackAuth::ConnectionDriver::AuthenticationError => e
         # Second failure: 5xx -> service issue; otherwise the password is wrong.
         server_error?(e) ? service_unavailable : invalid_credentials
@@ -62,8 +64,8 @@ module MonsoonOpenstackAuth
 
       # Performs a single validation. Returns a SUCCESS Result or raises
       # AuthenticationError.
-      def attempt(user_id, password)
-        @api_client.validate_credentials(user_id, password)
+      def attempt(username, password, domain_name)
+        @api_client.validate_credentials(username, password, domain_name)
         success
       end
 
