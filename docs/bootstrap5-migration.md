@@ -24,7 +24,7 @@ hit recolors the *entire* kingdom.
 
 **⚔️ Dungeon 2 — The React Keep.**
 > **BOSS: react-bootstrap 0.33, the Ancient One (107-headed).** A full-API-rewrite dragon:
-`bsStyle`→`variant` across 26 files, `<Panel>`→`<Card>`, `<Label>`→`<Badge>`. Its sibling
+`bsStyle`→`variant` across 26 files, `<Label>`→`<Badge>`. Its sibling
 `react-bootstrap-typeahead` (11 files) must be bumped in the same raid. Loot on victory: you may
 finally **destroy the cursed `findDOMNode` shim** and its 3 bound familiars — **this closes
 side-quest #2190.** Strike the 4 core files and the central Modal/Form components first; they
@@ -32,12 +32,14 @@ are the dragon's heart. **Enchantment rule for the whole campaign:** every `.jsx
 pick up is re-forged into a typed `.tsx` blade before you move on — touch it, type it.
 
 **🧪 Dungeon 3 — The jQuery Widget Swamp.**
-> **BOSS: the Five Plugin Golems** (select, multiselect, slider, typeahead, datetimepicker).
-They have no BS5 form — you cannot upgrade them, you must *replace* them. House rule: reforge
-each as a **typed React component** — or, for a lone leaf widget whose React form would summon a
-whole dependency horde, a **small vanilla-TS trinket** instead. Never summon a new vanilla-JS
-*jQuery* golem — one undead variant is enough for this dungeon. ~31 view sites + ~46 core
-call-sites.
+> **BOSS: the Plugin Golems** (select, multiselect, slider, typeahead, datetimepicker) — but
+scout before you swing: **two are already dead** (`bootstrap-select` and `bootstrap-3-typeahead`
+have zero call-sites — loot the corpse, i.e. just delete the dependency). Only multiselect (~6
+sites), slider (2) and datetimepicker (1) actually fight back. They have no BS5 form — you cannot
+upgrade them, you must *replace* them. House rule: reforge each as a **typed React component** —
+or, for a lone leaf widget whose React form would summon a whole dependency horde, a **small
+vanilla-TS trinket** instead. Never summon a new vanilla-JS *jQuery* golem — one undead variant
+is enough for this dungeon. A small swamp, not an ocean — ~a dozen real call-sites.
 
 **🧹 Dungeon 4 — The View Markup Sprawl (open-world grind).** The biggest map, cleared
 **plugin by plugin, Tier A → B → C**. Mostly trash mobs: `btn-default`→`btn-secondary` (155
@@ -124,6 +126,17 @@ markup/`data-*` attributes in HAML/ERB views.
    merge; `master` stays live and shippable after every PR. (Our custom theme, `_monsoon_theme`
    /`_variables`/`_mixins`, is natively ported to the BS5 Sass model in Phase 1 — it lives in the
    BS5 world, not in the shim.)
+
+   > ⚠️ **Known limit of the compat-shim — it is CSS-only.** The shim translates *class names*
+   > (styling). It **cannot** fix the behavioral break where BS5 renamed the JS data hooks
+   > `data-toggle`/`-target`/`-dismiss` → `data-bs-*` and stopped auto-initializing
+   > tooltips/popovers. So in un-migrated views, dropdowns/modals/tabs/collapses that rely on
+   > `data-toggle` are **functionally dead** between Phase 1 and the per-plugin Phase-4 pass, even
+   > though they look styled. Two mitigations, pick per rollout: (a) a tiny **JS compat-helper**
+   > that also recognizes the old `data-toggle` attributes until Phase 4 clears them, or (b) do the
+   > `data-*`→`data-bs-*` rename as an **early global sweep** right after Phase 1 (it's a safe,
+   > mechanical rename of 61 files / 112 occ). Do **not** assume the SCSS shim alone keeps
+   > interactive widgets working.
 6. **Embrace the BS5 look during migration; facelift is a separate final pass (Phase 6).** BS5
    looks different from BS3 by default (flatter, different spacing/button/form defaults). We
    **do not fight that** — the compat-shim only guarantees layout/functional integrity, not BS3
@@ -223,25 +236,29 @@ This is not a cosmetic upgrade — it buys down real, accumulating risk and debt
 | BS3 class/attr | files | occ | BS5 target |
 |---|---|---|---|
 | `btn-default` | 155 | 231 | `btn-secondary` |
-| `col-sm/md/lg-*` | 89 | 459 | kept; gutter/behavior review |
-| `pull-right` / `pull-left` | 51 / 3 | 57 / 4 | `float-end` / `float-start` |
-| `help-block` | 46 | 150 | `form-text` / `invalid-feedback` |
-| `data-toggle`/`-target`/`-dismiss` | ~55 | 112 | `data-bs-*` (silently break otherwise) |
+| `col-sm/md/lg-*` | 90 | 465 | kept; gutter/behavior review |
+| `pull-right` / `pull-left` | 51 / 2 | 57 / 3 | `float-end` / `float-start` |
+| `help-block` | 36 | 150 | `form-text` / `invalid-feedback` |
+| `data-toggle`/`-target`/`-dismiss` | 61 | 112 | `data-bs-*` (silently break otherwise) |
 | `form-group` | 37 | 103 | grid-based forms (mostly via `lib/elektra-form`) |
 | `control-label` | 24 | 78 | `col-form-label` / `form-label` |
 | `has-error` | 8 | 26 | `is-invalid` |
-| `caret` | 14 | 26 | removed (CSS `::after`) |
+| `caret` | 7 | 9 | removed (CSS `::after`) |
 | `label-*` | 5 | 23 | `badge` + `text-bg-*` |
 | `input-group-addon` | 8 | 15 | `input-group-text` |
-| `panel-*` + `<Panel>` | ~7 + 13 | — | `.card` |
-| `well` | 9 | 9 | `.card` / utilities |
+| `panel-*` (CSS class) | 5 | 25 | `.card` |
+| `well` | 6 active (+3 commented) | 6 | `.card` / utilities |
 | `glyphicon` | 1 | 8 | removed (icon font gone) |
 
-### Bootstrap jQuery plugin call-sites (need BS5 vanilla API)
+### Bootstrap's own jQuery plugin call-sites (need BS5 vanilla API)
+
+These are **Bootstrap-native** jQuery plugins (not the 5 third-party widgets above) — modal,
+tooltip, popover, collapse, tab:
 
 `.modal(` 19, `.tooltip(` 12, `.popover(` 7, `.collapse(` 3, `.tab(` 2 = ~43 call-sites, plus
 declarative `data-toggle="tooltip|popover"` hooks (BS5: tooltips/popovers are **not**
-auto-initialized — must opt in via JS).
+auto-initialized — must opt in via JS). These are migrated to the BS5 vanilla API in **Phase 4**
+(not Phase 3 — Phase 3 is only the 5 third-party widgets).
 
 ## Migration phases
 
@@ -303,7 +320,9 @@ Steps:
    `react-bootstrap-typeahead` to its BS5-compatible line in the same step (11 files: core
    `autocomplete_field.jsx` + block_storage 4, identity 2, lbaas2 2, tools 2).
 2. Codemod the prop/API renames: `bsStyle`→`variant`, `bsSize`→`size` (`bsStyle` in 26 files),
-   `<Panel>`→`<Card>` (13), `<Label>`→`<Badge>` (1), `FormControl`/`Form` overhaul.
+   `<Label>`→`<Badge>` (1), `FormControl`/`Form` overhaul. (No `<Panel>`→`<Card>` here: Elektra
+   has **zero** react-bootstrap `<Panel>` — the 15 `<Panel>` usages are all Juno, out of scope.
+   Bootstrap `panel-*` **CSS classes** in HAML are handled as markup in Phase 4.)
 3. Hand-review the transition components whose API changed: `Collapse` (10), `Overlay` (3),
    `Popover` (3), `Tooltip` (1), `Carousel` (1), `Alert` (18).
 4. Start with the 4 **core** files + the two centralized components (`lib/elektra-form`'s
@@ -322,9 +341,23 @@ Steps:
 **Goal:** no BS3-only jQuery widgets remain — replaced with a **typed React component or a
 small vanilla-TS module**, chosen per widget (per decision 3).
 
+> ⚠️ **Measure before you build — the real call-surface is small and uneven.** The 5 packages are
+> in `package.json`, but actual *call-sites* are far fewer than a naive estimate: `bootstrap-select`
+> (`.selectpicker()`) has **0 call-sites** (likely already a dead dependency — verify, then just
+> drop it); `bootstrap-3-typeahead` (`.typeahead()`) has **0 direct calls** (it's imported in
+> `application.js` but not invoked — the React autocomplete uses the separate
+> `react-bootstrap-typeahead`, don't confuse them); `bootstrap-multiselect` is used in ~**6** files
+> (data-attr-driven via `core/init.js` `[data-multiselect-box]` + identity `project_members.js`
+> `.multiselect(`); `bootstrap-slider` in **2**; `datetimepicker` **1** real call-site + its lib
+> file. **This is a handful of sites, not dozens.** Re-run the Phase-0 baseline against each
+> package first; packages with zero call-sites are a delete, not a rewrite.
+
 Steps:
-1. Replace each widget with its best-fit modern equivalent (the consolidation path):
-   bootstrap-select, -multiselect, -slider, -3-typeahead, -datetimepicker have **no BS5 drop-in**
+1. **Audit first:** confirm per-package call-sites against the baseline (expect 0 for
+   `bootstrap-select` and `bootstrap-3-typeahead`). Any zero-call-site package → remove the import
+   + dependency outright (no replacement needed).
+2. For the packages that *are* called (`multiselect`, `slider`, `datetimepicker`), replace each
+   with its best-fit modern equivalent (the consolidation path) — they have **no BS5 drop-in**
    anyway, so this is the moment to retire the jQuery-in-HAML variant. **Per decision 3, weigh
    React vs. vanilla-TS for each widget:** default to a React component when it reuses an existing
    component or lives in a React tree; choose a small, self-contained **vanilla-TS** module for
@@ -333,17 +366,17 @@ Steps:
    suitable component already exists. **No new npm dependency to replace a widget (decision 8)** —
    if the need is small, build a short typed in-house module instead of pulling a single-purpose
    package.
-2. Replace each usage site — `.selectpicker()`, `.multiselect()`, `.slider()`, `.typeahead()`,
-   `datetimepicker` (~31 view files, concentrated in `compute`/`identity`/`dns_service`/`image`
-   wizards and ~46 core call-sites). Where the widget sits in a HAML view, mount the replacement
-   into that spot (the React-widget mount pattern, or a scoped vanilla-TS init for the lighter
-   cases).
-3. Remove the npm packages and their SCSS/vendor CSS once no longer referenced.
+3. Replace each real usage site — `.multiselect()` (incl. the `[data-multiselect-box]` auto-init
+   in `core/init.js`), `.slider()`, `datetimepicker`. Where the widget sits in a HAML view, mount
+   the replacement into that spot (the React-widget mount pattern, or a scoped vanilla-TS init for
+   the lighter cases).
+4. Remove the npm packages and their SCSS/vendor CSS once no longer referenced.
 
-- **Risk:** medium-high (behavioral + markup→component conversion). **Depends on:** Phase 1.
-- **Test:** migration specs that interact with each widget (open select, pick date, drag slider,
-  type-ahead). **Exit:** every call-site is now a typed React or vanilla-TS replacement; jQuery
-  widget packages removed.
+- **Risk:** medium (small call-surface, but behavioral + markup→component conversion).
+  **Depends on:** Phase 1.
+- **Test:** migration specs that interact with each remaining widget (open multiselect, pick date,
+  drag slider). **Exit:** every call-site is a typed React or vanilla-TS replacement; all 5 jQuery
+  widget packages removed from `package.json`.
 
 ### Phase 4 — View markup: classes + data attributes (per plugin, by tier)
 
@@ -366,7 +399,11 @@ Steps (repeat per plugin, Tier A → B → C — never one big cross-plugin swee
 4. Fix the Bootstrap jQuery-plugin call-sites to the BS5 vanilla API (`new bootstrap.Modal(...)`
    etc.) or the component equivalent.
 5. **Do the centralized components first** — `lib/components/Modal` (87 files) and
-   `lib/elektra-form` (56 files) — so most plugin markup inherits the fix.
+   `lib/elektra-form` (56 files) — so most plugin markup inherits the fix. (Division of labor:
+   their **react-bootstrap API** is handled in Phase 2; here in Phase 4 we fix the **BS3 markup /
+   `data-*` attributes** inside them. Note `lib/components/Modal.tsx` is already a React-19 drop-in
+   from PR #2189 and already TypeScript — confirm whether it still renders BS3 modal markup/classes
+   that need the `data-bs-*` + class updates, rather than assuming it's untouched.)
 6. **Manually test the plugin** — click through its real screens (forms, modals, tables,
    wizards) until it behaves correctly, backed by that plugin's migration specs.
 
@@ -381,8 +418,8 @@ Steps (repeat per plugin, Tier A → B → C — never one big cross-plugin swee
 **Goal:** remove the last BS3 remnants and the temporary scaffolding.
 
 Steps:
-1. Replace `bootstrap-kaminari-views` gem with BS5-styled Kaminari templates (11 paginated
-   views).
+1. Replace `bootstrap-kaminari-views` gem with BS5-styled Kaminari templates (~16 paginated
+   call-sites via `render_paginatable`/`paginate`).
 2. Remove dead BS3 vendor CSS (`bootstrap-datetimepicker.css`, `-multiselect.css`, `-select.css`,
    `-slider.css`, `-treeview.css`).
 3. **Delete the compat-shim** (`_bs5_compat_shim.scss`) — by now every view uses real BS5
@@ -453,11 +490,13 @@ Plus the usual unit layer each phase: `docker exec elektra pnpm test` and
 ## Effort summary (relative)
 
 - **HIGH:** react-bootstrap v2 rewrite (107); SCSS variable/mixin rewrite (`_monsoon_theme.scss`);
-  replacing the 5 BS3 jQuery plugins; `btn-default` rename (155 files).
-- **MEDIUM:** grid review (89); `data-*` → `data-bs-*` (~55); modal/form via centralized libs;
-  `pull-right`→`float-end` (51); nav-tabs/caret.
-- **LOW:** panel→card (~7+13); well (9); label→badge (5); input-group-addon (8); glyphicon (1);
-  pagination templates.
+  `btn-default` rename (155 files).
+- **MEDIUM:** grid review (90); `data-*` → `data-bs-*` (61 files); modal/form via centralized libs;
+  Bootstrap-native `.modal(`/`.tooltip(` → BS5 vanilla API (~43); `pull-right`→`float-end` (51);
+  nav-tabs/caret.
+- **LOW:** replacing the BS3 third-party jQuery widgets (**small**: 2 are dead deletes, only
+  multiselect/slider/datetimepicker need real work); `panel-*` CSS classes → card (5 files);
+  well (6 active); label→badge (5); input-group-addon (8); glyphicon (1); pagination templates.
 
 ## Core vs. plugin breakdown (what to migrate & test, piece by piece)
 
@@ -488,46 +527,53 @@ The core footprint is small in file count but high in leverage: fixing it unbloc
 **jQuery plugins (stay as jQuery, but verify BS5-neutral):** the 8 `core/jquery.*` plugins.
 These keep working on jQuery; only confirm they don't rely on BS3 CSS/markup. Separately,
 `lib/bootstrap-datetimepicker.js` is a **BS3 jQuery plugin and does *not* stay** — it is one of
-the five widgets replaced by a React component in Phase 3. Core also has ~46 BS3-jQuery-plugin
-call-sites (datetimepicker-heavy) → Phase 3.
+the third-party widgets replaced in Phase 3 (its single real call-site + the lib file). The
+`[data-multiselect-box]` auto-init in `core/init.js` (bootstrap-multiselect) is likewise a
+**Phase 3** replacement. Core's ~43 **Bootstrap-native** jQuery calls (`.modal(`/`.tooltip(`/
+`.popover(`…) are a separate concern → migrated to the BS5 vanilla API in **Phase 4**.
 
 **Core numbers:** 4 react-bootstrap files · 10 `btn-default` files · ~8 `data-*` files ·
-6 inline-`$()` view files · ~46 BS3-plugin call-sites.
+6 inline-`$()` view files · 1 BS3-widget call-site (`core/init.js` multiselect) + the
+datetimepicker lib → Phase 3; ~43 Bootstrap-native `.modal(`/`.tooltip(` calls → Phase 4.
 
 ### Plugins — migrate & test in tiers (by Bootstrap footprint)
 
 Legend: **rb**=react-bootstrap files · **btn**=`btn-default` · **pull**=`pull-*` ·
-**data**=`data-toggle/target/dismiss` · **jqPl**=BS3 jQuery plugins · **inln**=inline `$()`.
+**data**=`data-toggle/target/dismiss` (counted across **all** file types incl. JSX/TSX, not just
+views) · **jqPl**=real BS3 third-party jQuery-plugin *calls* (not `react-bootstrap-typeahead`
+imports) · **inln**=inline `$()` in views. Note: `jqPl` is near-zero everywhere — the only real
+call is `identity` (`.multiselect(`); the shared `core/init.js` multiselect auto-init is counted
+in Core, not per plugin.
 
 **Tier A — heavy (migrate first after core, test hard):**
 
 | Plugin | rb | btn | pull | data | jqPl | inln | Notes |
 |---|---|---|---|---|---|---|---|
-| `networking` | 13 | 26 | 9 | 1 | 1 | 13 | all axes; biggest markup+inline load |
-| `compute` | 0 | 31 | 12 | 0 | 0 | 22 | most inline `$()` + `btn-default`; no react-bootstrap |
-| `lbaas2` | 30 | 5 | 2 | 0 | 2 | 0 | **most react-bootstrap** (incl. custom `DropdownMenu.jsx`) |
-| `identity` | 3 | 16 | 3 | 1 | 3 | 9 | wizards w/ inline jQuery + BS3 plugins |
-| `shared_filesystem_storage` | 21 | 6 | 1 | 0 | 0 | 0 | react-bootstrap heavy |
-| `block_storage` | 15 | 2 | 0 | 0 | 2 | 0 | react-bootstrap + BS3 plugins |
+| `networking` | 15 | 29 | 9 | 7 | 0 | 13 | all axes; biggest markup+inline load |
+| `compute` | 0 | 31 | 12 | 1 | 0 | 22 | most inline `$()` + `btn-default`; no react-bootstrap |
+| `lbaas2` | 28 | 5 | 2 | 8 | 0 | 0 | **most react-bootstrap** (incl. custom `DropdownMenu.jsx`) |
+| `identity` | 1 | 17 | 5 | 3 | 1 | 9 | wizards w/ inline jQuery; the **only** real BS3 jQuery-plugin call (`.multiselect(`) |
+| `shared_filesystem_storage` | 21 | 6 | 1 | 5 | 0 | 0 | react-bootstrap heavy |
+| `block_storage` | 14 | 2 | 0 | 2 | 0 | 0 | react-bootstrap (jqPl earlier was typeahead imports, not jQuery) |
 
 **Tier B — medium:**
 
 | Plugin | rb | btn | pull | data | jqPl | inln | Notes |
 |---|---|---|---|---|---|---|---|
-| `dns_service` | 0 | 15 | 8 | 0 | 0 | 18 | lots of wizard inline jQuery + markup |
+| `dns_service` | 0 | 15 | 8 | 1 | 0 | 18 | lots of wizard inline jQuery + markup |
 | `object_storage` | 12 | 5 | 1 | 0 | 0 | 0 | react-bootstrap |
-| `image` | 2 | 7 | 3 | 0 | 0 | 8 | mixed markup + inline |
-| `keppel` | 9 | 8 | 0 | 0 | 0 | 0 | react-bootstrap |
-| `kubernetes` | 0 | 7 | 3 | 0 | 0 | 0 | markup only (note: `kubernetes_ng` is Juno-based, untouched) |
+| `image` | 3 | 7 | 3 | 1 | 0 | 8 | mixed markup + inline |
+| `keppel` | 9 | 8 | 0 | 3 | 0 | 0 | react-bootstrap |
+| `kubernetes` | 0 | 7 | 3 | 3 | 0 | 0 | markup only (note: `kubernetes_ng` is Juno-based, untouched) |
 
 **Tier C — light (quick, low risk):**
 
 | Plugin | rb | btn | pull | data | jqPl | inln | Notes |
 |---|---|---|---|---|---|---|---|
-| `tools` | 5 | 3 | 0 | 0 | 2 | 0 | small react-bootstrap + BS3 plugins |
+| `tools` | 4 | 3 | 0 | 2 | 0 | 0 | small react-bootstrap (earlier jqPl was typeahead imports) |
 | `masterdata_cockpit` | 0 | 0 | 2 | 2 | 0 | 6 | inline jQuery + `data-*` |
 | `inquiry` | 0 | 4 | 0 | 0 | 0 | 2 | small |
-| `lookup` | 0 | 2 | 2 | 0 | 0 | 0 | markup only |
+| `lookup` | 0 | 2 | 2 | 1 | 0 | 0 | markup only |
 | `audit` | 0 | 1 | 0 | 0 | 0 | 0 | trivial |
 | `reports` | 0 | 1 | 0 | 0 | 0 | 0 | trivial |
 | `testikus` | 2 | 0 | 0 | 0 | 0 | 0 | test plugin |
