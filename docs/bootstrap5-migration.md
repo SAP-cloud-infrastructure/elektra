@@ -28,7 +28,8 @@ hit recolors the *entire* kingdom.
 `react-bootstrap-typeahead` (11 files) must be bumped in the same raid. Loot on victory: you may
 finally **destroy the cursed `findDOMNode` shim** and its 3 bound familiars — **this closes
 side-quest #2190.** Strike the 4 core files and the central Modal/Form components first; they
-are the dragon's heart.
+are the dragon's heart. **Enchantment rule for the whole campaign:** every `.jsx` scroll you
+pick up is re-forged into a typed `.tsx` blade before you move on — touch it, type it.
 
 **🧪 Dungeon 3 — The jQuery Widget Swamp.**
 > **BOSS: the Five Plugin Golems** (select, multiselect, slider, typeahead, datetimepicker).
@@ -117,6 +118,20 @@ markup/`data-*` attributes in HAML/ERB views.
    not on a moving migration. Consequence: migration E2E checks verify **function** ("button
    clickable, modal opens, form submits"), not screenshot pixel-diffs, since screens change on
    purpose.
+7. **Everything we touch moves to TypeScript.** Any `.js`/`.jsx` file we open for a migration
+   change gets renamed to `.ts`/`.tsx` and properly typed in the same PR — "touch it, type it".
+   This is scoped to the migration footprint (the ~94 react-bootstrap `.jsx` files, the replaced
+   jQuery-widget components, and the central Modal/Form libs), **not** a project-wide TS rewrite:
+   files we never open stay as-is. The project already runs `strict: true` with `allowJs: true`,
+   so `.jsx` still compiles untouched, but a freshly renamed `.tsx` is immediately held to
+   `strict` — so this adds real typing work, not just a rename. Where full strict types are not
+   feasible in the same step (e.g. an untyped third-party boundary), add a narrow, commented
+   `// TODO(bs5-ts)` escape (minimal `any`/`unknown`) rather than blocking the PR — but prefer
+   proper types. Rationale: it compounds the consolidation goal (decision 3) — the same files we
+   rewrite for BS5 become type-safe at the same time, instead of being touched twice. Context:
+   TypeScript is **already in use, but only partially** (today ~193 `.tsx`/56 `.ts` vs. ~388
+   `.jsx`/430 `.js`) — another historically-grown patchwork. This rule **shrinks** that patchwork
+   as we go rather than cementing it, without opening a separate project-wide TS rewrite.
 
 ## What we gain (the payoff)
 
@@ -143,6 +158,10 @@ This is not a cosmetic upgrade — it buys down real, accumulating risk and debt
 - **Removes maintenance drag.** No more pinning around dead gems, no more shimming new React
   releases, fewer "why is this on jQuery 1.12" surprises. New contributors meet a current,
   documented framework instead of a 2015-era one.
+- **Type safety where we work ("touch it, type it").** Every file we open for the migration is
+  moved from `.js`/`.jsx` to `.ts`/`.tsx` and typed in the same PR (decision 7). The react-bootstrap
+  layer alone is **94 untyped `.jsx` files** today; migrating pays down that debt exactly where we
+  are already rewriting, instead of touching the same files twice.
 - **A measurable finish line.** The Phase-0 baseline grep makes "done" provable: a defined set of
   BS3 classes, attributes, and plugins that must reach **zero** — debt we can actually close out,
   not just carry.
@@ -255,6 +274,8 @@ Steps:
    `submit_button.jsx`, `lib/dialogs/dialog.jsx`), then fan out to plugins by tier.
 5. **Delete `app/javascript/lib/react19-finddomnode-shim.js` and its 3 consumers**
    (`lib/widget.jsx`, `lib/dialogs/index.js`, `vitest.setup.ts`) → **closes #2190.**
+6. **Rename each touched `.jsx` → `.tsx` and type it** (decision 7) — the 4 core files, the
+   central Form lib, and every plugin react-bootstrap file as its tier is migrated.
 
 - **Risk:** high (full-API lib migration). **Depends on:** Phase 1 (shared BS5 styles).
 - **Test:** `pnpm test` for component units; migration specs per tier for overlays/collapses/
@@ -268,7 +289,8 @@ Steps:
 1. Replace each widget with a React component (the consolidation path): bootstrap-select,
    -multiselect, -slider, -3-typeahead, -datetimepicker have **no BS5 drop-in** anyway, so this
    is the moment to retire the jQuery-in-HAML variant rather than add another vanilla-JS lib.
-   Reuse existing React patterns / Juno where a suitable component already exists.
+   Reuse existing React patterns / Juno where a suitable component already exists. Author these
+   **new components in TypeScript (`.tsx`)** from the start (decision 7).
 2. Replace each usage site — `.selectpicker()`, `.multiselect()`, `.slider()`, `.typeahead()`,
    `datetimepicker` (~31 view files, concentrated in `compute`/`identity`/`dns_service`/`image`
    wizards and ~46 core call-sites). Where the widget sits in a HAML view, mount the React
@@ -307,7 +329,8 @@ Steps (repeat per plugin, Tier A → B → C — never one big cross-plugin swee
 - **Risk:** medium (broad but mechanical). **Depends on:** Phases 1–3.
 - **Test:** scripted pass + **manual click-through per plugin** + migration specs (functional);
   grep the plugin dir against baseline.
-  **Exit per plugin:** zero BS3 classes/attrs in that plugin, specs green, manual pass signed off.
+  **Exit per plugin:** zero BS3 classes/attrs in that plugin, every touched file now `.ts`/`.tsx`
+  and typechecking (`pnpm typecheck` clean), specs green, manual pass signed off.
 
 ### Phase 5 — Pagination & cleanup
 
@@ -377,6 +400,8 @@ Plus the usual unit layer each phase: `docker exec elektra pnpm test` and
 > Decided: rollout = **incremental PRs to `master` + temporary compat-shim** (see decision 5);
 > no single giant branch/merge.
 > Decided: **embrace BS5 look during migration; deliberate facelift in Phase 6** (see decision 6).
+> Decided: **touch it, type it** — every `.js`/`.jsx` we open migrates to `.ts`/`.tsx` in the
+> same PR (see decision 7).
 
 ## Effort summary (relative)
 
@@ -399,7 +424,7 @@ The core footprint is small in file count but high in leverage: fixing it unbloc
 - `app/assets/stylesheets/_mixins.scss` — `make-*-column`, `$screen-*-min` → BS5 mixins
 - `app/assets/stylesheets/_monsoon_theme.scss` — **2842 lines**, the main custom theme
 
-**React (Phase 2) — only 4 core files import react-bootstrap:**
+**React (Phase 2) — only 4 core files import react-bootstrap (all `.jsx` → migrate to `.tsx`):**
 - `app/javascript/lib/components/autocomplete_field.jsx`
 - `app/javascript/lib/elektra-form/components/submit_button.jsx` (part of the central form lib)
 - `app/javascript/core/global_notifications.jsx` (uses `Alert`/`Carousel`)
