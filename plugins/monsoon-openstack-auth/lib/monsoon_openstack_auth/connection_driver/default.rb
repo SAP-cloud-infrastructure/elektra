@@ -144,6 +144,18 @@ module MonsoonOpenstackAuth
         authenticate(auth)
       end
 
+      # Validate a user's credentials unscoped (by user id), without creating a
+      # scoped session. Unlike authenticate_with_credentials this does NOT swallow
+      # errors: on failure it raises AuthenticationError so the caller can inspect
+      # the status/code (e.g. distinguish a 401 from a 5xx). The returned token is
+      # meant to be discarded by the caller (used only to confirm the credentials
+      # are valid, e.g. to trigger a backend password sync).
+      def validate_credentials(username, password)
+        auth = { auth: { identity: { methods: ['password'],
+                                     password: { user: { id: username, password: password } } } } }
+        authenticate(auth)
+      end
+
       def revoke_token(token)
         headers = {
           'Content-Type' => 'application/json',
