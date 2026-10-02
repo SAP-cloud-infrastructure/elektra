@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react"
 import { Spinner, JsonViewer } from "@cloudoperators/juno-ui-components"
-import { Tabs, Tab, Modal, Button } from "react-bootstrap"
+import { Button } from "react-bootstrap"
+import { Modal } from "lib/components/Modal"
+import { Tabs, Tab } from "lib/components/Tabs"
 import { projectUrl, objectUrl, vCenterUrl } from "../../shared/object_link_helper"
 
 import ProjectRoleAssignments from "plugins/identity/app/javascript/widgets/role_assignments/containers/project_role_assignments"

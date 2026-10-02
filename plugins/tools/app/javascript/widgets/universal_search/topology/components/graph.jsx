@@ -1,5 +1,3 @@
-/* eslint-disable react/no-string-refs */
-import ReactDOM from "react-dom"
 import { scaleLinear } from "d3-scale"
 import { max } from "d3-array"
 import { select, event, mouse } from "d3-selection"
@@ -32,19 +30,20 @@ export class Graph extends React.Component {
     maxZoom: 7,
   }
 
+  svgRef = React.createRef()
+  graphRef = React.createRef()
+  tooltipRef = React.createRef()
+  detailsRef = React.createRef()
+
   componentDidMount() {
     this.zoomScale = 1
 
-    // eslint-disable-next-line react/no-find-dom-node, no-undef, react/no-string-refs
-    const svg = select(ReactDOM.findDOMNode(this.refs.svg))
+    const svg = select(this.svgRef.current)
     // add zoom capabilities
     zoom().on("zoom", this.zoomActions)(svg)
-    // eslint-disable-next-line react/no-find-dom-node, no-undef, react/no-string-refs
-    this.graph = select(ReactDOM.findDOMNode(this.refs.graph))
-    // eslint-disable-next-line react/no-find-dom-node, no-undef, react/no-string-refs
-    this.tooltip = select(ReactDOM.findDOMNode(this.refs.tooltip))
-    // eslint-disable-next-line react/no-find-dom-node, no-undef, react/no-string-refs
-    this.details = select(ReactDOM.findDOMNode(this.refs.details))
+    this.graph = select(this.graphRef.current)
+    this.tooltip = select(this.tooltipRef.current)
+    this.details = select(this.detailsRef.current)
 
     // we use svg groups to logically group the elements together
     this.linkGroup = this.graph.append("g").attr("class", "links")
@@ -424,12 +423,12 @@ export class Graph extends React.Component {
   render() {
     return (
       <>
-        <svg ref="svg" width={this.props.width} height={this.props.height}>
-          <g ref="graph" />
+        <svg ref={this.svgRef} width={this.props.width} height={this.props.height}>
+          <g ref={this.graphRef} />
         </svg>
         <div
           className="topology-tooltip"
-          ref="tooltip"
+          ref={this.tooltipRef}
           style={{ display: "none" }}
         ></div>
       </>

@@ -7,7 +7,10 @@ describe("validation_rules tests", () => {
   it("submit a basic form without errors", async () => {
     const putAccount = vi.fn(() => Promise.resolve())
     const history = { replace: vi.fn() }
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
+    const unexpectedErrors = []
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation((...args) => {
+      unexpectedErrors.push(args)
+    })
 
     const account = {
       validation: { rule_for_manifest: "rule" },
@@ -26,7 +29,8 @@ describe("validation_rules tests", () => {
       ...account,
     })
 
-    expect(consoleErrorSpy).not.toHaveBeenCalled()
+    expect(unexpectedErrors).toEqual([])
     await waitFor(() => expect(history.replace).toHaveBeenCalledWith("/accounts"))
+    consoleErrorSpy.mockRestore()
   })
 })

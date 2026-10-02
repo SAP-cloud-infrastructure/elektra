@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react"
-import { Modal, Button } from "react-bootstrap"
+import { Button } from "react-bootstrap"
+import { Modal } from "lib/components/Modal"
 import { useHistory } from "react-router-dom"
 import { useDispatch } from "../../stateProvider"
 import * as apiClient from "../../apiClient"

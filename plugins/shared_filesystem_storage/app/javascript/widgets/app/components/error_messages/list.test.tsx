@@ -1,31 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from "vitest"
-import { render, screen, fireEvent } from "@testing-library/react"
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
+import { render, screen, fireEvent, act, within } from "@testing-library/react"
 import "@testing-library/jest-dom/vitest"
 import ErrorMessageList from "./list"
 
 // ─── Module mocks ─────────────────────────────────────────────────────────────
-
-vi.mock("react-bootstrap", () => ({
-  Modal: Object.assign(
-    ({ show, onExited, onHide, children }: any) => (
-      <div data-testid="modal" data-show={String(show)} onTransitionEnd={onExited}>
-        <button data-testid="modal-backdrop" onClick={onHide} />
-        {children}
-      </div>
-    ),
-    {
-      Header: ({ children }: any) => <div data-testid="modal-header">{children}</div>,
-      Title: ({ children }: any) => <h1 data-testid="modal-title">{children}</h1>,
-      Body: ({ children }: any) => <div data-testid="modal-body">{children}</div>,
-      Footer: ({ children }: any) => <div data-testid="modal-footer">{children}</div>,
-    }
-  ),
-  Button: ({ children, onClick }: any) => (
-    <button data-testid="close-btn" onClick={onClick}>
-      {children}
-    </button>
-  ),
-}))
 
 vi.mock("./item", () => ({
   default: ({ errorMessage }: any) => (
@@ -64,6 +42,11 @@ const renderComponent = (props = {}) => render(<ErrorMessageList {...defaultProp
 describe("ErrorMessageList", () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   // ── Initial rendering ──────────────────────────────────────────────────────
@@ -71,18 +54,18 @@ describe("ErrorMessageList", () => {
   describe("Initial rendering", () => {
     it("renders the modal", () => {
       renderComponent()
-      expect(screen.getByTestId("modal")).toBeInTheDocument()
-      expect(screen.getByTestId("modal")).toHaveAttribute("data-show", "true")
+      expect(screen.getByRole("dialog")).toBeInTheDocument()
     })
 
     it("renders the modal title", () => {
       renderComponent()
-      expect(screen.getByTestId("modal-title")).toHaveTextContent("Error Log")
+      expect(document.querySelector(".modal-title")).toHaveTextContent("Error Log")
     })
 
     it("renders the Close button", () => {
       renderComponent()
-      expect(screen.getByTestId("close-btn")).toBeInTheDocument()
+      const footer = document.querySelector(".modal-footer") as HTMLElement
+      expect(within(footer).getByRole("button", { name: "Close" })).toBeInTheDocument()
     })
 
     it("calls loadErrorMessagesOnce on mount", () => {
@@ -136,32 +119,46 @@ describe("ErrorMessageList", () => {
 
   // ── Close behaviour ────────────────────────────────────────────────────────
 
+  const clickClose = () => {
+    const footer = document.querySelector(".modal-footer") as HTMLElement
+    fireEvent.click(within(footer).getByRole("button", { name: "Close" }))
+  }
+
   describe("Close behaviour", () => {
     it("hides modal when Close button is clicked", () => {
       renderComponent()
-      fireEvent.click(screen.getByTestId("close-btn"))
-      expect(screen.getByTestId("modal")).toHaveAttribute("data-show", "false")
+      clickClose()
+      // Modal unmounts once the close transition completes
+      act(() => {
+        vi.runAllTimers()
+      })
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
     })
 
     it("navigates to match.params.type on close", () => {
       renderComponent()
-      fireEvent.click(screen.getByTestId("close-btn"))
-      // Simulate onExited (modal transition end)
-      fireEvent.transitionEnd(screen.getByTestId("modal"))
+      clickClose()
+      act(() => {
+        vi.runAllTimers()
+      })
       expect(mockHistory.replace).toHaveBeenCalledWith("shares")
     })
 
     it("navigates to 'shares' fallback when match.params.type is undefined", () => {
       renderComponent({ match: { params: {} } })
-      fireEvent.click(screen.getByTestId("close-btn"))
-      fireEvent.transitionEnd(screen.getByTestId("modal"))
+      clickClose()
+      act(() => {
+        vi.runAllTimers()
+      })
       expect(mockHistory.replace).toHaveBeenCalledWith("shares")
     })
 
     it("does not navigate when modal is still visible", () => {
       renderComponent()
-      // Fire transition without closing first
-      fireEvent.transitionEnd(screen.getByTestId("modal"))
+      // No close: advancing timers must not trigger navigation
+      act(() => {
+        vi.runAllTimers()
+      })
       expect(mockHistory.replace).not.toHaveBeenCalled()
     })
   })

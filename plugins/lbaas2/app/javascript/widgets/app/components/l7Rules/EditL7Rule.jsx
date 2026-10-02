@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react"
-import { Modal, Button, Collapse } from "react-bootstrap"
+import { Button, Collapse } from "react-bootstrap"
+import { Modal } from "lib/components/Modal"
 import { Form } from "lib/elektra-form"
 import useL7Rule from "../../lib/hooks/useL7Rule"
 import ErrorPage from "../ErrorPage"
