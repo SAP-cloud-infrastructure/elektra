@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest"
 import { render, screen, fireEvent, within, waitFor } from "@testing-library/react"
-import { act } from "react-dom/test-utils"
+import { act } from "react"
 import userEvent from "@testing-library/user-event"
 import DetailsContent from "./DetailsContent"
 import { defaultCluster, permissionsAllTrue } from "../../../../mocks/data"

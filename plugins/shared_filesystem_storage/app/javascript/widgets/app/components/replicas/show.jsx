@@ -1,4 +1,5 @@
-import { Modal, Button } from "react-bootstrap"
+import { Button } from "react-bootstrap"
+import { Modal } from "lib/components/Modal"
 import { Link } from "react-router-dom"
 import { titleCase } from "lib/tools/utils"
 import React from "react"
