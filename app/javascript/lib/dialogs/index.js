@@ -1,3 +1,4 @@
+import "lib/react19-finddomnode-shim.js"
 import { ModalDialog } from "./dialog"
 import { createRoot } from "react-dom/client"
 import Deferred from "lib/tools/deferred"

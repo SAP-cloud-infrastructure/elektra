@@ -1,5 +1,6 @@
-# To build the image locally run from repository root: docker build -t elektra-prod --build-arg "NPM_GITHUB_TOKEN=XXX" --progress=plain -f docker/Dockerfile .
-# the NPM_GITHUB_TOKEN is needed to install npm packages from github you can create your own token here:
+# To build the image locally run from repository root: docker build -t elektra-prod --build-arg "GITHUB_TOKEN=XXX" --progress=plain -f docker/Dockerfile .
+# the GITHUB_TOKEN is needed to install npm packages from github and to clone
+# git-based gems (e.g. elektron) from github. you can create your own token here:
 # 1. logon to github
 # 2. go to settings
 # 3. go to developer settings
@@ -7,7 +8,7 @@
 # 5. click on generate new token
 # 6. select the scopes you need (repo, read:packages, write:packages)
 # 7. click on generate token
-# 8. copy the token and use it as NPM_GITHUB_TOKEN
+# 8. copy the token and use it as GITHUB_TOKEN
 
 # for vulnerability scan the image run: trivy image elektra-prod --scanners vuln
 
@@ -55,7 +56,7 @@ RUN apk --no-cache add postgresql16-dev ruby-sassc \
     nio4r:2.7.5 \
     nokogiri:1.19.1 \
     pg:1.3.4 \
-    puma:6.4.3  \
+    puma:7.2.1  \
     redcarpet:3.6.1 \
     unf:0.2.0 \
     websocket-driver:0.8.0 \
@@ -75,15 +76,30 @@ ADD plugins/*/*.gemspec tmp/plugins/
 ADD script/organize_plugins_gemspecs script/
 RUN script/organize_plugins_gemspecs
 
+# The elektron gem is pulled from a public GitHub repo via `git` (see Gemfile).
+# Anonymous git clones are rate-limited by GitHub; when the limit is hit the
+# clone falls back to an interactive credential prompt and fails in CI with
+# "could not read Username for 'https://github.com'". When a GITHUB_TOKEN is
+# provided, authenticate the clone so it counts against the higher
+# authenticated rate limit. The "x-access-token" username is a generic
+# placeholder; GitHub only evaluates the token, so any valid GITHUB_TOKEN works
+# (not tied to a specific bot account). Without a token the clone falls back to
+# an anonymous clone, so local builds work without credentials.
+ARG GITHUB_TOKEN
 # install gems
 RUN apk --no-cache add yaml-dev \
+    && if [ -n "$GITHUB_TOKEN" ]; then \
+         git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"; \
+       fi \
     && bundle config set --local without 'development integration_tests' \
-    && bundle install --jobs=$(nproc)
+    && bundle install --jobs=$(nproc) \
+    && if [ -n "$GITHUB_TOKEN" ]; then \
+         git config --global --unset url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf; \
+       fi
 
 # add elektra sources into image
-ARG NPM_GITHUB_TOKEN
 # Set the GITHUB_TOKEN environment variable
-ENV GITHUB_TOKEN=$NPM_GITHUB_TOKEN
+ENV GITHUB_TOKEN=$GITHUB_TOKEN
 ADD . $APP_PATH
 
 # Copy .npmrc.sample file into the container

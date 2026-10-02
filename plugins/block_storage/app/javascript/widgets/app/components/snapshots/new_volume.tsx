@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react"
 // @ts-expect-error no types
-import { Modal, Button } from "react-bootstrap"
+import { Button } from "react-bootstrap"
+import { Modal } from "lib/components/Modal"
 // @ts-expect-error no types
 import { Form, FormValues } from "lib/elektra-form"
 

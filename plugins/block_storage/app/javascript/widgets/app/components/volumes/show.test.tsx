@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import { render, screen, waitFor, within } from "@testing-library/react"
+import { render, screen, waitFor, within, cleanup } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import "@testing-library/jest-dom"
 import React from "react"
@@ -86,6 +86,7 @@ describe("ShowModal (Volume)", () => {
   })
 
   afterEach(() => {
+    cleanup()
     vi.clearAllMocks()
   })
 
@@ -236,8 +237,11 @@ describe("ShowModal (Volume)", () => {
     })
 
     it("displays volume id", () => {
-      const table = screen.getByRole("table")
-      expect(within(table).getByText("volume-123")).toBeInTheDocument()
+      // { hidden: true }: react-bootstrap@0.33 marks tab-panes aria-hidden
+      // under React 19, so tables are otherwise excluded from role queries.
+      const tables = screen.getAllByRole("table", { hidden: true })
+      const match = tables.some((table) => within(table).queryByText("volume-123"))
+      expect(match).toBe(true)
     })
 
     it("displays volume description", () => {
@@ -245,8 +249,9 @@ describe("ShowModal (Volume)", () => {
     })
 
     it("displays volume size", () => {
-      const table = screen.getByRole("table")
-      expect(within(table).getByText("100")).toBeInTheDocument()
+      const tables = screen.getAllByRole("table", { hidden: true })
+      const match = tables.some((table) => within(table).queryByText("100"))
+      expect(match).toBe(true)
     })
 
     it("displays volume type", () => {
@@ -542,19 +547,15 @@ describe("ShowModal (Volume)", () => {
     it("closes modal when X button in header is clicked", async () => {
       renderComponent({ id: "volume-123", volume: mockVolume })
 
-      // Bootstrap modal close button
-      const closeButtons = screen.getAllByRole("button")
-      const headerCloseButton = closeButtons.find(
-        (button) => button.className.includes("close") || button.getAttribute("aria-label") === "Close"
-      )
+      // Bootstrap modal close (X) button in the header
+      const headerCloseButton = document.querySelector("button.close") as HTMLElement
+      expect(headerCloseButton).toBeInTheDocument()
 
-      if (headerCloseButton) {
-        await user.click(headerCloseButton)
+      await user.click(headerCloseButton)
 
-        await waitFor(() => {
-          expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
-        })
-      }
+      await waitFor(() => {
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+      })
     })
 
     it("restores URL when modal is closed", async () => {
@@ -618,8 +619,7 @@ describe("ShowModal (Volume)", () => {
       const { rerender } = renderComponent({ id: "volume-123", volume: mockVolume })
 
       // Check modal is visible
-      const modal = screen.getByLabelText(/volume/i).closest(".modal")
-      expect(modal).toHaveClass("fade in")
+      expect(screen.getByRole("dialog")).toBeInTheDocument()
 
       rerender(
         <BrowserRouter>
@@ -633,10 +633,9 @@ describe("ShowModal (Volume)", () => {
         </BrowserRouter>
       )
 
-      // Wait for modal to hide (Bootstrap animations)
+      // Modal unmounts cleanly on close
       await waitFor(() => {
-        const modal = document.querySelector(".modal")
-        expect(modal).not.toHaveClass("in")
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
       })
     })
 
