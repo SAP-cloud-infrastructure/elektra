@@ -8,8 +8,8 @@
 Elektra is a dungeon grown over three ages — the Age of Inline jQuery, the Age of React, and
 the Age of Juno — stacked on top of each other until the keep became a patchwork beast. Our
 quest: drag it from the ruins of **Bootstrap III** into the halls of **Bootstrap V**, and tidy
-the oldest crypts into React on the way through. Five dungeons, five bosses. Juno is a friendly
-NPC faction — do not attack it.
+the oldest crypts into React on the way through. Seven dungeons (0–6); three bosses lurk in
+Dungeons 1–3. Juno is a friendly NPC faction — do not attack it.
 
 **🗺️ Dungeon 0 — The Base Camp.** No boss. You forge your gear: the *Baseline Scroll of Grep*
 (so you always know what's left) and the *Throwaway Lantern* (the temporary local-only E2E
@@ -24,10 +24,11 @@ hit recolors the *entire* kingdom.
 
 **⚔️ Dungeon 2 — The React Keep.**
 > **BOSS: react-bootstrap 0.33, the Ancient One (107-headed).** A full-API-rewrite dragon:
-`bsStyle`→`variant` across 89 heads, `<Panel>`→`<Card>`, `<Label>`→`<Badge>`. Loot on victory:
-you may finally **destroy the cursed `findDOMNode` shim** and its 3 bound familiars — **this
-closes side-quest #2190.** Strike the 4 core files and the central Modal/Form components first;
-they are the dragon's heart.
+`bsStyle`→`variant` across 26 files, `<Panel>`→`<Card>`, `<Label>`→`<Badge>`. Its sibling
+`react-bootstrap-typeahead` (11 files) must be bumped in the same raid. Loot on victory: you may
+finally **destroy the cursed `findDOMNode` shim** and its 3 bound familiars — **this closes
+side-quest #2190.** Strike the 4 core files and the central Modal/Form components first; they
+are the dragon's heart.
 
 **🧪 Dungeon 3 — The jQuery Widget Swamp.**
 > **BOSS: the Five Plugin Golems** (select, multiselect, slider, typeahead, datetimepicker).
@@ -117,12 +118,42 @@ markup/`data-*` attributes in HAML/ERB views.
    clickable, modal opens, form submits"), not screenshot pixel-diffs, since screens change on
    purpose.
 
+## What we gain (the payoff)
+
+This is not a cosmetic upgrade — it buys down real, accumulating risk and debt. Concretely:
+
+- **Unblocks React 19 and kills the `findDOMNode` shim (#2190).** react-bootstrap 0.33 is the
+  reason the deprecated `findDOMNode` shim exists at all. React 19 removed `findDOMNode`; today we
+  keep a hand-written shim alive to stop 0.33 from crashing. Upgrading to react-bootstrap v2 lets
+  us **delete the shim and its 3 consumers** and removes the single biggest blocker to staying
+  current with React.
+- **Off a dead-end dependency.** `bootstrap-sass 3.4.1` and react-bootstrap 0.33 are both
+  **end-of-life** — no security fixes, no bug fixes, no React/Sass-compat updates. Every month on
+  them widens the gap. BS5 and react-bootstrap v2 are the actively-maintained lines.
+- **Bootstrap becomes jQuery-free.** BS5 ships a vanilla-JS API. That severs Bootstrap's
+  dependency on jQuery and makes the *eventual* full jQuery removal (future expansion) a
+  tractable, isolated effort instead of an all-or-nothing knot.
+- **One less generation in the "Frankenstein" stack.** Elektra carries three UI eras (inline
+  jQuery → React → Juno). Decision 3 (replace touched jQuery widgets with React) means the
+  migration actively **retires old inline/jQuery widgets** instead of preserving them — the
+  codebase gets *more* consistent, not just newer.
+- **Modern, lighter, more accessible baseline.** BS5 drops the icon font (`glyphicon`), ships
+  CSS custom properties, better responsive/grid utilities, improved form controls and ARIA
+  defaults — a stronger foundation for the facelift (Phase 6) and for new UI going forward.
+- **Removes maintenance drag.** No more pinning around dead gems, no more shimming new React
+  releases, fewer "why is this on jQuery 1.12" surprises. New contributors meet a current,
+  documented framework instead of a 2015-era one.
+- **A measurable finish line.** The Phase-0 baseline grep makes "done" provable: a defined set of
+  BS3 classes, attributes, and plugins that must reach **zero** — debt we can actually close out,
+  not just carry.
+
 ## Current state (measured)
 
 | Layer | Pin | Notes |
 |-------|-----|-------|
 | SCSS | `bootstrap-sass 3.4.1` (gem) | npm `bootstrap 3.4.1` too; `@import` chain in `app/assets/stylesheets/application.scss.erb` |
 | React | `react-bootstrap 0.33.1` | last BS3-era release; v1=BS4, v2=BS5 (full API rewrite); 107 files import it |
+| React typeahead | `react-bootstrap-typeahead ^6.4.1` | **separate** dep (not react-bootstrap); 11 files (core `autocomplete_field.jsx` + block_storage 4, identity 2, lbaas2 2, tools 2); bump alongside react-bootstrap in Phase 2 |
 | jQuery plugins | bootstrap-select 1.13.6, -multiselect 0.9.15, -slider 9.1.3, -3-typeahead 4.0.2, custom datetimepicker | **no BS5 drop-in — must be replaced** |
 | jQuery | `jquery 1.12.4` | global `window.$`/`jQuery` via `core/jquery.js` — stays |
 | Pagination | `bootstrap-kaminari-views 0.0.5` (gem) | BS3-styled Kaminari views — needs BS5 templates |
@@ -213,8 +244,10 @@ Steps:
 **Goal:** the React component layer runs on a BS5-compatible react-bootstrap; shim deleted.
 
 Steps:
-1. Bump `react-bootstrap` to v2, drop `@types/react-bootstrap` (v2 ships its own types).
-2. Codemod the prop/API renames: `bsStyle`→`variant`, `bsSize`→`size` on `<Button>` (89 files),
+1. Bump `react-bootstrap` to v2, drop `@types/react-bootstrap` (v2 ships its own types). Bump
+   `react-bootstrap-typeahead` to its BS5-compatible line in the same step (11 files: core
+   `autocomplete_field.jsx` + block_storage 4, identity 2, lbaas2 2, tools 2).
+2. Codemod the prop/API renames: `bsStyle`→`variant`, `bsSize`→`size` (`bsStyle` in 26 files),
    `<Panel>`→`<Card>` (13), `<Label>`→`<Badge>` (1), `FormControl`/`Form` overhaul.
 3. Hand-review the transition components whose API changed: `Collapse` (10), `Overlay` (3),
    `Popover` (3), `Tooltip` (1), `Carousel` (1), `Alert` (18).
@@ -318,7 +351,8 @@ Two distinct test layers — do not conflate them:
 **Temporary migration E2E suite (`e2e/playwright/migration/`) — throwaway, local-only, deep-dive**
 - Purpose: catch exactly what a BS3→BS5 change breaks — grid/button/panel/form/modal rendering,
   dropdowns, tooltips/popovers (now opt-in), the replaced jQuery widgets, and wizard flows.
-- Scope: deep and specific, per Tier-A/B plugin screen; includes before/after visual diffs.
+- Scope: deep and specific, per Tier-A/B plugin screen; **functional assertions only** (renders,
+  clickable, opens, submits) — no pixel-diffs, since the BS5 look changes screens on purpose.
 - Execution: **run locally by the developer** (`RAILS_ENV=e2e` Rails on `localhost:8010`,
   `pnpm e2e:ui -- --host http://localhost:8010`). Not wired into CI.
 - Lifecycle: built in Phase 0, used throughout, **removed in Phase 5.** A couple of durable
@@ -347,7 +381,7 @@ Plus the usual unit layer each phase: `docker exec elektra pnpm test` and
 ## Effort summary (relative)
 
 - **HIGH:** react-bootstrap v2 rewrite (107); SCSS variable/mixin rewrite (`_monsoon_theme.scss`);
-  replacing 4-5 BS3 jQuery plugins; `btn-default` rename (155 files).
+  replacing the 5 BS3 jQuery plugins; `btn-default` rename (155 files).
 - **MEDIUM:** grid review (89); `data-*` → `data-bs-*` (~55); modal/form via centralized libs;
   `pull-right`→`float-end` (51); nav-tabs/caret.
 - **LOW:** panel→card (~7+13); well (9); label→badge (5); input-group-addon (8); glyphicon (1);
@@ -379,9 +413,11 @@ The core footprint is small in file count but high in leverage: fixing it unbloc
 - `app/views/application/_simple_modal_form.html.haml`, `_breadcrumb`, `_user_profile`,
   `_cloudops_nav`, `_error_page`, `exceptions/*` — BS markup + a few inline `$()`
 
-**jQuery plugins (stay as jQuery, but verify BS5-neutral):** the 8 `core/jquery.*` plugins +
-`lib/bootstrap-datetimepicker.js`. These keep working on jQuery; only confirm they don't rely on
-BS3 CSS/markup. Core also has ~46 BS3-jQuery-plugin call-sites (datetimepicker-heavy) → Phase 3.
+**jQuery plugins (stay as jQuery, but verify BS5-neutral):** the 8 `core/jquery.*` plugins.
+These keep working on jQuery; only confirm they don't rely on BS3 CSS/markup. Separately,
+`lib/bootstrap-datetimepicker.js` is a **BS3 jQuery plugin and does *not* stay** — it is one of
+the five widgets replaced by a React component in Phase 3. Core also has ~46 BS3-jQuery-plugin
+call-sites (datetimepicker-heavy) → Phase 3.
 
 **Core numbers:** 4 react-bootstrap files · 10 `btn-default` files · ~8 `data-*` files ·
 6 inline-`$()` view files · ~46 BS3-plugin call-sites.
