@@ -1,0 +1,14 @@
+.form-signin
+  %h2.form-signin-heading
+    Single Sign-On required
+
+  .flashes
+    - flash.each do |name, msg|
+      .alert{ class: "alert-#{name}" }= msg
+
+  %section
+    .bs-callout.bs-callout-info.bs-callout-emphasize
+      %p
+        Password login is disabled. Please sign in via Single Sign-On.
+
+  = link_to 'Return to dashboard', '/', class: 'btn btn-lg btn-primary btn-block'
