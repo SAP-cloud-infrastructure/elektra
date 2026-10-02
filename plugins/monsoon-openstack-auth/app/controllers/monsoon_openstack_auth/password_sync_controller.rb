@@ -24,7 +24,7 @@ module MonsoonOpenstackAuth
     end
 
     def create
-      result = MonsoonOpenstackAuth::Authentication::PasswordSync.new.call(@user_id, @password)
+      result = MonsoonOpenstackAuth::Authentication::PasswordSync.new.call(@username, @password, @domain_name)
 
       case result.status
       when MonsoonOpenstackAuth::Authentication::PasswordSync::SUCCESS
@@ -44,8 +44,20 @@ module MonsoonOpenstackAuth
     private
 
     def load_params
-      @user_id = params[:username].to_s.strip
+      @username = params[:username].to_s.strip
       @password = params[:password].to_s
+      @domain_name = resolve_domain_name(params[:domain_fid])
+    end
+
+    # The URL carries domain_fid, which is the friendly-id/slug, not necessarily
+    # the Keystone domain name. Resolve it via the FriendlyIdEntry lookup; fall
+    # back to the slug itself when no entry exists (common case where slug equals
+    # the domain name, e.g. the default domain).
+    def resolve_domain_name(domain_fid)
+      return nil if domain_fid.to_s.empty?
+
+      entry = FriendlyIdEntry.find_domain(domain_fid) rescue nil
+      entry&.name.presence || domain_fid
     end
 
     def render_rate_limited

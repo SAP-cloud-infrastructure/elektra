@@ -5,6 +5,7 @@ describe MonsoonOpenstackAuth::Authentication::PasswordSync do
   let(:logger) { double('logger', error: nil) }
   let(:user_id) { 'D123456' }
   let(:password) { 'new-password' }
+  let(:domain_name) { 'monsoon3' }
 
   subject(:service) { described_class.new(api_client, logger: logger) }
 
@@ -13,6 +14,13 @@ describe MonsoonOpenstackAuth::Authentication::PasswordSync do
   end
 
   describe '#call' do
+    it 'passes the username, password and domain to the api client' do
+      expect(api_client).to receive(:validate_credentials)
+        .with(user_id, password, domain_name).and_return({ 'token' => {} })
+
+      service.call(user_id, password, domain_name)
+    end
+
     context 'when the password is already current (attempt 1 succeeds)' do
       it 'returns success without a second attempt' do
         expect(api_client).to receive(:validate_credentials).once.and_return({ 'token' => {} })

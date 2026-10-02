@@ -22,14 +22,28 @@ describe MonsoonOpenstackAuth::PasswordSyncController, type: :controller do
 
     before do
       allow(MonsoonOpenstackAuth::Authentication::PasswordSync).to receive(:new).and_return(sync_service)
+      allow(FriendlyIdEntry).to receive(:find_domain).and_return(nil)
     end
 
     def result(status, message = 'msg')
       MonsoonOpenstackAuth::Authentication::PasswordSync::Result.new(status: status, message: message)
     end
 
-    it 'passes the user id and password to the sync service' do
-      expect(sync_service).to receive(:call).with(user_id, password)
+    it 'passes the username, password and resolved domain to the sync service' do
+      # no FriendlyIdEntry for this slug -> falls back to the slug itself
+      allow(FriendlyIdEntry).to receive(:find_domain).with(domain_id).and_return(nil)
+
+      expect(sync_service).to receive(:call).with(user_id, password, domain_id)
+        .and_return(result(MonsoonOpenstackAuth::Authentication::PasswordSync::SUCCESS))
+
+      post :create, params: { domain_fid: domain_id, username: user_id, password: password }
+    end
+
+    it 'resolves the domain_fid slug to the real Keystone domain name' do
+      entry = double('friendly_id_entry', name: 'real-domain-name')
+      allow(FriendlyIdEntry).to receive(:find_domain).with(domain_id).and_return(entry)
+
+      expect(sync_service).to receive(:call).with(user_id, password, 'real-domain-name')
         .and_return(result(MonsoonOpenstackAuth::Authentication::PasswordSync::SUCCESS))
 
       post :create, params: { domain_fid: domain_id, username: user_id, password: password }
