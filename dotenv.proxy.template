@@ -83,6 +83,9 @@ MONSOON_NEW_PROJECT_DL=""
 
 ENFORCE_NATURAL_USER_LOGIN=false # Production: set to true
 
+# When false, the password login form is disabled (SSO-only). Password sync stays available.
+MONSOON_OPENSTACK_PASSWORD_AUTH_ALLOWED=true # Production: set to false for SSO-only regions
+
 # MONSOON_DASHBOARD_MAIL_SERVER="<your-server>"
 
 # CAM base URL
