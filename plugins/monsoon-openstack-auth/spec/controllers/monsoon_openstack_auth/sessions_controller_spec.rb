@@ -32,6 +32,7 @@ describe MonsoonOpenstackAuth::SessionsController, type: :controller do
 
     before do
       allow(MonsoonOpenstackAuth.configuration).to receive(:form_auth_allowed?).and_return(true)
+      allow(MonsoonOpenstackAuth.configuration).to receive(:password_auth_allowed?).and_return(true)
       allow(controller.main_app).to receive(:root_path).and_return('/dashboard')
     end
 
@@ -110,6 +111,7 @@ describe MonsoonOpenstackAuth::SessionsController, type: :controller do
     before do
       allow(MonsoonOpenstackAuth.configuration).to receive(:form_auth_allowed?).and_return(true)
       allow(MonsoonOpenstackAuth.configuration).to receive(:enforce_natural_user).and_return(false)
+      allow(MonsoonOpenstackAuth.configuration).to receive(:password_auth_allowed?).and_return(true)
     end
 
     context 'when password auth is disabled' do
@@ -769,6 +771,7 @@ describe MonsoonOpenstackAuth::SessionsController, type: :controller do
 
     before do
       allow(MonsoonOpenstackAuth.configuration).to receive(:form_auth_allowed?).and_return(true)
+      allow(MonsoonOpenstackAuth.configuration).to receive(:password_auth_allowed?).and_return(true)
       allow(MonsoonOpenstackAuth::Authentication::AuthSession)
         .to receive(:create_from_login_form)
         .and_return(mock_auth_session)
