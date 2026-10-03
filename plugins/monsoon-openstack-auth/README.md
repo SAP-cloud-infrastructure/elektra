@@ -129,11 +129,19 @@ side effect).
   `{ "status": "AUTH_NO_ACCESS" }`, top-level navigations get a terminal page) —
   it never exposes 401/403 and never redirects, to avoid an OAuth proxy loop.
 
+> **Keep `form_auth_allowed = true` for SSO-only regions.** Disabling the
+> password login is done via `password_auth_allowed = false`, which keeps the
+> login route reachable so unauthenticated SSO users (certificate or session)
+> land on the SSO-only page. Setting `form_auth_allowed = false` as well removes
+> that route and can bounce those users to the (auth-protected) root path.
+
 Regardless of the flag, the dedicated password-sync endpoint stays available:
 
 - Routes: `GET`/`POST /:domain_fid/auth/password_sync`.
-- It validates the user's **user id** + new password **unscoped** against
-  Keystone (triggering the backend sync) and **never creates a session**.
+- It validates the user's **username** + new password within the request's
+  **domain** (the `domain_fid` slug is resolved to the real Keystone domain
+  name) against Keystone (triggering the backend sync) and **never creates a
+  session**.
 - State machine: attempt 1 returns `201` if the password is already current, or
   `401` if it was outdated (which triggers the sync); a single retry then
   returns `201` (synced) or `401` (password genuinely wrong). Any `5xx` maps to
