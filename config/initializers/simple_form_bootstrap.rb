@@ -64,17 +64,20 @@ SimpleForm.setup do |config|
   end
 
   # please keep in sync with :horizontal_form_disabled, horizontal_radio_and_checkboxes_4x8
+  # BS5: horizontal forms use a `.row` grid; label is `.col-form-label`, hints/errors are
+  # `.form-text`, invalid state is `.is-invalid` (BS3 `.form-group`/`.control-label`/`.help-block`/
+  # `.has-error` were removed/renamed). `.col-sm-*` is unchanged in BS5.
   config.wrappers :horizontal_form,
                   tag: "div",
-                  class: "form-group",
-                  error_class: "has-error" do |b|
+                  class: "row mb-3",
+                  error_class: "is-invalid" do |b|
     b.use :html5
     b.use :placeholder
     b.optional :maxlength
     b.optional :pattern
     b.optional :min_max
     b.optional :readonly
-    b.use :label, class: "col-sm-4 control-label"
+    b.use :label, class: "col-sm-4 col-form-label"
 
     b.wrapper tag: "div", html: { class: "col-sm-8" } do |ba|
       ba.wrapper :input_wrapper, tag: "div", class: "input-wrapper" do |i|
@@ -83,8 +86,8 @@ SimpleForm.setup do |config|
         i.use :help_hint
       end
 
-      ba.use :error, wrap_with: { tag: "span", class: "help-block" }
-      ba.use :icon_hint, wrap_with: { tag: "p", class: "help-block" }
+      ba.use :error, wrap_with: { tag: "span", class: "form-text text-danger" }
+      ba.use :icon_hint, wrap_with: { tag: "p", class: "form-text" }
     end
   end
 

@@ -2,16 +2,16 @@
   = content_for :title do
     Edit Project
 - else
-  = content_for :main_toolbar do 
+  = content_for :main_toolbar do
     Edit
 
-= simple_form_for @project, url: plugin('identity').update_project_path(id: @project.id), method: :put, remote: request.xhr?, html: {data: {modal: true},  class: 'form-horizontal' }, wrapper: :horizontal_form do |f|
+= simple_form_for @project, url: plugin('identity').update_project_path(id: @project.id), method: :put, remote: request.xhr?, html: {data: {modal: true} }, wrapper: :horizontal_form do |f|
   %div{class: modal? ? 'modal-body' : ''}
     - unless @project.errors["message"].blank?
-      %p.alert.alert-error= @project.errors.full_messages.to_sentence
+      %p.alert.alert-danger= @project.errors.full_messages.to_sentence
 
     = render partial: 'identity/projects/shared/form', locals: { form: f }
 
   %div{class: modal? ? 'modal-footer' : ''}
-    %button.btn.btn-default{type:"button", data: {dismiss:"modal"}, aria: {label: "Cancel"}} Cancel
+    %button.btn.btn-secondary{type:"button", data: {bs_dismiss:"modal"}, aria: {label: "Cancel"}} Cancel
     = f.submit 'Update', class: 'btn btn-primary', data: { disable_with: "Please wait..." }

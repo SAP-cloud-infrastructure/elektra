@@ -27,6 +27,17 @@ development:
 
   database: <%= ENV['MONSOON_DB_NAME'] || 'monsoon-dashboard_development' %>
 
+# SPIKE: e2e env reuses the development DB so RAILS_ENV=e2e can render pages.
+e2e:
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV['MAX_THREADS'] || 10 %>
+  username: <%= ENV['MONSOON_DB_USER'] || 'postgres' %>
+  password: <%= ENV['MONSOON_DB_PASSWORD'] || '' %>
+  host: <%= ENV['POSTGRES_PORT_5432_TCP_ADDR'] || ENV['ELEKTRA_POSTGRESQL_SERVICE_HOST'] || ENV['POSTGRES_ELEKTRA_SERVICE_HOST'] || ENV['POSTGRES_SERVICE_HOST'] || 'localhost' %>
+  port: <%= ENV['POSTGRES_PORT_5432_TCP_PORT'] || ENV['ELEKTRA_POSTGRESQL_SERVICE_PORT'] || ENV['POSTGRES_ELEKTRA_SERVICE_PORT'] || ENV['POSTGRES_SERVICE_PORT'] || 5432 %>
+  database: <%= ENV['MONSOON_DB_NAME'] || 'monsoon-dashboard_development' %>
+
   # The specified database role being used to connect to postgres.
   # To create additional roles in postgres see `$ createuser --help`.
   # When left blank, postgres will use the default role. This is

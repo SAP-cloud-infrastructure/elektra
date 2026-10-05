@@ -1,0 +1,203 @@
+// SPIKE compat shim: define BS3 variables/mixins removed in BS5, in terms of BS5 equivalents.
+// Must be imported AFTER bootstrap/scss/bootstrap so BS5 vars ($primary, $font-size-base, ...) exist.
+// Throwaway — just to see how far the compile gets.
+
+// --- variables ---
+// BS3 kept $line-height-computed in px (14px * 1.428 ≈ 20px). BS5 moved base font to rem, which
+// breaks the many px-mixing calcs in _monsoon_theme. Pin it to the BS3 px value to keep them valid.
+$line-height-computed: 20px !default;
+$brand-primary: $primary !default;
+$brand-success: $success !default;
+$brand-info: $info !default;
+$brand-warning: $warning !default;
+$brand-danger: $danger !default;
+$link-color: $primary !default;
+$border-radius-base: $border-radius !default;
+$screen-sm: map-get($grid-breakpoints, sm) !default;
+$screen-md: map-get($grid-breakpoints, md) !default;
+$screen-lg: map-get($grid-breakpoints, lg) !default;
+$navbar-height: 50px !default;
+// BS3 $grid-gutter-width was 30px; BS5 made it 1.5rem. Custom SCSS mixes it with px → force px.
+// (no !default: BS5 already set it, we must override)
+$grid-gutter-width: 30px;
+// BS3 font sizes were px; our custom SCSS mixes them with local px vars. Pin to BS3 px values
+// to avoid rem/px arithmetic clashes (BS5 base font is 1rem).
+$font-size-large: 18px !default;
+$font-size-small: 12px !default;
+$state-success-text: $success !default;
+$state-info-text: $info !default;
+$state-warning-text: $warning !default;
+$state-danger-text: $danger !default;
+$table-border-color: $border-color !default;
+// second wave (found via compile iteration + static diff)
+$input-bg-disabled: $gray-200 !default;
+$input-height-base: 34px !default;
+$line-height-large: 1.3333333 !default;
+$navbar-padding-vertical: 8px !default;
+$container-sm: 540px !default;
+$container-md: 720px !default;
+$container-lg: 960px !default;
+$screen-sm-min: map-get($grid-breakpoints, sm) !default;
+$screen-md-min: map-get($grid-breakpoints, md) !default;
+$screen-lg-min: map-get($grid-breakpoints, lg) !default;
+$font-size-h1: 36px !default;
+$font-size-h2: 30px !default;
+$font-size-h3: 24px !default;
+$font-size-h4: 18px !default;
+$font-size-h5: 14px !default;
+$font-size-h6: 12px !default;
+$dropdown-border: rgba(0, 0, 0, 0.15) !default;
+$alert-padding: 15px !default;
+$alert-success-bg: $success-bg-subtle !default;
+$alert-info-bg: $info-bg-subtle !default;
+$alert-warning-bg: $warning-bg-subtle !default;
+$alert-danger-bg: $danger-bg-subtle !default;
+
+// --- mixins ---
+@mixin box-shadow($shadow...) {
+  box-shadow: $shadow;
+}
+@mixin transition($transition...) {
+  transition: $transition;
+}
+@mixin opacity($opacity) {
+  opacity: $opacity;
+}
+@mixin box-sizing($boxmodel) {
+  box-sizing: $boxmodel;
+}
+@mixin border-top-radius($radius) {
+  border-top-left-radius: $radius;
+  border-top-right-radius: $radius;
+}
+// BS3 nav-divider (removed in BS5): a 1px horizontal separator inside dropdowns/navs.
+@mixin nav-divider($color: #e5e5e5) {
+  height: 1px;
+  margin: calc(#{$line-height-base} / 2) 0;
+  overflow: hidden;
+  background-color: $color;
+}
+// BS3 grid helper → approximate with BS5 fixed-width column
+@mixin make-md-column($columns, $gutter: $grid-gutter-width) {
+  position: relative;
+  min-height: 1px;
+  padding-left: calc(#{$gutter} / 2);
+  padding-right: calc(#{$gutter} / 2);
+  @media (min-width: map-get($grid-breakpoints, md)) {
+    float: left;
+    width: percentage($columns / 12);
+  }
+}
+// BS3 button-size took 5 args (incl. line-height); BS5 takes 4. Restore BS3 signature.
+@mixin button-size($padding-vertical, $padding-horizontal, $font-size, $line-height, $border-radius) {
+  padding: $padding-vertical $padding-horizontal;
+  font-size: $font-size;
+  line-height: $line-height;
+  border-radius: $border-radius;
+}
+
+// --- component class compat (SPIKE) ---
+// BS5 dropped many BS3 component classes from its CSS output. Elektra's HAML/ERB views + react-
+// bootstrap still emit the BS3 names, which now have no rules behind them → "totally broken" look.
+// Re-alias the highest-volume ones to their BS5 equivalents. This is a bridge to SEE the app, not a
+// clean port: the markup STRUCTURE also changed (panel head/body vs card header/body), so some of
+// these are approximations.
+
+// .panel* → .card* (Elektra's dominant container; ~1200 refs)
+.panel {
+  @extend .card;
+}
+.panel-heading {
+  @extend .card-header;
+}
+.panel-body {
+  @extend .card-body;
+}
+.panel-footer {
+  @extend .card-footer;
+}
+.panel-title {
+  margin: 0;
+  font-size: $font-size-base;
+}
+// BS3 contextual panels → BS5 border/text utilities (approximate)
+.panel-default > .panel-heading {
+  background-color: $gray-100;
+}
+.panel-primary {
+  border-color: $primary;
+  > .panel-heading {
+    color: #fff;
+    background-color: $primary;
+    border-color: $primary;
+  }
+}
+
+// .well → .card body-ish box (removed in BS5)
+.well {
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: $gray-100;
+  border: 1px solid $border-color;
+  border-radius: $border-radius;
+}
+
+// .btn-default → .btn-secondary look (removed in BS5; ~466 refs)
+.btn-default {
+  @include button-variant($gray-100, $gray-400, $color: $body-color);
+}
+
+// .label-* → BS5 .badge + bg utility (BS3 .label removed; ~346 refs)
+.label {
+  display: inline-block;
+  padding: 0.35em 0.65em;
+  font-size: 0.75em;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: $border-radius;
+}
+.label-default { background-color: $gray-500; }
+.label-primary { background-color: $primary; }
+.label-success { background-color: $success; }
+.label-info { background-color: $info; }
+.label-warning { background-color: $warning; }
+.label-danger { background-color: $danger; }
+
+// float helpers renamed in BS5 (.pull-right/left → .float-end/start)
+.pull-right { float: right !important; }
+.pull-left { float: left !important; }
+
+// .help-block → .form-text (removed in BS5; ~413 refs)
+.help-block {
+  display: block;
+  margin-top: 0.25rem;
+  color: $gray-600;
+  font-size: 0.875em;
+}
+
+// .caret (removed in BS5 — was the dropdown triangle)
+.caret {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  margin-left: 2px;
+  vertical-align: middle;
+  border-top: 4px dashed;
+  border-right: 4px solid transparent;
+  border-left: 4px solid transparent;
+}
+
+// BS3 form-horizontal label alignment (BS5 reworked the form grid)
+.control-label {
+  font-weight: 700;
+}
+
+// BS3 .hidden utility (BS5 uses .d-none)
+.hidden {
+  display: none !important;
+}
+

@@ -4,7 +4,7 @@
 // able to overwrite bootstrap variables in it)
 // ---------------------------------------------------------------------------------
 
-$font-size-medium: ceil(($font-size-base * 1.125));
+$font-size-medium: 16px; // SPIKE: BS3 base was 14px → ceil(14*1.125)=16px; BS5 base is 1rem (unit clash)
 $context-breadcrumb-font-size: $font-size-medium;
 $state-info-bg: #d9edf7;
 $state-info-border: #bcdff1;
@@ -178,7 +178,8 @@ span.highlight {
 }
 // ---------------------------------------------------------------------------
 
-.input-group-addon {
+// BS5: BS3's `.input-group-addon` was replaced by `.input-group-text`.
+.input-group-text {
   &.select-addon {
     padding-top: 4px;
     padding-bottom: 3px;
@@ -731,10 +732,15 @@ section {
 // Labels
 // ---------------------------------------------------------------------------------
 
+// BS5: `.label` became `.badge`. These are custom greyscale variants of Elektra's labels; the
+// views still emit `.label-*-greyscale`, which the compat shim bridges, so keep both names here
+// until the markup is migrated.
+.badge-warning-greyscale,
 .label-warning-greyscale {
   background-color: $label-warning-greyscale-bg;
 }
 
+.badge-danger-greyscale,
 .label-danger-greyscale {
   background-color: $label-danger-greyscale-bg;
 }
@@ -795,6 +801,8 @@ section {
   label {
     margin: 0 10px 0 0;
 
+    // BS5 uses `.form-check.form-check-inline`; views still emit BS3 `.radio-inline`/`.checkbox-inline`.
+    &.form-check-inline,
     &.radio-inline,
     &.checkbox-inline {
       margin-right: 2px;
@@ -841,6 +849,8 @@ section {
     margin-bottom: 6px;
   }
 
+  // BS5 `.form-check-inline .form-check-input` + legacy BS3 `.radio-inline`/`.checkbox-inline`.
+  .form-check-inline .form-check-input,
   .radio-inline input[type="radio"],
   .checkbox-inline input[type="checkbox"] {
     margin-top: 11px;
@@ -917,6 +927,9 @@ section {
 
 // special top of page navbar
 .navbar-sap {
+  // BS5 removed `.navbar-inverse` in favour of `.navbar-dark`. Views still emit `.navbar-inverse`,
+  // so match both until the markup is migrated.
+  &.navbar-dark .dropdown-menu > .active > a,
   &.navbar-inverse .dropdown-menu > .active > a {
     background: rgba(255, 255, 255, 0.25);
     color: #999;
@@ -945,12 +958,18 @@ section {
   color: #fff;
 }
 
+// BS5 nav items are `.nav-link` (no `.nav > li > a` wrapper structure). Match both: the BS5
+// `.nav-link` form and the legacy BS3 `.nav > li > a` the views still render.
+.nav-link.navbar-identity,
 .nav > li > a.navbar-identity {
   display: flex;
   align-items: center;
   column-gap: 0.3rem;
 }
 
+// BS5 renamed `.navbar-inverse` → `.navbar-dark`; keep both while the markup still emits the old
+// name.
+.navbar-dark,
 .navbar-inverse {
   .dropdown-menu {
     background-color: $inverse-dropdown-bg;
@@ -1279,7 +1298,7 @@ footer,
         color: #333;
         display: inline-block;
         padding: (
-            ($context-breadcrumb-height - ($context-breadcrumb-font-size - $font-size-base) - $line-height-computed) / 2
+            ($context-breadcrumb-height - ($context-breadcrumb-font-size - 14px) - $line-height-computed) / 2
           )
           0; // to calculate the correct padding subtract from the total height the actual line-height (computed + adjustment for font size (if other than base size)), then divide by 2
         padding-right: $context-breadcrumb-padding-horizontal;
@@ -1525,8 +1544,8 @@ footer,
     .btn {
       @extend .btn-primary;
 
-      &.btn-default {
-        @extend .btn-default;
+      &.btn-secondary {
+        @extend .btn-secondary;
       }
     }
 
@@ -1551,8 +1570,8 @@ footer,
     .btn {
       @extend .btn-info;
 
-      &.btn-default {
-        @extend .btn-default;
+      &.btn-secondary {
+        @extend .btn-secondary;
       }
     }
 
@@ -1587,8 +1606,8 @@ footer,
     .btn {
       @extend .btn-info;
 
-      &.btn-default {
-        @extend .btn-default;
+      &.btn-secondary {
+        @extend .btn-secondary;
       }
     }
 
@@ -1607,8 +1626,8 @@ footer,
     .btn {
       @extend .btn-success;
 
-      // &.btn-default {
-      //   @extend .btn-default;
+      // &.btn-secondary {
+      //   @extend .btn-secondary;
       // }
     }
 
@@ -1631,8 +1650,8 @@ footer,
     .btn {
       @extend .btn-warning;
 
-      // &.btn-default {
-      //   @extend .btn-default;
+      // &.btn-secondary {
+      //   @extend .btn-secondary;
       // }
     }
 
@@ -1655,8 +1674,8 @@ footer,
     .btn {
       @extend .btn-danger;
 
-      // &.btn-default {
-      //   @extend .btn-default;
+      // &.btn-secondary {
+      //   @extend .btn-secondary;
       // }
     }
 
@@ -2432,6 +2451,9 @@ table.searchable.search-mode {
 
 // ---------------------------------------------------------------------------------
 // Forms
+// NOTE (BS5): BS5 dropped `.form-group`, but simple_form (config/initializers/simple_form_bootstrap.rb,
+// out of this migration's scope) and the compat shim still produce/support it, so the `.form-group`
+// rules below stay valid and are intentionally kept until the form wrapper is migrated.
 // ---------------------------------------------------------------------------------
 
 .form-inline {
@@ -2673,11 +2695,20 @@ label {
 // Bootstrap Accordion
 // --------------------------------------------------------------------------------------
 
+// BS5 removed `.panel*` (→ `.card*`) and reworked the accordion markup
+// (`.panel-group > .panel > .panel-heading/.panel-collapse` → `.accordion > .card`/`.accordion-item`).
+// The views still render BS3 panel markup (bridged by the compat shim's `.panel → @extend .card`
+// aliases), so each selector below pairs the BS5 `.card*`/`.accordion` name with the legacy BS3
+// `.panel*` name — this keeps the custom smooth-accordion look working for both until the markup
+// is migrated.
+.accordion.smooth-accordion > .card:first-child .card-header,
 .panel-group.smooth-accordion > .panel:first-child .panel-heading {
   border-radius: 4px 4px 0 0;
 }
 
+.accordion.smooth-accordion,
 .panel-group.smooth-accordion {
+  .card,
   .panel {
     margin-top: 0;
     border-radius: 0;
@@ -2692,9 +2723,11 @@ label {
     }
   }
 
+  .collapse .card-body,
   .panel-collapse .panel-body {
     border-top: none;
   }
+  .card-header,
   .panel-heading {
     border-radius: 0;
     border: none;
@@ -2703,6 +2736,7 @@ label {
     background: transparent;
   }
 
+  .card-title a,
   .panel-title a {
     display: block;
     color: #008fcc;
@@ -2723,30 +2757,36 @@ label {
     }
   }
 
+  .card-body,
   .panel-body {
     background: #fff;
   }
 
+  .card:last-child .card-body,
   .panel:last-child .panel-body {
     border-radius: 0 0 4px 4px;
   }
 
+  .card:last-child .card-header,
   .panel:last-child .panel-heading {
     border-radius: 0 0 4px 4px;
     transition: border-radius 0.3s linear 0.2s;
   }
 
+  .card:last-child .card-header.active,
   .panel:last-child .panel-heading.active {
     border-radius: 0;
     transition: border-radius linear 0s;
   }
 
+  .collapse > .card-body,
   .panel-collapse > .panel-body {
     border-top-color: none;
   }
 
   /* #bs-collapse icon scale option */
 
+  .card-header a:before,
   .panel-heading a:before {
     content: "\f138";
     font-size: 20px;
@@ -2759,6 +2799,7 @@ label {
     transition: all 0.5s;
   }
 
+  .card-header a.collapsed:before,
   .panel-heading a.collapsed:before {
     transition: all 0.5s;
     transform: rotate(0deg);

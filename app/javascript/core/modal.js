@@ -172,13 +172,16 @@ var MoModal = (function () {
             $("#modal-holder").find(".modal").modal("hide")
             return (window.location = url)
           } else {
-            if ($(".modal-backdrop").length === 0) {
-              // prevent multiple overlays on double click
-              // open modal with content from ajax response
-              $(modal_holder_selector).html(data).find(modal_selector).modal()
-              // for the case the response contains a form intialize it
-              return triggerUpdateEvent()
-            }
+            // SPIKE (BS5): hideLoading() now disposes the spinner + removes its backdrop
+            // synchronously (see dialogs.js), so no loader backdrop should remain here. The old
+            // `=== 0` guard (meant to prevent a double overlay on double click) is unreliable under
+            // BS5's async backdrop teardown; modal_is_loading already guards double clicks. Sweep
+            // any stray backdrop and always open the content modal.
+            $(".modal-backdrop").remove()
+            // open modal with content from ajax response
+            $(modal_holder_selector).html(data).find(modal_selector).modal()
+            // for the case the response contains a form intialize it
+            return triggerUpdateEvent()
           }
         })
         .complete(() => (modal_is_loading = false))

@@ -1,6 +1,6 @@
 import React from "react"
 import { useMemo } from "react"
-import { Label } from "react-bootstrap"
+import { Badge as Label } from "react-bootstrap" // SPIKE: rb2 removed Label (use Badge)
 
 import { Tooltip } from "lib/components/Overlay"
 import { renderToString } from "react-dom/server"

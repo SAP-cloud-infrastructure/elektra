@@ -1,4 +1,4 @@
-import Button from "react-bootstrap/lib/Button"
+import { Button } from "react-bootstrap" // SPIKE: rb2 removed the lib/ deep-import path
 import { PrettyDate } from "lib/components/pretty_date"
 import React from "react"
 

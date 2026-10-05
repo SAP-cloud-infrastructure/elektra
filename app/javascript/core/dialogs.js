@@ -217,6 +217,8 @@ var InfoDialog = (function () {
       }
 
       // Opening dialog
+      // SPIKE (BS5): see showLoading() — detached $dialog must be in the DOM so BS5 isolates it.
+      if (!$dialog[0].isConnected) $dialog.appendTo("body")
       return $dialog.modal()
     }
 
@@ -255,10 +257,31 @@ var InfoDialog = (function () {
     }
 
     static showLoading() {
-      return $ajaxLoader.modal("show")
+      // SPIKE (BS5): The loading spinner must NOT be a real BS5 modal. Under BS5, driving $ajaxLoader
+      // through .modal("show")/.modal("hide") mutates the SINGLE global body state (body.modal-open +
+      // the shared .modal-backdrop) and tears it down ASYNCHRONOUSLY. That async teardown races the
+      // synchronous open of the real content modal (modal.js:178) and strips its backdrop/modal-open
+      // right after it opens → "opens then immediately closes". Decouple the spinner entirely: show
+      // it as a plain overlay (no BS5 Modal instance), so it never touches the content modal's state.
+      if (!$ajaxLoader[0].isConnected) {
+        $ajaxLoader
+          .css({ display: "block", "z-index": 2000 })
+          .addClass("show")
+          .appendTo("body")
+        $('<div class="modal-backdrop show bs3-loading-backdrop"></div>').appendTo("body")
+        $("body").addClass("modal-open")
+      }
+      return $ajaxLoader
     }
     static hideLoading() {
-      return $ajaxLoader.modal("hide")
+      // Plain-overlay teardown (synchronous): remove the spinner + its own backdrop, and only clear
+      // the global modal-open flag if no real modal is still open. See showLoading() for the why.
+      $ajaxLoader.detach()
+      $(".bs3-loading-backdrop").remove()
+      if ($("#modal-holder .modal.show").length === 0) {
+        $("body").removeClass("modal-open").css("padding-right", "")
+      }
+      return $ajaxLoader
     }
   }
   InfoDialog.initClass()
