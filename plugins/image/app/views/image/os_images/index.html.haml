@@ -6,7 +6,7 @@
     = text_field_tag "search_#{current_tab}_images_input", '', class: "form-control", placeholder: 'Image name or ID'
 
   .has-feedback-help
-    %a.help-link{href: "#", data: {toggle: "popover", "popover-type": "help-hint", content: "Searches by image name or ID in visible image list only. Entering a search term will automatically start loading the next pages and filter the loaded items using the search term. Emptying the search input field will show all currently loaded items."}}
+    %a.help-link{href: "#", data: {bs_toggle: "popover", "popover-type": "help-hint", content: "Searches by image name or ID in visible image list only. Entering a search term will automatically start loading the next pages and filter the loaded items using the search term. Emptying the search input field will show all currently loaded items."}}
       %i.fa.fa-question-circle
 
 = render partial: "image/os_images/#{current_tab}/index_table"

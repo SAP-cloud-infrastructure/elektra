@@ -145,7 +145,7 @@ var InfoDialog = (function () {
   InfoDialog = class InfoDialog {
     static initClass() {
       loading = `\
-<div class="modal " data-keyboard="false" tabindex="-1" role="dialog" aria-hidden="true">
+<div class="modal " data-bs-keyboard="false" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog modal-sm">
     <div class="modal-content">
       <div class="modal-body"><div class="loading-spinner"></div><div class="loading-text">Loading...</div></div>
@@ -157,7 +157,7 @@ var InfoDialog = (function () {
 
       // Creating modal dialog's DOM
       html = `\
-<div class="modal fade" data-keyboard="false" tabindex="-1" role="dialog" aria-hidden="true" style="padding-top:15%; overflow-y:visible;">
+<div class="modal fade" data-bs-keyboard="false" tabindex="-1" role="dialog" aria-hidden="true" style="padding-top:15%; overflow-y:visible;">
   <div class="modal-dialog modal-m">
     <div class="modal-content">
       <div class="modal-header"><h3 style="margin:0;"></h3></div>

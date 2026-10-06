@@ -12,7 +12,7 @@
     %hr/
     %label
       Create Subnet
-      = check_box_tag 'Create Subnet', 1, !@subnet.nil?, hidden: true, data:{toggle: 'collapse', target: '#collapseExample'} # checkbox hidden until create subnet available
+      = check_box_tag 'Create Subnet', 1, !@subnet.nil?, hidden: true, data:{bs_toggle: 'collapse', bs_target: '#collapseExample'} # checkbox hidden until create subnet available
     -# FIXME: anti-pattern of doing two things in one dialog - labelling already indicates a hack
     %fieldset.collapse{id: "collapseExample", class: "#{"in" if !@subnet.nil?}"}
       = f.simple_fields_for :subnets do |subnets|

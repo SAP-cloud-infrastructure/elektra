@@ -175,7 +175,7 @@ export default class List extends React.Component {
             <div className="dropdown header-action">
               <i
                 className="fa fa-cog dropdown-toggle"
-                data-toggle="dropdown"
+                data-bs-toggle="dropdown"
                 data-aria-expanded={true}
               />
               <ul className="dropdown-menu dropdown-menu-right" role="menu">

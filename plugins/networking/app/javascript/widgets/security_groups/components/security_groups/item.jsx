@@ -48,7 +48,7 @@ const Item = ({ securityGroup, handleDelete, project }) => {
                 className="btn btn-secondary btn-sm dropdown-toggle"
                 type="button"
                 disabled={securityGroup.deleting}
-                data-toggle="dropdown"
+                data-bs-toggle="dropdown"
                 aria-expanded="true"
               >
                 <i className="fa fa-cog"></i>

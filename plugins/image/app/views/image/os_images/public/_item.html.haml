@@ -11,7 +11,7 @@
   %td.snug
     - if current_user.is_allowed?("compute:instance_create", {target: { project: @active_project, scoped_domain_name: @scoped_domain_name}}) or current_user.is_allowed?("image:image_unpublish")
       .btn-group
-        %button.btn.btn-secondary.btn-sm.dropdown-toggle{ type: 'button', data: { toggle: 'dropdown' }, aria: { expanded: true } }
+        %button.btn.btn-secondary.btn-sm.dropdown-toggle{ type: 'button', data: { bs_toggle: 'dropdown' }, aria: { expanded: true } }
           %span.fa.fa-cog
         %ul.dropdown-menu.dropdown-menu-right{ role: 'menu' }
           - if current_user.is_allowed?("compute:instance_create", {target: { project: @active_project, scoped_domain_name: @scoped_domain_name}})

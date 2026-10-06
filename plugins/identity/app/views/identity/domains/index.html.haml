@@ -17,7 +17,7 @@
         %td.snug
           / - if current_user.is_allowed?("identity:domain_role_assignments", {target: { domain: domain } })
           /   .btn-group
-          /     %button.btn.btn-secondary.btn-sm.dropdown-toggle{ type: "button", data: { toggle: "dropdown"}, aria: { expanded: true} }
+          /     %button.btn.btn-secondary.btn-sm.dropdown-toggle{ type: "button", data: { bs_toggle: "dropdown"}, aria: { expanded: true} }
           /       %span.fa.fa-cog
           /       -# %span.spinner
           /

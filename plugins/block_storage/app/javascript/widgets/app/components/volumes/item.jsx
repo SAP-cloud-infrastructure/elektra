@@ -122,7 +122,7 @@ const VolumeItem = ({ reloadVolume, deleteVolume, forceDeleteVolume, detachVolum
               className="btn btn-secondary btn-sm dropdown-toggle"
               disabled={pending}
               type="button"
-              data-toggle="dropdown"
+              data-bs-toggle="dropdown"
               aria-expanded={true}
             >
               <span className="fa fa-cog"></span>

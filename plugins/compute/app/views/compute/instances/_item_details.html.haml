@@ -11,22 +11,22 @@
     - content_for (:details) do
       %ul.nav.nav-tabs
         %li.active{role: "presentation"}
-          = link_to 'Information', '#information', aria: {controls:"information"}, role: "tab", data: {toggle:"tab"}
+          = link_to 'Information', '#information', aria: {controls:"information"}, role: "tab", data: {bs_toggle:"tab"}
         %li{role: "presentation"}
-          = link_to 'Specs', '#specs', aria: {controls:"specs"}, role: "tab", data: {toggle:"tab"}
+          = link_to 'Specs', '#specs', aria: {controls:"specs"}, role: "tab", data: {bs_toggle:"tab"}
         %li{role: "presentation"}
-          = link_to 'IP Addresses', '#ip_addresses', aria: {controls:"ip_addresses"}, role: "tab", data: {toggle:"tab"}
+          = link_to 'IP Addresses', '#ip_addresses', aria: {controls:"ip_addresses"}, role: "tab", data: {bs_toggle:"tab"}
         %li{role: "presentation"}
-          = link_to 'Security Groups', '#sec_groups', aria: {controls:"security_groups"}, role: "tab", data: {toggle:"tab"}
+          = link_to 'Security Groups', '#sec_groups', aria: {controls:"security_groups"}, role: "tab", data: {bs_toggle:"tab"}
         %li{role: "presentation"}
-          = link_to 'Key Pairs', '#keypairs', aria: {controls:"keypairs"}, role: "tab", data: {toggle:"tab"}
+          = link_to 'Key Pairs', '#keypairs', aria: {controls:"keypairs"}, role: "tab", data: {bs_toggle:"tab"}
         %li{role: "presentation"}
-          = link_to 'Metadata', '#metadata', aria: {controls:"metadata"}, role: "tab", data: {toggle:"tab"}
+          = link_to 'Metadata', '#metadata', aria: {controls:"metadata"}, role: "tab", data: {bs_toggle:"tab"}
         %li{role: "presentation"}
-          = link_to 'Volumes Attached', '#volumes', aria: {controls:"volumes"}, role: "tab", data: {toggle:"tab"}
+          = link_to 'Volumes Attached', '#volumes', aria: {controls:"volumes"}, role: "tab", data: {bs_toggle:"tab"}
         - if current_user.is_allowed?("compute:all_projects")
           %li{role: "presentation"}
-            = link_to 'Actions', '#actions', aria: { controls: 'actions' }, role: 'tab', data: { toggle: 'tab' }
+            = link_to 'Actions', '#actions', aria: { controls: 'actions' }, role: 'tab', data: { bs_toggle: 'tab' }
       .tab-content
         .tab-pane.active{role: "tabpanel", id: "information"}
           %table.table.datatable

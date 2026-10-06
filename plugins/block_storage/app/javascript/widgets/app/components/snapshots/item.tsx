@@ -144,7 +144,7 @@ const Snapshot: React.FC<SnapshotProps> = ({ snapshot, searchTerm, reloadSnapsho
               className="btn btn-secondary btn-sm dropdown-toggle"
               disabled={isPendingState()}
               type="button"
-              data-toggle="dropdown"
+              data-bs-toggle="dropdown"
               aria-expanded={true}
             >
               <span className="fa fa-cog"></span>

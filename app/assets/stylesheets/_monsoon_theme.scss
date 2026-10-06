@@ -1250,6 +1250,13 @@ footer,
       > .fancy-nav {
         @extend .dropdown-menu; // extend TWBS dropdown-menu class
 
+        // Bootstrap 5 shows a .dropdown-menu via the .show class. The mega
+        // dropdown is toggled manually (see core/init.js), so ensure the shown
+        // state actually displays the menu.
+        &.show {
+          display: block;
+        }
+
         // Megaflyout (full-width, requires context-container wrapper)
         @include container-width-responsive;
         column-count: 3;

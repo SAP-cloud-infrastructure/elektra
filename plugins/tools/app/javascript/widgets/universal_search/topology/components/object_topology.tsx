@@ -169,14 +169,7 @@ const ObjectTopology: React.FC<ObjectTopologyProps> = ({
         >
           <h3 className="popover-title">
             {`Details for ${details.node.cached_object_type} ${details.node.name}`}
-            <button
-              onClick={() => setDetails(null)}
-              type="button"
-              className="close"
-              aria-label="Close"
-            >
-              <span aria-hidden="true">&times;</span>
-            </button>
+            <button onClick={() => setDetails(null)} type="button" className="btn-close" aria-label="Close" />
           </h3>
           <div className="popover-content">
             <JsonViewer data={details.node.payload} expanded={1} />

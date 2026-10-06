@@ -11,7 +11,7 @@
   %td= service.pretty_updated_at
   %td.snug
     .btn-group
-      %button.btn.btn-secondary.btn-sm.dropdown-toggle{ type: 'button', data: { toggle: 'dropdown'}, aria: { expanded: true} }
+      %button.btn.btn-secondary.btn-sm.dropdown-toggle{ type: 'button', data: { bs_toggle: 'dropdown'}, aria: { expanded: true} }
         %span.fa.fa-cog
       %ul.dropdown-menu.dropdown-menu-right{ role:'menu'}
         - if service.enabled?

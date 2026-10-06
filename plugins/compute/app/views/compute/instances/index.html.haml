@@ -12,7 +12,7 @@
         .span.input-group-btn
           %button.btn.btn-secondary{type: "submit"}
             %i.fa.fa-search
-    %a.help-link.has-feedback-help{href: "#", data: {toggle: "popover", "popover-type": "help-hint", content: 'Search by name and fixed IP will find exact or partial matches. ID and status have to be exact matches to be found.'}}
+    %a.help-link.has-feedback-help{href: "#", data: {bs_toggle: "popover", "popover-type": "help-hint", content: 'Search by name and fixed IP will find exact or partial matches. ID and status have to be exact matches to be found.'}}
       %i.fa.fa-question-circle
 
     - if current_user.is_allowed?("compute:instance_create", {target: { project: @active_project, scoped_domain_name: @scoped_domain_name}})
@@ -26,12 +26,12 @@
       %th.snug
       %th
         Name / AZ
-        %i.fa.fa-fw.fa-info-circle{data: { toggle: "tooltip", placement: "top", title: "Availability Zone"}}
+        %i.fa.fa-fw.fa-info-circle{data: { bs_toggle: "tooltip", placement: "top", title: "Availability Zone"}}
       - if @all_projects
         %th Owning Project
       -# %th
       -#   AZ
-      -#   %i.fa.fa-fw.fa-info-circle{data: { toggle: "tooltip", placement: "top", title: "Availability Zone"}}
+      -#   %i.fa.fa-fw.fa-info-circle{data: { bs_toggle: "tooltip", placement: "top", title: "Availability Zone"}}
       %th IPs
       %th
         OS / Size

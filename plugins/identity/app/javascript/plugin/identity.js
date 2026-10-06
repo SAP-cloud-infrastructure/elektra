@@ -5,4 +5,4 @@
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 import { initTooltips } from "core/bootstrap_engine"
-$(() => initTooltips('[data-toggle="tooltip"]', { delay: { show: 300 } }))
+$(() => initTooltips('[data-bs-toggle="tooltip"]', { delay: { show: 300 } }))

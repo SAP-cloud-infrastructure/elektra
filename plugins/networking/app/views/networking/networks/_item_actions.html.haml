@@ -1,6 +1,6 @@
 - if current_user.is_allowed?("networking:network_#{@network_type}_delete", network: network) or current_user.is_allowed?("networking:network_#{@network_type}_update", network: network) or current_user.is_allowed?("networking:rbac_policy_list", network: network)
   .btn-group
-    %button.btn.btn-secondary.btn-sm.dropdown-toggle{ type: "button", data: { toggle: "dropdown"}, aria: { expanded: true} }
+    %button.btn.btn-secondary.btn-sm.dropdown-toggle{ type: "button", data: { bs_toggle: "dropdown"}, aria: { expanded: true} }
       %span.fa.fa-cog
       -# %span.spinner
 

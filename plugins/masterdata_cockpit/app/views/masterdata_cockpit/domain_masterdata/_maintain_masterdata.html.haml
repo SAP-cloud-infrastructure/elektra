@@ -60,9 +60,9 @@
     // remove label -> input autofocus because the help in the label and disabled and readonly fields
     $('[for]').removeAttr('for')
     // renew popover 
-    window.BootstrapEngine.disposePopover('[data-toggle="popover"]');
-    $('[data-toggle="popover"][data-popover-type="help-hint"]').attr("tabindex","0");
-    window.BootstrapEngine.initPopovers('[data-toggle="popover"]', {placement: 'top', trigger: 'focus'});
+    window.BootstrapEngine.disposePopover('[data-bs-toggle="popover"]');
+    $('[data-bs-toggle="popover"][data-popover-type="help-hint"]').attr("tabindex","0");
+    window.BootstrapEngine.initPopovers('[data-bs-toggle="popover"]', {placement: 'top', trigger: 'focus'});
 
     $('textarea#domain_masterdata_additional_information').on("propertychange input", function(){
         if (this.value.length > this.maxlength) {

@@ -78,8 +78,8 @@ const NewEditMemberListItem = ({ id, index, servers, edit }) => {
                     <div
                       className="action-link"
                       onClick={() => setShowServers(!showServers)}
-                      data-toggle="collapse"
-                      data-target={`#${collapseId}`}
+                      data-bs-toggle="collapse"
+                      data-bs-target={`#${collapseId}`}
                       aria-expanded={showServers}
                       aria-controls={collapseId}
                     >

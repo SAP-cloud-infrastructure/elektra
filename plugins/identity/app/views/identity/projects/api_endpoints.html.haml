@@ -12,14 +12,14 @@
 %ul
   %li
     %h5
-      %a{ data: { toggle: 'collapse', target: '#api_endpoints_userauth' }, aria: { expanded: 'false', controls: 'api_endpoints_userauth' }, href: '#' }
+      %a{ data: { bs_toggle: 'collapse', bs_target: '#api_endpoints_userauth' }, aria: { expanded: 'false', controls: 'api_endpoints_userauth' }, href: '#' }
         How to use the OpenStack CLI with User Authentication
     #api_endpoints_userauth.collapse
       = render partial: 'api_endpoints_userauth'
 
   %li
     %h5
-      %a{ data: { toggle: 'collapse', target: '#api_endpoints_app_credentials' }, aria: { expanded: 'false', controls: 'api_endpoints_app_credentials' }, href: '#' }
+      %a{ data: { bs_toggle: 'collapse', bs_target: '#api_endpoints_app_credentials' }, aria: { expanded: 'false', controls: 'api_endpoints_app_credentials' }, href: '#' }
         How to use the OpenStack CLI with Application Credentials
     #api_endpoints_app_credentials.collapse
       = render partial: 'api_endpoints_app_credentials'

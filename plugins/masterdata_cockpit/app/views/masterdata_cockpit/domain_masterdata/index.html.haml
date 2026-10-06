@@ -13,7 +13,7 @@
 
         - if current_user.is_allowed?('masterdata_cockpit:domain_masterdatum_update')
           .main-buttons
-            = link_to 'Edit', plugin('masterdata_cockpit').domain_masterdata_edit_path(), title: "", id:"edit_masterdata_btn", data: {modal: true, toggle: "tooltip", placement: "left"}, class: 'btn btn-primary'
+            = link_to 'Edit', plugin('masterdata_cockpit').domain_masterdata_edit_path(), title: "", id:"edit_masterdata_btn", data: {modal: true, bs_toggle: "tooltip", placement: "left"}, class: 'btn btn-primary'
 
       #domain_masterdata_details
         = render partial: 'masterdata_details'

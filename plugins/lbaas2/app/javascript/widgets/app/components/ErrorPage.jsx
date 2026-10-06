@@ -92,8 +92,8 @@ const ErrorPage = ({ error, headTitle, onReload }) => {
                     <div
                       className="action-link"
                       onClick={() => setShowDetails(!showDetails)}
-                      data-toggle="collapse"
-                      data-target="#collapseDetails"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#collapseDetails"
                       aria-expanded={showDetails}
                       aria-controls="collapseDetails"
                     >

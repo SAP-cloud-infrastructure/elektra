@@ -117,7 +117,7 @@ const L7PolicySelected = ({ props, listenerID, l7Policy, onBackLink }) => {
                 <button
                   className="btn btn-secondary btn-xs dropdown-toggle"
                   type="button"
-                  data-toggle="dropdown"
+                  data-bs-toggle="dropdown"
                   aria-expanded={true}
                 >
                   <span className="fa fa-cog"></span>

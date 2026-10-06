@@ -25,7 +25,7 @@
       .input-group.rsa
         %label.visually-hidden{:for => "passcode"} Password
         = password_field_tag :passcode, nil, placeholder: "SecurID Passcode", autofocus: "", required: "", class: "form-control"
-        %span.input-group-addon{data: { toggle: 'tooltip', placement: 'top'}, title: "Click here for more information about SecureID."}
+        %span.input-group-addon{data: { bs_toggle: 'tooltip', placement: 'top'}, title: "Click here for more information about SecureID."}
           %a{href:"https://portal.wdf.sap.corp/go/securid ", target: "_blank"}= image_tag "rsa_logo.jpg", height: 43
       
 

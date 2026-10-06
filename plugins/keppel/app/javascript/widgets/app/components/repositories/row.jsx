@@ -72,7 +72,7 @@ export default class RepositoryRow extends React.Component {
                   className="btn btn-secondary btn-sm dropdown-toggle"
                   disabled={false}
                   type="button"
-                  data-toggle="dropdown"
+                  data-bs-toggle="dropdown"
                   aria-expanded={true}
                 >
                   <span className="fa fa-cog"></span>

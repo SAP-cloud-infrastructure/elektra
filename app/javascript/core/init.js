@@ -54,8 +54,8 @@ if (typeof window.console === "undefined" || typeof window.console.log === "unde
 // init help hint popovers
 const initHelpHint = function () {
   // https://stackoverflow.com/questions/32911355/whats-the-tabindex-1-in-bootstrap-for
-  $('[data-toggle="popover"][data-popover-type="help-hint"]').attr("tabindex", "0")
-  return initPopovers('[data-toggle="popover"][data-popover-type="help-hint"]', {
+  $('[data-bs-toggle="popover"][data-popover-type="help-hint"]').attr("tabindex", "0")
+  return initPopovers('[data-bs-toggle="popover"][data-popover-type="help-hint"]', {
     placement: "top",
     trigger: "focus",
   })
@@ -77,7 +77,7 @@ $(function () {
   // Tooltips
   initTooltips("abbr[title], abbr[data-original-title]", { delay: { show: 300 } })
   // init tooltips
-  initTooltips('[data-toggle="tooltip"]')
+  initTooltips('[data-bs-toggle="tooltip"]')
 
   // init Form
   Dashboard.initForm()
@@ -105,6 +105,28 @@ $(function () {
   $('[data-toggle="help"]').click(function (e) {
     e.preventDefault()
     return $(".plugin-help").toggleClass("visible")
+  })
+
+  // Mega dropdown (breadcrumb services menu). Its menu is a custom
+  // render_navigation fancy-list, NOT a real .dropdown-menu, so Bootstrap 5's
+  // dropdown JS cannot drive it. Toggle visibility manually via `.open` on the
+  // `.dropdown-mega` container (BS5 .dropdown-menu.show is applied to the menu).
+  $(document).on("click", '[data-mega-dropdown="true"]', function (e) {
+    e.preventDefault()
+    e.stopPropagation()
+    const $mega = $(this).closest(".dropdown-mega")
+    const isOpen = $mega.hasClass("open")
+    // close any other open mega dropdowns
+    $(".dropdown-mega.open").removeClass("open").find("> .fancy-nav").removeClass("show")
+    if (!isOpen) {
+      $mega.addClass("open").find("> .fancy-nav").addClass("show")
+    }
+  })
+  // close the mega dropdown when clicking outside of it
+  $(document).on("click", function (e) {
+    if (!$(e.target).closest(".dropdown-mega").length) {
+      $(".dropdown-mega.open").removeClass("open").find("> .fancy-nav").removeClass("show")
+    }
   })
 
   // generic visibility toggle
@@ -249,7 +271,7 @@ $(document).on("modal:contentUpdated", function (e) {
 
   // -------------
   // init tooltips
-  initTooltips('[data-toggle="tooltip"]')
+  initTooltips('[data-bs-toggle="tooltip"]')
 
   // generic visibility toggle
   return $('[data-action="toggle"]').click(function (e) {

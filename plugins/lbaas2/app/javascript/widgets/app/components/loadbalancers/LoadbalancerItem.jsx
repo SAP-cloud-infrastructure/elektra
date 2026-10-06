@@ -327,7 +327,7 @@ const LoadbalancerItem = ({
           <button
             className="btn btn-secondary btn-sm dropdown-toggle"
             type="button"
-            data-toggle="dropdown"
+            data-bs-toggle="dropdown"
             aria-expanded={true}
           >
             <span className="fa fa-cog"></span>
