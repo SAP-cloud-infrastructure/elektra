@@ -10,7 +10,7 @@ $.fn.initAcceptButtons = function () {
 
   $table
     .closest(".modal-content")
-    .find('[data-dismiss="modal"]')
+    .find('[data-bs-dismiss="modal"]')
     .click(function () {
       if ($table.find("tbody tr").length < itemsLength) {
         const l = window.location

@@ -6,6 +6,7 @@
  * DS205: Consider reworking code to avoid use of IIFEs
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
+import { initTooltips } from "core/bootstrap_engine"
 const errorsToStringArray = function (errors) {
   let errorsStringArray = []
   if (typeof errors === "object") {
@@ -119,7 +120,7 @@ class SubnetForm {
 
       this.$error = $("<div></div>").appendTo(this.$form)
 
-      this.$cidrInput.tooltip({ placement: "top", title: cidrHelpText })
+      initTooltips(this.$cidrInput[0], { placement: "top", title: cidrHelpText })
     }
 
     this.$error.empty()

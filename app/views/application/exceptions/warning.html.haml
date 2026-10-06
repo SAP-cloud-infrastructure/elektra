@@ -13,7 +13,7 @@
     %p= sanitize(@description, tags: %w(b))
 
   .modal-footer
-    %button.btn.btn-secondary{type:"button", data: {dismiss:"modal"}, aria: {label: "Close"}} Close
+    %button.btn.btn-secondary{type:"button", data: {bs_dismiss:"modal"}, aria: {label: "Close"}} Close
 
 - else
   %h3= sanitize(@title)

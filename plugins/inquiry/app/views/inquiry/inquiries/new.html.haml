@@ -13,7 +13,7 @@
 
   %div.buttons{class: modal? ? 'modal-footer' : ''}
     - if modal?
-      %button.btn.btn-secondary{type:"button", data: {dismiss:"modal"}, aria: {label: "Cancel"}} Cancel
+      %button.btn.btn-secondary{type:"button", data: {bs_dismiss:"modal"}, aria: {label: "Cancel"}} Cancel
     - else
       = link_to "Cancel", plugin('inquiry').inquiries_url(), class: 'btn btn-secondary'
     %button{type: "submit", class: 'btn btn-primary', data: { disable_with: 'Please wait...'}} Create

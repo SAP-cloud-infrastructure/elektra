@@ -6,6 +6,7 @@
  * DS205: Consider reworking code to avoid use of IIFEs
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
+import { hideModal, initTooltips, initPopovers } from "./bootstrap_engine"
 class Dashboard {
   static hideRevealFormParts() {
     const allTargets = $(".dynamic-form-target")
@@ -32,7 +33,7 @@ class Dashboard {
   }
 
   static hideModal() {
-    return $("#modal-holder .modal").modal("hide")
+    return hideModal("#modal-holder .modal")
   }
 }
 
@@ -54,7 +55,7 @@ if (typeof window.console === "undefined" || typeof window.console.log === "unde
 const initHelpHint = function () {
   // https://stackoverflow.com/questions/32911355/whats-the-tabindex-1-in-bootstrap-for
   $('[data-toggle="popover"][data-popover-type="help-hint"]').attr("tabindex", "0")
-  return $('[data-toggle="popover"][data-popover-type="help-hint"]').popover({
+  return initPopovers('[data-toggle="popover"][data-popover-type="help-hint"]', {
     placement: "top",
     trigger: "focus",
   })
@@ -74,9 +75,9 @@ $(function () {
   }
 
   // Tooltips
-  $("abbr[title], abbr[data-original-title]").tooltip({ delay: { show: 300 } })
+  initTooltips("abbr[title], abbr[data-original-title]", { delay: { show: 300 } })
   // init tooltips
-  $('[data-toggle="tooltip"]').tooltip()
+  initTooltips('[data-toggle="tooltip"]')
 
   // init Form
   Dashboard.initForm()
@@ -248,7 +249,7 @@ $(document).on("modal:contentUpdated", function (e) {
 
   // -------------
   // init tooltips
-  $('[data-toggle="tooltip"]').tooltip()
+  initTooltips('[data-toggle="tooltip"]')
 
   // generic visibility toggle
   return $('[data-action="toggle"]').click(function (e) {

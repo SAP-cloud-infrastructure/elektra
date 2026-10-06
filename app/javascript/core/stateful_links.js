@@ -4,6 +4,7 @@
  * DS102: Remove unnecessary code created because of implicit returns
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
+import { hideModal } from "./bootstrap_engine"
 // store current location
 const current_location = window.location
 // store host
@@ -44,7 +45,7 @@ const handleUrl = function (url) {
   }
 
   if (hidden) {
-    return $("#modal-holder .modal").modal("hide")
+    return hideModal("#modal-holder .modal")
   }
 }
 

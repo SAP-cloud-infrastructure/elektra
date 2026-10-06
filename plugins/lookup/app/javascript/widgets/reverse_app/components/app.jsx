@@ -88,7 +88,7 @@ class App extends React.Component {
             <button
               className="btn btn-secondary"
               type="button"
-              data-dismiss="modal"
+              data-bs-dismiss="modal"
               aria-label="Cancel"
             >
               Cancel
