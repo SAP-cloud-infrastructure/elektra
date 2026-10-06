@@ -14,7 +14,7 @@
     = hidden_field_tag 'context[browser]', '', id: 'context-browser'
     = hidden_field_tag 'context[viewport]', '', id: 'context-viewport'
     .modal-footer
-      = link_to 'Cancel', '#', data: {dismiss: "modal"}, class: "btn btn-secondary"
+      = link_to 'Cancel', '#', data: {bs_dismiss: "modal"}, class: "btn btn-secondary"
       = submit_tag 'Send', class: "btn btn-primary", id: 'feedback-submit-btn'
       %button.btn.btn-primary#feedback-sending-btn{type: 'button', disabled: true, style: 'display:none;'} Sending...
 

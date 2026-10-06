@@ -15,8 +15,8 @@
 
   %div.buttons{class: modal? ? 'modal-footer' : ''}
     - if @backup_network
-      %button.btn.btn-secondary{ type: 'button', data: { dismiss:'modal' }, aria: { label: 'Cancel' } } Cancel
+      %button.btn.btn-secondary{ type: 'button', data: { bs_dismiss:'modal' }, aria: { label: 'Cancel' } } Cancel
       %button{ type: 'submit', class: 'btn btn-primary', data: { disable_with: 'Please wait...'} } Assign Network
     - else
-      %button.btn.btn-secondary{ type: 'button', data: { dismiss:'modal' }, aria: { label: 'Close' } } Close
+      %button.btn.btn-secondary{ type: 'button', data: { bs_dismiss:'modal' }, aria: { label: 'Close' } } Close
 

@@ -4,6 +4,7 @@
  * DS102: Remove unnecessary code created because of implicit returns
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
+import { initTooltips } from "core/bootstrap_engine"
 // ------------------------------------------------------------------------------------------
 // Init Web Console
 // ------------------------------------------------------------------------------------------
@@ -26,7 +27,7 @@ $(document).ready(function () {
     })
   }
 
-  return $('[data-toggle="tooltip"]').tooltip({
+  return initTooltips('[data-toggle="tooltip"]', {
     delay: { show: 700 },
     trigger: "hover",
   })

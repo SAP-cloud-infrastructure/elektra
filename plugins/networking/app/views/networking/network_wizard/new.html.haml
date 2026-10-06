@@ -36,11 +36,11 @@
             Network as well as a Router and connect the networks to each other.
 
   %div.buttons{class: modal? ? 'modal-footer' : ''}
-    %button.btn.btn-secondary{ type: 'button', data: { dismiss:'modal' }, aria: { label: 'Cancel' } } Cancel
+    %button.btn.btn-secondary{ type: 'button', data: { bs_dismiss:'modal' }, aria: { label: 'Cancel' } } Cancel
     %button{ type: 'submit', class: 'btn btn-primary', data: { disable_with: 'Please wait...'}, disabled: (!@network_wizard.errors.blank?) } Setup
 
 :javascript
   $('input[name="network_wizard[setup_option]"]').click(function () {
     console.log(this.id)
-    $(this).tab('show');
+    window.BootstrapEngine.showTab(this);
   });

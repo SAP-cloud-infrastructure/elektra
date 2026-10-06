@@ -8,12 +8,12 @@
       .modal-dialog.modal-lg
         .modal-content
           .modal-header
-            = link_to 'x', '#', class:"close", data: {dismiss: "modal"}
+            = link_to 'x', '#', class:"close", data: {bs_dismiss: "modal"}
             %h4 Development News
           .modal-body
             = render 'layouts/news'
           .modal-footer
-            = link_to 'Close', '#', data: {dismiss: "modal"}, class: "btn"
+            = link_to 'Close', '#', data: {bs_dismiss: "modal"}, class: "btn"
 
     - content_for :javascripts do
       %script{type: "text/javascript"}
@@ -26,7 +26,7 @@
       .modal-dialog.modal-lg
         .modal-content
           .modal-header
-            = link_to 'x', '#', class:"close", data: {dismiss: "modal"}
+            = link_to 'x', '#', class:"close", data: {bs_dismiss: "modal"}
             %h4 Debug Info
           .modal-body
             - if plugin_name
@@ -34,4 +34,4 @@
             %pre< Current region: #{current_region}
             %pre<= JSON.pretty_generate(current_user.context) if current_user
           .modal-footer
-            = link_to 'Close', '#', data: {dismiss: "modal"}, class: "btn"
+            = link_to 'Close', '#', data: {bs_dismiss: "modal"}, class: "btn"

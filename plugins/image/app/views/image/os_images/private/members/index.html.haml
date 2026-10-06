@@ -33,7 +33,7 @@
 
 .buttons{ class: modal? ? 'modal-footer' : '' }
   - if modal?
-    %button.btn.btn-secondary{ type: 'button', data: { dismiss: 'modal' }, aria: { label: 'Close' } } Close
+    %button.btn.btn-secondary{ type: 'button', data: { bs_dismiss: 'modal' }, aria: { label: 'Close' } } Close
   - else
     = link_to 'Back', os_images_private_index_url, class: 'btn btn-secondary'
 

@@ -3,8 +3,7 @@
     .modal-dialog.modal-lg{ role: "document" }
       .modal-content
         .modal-header
-          %button.close{type: "button", "data-dismiss": "modal", "aria-label": "Close"}
-            %span{ "aria-hidden": "true"} &times;
+          %button.btn-close{type: "button", "data-bs-dismiss": "modal", "aria-label": "Close"}
 
           %h4.modal-title My Profile
         .modal-body
@@ -50,4 +49,4 @@
 
 
         .modal-footer
-          %button.btn.btn-secondary{ type: "button", "data-dismiss": "modal"} Close
+          %button.btn.btn-secondary{ type: "button", "data-bs-dismiss": "modal"} Close

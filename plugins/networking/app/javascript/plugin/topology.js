@@ -6,6 +6,7 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
+import { hideModal } from "core/bootstrap_engine"
 // D3 v3 is loaded globally from vendor/assets/javascripts/d3.v3.min.js
 // Access it from window object to avoid bundling issues with 'this' context
 // Note: d3 is accessed dynamically via window.d3 throughout this file
@@ -285,7 +286,7 @@ var Topology = (function () {
           // got a redirect response
           if (url) {
             // close modal window
-            $("#modal-holder").find(".modal").modal("hide")
+            hideModal("#modal-holder .modal")
             return (window.location = url)
           } else {
             this.nodeDetails[key] = { status: 200, content: data }

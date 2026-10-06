@@ -7,6 +7,7 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
+import { openModal, hideModal } from "./bootstrap_engine"
 // Custom Confirmation Dialog
 $(function () {
   $.rails.allowAction = function (link) {
@@ -50,15 +51,15 @@ $(function () {
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <a class="close" data-dismiss="modal">×</a>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         <h4>${message}</h4>
       </div>
 
       <div class="modal-footer">
-        <a data-dismiss="modal" class="btn">${
+        <a data-bs-dismiss="modal" class="btn">${
           link.data("cancel") || "Cancel"
         }</a>
-        <button data-dismiss="modal" class="btn btn-primary confirm">${
+        <button data-bs-dismiss="modal" class="btn btn-primary confirm">${
           link.data("ok") || "Ok"
         }</button>
       </div>
@@ -109,7 +110,7 @@ $(function () {
 
     // BS5 does not auto-append a detached modal; ensure it is in the DOM.
     $html.appendTo("body")
-    return $html.modal()
+    return openModal($html)
   })
 })
 
@@ -164,7 +165,7 @@ var InfoDialog = (function () {
 
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" type="button" data-dismiss="modal", aria-label="Close">Close</button>
+        <button class="btn btn-secondary" type="button" data-bs-dismiss="modal", aria-label="Close">Close</button>
       </div>
     </div>
   </div>
@@ -223,7 +224,7 @@ var InfoDialog = (function () {
       if (!$dialog.parent().length || !document.body.contains($dialog[0])) {
         $dialog.appendTo("body")
       }
-      return $dialog.modal()
+      return openModal($dialog)
     }
 
     // class method
@@ -257,17 +258,17 @@ var InfoDialog = (function () {
 
     // class method
     static hide() {
-      return $dialog.modal("hide")
+      return hideModal($dialog)
     }
 
     static showLoading() {
       if (!document.body.contains($ajaxLoader[0])) {
         $ajaxLoader.appendTo("body")
       }
-      return $ajaxLoader.modal("show")
+      return openModal($ajaxLoader)
     }
     static hideLoading() {
-      return $ajaxLoader.modal("hide")
+      return hideModal($ajaxLoader)
     }
   }
   InfoDialog.initClass()

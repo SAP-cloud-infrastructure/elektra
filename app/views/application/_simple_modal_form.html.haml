@@ -7,7 +7,7 @@
 
   .buttons{ class: modal? ? 'modal-footer' : '' }
     - if modal?
-      %button.btn.btn-secondary{ type: 'button', data: { dismiss: 'modal' }, aria: { label: 'Cancel' } }= cancel_text
+      %button.btn.btn-secondary{ type: 'button', data: { bs_dismiss: 'modal' }, aria: { label: 'Cancel' } }= cancel_text
     - else
       = link_to cancel_text, cancel_url, class: 'btn btn-secondary'
     - if submit_action

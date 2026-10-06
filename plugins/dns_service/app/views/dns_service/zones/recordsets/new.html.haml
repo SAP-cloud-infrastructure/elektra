@@ -43,7 +43,7 @@
 
   %div.buttons{class: modal? ? 'modal-footer' : ''}
     - if modal?
-      %button.btn.btn-secondary{type:"button", data: {dismiss:"modal"}, aria: {label: "Cancel"}} Cancel
+      %button.btn.btn-secondary{type:"button", data: {bs_dismiss:"modal"}, aria: {label: "Cancel"}} Cancel
     - else
       = link_to "Cancel", plugin('dns_service').zone_recordsets_path(@zone.id), class: 'btn btn-secondary'
     = button_tag "Create", { class: 'btn btn-primary float-end', data: { disable_with: "Please wait..." } }

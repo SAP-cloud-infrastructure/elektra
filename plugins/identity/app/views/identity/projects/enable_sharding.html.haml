@@ -35,7 +35,7 @@
 - if modal?
   .modal-footer
     - if modal?
-      %button.btn.btn-secondary{type:"button", data: {dismiss:"modal"}, aria: {label: "Cancel"}} Cancel
+      %button.btn.btn-secondary{type:"button", data: {bs_dismiss:"modal"}, aria: {label: "Cancel"}} Cancel
       = link_to 'Enable', plugin('identity').project_enable_sharding_path(enable: "true", project_wizard: @project_wizard), class: 'btn btn-danger', method: :get, data: { confirm: 'Are you sure you want to enable Resource Pooling?', ok: "Yes, do it!", confirmed: :loading_status}, remote: @project_wizard
     - else
       = link_to "Cancel", plugin('compute').instances_url, class: 'btn btn-secondary'

@@ -25,7 +25,7 @@
 
   %div{class: modal? ? 'modal-footer' : ''}
     - if modal?
-      %button.btn.btn-secondary{type:"button", data: {dismiss:"modal"}, aria: {label: "Cancel"}} Cancel
+      %button.btn.btn-secondary{type:"button", data: {bs_dismiss:"modal"}, aria: {label: "Cancel"}} Cancel
     - else
       = link_to 'Back', plugin('identity').domains_group_path(@group.id), class: 'btn btn-secondary'
     = f.submit 'Add', class: 'btn btn-primary', data: { disable_with: "Please wait..." }
