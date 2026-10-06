@@ -8,9 +8,11 @@ class FloatingFlashMessages extends React.Component {
   render() {
     const popOver = (
       <Popover id={uniqueId("flash-popover-")}>
-        <div className="lbaas2">
-          <FlashMessages />
-        </div>
+        <Popover.Body>
+          <div className="lbaas2">
+            <FlashMessages />
+          </div>
+        </Popover.Body>
       </Popover>
     )
 
