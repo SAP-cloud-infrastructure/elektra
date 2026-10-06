@@ -100,13 +100,15 @@ $(function () {
 
       // https://github.com/twbs/bootstrap/issues/15260
       // Closing the confirm dialog when the main modal view still open removes the class "modal-open" from body which prevents the modal view to be scrolled again
-      // check if the main modal view still open
-      if ($("#mainModal.modal.in").length > 0) {
+      // check if the main modal view still open (BS5 uses .show, not BS3 .in)
+      if ($("#mainModal.modal.show").length > 0) {
         // set back the class "modal-open" back to the body so the main modal view can still be used
         return $("body").addClass("modal-open")
       }
     })
 
+    // BS5 does not auto-append a detached modal; ensure it is in the DOM.
+    $html.appendTo("body")
     return $html.modal()
   })
 })
@@ -217,6 +219,10 @@ var InfoDialog = (function () {
       }
 
       // Opening dialog
+      // BS5 does not auto-append a detached modal; ensure it is in the DOM.
+      if (!$dialog.parent().length || !document.body.contains($dialog[0])) {
+        $dialog.appendTo("body")
+      }
       return $dialog.modal()
     }
 
@@ -255,6 +261,9 @@ var InfoDialog = (function () {
     }
 
     static showLoading() {
+      if (!document.body.contains($ajaxLoader[0])) {
+        $ajaxLoader.appendTo("body")
+      }
       return $ajaxLoader.modal("show")
     }
     static hideLoading() {

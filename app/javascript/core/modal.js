@@ -172,13 +172,14 @@ var MoModal = (function () {
             $("#modal-holder").find(".modal").modal("hide")
             return (window.location = url)
           } else {
-            if ($(".modal-backdrop").length === 0) {
-              // prevent multiple overlays on double click
-              // open modal with content from ajax response
-              $(modal_holder_selector).html(data).find(modal_selector).modal()
-              // for the case the response contains a form intialize it
-              return triggerUpdateEvent()
-            }
+            // BS5 tears down the loader backdrop asynchronously, so the old
+            // "backdrop count === 0" guard is unreliable. Sweep stray backdrops
+            // and open the content modal unconditionally.
+            $(".modal-backdrop").remove()
+            // open modal with content from ajax response
+            $(modal_holder_selector).html(data).find(modal_selector).modal()
+            // for the case the response contains a form intialize it
+            return triggerUpdateEvent()
           }
         })
         .always(() => (modal_is_loading = false))
