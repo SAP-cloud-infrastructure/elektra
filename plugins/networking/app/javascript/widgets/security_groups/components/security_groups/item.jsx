@@ -53,7 +53,7 @@ const Item = ({ securityGroup, handleDelete, project }) => {
               >
                 <i className="fa fa-cog"></i>
               </button>
-              <ul className="dropdown-menu dropdown-menu-right" role="menu">
+              <ul className="dropdown-menu dropdown-menu-end" role="menu">
                 {canManagePermissions && (
                   <li>
                     <Link to={`/${securityGroup.id}/rbacs`}>

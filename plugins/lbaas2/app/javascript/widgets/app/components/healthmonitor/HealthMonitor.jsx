@@ -177,7 +177,7 @@ const HealthMonitor = ({ props, loadbalancerID }) => {
                           <span className="fa fa-cog"></span>
                         </button>
                         <ul
-                          className="dropdown-menu dropdown-menu-right"
+                          className="dropdown-menu dropdown-menu-end"
                           role="menu"
                         >
                           <li>

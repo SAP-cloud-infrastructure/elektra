@@ -160,7 +160,7 @@ export default class ImageRow extends React.Component {
                   >
                     <span className="fa fa-cog"></span>
                   </button>
-                  <ul className="dropdown-menu dropdown-menu-right" role="menu">
+                  <ul className="dropdown-menu dropdown-menu-end" role="menu">
                     {mediaTypeInfo.hasDetails ? (
                       <li>
                         <Link

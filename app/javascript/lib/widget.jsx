@@ -12,6 +12,12 @@ import ReduxThunk from "redux-thunk"
 import { composeWithDevTools } from "redux-devtools-extension"
 import { setPolicy } from "./policy"
 import { configureAjaxHelper } from "./ajax_helper"
+import { enableDropdownDelegation } from "core/bootstrap_engine"
+
+// React widget bundles don't import "bootstrap", so Bootstrap 5's dropdown
+// data-API isn't active for React-rendered [data-bs-toggle="dropdown"] buttons.
+// Enable a delegated handler once so those dropdowns work.
+enableDropdownDelegation()
 
 const isIterable = (obj) => {
   // checks for null and undefined

@@ -28,7 +28,7 @@ const Item = ({ securityService, handleDelete }) => (
             <span className="fa fa-cog"></span>
           </button>
 
-          <ul className="dropdown-menu dropdown-menu-right" role="menu">
+          <ul className="dropdown-menu dropdown-menu-end" role="menu">
             {policy.isAllowed("shared_filesystem_storage:security_service_delete") && (
               <li>
                 <a

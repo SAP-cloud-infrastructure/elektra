@@ -178,7 +178,7 @@ export default class List extends React.Component {
                 data-bs-toggle="dropdown"
                 data-aria-expanded={true}
               />
-              <ul className="dropdown-menu dropdown-menu-right" role="menu">
+              <ul className="dropdown-menu dropdown-menu-end" role="menu">
                 <li>
                   <a
                     href="#"

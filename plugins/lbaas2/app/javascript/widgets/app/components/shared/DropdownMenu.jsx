@@ -65,7 +65,7 @@ const DropDownMenu = ({ buttonIcon, children }) => {
         >
           {buttonIcon}
         </button>
-        <ul className="dropdown-menu dropdown-menu-right" role="menu">
+        <ul className="dropdown-menu dropdown-menu-end" role="menu">
           {children}
         </ul>
       </div>

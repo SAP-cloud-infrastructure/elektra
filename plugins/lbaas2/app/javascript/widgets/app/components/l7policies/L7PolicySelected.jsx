@@ -122,7 +122,7 @@ const L7PolicySelected = ({ props, listenerID, l7Policy, onBackLink }) => {
                 >
                   <span className="fa fa-cog"></span>
                 </button>
-                <ul className="dropdown-menu dropdown-menu-right" role="menu">
+                <ul className="dropdown-menu dropdown-menu-end" role="menu">
                   <li>
                     <SmartLink
                       to={`/loadbalancers/${loadbalancerID}/listeners/${listenerID}/l7policies/${

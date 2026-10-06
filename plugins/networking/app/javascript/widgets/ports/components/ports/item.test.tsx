@@ -561,7 +561,7 @@ describe("Item Component", () => {
     it("has correct dropdown menu classes", () => {
       const { container } = renderComponent()
       const dropdownMenu = container.querySelector(".dropdown-menu")
-      expect(dropdownMenu).toHaveClass("dropdown-menu", "dropdown-menu-right")
+      expect(dropdownMenu).toHaveClass("dropdown-menu", "dropdown-menu-end")
       expect(dropdownMenu).toHaveAttribute("role", "menu")
     })
   })
