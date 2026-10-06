@@ -63,7 +63,7 @@ export class FormMultiselect extends React.Component {
           onBlur={this.handleOnBlur}
         >
           <button
-            className="btn btn-default"
+            className="btn btn-secondary"
             type="button"
             onClick={this.toggle}
           >

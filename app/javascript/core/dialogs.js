@@ -162,7 +162,7 @@ var InfoDialog = (function () {
 
       </div>
       <div class="modal-footer">
-        <button class="btn btn-default" type="button" data-dismiss="modal", aria-label="Close">Close</button>
+        <button class="btn btn-secondary" type="button" data-dismiss="modal", aria-label="Close">Close</button>
       </div>
     </div>
   </div>

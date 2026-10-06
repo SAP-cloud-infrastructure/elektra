@@ -93,7 +93,7 @@ const ReplicaItem: React.FC<ReplicaItemProps> = ({
         {(canI("promote") || canI("delete") || canI("resync") || canI("get_error_log")) && (
           <div className="btn-group">
             <button
-              className="btn btn-default btn-sm dropdown-toggle"
+              className="btn btn-secondary btn-sm dropdown-toggle"
               type="button"
               data-toggle="dropdown"
               aria-expanded="true"

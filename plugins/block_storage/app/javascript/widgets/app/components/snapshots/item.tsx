@@ -141,7 +141,7 @@ const Snapshot: React.FC<SnapshotProps> = ({ snapshot, searchTerm, reloadSnapsho
         {hasAnyPermission && (
           <div className="btn-group">
             <button
-              className="btn btn-default btn-sm dropdown-toggle"
+              className="btn btn-secondary btn-sm dropdown-toggle"
               disabled={isPendingState()}
               type="button"
               data-toggle="dropdown"

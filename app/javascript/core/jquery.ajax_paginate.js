@@ -15,7 +15,7 @@ jQuery.fn.ajaxPaginate = function (options) {
     loadNextLabel: "Load Next",
     loadAllLabel: "Load All",
     loadNextItemsCssClass: "btn btn-primary btn-sm",
-    loadAllItemsCssClass: "btn btn-default btn-sm",
+    loadAllItemsCssClass: "btn btn-secondary btn-sm",
   }
 
   // merge defaults and options

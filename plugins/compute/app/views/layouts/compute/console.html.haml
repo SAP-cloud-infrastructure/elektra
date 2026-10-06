@@ -27,14 +27,14 @@
       .main-buttons
         - if !hypervisor.to_s.include?('nova-compute-ironic') && current_user.is_allowed?("compute:instance_hard_reset",{target: { project: @active_project, scoped_domain_name: @scoped_domain_name}})
           .verticalLine
-            = link_to confirm_hard_reset_instance_path(id: @instance.id), class: 'btn btn-default hover-danger',data: {modal:true} do
+            = link_to confirm_hard_reset_instance_path(id: @instance.id), class: 'btn btn-secondary hover-danger',data: {modal:true} do
               %i.fa.fa-power-off
               Hard Reset Instance
         = link_to 'javascript:location.reload();', class: 'btn btn-primary ' do
           %i.fa.fa-refresh
           Reload Console
 
-        = link_to 'Close', 'javascript: window.close();', class: 'btn btn-default'
+        = link_to 'Close', 'javascript: window.close();', class: 'btn btn-secondary'
     .console{style: 'position: relative; height: 100%; width: 100%;'}
       #console
         -# check compute/instances/console.html.haml and the content that gets yielded there 

@@ -532,7 +532,7 @@ describe("Item Component", () => {
     it("applies correct classes to dropdown button", () => {
       renderComponent()
       const button = screen.getByRole("button")
-      expect(button).toHaveClass("btn", "btn-default", "btn-sm", "dropdown-toggle")
+      expect(button).toHaveClass("btn", "btn-secondary", "btn-sm", "dropdown-toggle")
     })
 
     it("applies 'info-text' class to subnet names", () => {

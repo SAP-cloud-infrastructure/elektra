@@ -45,7 +45,7 @@ const Item = ({ securityGroup, handleDelete, project }) => {
           securityGroup.name != "default" && (
             <div className="btn-group">
               <button
-                className="btn btn-default btn-sm dropdown-toggle"
+                className="btn btn-secondary btn-sm dropdown-toggle"
                 type="button"
                 disabled={securityGroup.deleting}
                 data-toggle="dropdown"

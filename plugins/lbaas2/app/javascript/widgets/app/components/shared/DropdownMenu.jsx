@@ -58,7 +58,7 @@ const DropDownMenu = ({ buttonIcon, children }) => {
     <>
       <div className="btn-group custom-dropdown" id={componentID}>
         <button
-          className="btn btn-default btn-sm dropdown-toggle"
+          className="btn btn-secondary btn-sm dropdown-toggle"
           type="button"
           data-toggle="dropdown"
           aria-expanded={true}

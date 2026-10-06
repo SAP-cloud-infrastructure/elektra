@@ -202,7 +202,7 @@ const ProjectRoleAssignmentsInlineForm: React.FC<ProjectRoleAssignmentsInlineFor
             </>
           ) : (
             <>
-              <button className="btn btn-default btn-sm hover-danger" onClick={removeAllRoles} disabled={saving}>
+              <button className="btn btn-secondary btn-sm hover-danger" onClick={removeAllRoles} disabled={saving}>
                 Remove All
               </button>
             </>
@@ -210,7 +210,7 @@ const ProjectRoleAssignmentsInlineForm: React.FC<ProjectRoleAssignmentsInlineFor
         </div>
 
         <div className="main-buttons">
-          <button className="btn btn-default btn-sm" onClick={cancelEdit} disabled={saving}>
+          <button className="btn btn-secondary btn-sm" onClick={cancelEdit} disabled={saving}>
             Cancel
           </button>
           {!isFetching && isEmpty ? (

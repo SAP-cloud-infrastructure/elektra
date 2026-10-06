@@ -43,7 +43,7 @@
   %td.snug
     - if current_user.is_allowed?("dns_service:zone_get", zone: zone.attributes) or current_user.is_allowed?("dns_service:zone_delete", zone: zone.attributes) or current_user.is_allowed?("dns_service:zone_update", zone: zone.attributes)
       .btn-group
-        %button.btn.btn-default.btn-sm.dropdown-toggle{ type: "button", data: { toggle: "dropdown"}, aria: { expanded: true} }
+        %button.btn.btn-secondary.btn-sm.dropdown-toggle{ type: "button", data: { toggle: "dropdown"}, aria: { expanded: true} }
           %span.fa.fa-cog
         %ul.dropdown-menu.dropdown-menu-right{ role:"menu"}
           - if current_user.is_allowed?("dns_service:zone_get", zone: zone.attributes)

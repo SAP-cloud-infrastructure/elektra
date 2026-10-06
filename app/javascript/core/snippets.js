@@ -16,7 +16,7 @@ $.fn.initSnippetCopyToClipboard = function () {
 
     // add copy button
     $element.prepend(
-      '<button class="btn btn-default btn-icon-only" data-clipboard-snippet><i class="fa fa-clipboard"></i></button>'
+      '<button class="btn btn-secondary btn-icon-only" data-clipboard-snippet><i class="fa fa-clipboard"></i></button>'
     )
     const button = $element.find("[data-clipboard-snippet]")
     // add click event

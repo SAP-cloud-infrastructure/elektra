@@ -103,7 +103,7 @@ export default class AccountRow extends React.Component {
         <td className="snug">
           <div className="btn-group">
             <button
-              className="btn btn-default btn-sm dropdown-toggle"
+              className="btn btn-secondary btn-sm dropdown-toggle"
               type="button"
               data-toggle="dropdown"
               disabled={accountIsDeleting}

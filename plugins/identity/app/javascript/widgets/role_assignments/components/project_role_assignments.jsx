@@ -134,7 +134,7 @@ export default class ProjectRoleAssignments extends React.Component {
               {this.state.showNewMemberInput ? (
                 <div className="input-group input-group-left-button">
                   <span className="input-group-btn">
-                    <button className="btn btn-default" onClick={() => this.setState({ showNewMemberInput: false })}>
+                    <button className="btn btn-secondary" onClick={() => this.setState({ showNewMemberInput: false })}>
                       x
                     </button>
                   </span>

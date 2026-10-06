@@ -62,7 +62,7 @@ let SetupInfo = ({ close, setupData, kubernikusBaseUrl }) =>
       <button
         role="close"
         type="button"
-        className="btn btn-default"
+        className="btn btn-secondary"
         onClick={close}
       >
         Close

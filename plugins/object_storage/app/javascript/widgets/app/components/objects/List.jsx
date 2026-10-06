@@ -335,7 +335,7 @@ const Objects = () => {
         <SearchField onChange={setSearchTerm} placeholder="name" text="Filters by name" />
 
         <div className="main-buttons">
-          <Link className="btn btn-default" to={`${url}/new`}>
+          <Link className="btn btn-secondary" to={`${url}/new`}>
             Create folder
           </Link>
           <Link className="btn btn-primary" to={`${url}/upload`}>

@@ -7,7 +7,7 @@
       .input-group.has-feedback.has-feedback-searchable
         %input.form-control{:id => "search", :name => 'search', :placeholder => "Enter search term", :type => "text", :size => 40, :value => @search }
         .span.input-group-btn
-          %button.btn.btn-default{type: "submit"}
+          %button.btn.btn-secondary{type: "submit"}
             %i.fa.fa-search
     %a.help-link.has-feedback-help{href: "#", data: {toggle: "popover", "popover-type": "help-hint", content: 'Search term can use wildcard "*".'}}
       %i.fa.fa-question-circle

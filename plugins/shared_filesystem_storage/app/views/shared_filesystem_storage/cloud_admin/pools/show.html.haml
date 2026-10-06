@@ -10,6 +10,6 @@
 
 - if modal?
   .modal-footer
-    %button.btn.btn-default{ type: 'button', data: { dismiss: 'modal' }, aria: { label: 'Close' } } Close
+    %button.btn.btn-secondary{ type: 'button', data: { dismiss: 'modal' }, aria: { label: 'Close' } } Close
 - else
-  = link_to 'Back', plugin('shared_filesystem_storage').cloud_admin_pools_path, class: 'btn btn-default'
+  = link_to 'Back', plugin('shared_filesystem_storage').cloud_admin_pools_path, class: 'btn btn-secondary'

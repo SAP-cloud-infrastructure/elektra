@@ -10,7 +10,7 @@ const AddRouterAssociation = ({ routers, onSelect, disabled, routerID }) => {
     <div className="btn-group btn-group-sm">
       <button
         type="button"
-        className="btn btn-default btn-sm dropdown-toggle"
+        className="btn btn-secondary btn-sm dropdown-toggle"
         data-toggle="dropdown"
         aria-expanded="false"
         disabled={disabled}

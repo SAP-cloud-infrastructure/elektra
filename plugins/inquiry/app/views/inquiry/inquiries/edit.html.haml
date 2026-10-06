@@ -34,14 +34,14 @@
             = f.input :process_step_description, label: "Reason for your state decision", as: :text, required: true
         .buttons{class: modal? ? 'modal-footer' : ''}
           - if modal?
-            %button.btn.btn-default{
+            %button.btn.btn-secondary{
 type: "button",
 data: { dismiss: "modal" },
 aria: { label: "Cancel" }
 }
               Cancel
           - else
-            = link_to "Cancel", plugin('inquiry').inquiries_url(), class: 'btn btn-default'
+            = link_to "Cancel", plugin('inquiry').inquiries_url(), class: 'btn btn-secondary'
           %button{
 type: "submit",
 class: "btn btn-primary",
