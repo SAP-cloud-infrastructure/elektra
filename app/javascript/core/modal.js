@@ -158,7 +158,7 @@ var MoModal = (function () {
 
       modal_is_loading = true
       $.get(location, attr)
-        .error(showError)
+        .fail(showError)
         .done(function (data, status, xhr) {
           // console.log 'done'
           //$button.removeClass('loading')
@@ -181,7 +181,7 @@ var MoModal = (function () {
             }
           }
         })
-        .complete(() => (modal_is_loading = false))
+        .always(() => (modal_is_loading = false))
       return false
     }
 

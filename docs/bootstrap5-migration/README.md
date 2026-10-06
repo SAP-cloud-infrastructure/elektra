@@ -413,15 +413,15 @@ Also: `data-toggle`→`data-bs-toggle`, `data-target`→`data-bs-target`,
 
 ## 9. Progress log
 
-| Phase | Status      | Notes                                                                             |
-| ----- | ----------- | --------------------------------------------------------------------------------- |
-| 0     | In progress | Document created; §4b added from `bs5-spike` SPIKE-NOTES. Baseline specs pending. |
-| 1     | Not started |                                                                                   |
-| 2     | Not started |                                                                                   |
-| 3     | Not started |                                                                                   |
-| 4     | Not started |                                                                                   |
-| 5     | Not started |                                                                                   |
-| 6     | Not started |                                                                                   |
+| Phase | Status      | Notes                                                                                                                                            |
+| ----- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 0     | In progress | Document created; §4b added from `bs5-spike` SPIKE-NOTES. Baseline specs pending.                                                                |
+| 1     | Done        | jQuery 1.12.4→3.7.1; `.error/.complete/.success` AJAX calls fixed (4 sites); multiselect jQuery override → all jQuery CVEs cleared; build green. |
+| 2     | Not started |                                                                                                                                                  |
+| 3     | Not started |                                                                                                                                                  |
+| 4     | Not started |                                                                                                                                                  |
+| 5     | Not started |                                                                                                                                                  |
+| 6     | Not started |                                                                                                                                                  |
 
 ---
 
