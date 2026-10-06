@@ -23,6 +23,17 @@ $globa-notifications-section-height: 55;
   border-left: 4px solid transparent;
 }
 
+// App-owned utility: Bootstrap 3's `.btn-xs` (extra-small button) was removed in
+// BS5 (smallest is `.btn-sm`). Elektra uses `.btn-xs` for compact table/list
+// action buttons where `.btn-sm` would be too large, so we re-provide the BS3
+// sizing. (BS5 has no direct equivalent.)
+.btn-xs {
+  padding: 1px 5px;
+  font-size: 12px;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+
 .has-global-notifications {
   padding-top: #{$globa-notifications-section-height + 92}px;
 
