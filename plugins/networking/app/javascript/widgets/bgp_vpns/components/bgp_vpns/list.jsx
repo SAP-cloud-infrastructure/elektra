@@ -188,7 +188,7 @@ const BgpVpns = () => {
                       >
                         <span className="fa fa-cog" />
                       </button>
-                      <ul className="dropdown-menu dropdown-menu-right super-colors" role="menu">
+                      <ul className="dropdown-menu dropdown-menu-end super-colors" role="menu">
                         <li>
                           <a
                             href="#"

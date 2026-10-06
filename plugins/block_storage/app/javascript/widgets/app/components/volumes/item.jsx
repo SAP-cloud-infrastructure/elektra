@@ -128,7 +128,7 @@ const VolumeItem = ({ reloadVolume, deleteVolume, forceDeleteVolume, detachVolum
               <span className="fa fa-cog"></span>
             </button>
 
-            <ul className="dropdown-menu dropdown-menu-right" role="menu">
+            <ul className="dropdown-menu dropdown-menu-end" role="menu">
               {policy.isAllowed("block_storage:volume_update", {
                 target: { scoped_domain_name: scope.domain },
               }) && (

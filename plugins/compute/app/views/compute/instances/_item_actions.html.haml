@@ -6,7 +6,7 @@
   }
     %span.fa.fa-cog
     -# %span.spinner
-  %ul.dropdown-menu.dropdown-menu-right{role: "menu"}
+  %ul.dropdown-menu.dropdown-menu-end{role: "menu"}
     - if current_user.is_allowed?("compute:instance_get", {target: { project: @active_project, scoped_domain_name: @scoped_domain_name}})
       %li
         = link_to 'Web Console', console_instance_path(id: instance.id), target: '_blank'#data: { modal: true, load_console: true}

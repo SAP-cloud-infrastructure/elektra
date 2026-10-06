@@ -115,6 +115,33 @@ export function toggleCollapse(target: Elementish): void {
   toElements(target).forEach((el) => Collapse.getOrCreateInstance(el).toggle())
 }
 
+// Bootstrap 5's declarative dropdown data-API is only wired up in bundles that
+// import "bootstrap" (essentials). The React widget bundles are separate esbuild
+// entrypoints that do NOT import bootstrap, so `[data-bs-toggle="dropdown"]`
+// buttons rendered by React have no toggle behaviour. This installs a single
+// delegated click handler (once per document) that drives BS5's Dropdown for
+// those buttons, matching what BS5 does globally.
+let dropdownDelegationInstalled = false
+
+export function enableDropdownDelegation(): void {
+  if (dropdownDelegationInstalled || typeof document === "undefined") return
+  dropdownDelegationInstalled = true
+
+  document.addEventListener("click", (event) => {
+    const target = event.target as HTMLElement | null
+    if (!target) return
+    const toggle = target.closest<HTMLElement>('[data-bs-toggle="dropdown"]')
+    if (!toggle) return
+    // Only handle real BS dropdowns (a resolvable .dropdown-menu sibling);
+    // custom menus (e.g. mega dropdown) are left to their own handlers.
+    const parent = toggle.parentElement
+    const hasMenu = !!(parent && parent.querySelector(":scope > .dropdown-menu"))
+    if (!hasMenu) return
+    event.preventDefault()
+    Dropdown.getOrCreateInstance(toggle).toggle()
+  })
+}
+
 export { Modal, Tooltip, Popover, Tab, Collapse, Dropdown }
 
 // Expose the engine globally so server-rendered inline scripts (.js.erb and

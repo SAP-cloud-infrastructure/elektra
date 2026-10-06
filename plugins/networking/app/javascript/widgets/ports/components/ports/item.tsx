@@ -135,7 +135,7 @@ const Item: React.FC<ItemProps> = ({
           >
             <i className="fa fa-cog"></i>
           </button>
-          <ul className="dropdown-menu dropdown-menu-right" role="menu">
+          <ul className="dropdown-menu dropdown-menu-end" role="menu">
             <li>
               <Link to={`/ports/${port.id}/show`}>Show</Link>
             </li>

@@ -45,7 +45,7 @@
       .btn-group
         %button.btn.btn-secondary.btn-sm.dropdown-toggle{ type: "button", data: { bs_toggle: "dropdown"}, aria: { expanded: true} }
           %span.fa.fa-cog
-        %ul.dropdown-menu.dropdown-menu-right{ role:"menu"}
+        %ul.dropdown-menu.dropdown-menu-end{ role:"menu"}
           - if current_user.is_allowed?("dns_service:zone_get", zone: zone.attributes)
             %li= link_to 'Manage Records', plugin('dns_service').zone_path(zone.id)
           - if current_user.is_allowed?("dns_service:maintain_shared_zones", zone: zone.attributes) && !shared_project_view

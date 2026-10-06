@@ -30,7 +30,7 @@
         %button.btn.btn-secondary.btn-sm.dropdown-toggle{ type: "button", data: { bs_toggle: "dropdown"}, aria: { expanded: true} }
           %span.fa.fa-cog
 
-        %ul.dropdown-menu.dropdown-menu-right{ role:"menu"}
+        %ul.dropdown-menu.dropdown-menu-end{ role:"menu"}
           - if current_user.is_allowed?("networking:floating_ip_update", {floating_ip: floating_ip})
             %li= link_to 'Edit', plugin('networking').edit_floating_ip_path(floating_ip.id), data: {modal: true}
           - if current_user.is_allowed?("networking:floating_ip_delete", {floating_ip: floating_ip})

@@ -3,7 +3,7 @@
     %span.fa.fa-cog
     -# %span.spinner
 
-  %ul.dropdown-menu.dropdown-menu-right{ role:"menu"}
+  %ul.dropdown-menu.dropdown-menu-end{ role:"menu"}
     - if current_user.is_allowed?("networking:router_get", router: router)
       %li= link_to 'Topology', plugin('networking').router_topology_path(router_id: router.id), data: { modal: true }
 

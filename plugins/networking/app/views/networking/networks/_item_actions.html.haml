@@ -4,7 +4,7 @@
       %span.fa.fa-cog
       -# %span.spinner
 
-    %ul.dropdown-menu.dropdown-menu-right{ role:"menu"}
+    %ul.dropdown-menu.dropdown-menu-end{ role:"menu"}
       - added = false
       - if current_user.is_allowed?("networking:network_#{@network_type}_update", network: network)
         %li= link_to 'Edit', plugin('networking').send("edit_networks_#{@network_type}_path", network.id, action_from_show: show_view), data: {modal: true}

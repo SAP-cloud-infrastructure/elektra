@@ -94,7 +94,7 @@ const Item = ({
               <span className="fa fa-cog" />
             </button>
 
-            <ul className="dropdown-menu dropdown-menu-right" role="menu">
+            <ul className="dropdown-menu dropdown-menu-end" role="menu">
               {policy.isAllowed(
                 "shared_filesystem_storage:share_network_delete"
               ) && (

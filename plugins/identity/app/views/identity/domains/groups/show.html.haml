@@ -15,7 +15,7 @@
         - if can_delete or can_edit
           .dropdown.header-action
             %i.fa.fa-cog.dropdown-toggle{ data: { bs_toggle: "dropdown"}, aria: { expanded: true} }
-            %ul.dropdown-menu.dropdown-menu-right{ role:"menu"}
+            %ul.dropdown-menu.dropdown-menu-end{ role:"menu"}
               - if can_edit
                 %li
                   = link_to plugin('identity').edit_domains_group_path(project_id:nil,id:@group.id), title: "Edit group info", data: {modal: true, bs_toggle: "tooltip", placement: "left"} do

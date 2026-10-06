@@ -111,7 +111,7 @@ const SearchItem = ({ item, term, aggregates }) => {
             >
               <i className="fa fa-cog"></i>
             </button>
-            <ul className="dropdown-menu dropdown-menu-right" role="menu">
+            <ul className="dropdown-menu dropdown-menu-end" role="menu">
               {vCenterLink && (
                 <li>
                   <a href={vCenterLink} target="_blank" rel="noreferrer">

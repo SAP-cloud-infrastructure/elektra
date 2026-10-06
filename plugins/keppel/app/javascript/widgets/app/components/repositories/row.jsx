@@ -77,7 +77,7 @@ export default class RepositoryRow extends React.Component {
                 >
                   <span className="fa fa-cog"></span>
                 </button>
-                <ul className="dropdown-menu dropdown-menu-right" role="menu">
+                <ul className="dropdown-menu dropdown-menu-end" role="menu">
                   <li>
                     <a href="#" onClick={(e) => this.handleDelete(e)}>
                       Delete
