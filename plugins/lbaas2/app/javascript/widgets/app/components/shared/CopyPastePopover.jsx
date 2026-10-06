@@ -75,16 +75,18 @@ const CopyPastePopover = ({
 
   const popOver = (
     <Popover id={uniqueId("copy-paste-popover-")}>
-      <div className="lbaas2">
-        <span className="cp-popover-text">{text}</span>
-        {/* not show copy icon again in the popover */}
-        {/* {shouldCopyText &&
+      <Popover.Body>
+        <div className="lbaas2">
+          <span className="cp-popover-text">{text}</span>
+          {/* not show copy icon again in the popover */}
+          {/* {shouldCopyText &&
           <div className="text-right">
             {clipboard}
             {tooltip}
           </div>
         } */}
-      </div>
+        </div>
+      </Popover.Body>
     </Popover>
   )
 
