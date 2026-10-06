@@ -44,7 +44,7 @@
       = f.input :description, required: false, as: :text
 
   %div.buttons{class: 'modal-footer'}
-    %button.btn.btn-default{type: 'button', data: {dismiss: 'modal'}, aria: {label: 'Cancel'}} Cancel
+    %button.btn.btn-secondary{type: 'button', data: {dismiss: 'modal'}, aria: {label: 'Cancel'}} Cancel
     - unless @inquiry.nil?
       = button_tag 'Create', { class: 'btn btn-primary pull-right', data: { disable_with: 'Please wait... '} }
 

@@ -7,7 +7,7 @@ const HowToEnable = ({ projectPath }) => (
       <strong>admin</strong> or <strong>objectstore_admin</strong> or{" "}
       <strong>objectstore_viewer</strong> role for this project.{" "}
     </div>
-    <a className="btn btn-default" href={projectPath}>
+    <a className="btn btn-secondary" href={projectPath}>
       Go to Project Start Page
     </a>
   </>

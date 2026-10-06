@@ -325,10 +325,10 @@ class Subnets {
     ) {
       if (this.state.showForm) {
         this.form.show()
-        this.$addButton.addClass("btn-default").removeClass("btn-primary").text("x")
+        this.$addButton.addClass("btn-secondary").removeClass("btn-primary").text("x")
       } else {
         this.form.hide()
-        this.$addButton.addClass("btn-primary").removeClass("btn-default").text("+")
+        this.$addButton.addClass("btn-primary").removeClass("btn-secondary").text("+")
       }
     }
 

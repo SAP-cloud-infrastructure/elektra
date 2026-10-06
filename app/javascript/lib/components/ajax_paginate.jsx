@@ -15,7 +15,7 @@ export const AjaxPaginate = ({
   loadNextLabel = "Load Next",
   loadAllLabel = "Load All",
   loadNextItemsCssClass = "btn btn-primary btn-sm",
-  loadAllItemsCssClass = "btn btn-default btn-sm",
+  loadAllItemsCssClass = "btn btn-secondary btn-sm",
 }) => {
   return (
     <div className="ajax-paginate">

@@ -67,12 +67,12 @@ const Form = ({ helpText, searchFor, onSubmit, isLoading }) => {
           />
           <div className="input-group-btn">
             {canClear && !isLoading && (
-              <button type="button" className="btn btn-default" onClick={clear}>
+              <button type="button" className="btn btn-secondary" onClick={clear}>
                 <i className="fa fa-times-circle" />
               </button>
             )}
             <button
-              className="btn btn-default"
+              className="btn btn-secondary"
               type="submit"
               disabled={isLoading}
             >

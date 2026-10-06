@@ -36,7 +36,7 @@
             Network as well as a Router and connect the networks to each other.
 
   %div.buttons{class: modal? ? 'modal-footer' : ''}
-    %button.btn.btn-default{ type: 'button', data: { dismiss:'modal' }, aria: { label: 'Cancel' } } Cancel
+    %button.btn.btn-secondary{ type: 'button', data: { dismiss:'modal' }, aria: { label: 'Cancel' } } Cancel
     %button{ type: 'submit', class: 'btn btn-primary', data: { disable_with: 'Please wait...'}, disabled: (!@network_wizard.errors.blank?) } Setup
 
 :javascript

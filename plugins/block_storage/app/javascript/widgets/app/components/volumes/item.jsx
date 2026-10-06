@@ -119,7 +119,7 @@ const VolumeItem = ({ reloadVolume, deleteVolume, forceDeleteVolume, detachVolum
           })) && (
           <div className="btn-group">
             <button
-              className="btn btn-default btn-sm dropdown-toggle"
+              className="btn btn-secondary btn-sm dropdown-toggle"
               disabled={pending}
               type="button"
               data-toggle="dropdown"

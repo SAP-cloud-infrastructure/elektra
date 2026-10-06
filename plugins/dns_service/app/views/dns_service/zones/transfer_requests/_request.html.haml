@@ -56,4 +56,4 @@
 
 .modal-footer
   = link_to 'Delete', plugin('dns_service').transfer_request_path(id: @zone_transfer_request.id,zone_id:@zone_transfer_request.zone_id), method: :delete, remote: true, class: 'btn btn-danger',data: { disable_with: "Please wait..." }
-  %button.btn.btn-default{type:"button", data: {dismiss:"modal"}, aria: {label: "Close"}} Close
+  %button.btn.btn-secondary{type:"button", data: {dismiss:"modal"}, aria: {label: "Close"}} Close

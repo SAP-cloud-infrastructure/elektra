@@ -122,7 +122,7 @@ const ObjectTopology: React.FC<ObjectTopologyProps> = ({
             tabIndex={0}
             onBlur={() => setFilterCollapsed(true)}
           >
-            <button className="btn btn-default" type="button" onClick={toggleFilter}>
+            <button className="btn btn-secondary" type="button" onClick={toggleFilter}>
               Select ...
               <span className="caret"></span>
             </button>

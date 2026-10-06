@@ -1525,8 +1525,8 @@ footer,
     .btn {
       @extend .btn-primary;
 
-      &.btn-default {
-        @extend .btn-default;
+      &.btn-secondary {
+        @extend .btn-secondary;
       }
     }
 
@@ -1551,8 +1551,8 @@ footer,
     .btn {
       @extend .btn-info;
 
-      &.btn-default {
-        @extend .btn-default;
+      &.btn-secondary {
+        @extend .btn-secondary;
       }
     }
 
@@ -1587,8 +1587,8 @@ footer,
     .btn {
       @extend .btn-info;
 
-      &.btn-default {
-        @extend .btn-default;
+      &.btn-secondary {
+        @extend .btn-secondary;
       }
     }
 
@@ -1607,8 +1607,8 @@ footer,
     .btn {
       @extend .btn-success;
 
-      // &.btn-default {
-      //   @extend .btn-default;
+      // &.btn-secondary {
+      //   @extend .btn-secondary;
       // }
     }
 
@@ -1631,8 +1631,8 @@ footer,
     .btn {
       @extend .btn-warning;
 
-      // &.btn-default {
-      //   @extend .btn-default;
+      // &.btn-secondary {
+      //   @extend .btn-secondary;
       // }
     }
 
@@ -1655,8 +1655,8 @@ footer,
     .btn {
       @extend .btn-danger;
 
-      // &.btn-default {
-      //   @extend .btn-default;
+      // &.btn-secondary {
+      //   @extend .btn-secondary;
       // }
     }
 

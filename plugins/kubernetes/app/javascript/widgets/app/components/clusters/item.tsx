@@ -237,17 +237,17 @@ const Cluster: React.FC<ClusterProps> = ({
             <i className="fa fa-fw fa-pencil" />
             Edit Cluster
           </button>
-          <button className="btn btn-sm btn-default btn-icon-text" disabled={disabled} onClick={handleCredentials}>
+          <button className="btn btn-sm btn-secondary btn-icon-text" disabled={disabled} onClick={handleCredentials}>
             <i className="fa fa-fw fa-download" />
             Download Credentials
           </button>
-          <button className="btn btn-sm btn-default btn-icon-text" disabled={disabled} onClick={handleSetupInfo}>
+          <button className="btn btn-sm btn-secondary btn-icon-text" disabled={disabled} onClick={handleSetupInfo}>
             <i className="fa fa-fw fa-wrench" />
             Setup
           </button>
           {cluster.spec.dashboard && cluster.status.dashboard && (
             <a
-              className="btn btn-sm btn-default btn-icon-text"
+              className="btn btn-sm btn-secondary btn-icon-text"
               href={cluster.status.dashboard}
               target="_blank"
               rel="noreferrer"

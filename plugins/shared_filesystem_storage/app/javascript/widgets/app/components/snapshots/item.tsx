@@ -83,7 +83,7 @@ const SnapshotItem: React.FC<SnapshotItemProps> = ({
           policy.isAllowed("shared_filesystem_storage:snapshot_update")) && (
           <div className="btn-group">
             <button
-              className="btn btn-default btn-sm dropdown-toggle"
+              className="btn btn-secondary btn-sm dropdown-toggle"
               type="button"
               data-toggle="dropdown"
               aria-expanded="true"

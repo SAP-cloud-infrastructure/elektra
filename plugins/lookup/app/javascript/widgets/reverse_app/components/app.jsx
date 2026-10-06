@@ -86,7 +86,7 @@ class App extends React.Component {
         {this.props.modal && (
           <div className="modal-footer">
             <button
-              className="btn btn-default"
+              className="btn btn-secondary"
               type="button"
               data-dismiss="modal"
               aria-label="Cancel"

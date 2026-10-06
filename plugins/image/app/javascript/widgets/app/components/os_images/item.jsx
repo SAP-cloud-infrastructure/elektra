@@ -63,7 +63,7 @@ const Item = (props) => {
           policy.isAllowed("image:image_delete", { image })) && (
           <div className="btn-group">
             <button
-              className="btn btn-default btn-sm dropdown-toggle"
+              className="btn btn-secondary btn-sm dropdown-toggle"
               type="button"
               data-toggle="dropdown"
               aria-expanded={true}

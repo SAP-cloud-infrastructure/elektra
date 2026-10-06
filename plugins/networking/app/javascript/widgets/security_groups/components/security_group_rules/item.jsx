@@ -61,7 +61,7 @@ const Item = ({ rule, handleDelete, securityGroups }) => {
       <td>
         {canDelete && rule.status != "deleting" && (
           <a
-            className="btn btn-default btn-sm hover-danger"
+            className="btn btn-secondary btn-sm hover-danger"
             href="#"
             onClick={(e) => {
               e.preventDefault()

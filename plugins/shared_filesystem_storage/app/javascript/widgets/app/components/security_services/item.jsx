@@ -20,7 +20,7 @@ const Item = ({ securityService, handleDelete }) => (
         policy.isAllowed("shared_filesystem_storage:security_service_update")) && (
         <div className="btn-group">
           <button
-            className="btn btn-default btn-sm dropdown-toggle"
+            className="btn btn-secondary btn-sm dropdown-toggle"
             type="button"
             data-toggle="dropdown"
             aria-expanded={true}

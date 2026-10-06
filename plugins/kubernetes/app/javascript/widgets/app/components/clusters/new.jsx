@@ -198,7 +198,7 @@ let NewCluster = ({
           <div className="main-buttons">
             {!metaData.loaded ||
             (metaData.error != null && metaData.errorCount <= 20) ? (
-              <button className="btn btn-default" disabled="disabled">
+              <button className="btn btn-secondary" disabled="disabled">
                 <span className="spinner" />
               </button>
             ) : (
@@ -375,7 +375,7 @@ let NewCluster = ({
                 </label>
               </div>
               <button
-                className="btn btn-default"
+                className="btn btn-secondary"
                 data-index={i}
                 disabled={clusterForm?.data?.spec?.nodePools?.length <= 1}
                 onClick={(e) => {
@@ -403,7 +403,7 @@ let NewCluster = ({
         <button
           role="close"
           type="button"
-          className="btn btn-default"
+          className="btn btn-secondary"
           onClick={close}
         >
           Close

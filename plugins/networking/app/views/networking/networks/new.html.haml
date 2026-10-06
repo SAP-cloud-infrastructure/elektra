@@ -22,14 +22,14 @@
         = subnets.input :cidr, icon_hint: hint, label: "#{Networking::Subnet.human_attribute_name(:cidr)}", input_html: { value: @subnet.try(:cidr) }
   .buttons{class: modal? ? 'modal-footer' : ''}
     - if modal?
-      %button.btn.btn-default{
+      %button.btn.btn-secondary{
 type: "button",
 data: { dismiss: "modal" },
 aria: { label: "Cancel" }
 }
         Cancel
     - else
-      = link_to 'Cancel', plugin('networking').send("networks_#{@network_type}_index_url"), class: 'btn btn-default'
+      = link_to 'Cancel', plugin('networking').send("networks_#{@network_type}_index_url"), class: 'btn btn-secondary'
     %button{
 type: "submit",
 class: "btn btn-primary",

@@ -217,7 +217,7 @@ class EditCluster extends React.Component {
                 (metaData.error != null && metaData.errorCount <= 20)
               ) {
                 return (
-                  <button className="btn btn-default" disabled="disabled">
+                  <button className="btn btn-secondary" disabled="disabled">
                     <span className="spinner" />
                   </button>
                 )
@@ -467,7 +467,7 @@ class EditCluster extends React.Component {
                   React.createElement(
                     "button",
                     {
-                      className: "btn btn-default",
+                      className: "btn btn-secondary",
                       "data-index": index,
                       disabled:
                         !nodePool.new &&
@@ -503,7 +503,7 @@ class EditCluster extends React.Component {
         React.createElement(
           "button",
           {
-            className: "btn btn-default hover-danger pull-left btn-icon-text",
+            className: "btn btn-secondary hover-danger pull-left btn-icon-text",
             onClick(e) {
               e.preventDefault()
               close()
@@ -518,7 +518,7 @@ class EditCluster extends React.Component {
           {
             role: "close",
             type: "button",
-            className: "btn btn-default",
+            className: "btn btn-secondary",
             onClick(e) {
               e.preventDefault()
               close()

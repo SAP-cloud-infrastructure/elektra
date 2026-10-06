@@ -76,7 +76,7 @@ const FormBody = ({ staticweb, checkAcls }) => {
               Check ACLs
             </button>
             {/* 
-      // = link_to 'Check ACLs' , '#', class: 'btn btn-default pull-right', id: 'check_acls'  */}
+      // = link_to 'Check ACLs' , '#', class: 'btn btn-secondary pull-right', id: 'check_acls'  */}
           </div>
         </div>
         <div className="col-md-6">

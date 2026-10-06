@@ -10,7 +10,7 @@
   %td.snug
     - if true #current_user.is_allowed?("network:network_delete", {}) or current_user.is_allowed?("network:network_update", {})
       .btn-group
-        %button.btn.btn-default.btn-sm.dropdown-toggle{ type: "button", data: { toggle: "dropdown"}, aria: { expanded: true} }
+        %button.btn.btn-secondary.btn-sm.dropdown-toggle{ type: "button", data: { toggle: "dropdown"}, aria: { expanded: true} }
           %span.fa.fa-cog
 
         %ul.dropdown-menu.dropdown-menu-right{ role:"menu"}
