@@ -24,7 +24,7 @@ var MoModal = (function () {
       modal_is_loading = false
 
       loading = `\
-<div class="modal loading-dialog" data-keyboard="false" tabindex="-1" role="dialog" aria-hidden="true">
+<div class="modal loading-dialog" data-bs-keyboard="false" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog modal-sm">
     <div class="modal-content">
       <div class="modal-body"><div class="loading-spinner"></div><div class="loading-text">Loading...</div></div>

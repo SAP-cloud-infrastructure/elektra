@@ -27,7 +27,7 @@
   %td.snug
     - if current_user.is_allowed?("networking:floating_ip_delete", {floating_ip: floating_ip}) or current_user.is_allowed?("networking:floating_ip_associate", {})
       .btn-group
-        %button.btn.btn-secondary.btn-sm.dropdown-toggle{ type: "button", data: { toggle: "dropdown"}, aria: { expanded: true} }
+        %button.btn.btn-secondary.btn-sm.dropdown-toggle{ type: "button", data: { bs_toggle: "dropdown"}, aria: { expanded: true} }
           %span.fa.fa-cog
 
         %ul.dropdown-menu.dropdown-menu-right{ role:"menu"}

@@ -27,7 +27,7 @@ $(document).ready(function () {
     })
   }
 
-  return initTooltips('[data-toggle="tooltip"]', {
+  return initTooltips('[data-bs-toggle="tooltip"]', {
     delay: { show: 700 },
     trigger: "hover",
   })

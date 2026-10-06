@@ -1,7 +1,7 @@
 :javascript
   $(function(){
     // renew popover 
-    window.BootstrapEngine.disposePopover('[data-toggle="popover"]');
-    $('[data-toggle="popover"][data-popover-type="help-hint"]').attr("tabindex","0");
-    window.BootstrapEngine.initPopovers('[data-toggle="popover"]', {placement: 'top', trigger: 'focus'});
+    window.BootstrapEngine.disposePopover('[data-bs-toggle="popover"]');
+    $('[data-bs-toggle="popover"][data-popover-type="help-hint"]').attr("tabindex","0");
+    window.BootstrapEngine.initPopovers('[data-bs-toggle="popover"]', {placement: 'top', trigger: 'focus'});
   });

@@ -43,7 +43,7 @@
         - can_edit = current_user.is_allowed?("dns_service:zone_update", zone: @zone.attributes)
         - if can_delete or can_edit
           .dropdown.header-action
-            %i.fa.fa-cog.dropdown-toggle{ data: { toggle: "dropdown"}, aria: { expanded: true} }
+            %i.fa.fa-cog.dropdown-toggle{ data: { bs_toggle: "dropdown"}, aria: { expanded: true} }
             %ul.dropdown-menu.dropdown-menu-right{ role:"menu"}
               - if can_edit
                 / %li.divider{role: "separator"}

@@ -8,7 +8,7 @@
       %tr
         %th
           VCPU Usage
-          %i.fa.fa-fw.fa-info-circle{data: { toggle: "tooltip", placement: "top", title: "subject to overcommit of #{CPU_OVERCOMMIT}"}}
+          %i.fa.fa-fw.fa-info-circle{data: { bs_toggle: "tooltip", placement: "top", title: "subject to overcommit of #{CPU_OVERCOMMIT}"}}
         %td= vcpus_of(@hypervisor)
       %tr
         %th RAM Usage

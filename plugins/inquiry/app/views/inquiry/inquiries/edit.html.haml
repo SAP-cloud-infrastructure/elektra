@@ -1,12 +1,12 @@
 .modal-body
   %ul.nav.nav-tabs
     %li.active{role: "presentation"}
-      = link_to 'Process', '#process', aria: {controls:"process"}, role: "tab", data: {toggle:"tab"}
+      = link_to 'Process', '#process', aria: {controls:"process"}, role: "tab", data: {bs_toggle:"tab"}
     %li{role: "presentation"}
-      = link_to '#payload', aria: {controls:"payload"}, role: "tab", data: {toggle:"tab"} do
+      = link_to '#payload', aria: {controls:"payload"}, role: "tab", data: {bs_toggle:"tab"} do
         Payload
     %li{role: "presentation"}
-      = link_to '#process_steps', aria: {controls:"process_steps"}, role: "tab", data: {toggle:"tab"} do
+      = link_to '#process_steps', aria: {controls:"process_steps"}, role: "tab", data: {bs_toggle:"tab"} do
         Process Steps
         %span.badge= @inquiry.process_steps.length
   .tab-content

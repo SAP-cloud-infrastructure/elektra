@@ -62,7 +62,7 @@ var WebconsoleContainer = (function () {
             for (let i = 0; i < settings.buttons.length; i++) {
               var button = settings.buttons[i]
               $buttons.append(
-                `<a href='#' data-trigger='webconsole:${button}' data-toggle='tooltip' title='${
+                `<a href='#' data-trigger='webconsole:${button}' data-bs-toggle='tooltip' title='${
                   settings[button + "Text"]
                 }'><i class='${settings[button + "Icon"]}'/></a>`
               )

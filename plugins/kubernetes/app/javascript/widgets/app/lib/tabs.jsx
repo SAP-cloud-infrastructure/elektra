@@ -29,7 +29,7 @@ const ReactTabs = function ({ tabsConfig, activeTabUid, onSelect }) {
             href={`#${tab.uid}`}
             aria-controls="home"
             role="tab"
-            data-toggle="tab"
+            data-bs-toggle="tab"
             onClick={(function () {
               const { uid } = tab
               return function (e) {

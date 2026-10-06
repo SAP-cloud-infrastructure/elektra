@@ -46,7 +46,7 @@ const SearchItem = ({ item, domain, project }) => {
           <button
             className="btn btn-secondary btn-sm dropdown-toggle"
             type="button"
-            data-toggle="dropdown"
+            data-bs-toggle="dropdown"
             aria-expanded="true"
           >
             <i className="fa fa-cog"></i>

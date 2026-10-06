@@ -181,7 +181,7 @@ jQuery.fn.ajaxPaginate = function (options) {
     // add load all items button
     if (loadAllButton) {
       const $loadAllButton = $(
-        ` <button class='${loadAllItemsCssClass}' data-toggle='tooltip' title='This might take a while!'>${loadAllLabel}</button> `
+        ` <button class='${loadAllItemsCssClass}' data-bs-toggle='tooltip' title='This might take a while!'>${loadAllLabel}</button> `
       ).appendTo($buttons)
       initTooltips($loadAllButton)
       return $loadAllButton.click(function () {

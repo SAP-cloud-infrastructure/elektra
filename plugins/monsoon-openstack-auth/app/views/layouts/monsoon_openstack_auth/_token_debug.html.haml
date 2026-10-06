@@ -83,5 +83,5 @@
               %td
                 -service[:endpoints].each do |ep|
                   %span.badge
-                    %span{data:{toggle: :popover,trigger: :hover,content:ep[:url]}}
+                    %span{data:{bs_toggle: :popover,trigger: :hover,content:ep[:url]}}
                       #{ep[:interface]} (#{ep[:region] ? ep[:region] : 'global'})

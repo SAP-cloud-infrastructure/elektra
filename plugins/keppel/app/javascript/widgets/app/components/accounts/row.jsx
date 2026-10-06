@@ -108,7 +108,7 @@ export default class AccountRow extends React.Component {
             <button
               className="btn btn-secondary btn-sm dropdown-toggle"
               type="button"
-              data-toggle="dropdown"
+              data-bs-toggle="dropdown"
               disabled={accountIsDeleting}
               aria-expanded={true}
             >

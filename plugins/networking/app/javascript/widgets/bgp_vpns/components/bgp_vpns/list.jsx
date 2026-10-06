@@ -183,7 +183,7 @@ const BgpVpns = () => {
                       <button
                         className="btn btn-secondary btn-sm dropdown-toggle"
                         type="button"
-                        data-toggle="dropdown"
+                        data-bs-toggle="dropdown"
                         aria-expanded="false"
                       >
                         <span className="fa fa-cog" />

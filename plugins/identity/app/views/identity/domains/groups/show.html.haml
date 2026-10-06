@@ -14,11 +14,11 @@
         - can_delete = current_user.is_allowed?('identity:group_delete', domain_id: @scoped_domain_id) && !@domain_config&.feature_hidden?('group_management')
         - if can_delete or can_edit
           .dropdown.header-action
-            %i.fa.fa-cog.dropdown-toggle{ data: { toggle: "dropdown"}, aria: { expanded: true} }
+            %i.fa.fa-cog.dropdown-toggle{ data: { bs_toggle: "dropdown"}, aria: { expanded: true} }
             %ul.dropdown-menu.dropdown-menu-right{ role:"menu"}
               - if can_edit
                 %li
-                  = link_to plugin('identity').edit_domains_group_path(project_id:nil,id:@group.id), title: "Edit group info", data: {modal: true, toggle: "tooltip", placement: "left"} do
+                  = link_to plugin('identity').edit_domains_group_path(project_id:nil,id:@group.id), title: "Edit group info", data: {modal: true, bs_toggle: "tooltip", placement: "left"} do
                     %i.fa.fa-edit.fa-fw
                     Edit Group
               - if can_delete

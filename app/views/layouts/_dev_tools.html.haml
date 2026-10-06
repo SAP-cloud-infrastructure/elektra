@@ -1,6 +1,6 @@
 %ul.footer-nav
   %li
-    = link_to '#', data: { toggle: "modal", target: "#news", class: 'btn btn-primary' } do
+    = link_to '#', data: { bs_toggle: "modal", bs_target: "#news", class: 'btn btn-primary' } do
       Development News
       %span.badge.alert-info#news_badge
 
@@ -20,7 +20,7 @@
         = render partial: 'layouts/dev_tools_script', formats: :js
 
   %li
-    = link_to 'Debug info', '#', data: { toggle: "modal", target: "#debug" } if current_user
+    = link_to 'Debug info', '#', data: { bs_toggle: "modal", bs_target: "#debug" } if current_user
 
     .modal.fade#debug
       .modal-dialog.modal-lg
