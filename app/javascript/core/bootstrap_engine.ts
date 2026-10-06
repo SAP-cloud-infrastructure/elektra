@@ -59,14 +59,18 @@ export function disposeModal(target: Elementish): void {
 
 // --- Tooltips --------------------------------------------------------------
 
-// Bootstrap 5 type-checks `title`/`content` and rejects `undefined` (BS3 was
-// lenient). Normalise them to empty strings so callers that omit a title/content
-// don't crash with "Option ... provided type undefined".
-function sanitizeOverlayOptions<T extends { title?: unknown; content?: unknown }>(options: T): T {
-  const opts = { ...options }
+// Bootstrap 5 strictly type-checks its options and rejects `null`/`undefined`
+// where BS3 was lenient (e.g. `title`, `content`, `container`, `delay`). We
+// normalise `title`/`content` to empty strings (they must be string|element|fn)
+// and drop any other null/undefined keys so BS5 falls back to its defaults.
+function sanitizeOverlayOptions<T extends Record<string, unknown>>(options: T): Partial<T> {
+  const opts: Record<string, unknown> = { ...options }
   if ("title" in opts && opts.title == null) opts.title = ""
   if ("content" in opts && opts.content == null) opts.content = ""
-  return opts
+  for (const key of Object.keys(opts)) {
+    if (opts[key] == null) delete opts[key]
+  }
+  return opts as Partial<T>
 }
 
 export function initTooltips(target: Elementish, options?: Partial<Tooltip.Options>): void {
