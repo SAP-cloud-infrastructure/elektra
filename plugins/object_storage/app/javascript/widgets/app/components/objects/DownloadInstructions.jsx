@@ -91,7 +91,7 @@ const LargeFileInstruction = ({}) => {
                 </code>
               </p>
 
-              <div className="text-right">
+              <div className="text-end">
                 {showCopyInfo && (
                   <>
                     <span className="fade-in-info-text reverse">

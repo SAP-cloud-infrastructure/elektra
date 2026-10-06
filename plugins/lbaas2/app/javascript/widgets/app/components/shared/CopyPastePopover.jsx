@@ -80,7 +80,7 @@ const CopyPastePopover = ({
           <span className="cp-popover-text">{text}</span>
           {/* not show copy icon again in the popover */}
           {/* {shouldCopyText &&
-          <div className="text-right">
+          <div className="text-end">
             {clipboard}
             {tooltip}
           </div>

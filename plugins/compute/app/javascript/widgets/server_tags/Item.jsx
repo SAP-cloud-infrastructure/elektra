@@ -91,7 +91,7 @@ const TagItem = ({ item, onUpdate, onRemove, isNew }) => {
           </span>
         )}
       </td>
-      <td className="text-right">
+      <td className="text-end">
         <div className="btn-group">
           {isEditing && (
             <button

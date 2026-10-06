@@ -138,7 +138,7 @@ export const CastellumOperation = ({
             </div>
           )}
         </td>
-        <td className="col-md-1 text-right">
+        <td className="col-md-1 text-end">
           {share && (
             <ShareActions
               share={share}

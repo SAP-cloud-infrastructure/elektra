@@ -43,7 +43,7 @@ const isValidSubleaseToken = (token) => {
 
 const BackingStorageInfo = ({ accountName }) => (
   <Form.ElementHorizontal label="Backing storage" name="backing_storage">
-    <p className="form-control-static">
+    <p className="form-control-plaintext">
       Swift container <strong>keppel-{accountName}</strong>
       <br />
       <span className="text-muted">
@@ -74,7 +74,7 @@ const FormBody = ({ values }) => {
           <option value="replica">Replica account</option>
           <option value="external_replica">External replica account</option>
         </Form.Input>
-        {roleInfoText && <p className="form-control-static">{roleInfoText}</p>}
+        {roleInfoText && <p className="form-control-plaintext">{roleInfoText}</p>}
       </Form.ElementHorizontal>
 
       {(values.role == "primary" || values.role == "external_replica") && (
@@ -95,7 +95,7 @@ const FormBody = ({ values }) => {
                     required
                   >
                     <Form.Input elementType="input" type="text" name="url" />
-                    <p className="form-control-static">
+                    <p className="form-control-plaintext">
                       {
                         'Enter the domain name of a registry (for Docker Hub, use "index.docker.io"). If you only want to replicate images below a certain path, append the path after the domain name (e.g. "gcr.io/google_containers").'
                       }
@@ -116,7 +116,7 @@ const FormBody = ({ values }) => {
                       type="password"
                       name="password"
                     />
-                    <p className="form-control-static">
+                    <p className="form-control-plaintext">
                       These credentials are used by Keppel to pull images from
                       the upstream source. Leave blank to pull as an anonymous
                       user.
@@ -133,7 +133,7 @@ const FormBody = ({ values }) => {
                       name="platform_filter_linux_amd64"
                     />{" "}
                     Only x86_64 Linux
-                    <p className="form-control-static">
+                    <p className="form-control-plaintext">
                       When replicating a multi-architecture images, a platform
                       filter restricts which parts get replicated. Custom
                       platform filters can be defined when using the Keppel API
@@ -144,7 +144,7 @@ const FormBody = ({ values }) => {
               )}
 
               <Form.ElementHorizontal label="Advanced" name="advanced">
-                <p className="form-control-static text-muted">
+                <p className="form-control-plaintext text-muted">
                   You can set up access policies and validation rules after the
                   account has been created.
                 </p>
@@ -159,7 +159,7 @@ const FormBody = ({ values }) => {
           <Form.ElementHorizontal label="Sublease token" name="token" required>
             <Form.Input elementType="input" type="text" name="token" />
             {!isValidToken && (
-              <p className="form-control-static">
+              <p className="form-control-plaintext">
                 If you do not have a sublease token yet, open the Converged
                 Cloud dashboard in the region hosting the primary account and
                 select "Issue Sublease Token" from the account's dropdown menu.
@@ -167,7 +167,7 @@ const FormBody = ({ values }) => {
             )}
 
             {values.token && !isValidToken && (
-              <p className="form-control-static text-danger">
+              <p className="form-control-plaintext text-danger">
                 This token does not look quite right. Try clearing the input
                 field and pasting again.
               </p>
@@ -177,7 +177,7 @@ const FormBody = ({ values }) => {
           {isValidToken && (
             <>
               <Form.ElementHorizontal label="Name" name="name">
-                <p className="form-control-static">
+                <p className="form-control-plaintext">
                   <strong>{accountNameFromToken}</strong>
                 </p>
               </Form.ElementHorizontal>
@@ -185,7 +185,7 @@ const FormBody = ({ values }) => {
               <BackingStorageInfo accountName={accountNameFromToken} />
 
               <Form.ElementHorizontal label="Primary account" name="primary">
-                <p className="form-control-static">
+                <p className="form-control-plaintext">
                   This account will replicate from{" "}
                   <strong>
                     {primaryHostNameFromToken}/{accountNameFromToken}
@@ -195,7 +195,7 @@ const FormBody = ({ values }) => {
               </Form.ElementHorizontal>
 
               <Form.ElementHorizontal label="Advanced" name="advanced">
-                <p className="form-control-static text-muted">
+                <p className="form-control-plaintext text-muted">
                   You can set up access policies after the account has been
                   created.
                 </p>

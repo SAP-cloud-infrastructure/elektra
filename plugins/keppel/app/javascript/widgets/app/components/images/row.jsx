@@ -140,7 +140,7 @@ export default class ImageRow extends React.Component {
             {vulnerabilityStatus}
           </td>
           {(this.props.canEdit || mediaTypeInfo.hasDetails) && (
-            <td className="snug text-right text-nobreak">
+            <td className="snug text-end text-nobreak">
               {this.state.isUntagging ? (
                 <>
                   <span className="spinner" /> Deleting tag...

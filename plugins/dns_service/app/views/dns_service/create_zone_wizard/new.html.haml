@@ -32,7 +32,7 @@
         = f.input :dns_domain, as: :hidden
         = f.input :name, required: true, input_wrapper_html: { style: "width: 70%" } do
           .input-group
-            = f.text_field :name, value: @zone_request.name, class: "form-control text-right"
+            = f.text_field :name, value: @zone_request.name, class: "form-control text-end"
             %span.input-group-text
               = ".#{@zone_request.dns_domain}"
               = '.' unless @zone_request.dns_domain.last == '.'

@@ -80,7 +80,7 @@ const ErrorPage = ({ error, headTitle, onReload }) => {
   return (
     <>
       <div className="row error-page">
-        <div className="col-md-10 col-md-offset-2">
+        <div className="col-md-10 offset-md-2">
           <div className="row">
             <div className="col-md-10">
               <h3>{headTitle}</h3>
