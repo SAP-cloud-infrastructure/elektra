@@ -169,7 +169,7 @@ class NivoBarChart extends React.Component {
         )}
         {data && data.length > 0 && services && serviceMap && (
           <div className="row">
-            <div className="col-sm-10 col-xs-10">
+            <div className="col-sm-10 col-10">
               <div className="barChart">
                 <ResponsiveBar
                   data={this.getData()}
@@ -204,7 +204,7 @@ class NivoBarChart extends React.Component {
                 />
               </div>
             </div>
-            <div className="col-sm-2 col-xs-2">
+            <div className="col-sm-2 col-2">
               <Legend
                 height="300"
                 colors={this.props.colors}

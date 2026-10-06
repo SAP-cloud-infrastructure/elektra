@@ -219,7 +219,7 @@ const ShowObject = () => {
               <div className="form-group">
                 <label className="col-sm-2 control-label">Content type</label>
                 <div className="col-sm-10">
-                  <p className="form-control-static">
+                  <p className="form-control-plaintext">
                     {metadata["x-content-type"] ||
                       metadata["content-type"] ||
                       ""}
@@ -230,7 +230,7 @@ const ShowObject = () => {
               <div className="form-group">
                 <label className="col-sm-2 control-label">MD5 checksum</label>
                 <div className="col-sm-10">
-                  <p className="form-control-static">
+                  <p className="form-control-plaintext">
                     {metadata["x-etag"] || metadata["etag"] || ""}
                   </p>
                 </div>
@@ -239,7 +239,7 @@ const ShowObject = () => {
               <div className="form-group">
                 <label className="col-sm-2 control-label">Size</label>
                 <div className="col-sm-10">
-                  <p className="form-control-static">
+                  <p className="form-control-plaintext">
                     {unit.format(
                       metadata["x-content-length"] ||
                         metadata["content-length"] ||
@@ -256,7 +256,7 @@ const ShowObject = () => {
                     URL for public access
                   </label>
                   <div className="col-sm-10" style={{ display: "flex" }}>
-                    <p className="form-control-static">{publicUrl}</p>
+                    <p className="form-control-plaintext">{publicUrl}</p>
                     <a
                       className="btn"
                       target="_blank"
@@ -273,7 +273,7 @@ const ShowObject = () => {
               <div className="form-group">
                 <label className="col-sm-2 control-label">Uploaded (UTC)</label>
                 <div className="col-sm-10">
-                  <p className="form-control-static">{createdAt}</p>
+                  <p className="form-control-plaintext">{createdAt}</p>
                 </div>
               </div>
 
@@ -283,7 +283,7 @@ const ShowObject = () => {
                   Last modified (UTC)
                 </label>
                 <div className="col-sm-10">
-                  <p className="form-control-static">{lastModifiedAt}</p>
+                  <p className="form-control-plaintext">{lastModifiedAt}</p>
                 </div>
               </div>
 
@@ -322,7 +322,7 @@ const ShowObject = () => {
                     Dynamic Large Object Manifest
                   </label>
                   <div className="col-sm-10">
-                    <p className="form-control-static">
+                    <p className="form-control-plaintext">
                       {metadata["x-object-manifest"]}
                     </p>
                   </div>
@@ -335,7 +335,7 @@ const ShowObject = () => {
                     Static Large Object
                   </label>
                   <div className="col-sm-10">
-                    <p className="form-control-static">
+                    <p className="form-control-plaintext">
                       {metadata["x-static-large-object"]}
                     </p>
                   </div>

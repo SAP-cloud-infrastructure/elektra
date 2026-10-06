@@ -47,7 +47,7 @@
         %div{data: {container: 'subdomain'}, class: ('hidden' if @zone_request.domain_type != 'subdomain') }
           = f.input :name, label: 'Domain Name', required: true, input_wrapper_html: { style: "width: 70%" } do
             .input-group
-              = f.text_field :name, value: @zone_name, class: "form-control text-right"
+              = f.text_field :name, value: @zone_name, class: "form-control text-end"
               %span.input-group-text.select-addon
                 \.
                 = f.select :dns_domain, subdomains.collect { |subdomain| [subdomain, subdomain] }

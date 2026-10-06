@@ -33,7 +33,7 @@
       .form-group
         %label.col-sm-4.control-label Network Flavor
         .col-sm-8
-          %p.form-control-static
+          %p.form-control-plaintext
             = @router_flavor.name
             - if @router_flavor.description.present?
               \–

@@ -45,7 +45,7 @@ const FormBody: React.FC<FormBodyProps> = ({ values, snapshot, volume }) => (
   <Modal.Body>
     <Form.Errors />
     <Form.ElementHorizontal label="Source Snapshot" name="snapshot_id" required>
-      <p className="form-control-static">
+      <p className="form-control-plaintext">
         {snapshot ? (
           <>
             {snapshot.name}

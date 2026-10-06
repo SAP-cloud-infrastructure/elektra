@@ -88,13 +88,13 @@ const FormBody: React.FC<FormBodyProps> = ({ networks, subnets, securityGroups }
       <Form.Errors />
 
       <Form.ElementHorizontal label="Network" required={true} name="network_id">
-        <p className="form-control-static">{network && network.name}</p>
+        <p className="form-control-plaintext">{network && network.name}</p>
       </Form.ElementHorizontal>
 
       <Form.ElementHorizontal label="Fixed IPs" required name="fixed_ips">
         {values.fixed_ips &&
           values.fixed_ips.map((ip: { ip_address: string; subnet_id: string }, index: number) => (
-            <div key={index} className="form-control-static">
+            <div key={index} className="form-control-plaintext">
               {renderIp(ip)}
             </div>
           ))}

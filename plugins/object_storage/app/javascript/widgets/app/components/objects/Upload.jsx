@@ -127,7 +127,7 @@ const UploadFile = ({ refresh }) => {
                 </code>
               </p>
 
-              <div className="text-right">
+              <div className="text-end">
                 {showCopyInfo && (
                   <>
                     <span className="fade-in-info-text reverse">copied to clipboard</span>{" "}

@@ -10,7 +10,7 @@ const FormBody = ({ values, volume, availabilityZones }) => (
     <Form.Errors />
 
     <Form.ElementHorizontal label="Source Volume" name="source_volid">
-      <p className="form-control-static">
+      <p className="form-control-plaintext">
         {volume ? (
           <>
             {volume.name}
