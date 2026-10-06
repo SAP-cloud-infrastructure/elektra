@@ -13,13 +13,13 @@
       = f.select :pool_id, @pools.uniq.collect{|pool| [(pool.attributes.fetch("attributes", {}).fetch("label",nil) || pool.name.humanize), pool.id]},
         { include_blank: true },
         class: "select required form-control"
-      %p.help-block
+      %p.form-text
         %i.fa.fa-info-circle
         Default is "Internal SAP Hosted Zone" 
         #{link_to 'See the documentation for more information','https://documentation.global.cloud.sap/docs/customer/networking/dns/'}
 
     %div{ data: {container: 'rootdomain'} }
-      %div.form-group{ data: {container: 'rootdomain_info'} }
+      %div.mb-3{ data: {container: 'rootdomain_info'} }
         .col-sm-4
         .col-sm-8
           %p
@@ -32,7 +32,7 @@
 
     = f.input :email, required: true, input_wrapper_html: { style: "width: 70%" } do
       = f.text_field :email, class: "form-control"
-      %p.help-block{ data: {container: 'email_description'} }
+      %p.form-text{ data: {container: 'email_description'} }
         %i.fa.fa-info-circle
         %span Please use always your SAP mail address
 

@@ -36,7 +36,7 @@ const FormBody = ({ close, errors }) => {
           label="Must observe low usage for (minutes):"
           name="low_delay"
           labelWidth={5}
-          labelClass="control-label secondary-label"
+          labelClass="col-form-label secondary-label"
         >
           <Form.Input elementType="input" type="number" min="5" disabled={values.low_enabled == "false"} />
         </Form.ElementHorizontal>
@@ -44,7 +44,7 @@ const FormBody = ({ close, errors }) => {
           label="Usage is low below (%):"
           name="low_usage"
           labelWidth={5}
-          labelClass="control-label secondary-label"
+          labelClass="col-form-label secondary-label"
         >
           <Form.Input elementType="input" type="number" min="0" max="100" disabled={values.low_enabled == "false"} />
         </Form.ElementHorizontal>
@@ -59,7 +59,7 @@ const FormBody = ({ close, errors }) => {
           label="Must observe high usage for (minutes):"
           name="high_delay"
           labelWidth={5}
-          labelClass="control-label secondary-label"
+          labelClass="col-form-label secondary-label"
         >
           <Form.Input elementType="input" type="number" min="5" disabled={values.high_enabled == "false"} />
         </Form.ElementHorizontal>
@@ -67,7 +67,7 @@ const FormBody = ({ close, errors }) => {
           label="Usage is high above (%):"
           name="high_usage"
           labelWidth={5}
-          labelClass="control-label secondary-label"
+          labelClass="col-form-label secondary-label"
         >
           <Form.Input elementType="input" type="number" min="0" max="100" disabled={values.high_enabled == "false"} />
         </Form.ElementHorizontal>
@@ -82,7 +82,7 @@ const FormBody = ({ close, errors }) => {
           label="Usage is critical above (%):"
           name="critical_usage"
           labelWidth={5}
-          labelClass="control-label secondary-label"
+          labelClass="col-form-label secondary-label"
         >
           <Form.Input
             elementType="input"
@@ -98,7 +98,7 @@ const FormBody = ({ close, errors }) => {
             <option value="false">Percentage-step resizing</option>
             <option value="true">Single-step resizing</option>
           </Form.Input>
-          <p className="help-block" style={{ marginBottom: 0 }}>
+          <p className="form-text" style={{ marginBottom: 0 }}>
             <i className="fa fa-info-circle" />
             The different choices are explained in{" "}
             <a
@@ -116,7 +116,7 @@ const FormBody = ({ close, errors }) => {
           name="size_step_percent"
           labelWidth={5}
           required={values.size_step_single == "false"}
-          labelClass="control-label secondary-label"
+          labelClass="col-form-label secondary-label"
         >
           <Form.Input
             elementType="input"
@@ -125,7 +125,7 @@ const FormBody = ({ close, errors }) => {
             max="100"
             disabled={values.size_step_single == "true"}
           />
-          <p className="help-block" style={{ marginBottom: 0 }}>
+          <p className="form-text" style={{ marginBottom: 0 }}>
             <i className="fa fa-info-circle" />
             As an exception, multiple steps can be taken at once to resolve a critical usage level.
           </p>
@@ -135,7 +135,7 @@ const FormBody = ({ close, errors }) => {
           label="Never shrink to a total size below (GiB):"
           name="size_minimum"
           labelWidth={5}
-          labelClass="control-label secondary-label"
+          labelClass="col-form-label secondary-label"
         >
           <Form.Input elementType="input" type="number" min="0" />
         </Form.ElementHorizontal>
@@ -143,7 +143,7 @@ const FormBody = ({ close, errors }) => {
           label="Never extend to a total size above (GiB):"
           name="size_maximum"
           labelWidth={5}
-          labelClass="control-label secondary-label"
+          labelClass="col-form-label secondary-label"
         >
           <Form.Input elementType="input" type="number" required={true} min="0" />
         </Form.ElementHorizontal>
@@ -151,7 +151,7 @@ const FormBody = ({ close, errors }) => {
           label="Ensure this much free space (GiB):"
           name="free_minimum"
           labelWidth={5}
-          labelClass="control-label secondary-label"
+          labelClass="col-form-label secondary-label"
         >
           <Form.Input elementType="input" type="number" min="0" />
           <div className="checkbox">

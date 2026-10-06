@@ -65,13 +65,13 @@ const FormBody = ({ containerName, otherContainers }) => {
       </div>
       {/[.]r:/.test(values.read) && (
         <>
-          <label className="control-label">
+          <label className="col-form-label">
             URL for public access{" "}
             <a href={values.public_url} target="_blank" rel="noreferrer">
               (Open in new tab)
             </a>
           </label>
-          <div className="form-group">
+          <div className="mb-3">
             <input
               className="form-control"
               type="text"
@@ -82,7 +82,7 @@ const FormBody = ({ containerName, otherContainers }) => {
         </>
       )}
       {values.cap_staticweb && (
-        <div className="form-group">
+        <div className="mb-3">
           <label>Static website serving</label>
           {values.read == ".r:*,.rlistings" ? (
             <>
@@ -141,7 +141,7 @@ const FormBody = ({ containerName, otherContainers }) => {
           )}
         </div>
       )}
-      <div className="form-group">
+      <div className="mb-3">
         {/* support new versioning. If enabled then hide old versioning method  */}
         {values.versions_enabled ? (
           <div className="row">
@@ -189,7 +189,7 @@ const FormBody = ({ containerName, otherContainers }) => {
         )}
       </div>
 
-      <div className="form-group">
+      <div className="mb-3">
         <label>Metadata</label>
         <CustomMetaTags
           reservedKeys={[

@@ -316,7 +316,7 @@
       });
 
     = f.input :network_ids, { label: "Private Network",
-      wrapper_html:       { class: ('has-error' if @private_networks.empty?) },
+      wrapper_html:       { class: ('is-invalid' if @private_networks.empty?) },
       input_html:         {name: "#{@instance.model_name.param_key}[network_ids][][id]" },
       as:                 :select,
       collection:         @private_networks,

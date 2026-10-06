@@ -18,14 +18,14 @@
       collection: recordset_type_labels,
       input_html: { data: recordset_types }
 
-    .form-group.string.recordset_name
-      = label_tag :name, class: 'string col-sm-4 control-label' do
+    .mb-3.string.recordset_name
+      = label_tag :name, class: 'string col-sm-4 col-form-label' do
         Name
       .col-sm-8
         .input-group
           = f.text_field :name, id: "recordset-name-input", class: 'string required form-control', placeholder: "#{@zone.name}"
           %span.input-group-text.zone-name-addon= ".#{@zone.name}"
-        %p.help-block
+        %p.form-text
           %i.fa.fa-info-circle
           You may leave the name field empty to create a record for the zone name itself
 

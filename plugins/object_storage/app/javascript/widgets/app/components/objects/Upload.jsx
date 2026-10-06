@@ -144,8 +144,8 @@ const UploadFile = ({ refresh }) => {
         </div>
 
         <div className="form-horizontal">
-          <div className="form-group">
-            <label className="col-sm-2 control-label">
+          <div className="mb-3">
+            <label className="col-sm-2 col-form-label">
               <abbr title="required">*</abbr> Select file
             </label>
             <div className="col-sm-10">
@@ -153,8 +153,8 @@ const UploadFile = ({ refresh }) => {
             </div>
           </div>
 
-          <div className="form-group">
-            <label className="col-sm-2 control-label">
+          <div className="mb-3">
+            <label className="col-sm-2 col-form-label">
               <abbr title="required">*</abbr> File name
             </label>
             <div className="col-sm-10">

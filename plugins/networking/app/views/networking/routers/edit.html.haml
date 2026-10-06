@@ -30,8 +30,8 @@
             selected: @router_external_subnet_ids
 
     - if @router_flavor&.name.to_s.include?("vpnaas")
-      .form-group
-        %label.col-sm-4.control-label Network Flavor
+      .mb-3
+        %label.col-sm-4.col-form-label Network Flavor
         .col-sm-8
           %p.form-control-plaintext
             = @router_flavor.name

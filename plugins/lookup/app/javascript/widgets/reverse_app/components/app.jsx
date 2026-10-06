@@ -38,10 +38,10 @@ class App extends React.Component {
         <div className={this.props.modal ? "modal-body" : ""}>
           <form action="" className="form-horizontal">
             <Form.Errors errors={this.state.error} />
-            <div className="form-group">
+            <div className="mb-3">
               <label
                 htmlFor="reverseLookupValue"
-                className="col-sm-4 control-label"
+                className="col-sm-4 col-form-label"
               >
                 Child Object
               </label>

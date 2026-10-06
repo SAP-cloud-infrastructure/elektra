@@ -1,7 +1,7 @@
 -# Cannot use `f.input name, as: :boolean` from simple_form for this since it
 -# does not allow to place any text inside its <label>, which is required for the
 -# Bootstrap CSS to look good.
-.checkbox
+.form-check
   %label
     = hidden_field_tag(name, '0')
     = check_box_tag(name, '1', checked, options ||= {})

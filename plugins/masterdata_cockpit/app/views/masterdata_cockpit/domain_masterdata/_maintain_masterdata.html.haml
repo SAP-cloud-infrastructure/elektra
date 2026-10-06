@@ -12,7 +12,7 @@
   input_html: {:rows => 4, :maxlength => 5000},
   hint: raw("<span style='width:170px' class='float-end' id='additional_information_length'></span>")
 
-%label.control-label Cost Object
+%label.col-form-label Cost Object
 .card
   .card-body
     .row
@@ -34,7 +34,7 @@
         = f.input :cost_object_name,
           label: "Name/Number",
           required:true
-%label.control-label Responsibility
+%label.col-form-label Responsibility
 .card
   .card-body
     .row
@@ -48,14 +48,14 @@
         = f.input :responsible_primary_contact_email, 
             placeholder: "Email", 
             input_html: { class: 'operator-email-input',  value: f.object.responsible_primary_contact_email || current_user.email }
-      .col-md-12.op-help-block
+      .col-md-12.op-form-text
         = icon ('info-circle')
         = t('masterdata_cockpit.domain_responsible_primary_contact_help')
 
 :javascript
   $(function(){
     // to hide the label of the email input field
-    $('label.control-label.email.optional').html("&nbsp");
+    $('label.col-form-label.email.optional').html("&nbsp");
     // for attribute: when labels have the for attribute and you add an ID to the input it will wire that up
     // remove label -> input autofocus because the help in the label and disabled and readonly fields
     $('[for]').removeAttr('for')

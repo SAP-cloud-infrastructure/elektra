@@ -334,7 +334,7 @@ const EditL7Policy = (props) => {
                     step="1"
                     name="position"
                   />
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     Policies are evaluated in the order as defined by the
                     'position' attribute. The first one that matches a given
@@ -350,7 +350,7 @@ const EditL7Policy = (props) => {
                     onChange={onSelectAction}
                     value={actionType}
                   />
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     Will be executed when all L7 Rules are matched.
                   </span>
@@ -370,7 +370,7 @@ const EditL7Policy = (props) => {
                             onChange={onSelectCode}
                             value={redirectCode}
                           />
-                          <span className="help-block">
+                          <span className="form-text">
                             <i className="fa fa-info-circle"></i>
                             Requests matching this policy will be redirected to
                             the specified URL or Prefix URL with the HTTP
@@ -398,7 +398,7 @@ const EditL7Policy = (props) => {
                           ) : (
                             ""
                           )}
-                          <span className="help-block">
+                          <span className="form-text">
                             <i className="fa fa-info-circle"></i>
                             Requests matching this policy will be redirected to
                             the pool with this ID.
@@ -418,7 +418,7 @@ const EditL7Policy = (props) => {
                             type="text"
                             name="redirect_prefix"
                           />
-                          <span className="help-block">
+                          <span className="form-text">
                             <i className="fa fa-info-circle"></i>
                             Requests matching this policy will be redirected to
                             this Prefix URL.
@@ -438,7 +438,7 @@ const EditL7Policy = (props) => {
                             type="text"
                             name="redirect_url"
                           />
-                          <span className="help-block">
+                          <span className="form-text">
                             <i className="fa fa-info-circle"></i>
                             Requests matching this policy will be redirected to
                             this URL.
@@ -454,7 +454,7 @@ const EditL7Policy = (props) => {
                     name="tags"
                     initValue={l7policy.item && l7policy.item.tags}
                   />
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     Start a new tag typing a string and hitting the Enter or Tab
                     key.

@@ -40,7 +40,7 @@ const Form = ({ helpText, searchFor, onSubmit, isLoading }) => {
   return (
     <form className="form-inline" onSubmit={search}>
       {options?.length > 0 && (
-        <div className="form-group">
+        <div className="mb-3">
           <select
             value={searchType}
             onChange={(e) => setSearchType(e.target.value)}
@@ -54,7 +54,7 @@ const Form = ({ helpText, searchFor, onSubmit, isLoading }) => {
           </select>
         </div>
       )}
-      <div className="form-group">
+      <div className="mb-3">
         <div className="input-group">
           <input
             type="text"
@@ -85,7 +85,7 @@ const Form = ({ helpText, searchFor, onSubmit, isLoading }) => {
           </div>
         </div>
       </div>
-      <div className="form-group">
+      <div className="mb-3">
         {helpText && (
           <div className="has-feedback-help">
             <Popover trigger="click" placement="top" content={helpText}>

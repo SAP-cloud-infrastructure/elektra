@@ -69,7 +69,7 @@ export default class NewReplicaForm extends React.Component {
                   </Form.Input>
 
                   {this.props.availabilityZones.items.length == 0 && (
-                    <p className="help-block">
+                    <p className="form-text">
                       <i className="fa fa-info-circle"></i>
                       No availability zones available.
                     </p>

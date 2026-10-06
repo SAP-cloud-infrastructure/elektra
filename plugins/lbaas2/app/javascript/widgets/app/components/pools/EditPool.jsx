@@ -472,7 +472,7 @@ const EditPool = (props) => {
                     onChange={onLbAlgorithmChange}
                     value={lbAlgorithm}
                   />
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     The method used for lbaas between members.
                   </span>
@@ -489,7 +489,7 @@ const EditPool = (props) => {
                     value={protocol}
                     isDisabled={true}
                   />
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     The protocol used for routing the traffic to the members.
                   </span>
@@ -506,7 +506,7 @@ const EditPool = (props) => {
                     onChange={onPoolPersistenceTypeChanged}
                     value={sessionPersistenceType}
                   />
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     <span className="help-block-text">
                       Defines the method used for session stickiness. Traffic
@@ -532,7 +532,7 @@ const EditPool = (props) => {
                           type="text"
                           name="session_persistence_cookie_name"
                         />
-                        <span className="help-block">
+                        <span className="form-text">
                           <i className="fa fa-info-circle"></i>
                           The name of the HTTP cookie defined by your
                           application. The cookie value will be used for session
@@ -561,7 +561,7 @@ const EditPool = (props) => {
                   ) : (
                     ""
                   )}
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     The listener for which this pool is set as the default one.
                   </span>
@@ -574,7 +574,7 @@ const EditPool = (props) => {
                     name="tls_enabled"
                     onClick={onChangedTLS}
                   />
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     When true connections to backend member servers will use TLS
                     encryption
@@ -596,7 +596,7 @@ const EditPool = (props) => {
                           onChange={onCertificateContainerChange}
                           value={certificateContainer}
                         />
-                        <span className="help-block">
+                        <span className="form-text">
                           <i className="fa fa-info-circle"></i>
                           The reference to the secret containing a PKCS12 format
                           certificate/key bundle for TLS client authentication
@@ -623,7 +623,7 @@ const EditPool = (props) => {
                           onChange={onAuthenticationContainerChange}
                           value={authenticationContainer}
                         />
-                        <span className="help-block">
+                        <span className="form-text">
                           <i className="fa fa-info-circle"></i>
                           The reference secret containing a PEM format CA
                           certificate bundle.
@@ -667,7 +667,7 @@ const EditPool = (props) => {
                           isMulti
                           useFormContext={false}
                         />
-                        <span className="help-block">
+                        <span className="form-text">
                           <i className="fa fa-info-circle"></i>
                           The TLS cipher suites.
                         </span>
@@ -686,7 +686,7 @@ const EditPool = (props) => {
                     name="tags"
                     initValue={pool.item && pool.item.tags}
                   />
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     Start a new tag typing a string and hitting the Enter or Tab
                     key.

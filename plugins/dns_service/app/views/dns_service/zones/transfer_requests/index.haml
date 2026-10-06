@@ -36,7 +36,7 @@
 
               %td
                 %form.form-inline.float-end.transfer-request-accept{action: plugin('dns_service').accept_transfer_request_path(id: zt.id), method: :put, "data-remote": "true"}
-                  .form-group{style: 'display: none;'}
+                  .mb-3{style: 'display: none;'}
                     .input-group
                       %input.form-control.form-control-sm{name: 'key', placeholder: 'Transfer Key'}
                       .input-group-text
