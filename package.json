@@ -19,7 +19,7 @@
     "@tanstack/react-router-devtools": "1.131.25",
     "@types/js-yaml": "^4.0.9",
     "ansi-up": "^1.0.0",
-    "bootstrap": "3.4.1",
+    "bootstrap": "5.3.8",
     "bootstrap-3-typeahead": "^4.0.2",
     "bootstrap-multiselect": "0.9.15",
     "bootstrap-select": "1.13.6",
@@ -171,9 +171,9 @@
       "react-redux>react": "$react",
       "react-clipboard.js>react": "$react",
       "react-clipboard.js>react-dom": "$react-dom",
-    "react-bootstrap-typeahead>react": "$react",
-    "react-bootstrap-typeahead>react-dom": "$react-dom",
-    "bootstrap-multiselect>jquery": "$jquery"
+      "react-bootstrap-typeahead>react": "$react",
+      "react-bootstrap-typeahead>react-dom": "$react-dom",
+      "bootstrap-multiselect>jquery": "$jquery"
     }
   }
 }
