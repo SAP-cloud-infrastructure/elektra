@@ -8,7 +8,7 @@ const ModalAuth = (props) => (
     show={props.showModal}
     onHide={props.toggleModal}
     className="identity"
-    bsSize="large"
+    size="lg"
     aria-labelledby="contained-modal-title-lg"
   >
     <Modal.Header closeButton={true}>

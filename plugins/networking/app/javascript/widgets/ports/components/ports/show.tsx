@@ -184,7 +184,7 @@ const ShowPortModal: React.FC<ShowPortModalProps> = ({
   }
 
   return (
-    <Modal show={show} onHide={close} bsSize="large" aria-labelledby="contained-modal-title-lg">
+    <Modal show={show} onHide={close} size="lg" aria-labelledby="contained-modal-title-lg">
       <Modal.Header closeButton>
         <Modal.Title id="contained-modal-title-lg">Port {port && (port.description || port.id)}</Modal.Title>
       </Modal.Header>

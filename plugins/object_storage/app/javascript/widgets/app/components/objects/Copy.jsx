@@ -107,7 +107,7 @@ const CopyObject = ({ showCopyMetadata, deleteAfter, refresh }) => {
       show={show}
       onHide={close}
       onExit={back}
-      bsSize="large"
+      size="lg"
       dialogClassName="modal-xl"
       aria-labelledby="contained-modal-title-lg"
     >
@@ -119,7 +119,7 @@ const CopyObject = ({ showCopyMetadata, deleteAfter, refresh }) => {
 
       <Modal.Body>
         {error && (
-          <Alert bsStyle="danger">
+          <Alert variant="danger">
             <strong>An error has occurred</strong>
             <p>{error}</p>
           </Alert>
@@ -194,7 +194,7 @@ const CopyObject = ({ showCopyMetadata, deleteAfter, refresh }) => {
       <Modal.Footer>
         <Button onClick={close}>Cancel</Button>
         <Button
-          bsStyle="primary"
+          variant="primary"
           onClick={submit}
           disabled={!containerName || !objectName || loading || submitting}
         >

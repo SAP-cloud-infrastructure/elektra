@@ -109,7 +109,7 @@ const BgpVpns = () => {
           )}
         </div>
       </div>
-      {bgpvpns.error && <Alert bsStyle="danger">{bgpvpns.error}</Alert>}
+      {bgpvpns.error && <Alert variant="danger">{bgpvpns.error}</Alert>}
 
       {!policy.isAllowed("networking:bgp_vpn_list") ? (
         <span>You are not allowed to see this page</span>

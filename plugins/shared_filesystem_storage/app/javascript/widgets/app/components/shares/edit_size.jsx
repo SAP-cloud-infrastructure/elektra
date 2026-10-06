@@ -45,7 +45,7 @@ const EditShareSizeForm = ({
       show={show}
       onHide={hide}
       onExited={restoreUrl}
-      bsSize="large"
+      size="lg"
       aria-labelledby="contained-modal-title-lg"
     >
       <Modal.Header closeButton>

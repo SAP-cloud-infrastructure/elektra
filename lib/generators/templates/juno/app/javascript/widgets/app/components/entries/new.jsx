@@ -52,7 +52,7 @@ const New = () => {
       show={show}
       onHide={close}
       onExited={restoreURL}
-      bsSize="large"
+      size="lg"
       aria-labelledby="contained-modal-title-lg"
     >
       <Modal.Header closeButton>

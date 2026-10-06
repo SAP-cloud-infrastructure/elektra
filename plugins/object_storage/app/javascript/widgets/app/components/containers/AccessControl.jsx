@@ -213,7 +213,7 @@ const ContainerAccessControl = () => {
       show={show}
       onHide={close}
       onExit={back}
-      bsSize="lg"
+      size="lg"
       dialogClassName="modal-xl"
       aria-labelledby="contained-modal-title-lg"
     >
@@ -238,7 +238,7 @@ const ContainerAccessControl = () => {
           ) : !metadata ? (
             <span>Container not found!</span>
           ) : error ? (
-            <Alert bsStyle="danger">{error}</Alert>
+            <Alert variant="danger">{error}</Alert>
           ) : (
             <FormBody
               staticweb={capabilities.data?.staticweb}

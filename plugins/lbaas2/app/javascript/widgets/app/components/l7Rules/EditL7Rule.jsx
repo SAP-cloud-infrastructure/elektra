@@ -181,7 +181,7 @@ const EditL7Rule = (props) => {
     <Modal
       show={show}
       onHide={close}
-      bsSize="large"
+      size="lg"
       backdrop="static"
       onExited={restoreUrl}
       aria-labelledby="contained-modal-title-lg"

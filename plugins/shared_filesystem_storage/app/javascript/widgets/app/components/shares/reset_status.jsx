@@ -69,7 +69,7 @@ export default class ResetShareStatusForm extends React.Component {
       <Modal
         show={this.state.show}
         onHide={this.close}
-        bsSize="large"
+        size="lg"
         onExited={this.restoreUrl}
         aria-labelledby="contained-modal-title-lg"
       >

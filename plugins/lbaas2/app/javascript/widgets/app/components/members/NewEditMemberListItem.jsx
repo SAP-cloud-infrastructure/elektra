@@ -193,7 +193,7 @@ const NewEditMemberListItem = ({ id, index, servers, edit }) => {
                     value={member.address || ""}
                     disabled={edit}
                     placeholder="IP Address &#42;"
-                    bsClass="form-control icon-in-input"
+                    className="icon-in-input"
                     onChange={(e) => {
                       onUpdateItem("address", e.target.value)
                     }}
@@ -242,7 +242,7 @@ const NewEditMemberListItem = ({ id, index, servers, edit }) => {
                     name="monitor_address"
                     value={member.monitor_address || ""}
                     placeholder="Alternate Monitor IP"
-                    bsClass="form-control icon-in-input"
+                    className="icon-in-input"
                     onChange={(e) => {
                       onUpdateItem("monitor_address", e.target.value)
                     }}

@@ -90,7 +90,7 @@ const UploadFile = ({ refresh }) => {
       show={show}
       onHide={close}
       onExit={back}
-      bsSize="large"
+      size="lg"
       aria-labelledby="contained-modal-title-lg"
       // dialogClassName="modal-xl"
     >
@@ -102,7 +102,7 @@ const UploadFile = ({ refresh }) => {
 
       <Modal.Body>
         {error && (
-          <Alert bsStyle="danger">
+          <Alert variant="danger">
             <strong>An error has occurred</strong>
             <p>{error}</p>
           </Alert>
@@ -170,7 +170,7 @@ const UploadFile = ({ refresh }) => {
       </Modal.Body>
       <Modal.Footer>
         <Button onClick={close}>Cancel</Button>
-        <Button bsStyle="primary" onClick={submit} disabled={!valid || submitting}>
+        <Button variant="primary" onClick={submit} disabled={!valid || submitting}>
           Upload
         </Button>
       </Modal.Footer>

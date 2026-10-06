@@ -53,7 +53,7 @@ const New = () => {
     <Modal
       show={show}
       onHide={close}
-      bsSize="large"
+      size="lg"
       backdrop="static"
       onExited={back}
       aria-labelledby="contained-modal-title-lg"

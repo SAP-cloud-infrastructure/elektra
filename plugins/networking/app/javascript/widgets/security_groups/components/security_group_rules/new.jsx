@@ -291,7 +291,7 @@ export default class NewRuleForm extends React.Component {
       <Modal
         show={this.state.show}
         onHide={this.close}
-        bsSize="large"
+        size="lg"
         dialogClassName="modal-xl"
         backdrop="static"
         onExited={this.restoreUrl}

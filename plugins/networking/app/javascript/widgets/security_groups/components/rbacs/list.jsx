@@ -173,7 +173,7 @@ const RBACs = ({ securityGroup }) => {
       show={show}
       onHide={close}
       onExited={back}
-      bsSize="large"
+      size="lg"
       backdrop="static"
       aria-labelledby="contained-modal-title-lg"
     >
@@ -185,7 +185,7 @@ const RBACs = ({ securityGroup }) => {
 
       <Modal.Body>
         {state.error && (
-          <Alert bsStyle="danger">
+          <Alert variant="danger">
             {typeof state.error === "string"
               ? state.error
               : Object.keys(state.error).map((key, i) => (

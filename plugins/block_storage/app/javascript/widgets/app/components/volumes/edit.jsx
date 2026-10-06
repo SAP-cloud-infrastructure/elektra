@@ -60,7 +60,7 @@ export default class EditVolumeForm extends React.Component {
       <Modal
         show={this.state.show}
         onHide={this.close}
-        bsSize="large"
+        size="lg"
         backdrop="static"
         onExited={this.restoreUrl}
         aria-labelledby="contained-modal-title-lg"

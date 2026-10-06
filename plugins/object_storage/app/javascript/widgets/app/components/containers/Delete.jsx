@@ -136,7 +136,7 @@ const DelteContainer = () => {
       show={show}
       onHide={close}
       onExit={back}
-      bsSize="lg"
+      size="lg"
       aria-labelledby="contained-modal-title-lg"
     >
       <Modal.Header closeButton>
@@ -169,7 +169,7 @@ const DelteContainer = () => {
         ) : (
           <>
             {error && (
-              <Alert bsStyle="danger">
+              <Alert variant="danger">
                 <strong>An error has occurred</strong>
                 <p>{error}</p>
               </Alert>
@@ -269,7 +269,7 @@ const DelteContainer = () => {
               <Button onClick={close}>Cancel</Button>
 
               <Button
-                bsStyle="primary"
+                variant="primary"
                 onClick={submit}
                 disabled={
                   !container ||

@@ -174,7 +174,7 @@ const NewPortForm: React.FC<NewPortFormProps> = ({
   }, [securityGroups])
 
   return (
-    <Modal show={show} onHide={close} bsSize="large" aria-labelledby="contained-modal-title-lg">
+    <Modal show={show} onHide={close} size="lg" aria-labelledby="contained-modal-title-lg">
       <Modal.Header closeButton>
         <Modal.Title id="contained-modal-title-lg">New Fixed IP Reservation</Modal.Title>
       </Modal.Header>

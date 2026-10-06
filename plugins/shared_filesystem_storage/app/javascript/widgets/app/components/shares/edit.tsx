@@ -67,7 +67,7 @@ const EditShareForm: React.FC<EditShareFormProps> = ({
     <Modal
       show={show}
       onHide={close}
-      bsSize="large"
+      size="lg"
       aria-labelledby="contained-modal-title-lg"
     >
       <Modal.Header closeButton>

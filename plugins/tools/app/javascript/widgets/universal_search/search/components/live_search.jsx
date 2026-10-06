@@ -77,7 +77,7 @@ export default class LiveSearchModal extends React.Component {
         show={this.state.show}
         onExited={this.restoreUrl}
         onHide={this.hide}
-        bsSize="large"
+        size="lg"
         aria-labelledby="contained-modal-title-lg"
       >
         <Modal.Header closeButton>
@@ -157,7 +157,7 @@ export default class LiveSearchModal extends React.Component {
         </Modal.Body>
         <Modal.Footer>
           {responseData && responseData.items > 0 ? (
-            <Button bsStyle="primary" onClick={this.search}>
+            <Button variant="primary" onClick={this.search}>
               Close and refresh results
             </Button>
           ) : (
