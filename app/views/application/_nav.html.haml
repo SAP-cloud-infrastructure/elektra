@@ -1,42 +1,39 @@
-%nav.navbar.navbar-fixed-top.navbar-inverse.navbar-sap
+%nav.navbar.navbar-expand-md.fixed-top.navbar-dark.navbar-sap
   .container
-    .navbar-header
-      %button.navbar-toggle.collapsed{"data-bs-target": "#main-nav-collapse", "data-bs-toggle": "collapse", type: "button"}
-        %span.visually-hidden Toggle navigation
-        %span.icon-bar
-        %span.icon-bar
-        %span.icon-bar
-      = link_to main_app.landing_page_url(@scoped_domain_fid ? @scoped_domain_fid : Rails.configuration.default_domain), class: "navbar-brand" do
-        .logo
-        Cloud Infrastructure
+    = link_to main_app.landing_page_url(@scoped_domain_fid ? @scoped_domain_fid : Rails.configuration.default_domain), class: "navbar-brand" do
+      .logo
+      Cloud Infrastructure
+    %button.navbar-toggler{"data-bs-target": "#main-nav-collapse", "data-bs-toggle": "collapse", type: "button", "aria-controls": "main-nav-collapse", "aria-expanded": "false", "aria-label": "Toggle navigation"}
+      %span.navbar-toggler-icon
 
     .collapse.navbar-collapse#main-nav-collapse
-      %ul.nav.navbar-nav
-        %li
-          = link_to (@scoped_domain_name || params[:domain_id]), main_app.domain_home_path(domain_id: @scoped_domain_fid, project_id:nil) if @scoped_domain_id
+      %ul.navbar-nav.me-auto
+        - if @scoped_domain_id
+          %li.nav-item
+            = link_to (@scoped_domain_name || params[:domain_id]), main_app.domain_home_path(domain_id: @scoped_domain_fid, project_id:nil), class: "nav-link"
 
-      %ul.nav.navbar-nav.navbar-right
+      %ul.navbar-nav.ms-auto
 
         - unless logged_in?
-          %li
+          %li.nav-item
             = link_to "Log in", monsoon_openstack_auth.login_path(domain_fid: @scoped_domain_fid || params[:domain_id],
               domain_name: @scoped_domain_name,
-              after_login: main_app.domain_home_path(domain_id: @scoped_domain_fid)), id: "navbar-login-btn"
+              after_login: main_app.domain_home_path(domain_id: @scoped_domain_fid)), id: "navbar-login-btn", class: "nav-link"
         - else
-          %li.dropdown
-            %a.navbar-identity.dropdown-toggle{"aria-expanded" => "false", "data-bs-toggle" => "dropdown", :href => "#", :role => "button"}
+          %li.nav-item.dropdown
+            %a.nav-link.navbar-identity.dropdown-toggle{"aria-expanded" => "false", "data-bs-toggle" => "dropdown", :href => "#", :role => "button"}
               = avatar_image_tag
               = current_user.full_name
-              %span.caret
-            %ul.dropdown-menu{:role => "menu"}
+            %ul.dropdown-menu.dropdown-menu-end{:role => "menu"}
               %li
-                = link_to "Profile", '#', data: { bs_toggle: "modal", bs_target: "#profile"}
+                = link_to "Profile", '#', class: "dropdown-item", data: { bs_toggle: "modal", bs_target: "#profile"}
               - if current_user.is_allowed?("compute:keypair_list", {target: {scoped_domain_name: @scoped_domain_name}}) && @scoped_project_id && plugin_available?(:compute)
-                %li= link_to "Key Pairs", plugin('compute').keypairs_path
+                %li= link_to "Key Pairs", plugin('compute').keypairs_path, class: "dropdown-item"
               - if @scoped_project_id
                 %li
-                  = link_to "App Credentials", plugin('identity').app_credentials_path 
-                %li.divider
+                  = link_to "App Credentials", plugin('identity').app_credentials_path, class: "dropdown-item"
+                %li
+                  %hr.dropdown-divider
               %li
                 - # https://oauth2-proxy.github.io/oauth2-proxy/features/endpoints/#sign-out
                 - openstack_auth_logout_url = monsoon_openstack_auth.logout_path(domain_fid: @scoped_domain_fid || params[:domain_id], domain_name: @scoped_domain_name, redirect_to:  main_app.landing_page_url)
@@ -45,14 +42,12 @@
                 - if @domain_config&.oidc_provider?
                   - # 1. logout from oidc_provider (oauth2-proxy) to clear the session there
                   - # 2. redirect to elektra openstack logout to clear the session there
-                  = link_to 'Log out', oauth_logout_url
+                  = link_to 'Log out', oauth_logout_url, class: "dropdown-item"
                 - else
                   - # only logout from elektra openstack to clear the session there
-                  = link_to 'Log out', openstack_auth_logout_url
+                  = link_to 'Log out', openstack_auth_logout_url, class: "dropdown-item"
 
-        %li.dropdown
-          %a.nav-highlight.dropdown-toggle{"aria-expanded" => "false", "data-bs-toggle" => "dropdown", :href => "#", :role => "button"}
+        %li.nav-item.dropdown
+          %a.nav-link.nav-highlight.dropdown-toggle{"aria-expanded" => "false", "data-bs-toggle" => "dropdown", :href => "#", :role => "button"}
             = current_region.upcase
-            %span.caret
-
           = render_available_regions

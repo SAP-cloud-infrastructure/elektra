@@ -953,7 +953,26 @@ section {
 
 // special top of page navbar
 .navbar-sap {
-  &.navbar-inverse .dropdown-menu > .active > a {
+  background-color: #000;
+  min-height: 50px;
+  padding-top: 0;
+  padding-bottom: 0;
+
+  .navbar-brand {
+    color: #fff;
+  }
+
+  .nav-link {
+    color: rgba(255, 255, 255, 0.85);
+
+    &:hover,
+    &:focus {
+      color: #fff;
+    }
+  }
+
+  // BS5 navbar-dark dropdown menu styling (replaces BS3 navbar-inverse)
+  .dropdown-menu > .active > a {
     background: rgba(255, 255, 255, 0.25);
     color: #999;
   }
@@ -981,34 +1000,27 @@ section {
   color: #fff;
 }
 
-.nav > li > a.navbar-identity {
+.nav-link.navbar-identity {
   display: flex;
   align-items: center;
   column-gap: 0.3rem;
 }
 
-.navbar-inverse {
+.navbar-sap {
   .dropdown-menu {
     background-color: $inverse-dropdown-bg;
 
-    .divider {
-      @include nav-divider($inverse-dropdown-divider-bg);
+    .dropdown-divider {
+      border-top-color: $inverse-dropdown-divider-bg;
     }
 
-    > li > a {
+    .dropdown-item {
       color: $inverse-dropdown-link-color;
 
       &:hover,
       &:focus {
         color: $dropdown-link-hover-color;
-      }
-    }
-
-    > .active > a {
-      &,
-      &:hover,
-      &:focus {
-        color: $dropdown-link-active-color;
+        background-color: rgba(255, 255, 255, 0.1);
       }
     }
   }
