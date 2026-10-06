@@ -12,12 +12,11 @@ import ReduxThunk from "redux-thunk"
 import { composeWithDevTools } from "redux-devtools-extension"
 import { setPolicy } from "./policy"
 import { configureAjaxHelper } from "./ajax_helper"
-import { enableDropdownDelegation } from "core/bootstrap_engine"
-
-// React widget bundles don't import "bootstrap", so Bootstrap 5's dropdown
-// data-API isn't active for React-rendered [data-bs-toggle="dropdown"] buttons.
-// Enable a delegated handler once so those dropdowns work.
-enableDropdownDelegation()
+// Import Bootstrap 5's JS so its data-API (dropdown/collapse/tab click
+// delegation) is registered inside the React widget bundles too. These are
+// separate esbuild entrypoints that otherwise never load Bootstrap, leaving
+// [data-bs-toggle="dropdown"] buttons rendered by React non-interactive.
+import "bootstrap"
 
 const isIterable = (obj) => {
   // checks for null and undefined
