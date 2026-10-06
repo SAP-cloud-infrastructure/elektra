@@ -72,7 +72,7 @@ const CustomMetaTags = ({ values, onChange, reservedKeys }) => {
               }}
               className="string optional form-control"
             />
-            <div className="input-group-addon">=</div>
+            <div className="input-group-text">=</div>
             <input
               type="text"
               data-test={`metaDataValue_${i}`}

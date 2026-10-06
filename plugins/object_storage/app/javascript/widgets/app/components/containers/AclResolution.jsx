@@ -50,8 +50,8 @@ const AclsResolution = ({ title, acls }) => {
   return (
     <>
       <h5>{title}</h5>
-      <div className={`panel ${error ? "panel-danger" : "panel-success"}`}>
-        <div className="panel-body">
+      <div className={`card ${error ? "border-danger" : "border-success"}`}>
+        <div className="card-body">
           {keys.length === 0
             ? `No ${title} found`
             : keys.map((key, i) => (

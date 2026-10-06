@@ -178,7 +178,7 @@ span.highlight {
 }
 // ---------------------------------------------------------------------------
 
-.input-group-addon {
+.input-group-text {
   &.select-addon {
     padding-top: 4px;
     padding-bottom: 3px;
@@ -730,6 +730,42 @@ section {
 // ---------------------------------------------------------------------------------
 // Labels
 // ---------------------------------------------------------------------------------
+// Bootstrap 5 removed BS3's `.label` / `.label-*` classes (replaced by `.badge`
+// + `.text-bg-*`). Elektra still uses `.label`/`.label-*` as a pervasive status
+// badge idiom in markup and dynamic class strings (e.g. lbaas2 useStatus,
+// router status), so we re-provide them as app-owned utilities mapping onto the
+// BS5 colour palette. (BS5 equivalent: `.badge` + `.text-bg-{color}`.)
+.label {
+  display: inline-block;
+  padding: 0.35em 0.65em;
+  font-size: 0.75em;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: 0.375rem;
+}
+
+.label-default {
+  background-color: $gray-light;
+}
+.label-primary {
+  background-color: $primary;
+}
+.label-success {
+  background-color: $success;
+}
+.label-info {
+  background-color: $info;
+}
+.label-warning {
+  background-color: $warning;
+}
+.label-danger {
+  background-color: $danger;
+}
 
 .label-warning-greyscale {
   background-color: $label-warning-greyscale-bg;

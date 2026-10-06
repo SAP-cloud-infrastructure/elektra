@@ -24,7 +24,7 @@
       .col-sm-8
         .input-group
           = f.text_field :name, id: "recordset-name-input", class: 'string required form-control', placeholder: "#{@zone.name}"
-          %span.input-group-addon.zone-name-addon= ".#{@zone.name}"
+          %span.input-group-text.zone-name-addon= ".#{@zone.name}"
         %p.help-block
           %i.fa.fa-info-circle
           You may leave the name field empty to create a record for the zone name itself

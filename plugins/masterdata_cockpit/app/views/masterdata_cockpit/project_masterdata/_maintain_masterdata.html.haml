@@ -6,8 +6,8 @@
   = f.input :revenue_relevance, :as => :hidden, :input_html => { :value => @project_masterdata.revenue_relevance }
   = f.input :cost_object_type, :as  => :hidden, :input_html => { :value => @project_masterdata.cost_object_type }
   %label.control-label Significance
-  .panel.panel-default
-    .panel-body
+  .card
+    .card-body
       .row
         .col-md-3
           - business_criticalitys = MasterdataCockpit::Config.business_criticalitys
@@ -38,15 +38,15 @@
           = t('masterdata_cockpit.dev')
   %label.control-label Contact
   .loading-place.loading-right
-  .panel.panel-default
-    .panel-body
+  .card
+    .card-body
       .row{style: "margin-top:10px"}
         .col-md-12
           = f.input :additional_information, label: "Hotline/Ticket Queue/Other", as: :text, placeholder: "Please state, how to contact your support in case of a critical incident impacting your project.​\n\nA 24/7 contact is mandatory for Productive Time Critical:​\n - Phone Hotline\n - or equivalent System which is available for L1 to L4 services​\n\nInformation is recommended for Productive Projects:​\n - Ticket System Information​\n - Distributed Mail List​", input_html: {:rows => 10, :maxlength => 5000}, hint: raw("#{icon ('info-circle')} #{t('masterdata_cockpit.additional_information')} <span style='width:170px' class='float-end' id='additional_information_length'></span>")
   %label.control-label Roles
   .loading-place.loading-right
-  .panel.panel-default
-    .panel-body
+  .card
+    .card-body
       .row
         .col-md-6.operator-id 
           = f.input :responsible_primary_contact_id, label: "Asset Owner (Primary Contact)", placeholder: "User or Name", required: true, input_html: { class: 'operator-id-input' }
@@ -92,8 +92,8 @@
 
   %label.control-label Role Propagation (CCIR)
   .loading-place.loading-right
-  .panel.panel-default
-    .panel-body
+  .card
+    .card-body
       .row
         .col-md-3 
           - types = MasterdataCockpit::Config.propagation_role_types
@@ -115,8 +115,8 @@
 
   %label.control-label Cost Info
   .loading-place.loading-right
-  .panel.panel-default
-    .panel-body
+  .card
+    .card-body
       .row
         .col-md-3
           - inheritance_from = "domain"
@@ -144,8 +144,8 @@
           Please contact your LoB's representative for the correct Cost Object information.
   %label.control-label Project Info
   .loading-place.loading-right
-  .panel.panel-default
-    .panel-body
+  .card
+    .card-body
       .row
         .col-md-6
           - environment = MasterdataCockpit::Config.environment
@@ -180,8 +180,8 @@
           = t('masterdata_cockpit.contains_external_customer_data_help')
   %label.control-label Audit
   .loading-place.loading-right
-  .panel.panel-default
-    .panel-body
+  .card
+    .card-body
       .row
         .col-md-2
           = f.input :ext_cert_iso, label: "ISO", checked_value: '1', unchecked_value: '0', as: :boolean

@@ -13,8 +13,8 @@
   hint: raw("<span style='width:170px' class='float-end' id='additional_information_length'></span>")
 
 %label.control-label Cost Object
-.panel.panel-default
-  .panel-body
+.card
+  .card-body
     .row
       .col-sm-3
         = f.input :cost_object_projects_can_inherit, 
@@ -35,8 +35,8 @@
           label: "Name/Number",
           required:true
 %label.control-label Responsibility
-.panel.panel-default
-  .panel-body
+.card
+  .card-body
     .row
       .col-sm-6.operator-id
         = f.input :responsible_primary_contact_id, 
