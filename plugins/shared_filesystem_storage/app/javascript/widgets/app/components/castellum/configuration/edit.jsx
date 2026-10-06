@@ -295,7 +295,7 @@ export default class CastellumConfigurationEditModal extends React.Component {
         backdrop="static"
         show={this.state.show}
         onHide={this.close}
-        bsSize="large"
+        size="lg"
         aria-labelledby="contained-modal-title-lg"
         className="shared_filesystem_storage"
       >

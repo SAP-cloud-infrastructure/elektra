@@ -179,7 +179,7 @@ export default class SecurityScanPoliciesEditModal extends React.Component {
         backdrop="static"
         show={this.state.show}
         onHide={this.close}
-        bsSize="large"
+        size="lg"
         aria-labelledby="contained-modal-title-lg"
       >
         <Modal.Header closeButton>
@@ -247,7 +247,7 @@ export default class SecurityScanPoliciesEditModal extends React.Component {
             <>
               <Button
                 onClick={this.handleSubmit}
-                bsStyle="primary"
+                variant="primary"
                 disabled={!isValid || isSubmitting || isFetchingPolicies}
               >
                 {isSubmitting ? "Saving..." : "Save"}

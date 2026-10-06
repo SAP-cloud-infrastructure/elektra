@@ -153,7 +153,7 @@ const EditPortForm: React.FC<EditPortFormProps> = ({
   }
 
   return (
-    <Modal show={show} onHide={close} bsSize="large" aria-labelledby="contained-modal-title-lg">
+    <Modal show={show} onHide={close} size="lg" aria-labelledby="contained-modal-title-lg">
       <Modal.Header closeButton>
         <Modal.Title id="contained-modal-title-lg">Edit Port {port && `${port.name} (${port.id})`}</Modal.Title>
       </Modal.Header>

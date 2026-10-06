@@ -343,7 +343,7 @@ const ContainerProperties = () => {
       show={show}
       onHide={close}
       onExit={back}
-      bsSize="lg"
+      size="lg"
       dialogClassName="modal-xl"
       aria-labelledby="contained-modal-title-lg"
     >
@@ -373,7 +373,7 @@ const ContainerProperties = () => {
             ) : !metadata ? (
               <span>Container not found!</span>
             ) : error ? (
-              <Alert bsStyle="danger">{error}</Alert>
+              <Alert variant="danger">{error}</Alert>
             ) : (
               <FormBody
                 containerName={name}

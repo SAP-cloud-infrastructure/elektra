@@ -192,7 +192,7 @@ const ShowObject = () => {
       show={show}
       onHide={close}
       onExit={back}
-      bsSize="large"
+      size="lg"
       dialogClassName="modal-xl"
       aria-labelledby="contained-modal-title-lg"
     >
@@ -204,7 +204,7 @@ const ShowObject = () => {
 
       <Modal.Body>
         {error && (
-          <Alert bsStyle="danger">
+          <Alert variant="danger">
             <strong>An error has occurred</strong>
             <p>{error}</p>
           </Alert>
@@ -360,7 +360,7 @@ const ShowObject = () => {
       <Modal.Footer>
         <Button onClick={close}>Cancel</Button>
         <Button
-          bsStyle="primary"
+          variant="primary"
           onClick={submit}
           data-test="Update object"
           disabled={

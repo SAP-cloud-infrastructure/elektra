@@ -54,7 +54,7 @@ const Show = () => {
       show={show}
       onHide={close}
       onExit={back}
-      bsSize="large"
+      size="lg"
       aria-labelledby="contained-modal-title-lg"
     >
       <Modal.Header closeButton>

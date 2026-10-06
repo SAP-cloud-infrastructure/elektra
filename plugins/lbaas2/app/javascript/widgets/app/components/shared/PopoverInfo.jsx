@@ -15,7 +15,7 @@ const PopoverInfo = ({ popoverId, buttonName, title, content, footer }) => {
 
   return (
     <div>
-      <Button bsClass="cached-info-button btn btn-link" onClick={handleClick}>
+      <Button variant="link" className="cached-info-button" onClick={handleClick}>
         {buttonName}
       </Button>
       <Overlay
@@ -27,14 +27,13 @@ const PopoverInfo = ({ popoverId, buttonName, title, content, footer }) => {
         // container={this}
         containerPadding={20}
       >
-        <Popover
-          bsClass="lbaas2 cached-info-popover popover"
-          id={popoverId}
-          title={title}
-        >
-          <div className="cached-info-content">{content}</div>
+        <Popover className="lbaas2 cached-info-popover" id={popoverId}>
+          {title && <Popover.Header as="h3">{title}</Popover.Header>}
+          <Popover.Body>
+            <div className="cached-info-content">{content}</div>
 
-          {footer && <div className="cached-info-footer">{footer}</div>}
+            {footer && <div className="cached-info-footer">{footer}</div>}
+          </Popover.Body>
         </Popover>
       </Overlay>
     </div>

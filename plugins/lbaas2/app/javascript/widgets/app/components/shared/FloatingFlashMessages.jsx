@@ -18,7 +18,7 @@ class FloatingFlashMessages extends React.Component {
       <div className="sticky-flash">
         <div className="container">
           <FlashMessages />
-          {/* <Alert bsStyle="warning">
+          {/* <Alert variant="warning">
             <strong>Holy guacamole!</strong> Best check yo self, you're not looking too
             good.
           </Alert> */}

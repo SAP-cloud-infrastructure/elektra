@@ -113,7 +113,7 @@ const ImageMembersModal: React.FC<ImageMembersModalProps> = ({
   }, [image?.id, resetImageMembers])
 
   return (
-    <Modal show={show} onExited={restoreUrl} onHide={hide} bsSize="large" aria-labelledby="contained-modal-title-lg">
+    <Modal show={show} onExited={restoreUrl} onHide={hide} size="lg" aria-labelledby="contained-modal-title-lg">
       <Modal.Header closeButton>
         <Modal.Title id="contained-modal-title-lg">Access Control for Image {image ? image.name : ""}</Modal.Title>
       </Modal.Header>

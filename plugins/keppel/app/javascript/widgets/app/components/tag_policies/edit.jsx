@@ -155,7 +155,7 @@ export default class TagPoliciesEditModal extends React.Component {
         backdrop="static"
         show={this.state.show}
         onHide={this.close}
-        bsSize="large"
+        size="lg"
         aria-labelledby="contained-modal-title-lg"
       >
         <Modal.Header closeButton>
@@ -209,7 +209,7 @@ export default class TagPoliciesEditModal extends React.Component {
         <Modal.Footer>
           {isAdmin ? (
             <>
-              <Button onClick={this.handleSubmit} bsStyle="primary" disabled={!isValid || isSubmitting}>
+              <Button onClick={this.handleSubmit} variant="primary" disabled={!isValid || isSubmitting}>
                 {isSubmitting ? "Saving..." : "Save"}
               </Button>
               <Button onClick={this.close}>Cancel</Button>

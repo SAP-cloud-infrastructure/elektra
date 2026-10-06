@@ -210,7 +210,7 @@ const BgpVpnRouters = ({ bgpvpn }) => {
   return (
     <>
       {associations.error && (
-        <Alert bsStyle="danger">{associations.error.toString()}</Alert>
+        <Alert variant="danger">{associations.error.toString()}</Alert>
       )}
 
       <table className="table">

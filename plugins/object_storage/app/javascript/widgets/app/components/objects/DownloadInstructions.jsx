@@ -59,7 +59,7 @@ const LargeFileInstruction = ({}) => {
       show={show}
       onHide={close}
       onExit={back}
-      bsSize="large"
+      size="lg"
       // dialogClassName="modal-xl"
       aria-labelledby="contained-modal-title-lg"
     >

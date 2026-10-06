@@ -16,7 +16,7 @@ const serverError = (errorText, onReload) => {
       </p>
       {onReload && (
         <div className="ep-reload-button">
-          <Button bsStyle="primary" onClick={onReload}>
+          <Button variant="primary" onClick={onReload}>
             Reload <i className="fa fa-refresh"></i>
           </Button>
         </div>

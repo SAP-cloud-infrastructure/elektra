@@ -57,7 +57,7 @@ const CustomMetaTags = ({ values, onChange, reservedKeys }) => {
       {reservedKeys && reservedKeys.length > 0 && (
         <div className="small">Reserved keys: {reservedKeys.join(", ")}</div>
       )}
-      {error && <Alert bsStyle="danger">{error}</Alert>}
+      {error && <Alert variant="danger">{error}</Alert>}
       {tags.map((tag, i) => (
         <React.Fragment key={i}>
           <div className="input-group">

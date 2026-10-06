@@ -349,7 +349,7 @@ const Objects = () => {
           <span className="spinner" /> Loading...
         </span>
       ) : objects.error ? (
-        <Alert bsStyle="danger">{objects.error}</Alert>
+        <Alert variant="danger">{objects.error}</Alert>
       ) : !objects || objects.items.length === 0 ? (
         <span>No entries found.</span>
       ) : (

@@ -99,7 +99,7 @@ const RBACs = ({ bgpvpn }) => {
   return (
     <>
       {rbacs.error && (
-        <Alert bsStyle="danger">
+        <Alert variant="danger">
           {typeof rbacs.error === "string"
             ? rbacs.error
             : Object.keys(rbacs.error).map((key, i) => (
