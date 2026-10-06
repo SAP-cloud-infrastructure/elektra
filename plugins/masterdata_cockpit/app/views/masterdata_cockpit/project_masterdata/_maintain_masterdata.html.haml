@@ -42,7 +42,7 @@
     .panel-body
       .row{style: "margin-top:10px"}
         .col-md-12
-          = f.input :additional_information, label: "Hotline/Ticket Queue/Other", as: :text, placeholder: "Please state, how to contact your support in case of a critical incident impacting your project.​\n\nA 24/7 contact is mandatory for Productive Time Critical:​\n - Phone Hotline\n - or equivalent System which is available for L1 to L4 services​\n\nInformation is recommended for Productive Projects:​\n - Ticket System Information​\n - Distributed Mail List​", input_html: {:rows => 10, :maxlength => 5000}, hint: raw("#{icon ('info-circle')} #{t('masterdata_cockpit.additional_information')} <span style='width:170px' class='pull-right' id='additional_information_length'></span>")
+          = f.input :additional_information, label: "Hotline/Ticket Queue/Other", as: :text, placeholder: "Please state, how to contact your support in case of a critical incident impacting your project.​\n\nA 24/7 contact is mandatory for Productive Time Critical:​\n - Phone Hotline\n - or equivalent System which is available for L1 to L4 services​\n\nInformation is recommended for Productive Projects:​\n - Ticket System Information​\n - Distributed Mail List​", input_html: {:rows => 10, :maxlength => 5000}, hint: raw("#{icon ('info-circle')} #{t('masterdata_cockpit.additional_information')} <span style='width:170px' class='float-end' id='additional_information_length'></span>")
   %label.control-label Roles
   .loading-place.loading-right
   .panel.panel-default

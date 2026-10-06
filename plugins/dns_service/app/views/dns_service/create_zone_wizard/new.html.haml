@@ -46,7 +46,7 @@
   %div.buttons{class: 'modal-footer'}
     %button.btn.btn-secondary{type: 'button', data: {dismiss: 'modal'}, aria: {label: 'Cancel'}} Cancel
     - unless @inquiry.nil?
-      = button_tag 'Create', { class: 'btn btn-primary pull-right', data: { disable_with: 'Please wait... '} }
+      = button_tag 'Create', { class: 'btn btn-primary float-end', data: { disable_with: 'Please wait... '} }
 
 :javascript
   $('input[name="zone_request[domain_type]"]').click(function () {

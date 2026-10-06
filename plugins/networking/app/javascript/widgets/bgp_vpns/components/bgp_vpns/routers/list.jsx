@@ -263,7 +263,7 @@ const BgpVpnRouters = ({ bgpvpn }) => {
           <tr>
             <td></td>
             <td width="45%">
-              <div className="pull-right">
+              <div className="float-end">
                 {availableRouters.data && (
                   <AddRouterAssociation
                     routerID={routerID}

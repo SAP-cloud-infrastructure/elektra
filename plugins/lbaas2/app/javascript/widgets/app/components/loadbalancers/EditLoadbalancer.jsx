@@ -218,7 +218,7 @@ const EditLoadbalancer = (props) => {
                   </span>
                 </Form.ElementHorizontal>
                 <Form.ElementHorizontal>
-                  <span className="pull-right">
+                  <span className="float-end">
                     <span className="info-text">
                       No advanced network options available
                     </span>

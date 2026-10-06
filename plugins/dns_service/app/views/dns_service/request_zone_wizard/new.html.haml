@@ -90,7 +90,7 @@
 
   %div.buttons{class: 'modal-footer' }
     %button.btn.btn-secondary{type: 'button', data: {dismiss: 'modal'}, aria: {label: 'Cancel'}} Cancel
-    = button_tag 'Create Request', { class: 'btn btn-primary pull-right', data: { disable_with: 'Please wait... '} }
+    = button_tag 'Create Request', { class: 'btn btn-primary float-end', data: { disable_with: 'Please wait... '} }
 
 :javascript
   var pools = #{pools.to_json.html_safe};

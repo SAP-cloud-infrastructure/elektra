@@ -172,7 +172,7 @@ let NewCluster = ({
           )}
           <p className="u-clearfix">
             <a
-              className="pull-right"
+              className="float-end"
               onClick={(e) => {
                 e.preventDefault()
                 return handleAdvancedOptionsToggle()

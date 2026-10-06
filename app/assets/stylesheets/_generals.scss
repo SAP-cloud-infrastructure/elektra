@@ -1,4 +1,14 @@
 $globa-notifications-section-height: 55;
+
+// App-owned utility: Bootstrap 3 provided `.hidden` (display:none !important),
+// which Bootstrap 5 removed in favour of `.d-none`. Elektra uses `.hidden` as a
+// pervasive show/hide toggle idiom in both markup and jQuery
+// (addClass/removeClass/toggleClass "hidden"), so we keep it as our own utility
+// rather than rewrite ~85 views and ~17 JS call-sites. (BS5 equivalent: .d-none)
+.hidden {
+  display: none !important;
+}
+
 .has-global-notifications {
   padding-top: #{$globa-notifications-section-height + 92}px;
 

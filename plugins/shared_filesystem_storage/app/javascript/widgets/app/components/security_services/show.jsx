@@ -48,7 +48,7 @@ export default class ShowSecurityService extends React.Component {
               <button
                 className={`btn btn-${
                   this.state.showPassword ? "success" : "danger"
-                } btn-sm pull-right`}
+                } btn-sm float-end`}
                 onClick={this.togglePasswordDisplay}
               >
                 {this.state.showPassword ? "Hide" : "Show"}
