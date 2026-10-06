@@ -9,6 +9,20 @@ $globa-notifications-section-height: 55;
   display: none !important;
 }
 
+// App-owned utility: Bootstrap 3's `.caret` (a CSS triangle) was removed in BS5
+// (which uses a `::after` pseudo-element on `.dropdown-toggle`). Elektra has
+// explicit `<span class="caret">` markup, so we re-provide the triangle here.
+.caret {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  margin-left: 2px;
+  vertical-align: middle;
+  border-top: 4px dashed;
+  border-right: 4px solid transparent;
+  border-left: 4px solid transparent;
+}
+
 .has-global-notifications {
   padding-top: #{$globa-notifications-section-height + 92}px;
 

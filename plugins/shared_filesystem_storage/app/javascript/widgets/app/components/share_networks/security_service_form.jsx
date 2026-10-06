@@ -13,7 +13,7 @@ const SecurityServiceForm = (props) => {
       <Form.ElementInline
         label="Security Service"
         name="id"
-        labelClass="sr-only"
+        labelClass="visually-hidden"
       >
         <Form.Input elementType="select">
           <option value="">Select Security Service</option>
