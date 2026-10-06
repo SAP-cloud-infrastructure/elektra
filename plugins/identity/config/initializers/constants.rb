@@ -1,5 +1,6 @@
 ALLOWED_ROLES = %w[
   admin
+  audit_admin
   audit_viewer
   compute_admin
   compute_admin_wsg
