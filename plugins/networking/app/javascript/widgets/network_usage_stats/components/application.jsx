@@ -55,14 +55,14 @@ export default class NetworkStats extends React.Component {
             <thead>
               <tr>
                 <th>
-                  Network <span className="pull-right">Floating IPs:</span>
+                  Network <span className="float-end">Floating IPs:</span>
                 </th>
                 <th>Available</th>
                 <th>Used</th>
                 <th>Approved</th>
                 <th>
                   Project
-                  <span className="pull-right">Approved Floating IPs</span>
+                  <span className="float-end">Approved Floating IPs</span>
                 </th>
               </tr>
             </thead>

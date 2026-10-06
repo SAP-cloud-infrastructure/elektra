@@ -186,7 +186,7 @@ class EditCluster extends React.Component {
             : undefined,
           <p className="u-clearfix">
             <a
-              className="pull-right"
+              className="float-end"
               onClick={(e) => {
                 e.preventDefault()
                 return handleAdvancedOptionsToggle()
@@ -503,7 +503,7 @@ class EditCluster extends React.Component {
         React.createElement(
           "button",
           {
-            className: "btn btn-secondary hover-danger pull-left btn-icon-text",
+            className: "btn btn-secondary hover-danger float-start btn-icon-text",
             onClick(e) {
               e.preventDefault()
               close()

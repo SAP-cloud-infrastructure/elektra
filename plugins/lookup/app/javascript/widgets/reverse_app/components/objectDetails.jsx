@@ -43,7 +43,7 @@ class ObjectDetails extends React.Component {
                 {object.name}
                 <small className="text-muted"> ( {object.id} )</small>
                 <button
-                  className="btn-xs btn-secondary pull-right"
+                  className="btn-xs btn-secondary float-end"
                   disabled={objectInfo.isFetching}
                   onClick={(e) => this.toggleObjectInfoShow(e)}
                 >

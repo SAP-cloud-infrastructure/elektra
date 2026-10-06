@@ -12,7 +12,7 @@ const updateWizardPage = (url) =>
 
 $(function () {
   $('*[data-wizard-action-button="true"]').click(function (e) {
-    return $(this).replaceWith('<span class="spinner pull-right"></span>')
+    return $(this).replaceWith('<span class="spinner float-end"></span>')
   })
 
   const $wizardContainer = $("[data-wizard-update-url]")

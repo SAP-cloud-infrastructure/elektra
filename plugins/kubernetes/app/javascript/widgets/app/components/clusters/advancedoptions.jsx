@@ -72,7 +72,7 @@ let AdvancedOptions = function ({
           } else {
             return (
               <div className="u-clearfix">
-                <div className="pull-right">
+                <div className="float-end">
                   Loading options <span className="spinner" />
                 </div>
               </div>
@@ -337,7 +337,7 @@ let AdvancedOptions = function ({
         <div className="col-sm-8">
           {!info.loaded ? (
             <div className="u-clearfix">
-              <div className="pull-right">
+              <div className="float-end">
                 Loading versions <span className="spinner" />
               </div>
             </div>

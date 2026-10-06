@@ -238,7 +238,7 @@ const NewLoadbalancer = (props) => {
           </Form.ElementHorizontal>
 
           <Form.ElementHorizontal>
-            <span className="pull-right">
+            <span className="float-end">
               <Button
                 variant="link"
                 onClick={() =>

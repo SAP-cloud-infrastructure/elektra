@@ -188,7 +188,7 @@ const ImageMembersModal: React.FC<ImageMembersModalProps> = ({
                       <td></td>
                       <td>
                         <a
-                          className={`btn btn-${showForm ? "default" : "primary"} btn-sm pull-right`}
+                          className={`btn btn-${showForm ? "default" : "primary"} btn-sm float-end`}
                           href="#"
                           onClick={(e) => {
                             e.preventDefault()

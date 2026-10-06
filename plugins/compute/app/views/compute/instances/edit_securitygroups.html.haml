@@ -38,4 +38,4 @@
         %div.buttons{class: 'modal-footer'}
           %button.btn.btn-secondary{type:"button", data: {dismiss:"modal"}, aria: {label: "Close"}} Close
           - if current_user.is_allowed?('compute:instance_assign_securitygroups', {target: { project: @active_project, scoped_domain_name: @scoped_domain_name}})
-            = button_tag "Save", { class: 'btn btn-primary pull-right submit', data: { disable_with: "Please wait..." } }
+            = button_tag "Save", { class: 'btn btn-primary float-end submit', data: { disable_with: "Please wait..." } }
