@@ -138,3 +138,10 @@ $headings-font-family: $font-family-sap-regular, "Segoe UI", Roboto,
 // List group
 $list-group-hover-bg: $medium-blue;
 $list-group-link-hover-color: #fff;
+
+// Links
+// Bootstrap 5 underlines links by default ($link-decoration: underline).
+// Elektra/SAP design has non-underlined links, so disable it globally (both
+// resting and hover state) to match the production look.
+$link-decoration: none;
+$link-hover-decoration: none;
