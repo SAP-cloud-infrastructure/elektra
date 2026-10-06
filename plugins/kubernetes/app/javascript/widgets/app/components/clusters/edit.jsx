@@ -73,8 +73,8 @@ class EditCluster extends React.Component {
           "form",
           { className: "form form-horizontal" },
           // Name
-          <div className="form-group string  cluster_name">
-            <label className="string col-sm-4 control-label" htmlFor="name">
+          <div className="mb-3 string  cluster_name">
+            <label className="string col-sm-4 col-form-label" htmlFor="name">
               Cluster Name
             </label>
             <div className="col-sm-8">
@@ -96,9 +96,9 @@ class EditCluster extends React.Component {
             null,
             React.createElement(
               "div",
-              { className: "form-group required string" },
+              { className: "mb-3 required string" },
               <label
-                className="string required col-sm-4 control-label"
+                className="string required col-sm-4 col-form-label"
                 htmlFor="keypair"
               >
                 {" "}
@@ -155,9 +155,9 @@ class EditCluster extends React.Component {
                 null,
                 React.createElement(
                   "div",
-                  { className: "form-group string" },
+                  { className: "mb-3 string" },
                   <label
-                    className="string required col-sm-4 control-label"
+                    className="string required col-sm-4 col-form-label"
                     htmlFor="sshkey"
                   >
                     {" "}
@@ -255,9 +255,9 @@ class EditCluster extends React.Component {
                   // Nodepool name
                   React.createElement(
                     "div",
-                    { className: "form-group required string" },
+                    { className: "mb-3 required string" },
                     <label
-                      className="string required control-label"
+                      className="string required col-form-label"
                       htmlFor="name"
                     >
                       Name <abbr title="required">*</abbr>
@@ -285,8 +285,8 @@ class EditCluster extends React.Component {
                   // Nodepool flavor
                   React.createElement(
                     "div",
-                    { className: "form-group string" },
-                    <label className="string control-label" htmlFor="flavor">
+                    { className: "mb-3 string" },
+                    <label className="string col-form-label" htmlFor="flavor">
                       Flavor <abbr title="required">*</abbr>
                     </label>,
                     React.createElement(
@@ -347,8 +347,8 @@ class EditCluster extends React.Component {
                   // Nodepool availability zone
                   React.createElement(
                     "div",
-                    { className: "form-group string" },
-                    <label className="string control-label" htmlFor="az">
+                    { className: "mb-3 string" },
+                    <label className="string col-form-label" htmlFor="az">
                       Availability Zone <abbr title="required">*</abbr>
                     </label>,
                     React.createElement(
@@ -396,8 +396,8 @@ class EditCluster extends React.Component {
                   // Nodepool size
                   React.createElement(
                     "div",
-                    { className: "form-group string form-group-size" },
-                    <label className="string control-label" htmlFor="size">
+                    { className: "mb-3 string form-group-size" },
+                    <label className="string col-form-label" htmlFor="size">
                       Size <abbr title="required">*</abbr>
                     </label>,
                     React.createElement("input", {
@@ -422,10 +422,10 @@ class EditCluster extends React.Component {
                   // Nodepool Allow Reboot
                   React.createElement(
                     "div",
-                    { className: "checkbox inline-checkbox form-group" },
+                    { className: "checkbox inline-checkbox mb-3" },
                     React.createElement(
                       "label",
-                      { className: "string control-label" },
+                      { className: "string col-form-label" },
                       React.createElement("input", {
                         type: "checkbox",
                         "data-index": index,
@@ -445,10 +445,10 @@ class EditCluster extends React.Component {
                   // Nodepool Allow Replace
                   React.createElement(
                     "div",
-                    { className: "checkbox inline-checkbox form-group" },
+                    { className: "checkbox inline-checkbox mb-3" },
                     React.createElement(
                       "label",
-                      { className: "string control-label" },
+                      { className: "string col-form-label" },
                       React.createElement("input", {
                         type: "checkbox",
                         "data-index": index,

@@ -17,7 +17,7 @@
         { include_blank: true, selected: @zone_request.domain_pool },
         class: "select required form-control",
         style: "width: 70%"
-      %p.help-block
+      %p.form-text
         %i.fa.fa-info-circle
         Please choose your DNS Provider.
         #{link_to 'See the documentation for more information','https://documentation.global.cloud.sap/docs/customer/networking/dns/'}
@@ -30,14 +30,14 @@
           %p.description
           
           - if @domain_config&.dns_c_subdomain?
-            %span.radio
+            %span.form-check
               %label
                 = f.radio_button :domain_type, "subdomain"
                 Subdomain
-                %p.help-block
+                %p.form-text
                   %i.fa.fa-info-circle
                   %span{ data: {container: 'subdomains'} }= pool_attributes.fetch('subdomains', nil)
-          %span.radio
+          %span.form-check
             %label
               = f.radio_button :domain_type, "rootdomain"
               Custom Domain
@@ -53,7 +53,7 @@
                 = f.select :dns_domain, subdomains.collect { |subdomain| [subdomain, subdomain] }
 
         %div{data: {container: 'rootdomain'}, class: ('hidden' if @zone_request.domain_type != 'rootdomain') }
-          %div.form-group{ data: {container: 'rootdomain_info'}, class: ('hidden' unless pools[@zone_request.domain_pool]) }
+          %div.mb-3{ data: {container: 'rootdomain_info'}, class: ('hidden' unless pools[@zone_request.domain_pool]) }
             .col-sm-4
             .col-sm-8
               %p
@@ -73,7 +73,7 @@
 
         = f.input :email, required: true, input_wrapper_html: { style: "width: 70%" } do
           = f.text_field :email, value: @zone_request.email, class: "form-control"
-          %p.help-block{ data: {container: 'email_description'}, class: ('hidden' if pool_attributes.blank? || pool_attributes['mail_description'].blank?) }
+          %p.form-text{ data: {container: 'email_description'}, class: ('hidden' if pool_attributes.blank? || pool_attributes['mail_description'].blank?) }
             %i.fa.fa-info-circle
             %span= pool_attributes['mail_description'] if pool_attributes
 

@@ -17,7 +17,7 @@ const styles = {
 }
 
 const CustomLabel = ({ htmlFor, labelText, required }) => {
-  let className = "control-label" + " " + (required ? "required" : "optional")
+  let className = "col-form-label" + " " + (required ? "required" : "optional")
   return (
     <label className={className} htmlFor={htmlFor}>
       {labelText}
@@ -278,7 +278,7 @@ const NewEditMemberListItem = ({ id, index, servers, edit }) => {
                     onUpdateItem("tags", tags)
                   }}
                 />
-                <span className="help-block">
+                <span className="form-text">
                   <i className="fa fa-info-circle"></i>
                   Start a new tag typing a string and hitting the <b>
                     Enter

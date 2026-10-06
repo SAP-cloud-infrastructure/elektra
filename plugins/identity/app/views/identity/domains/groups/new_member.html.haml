@@ -10,15 +10,15 @@
     - if @error
       %p.alert.alert-error= @error
 
-    .form-group.string.required.member_name
-      %label.string.required.col-sm-4.control-label{for: "member_name"}
+    .mb-3.string.required.member_name
+      %label.string.required.col-sm-4.col-form-label{for: "member_name"}
         %abbr{title:"required"} *
         User name or ID
       .col-sm-6
         .input-wrapper
           %input.string.required.form-control#member_name{ name: "user_name",
             data: { autocomplete: { url: main_app.users_cache_index_path, label: 'name', details: 'full_name', value: 'id' }}}
-        %p.help-block
+        %p.form-text
           %i.fa.fa-info-circle
           You can add users from the same domain as members of this group.
 

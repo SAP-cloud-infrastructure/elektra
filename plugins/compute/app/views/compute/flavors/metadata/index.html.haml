@@ -23,8 +23,8 @@
               .error.text-danger
               = form_for :spec, url: plugin('compute').flavor_metadata_path(flavor_id: params[:flavor_id]), method: :post, remote: request.xhr?, html: {data: {modal: true}, class: 'form-inline' } do |f|
 
-                .form-group= f.text_field :key, class: "form-control", placeholder: 'Key'
-                .form-group= f.text_field :value, class: "form-control", placeholder: 'Value'
+                .mb-3= f.text_field :key, class: "form-control", placeholder: 'Key'
+                .mb-3= f.text_field :value, class: "form-control", placeholder: 'Value'
                 = button_tag "Add", { class: 'btn btn-primary', data: { disable_with: "Please wait..." } }
           %td
             = link_to ' + ', '#', class: 'btn btn-info', id:'toggle_form'

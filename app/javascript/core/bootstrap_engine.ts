@@ -59,9 +59,19 @@ export function disposeModal(target: Elementish): void {
 
 // --- Tooltips --------------------------------------------------------------
 
+// Bootstrap 5 type-checks `title`/`content` and rejects `undefined` (BS3 was
+// lenient). Normalise them to empty strings so callers that omit a title/content
+// don't crash with "Option ... provided type undefined".
+function sanitizeOverlayOptions<T extends { title?: unknown; content?: unknown }>(options: T): T {
+  const opts = { ...options }
+  if ("title" in opts && opts.title == null) opts.title = ""
+  if ("content" in opts && opts.content == null) opts.content = ""
+  return opts
+}
+
 export function initTooltips(target: Elementish, options?: Partial<Tooltip.Options>): void {
   toElements(target).forEach((el) => {
-    Tooltip.getOrCreateInstance(el, options || {})
+    Tooltip.getOrCreateInstance(el, sanitizeOverlayOptions(options || {}))
   })
 }
 
@@ -81,7 +91,7 @@ export function disposeTooltip(target: Elementish): void {
 
 export function initPopovers(target: Elementish, options?: Partial<Popover.Options>): void {
   toElements(target).forEach((el) => {
-    Popover.getOrCreateInstance(el, options || {})
+    Popover.getOrCreateInstance(el, sanitizeOverlayOptions(options || {}))
   })
 }
 

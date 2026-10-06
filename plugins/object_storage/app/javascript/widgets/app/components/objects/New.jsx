@@ -70,9 +70,9 @@ const NewObject = ({ onCreated }) => {
         <div className="row">
           <div className="col-md-6">
             <fieldset>
-              <div className="form-group string required forms_confirm_container_action_name">
+              <div className="mb-3 string required forms_confirm_container_action_name">
                 <label
-                  className="control-label string required"
+                  className="col-form-label string required"
                   htmlFor="confirmation"
                 >
                   <abbr title="required">*</abbr> Type container name

@@ -216,8 +216,8 @@ const ShowObject = () => {
         ) : (
           <>
             <div className="form-horizontal">
-              <div className="form-group">
-                <label className="col-sm-2 control-label">Content type</label>
+              <div className="mb-3">
+                <label className="col-sm-2 col-form-label">Content type</label>
                 <div className="col-sm-10">
                   <p className="form-control-plaintext">
                     {metadata["x-content-type"] ||
@@ -227,8 +227,8 @@ const ShowObject = () => {
                 </div>
               </div>
 
-              <div className="form-group">
-                <label className="col-sm-2 control-label">MD5 checksum</label>
+              <div className="mb-3">
+                <label className="col-sm-2 col-form-label">MD5 checksum</label>
                 <div className="col-sm-10">
                   <p className="form-control-plaintext">
                     {metadata["x-etag"] || metadata["etag"] || ""}
@@ -236,8 +236,8 @@ const ShowObject = () => {
                 </div>
               </div>
 
-              <div className="form-group">
-                <label className="col-sm-2 control-label">Size</label>
+              <div className="mb-3">
+                <label className="col-sm-2 col-form-label">Size</label>
                 <div className="col-sm-10">
                   <p className="form-control-plaintext">
                     {unit.format(
@@ -251,8 +251,8 @@ const ShowObject = () => {
 
               {/* Public URL */}
               {publicUrl && (
-                <div className="form-group string ">
-                  <label className="control-label col-sm-2 string">
+                <div className="mb-3 string ">
+                  <label className="col-form-label col-sm-2 string">
                     URL for public access
                   </label>
                   <div className="col-sm-10" style={{ display: "flex" }}>
@@ -270,16 +270,16 @@ const ShowObject = () => {
               )}
 
               {/* Upload date */}
-              <div className="form-group">
-                <label className="col-sm-2 control-label">Uploaded (UTC)</label>
+              <div className="mb-3">
+                <label className="col-sm-2 col-form-label">Uploaded (UTC)</label>
                 <div className="col-sm-10">
                   <p className="form-control-plaintext">{createdAt}</p>
                 </div>
               </div>
 
               {/* Last modification date */}
-              <div className="form-group">
-                <label className="col-sm-2 control-label">
+              <div className="mb-3">
+                <label className="col-sm-2 col-form-label">
                   Last modified (UTC)
                 </label>
                 <div className="col-sm-10">
@@ -289,13 +289,13 @@ const ShowObject = () => {
 
               {/* Expiration until deletion */}
               <div
-                className={`form-group ${
+                className={`mb-3 ${
                   expiresAt === "" || expiresAtDate
                     ? ""
-                    : "has-error has-feedback"
+                    : "is-invalid has-feedback"
                 }`}
               >
-                <label className="col-sm-2 control-label">
+                <label className="col-sm-2 col-form-label">
                   Expires at (UTC)
                 </label>
                 <div className="col-sm-5">
@@ -317,8 +317,8 @@ const ShowObject = () => {
 
               {/* DLO */}
               {metadata["x-object-manifest"] && (
-                <div className="form-group">
-                  <label className="col-sm-2 control-label">
+                <div className="mb-3">
+                  <label className="col-sm-2 col-form-label">
                     Dynamic Large Object Manifest
                   </label>
                   <div className="col-sm-10">
@@ -330,8 +330,8 @@ const ShowObject = () => {
               )}
               {/* SLO */}
               {metadata["x-static-large-object"] && (
-                <div className="form-group">
-                  <label className="col-sm-2 control-label">
+                <div className="mb-3">
+                  <label className="col-sm-2 col-form-label">
                     Static Large Object
                   </label>
                   <div className="col-sm-10">
@@ -342,8 +342,8 @@ const ShowObject = () => {
                 </div>
               )}
 
-              <div className="form-group">
-                <label className="control-label col-sm-2 string">
+              <div className="mb-3">
+                <label className="col-form-label col-sm-2 string">
                   Metadata
                 </label>
                 <div className="col-sm-10">

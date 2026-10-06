@@ -194,7 +194,7 @@ const DelteContainer = () => {
                       className={`col-md-6 ${
                         confirmation && confirmDeleteVersions
                           ? "has-success"
-                          : "has-error"
+                          : "is-invalid"
                       }`}
                     >
                       <div className="checkbox">
@@ -217,14 +217,14 @@ const DelteContainer = () => {
                   <div
                     className={`col-md-6 ${
                       confirmation && container?.name !== confirmation
-                        ? "has-error"
+                        ? "is-invalid"
                         : ""
                     }`}
                   >
                     <fieldset>
-                      <div className="form-group string required forms_confirm_container_action_name">
+                      <div className="mb-3 string required forms_confirm_container_action_name">
                         <label
-                          className="control-label string required"
+                          className="col-form-label string required"
                           htmlFor="confirmation"
                         >
                           <abbr title="required">*</abbr> Type container name to

@@ -230,7 +230,7 @@ const EditL7Rule = (props) => {
                     onChange={onSelectType}
                     value={ruleType}
                   />
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     <span className="help-block-text">
                       The L7 rule type. See help for more information.
@@ -258,7 +258,7 @@ const EditL7Rule = (props) => {
                   ) : (
                     ""
                   )}
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     <span className="help-block-text">
                       The L7 rule compare type. See help for more information.
@@ -277,7 +277,7 @@ const EditL7Rule = (props) => {
                     type="checkbox"
                     name="invert"
                   />
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     When true the logic of the rule is inverted. For example,
                     with invert true, equal to would become not equal to.
@@ -294,7 +294,7 @@ const EditL7Rule = (props) => {
                           type="text"
                           name="key"
                         />
-                        <span className="help-block">
+                        <span className="form-text">
                           <i className="fa fa-info-circle"></i>
                           The key to use for the comparison. For example, the
                           name of the cookie to evaluate.
@@ -306,7 +306,7 @@ const EditL7Rule = (props) => {
 
                 <Form.ElementHorizontal label="Value" name="value" required>
                   <Form.Input elementType="input" type="text" name="value" />
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     The value to use for the comparison. For example, the file
                     type to compare.
@@ -317,7 +317,7 @@ const EditL7Rule = (props) => {
                     name="tags"
                     initValue={l7rule.item && l7rule.item.tags}
                   />
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     Start a new tag typing a string and hitting the Enter or Tab
                     key.

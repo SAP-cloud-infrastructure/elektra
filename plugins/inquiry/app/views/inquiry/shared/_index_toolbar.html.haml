@@ -2,7 +2,7 @@
   .row{style: "width:100%"}
     .col-md-10
       %form.form-inline#inquiry-filter-form
-        .form-group
+        .mb-3
           %label(for="inquiry-kind-filter") Filter
           = select_tag "filter[kind]", options_for_select(@kinds_of_inquiries, (params[:filter][:kind] if params[:filter])), class: "form-control", id: "inquiry-kind-filter", data: {container_id: container_id}
           = text_field_tag "show_only", params[:show_only], hidden: true

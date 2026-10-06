@@ -520,14 +520,14 @@ const EditListener = (props) => {
                     name="protocol_port"
                     disabled={true}
                   />
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     The port under which the load balancer can be called. A port number between 1 and 65535.
                   </span>
                 </Form.ElementHorizontal>
                 <Form.ElementHorizontal label="Protocol" name="protocol" required>
                   <SelectInput name="protocol" items={listenerProtocolTypes()} value={protocolType} isDisabled={true} />
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     The protocol which can be used to access the load balancer port.
                   </span>
@@ -552,7 +552,7 @@ const EditListener = (props) => {
                                 value={certificateContainer}
                                 isClearable
                               />
-                              <span className="help-block">
+                              <span className="form-text">
                                 <i className="fa fa-info-circle"></i>
                                 The secret containing a PKCS12 format certificate/key bundles.
                               </span>
@@ -575,7 +575,7 @@ const EditListener = (props) => {
                               value={predPolicies}
                               useFormContext={false}
                             />
-                            <span className="help-block">
+                            <span className="form-text">
                               <i className="fa fa-info-circle"></i>
                               <span className="help-block-text">
                                 Policies predefined by SAP Cloud Infrastructure for special purpose. The policy will
@@ -598,7 +598,7 @@ const EditListener = (props) => {
                               onChange={onSelectInsertHeadersChange}
                               value={insetHeaders}
                             />
-                            <span className="help-block">
+                            <span className="form-text">
                               <i className="fa fa-info-circle"></i>
                               <span className="help-block-text">
                                 Headers to insert into the request before it is sent to the backend member.
@@ -641,7 +641,7 @@ const EditListener = (props) => {
                               onChange={onSelectSNIContainers}
                               value={SNIContainers}
                             />
-                            <span className="help-block">
+                            <span className="form-text">
                               <i className="fa fa-info-circle"></i>A list of secrets containing PKCS12 format
                               certificate/key bundles used for Server Name Indication (SNI).
                             </span>
@@ -686,7 +686,7 @@ const EditListener = (props) => {
                               value={clientAuthType}
                               isClearable
                             />
-                            <span className="help-block">
+                            <span className="form-text">
                               <i className="fa fa-info-circle"></i>
                               The TLS client authentication mode.
                             </span>
@@ -708,7 +708,7 @@ const EditListener = (props) => {
                               value={clientCATLScontainer}
                               isClearable
                             />
-                            <span className="help-block">
+                            <span className="form-text">
                               <i className="fa fa-info-circle"></i>
                               The secret containing a PEM format client CA certificate bundle.
                             </span>
@@ -744,7 +744,7 @@ const EditListener = (props) => {
                               isMulti
                               useFormContext={false}
                             />
-                            <span className="help-block">
+                            <span className="form-text">
                               <i className="fa fa-info-circle"></i>
                               The TLS cipher suites.
                             </span>
@@ -779,14 +779,14 @@ const EditListener = (props) => {
                     isClearable
                   />
                   {pools.error && <span className="text-danger">{pools.error}</span>}
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     The pool to which all traffic will be routed if no L7 Policy defines a different pool.
                   </span>
                 </Form.ElementHorizontal>
                 <Form.ElementHorizontal label="Connection Limit" name="connection_limit">
                   <Form.Input elementType="input" type="number" min="-1" name="connection_limit" />
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     The number of parallel connections allowed to access the load balancer. Value -1 means infinite
                     connections are allowed.
@@ -795,7 +795,7 @@ const EditListener = (props) => {
 
                 <Form.ElementHorizontal label="Tags" name="tags">
                   <TagsInput name="tags" initValue={tags} useFormContext={false} onChange={onTagsChange} />
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     Start a new tag typing a string and hitting the Enter or Tab key.
                   </span>

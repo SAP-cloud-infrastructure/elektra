@@ -98,7 +98,7 @@ export default class LiveSearchModal extends React.Component {
               this.search()
             }}
           >
-            <div className="form-group">
+            <div className="mb-3">
               <select
                 onChange={(e) => this.setState({ objectType: e.target.value })}
                 value={this.state.objectType}
@@ -119,7 +119,7 @@ export default class LiveSearchModal extends React.Component {
                 )}
               </select>
             </div>
-            <div className="form-group">
+            <div className="mb-3">
               <SearchField
                 isFetching={this.state.isFetching}
                 onChange={(term) => this.setState({ term })}

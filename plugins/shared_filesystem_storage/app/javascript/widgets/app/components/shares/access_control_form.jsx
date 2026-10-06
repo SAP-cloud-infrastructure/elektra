@@ -83,11 +83,11 @@ const AccessControlForm = (props) => {
         </Form.Input>
       </Form.ElementInline>
 
-      <div className="form-group">
+      <div className="mb-3">
         <Form.SubmitButton label="Save" />
       </div>
       {accessToInfo() && (
-        <p className="help-block">
+        <p className="form-text">
           <i className="fa fa-info-circle" />
           {accessToInfo()}
         </p>

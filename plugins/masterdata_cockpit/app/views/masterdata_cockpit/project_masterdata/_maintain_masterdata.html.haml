@@ -5,7 +5,7 @@
   -# because of disabling the select boxes  on start we need to send the hidden input fields instead
   = f.input :revenue_relevance, :as => :hidden, :input_html => { :value => @project_masterdata.revenue_relevance }
   = f.input :cost_object_type, :as  => :hidden, :input_html => { :value => @project_masterdata.cost_object_type }
-  %label.control-label Significance
+  %label.col-form-label Significance
   .card
     .card-body
       .row
@@ -36,14 +36,14 @@
         %p
           %strong Development:
           = t('masterdata_cockpit.dev')
-  %label.control-label Contact
+  %label.col-form-label Contact
   .loading-place.loading-right
   .card
     .card-body
       .row{style: "margin-top:10px"}
         .col-md-12
           = f.input :additional_information, label: "Hotline/Ticket Queue/Other", as: :text, placeholder: "Please state, how to contact your support in case of a critical incident impacting your project.​\n\nA 24/7 contact is mandatory for Productive Time Critical:​\n - Phone Hotline\n - or equivalent System which is available for L1 to L4 services​\n\nInformation is recommended for Productive Projects:​\n - Ticket System Information​\n - Distributed Mail List​", input_html: {:rows => 10, :maxlength => 5000}, hint: raw("#{icon ('info-circle')} #{t('masterdata_cockpit.additional_information')} <span style='width:170px' class='float-end' id='additional_information_length'></span>")
-  %label.control-label Roles
+  %label.col-form-label Roles
   .loading-place.loading-right
   .card
     .card-body
@@ -53,7 +53,7 @@
         .col-md-6.operator-email
           = f.input :responsible_primary_contact_email, placeholder: "Email/Distribution list", input_html: { class: 'operator-email-input' }
       .row
-        .col-md-12.op-help-block
+        .col-md-12.op-form-text
           = icon ('info-circle')
           = t('masterdata_cockpit.project_responsible_primary_contact_help')
       .row
@@ -62,7 +62,7 @@
         .col-md-6.operator-email
           = f.input :responsible_operator_email, placeholder: "Email/Distribution list", :input_html => { class: 'operator-email-input' }
       .row
-        .col-md-12.op-help-block
+        .col-md-12.op-form-text
           = icon ('info-circle')
           = t('masterdata_cockpit.responsible_operator_help')
       .row
@@ -71,7 +71,7 @@
         .col-sm-6.operator-email
           = f.input :responsible_inventory_role_email, placeholder: "Email/Distribution list", :input_html => { class: 'operator-email-input' }
       .row
-        .col-md-12.op-help-block
+        .col-md-12.op-form-text
           = icon ('info-circle')
           = t('masterdata_cockpit.responsible_inventory_role_help')
       .row
@@ -83,14 +83,14 @@
         .col-sm-6.operator-email
           = f.input :responsible_infrastructure_coordinator_email, placeholder: "Email/Distribution list", :input_html => { class: 'operator-email-input' }
       .row
-        .col-md-12.op-help-block
+        .col-md-12.op-form-text
           = icon ('info-circle')
           = t('masterdata_cockpit.responsible_infrastructure_coordinator_help')
-    .op-help-block{ style: "margin: 0 0 10px 10px" }
+    .op-form-text{ style: "margin: 0 0 10px 10px" }
       = icon ('info-circle')
       = t('masterdata_cockpit.roles_help')
 
-  %label.control-label Role Propagation (CCIR)
+  %label.col-form-label Role Propagation (CCIR)
   .loading-place.loading-right
   .card
     .card-body
@@ -113,7 +113,7 @@
               %strong Child blocks parent:
               = t('masterdata_cockpit.propagation_role_child_blocks_parent')
 
-  %label.control-label Cost Info
+  %label.col-form-label Cost Info
   .loading-place.loading-right
   .card
     .card-body
@@ -125,7 +125,7 @@
           - if @inheritance.co_inheritable
             = f.input :cost_object_inherited, label: "Inherited from #{inheritance_from}", as: :select, include_hidden: false, include_blank: false, required: false
           - else
-            %label.control-label Inherited from #{inheritance_from}
+            %label.col-form-label Inherited from #{inheritance_from}
             %input.form-control{
               disabled: true,
               type: "text",
@@ -139,10 +139,10 @@
         .col-md-6
           = f.input :cost_object_name, label: "Name/Number", required:true
       .row
-        .col-md-12.op-help-block
+        .col-md-12.op-form-text
           = icon ('info-circle')
           Please contact your LoB's representative for the correct Cost Object information.
-  %label.control-label Project Info
+  %label.col-form-label Project Info
   .loading-place.loading-right
   .card
     .card-body
@@ -154,10 +154,10 @@
           - types = MasterdataCockpit::Config.type_of_data
           = f.input :type_of_data, label: "Type of Data", as:           :select, collection:   types.keys, label_method: -> (k) { types[k] }
       .row
-        .col-md-6.op-help-block
+        .col-md-6.op-form-text
           = icon ('info-circle')
           = t('masterdata_cockpit.environment_help')
-        .col-md-6.op-help-block
+        .col-md-6.op-form-text
           = icon ('info-circle')
           = t('masterdata_cockpit.type_of_data_help')
       %hr/
@@ -169,16 +169,16 @@
         .col-md-4
           = f.input :contains_external_customer_data, label: "Contains external customer generated data", checked_value: '1', unchecked_value: '0', as: :boolean
       .row
-        .col-md-4.op-help-block
+        .col-md-4.op-form-text
           = icon ('info-circle')
           = t('masterdata_cockpit.gpu_enabled_help')
-        .col-md-4.op-help-block
+        .col-md-4.op-form-text
           = icon ('info-circle')
           = t('masterdata_cockpit.contains_pii_dpp_hr_help')
-        .col-md-4.op-help-block
+        .col-md-4.op-form-text
           = icon ('info-circle')
           = t('masterdata_cockpit.contains_external_customer_data_help')
-  %label.control-label Audit
+  %label.col-form-label Audit
   .loading-place.loading-right
   .card
     .card-body
@@ -196,7 +196,7 @@
         .col-md-2
           = f.input :ext_cert_sox, label: "SOX", checked_value: '1', unchecked_value: '0', as: :boolean
       .row
-        .col-md-12.op-help-block
+        .col-md-12.op-form-text
           = icon ('info-circle')
           = t('masterdata_cockpit.external_certification_help')
       .alert.alert-info{style: "margin:0"}
@@ -218,7 +218,7 @@
 :javascript
   $(function(){
     // to hide the label of the email input field
-    $('label.control-label.email.optional').html("&nbsp");
+    $('label.col-form-label.email.optional').html("&nbsp");
     // for attribute: when labels have the for attribute and you add an ID to the input it will wire that up
     // remove label -> input autofocus because the help in the label and disabled and readonly fields
     $('[for]').removeAttr('for')
