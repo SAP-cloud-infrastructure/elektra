@@ -33,7 +33,7 @@
         = f.input :name, required: true, input_wrapper_html: { style: "width: 70%" } do
           .input-group
             = f.text_field :name, value: @zone_request.name, class: "form-control text-right"
-            %span.input-group-addon
+            %span.input-group-text
               = ".#{@zone_request.dns_domain}"
               = '.' unless @zone_request.dns_domain.last == '.'
       - else
