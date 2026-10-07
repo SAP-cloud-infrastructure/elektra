@@ -28,10 +28,10 @@ class DateTimePickerInput < SimpleForm::Inputs::Base
   end
 
   def icon_remove
-    "<i class='glyphicon glyphicon-remove'></i>".html_safe
+    "<i class='fa fa-times'></i>".html_safe
   end
 
   def icon_table
-    "<i class='glyphicon glyphicon-th'></i>".html_safe
+    "<i class='fa fa-calendar'></i>".html_safe
   end
 end

@@ -498,7 +498,6 @@ module ApplicationHelper
 
   def external_link_to(name, url)
     content_tag :a, href: url do
-      # content_tag :span, class: "glyphicon glyphicon-share-alt"
       concat content_tag :span, class: "fa fa-external-link"
       concat name
     end

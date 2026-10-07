@@ -503,10 +503,6 @@ section {
 // Icons
 // ---------------------------------------------------------------------------------
 
-.glyphicon-cloud {
-  top: 3px;
-}
-
 .moo-cloud {
   background: inline_svg("monsoon_logo_flat.svg") 0 0px no-repeat;
   display: inline-block;
@@ -1448,16 +1444,9 @@ footer,
 
         &.open,
         &:hover {
-          > .glyphicon {
-            color: #333;
-          }
           > a {
             color: #333;
           }
-        }
-
-        > .glyphicon {
-          color: #fff;
         }
 
         > a {
@@ -2024,15 +2013,6 @@ tr.updating {
     background-color: #efefef;
   }
 
-  .btn {
-    .glyphicon {
-      @include spinner(background rgba(0, 0, 0, 0.2));
-
-      &:before {
-        content: "";
-      }
-    }
-  }
   .state-error-icon,
   .state-suspended-icon,
   .state-paused-icon,
@@ -2134,15 +2114,6 @@ tr.state-locked {
 
 tr.task-state {
   background-color: #ffffb5;
-  .btn {
-    .glyphicon {
-      @include spinner(background rgba(0, 0, 0, 0.2));
-
-      &:before {
-        content: "";
-      }
-    }
-  }
 }
 
 // DATATABLES
