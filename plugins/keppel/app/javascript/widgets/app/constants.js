@@ -64,3 +64,27 @@ export const TRIVY_TO_KEPPEL_SEVERITY = {
   HIGH: "High",
   CRITICAL: "Critical",
 }
+
+export const PLATFORM_FILTER_OPTIONS = {
+  all: {
+    label: "All platforms",
+    infoText: null,
+    value: null,
+    displayText: "",
+  },
+  linux_amd64: {
+    label: "Only x86_64 Linux",
+    infoText: null,
+    value: [{ os: "linux", architecture: "amd64" }],
+    displayText: ", restricted to x86_64 parts of multi-arch images",
+  },
+  linux_amd64_extended: {
+    label: "Extended x86_64 Linux",
+    infoText: "Extended option includes attestation manifests",
+    value: [
+      { os: "linux", architecture: "amd64" },
+      { os: "unknown", architecture: "unknown" },
+    ],
+    displayText: ", restricted to Extended x86_64 parts of multi-arch images",
+  },
+}

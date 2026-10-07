@@ -6,6 +6,7 @@ import { addSuccess } from "lib/flashes"
 
 import AccountDeleter from "../../containers/accounts/deleter"
 import { apiStateIsDeleting } from "../utils"
+import { PLATFORM_FILTER_OPTIONS } from "../../constants"
 
 export default class AccountRow extends React.Component {
   state = {
@@ -47,11 +48,13 @@ export default class AccountRow extends React.Component {
     let platformFilterDisplay = ""
     if (Array.isArray(platformFilter) && platformFilter.length > 0) {
       const pf = platformFilter
-      if (pf.length == 1 && pf[0].os == "linux" && pf[0].architecture == "amd64") {
-        platformFilterDisplay = ", restricted to x86_64 parts of multi-arch images"
-      } else {
-        platformFilterDisplay = ", with custom platform filter for multi-arch images"
-      }
+      const matchedOption = Object.values(PLATFORM_FILTER_OPTIONS).find(
+        (opt) =>
+          opt.value &&
+          opt.value.length === pf.length &&
+          opt.value.every((v, i) => v.os === pf[i].os && v.architecture === pf[i].architecture)
+      )
+      platformFilterDisplay = matchedOption?.displayText || ", with custom platform filter for multi-arch images"
     }
 
     let statusDisplay = "Ready"

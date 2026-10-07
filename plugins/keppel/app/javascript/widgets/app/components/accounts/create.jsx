@@ -4,6 +4,7 @@ import { Button } from "react-bootstrap"
 import { Modal } from "lib/components/Modal"
 import { Form } from "lib/elektra-form"
 import { Base64 } from "js-base64"
+import { PLATFORM_FILTER_OPTIONS } from "../../constants"
 import React from "react"
 
 const initialValues = {
@@ -16,8 +17,7 @@ const initialValues = {
 }
 
 const roleInfoTexts = {
-  primary:
-    "You can push images into this account. Accounts in other regions can replicate from this account.",
+  primary: "You can push images into this account. Accounts in other regions can replicate from this account.",
   replica:
     "This account replicates images from a primary account in a different region with the same name. You cannot push images into this account directly. Images are replicated on first use, when a client first tries to pull them.",
   external_replica:
@@ -47,8 +47,8 @@ const BackingStorageInfo = ({ accountName }) => (
       Swift container <strong>keppel-{accountName}</strong>
       <br />
       <span className="text-muted">
-        The container will be created if it does not exist yet. Please ensure
-        that you have sufficient object storage quota.
+        The container will be created if it does not exist yet. Please ensure that you have sufficient object storage
+        quota.
       </span>
     </p>
   </Form.ElementHorizontal>
@@ -59,8 +59,7 @@ const FormBody = ({ values }) => {
   const roleInfoText = roleInfoTexts[values.role || ""]
 
   const decodedToken = decodeSubleaseToken(values.token)
-  const { account: accountNameFromToken, primary: primaryHostNameFromToken } =
-    decodedToken
+  const { account: accountNameFromToken, primary: primaryHostNameFromToken } = decodedToken
   const isValidToken = isValidSubleaseToken(decodedToken)
 
   return (
@@ -89,11 +88,7 @@ const FormBody = ({ values }) => {
 
               {values.role == "external_replica" && (
                 <>
-                  <Form.ElementHorizontal
-                    label="Upstream source"
-                    name="url"
-                    required
-                  >
+                  <Form.ElementHorizontal label="Upstream source" name="url" required>
                     <Form.Input elementType="input" type="text" name="url" />
                     <p className="form-control-static">
                       {
@@ -103,50 +98,41 @@ const FormBody = ({ values }) => {
                   </Form.ElementHorizontal>
 
                   <Form.ElementHorizontal label="User name" name="username">
-                    <Form.Input
-                      elementType="input"
-                      type="text"
-                      name="username"
-                    />
+                    <Form.Input elementType="input" type="text" name="username" />
                   </Form.ElementHorizontal>
 
                   <Form.ElementHorizontal label="Password" name="password">
-                    <Form.Input
-                      elementType="input"
-                      type="password"
-                      name="password"
-                    />
+                    <Form.Input elementType="input" type="password" name="password" />
                     <p className="form-control-static">
-                      These credentials are used by Keppel to pull images from
-                      the upstream source. Leave blank to pull as an anonymous
-                      user.
+                      These credentials are used by Keppel to pull images from the upstream source. Leave blank to pull
+                      as an anonymous user.
                     </p>
                   </Form.ElementHorizontal>
 
-                  <Form.ElementHorizontal
-                    label="Platform filter"
-                    name="platform_filter"
-                  >
-                    <Form.Input
-                      elementType="input"
-                      type="checkbox"
-                      name="platform_filter_linux_amd64"
-                    />{" "}
-                    Only x86_64 Linux
+                  <Form.ElementHorizontal label="Platform filter" name="platform_filter">
+                    <Form.Input elementType="select" name="platform_filter">
+                      {Object.entries(PLATFORM_FILTER_OPTIONS).map(([key, opt]) => (
+                        <option key={key} value={key}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </Form.Input>
                     <p className="form-control-static">
-                      When replicating a multi-architecture images, a platform
-                      filter restricts which parts get replicated. Custom
-                      platform filters can be defined when using the Keppel API
-                      directly.
+                      When replicating a multi-architecture images, a platform filter restricts which parts get
+                      replicated. Custom platform filters can be defined when using the Keppel API directly.
                     </p>
+                    {PLATFORM_FILTER_OPTIONS[values.platform_filter]?.infoText && (
+                      <p className="text-info">
+                        <i className="fa fa-info-circle" /> {PLATFORM_FILTER_OPTIONS[values.platform_filter].infoText}
+                      </p>
+                    )}
                   </Form.ElementHorizontal>
                 </>
               )}
 
               <Form.ElementHorizontal label="Advanced" name="advanced">
                 <p className="form-control-static text-muted">
-                  You can set up access policies and validation rules after the
-                  account has been created.
+                  You can set up access policies and validation rules after the account has been created.
                 </p>
               </Form.ElementHorizontal>
             </>
@@ -160,16 +146,14 @@ const FormBody = ({ values }) => {
             <Form.Input elementType="input" type="text" name="token" />
             {!isValidToken && (
               <p className="form-control-static">
-                If you do not have a sublease token yet, open the Converged
-                Cloud dashboard in the region hosting the primary account and
-                select "Issue Sublease Token" from the account's dropdown menu.
+                If you do not have a sublease token yet, open the Converged Cloud dashboard in the region hosting the
+                primary account and select "Issue Sublease Token" from the account's dropdown menu.
               </p>
             )}
 
             {values.token && !isValidToken && (
               <p className="form-control-static text-danger">
-                This token does not look quite right. Try clearing the input
-                field and pasting again.
+                This token does not look quite right. Try clearing the input field and pasting again.
               </p>
             )}
           </Form.ElementHorizontal>
@@ -196,8 +180,7 @@ const FormBody = ({ values }) => {
 
               <Form.ElementHorizontal label="Advanced" name="advanced">
                 <p className="form-control-static text-muted">
-                  You can set up access policies after the account has been
-                  created.
+                  You can set up access policies after the account has been created.
                 </p>
               </Form.ElementHorizontal>
             </>
@@ -234,17 +217,8 @@ export default class AccountCreateModal extends React.Component {
     }
   }
 
-  onSubmit = ({
-    role,
-    name,
-    token,
-    url,
-    username,
-    password,
-    platform_filter_linux_amd64: withPlatformFilter,
-  }) => {
-    const invalid = (field, reason) =>
-      Promise.reject({ errors: { [field]: reason } })
+  onSubmit = ({ role, name, token, url, username, password, platform_filter }) => {
+    const invalid = (field, reason) => Promise.reject({ errors: { [field]: reason } })
 
     const newAccount = { auth_tenant_id: this.props.projectID }
     const reqHeaders = {}
@@ -279,8 +253,9 @@ export default class AccountCreateModal extends React.Component {
         if (username == "" && password != "") {
           return invalid("username", "must be given if password is given")
         }
-        if (withPlatformFilter === true) {
-          newAccount.platform_filter = [{ os: "linux", architecture: "amd64" }]
+        const filterConfig = PLATFORM_FILTER_OPTIONS[platform_filter]
+        if (filterConfig?.value) {
+          newAccount.platform_filter = filterConfig.value
         }
         break
 
@@ -301,9 +276,7 @@ export default class AccountCreateModal extends React.Component {
       return invalid("name", "is already in use")
     }
 
-    return this.props
-      .putAccount(newAccount, reqHeaders)
-      .then(() => this.close())
+    return this.props.putAccount(newAccount, reqHeaders).then(() => this.close())
   }
 
   render() {
@@ -316,9 +289,7 @@ export default class AccountCreateModal extends React.Component {
         aria-labelledby="contained-modal-title-lg"
       >
         <Modal.Header closeButton>
-          <Modal.Title id="contained-modal-title-lg">
-            Create New Keppel Account
-          </Modal.Title>
+          <Modal.Title id="contained-modal-title-lg">Create New Keppel Account</Modal.Title>
         </Modal.Header>
 
         <Form
