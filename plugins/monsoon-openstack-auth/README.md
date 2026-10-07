@@ -50,6 +50,13 @@ MonsoonOpenstackAuth.configure do |config|
   config.sso_auth_allowed   = true
   # optional, default=true
   config.form_auth_allowed  = true
+  # optional, default=true
+  # When false, the password login form is disabled: the login page shows an
+  # SSO-only message instead of the form and password submissions are rejected.
+  # The dedicated password_sync endpoint stays available so users can still sync
+  # a rotated password.
+  # Env var: MONSOON_OPENSTACK_PASSWORD_AUTH_ALLOWED=false
+  config.password_auth_allowed = true
   # optional, default=false
   config.access_key_auth_allowed = false
 
@@ -101,6 +108,46 @@ MonsoonOpenstackAuth.configure do |config|
   # config.debug_api_calls = true (Deprecated, use environment variable EXCON_DEBUG = true)
 end
 ```
+
+### Password login, SSO-only mode and password sync
+
+The password login form has one legitimate remaining purpose besides login:
+after a company-policy password rotation, a user must sync the new password to
+the backend (validating credentials against Keystone triggers the sync as a
+side effect).
+
+`password_auth_allowed` (env `MONSOON_OPENSTACK_PASSWORD_AUTH_ALLOWED`, default
+`true`) controls this:
+
+- **`true` (dev/QA, default):** the login page shows the password form and
+  password login works as before.
+- **`false` (SSO-only, e.g. production regions with OIDC-as-TFA):** the login
+  page shows an SSO-only message instead of the form, and password submissions
+  are rejected without creating a session. If SSO authentication succeeds but
+  the user has no Keystone access, the SSO verify flow returns a terminal
+  "no access" response (HTTP 200; JSON callers receive
+  `{ "status": "AUTH_NO_ACCESS" }`, top-level navigations get a terminal page) —
+  it never exposes 401/403 and never redirects, to avoid an OAuth proxy loop.
+
+> **Keep `form_auth_allowed = true` for SSO-only regions.** Disabling the
+> password login is done via `password_auth_allowed = false`, which keeps the
+> login route reachable so unauthenticated SSO users (certificate or session)
+> land on the SSO-only page. Setting `form_auth_allowed = false` as well removes
+> that route and can bounce those users to the (auth-protected) root path.
+
+Regardless of the flag, the dedicated password-sync endpoint stays available:
+
+- Routes: `GET`/`POST /:domain_fid/auth/password_sync`.
+- It validates the user's **username** + new password within the request's
+  **domain** (the `domain_fid` slug is resolved to the real Keystone domain
+  name) against Keystone (triggering the backend sync) and **never creates a
+  session**.
+- State machine: attempt 1 returns `201` if the password is already current, or
+  `401` if it was outdated (which triggers the sync); a single retry then
+  returns `201` (synced) or `401` (password genuinely wrong). Any `5xx` maps to
+  a "service temporarily unavailable" result.
+- The endpoint is rate-limited and renders a four-state page (initial, success,
+  invalid, service-unavailable), always offering a "Return to dashboard" link.
 
 ### Session Store
 

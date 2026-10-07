@@ -1,0 +1,34 @@
+- sso_precheck_enabled = ENV['SSO_PRECHECK_ENABLED'].to_s == 'true'
+
+- if sso_precheck_enabled
+  #sso-precheck-container
+    .sso-precheck-loader
+      .spinner
+      Checking for SSO session...
+
+#sso-only-content{ class: ("login-hidden" if sso_precheck_enabled) }
+  .form-signin
+    %h2.form-signin-heading
+      Single Sign-On required
+
+    .flashes
+      - flash.each do |name, msg|
+        .alert{ class: "alert-#{name}" }= msg
+
+    %section
+      .bs-callout.bs-callout-info.bs-callout-emphasize
+        %p
+          Password login is disabled. Please sign in via Single Sign-On.
+
+    = link_to 'Return to dashboard', '/', class: 'btn btn-lg btn-primary btn-block'
+
+- if sso_precheck_enabled
+  #sso-config{ "data-keystone-url" => @keystone_endpoint,
+               "data-domain-name" => @domain_name,
+               "data-verify-url" => main_app.verify_auth_token_path,
+               "data-after-login" => params[:after_login],
+               "data-login-form-id" => "sso-only-content",
+               "data-spinner-id" => "sso-precheck-container",
+               "data-hidden-class" => "login-hidden" }
+
+  = javascript_include_tag "monsoon-openstack-auth_plugin"
