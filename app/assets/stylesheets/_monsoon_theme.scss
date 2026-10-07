@@ -2208,15 +2208,28 @@ tr.task-state {
 // Lists
 // ---------------------------------------------------------------------------------
 
+// BS5 flex replacement for the removed BS3 make-md-column float mixin.
+// Keeps the original behaviour: full-width block below the md breakpoint,
+// an N/12 column from 992px up — but as a flex child, not a float.
+@mixin fancy-list-column($columns) {
+  position: relative;
+  min-height: 1px;
+  padding-left: ($grid-gutter-width / 2);
+  padding-right: ($grid-gutter-width / 2);
+  @media (min-width: $screen-md-min) {
+    flex: 0 0 auto;
+    width: percentage($columns / 12);
+  }
+}
+
 .fancy-list {
-  @include pie-clearfix;
   @extend .row;
   padding-left: 0;
   margin-top: $line-height-computed * 3;
   list-style-type: none;
 
   > li {
-    @include make-md-column(4);
+    @include fancy-list-column(4);
     background: none;
     height: $line-height-computed * 5;
     position: relative;
@@ -2243,14 +2256,14 @@ tr.task-state {
 
   &.fancy-list-2col {
     > li {
-      @include make-md-column(6);
+      @include fancy-list-column(6);
       padding-left: $font-size-large * 1.5 + $grid-gutter-width * 1.25;
     }
   }
 
   &.fancy-list-2col-indented {
     > li {
-      @include make-md-column(5);
+      @include fancy-list-column(5);
       padding-left: $font-size-large * 1.5 + $grid-gutter-width * 1.25;
     }
   }

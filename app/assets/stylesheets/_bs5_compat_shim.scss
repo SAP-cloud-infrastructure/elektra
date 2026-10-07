@@ -177,19 +177,6 @@ $breadcrumb-active-color: $gray-light !default;
   border-bottom-right-radius: $radius;
 }
 
-// BS3 grid column mixin used by the custom theme.
-// Maps onto a BS3-style float column (sassc/LibSass compatible division).
-@mixin make-md-column($columns, $gutter: $grid-gutter-width) {
-  position: relative;
-  min-height: 1px;
-  padding-left: ($gutter / 2);
-  padding-right: ($gutter / 2);
-  @media (min-width: $screen-md-min) {
-    float: left;
-    width: percentage($columns / 12);
-  }
-}
-
 // BS3 button-size took 5 args; BS5's button-size takes 4 (no line-height).
 // Provide the BS3 signature so existing @includes keep working.
 @mixin button-size(
