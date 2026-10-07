@@ -1,5 +1,5 @@
 import React from "react"
-import { ContentHeading, Stack, Container } from "@cloudoperators/juno-ui-components"
+import { ContentHeading, Container } from "@cloudoperators/juno-ui-components"
 
 interface PageHeaderProps {
   title: string
