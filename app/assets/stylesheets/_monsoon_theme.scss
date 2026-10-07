@@ -1223,6 +1223,11 @@ footer,
 .breadcrumb {
   margin-top: $line-height-computed;
   margin-bottom: $line-height-computed;
+  // Bootstrap 5 dropped the breadcrumb's default background, padding and radius
+  // (bg/padding/border-radius default to null/0). Restore the Bootstrap 3 look.
+  padding: 8px 15px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
 
   > li {
     > a {
@@ -1232,10 +1237,6 @@ footer,
     &.active > a {
       color: $breadcrumb-active-color;
     }
-  }
-
-  & > li + li:before {
-    padding: 0 10px 0 14px;
   }
 }
 

@@ -40,7 +40,7 @@ const Breadcrumb = ({ count }) => {
     <div className="breadrumb-with-details">
       <div style={{ display: "flex" }}>
         <ol className="breadcrumb">
-          <li>
+          <li className="breadcrumb-item">
             {name ? (
               <Link to="/containers">All containers</Link>
             ) : (
@@ -48,7 +48,7 @@ const Breadcrumb = ({ count }) => {
             )}
           </li>
           {name && (
-            <li>
+            <li className="breadcrumb-item">
               {items.length === 0 ? (
                 name && (
                   <>
@@ -66,7 +66,7 @@ const Breadcrumb = ({ count }) => {
           )}
 
           {items.map((p, i) => (
-            <li className={i === items.length - 1 ? "active" : ""} key={i}>
+            <li className={`breadcrumb-item${i === items.length - 1 ? " active" : ""}`} key={i}>
               {i < items.length - 1 ? (
                 <a href="#" onClick={(e) => handleClick(e, i + 1)}>
                   <span className="fa fa-fw fa-folder" title="Directory" />
