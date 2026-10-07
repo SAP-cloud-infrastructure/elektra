@@ -224,7 +224,7 @@ const MaintenanceWindowEditModal: React.FC<MaintenanceWindowEditModalProps> = ({
           checked={formData.autoUpdateKubernetes}
           onChange={(e) => setFormData({ ...formData, autoUpdateKubernetes: e.target.checked })}
           label="Auto-update Kubernetes Version"
-          helptext="Automatically update to the latest Kubernetes version during maintenance"
+          helptext="Automatically updates to the latest patch version within the current minor during maintenance. Expired versions are force-upgraded to the next supported minor regardless of this setting."
         />
       </FormRow>
 
@@ -234,7 +234,7 @@ const MaintenanceWindowEditModal: React.FC<MaintenanceWindowEditModalProps> = ({
             checked={formData.autoUpdateOS}
             onChange={(e) => setFormData({ ...formData, autoUpdateOS: e.target.checked })}
             label="Auto-update Operating System"
-            helptext="Automatically update machine images to the latest OS version during maintenance"
+            helptext="Automatically updates to the latest GardenLinux image version during maintenance. Expired versions are force-upgraded to the latest available version regardless of this setting."
           />
         </FormRow>
       )}
