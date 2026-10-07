@@ -221,6 +221,30 @@ body {
   }
 }
 
+// Robust flexbox sticky footer for the main application layout. Replaces the
+// fragile position:absolute footer so the footer always sits at the bottom of
+// the viewport when content is short, and below the content when it is tall.
+// The fixed navbar/breadcrumb stay position:fixed; body padding-top keeps the
+// content clear of them.
+body.app-flex-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  margin-bottom: 0;
+
+  .app-flex-main {
+    flex: 1 0 auto;
+  }
+
+  footer,
+  .footer {
+    position: static;
+    height: auto;
+    margin-top: $footer-margin-top;
+    flex-shrink: 0;
+  }
+}
+
 // FLEX LAYOUT /w sticky header and footer
 // ---------------------------------------------------------------------------
 
@@ -386,6 +410,8 @@ section {
 
 .info-text {
   opacity: 0.45;
+  font-weight: 400;
+  color: #777;
 
   &.info-clickable:hover {
     opacity: 1;
@@ -953,32 +979,66 @@ section {
 
 // special top of page navbar
 .navbar-sap {
-  background-color: #222;
+  // Reproduce the BS3 "theme" navbar-inverse gradient (dropped with BS5, which
+  // has no theme module): subtle top-to-bottom dark gradient.
+  background-color: #3c3c3c;
+  background-image: linear-gradient(to bottom, #3c3c3c 0%, #222 100%);
+  background-repeat: repeat-x;
   min-height: 50px;
-  padding-top: 0;
-  padding-bottom: 0;
+  height: 50px;
+  padding: 0;
+  flex-wrap: nowrap;
 
   .navbar-brand {
-    color: #fff;
+    color: #999;
+    display: flex;
+    align-items: center;
+    height: 50px;
+    font-size: $font-size-medium;
+    // room for the absolute-positioned SAP logo on the left + spacing before
+    // the divider so it doesn't cling to the brand name
+    padding-left: 80px;
+    padding-right: 15px;
+    margin-right: 0;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+
+    &:hover,
+    &:focus {
+      color: #ccc;
+    }
+  }
+
+  // Dividers only between the right-hand nav items (user / region), matching the
+  // production look. The left domain link must NOT get a trailing divider.
+  .navbar-nav.ms-auto {
+    height: 50px;
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      border-left: 1px solid rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  .navbar-nav.me-auto {
+    height: 50px;
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+    }
   }
 
   .nav-link {
-    color: rgba(255, 255, 255, 0.85);
+    color: #999;
+    font-size: $font-size-base;
+    display: flex;
+    align-items: center;
+    height: 50px;
 
     &:hover,
     &:focus {
       color: #fff;
-    }
-  }
-
-  // Vertical dividers between the top-level nav items (BS3 navbar-inverse look).
-  .navbar-nav {
-    .nav-item {
-      border-left: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    &.ms-auto .nav-item:last-child {
-      border-right: 1px solid rgba(255, 255, 255, 0.1);
     }
   }
 
@@ -994,9 +1054,7 @@ section {
 }
 
 .navbar-brand {
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
   position: relative;
-  padding-left: 80px;
   color: #555;
 }
 
@@ -1094,16 +1152,39 @@ section {
   margin-bottom: $line-height-computed;
 }
 
+// Bootstrap 3 form feedback (removed in BS5). Elektra uses `.has-feedback` +
+// `.form-control-feedback` for the search icon inside input fields, so
+// re-provide the BS3 positioning behaviour as an app utility.
+.has-feedback {
+  position: relative;
+
+  .form-control {
+    padding-right: 34px;
+  }
+
+  .form-control-feedback {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 2;
+    display: block;
+    width: 34px;
+    height: 34px;
+    line-height: 34px;
+    text-align: center;
+    pointer-events: none;
+  }
+}
+
 // ---------------------------------------------------------------------------------
 // Header
 // ---------------------------------------------------------------------------------
-
 .logo {
   background: inline_svg("sap-logo.svg") no-repeat;
   background-size: contain;
   position: absolute;
-  top: $navbar-padding-vertical - 5px;
-  left: $grid-gutter-width / 2;
+  top: 10px;
+  left: 0;
   height: 30px;
   width: 62px;
 }
@@ -1188,7 +1269,7 @@ footer,
   border-bottom: 1px solid #ddd;
   height: $context-breadcrumb-height;
   position: fixed;
-  top: $navbar-height + 1;
+  top: $navbar-height;
   left: 0;
   right: 0;
   z-index: 1029;
@@ -1474,8 +1555,10 @@ footer,
 
     .small {
       font-size: 45%;
+      font-weight: 400;
       a {
         color: #888;
+        font-weight: 400;
 
         &.help-link {
           &:hover,

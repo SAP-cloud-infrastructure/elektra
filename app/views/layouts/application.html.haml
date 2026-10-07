@@ -31,20 +31,21 @@
     
     = csrf_meta_tags
 
-  %body{class: "#{body_class} #{domain_class}"}
+  %body{class: "#{body_class} #{domain_class} app-flex-layout"}
     = render "nav"
     = render "breadcrumb"
-    = render "main_toolbar"
 
-    = yield :page_lead
+    .app-flex-main
+      = render "main_toolbar"
 
-    .container
-      .content{class: "#{plugin_name if plugin_name}"}
-        = render "application/help_text"
-        .flashes
-          = render "application/flashes"
-        = yield
+      = yield :page_lead
 
+      .container
+        .content{class: "#{plugin_name if plugin_name}"}
+          = render "application/help_text"
+          .flashes
+            = render "application/flashes"
+          = yield
 
     = render "application/footer"
     = render "application/user_profile"
