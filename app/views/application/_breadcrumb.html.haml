@@ -19,7 +19,6 @@
           %a.dropdown-toggle{"aria-expanded" => "false", "data-mega-dropdown" => "true", :href => "#", :role => "button"}
             %i{class: selected_category_icon}
             = selected_service_name
-            %span.caret
           = current_user && render_navigation(expand_all: true, renderer: :fancy_list, context: navigation_context(@scoped_domain_name, @scoped_project_name))
 
     .special-crumb

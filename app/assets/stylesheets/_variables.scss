@@ -109,6 +109,31 @@ $login-max-width: 360px;
 // BOOTSTRAP VARIABLE OVERRIDES
 // --------------------------------------------------
 
+// Base font size. Bootstrap 5 defaults to 1rem (16px); the BS3 app used 14px,
+// so everything renders larger under BS5. Restore the 14px base globally.
+$font-size-base: 0.875rem;
+
+// Form input placeholder color. BS5 defaults to a dark semi-transparent
+// (rgba(body-color,.75)); BS3 used a light grey (#999). Restore the lighter
+// grey so placeholders (e.g. the universal search field) match production.
+$input-placeholder-color: #999;
+
+// Bootstrap 5 theme colors (semantic palette).
+// BS5 generates all .btn-*, .text-*, .bg-*, link color and the --bs-* custom
+// properties from these. The old BS3 config only set $brand-*/$btn-*-bg (which
+// BS5 ignores), so without these overrides BS5 fell back to its default blue.
+// Map them onto the SAP palette to restore the production look.
+$primary: $medium-blue;
+$secondary: $medium-gray;
+$success: $medium-green;
+$info: lighten($bright-blue, 10%);
+$warning: lighten($bright-orange, 5%);
+$danger: #e22;
+
+// Links (BS5): keep the historical BS3 link blue, not the primary.
+$link-color: #337ab7;
+$link-hover-color: darken(#337ab7, 15%);
+
 // Buttons
 $btn-primary-border: $medium-blue;
 $btn-primary-bg: $medium-blue;
