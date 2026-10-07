@@ -953,7 +953,7 @@ section {
 
 // special top of page navbar
 .navbar-sap {
-  background-color: #000;
+  background-color: #222;
   min-height: 50px;
   padding-top: 0;
   padding-bottom: 0;
@@ -968,6 +968,17 @@ section {
     &:hover,
     &:focus {
       color: #fff;
+    }
+  }
+
+  // Vertical dividers between the top-level nav items (BS3 navbar-inverse look).
+  .navbar-nav {
+    .nav-item {
+      border-left: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    &.ms-auto .nav-item:last-child {
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
     }
   }
 
