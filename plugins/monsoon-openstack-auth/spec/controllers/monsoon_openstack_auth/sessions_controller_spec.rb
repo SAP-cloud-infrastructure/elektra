@@ -32,6 +32,7 @@ describe MonsoonOpenstackAuth::SessionsController, type: :controller do
 
     before do
       allow(MonsoonOpenstackAuth.configuration).to receive(:form_auth_allowed?).and_return(true)
+      allow(MonsoonOpenstackAuth.configuration).to receive(:password_auth_allowed?).and_return(true)
       allow(controller.main_app).to receive(:root_path).and_return('/dashboard')
     end
 
@@ -86,6 +87,20 @@ describe MonsoonOpenstackAuth::SessionsController, type: :controller do
         get :new, params: { domain_fid: domain_id, domain_id: domain_id }
       end
     end
+
+    context 'when password auth is disabled' do
+      before do
+        allow(MonsoonOpenstackAuth.configuration).to receive(:password_auth_allowed?).and_return(false)
+        allow(MonsoonOpenstackAuth::Authentication::AuthSession).to receive(:logout)
+      end
+
+      it 'renders the login page (no redirect) in SSO-only state' do
+        get :new, params: { domain_fid: domain_id, domain_id: domain_id }
+
+        expect(response).to have_http_status(:success)
+        expect(assigns(:password_auth_disabled)).to be true
+      end
+    end
   end
 
   describe 'POST #create' do
@@ -96,6 +111,30 @@ describe MonsoonOpenstackAuth::SessionsController, type: :controller do
     before do
       allow(MonsoonOpenstackAuth.configuration).to receive(:form_auth_allowed?).and_return(true)
       allow(MonsoonOpenstackAuth.configuration).to receive(:enforce_natural_user).and_return(false)
+      allow(MonsoonOpenstackAuth.configuration).to receive(:password_auth_allowed?).and_return(true)
+    end
+
+    context 'when password auth is disabled' do
+      before do
+        allow(MonsoonOpenstackAuth.configuration).to receive(:password_auth_allowed?).and_return(false)
+      end
+
+      it 'does not create a session and re-renders the login page' do
+        expect(MonsoonOpenstackAuth::Authentication::AuthSession)
+          .not_to receive(:create_from_login_form)
+
+        post :create, params: {
+          domain_fid: domain_id,
+          username: username,
+          password: password,
+          domain_id: domain_id,
+          after_login: after_login_url
+        }
+
+        expect(response).to have_http_status(:success)
+        expect(assigns(:password_auth_disabled)).to be true
+        expect(flash.now[:notice]).to eq('Password login is disabled. Please sign in via Single Sign-On.')
+      end
     end
 
     context 'when form auth is allowed' do
@@ -732,6 +771,7 @@ describe MonsoonOpenstackAuth::SessionsController, type: :controller do
 
     before do
       allow(MonsoonOpenstackAuth.configuration).to receive(:form_auth_allowed?).and_return(true)
+      allow(MonsoonOpenstackAuth.configuration).to receive(:password_auth_allowed?).and_return(true)
       allow(MonsoonOpenstackAuth::Authentication::AuthSession)
         .to receive(:create_from_login_form)
         .and_return(mock_auth_session)
