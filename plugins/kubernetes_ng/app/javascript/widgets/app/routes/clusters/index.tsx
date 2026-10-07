@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router"
 import { Container, Stack, Modal } from "@cloudoperators/juno-ui-components"
 import ClusterList from "./-components/ClusterList"
 import PageHeader from "../../components/PageHeader"
+import GardenerVersion from "../../components/GardenerVersion"
 import { Permissions } from "../../types/permissions"
 import { Cluster } from "../../types/cluster"
 import { ErrorBoundary, FallbackProps } from "react-error-boundary"
@@ -34,7 +35,11 @@ export const Route = createFileRoute(CLUSTERS_ROUTE_ID)({
 })
 
 function ClustersPageHeader({ children }: { children?: React.ReactNode }) {
-  return <PageHeader title="Kubernetes Clusters">{children}</PageHeader>
+  return (
+    <PageHeader title="Kubernetes Clusters" subtitle={<GardenerVersion />}>
+      {children}
+    </PageHeader>
+  )
 }
 
 function ClustersErrorBoundary({ children }: { children?: React.ReactNode }) {

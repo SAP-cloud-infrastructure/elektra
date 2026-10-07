@@ -3,22 +3,20 @@ import { ContentHeading, Stack, Container } from "@cloudoperators/juno-ui-compon
 
 interface PageHeaderProps {
   title: string
-  subtitle?: string
+  subtitle?: React.ReactNode
   children?: React.ReactNode
 }
 
 const PageHeader: React.FC<PageHeaderProps> = ({ title, subtitle, children, ...props }) => {
   return (
     <Container py px={false} {...props}>
-      <Stack>
-        <ContentHeading className="tw-w-full" data-pageheader="title">
-          {title}
-        </ContentHeading>
-        <Stack gap="2" className="tw-whitespace-nowrap" distribution="center" data-pageheader="actions">
+      <div className="tw-flex tw-flex-wrap tw-justify-between tw-items-center">
+        <ContentHeading data-pageheader="title">{title}</ContentHeading>
+        <div className="tw-flex tw-gap-2 tw-whitespace-nowrap tw-items-center tw-pb-2" data-pageheader="actions">
           {children}
-        </Stack>
-      </Stack>
-      {subtitle && <p data-pageheader="subtitle">{subtitle}</p>}
+        </div>
+      </div>
+      {subtitle && <div data-pageheader="subtitle">{subtitle}</div>}
     </Container>
   )
 }
