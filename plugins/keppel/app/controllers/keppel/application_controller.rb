@@ -21,6 +21,8 @@ module Keppel
         # used to display instructions for how to use the Docker CLI with Keppel
         docker_cli_username:
           "#{current_user.name}@#{current_user.user_domain_name}/#{@scoped_project_name}@#{@scoped_domain_name}",
+        # used to disable swift storage links when the application uses ceph.
+        uses_ceph_storage: %w[qa-de-1 eu-de-3].include?(current_region),
       }
     end
   end

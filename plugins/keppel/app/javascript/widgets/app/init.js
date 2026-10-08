@@ -22,6 +22,8 @@ createWidget(null).then((widget) => {
     userName: widget.config.scriptParams.dockerCliUsername,
     registryDomain: new URL(widget.config.scriptParams.keppelApi).hostname,
   }
+  widget.config.scriptParams.usesCephStorage =
+    widget.config.scriptParams.usesCephStorage == "true"
 
   //delete params that React does not consume
   delete widget.config.scriptParams.keppelApi
