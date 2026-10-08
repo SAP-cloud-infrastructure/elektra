@@ -3,12 +3,12 @@
   %div{class: "modal-dialog #{modal_size}"}
     .modal-content{class: "#{plugin_name if plugin_name}"}
       .modal-header
-        %button.btn-close{type:"button", data: {bs_dismiss:"modal"}, aria: {label: "Close"}}
         %h4.modal-title
           - if content_for? :title
             = yield :title
           - else
             = "#{action_name.capitalize} #{controller.controller_name.singularize.humanize}"
+        %button.btn-close{type:"button", data: {bs_dismiss:"modal"}, aria: {label: "Close"}}
 
       = yield
 
