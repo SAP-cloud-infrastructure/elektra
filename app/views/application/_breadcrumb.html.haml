@@ -29,10 +29,10 @@
             %i.fa.fa-terminal.fa-stack-1x.fa-inverse
 
       - if current_user &&current_user.is_allowed?('tools:application_get')
-        .has-feedback.has-feedback-searchable.universal-search-input
+        .has-feedback.has-feedback-searchable.has-feedback-left.universal-search-input
           = text_field_tag('universal_search_field', '', { type: "text",
             class: "form-control",
-            placeholder: "Find by ID, name, or description",
+            placeholder: "Search by ID, name, or description",
             data: {universal_search_field: true, url: plugin('cc_tools').start_path}})
-          %span.form-control-feedback.false
+          %span.form-control-feedback.form-control-feedback-left
             %i.fa.fa-search

@@ -119,11 +119,6 @@ const List: React.FC<ListProps> = ({
     }))
   }, [])
 
-  const toggleSearchInputHandler = useCallback((e: React.MouseEvent) => {
-    e.preventDefault()
-    setShowSearchInput((prev) => !prev)
-  }, [])
-
   const updateSearchTerm = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value)
   }, [])
@@ -183,17 +178,15 @@ const List: React.FC<ListProps> = ({
         <h4 className="action-heading heading-top">
           {title}
           {showCount && items && items.length > 0 && ` (${items.length})`}
-          {searchEnabled && (
-            <div className="header-action">
-              <i className="fa fa-search" onClick={toggleSearchInputHandler}></i>
-            </div>
-          )}
         </h4>
       )}
 
       {showSearchInput && searchEnabled && (
-        <div className="toolbar-secondary">
-          <div className="has-feedback">
+        <div className="toolbar-secondary auth-projects-search">
+          <div className="has-feedback has-feedback-left">
+            <span className="form-control-feedback form-control-feedback-left">
+              <i className="fa fa-search"></i>
+            </span>
             <input
               type="text"
               name="search-input"
@@ -202,7 +195,7 @@ const List: React.FC<ListProps> = ({
               onChange={updateSearchTerm}
               value={searchTerm || ""}
               className="form-control"
-              placeholder="Search name or description"
+              placeholder="Search by name or description"
             />
 
             {searchTerm && searchTerm.length > 0 && (

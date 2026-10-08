@@ -1166,6 +1166,31 @@ section {
     text-align: center;
     pointer-events: none;
   }
+
+  // Variant: feedback icon rendered on the left side, inside the input.
+  &.has-feedback-left {
+    .form-control-feedback-left {
+      right: auto;
+      left: 0;
+      color: #999;
+    }
+
+    .form-control {
+      padding-left: 34px;
+    }
+  }
+}
+
+// Full-width search bar for the "Your Projects" list with the search glyph
+// sitting inside the field (modern inline search look).
+.auth-projects-search {
+  .has-feedback {
+    width: 100%;
+  }
+
+  .form-control {
+    width: 100%;
+  }
 }
 
 // ---------------------------------------------------------------------------------
@@ -1294,15 +1319,20 @@ footer,
   .universal-search-input {
     input {
       height: 26px;
-      background-color: #efefef;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 4px;
       width: 260px;
-      padding-left: 10px;
+      // left padding leaves room for the inline search glyph (see
+      // `.has-feedback-left`), right padding for the clear button
+      padding-left: 30px;
       padding-right: 30px;
     }
 
     .form-control-feedback {
       line-height: 26px;
       height: 26px;
+      color: #999;
     }
   }
 
