@@ -10,6 +10,90 @@ keeps shipping weekly bugfixes and features.
 
 ---
 
+## 🎮 The Campaign (TL;DR, for morale)
+
+Elektra is a dungeon grown over three ages — the Age of Inline jQuery, the Age of
+React, and the Age of Juno — stacked on top of each other until the keep became a
+patchwork beast. Our quest: drag it from the ruins of **Bootstrap III** into the
+halls of **Bootstrap V**, close the open **jQuery and Bootstrap security
+advisories** on the way, and leave no visual or behavioural regression behind.
+Seven dungeons (0–6); the real bosses lurk in Dungeons 1, 3, and 5. Juno is a
+friendly NPC faction — do not attack it (D5).
+
+**🗺️ Dungeon 0 — The Base Camp.** No boss. You forge your gear before touching
+anything: the *Playwright Visual Baseline* (so every later diff proves a
+regression, not a surprise) and smoke/visual specs for the BS-critical flows that
+lack them — modal, dropdown, tooltip, popover, tab, multiselect, slider,
+datetimepicker, wizards. This very document is part of the kit. Weak party members
+skip this; the smart ones don't.
+
+**🔥 Dungeon 1 — The jQuery Crypt (shipped as its own release).**
+> **BOSS: jQuery 1.12.4, the Four-CVE Lich.** It haunts the whole keep (XSS +
+prototype pollution). Banish it by raising it to **jQuery 3.7** (D2) — but the
+raising cracks old spells: `$.get().error/.complete` → `.fail/.always`, `$.type`
+gone, `.hide()` animation quirks. jQuery itself is **not** slain here (that is a
+future expansion, D6) — only lifted to a version that no longer bleeds CVEs. Loot
+on victory: **Release 1 ships, every jQuery advisory closed, Bootstrap still III.**
+
+**⚔️ Dungeon 2 — The React Keep (preparation, invisible).** No boss yet — you
+build siege engines. Hide react-bootstrap behind our own `lib/components/*`
+wrappers (`Button` covers 113 call-sites, `Alert`, `Collapse`, `Table`), so the
+later switch strikes a handful of files instead of 133+. Mark the dangerous
+rooms for later — the lbaas2 Overlay/Popover trio and `<Label>`→`<Badge>`.
+Internally still react-bootstrap 0.33; the realm looks unchanged.
+
+**🧪 Dungeon 3 — The Bootstrap-JS Engine Room.**
+> **BOSS: the jQuery Plugin API, the Shapeshifter.** BS5 ships **no** `$().modal()`
+plugin interface, so all ~40 `.modal()/.tooltip()/.popover()/.tab()` call-sites
+must be re-forged to the **native BS5 vanilla API** (D4) behind one central
+`core/bootstrap_engine.ts`. Beware its traps: BS5's `defineJQueryPlugin` fights any
+hand-rolled bridge, bare `.modal()` is init-only (not init+show), and detached
+dialogs no longer auto-append. `#mainModal.modal.in` → `.show`; dialogs appended to
+`<body>` before showing. Centralise the fight in one engine so AJAX-loaded modals
+and the `MutationObserver` are tamed in a single place.
+
+**👹 Dungeon 4 — The Plugin-Golem Pit.**
+> **BOSS: the BS3-only jQuery Plugins** (multiselect, select, slider,
+datetimepicker, 3-typeahead) — but scout before you swing: **`bootstrap-select`
+version-sniffs BS5, throws, and its throw cascades to kill the whole
+`application.js` DOM-ready chain — and it has 0 call-sites, so loot the corpse
+(just delete it).** The rest have **no BS5 drop-in** — you cannot upgrade them,
+you must *replace*: multiselect → native `<select multiple>` + a light typed
+component, slider → range input / noUiSlider, datetimepicker → flatpickr,
+3-typeahead → the existing `react-bootstrap-typeahead` / native datalist, jQuery-UI
+autocomplete → native datalist + fetch. Each behind a wrapper, individually
+testable.
+
+**🏁 Dungeon 5 — The Great Switch (one merge, visual gate armed).**
+> **BOSS: the Global BS5 Flip.** The single moment BS III truly falls: drop the
+`bootstrap-sass` gem for npm `bootstrap@5.3` SCSS, apply the app-wide BS3→BS5 class
+map (§6), rename `data-*` → `data-bs-*` (sparing the 29 React test-ids), update the
+`Modal`/`Tabs` shim markup (`.in`→`.show`, `.close`→`.btn-close`), and flip the
+wrappers and engine prepared in Dungeons 2–3. CSS and class names collide between
+BS3 and BS5, so this is **one short, well-timed merge** behind a mandatory
+Playwright visual gate — fought in a quiet release window. Loot: **Release 2 — BS5
+goes live.**
+
+**✨ Dungeon 6 — Cleanup & Credits (post-game).** No boss, just loot and lockup:
+remove dead shims and comments, run `pnpm audit` to confirm the Bootstrap and
+jQuery CVEs are gone for good, and finalise the docs. Roll credits. 🏆
+
+**Party rules:** jQuery is an *allied mercenary*, not a target — it is upgraded,
+not removed; full jQuery removal is a future expansion pack coupled to the Rails
+`.js.erb`/UJS backend (D6). **Juno is untouched allied territory** (D5) — the 32
+files already on Juno are out of scope. **Loot discipline:** we leave the dungeon
+with a *lighter* pack — the migration **closes** jQuery and Bootstrap CVEs and
+retires the BS3-only plugin horde, rather than hoarding new dependencies.
+
+> ⚠️ **Reality flag from the scouts (`bs5-spike`, §4b):** "compiles ≠ looks right."
+> The build and boot go green long before the app is correct — every real break is
+> runtime/visual. The scouts also overturned the old risk order: the
+> **behavioural JS** (Dungeon 3) and the **view-layer classes/`data-*`** (part of
+> Dungeon 5) are the dominant, app-breaking surfaces, not the SCSS. Read §4b before
+> you draw a weapon.
+
+---
+
 ## 1. Goal & constraints
 
 - **Goal:** Replace Bootstrap 3.4.1 with Bootstrap 5.3 and react-bootstrap 0.33.1
