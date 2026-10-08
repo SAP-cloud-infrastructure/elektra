@@ -96,24 +96,22 @@ describe("List Component", () => {
       expect(screen.queryByText("Your Projects")).not.toBeInTheDocument()
     })
 
-    it("does not show search icon when less than 10 projects", () => {
+    it("does not show search input when less than 10 projects", () => {
       const projects = Array.from({ length: 5 }, (_, i) =>
         createProject(`proj-${i}`, `Project ${i}`, `Description ${i}`, "domain-1", "domain-1")
       )
       renderComponent({ items: projects })
 
-      const searchIcon = document.querySelector(".fa-search")
-      expect(searchIcon).not.toBeInTheDocument()
+      expect(screen.queryByPlaceholderText("Search by name or description")).not.toBeInTheDocument()
     })
 
-    it("shows search icon when 11 or more projects", () => {
+    it("shows search input when 11 or more projects", () => {
       const projects = Array.from({ length: 11 }, (_, i) =>
         createProject(`proj-${i}`, `Project ${i}`, `Description ${i}`, "domain-1", "domain-1")
       )
       renderComponent({ items: projects })
 
-      const searchIcon = document.querySelector(".fa-search")
-      expect(searchIcon).toBeInTheDocument()
+      expect(screen.getByPlaceholderText("Search by name or description")).toBeInTheDocument()
     })
 
     it("hides search input when showSearchInput prop is false", () => {
@@ -122,7 +120,7 @@ describe("List Component", () => {
       )
       renderComponent({ items: projects, showSearchInput: false })
 
-      expect(screen.queryByPlaceholderText("Search name or description")).not.toBeInTheDocument()
+      expect(screen.queryByPlaceholderText("Search by name or description")).not.toBeInTheDocument()
     })
   })
 
@@ -221,41 +219,17 @@ describe("List Component", () => {
       )
       renderComponent({ items: projects })
 
-      const searchInput = screen.getByPlaceholderText("Search name or description")
+      const searchInput = screen.getByPlaceholderText("Search by name or description")
       expect(searchInput).toBeInTheDocument()
     })
 
-    it("toggles search input visibility when search icon clicked", async () => {
+    it("auto-focuses search input when more than 10 projects", async () => {
       const projects = Array.from({ length: 11 }, (_, i) =>
         createProject(`proj-${i}`, `Project ${i}`, `Description ${i}`, "domain-1", "domain-1")
       )
       renderComponent({ items: projects })
 
-      const searchIcon = document.querySelector(".fa-search")!
-      expect(screen.getByPlaceholderText("Search name or description")).toBeInTheDocument()
-
-      await user.click(searchIcon)
-      expect(screen.queryByPlaceholderText("Search name or description")).not.toBeInTheDocument()
-
-      await user.click(searchIcon)
-      expect(screen.getByPlaceholderText("Search name or description")).toBeInTheDocument()
-    })
-
-    it("auto-focuses search input when toggled on", async () => {
-      const projects = Array.from({ length: 11 }, (_, i) =>
-        createProject(`proj-${i}`, `Project ${i}`, `Description ${i}`, "domain-1", "domain-1")
-      )
-      renderComponent({ items: projects })
-
-      const searchIcon = document.querySelector(".fa-search")!
-
-      // Hide search input
-      await user.click(searchIcon)
-      expect(screen.queryByPlaceholderText("Search name or description")).not.toBeInTheDocument()
-
-      // Show it again - should auto-focus
-      await user.click(searchIcon)
-      const searchInput = screen.getByPlaceholderText("Search name or description")
+      const searchInput = screen.getByPlaceholderText("Search by name or description")
 
       await waitFor(() => {
         expect(searchInput).toHaveFocus()
@@ -265,7 +239,7 @@ describe("List Component", () => {
     it("filters projects by name (case-insensitive)", async () => {
       renderComponent({ items: searchProjects })
 
-      const searchInput = screen.getByPlaceholderText("Search name or description")
+      const searchInput = screen.getByPlaceholderText("Search by name or description")
       await user.type(searchInput, "production")
 
       expect(screen.getByText("Production Environment")).toBeInTheDocument()
@@ -275,7 +249,7 @@ describe("List Component", () => {
     it("filters projects by description (case-insensitive)", async () => {
       renderComponent({ items: searchProjects })
 
-      const searchInput = screen.getByPlaceholderText("Search name or description")
+      const searchInput = screen.getByPlaceholderText("Search by name or description")
       await user.type(searchInput, "dev env")
 
       expect(screen.getByText("Development Environment")).toBeInTheDocument()
@@ -293,7 +267,7 @@ describe("List Component", () => {
       ]
       renderComponent({ items: projects })
 
-      const searchInput = screen.getByPlaceholderText("Search name or description")
+      const searchInput = screen.getByPlaceholderText("Search by name or description")
       await user.type(searchInput, "matching")
 
       const parentLink = screen.getByText("Parent Name")
@@ -304,7 +278,7 @@ describe("List Component", () => {
     it("clears search term when X icon is clicked", async () => {
       renderComponent({ items: searchProjects })
 
-      const searchInput = screen.getByPlaceholderText("Search name or description") as HTMLInputElement
+      const searchInput = screen.getByPlaceholderText("Search by name or description") as HTMLInputElement
       await user.type(searchInput, "production")
 
       expect(searchInput).toHaveValue("production")
@@ -326,7 +300,7 @@ describe("List Component", () => {
       ]
       renderComponent({ items: projects })
 
-      const searchInput = screen.getByPlaceholderText("Search name or description")
+      const searchInput = screen.getByPlaceholderText("Search by name or description")
       await user.type(searchInput, "child")
 
       const parentLi = screen.getByText("Parent").closest("li")
@@ -336,7 +310,7 @@ describe("List Component", () => {
     it("updates filtered results as search term changes", async () => {
       renderComponent({ items: searchProjects })
 
-      const searchInput = screen.getByPlaceholderText("Search name or description")
+      const searchInput = screen.getByPlaceholderText("Search by name or description")
 
       await user.type(searchInput, "prod")
       expect(screen.getByText("Production Environment")).toBeInTheDocument()
@@ -637,7 +611,7 @@ describe("List Component", () => {
       ]
       renderComponent({ items: projects })
 
-      const searchInput = screen.getByPlaceholderText("Search name or description")
+      const searchInput = screen.getByPlaceholderText("Search by name or description")
       await user.type(searchInput, "(test)")
 
       expect(screen.getByText("Project (Test)")).toBeInTheDocument()
@@ -673,7 +647,7 @@ describe("List Component", () => {
       )
       renderComponent({ items: projects })
 
-      const searchInput = screen.getByPlaceholderText("Search name or description")
+      const searchInput = screen.getByPlaceholderText("Search by name or description")
 
       await waitFor(() => {
         expect(searchInput).toHaveFocus()
@@ -686,7 +660,7 @@ describe("List Component", () => {
       )
       renderComponent({ items: projects, showSearchInput: false })
 
-      const searchInput = screen.queryByPlaceholderText("Search name or description")
+      const searchInput = screen.queryByPlaceholderText("Search by name or description")
       expect(searchInput).not.toBeInTheDocument()
     })
   })
