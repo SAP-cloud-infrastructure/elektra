@@ -1,4 +1,5 @@
-#login-content {
+#login-content,
+#sso-only-content {
   &.login-hidden {
     display: none;
   }

@@ -2,6 +2,7 @@ require "monsoon_openstack_auth/connection_driver/errors"
 require "monsoon_openstack_auth/connection_driver/interface"
 require "monsoon_openstack_auth/connection_driver/default"
 require "monsoon_openstack_auth/api_client"
+require "monsoon_openstack_auth/auth_status"
 
 require "monsoon_openstack_auth/engine"
 require 'monsoon_openstack_auth/authorization'

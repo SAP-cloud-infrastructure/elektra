@@ -2,7 +2,7 @@ module MonsoonOpenstackAuth
   class Configuration
     METHODS = %i[
       connection_driver token_auth_allowed basic_auth_allowed access_key_auth_allowed sso_auth_allowed
-      form_auth_allowed login_redirect_url debug debug_api_calls logger authorization token_cache
+      form_auth_allowed password_auth_allowed login_redirect_url debug debug_api_calls logger authorization token_cache
       two_factor_authentication_method two_factor_enabled enforce_natural_user natural_user_name_pattern rsa_dns
     ]
 
@@ -14,6 +14,10 @@ module MonsoonOpenstackAuth
       @basic_auth_allowed       = true
       @sso_auth_allowed         = true
       @form_auth_allowed        = true
+      # When false, the password login form is disabled: the login page shows an
+      # SSO-only message instead of the form and password submissions are rejected.
+      # Password sync (via the dedicated password_sync endpoint) stays available.
+      @password_auth_allowed    = true
       @access_key_auth_allowed  = false
       @two_factor_enabled       = false
       @two_factor_authentication_method = lambda { |username, passcode|
@@ -62,6 +66,10 @@ module MonsoonOpenstackAuth
 
     def form_auth_allowed?
       @form_auth_allowed
+    end
+
+    def password_auth_allowed?
+      @password_auth_allowed
     end
 
     def debug?

@@ -18,8 +18,9 @@ KubernetesNg::Engine.routes.draw do
     resources :cloud_profiles, only: [:index], path: "cloud-profiles"
     get 'permissions(/:resource(/:verb))', to: 'permissions#index'
 
-    # Gardener API kubeconfig endpoint
+    # Gardener API endpoints
     get 'gardener-api/kubeconfig', to: 'gardener_api#kubeconfig'
+    get 'gardener-api/info', to: 'gardener_api#info'
 
     # SciKube getting started ConfigMap
     get 'scikube-getting-started', to: 'scikube_getting_started#show'

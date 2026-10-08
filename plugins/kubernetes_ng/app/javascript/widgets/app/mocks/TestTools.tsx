@@ -99,6 +99,7 @@ export const defaultMockClient: GardenerApi = {
     getCloudProfiles: () => Promise.resolve(cloudProfiles),
 
     getGardenerApiKubeconfig: () => Promise.resolve("kubeconfig-data"),
+    getGardenerInfo: () => Promise.resolve({ version: "v1.148.3" }),
     getScikubeInstructions: () => Promise.resolve("Mock instructions"),
   },
 }
