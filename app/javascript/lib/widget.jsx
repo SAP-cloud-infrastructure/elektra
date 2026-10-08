@@ -12,10 +12,14 @@ import ReduxThunk from "redux-thunk"
 import { composeWithDevTools } from "redux-devtools-extension"
 import { setPolicy } from "./policy"
 import { configureAjaxHelper } from "./ajax_helper"
-// Import Bootstrap 5's JS so its data-API (dropdown/collapse/tab click
-// delegation) is registered inside the React widget bundles too. These are
-// separate esbuild entrypoints that otherwise never load Bootstrap, leaving
-// [data-bs-toggle="dropdown"] buttons rendered by React non-interactive.
+// Bootstrap 5's JS (and its data-API: dropdown/collapse/tab/modal click
+// delegation) is loaded exactly once by the `essentials` bundle, which runs
+// before any widget bundle and publishes the single instance on
+// `window.bootstrap`. This import resolves to a lightweight shim re-exporting
+// that global (see config/esbuild/bootstrap_singleton_plugin.js), so widgets
+// share the one Bootstrap instance instead of each embedding their own copy
+// and registering duplicate data-API listeners (which caused stacked modal
+// backdrops). Kept as a side-effect import to make the dependency explicit.
 import "bootstrap"
 
 const isIterable = (obj) => {
