@@ -230,6 +230,10 @@ body.app-flex-layout {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  // Include the body's padding-top (which clears the fixed navbar/breadcrumb)
+  // in the 100vh height, otherwise the body becomes `100vh + padding-top` tall
+  // and the footer is pushed that far below the viewport bottom.
+  box-sizing: border-box;
   margin-bottom: 0;
 
   .app-flex-main {
