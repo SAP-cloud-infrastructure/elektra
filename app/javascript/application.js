@@ -12,9 +12,6 @@ import "./core/jquery.collapsable"
 import "./core/jquery.sortable_table"
 
 import "bootstrap-multiselect/dist/js/bootstrap-multiselect"
-import "bootstrap-3-typeahead"
-import "bootstrap-slider"
-import "bootstrap-select"
 
 import "./core/stateful_links"
 import "./core/snippets"
