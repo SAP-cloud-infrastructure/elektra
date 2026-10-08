@@ -2652,32 +2652,7 @@ label {
 // ---------------------------------------------------------------------------------
 
 .js-target-hiddenform {
-  display: none;
-}
-
-// ---------------------------------------------------------------------------------
-// DEV: News
-// ---------------------------------------------------------------------------------
-
-.news {
-  .new {
-    margin-bottom: $line-height-computed * 3;
-
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6 {
-      margin-top: $line-height-computed * 1.5;
-    }
-  }
-
-  .author-title {
-    font-weight: bold;
-    border-bottom: 2px solid $bright-blue;
-    margin: $line-height-computed 0;
-  }
+   display: none;
 }
 
 // ---------------------------------------------------------------------------------
