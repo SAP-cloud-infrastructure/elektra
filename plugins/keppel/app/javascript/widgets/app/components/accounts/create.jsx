@@ -4,7 +4,8 @@ import { Button } from "react-bootstrap"
 import { Modal } from "lib/components/Modal"
 import { Form } from "lib/elektra-form"
 import { Base64 } from "js-base64"
-import { PLATFORM_FILTER_OPTIONS } from "../../constants"
+import { PlatformFilterSelect } from "../componentHelpers/PlatformFilterSelect"
+import { PLATFORM_FILTER_OPTIONS, DEFAULT_PLATFORM_FILTER_KEY } from "../../constants"
 import React from "react"
 
 const initialValues = {
@@ -14,6 +15,7 @@ const initialValues = {
   username: "",
   password: "",
   token: "",
+  platform_filter: DEFAULT_PLATFORM_FILTER_KEY
 }
 
 const roleInfoTexts = {
@@ -109,24 +111,7 @@ const FormBody = ({ values }) => {
                     </p>
                   </Form.ElementHorizontal>
 
-                  <Form.ElementHorizontal label="Platform filter" name="platform_filter">
-                    <Form.Input elementType="select" name="platform_filter">
-                      {Object.entries(PLATFORM_FILTER_OPTIONS).map(([key, opt]) => (
-                        <option key={key} value={key}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </Form.Input>
-                    <p className="form-control-static">
-                      When replicating a multi-architecture images, a platform filter restricts which parts get
-                      replicated. Custom platform filters can be defined when using the Keppel API directly.
-                    </p>
-                    {PLATFORM_FILTER_OPTIONS[values.platform_filter]?.infoText && (
-                      <p className="text-info">
-                        <i className="fa fa-info-circle" /> {PLATFORM_FILTER_OPTIONS[values.platform_filter].infoText}
-                      </p>
-                    )}
-                  </Form.ElementHorizontal>
+                  <PlatformFilterSelect value={values.platform_filter} />
                 </>
               )}
 
@@ -254,9 +239,7 @@ export default class AccountCreateModal extends React.Component {
           return invalid("username", "must be given if password is given")
         }
         const filterConfig = PLATFORM_FILTER_OPTIONS[platform_filter]
-        if (filterConfig?.value) {
-          newAccount.platform_filter = filterConfig.value
-        }
+        newAccount.platform_filter = filterConfig.value
         break
 
       default:
