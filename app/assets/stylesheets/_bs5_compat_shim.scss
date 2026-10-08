@@ -17,6 +17,25 @@
 // px pinning: several BS3 vars were px-based; BS5 moved its base vars to rem.
 // Our theme does px arithmetic with them, so we pin the bridge vars to their
 // historical BS3 px values to avoid "Incompatible units: px and rem" errors.
+//
+// -----------------------------------------------------------------------------
+// Current state & removal plan
+// -----------------------------------------------------------------------------
+// The dead symbols have been pruned: everything left here is either still
+// referenced by the theme/plugins, or an internal building block of a symbol
+// that is (e.g. $state-*-bg feed the $alert-*-bg; $screen-sm/md/lg feed the
+// $screen-*-min; $gray-lighter feeds $input-bg-disabled; $padding-base-vertical
+// feeds $input-height-base). Do not delete a "looks unused" symbol without
+// checking these internal dependencies first.
+//
+// Removal plan (final step of the BS5 migration, deliberately DEFERRED until
+// the UI migration/adjustments are complete):
+//   1. Replace each remaining usage in the theme/plugins with its concrete
+//      BS5-native or literal value (e.g. $line-height-computed -> 20px,
+//      $link-color -> #337ab7, $brand-* -> the resolved $primary/$success/…,
+//      $alert-*-bg -> their hex values).
+//   2. Once no SCSS references any symbol below, delete this file and remove
+//      its `@import "bs5_compat_shim"` from application.scss.erb.
 // -----------------------------------------------------------------------------
 
 // Note: this project compiles SCSS with sassc (LibSass), so legacy global
@@ -24,8 +43,8 @@
 
 // --- Removed BS3 variables -------------------------------------------------
 
-// Dominant one (51 refs in the theme). BS3: $font-size-base * $line-height-base
-// with px base => 14px * ~1.428 = 20px. Pin to px.
+// Dominant one (45 refs across theme + plugins). BS3: $font-size-base *
+// $line-height-base with px base => 14px * ~1.428 = 20px. Pin to px.
 // NOTE: no !default — BS5 already defines these (in rem) before this file is
 // imported, so we must hard-override to px for our theme's px arithmetic.
 $line-height-computed: 20px;
@@ -33,7 +52,6 @@ $line-height-computed: 20px;
 // Brand colors -> BS5 theme colors
 $brand-primary: $primary !default;
 $brand-success: $success !default;
-$brand-info: $info !default;
 $brand-warning: $warning !default;
 $brand-danger: $danger !default;
 
@@ -41,33 +59,24 @@ $brand-danger: $danger !default;
 $font-size-base: 14px;
 $font-size-large: 18px;
 $font-size-small: 12px;
-$font-size-h1: 36px;
 $font-size-h2: 30px;
 $font-size-h3: 24px;
 $font-size-h4: 18px;
 $font-size-h5: 14px;
-$font-size-h6: 12px;
 
 // Links
 $link-color: $primary !default;
-$link-hover-color: darken($primary, 15%) !default;
 
 // Screen breakpoints (BS3 names -> BS5 breakpoint map values)
-$screen-xs: 480px !default;
-$screen-xs-min: $screen-xs !default;
 $screen-sm: 768px !default;
 $screen-sm-min: $screen-sm !default;
 $screen-md: 992px !default;
 $screen-md-min: $screen-md !default;
 $screen-lg: 1200px !default;
 $screen-lg-min: $screen-lg !default;
-$screen-xs-max: ($screen-sm-min - 1) !default;
-$screen-sm-max: ($screen-md-min - 1) !default;
-$screen-md-max: ($screen-lg-min - 1) !default;
 
 // Grid
 $grid-gutter-width: 30px; // override BS5 default (no !default) to keep BS3 gutters
-$grid-float-breakpoint: $screen-sm-min !default;
 
 // Container max widths (BS3 names removed in BS5)
 $container-sm: (720px + $grid-gutter-width) !default;
@@ -76,78 +85,42 @@ $container-lg: (1140px + $grid-gutter-width) !default;
 
 // Border radius (BS3)
 $border-radius-base: 4px !default;
-$border-radius-large: 6px !default;
-$border-radius-small: 3px !default;
 
 // Padding (BS3 button/input sizing)
 $padding-base-vertical: 6px !default;
-$padding-base-horizontal: 12px !default;
-$padding-large-vertical: 10px !default;
-$padding-large-horizontal: 16px !default;
-$padding-small-vertical: 5px !default;
-$padding-small-horizontal: 10px !default;
 
 // Misc commonly-referenced BS3 vars
 $gray-light: #777 !default;
 $gray-lighter: #eee !default;
-$gray-dark: #333 !default;
-$text-color: $body-color !default;
 $border-radius: $border-radius-base !default;
 
 // Line height (BS3)
 $line-height-large: 1.3333333 !default;
-$line-height-small: 1.5 !default;
 
 // Navbar (BS3 removed in BS5)
 $navbar-height: 50px !default;
-$navbar-padding-vertical: (($navbar-height - $line-height-computed) / 2) !default;
-$navbar-padding-horizontal: 15px !default;
 
 // Dropdown (BS3 names removed in BS5)
 $dropdown-bg: #fff !default;
 $dropdown-border: rgba(0, 0, 0, 0.15) !default;
-$dropdown-link-color: #333 !default;
 $dropdown-link-hover-color: darken(#333, 5%) !default;
-$dropdown-link-hover-bg: #f5f5f5 !default;
-$dropdown-link-active-color: #fff !default;
-$dropdown-link-active-bg: $primary !default;
 
 // Inputs (BS3 names removed in BS5)
-$input-bg: #fff !default;
 $input-bg-disabled: $gray-lighter !default;
-$input-color: $gray-dark !default;
-$input-border: #ccc !default;
 $input-height-base: ($line-height-computed + ($padding-base-vertical * 2) + 2) !default;
 
-// State colors (BS3 contextual backgrounds/text/borders, removed in BS5)
-$state-success-text: #3c763d !default;
+// State colors (BS3 contextual backgrounds, removed in BS5) — feed the alerts
 $state-success-bg: #dff0d8 !default;
-$state-success-border: #d6e9c6 !default;
-$state-info-text: #31708f !default;
 $state-info-bg: #d9edf7 !default;
-$state-info-border: #bce8f1 !default;
-$state-warning-text: #8a6d3b !default;
 $state-warning-bg: #fcf8e3 !default;
-$state-warning-border: #faebcc !default;
-$state-danger-text: #a94442 !default;
 $state-danger-bg: #f2dede !default;
-$state-danger-border: #ebccd1 !default;
 
 // Alerts (BS3 names removed in BS5) — reuse state colors
 $alert-padding: 15px !default;
-$alert-border-radius: $border-radius-base !default;
 $alert-success-bg: $state-success-bg !default;
-$alert-success-text: $state-success-text !default;
-$alert-success-border: $state-success-border !default;
 $alert-info-bg: $state-info-bg !default;
-$alert-info-text: $state-info-text !default;
-$alert-info-border: $state-info-border !default;
 $alert-warning-bg: $state-warning-bg !default;
-$alert-warning-text: $state-warning-text !default;
-$alert-warning-border: $state-warning-border !default;
 $alert-danger-bg: $state-danger-bg !default;
-$alert-danger-text: $state-danger-text !default;
-$alert-danger-border: $state-danger-border !default;
 
 // Breadcrumb (BS3 names removed in BS5)
 $breadcrumb-active-color: $gray-light !default;
@@ -172,11 +145,6 @@ $breadcrumb-active-color: $gray-light !default;
   border-top-right-radius: $radius;
 }
 
-@mixin border-bottom-radius($radius) {
-  border-bottom-left-radius: $radius;
-  border-bottom-right-radius: $radius;
-}
-
 // BS3 button-size took 5 args; BS5's button-size takes 4 (no line-height).
 // Provide the BS3 signature so existing @includes keep working.
 @mixin button-size(
@@ -192,61 +160,6 @@ $breadcrumb-active-color: $gray-light !default;
   border-radius: $border-radius;
 }
 
-// BS3 nav-divider mixin (removed in BS5)
-@mixin nav-divider($color: #e5e5e5) {
-  height: 1px;
-  margin: (($line-height-computed / 2) - 1px) 0;
-  overflow: hidden;
-  background-color: $color;
-}
-
-// BS3 helper mixins occasionally referenced by legacy SCSS
-@mixin clearfix() {
-  &::after {
-    display: table;
-    clear: both;
-    content: "";
-  }
-}
-
-@mixin tab-focus() {
-  outline: 5px auto -webkit-focus-ring-color;
-  outline-offset: -2px;
-}
-
-@mixin text-overflow() {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-@mixin size($width, $height: $width) {
-  width: $width;
-  height: $height;
-}
-
 @mixin box-sizing($boxmodel) {
   box-sizing: $boxmodel;
-}
-
-@mixin user-select($select) {
-  user-select: $select;
-}
-
-@mixin translate($x, $y) {
-  transform: translate($x, $y);
-}
-
-@mixin scale($ratio...) {
-  transform: scale($ratio);
-}
-
-@mixin rotate($degrees) {
-  transform: rotate($degrees);
-}
-
-@mixin placeholder($color: #999) {
-  &::placeholder {
-    color: $color;
-  }
 }
