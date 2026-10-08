@@ -87,8 +87,8 @@ dependencies:
     specifier: 5.3.8
     version: 5.3.8(@popperjs/core@2.11.8)
   bootstrap-multiselect:
-    specifier: 0.9.15
-    version: 0.9.15
+    specifier: 2.0.0
+    version: 2.0.0(@popperjs/core@2.11.8)
   check-files:
     specifier: ^0.0.2
     version: 0.0.2
@@ -5130,10 +5130,13 @@ packages:
     dev: false
     optional: true
 
-  /bootstrap-multiselect@0.9.15:
-    resolution: {integrity: sha512-UwF32a0QR82xkEEGpuNrn57Bu0b/7DfCuoiOaziSHfQKFj5arR6c7+MYLs5RiIf3zl4XZ+YnY7ZBi6/EN3vEZA==}
+  /bootstrap-multiselect@2.0.0(@popperjs/core@2.11.8):
+    resolution: {integrity: sha512-m8dTwF+mLlpt8PtXfAXyERJLOGNuNrVuU9aQi2WMfwfwSzhgN+LbTaRuTk8Y15NZiMzy2m/FPfhKKgOOJxk2WQ==}
     dependencies:
+      bootstrap: 5.3.8(@popperjs/core@2.11.8)
       jquery: 3.7.1
+    transitivePeerDependencies:
+      - '@popperjs/core'
     dev: false
 
   /bootstrap@5.3.8(@popperjs/core@2.11.8):
