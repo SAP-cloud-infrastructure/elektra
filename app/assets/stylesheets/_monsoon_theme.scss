@@ -234,13 +234,19 @@ body.app-flex-layout {
 
   .app-flex-main {
     flex: 1 0 auto;
+    // Visual gap between the content and the footer. Kept here (as padding on
+    // the growing flex item) rather than as the footer's `margin-top`: a top
+    // margin on a flex-column child adds fixed space that `flex-grow` cannot
+    // absorb, which stopped the footer from sticking to the viewport bottom on
+    // short pages.
+    padding-bottom: $footer-margin-top;
   }
 
   footer,
   .footer {
     position: static;
     height: auto;
-    margin-top: $footer-margin-top;
+    margin-top: 0;
     flex-shrink: 0;
   }
 }
@@ -697,6 +703,26 @@ section {
   }
 }
 
+// Secondary / "default" button. BS3's `.btn-default` was a light button
+// (near-white fill, grey border, dark text). BS5 maps our `$secondary` (#999)
+// onto `.btn-secondary` as a solid mid-grey fill with poor-contrast text
+// (dark text on grey). Use a subtle, modern light-grey fill with a soft
+// border and dark text that stays clearly readable.
+.btn-secondary {
+  --bs-btn-bg: #f2f3f5;
+  --bs-btn-border-color: #d4d7dc;
+  --bs-btn-color: #333;
+  --bs-btn-hover-bg: #e4e6ea;
+  --bs-btn-hover-border-color: #c3c7ce;
+  --bs-btn-hover-color: #333;
+  --bs-btn-active-bg: #d7dade;
+  --bs-btn-active-border-color: #b4b9c1;
+  --bs-btn-active-color: #333;
+  --bs-btn-disabled-bg: #f2f3f5;
+  --bs-btn-disabled-border-color: #d4d7dc;
+  --bs-btn-disabled-color: #999;
+}
+
 //----------------------------------------------------------------------------------
 // Profile
 //----------------------------------------------------------------------------------
@@ -1010,6 +1036,11 @@ section {
       align-items: center;
       border-left: 1px solid rgba(255, 255, 255, 0.1);
     }
+
+    // No leading divider to the left of the first right-hand item (profile).
+    .nav-item:first-child {
+      border-left: 0;
+    }
   }
 
   .navbar-nav.me-auto {
@@ -1065,6 +1096,16 @@ section {
   display: flex;
   align-items: center;
   column-gap: 0.3rem;
+}
+
+// Dropdown drop shadow. BS3 always rendered `.dropdown-menu` with a soft
+// shadow (`0 6px 12px rgba(0,0,0,.175)`). BS5 only emits it when the global
+// `$enable-shadows` flag is true (default false), so dropdowns — including the
+// Services mega-dropdown (`.fancy-nav` @extends `.dropdown-menu`) — turned
+// flat. Restore the BS3 shadow on all dropdowns without flipping the global
+// shadow flag (which would also add shadows to buttons, cards, inputs, ...).
+.dropdown-menu {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
 }
 
 .navbar-sap {
