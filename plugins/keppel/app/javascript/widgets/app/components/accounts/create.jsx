@@ -15,7 +15,7 @@ const initialValues = {
   username: "",
   password: "",
   token: "",
-  platform_filter: DEFAULT_PLATFORM_FILTER_KEY
+  platform_filter: DEFAULT_PLATFORM_FILTER_KEY,
 }
 
 const roleInfoTexts = {
@@ -43,10 +43,10 @@ const isValidSubleaseToken = (token) => {
   return token.account && token.primary && token.secret ? true : false
 }
 
-const BackingStorageInfo = ({ accountName }) => (
+const BackingStorageInfo = ({ accountName, usesCephStorage }) => (
   <Form.ElementHorizontal label="Backing storage" name="backing_storage">
     <p className="form-control-static">
-      Swift container <strong>keppel-{accountName}</strong>
+      {usesCephStorage ? "Ceph" : "Swift"} container <strong>keppel-{accountName}</strong>
       <br />
       <span className="text-muted">
         The container will be created if it does not exist yet. Please ensure that you have sufficient object storage
@@ -56,7 +56,7 @@ const BackingStorageInfo = ({ accountName }) => (
   </Form.ElementHorizontal>
 )
 
-const FormBody = ({ values }) => {
+const FormBody = ({ values, usesCephStorage }) => {
   const accountName = values.name || ""
   const roleInfoText = roleInfoTexts[values.role || ""]
 
@@ -86,7 +86,7 @@ const FormBody = ({ values }) => {
 
           {accountName ? (
             <>
-              <BackingStorageInfo accountName={accountName} />
+              <BackingStorageInfo accountName={accountName} usesCephStorage={usesCephStorage} />
 
               {values.role == "external_replica" && (
                 <>
@@ -281,7 +281,7 @@ export default class AccountCreateModal extends React.Component {
           onSubmit={this.onSubmit}
           initialValues={initialValues}
         >
-          <FormBody />
+          <FormBody usesCephStorage={this.props.usesCephStorage} />
 
           <Modal.Footer>
             <Form.SubmitButton label="Create" />

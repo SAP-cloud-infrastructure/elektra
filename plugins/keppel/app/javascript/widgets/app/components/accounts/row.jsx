@@ -89,10 +89,14 @@ export default class AccountRow extends React.Component {
             <div>Primary account</div>
           )}
           <div>
-            Backed by Swift container{" "}
-            <a href={swiftContainerURL} target="_blank" rel="noreferrer">
-              {containerName}
-            </a>
+            {!this.props.usesCephStorage && (
+              <div>
+                Backed by Swift container{" "}
+                <a href={swiftContainerURL} target="_blank" rel="noreferrer">
+                  {containerName}
+                </a>
+              </div>
+            )}
           </div>
         </td>
         <td className="col-md-2">{statusDisplay}</td>

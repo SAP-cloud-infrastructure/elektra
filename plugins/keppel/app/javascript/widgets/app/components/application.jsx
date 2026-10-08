@@ -16,13 +16,14 @@ import ImageDetailsModal from "../containers/images/details"
 import SecurityScanPoliciesEditModal from "../containers/security_scan_policies/edit"
 
 const KeppelApp = (props) => {
-  const { projectId, canEdit, isAdmin, hasExperimentalFeatures, dockerInfo } = props
+  const { projectId, canEdit, isAdmin, hasExperimentalFeatures, dockerInfo, usesCephStorage } = props
   const rootProps = {
     projectID: projectId,
     canEdit,
     isAdmin,
     hasExperimentalFeatures,
     dockerInfo,
+    usesCephStorage
   }
 
   return (
