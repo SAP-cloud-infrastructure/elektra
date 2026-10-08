@@ -113,10 +113,29 @@ $login-max-width: 360px;
 // so everything renders larger under BS5. Restore the 14px base globally.
 $font-size-base: 0.875rem;
 
+// Headings (BS5): BS3 shipped absolute `$font-size-hX` values; BS5 derives them
+// as `$font-size-base * factor`. With our 14px base the headings grew:
+//   - h4: 14 * 1.5  = 21px   (was 18px in BS3)
+//   - h5: 14 * 1.25 = 17.5px (was 14px in BS3)
+// Pin h4/h5 back to the historical BS3 sizes to keep the BS3 look.
+$h4-font-size: 1.125rem; // 18px (18 / 16)
+$h5-font-size: 0.875rem; // 14px (14 / 16)
+
 // Form input placeholder color. BS5 defaults to a dark semi-transparent
 // (rgba(body-color,.75)); BS3 used a light grey (#999). Restore the lighter
 // grey so placeholders (e.g. the universal search field) match production.
 $input-placeholder-color: #999;
+
+// Input focus (BS5): BS5 shows a flat 0.25rem solid ring
+// (`0 0 0 .25rem rgba($primary,.25)`), while BS3 had a softer glowing halo
+// (`inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102,175,233,.6)`) with a
+// light blue border (#66afe9). Restore the BS3 look.
+// Shared value, reused for `.form-control` and `.form-select` below.
+$input-focus-border-color: #66afe9;
+$input-focus-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
+// `.form-select` has its own focus shadow var (a flat ring by default); point it
+// at the same BS3 glow. Its border color already inherits $input-focus-border-color.
+$form-select-focus-box-shadow: $input-focus-box-shadow;
 
 // Bootstrap 5 theme colors (semantic palette).
 // BS5 generates all .btn-*, .text-*, .bg-*, link color and the --bs-* custom
@@ -133,6 +152,18 @@ $danger: #e22;
 // Links (BS5): keep the historical BS3 link blue, not the primary.
 $link-color: #337ab7;
 $link-hover-color: darken(#337ab7, 15%);
+
+// Text color (BS5): BS3's `bootstrap-sass` shipped `$text-color: $gray-dark`
+// (= #333). BS5 dropped that bridge, so colors fell back to BS5 defaults:
+//   - body        -> `$body-color: $gray-900` (#212529, near-black)
+//   - headings    -> `$headings-color: inherit` (follows body)
+//   - tables      -> `$table-color: $body-emphasis-color` (#000, pure black!)
+// That is why tables rendered as rgb(0,0,0) while body/headings were #212529.
+// Restore the historical #333 across the board to match the BS3 look.
+// `$headings-color: inherit` means headings follow `$body-color` automatically,
+// but tables point at `$body-emphasis-color`, so that one must be set too.
+$body-color: #333;
+$body-emphasis-color: #333;
 
 // Buttons
 $btn-primary-border: $medium-blue;

@@ -1,3 +1,18 @@
+// BS3 restored the soft blue focus glow on *every* form field via element
+// selectors. BS5 only styles the `.form-control`/`.form-select` classes, so
+// bare <input>/<textarea>/<select> (e.g. the login fields) lost the effect.
+// Re-apply the same BS3 glow to those bare controls. Specialised inputs
+// (checkbox/radio/range/etc.) keep their own focus styling and are excluded.
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="image"]),
+textarea,
+select {
+  &:focus {
+    border-color: $input-focus-border-color;
+    outline: 0;
+    box-shadow: $input-focus-box-shadow;
+  }
+}
+
 .has-help-hint {
 
   .input-wrapper {
