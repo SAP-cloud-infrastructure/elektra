@@ -6,7 +6,7 @@ import { addSuccess } from "lib/flashes"
 
 import AccountDeleter from "../../containers/accounts/deleter"
 import { apiStateIsDeleting } from "../utils"
-import { PLATFORM_FILTER_OPTIONS } from "../../constants"
+import { getPlatformFilterDisplayText } from "../componentHelpers/PlatformFilterSelect"
 
 export default class AccountRow extends React.Component {
   state = {
@@ -45,17 +45,7 @@ export default class AccountRow extends React.Component {
     const accountIsDeleting = apiStateIsDeleting(state)
     const swiftContainerURL = `/_/${projectID}/object-storage/swift/containers/${containerName}/objects`
 
-    let platformFilterDisplay = ""
-    if (Array.isArray(platformFilter) && platformFilter.length > 0) {
-      const pf = platformFilter
-      const matchedOption = Object.values(PLATFORM_FILTER_OPTIONS).find(
-        (opt) =>
-          opt.value &&
-          opt.value.length === pf.length &&
-          opt.value.every((v, i) => v.os === pf[i].os && v.architecture === pf[i].architecture)
-      )
-      platformFilterDisplay = matchedOption?.displayText || ", with custom platform filter for multi-arch images"
-    }
+    const platformFilterDisplay = getPlatformFilterDisplayText(platformFilter)
 
     let statusDisplay = "Ready"
     if (this.state.isDeleting) {
@@ -139,9 +129,14 @@ export default class AccountRow extends React.Component {
                 <>
                   <li className="divider"></li>
                   {replication && replication.strategy == "from_external_on_first_use" && (
-                    <li>
-                      <Link to={`/accounts/${accountName}/upstream_config`}>Edit replication credentials</Link>
-                    </li>
+                    <>
+                      <li>
+                        <Link to={`/accounts/${accountName}/upstream_config`}>Edit replication credentials</Link>
+                      </li>
+                      <li>
+                        <Link to={`/accounts/${accountName}/platform_filter`}>Edit platform filter</Link>
+                      </li>
+                    </>
                   )}
                   {(!replication || replication.strategy == "from_external_on_first_use") && (
                     <li>
