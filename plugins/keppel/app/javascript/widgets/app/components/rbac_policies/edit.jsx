@@ -118,23 +118,17 @@ export default class RBACPoliciesEditModal extends React.Component {
     if (!account || apiStateIsDeleting(account?.state)) {
       return
     }
-    const isExternalReplica =
-      (account.replication || {}).strategy === "from_external_on_first_use"
+    const internalReplicaAccount = (account.replication || {}).strategy === "on_first_use"
+    const externalReplicaAccount = (account.replication || {}).strategy === "from_external_on_first_use"
+    const isReplicaAccount = internalReplicaAccount || externalReplicaAccount
 
     const policies = this.state.policies || []
     const { isSubmitting, errorMessage, apiErrors } = this.state
 
-    const {
-      setRepoRegex,
-      setUserRegex,
-      setSourceCIDR,
-      setPermissions,
-      setForbiddenPermissions,
-      removePolicy,
-    } = this
+    const { setRepoRegex, setUserRegex, setSourceCIDR, setPermissions, setForbiddenPermissions, removePolicy } = this
     const commonPropsForRow = {
       isEditable: isAdmin,
-      isExternalReplica,
+      isReplicaAccount,
       setRepoRegex,
       setUserRegex,
       setSourceCIDR,
@@ -153,33 +147,27 @@ export default class RBACPoliciesEditModal extends React.Component {
         aria-labelledby="contained-modal-title-lg"
       >
         <Modal.Header closeButton>
-          <Modal.Title id="contained-modal-title-lg">
-            Access policies for account: {account.name}
-          </Modal.Title>
+          <Modal.Title id="contained-modal-title-lg">Access policies for account: {account.name}</Modal.Title>
         </Modal.Header>
 
         <Modal.Body>
           {this.state.apiErrors && <FormErrors errors={this.state.apiErrors} />}
           <p className="bs-callout bs-callout-info bs-callout-emphasize">
-            By default, all users with the <code>registry_admin</code> role can
-            pull, push and delete images. And all users with the{" "}
-            <code>registry_viewer</code> role can pull images.
+            By default, all users with the <code>registry_admin</code> role can pull, push and delete images. And all
+            users with the <code>registry_viewer</code> role can pull images.
             <br />
             <br />
-            Access policies are more granular: You can give specific users
-            access to specific repositories within a single account if you want
-            to. You can also use access policies to enable anonymous pulling,
-            thereby making matching repositories publicly readable.
-            {isExternalReplica && (
+            Access policies are more granular: You can give specific users access to specific repositories within a
+            single account if you want to. You can also use access policies to enable anonymous pulling, thereby making
+            matching repositories publicly readable.
+            {isReplicaAccount && (
               <>
                 <br />
                 <br />
-                Since this is an external replica account, anonymous users are
-                not allowed to replicate new images. This is a safeguard against
-                third parties cluttering your account. You can enable anonymous
-                replication with the "Pull Anonymously (even new images)"
-                permission, but make sure to only enable this permission for
-                trusted source IPs.
+                Since this is a {internalReplicaAccount ? "internal" : externalReplicaAccount ? "external" : ""} replica
+                account, anonymous users are not allowed to replicate new images. This is a safeguard against third
+                parties cluttering your account. You can enable anonymous replication with the "Pull Anonymously (even
+                new images)" permission, but make sure to only enable this permission for trusted source IPs.
               </>
             )}
           </p>
@@ -192,10 +180,7 @@ export default class RBACPoliciesEditModal extends React.Component {
                 <th className="col-md-3">Permissions</th>
                 <th className="col-md-1">
                   {isAdmin && (
-                    <button
-                      className="btn btn-sm btn-default"
-                      onClick={this.addPolicy}
-                    >
+                    <button className="btn btn-sm btn-default" onClick={this.addPolicy}>
                       Add policy
                     </button>
                   )}
@@ -204,12 +189,7 @@ export default class RBACPoliciesEditModal extends React.Component {
             </thead>
             <tbody>
               {policies.map((policy, idx) => (
-                <RBACPoliciesEditRow
-                  {...commonPropsForRow}
-                  key={idx}
-                  index={idx}
-                  policy={policy}
-                />
+                <RBACPoliciesEditRow {...commonPropsForRow} key={idx} index={idx} policy={policy} />
               ))}
               {policies.length == 0 && (
                 <tr>
@@ -222,13 +202,9 @@ export default class RBACPoliciesEditModal extends React.Component {
           </table>
           {policies.length > 0 && (
             <p>
-              Matches use the{" "}
-              <a href="https://golang.org/pkg/regexp/syntax/">
-                Go regex syntax
-              </a>
-              . Leading <code>^</code> and trailing <code>$</code> anchors are
-              always added automatically. User names are in the format{" "}
-              <code>user@userdomain/project@projectdomain</code>.
+              Matches use the <a href="https://golang.org/pkg/regexp/syntax/">Go regex syntax</a>. Leading{" "}
+              <code>^</code> and trailing <code>$</code> anchors are always added automatically. User names are in the
+              format <code>user@userdomain/project@projectdomain</code>.
             </p>
           )}
         </Modal.Body>
@@ -236,11 +212,7 @@ export default class RBACPoliciesEditModal extends React.Component {
         <Modal.Footer>
           {isAdmin ? (
             <>
-              <Button
-                onClick={this.handleSubmit}
-                bsStyle="primary"
-                disabled={isSubmitting}
-              >
+              <Button onClick={this.handleSubmit} bsStyle="primary" disabled={isSubmitting}>
                 {isSubmitting ? "Saving..." : "Save"}
               </Button>
               <Button onClick={this.close}>Cancel</Button>
