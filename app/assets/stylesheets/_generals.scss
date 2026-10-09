@@ -23,6 +23,16 @@ $globa-notifications-section-height: 55;
   border-left: 4px solid transparent;
 }
 
+// Gear / cog context-menu buttons. BS3 rendered no caret on these (it required
+// an explicit `<span class="caret">`), but BS5 auto-adds a caret via
+// `.dropdown-toggle::after`. That makes the row-action gear buttons show an
+// unwanted "⚙ ▾". Suppress the auto-caret wherever the toggle is (or contains)
+// a cog icon, so the gear button stays a clean icon-only button like in BS3.
+.dropdown-toggle.fa-cog::after,
+.dropdown-toggle:has(> .fa-cog)::after {
+  display: none;
+}
+
 // App-owned utility: Bootstrap 3's `.btn-xs` (extra-small button) was removed in
 // BS5 (smallest is `.btn-sm`). Elektra uses `.btn-xs` for compact table/list
 // action buttons where `.btn-sm` would be too large, so we re-provide the BS3
