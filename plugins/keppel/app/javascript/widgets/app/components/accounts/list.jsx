@@ -31,8 +31,8 @@ export default class AccountList extends React.Component {
   }
 
   render() {
-    const { isAdmin, hasExperimentalFeatures, usesCephStorage } = this.props
-    const forwardProps = { isAdmin, hasExperimentalFeatures, usesCephStorage }
+    const { isAdmin, hasExperimentalFeatures, isKeppelSwiftRegion } = this.props
+    const forwardProps = { isAdmin, hasExperimentalFeatures, isKeppelSwiftRegion }
 
     return (
       <>

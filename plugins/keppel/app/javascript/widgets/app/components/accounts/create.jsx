@@ -43,10 +43,10 @@ const isValidSubleaseToken = (token) => {
   return token.account && token.primary && token.secret ? true : false
 }
 
-const BackingStorageInfo = ({ accountName, usesCephStorage }) => (
+const BackingStorageInfo = ({ accountName, isKeppelSwiftRegion }) => (
   <Form.ElementHorizontal label="Backing storage" name="backing_storage">
     <p className="form-control-static">
-      {usesCephStorage ? "Ceph" : "Swift"} container <strong>keppel-{accountName}</strong>
+      {isKeppelSwiftRegion ? "Swift" : "Ceph"} container <strong>keppel-{accountName}</strong>
       <br />
       <span className="text-muted">
         The container will be created if it does not exist yet. Please ensure that you have sufficient object storage
@@ -56,7 +56,7 @@ const BackingStorageInfo = ({ accountName, usesCephStorage }) => (
   </Form.ElementHorizontal>
 )
 
-const FormBody = ({ values, usesCephStorage }) => {
+const FormBody = ({ values, isKeppelSwiftRegion }) => {
   const accountName = values.name || ""
   const roleInfoText = roleInfoTexts[values.role || ""]
 
@@ -86,7 +86,7 @@ const FormBody = ({ values, usesCephStorage }) => {
 
           {accountName ? (
             <>
-              <BackingStorageInfo accountName={accountName} usesCephStorage={usesCephStorage} />
+              <BackingStorageInfo accountName={accountName} isKeppelSwiftRegion={isKeppelSwiftRegion} />
 
               {values.role == "external_replica" && (
                 <>
@@ -281,7 +281,7 @@ export default class AccountCreateModal extends React.Component {
           onSubmit={this.onSubmit}
           initialValues={initialValues}
         >
-          <FormBody usesCephStorage={this.props.usesCephStorage} />
+          <FormBody isKeppelSwiftRegion={this.props.isKeppelSwiftRegion} />
 
           <Modal.Footer>
             <Form.SubmitButton label="Create" />

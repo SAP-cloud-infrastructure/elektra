@@ -6,6 +6,7 @@ module Keppel
       @can_view = current_user.is_allowed?("keppel:account:show")
       @can_edit = current_user.is_allowed?("keppel:account:edit")
       @is_admin = current_user.is_allowed?("keppel:account:admin")
+      is_keppel_swift_region = ENV.fetch('IS_KEPPEL_SWIFT_REGION', "false")
 
       @js_data = {
         # data required to access the Keppel API
@@ -22,7 +23,7 @@ module Keppel
         docker_cli_username:
           "#{current_user.name}@#{current_user.user_domain_name}/#{@scoped_project_name}@#{@scoped_domain_name}",
         # used to disable swift storage links when the application uses ceph.
-        uses_ceph_storage: %w[qa-de-1 eu-de-3].include?(current_region),
+        is_keppel_swift_region: is_keppel_swift_region,
       }
     end
   end
