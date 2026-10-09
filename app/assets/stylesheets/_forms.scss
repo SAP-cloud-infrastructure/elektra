@@ -49,6 +49,15 @@ select {
   }
 }
 
+// Form hints render an info icon directly in front of the text
+// (`<p class="form-text"><i class="fa fa-info-circle"></i>…`, see the
+// `icon_hint` simple_form component, used across many forms). BS3's Font Awesome
+// gave the icon some spacing; BS5 does not, so icon and text collided. Add a
+// small gap for any icon leading a `.form-text` hint, app-wide.
+.form-text > .fa:first-child {
+  margin-right: 3px;
+}
+
 .inline-form-buttons {
   text-align: right;
   .btn {
