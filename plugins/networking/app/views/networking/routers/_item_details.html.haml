@@ -1,12 +1,12 @@
 - content_for (:details) do
   %ul.nav.nav-tabs
-    %li.active{role: "presentation"}= link_to 'Overview', '#overview', aria: {controls:"overview"}, role: "tab", data: {bs_toggle:"tab"}
+    %li.nav-item{role: "presentation"}= link_to 'Overview', '#overview', class: "nav-link active", aria: {controls:"overview"}, role: "tab", data: {bs_toggle:"tab"}
     - if @router.ha_enabled?
-      %li{role: "presentation"}= link_to 'Redundancy Routers', '#redundancy_routers', aria: {controls:"redundancy_routers"}, role: "tab", data: {bs_toggle:"tab"}
-    %li{role: "presentation"}= link_to 'External Network', '#external_network', aria: {controls:"external_network"}, role: "tab", data: {bs_toggle:"tab"}
+      %li.nav-item{role: "presentation"}= link_to 'Redundancy Routers', '#redundancy_routers', class: "nav-link", aria: {controls:"redundancy_routers"}, role: "tab", data: {bs_toggle:"tab"}
+    %li.nav-item{role: "presentation"}= link_to 'External Network', '#external_network', class: "nav-link", aria: {controls:"external_network"}, role: "tab", data: {bs_toggle:"tab"}
 
-    %li{role: "presentation"}
-      = link_to '#internal_networks', aria: {controls:"internal_networks"}, role: "tab", data: {bs_toggle:"tab"} do
+    %li.nav-item{role: "presentation"}
+      = link_to '#internal_networks', class: "nav-link", aria: {controls:"internal_networks"}, role: "tab", data: {bs_toggle:"tab"} do
         Internal Networks
         %span.badge= @router_interface_ports.length
 
