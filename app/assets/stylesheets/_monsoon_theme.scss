@@ -237,12 +237,8 @@ body.app-flex-layout {
   margin-bottom: 0;
 
   .app-flex-main {
-    flex: 1 0 auto;
-    // Visual gap between the content and the footer. Kept here (as padding on
-    // the growing flex item) rather than as the footer's `margin-top`: a top
-    // margin on a flex-column child adds fixed space that `flex-grow` cannot
-    // absorb, which stopped the footer from sticking to the viewport bottom on
-    // short pages.
+    flex: 0 0 auto;
+    // Visual gap between the content and the footer.
     padding-bottom: $footer-margin-top;
   }
 
@@ -250,7 +246,11 @@ body.app-flex-layout {
   .footer {
     position: static;
     height: auto;
-    margin-top: 0;
+    // Push the footer to the bottom of the viewport on short pages. In a flex
+    // column, `margin-top: auto` absorbs all free space above the footer, so it
+    // sticks to the bottom regardless of the (empty) modal/template/script
+    // elements that follow it in the DOM.
+    margin-top: auto;
     flex-shrink: 0;
   }
 }
@@ -725,6 +725,18 @@ section {
   --bs-btn-disabled-bg: #f2f3f5;
   --bs-btn-disabled-border-color: #d4d7dc;
   --bs-btn-disabled-color: #999;
+}
+
+// Danger button. BS5 picks the button text color automatically via
+// `color-contrast()` against `$danger` (#e22). White doesn't reach the 4.5
+// min-contrast ratio on that lighter red, so BS5 falls back to BLACK text —
+// dark text on red, hard to read (e.g. the trash/delete buttons). Force white
+// text to match the BS3 look.
+.btn-danger {
+  --bs-btn-color: #fff;
+  --bs-btn-hover-color: #fff;
+  --bs-btn-active-color: #fff;
+  --bs-btn-disabled-color: #fff;
 }
 
 //----------------------------------------------------------------------------------
