@@ -64,3 +64,30 @@ export const TRIVY_TO_KEPPEL_SEVERITY = {
   HIGH: "High",
   CRITICAL: "Critical",
 }
+
+// Defines platform filter account settings that can be set for replication accounts.
+// The first entry is considered to be the default key that is used if the API returns no settings for the platform_filter.
+export const PLATFORM_FILTER_OPTIONS = {
+  all: {
+    label: "All platforms",
+    infoText: null,
+    value: [],
+    displayText: "",
+  },
+  linux_amd64: {
+    label: "Only x86_64 Linux",
+    infoText: null,
+    value: [{ os: "linux", architecture: "amd64" }],
+    displayText: ", restricted to x86_64 parts of multi-arch images",
+  },
+  linux_amd64_extended: {
+    label: "Extended x86_64 Linux",
+    infoText: "Extended option includes attestation manifests",
+    value: [
+      { os: "linux", architecture: "amd64" },
+      { os: "unknown", architecture: "unknown" },
+    ],
+    displayText: ", restricted to x86_64 parts of multi-arch images, including attestation manifests",
+  },
+}
+export const DEFAULT_PLATFORM_FILTER_KEY = Object.keys(PLATFORM_FILTER_OPTIONS)[0]

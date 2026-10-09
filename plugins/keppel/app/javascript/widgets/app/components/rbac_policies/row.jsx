@@ -35,7 +35,7 @@ const RBACPoliciesEditRow = ({
   index,
   policy,
   isEditable,
-  isExternalReplica,
+  isReplicaAccount,
   setRepoRegex,
   setUserRegex,
   setSourceCIDR,
@@ -45,11 +45,11 @@ const RBACPoliciesEditRow = ({
 }) => {
   const { match_repository: repoRegex, match_username: userRegex, match_cidr: sourceCIDR } = policy
   const currentPerms = policy.permissions.sort().join(",") || ""
-  const currentPermsOptions = isExternalReplica
+  const currentPermsOptions = isReplicaAccount
     ? permsOptions
     : permsOptions.filter((opt) => !opt.value.includes("anonymous_first_pull"))
   const currentForbiddenPerms = (policy.forbidden_permissions || []).sort().join(",") || ""
-  const currentForbiddenPermsOptions = isExternalReplica
+  const currentForbiddenPermsOptions = isReplicaAccount
     ? forbiddenPermsOptions
     : forbiddenPermsOptions.filter((opt) => !opt.value.includes("anonymous_first_pull"))
   return (
