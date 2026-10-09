@@ -35,7 +35,7 @@
       icon_hint: 'Choose a previously reserved IP or type a new one. Leave empty to let the DHCP select one for you.'}
 
     = f.input :security_groups, { label: "Security groups",
-      input_html:         {multiple: true},
+      input_html:         {multiple: true, data: { multiselect_box: true }},
       as:                 :select,
       collection:         @security_groups.collect{|sg| [sg.name,sg.id]},
       selected:           (@os_interface.security_groups || []).collect{|sg| sg},
