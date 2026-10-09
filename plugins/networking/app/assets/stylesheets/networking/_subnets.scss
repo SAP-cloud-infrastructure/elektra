@@ -1,10 +1,43 @@
 .subnets .toolbar {
-  .main-control-buttons{
+  .main-control-buttons {
     margin-top: 2px;
     margin-bottom: 3px;
   }
 
-  form input[type='text'] {
-    width: 350px;
+  // The inline add-subnet form (BS5 removed `.form-inline`): re-create the
+  // horizontal row of fields + action buttons. The fields flex to share the
+  // available width so the Add/Cancel buttons always stay inside the modal
+  // (previously the fixed 350px widths pushed Cancel off the right edge).
+  form.form-inline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+
+    // Name + CIDR fields: grow/shrink to fit, with a sensible minimum.
+    > .form-group {
+      flex: 1 1 180px;
+      min-width: 0;
+      margin-bottom: 0;
+    }
+
+    // Save + Cancel buttons keep their natural size and never shrink.
+    .form-actions {
+      flex: 0 0 auto;
+      display: flex;
+      gap: 8px;
+    }
+
+    // The error container (a bare <div> appended after the fields) takes a full
+    // row below the inputs instead of sitting inline with them.
+    > div:not(.form-group) {
+      flex-basis: 100%;
+    }
+  }
+
+  // Override the inline width set by the JS so the inputs can flex.
+  form input[type="text"] {
+    width: 100%;
   }
 }
