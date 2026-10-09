@@ -76,7 +76,12 @@ goes live.**
 
 **✨ Dungeon 6 — Cleanup & Credits (post-game).** No boss, just loot and lockup:
 remove dead shims and comments, run `pnpm audit` to confirm the Bootstrap and
-jQuery CVEs are gone for good, and finalise the docs. Roll credits. 🏆
+jQuery CVEs are gone for good, and finalise the docs. The very last chests are
+**optional polish** — retiring the ancient Font Awesome 4 relic (`font-awesome-sass`
+4.7, `fa` prefix) for a modern Font Awesome, and **re-forging our own panels to
+match the Juno UI set** so the realm looks like one kingdom, not two. Both are
+their own side-quests (own PRs), independent of Bootstrap, and deliberately
+scheduled dead last. Roll credits. 🏆
 
 **Party rules:** jQuery is an *allied mercenary*, not a target — it is upgraded,
 not removed; full jQuery removal is a future expansion pack coupled to the Rails
@@ -399,6 +404,37 @@ Phase-5 switch touches a handful of files instead of 133+ call-sites.
 - `pnpm audit` → confirm Bootstrap and jQuery CVEs gone.
 - Finalise docs.
 
+#### Phase 6b (optional polish, own PR) — Font Awesome 4 → 6
+
+Deliberately scheduled **dead last** and kept out of the BS5 scope: Font Awesome
+and Bootstrap are independent, so this must not gate the BS5 switch. The project
+still ships `font-awesome-sass` 4.7 (FA4, `fa` prefix). Upgrading is a breaking
+change on its own:
+
+- ~517 icon occurrences across ~193 files (HAML/ERB views, JSX/TSX widgets, SCSS,
+  Ruby helpers) spanning all plugins.
+- FA5/6 make the style prefix mandatory (`fa` → `fas`/`fa-solid`) and **renamed**
+  dozens of icons (`fa-remove`→`fa-xmark`, `fa-cog`→`fa-gear`, …); some were dropped.
+- Delivery changes (gem → npm package / icon subset), plus the usual visual
+  regression risk ("compiles ≠ looks right") → needs the same per-plugin
+  click-through as the BS5 switch.
+
+Until then, components that hard-code FA5/6 classes (e.g. `bootstrap-multiselect`
+2.0's `fas fa-search` filter icon) are pinned back to FA4 syntax at their call-site.
+
+#### Phase 6c (optional polish, own PR) — align with Juno UI look & feel
+
+Where it is worth it, nudge our own Bootstrap-rendered elements toward the visual
+style of the **Juno UI components** (spacing, colours, button/field shapes, etc.)
+so the dashboard feels **more of one piece** instead of two side-by-side design
+languages. This is cosmetic convergence, picked by value — not a blanket rewrite.
+
+- Scope is **our** BS5 markup/SCSS only — **Juno itself stays untouched** (D5).
+  We approximate Juno's look; we do not fork or restyle the Juno components.
+- Prioritise high-traffic, side-by-side surfaces (buttons, form fields, modals,
+  badges/labels) where the BS5↔Juno mismatch is most visible.
+- Keep it behind the visual gate like every other change ("compiles ≠ looks right").
+
 ---
 
 ## 6. BS3 → BS5 class mapping
@@ -492,6 +528,7 @@ Also: `data-toggle`→`data-bs-toggle`, `data-target`→`data-bs-target`,
 | react-bootstrap 2.x Overlay/Popover API changes (3–4 lbaas2 files) | Treat as real rework, not prop rename; cover with specs.                |
 | `data-target` test-ids wrongly renamed                             | Script excludes values not starting with `#`.                           |
 | BS3-only plugins break under BS5 CSS                               | Replaced in Phase 4 before the switch.                                  |
+| Font Awesome 4→6 scope-creeps into the BS5 switch                  | FA is independent of BS; kept as optional Phase 6b in its own PR, scheduled last so it never gates the switch. |
 
 ---
 
