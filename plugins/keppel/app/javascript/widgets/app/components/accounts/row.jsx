@@ -89,7 +89,7 @@ export default class AccountRow extends React.Component {
             <div>Primary account</div>
           )}
           <div>
-            {!this.props.usesCephStorage && (
+            {this.props.isKeppelSwiftRegion && (
               <div>
                 Backed by Swift container{" "}
                 <a href={swiftContainerURL} target="_blank" rel="noreferrer">
