@@ -1,19 +1,19 @@
 - content_for (:details) do
   %ul.nav.nav-tabs
-    %li.active{role: "presentation"}= link_to 'Overview', '#overview', aria: {controls:"overview"}, role: "tab", data: {bs_toggle:"tab"}
+    %li.nav-item{role: "presentation"}= link_to 'Overview', '#overview', class: "nav-link active", aria: {controls:"overview"}, role: "tab", data: {bs_toggle:"tab"}
     - if current_user.is_allowed?('networking:network_get:segments') && @network.segments.present?
-      %li{role: "presentation"}
-        = link_to '#segments', aria: {controls:"segments"}, role: "tab", data: {bs_toggle:"tab"} do
+      %li.nav-item{role: "presentation"}
+        = link_to '#segments', class: "nav-link", aria: {controls:"segments"}, role: "tab", data: {bs_toggle:"tab"} do
           Segments
           %span.badge= @network.segments.length
 
-    %li{role: "presentation"}
-      = link_to '#subnets', aria: {controls:"subnets"}, role: "tab", data: {bs_toggle:"tab"} do
+    %li.nav-item{role: "presentation"}
+      = link_to '#subnets', class: "nav-link", aria: {controls:"subnets"}, role: "tab", data: {bs_toggle:"tab"} do
         Subnets
         %span.badge= @subnets.length
 
-    %li{role: "presentation"}
-      = link_to '#network_ports', aria: {controls:"network_ports"}, role: "tab", data: {bs_toggle:"tab"} do
+    %li.nav-item{role: "presentation"}
+      = link_to '#network_ports', class: "nav-link", aria: {controls:"network_ports"}, role: "tab", data: {bs_toggle:"tab"} do
         Ports
         %span.badge= @ports.length
 

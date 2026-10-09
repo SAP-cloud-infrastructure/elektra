@@ -1199,6 +1199,53 @@ section {
 
 .nav-tabs {
   margin-bottom: $line-height-computed;
+
+  // BS3 -> BS5 tab compat. The app still renders Bootstrap 3 tab markup
+  // (`.nav-tabs > li.active > a`, bare `<a>` without `.nav-link`), but the
+  // framework CSS is now BS5 which only styles `.nav-link`/`.nav-link.active`.
+  // Re-apply BS5's tab look to the legacy markup so the bare `<a>` links get
+  // the padding, borders and active "card tab" highlight again. Mapped onto
+  // Bootstrap's own `--bs-nav-*` custom properties to stay in sync with the
+  // theme (border-color, body-bg, link colors, ...).
+  //
+  // `> li > a:not(.nav-link)` deliberately excludes already-migrated `.nav-link`
+  // markup, which BS5 styles natively.
+  > li {
+    > a:not(.nav-link) {
+      padding: var(--bs-nav-link-padding-y) var(--bs-nav-link-padding-x);
+      color: var(--bs-nav-link-color);
+      border: var(--bs-nav-tabs-border-width) solid transparent;
+      border-top-left-radius: var(--bs-nav-tabs-border-radius);
+      border-top-right-radius: var(--bs-nav-tabs-border-radius);
+      text-decoration: none;
+      margin-bottom: calc(-1 * var(--bs-nav-tabs-border-width));
+
+      &:hover,
+      &:focus {
+        isolation: isolate;
+        border-color: var(--bs-nav-tabs-link-hover-border-color);
+      }
+    }
+
+    &.active > a:not(.nav-link),
+    &.active > a:not(.nav-link):hover,
+    &.active > a:not(.nav-link):focus {
+      color: var(--bs-nav-tabs-link-active-color);
+      background-color: var(--bs-nav-tabs-link-active-bg);
+      border-color: var(--bs-nav-tabs-link-active-border-color);
+    }
+  }
+
+  // Keep the tab text and its count badge (e.g. "Subnets [1]") on one line.
+  // Inside BS5's flex `.nav`, the badge wrapped onto a second line under the
+  // text; lay every tab link out as an inline flex row so text + badge stay
+  // aligned (covers both migrated `.nav-link` and legacy bare `<a>` markup).
+  .nav-link,
+  > li > a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+  }
 }
 
 // Bootstrap 3 form feedback (removed in BS5). Elektra uses `.has-feedback` +
