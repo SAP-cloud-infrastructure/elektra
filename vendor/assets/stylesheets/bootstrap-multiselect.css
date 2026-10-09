@@ -125,14 +125,22 @@ span.multiselect-native-select select {
 .multiselect-container .multiselect-all .form-check-label {
   cursor: pointer;
 }
-.multiselect-container .multiselect-option.active:not(.multiselect-active-item-fallback),
-.multiselect-container .multiselect-group.active:not(.multiselect-active-item-fallback),
-.multiselect-container .multiselect-all.active:not(.multiselect-active-item-fallback),
 .multiselect-container .multiselect-option:not(.multiselect-active-item-fallback):active,
 .multiselect-container .multiselect-group:not(.multiselect-active-item-fallback):active,
 .multiselect-container .multiselect-all:not(.multiselect-active-item-fallback):active {
   background-color: lightgrey;
   color: black;
+}
+/* The selected option carries `.active` (bootstrap-multiselect's selectedClass)
+   AND `.dropdown-item`, so Bootstrap 5's `.dropdown-item.active` paints the whole
+   row. That is redundant here — the checkbox in front already shows the selected
+   state — so neutralise the active background/colour for multiselect rows and
+   keep the plain item styling. Hover/focus feedback is left untouched. */
+.multiselect-container .multiselect-option.dropdown-item.active,
+.multiselect-container .multiselect-group.dropdown-item.active,
+.multiselect-container .multiselect-all.dropdown-item.active {
+  background-color: transparent;
+  color: inherit;
 }
 .multiselect-container .multiselect-option:hover,
 .multiselect-container .multiselect-group:hover,
@@ -140,7 +148,7 @@ span.multiselect-native-select select {
 .multiselect-container .multiselect-option:focus,
 .multiselect-container .multiselect-group:focus,
 .multiselect-container .multiselect-all:focus {
-  background-color: darkgray !important;
+  background-color: var(--bs-dropdown-link-hover-bg) !important;
 }
 .multiselect-container .multiselect-option .form-check,
 .multiselect-container .multiselect-group .form-check,
@@ -176,4 +184,17 @@ span.multiselect-native-select select {
 .input-group > .multiselect-native-select:not(:last-child) .multiselect {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
+}
+.multiselect-native-select:not(.input-group *) {
+  display: block;
+}
+.multiselect-native-select:not(.input-group *) > .btn-group {
+  width: 100%;
+}
+.multiselect-native-select:not(.input-group *) > .btn-group > .multiselect.dropdown-toggle {
+  width: 100%;
+  text-align: left;
+}
+.multiselect-native-select:not(.input-group *) > .btn-group > .multiselect-container {
+  width: 100%;
 }
