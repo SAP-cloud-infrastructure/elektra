@@ -102,6 +102,19 @@ $(function () {
   })
   $("tr [data-confirmed=loading_status]").attr("data-confirmed", "$(this).closest('tr').addClass('updating')")
 
+  // Toggle the collapsed "+N more" IPs in the instances list (see
+  // Compute::InstancesHelper#render_instance_ips). Delegated so it also works
+  // for ajax-paginated rows.
+  $(document).on("click", "[data-ips-toggle]", function (e) {
+    e.preventDefault()
+    const $toggle = $(this)
+    const $more = $toggle.siblings(".instance-ips-more")
+    const nowHidden = $more.is(":visible")
+    $more.toggle()
+    const count = $more.children().length
+    $toggle.text(nowHidden ? "+" + count + " more" : "show less")
+  })
+
   $("#accept_tos").click(function () {
     return $("#register-button").prop("disabled", !$(this).prop("checked"))
   })

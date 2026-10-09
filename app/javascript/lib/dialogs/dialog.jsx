@@ -55,7 +55,9 @@ export class ModalDialog extends React.Component {
         </Modal.Body>
         <Modal.Footer>
           {this.props.showAbortButton && (
-            <Button onClick={this.abort}>{this.props.abortLabel}</Button>
+            <Button variant="secondary" onClick={this.abort}>
+              {this.props.abortLabel}
+            </Button>
           )}
           <button
             className="btn btn-primary"

@@ -490,6 +490,40 @@ section {
   }
 }
 
+// Simple inline pager used by the React searchComponents (page window +
+// Previous/Next/All links). Replaces the old raw "|" separators (which made
+// the links collapse into each other) with a flex row, dividers and spacing.
+.simple-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  .current-window {
+    color: $gray-light;
+  }
+
+  .btn-link {
+    padding: 0;
+    border: 0;
+    vertical-align: baseline;
+  }
+
+  // Each following item gets symmetric spacing with a divider centered in it.
+  > * + * {
+    position: relative;
+    margin-left: 16px;
+  }
+  > * + *::before {
+    content: "";
+    position: absolute;
+    left: -8px; // half of the margin -> divider sits centered in the gap
+    top: 50%;
+    transform: translateY(-50%);
+    height: 14px;
+    border-left: 1px solid #ddd;
+  }
+}
+
 .can-copy {
   cursor: pointer;
 }

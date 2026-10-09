@@ -33,13 +33,12 @@
         OS / Size
       -# %th Size
       %th Power state
-      %th Status
       %th Created at
       %th.snug
   %tbody
     - if @instances.empty?
       %tr{data: {empty: true}}
-        %td{colspan: 8} No instances available
+        %td{colspan: 7} No instances available
     - else
       = render partial: 'list', locals: {instances: @instances}
 
