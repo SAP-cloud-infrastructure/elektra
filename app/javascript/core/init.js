@@ -196,6 +196,18 @@ const observer = new MutationObserver(function (mutations) {
           result.push(
             multiselect_boxes.multiselect({
               numberDisplayed: 1,
+              // show a search box and cap the dropdown height so long lists
+              // (e.g. many security groups) stay scannable and scrollable
+              enableFiltering: true,
+              enableCaseInsensitiveFiltering: true,
+              maxHeight: 250,
+              templates: {
+                // the lib's default filter uses Font Awesome 5/6 classes
+                // (`fas fa-sm`), but this project ships Font Awesome 4
+                // (`fa` prefix), so the search icon would not render.
+                filter:
+                  '<div class="multiselect-filter d-flex align-items-center"><i class="fa fa-search text-body-secondary"></i><input type="search" class="multiselect-search form-control" /></div>',
+              },
             })
           )
         } else {
