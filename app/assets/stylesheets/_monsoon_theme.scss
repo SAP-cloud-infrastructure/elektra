@@ -213,7 +213,6 @@ html {
 
 body {
   padding-top: $navbar-height + $context-breadcrumb-height;
-  margin-bottom: $footer-height + $footer-margin-top; // needed for sticky footer
 
   &.landing,
   &.onboarding {
@@ -236,22 +235,35 @@ body.app-flex-layout {
   box-sizing: border-box;
   margin-bottom: 0;
 
+  // The main content region fills at least the viewport height minus the fixed
+  // navbar + breadcrumb (the body's padding-top) and the footer, so the footer
+  // is pushed to the bottom on short pages. On tall pages it simply grows with
+  // the content and the page scrolls. Using an explicit min-height (rather than
+  // relying solely on flex-grow) makes this robust regardless of how the fixed
+  // navbar/breadcrumb flex children are measured.
   .app-flex-main {
-    flex: 0 0 auto;
+    flex: 1 0 auto;
+    min-height: calc(
+      100vh - #{$navbar-height} - #{$context-breadcrumb-height} - #{$footer-height}
+    );
     // Visual gap between the content and the footer.
     padding-bottom: $footer-margin-top;
+  }
+
+  // The footer and the (normally empty/hidden) elements that follow it in the
+  // DOM must not grow or shrink, so the growing .app-flex-main controls the
+  // layout and the footer ends up flush at the bottom.
+  footer,
+  .footer,
+  #modal-holder {
+    flex: 0 0 auto;
   }
 
   footer,
   .footer {
     position: static;
     height: auto;
-    // Push the footer to the bottom of the viewport on short pages. In a flex
-    // column, `margin-top: auto` absorbs all free space above the footer, so it
-    // sticks to the bottom regardless of the (empty) modal/template/script
-    // elements that follow it in the DOM.
-    margin-top: auto;
-    flex-shrink: 0;
+    margin-top: 0;
   }
 }
 
