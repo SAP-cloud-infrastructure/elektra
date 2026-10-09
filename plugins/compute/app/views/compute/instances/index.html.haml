@@ -3,15 +3,11 @@
 %form
   .toolbar.toolbar-controlcenter
     / / seach form
-    .inputwrapper
-      = select_tag 'searchfor', options_for_select(['Name', 'ID', 'IP', 'Status'], @searchfor), class: "form-control"
-
-    .inputwrapper
-      .input-group.has-feedback.has-feedback-searchable
-        %input.form-control{:id => "search", :name => 'search', :placeholder => "Name, ID, IP or Status", :type => "text", :size => 40, :value => @search }
-        .span.input-group-btn
-          %button.btn.btn-secondary{type: "submit"}
-            %i.fa.fa-search
+    .input-group.w-auto
+      = select_tag 'searchfor', options_for_select(['Name', 'ID', 'IP', 'Status'], @searchfor), class: "form-select w-auto flex-grow-0"
+      %input.form-control{:id => "search", :name => 'search', :placeholder => "Name, ID, IP or Status", :type => "text", :size => 40, :value => @search }
+      %button.btn.btn-secondary{type: "submit"}
+        %i.fa.fa-search
     %a.help-link.has-feedback-help{href: "#", data: {bs_toggle: "popover", "popover-type": "help-hint", content: 'Search by name and fixed IP will find exact or partial matches. ID and status have to be exact matches to be found.'}}
       %i.fa.fa-question-circle
 

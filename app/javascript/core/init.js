@@ -54,10 +54,18 @@ if (typeof window.console === "undefined" || typeof window.console.log === "unde
 // init help hint popovers
 const initHelpHint = function () {
   // https://stackoverflow.com/questions/32911355/whats-the-tabindex-1-in-bootstrap-for
-  $('[data-bs-toggle="popover"][data-popover-type="help-hint"]').attr("tabindex", "0")
-  return initPopovers('[data-bs-toggle="popover"][data-popover-type="help-hint"]', {
-    placement: "top",
-    trigger: "focus",
+  // The markup carries the popover text in the BS3-style `data-content`
+  // attribute, but Bootstrap 5 reads it from `data-bs-content`. Rather than
+  // touch every view, read `data-content` here and pass it as the `content`
+  // option so the popovers show their text again.
+  $('[data-bs-toggle="popover"][data-popover-type="help-hint"]').each(function () {
+    const $el = $(this)
+    $el.attr("tabindex", "0")
+    initPopovers(this, {
+      placement: "top",
+      trigger: "focus",
+      content: $el.attr("data-content") || $el.attr("data-bs-content") || "",
+    })
   })
 }
 

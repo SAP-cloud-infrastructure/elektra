@@ -2029,7 +2029,14 @@ blockquote,
 // ---------------------------------------------------------------------------------
 
 .infobox {
-  border-top: 10px solid $bright-blue;
+  border-top: 4px solid $bright-blue;
+  padding-top: 12px;
+
+  // The heading sits right below the accent bar; give it no extra top margin so
+  // the container padding controls the gap consistently.
+  > h4:first-child {
+    margin-top: 0;
+  }
 
   hr {
     margin: 0;
@@ -2169,84 +2176,95 @@ tr.updating {
   }
 }
 
-.state-locked-icon {
-  &:before {
-    @include fa-icon;
-    @extend .fa;
-    @extend .fa-fw;
-    @extend .fa-lock;
-    color: $alarm-red;
-  }
+// Status dots. Every server row shows a small coloured dot in the first column
+// so the column is consistent (previously only error/shutoff/locked rows had an
+// icon, which left running rows without one and misaligned the names).
+// A small, flat 8px dot. Colours use the theme palette:
+// green = running/active, red = error/locked, grey = off/paused/suspended,
+// amber = transient states.
+//
+// The dot SHAPE comes from the attribute selector (covers every state-* class,
+// incl. unmapped/transition statuses with a neutral grey default). The COLOUR +
+// glow are set by class-only selectors below. The shape rule intentionally sets
+// the neutral grey as the fallback for unmapped statuses.
+//
+// NOTE on specificity: the shape selector below uses two attribute matchers
+// (specificity 0,2,1). A plain `.state-active-icon:before` colour rule (0,1,1)
+// would LOSE to it and every dot would stay grey. So the shape rule sets only
+// the shape (no colour), and each colour rule is anchored with `[class$="-icon"]`
+// to match the shape's specificity and win by source order.
+[class^="state-"][class$="-icon"]:before,
+[class*=" state-"][class$="-icon"]:before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  vertical-align: middle;
+  margin: 0 3px;
+  // neutral grey fallback for unmapped statuses
+  background-color: $medium-gray;
+  box-shadow: 0 0 0 2px rgba($medium-gray, 0.15);
 }
 
-// .state-active-icon {
-//   &:before {
-//     @include fa-icon;
-//     @extend .fa;
-//     @extend .fa-fw;
-//     @extend .fa-power-off;
-//     color: $medium-green;
-//   }
-// }
-
-.state-shutoff-icon {
-  &:before {
-    @include fa-icon;
-    @extend .fa;
-    @extend .fa-fw;
-    @extend .fa-power-off;
-    color: $medium-gray;
-  }
+[class$="-icon"].state-active-icon:before {
+  background-color: $medium-green; // running
+  box-shadow: 0 0 0 2px rgba($medium-green, 0.15);
 }
 
-.state-suspended-icon,
-.state-paused-icon {
-  &:before {
-    @include fa-icon;
-    @extend .fa;
-    @extend .fa-fw;
-    @extend .fa-power-off;
-    color: $medium-gray;
-  }
+[class$="-icon"].state-error-icon:before,
+[class$="-icon"].state-locked-icon:before {
+  background-color: $alarm-red; // error / locked
+  box-shadow: 0 0 0 2px rgba($alarm-red, 0.15);
 }
 
-.state-error-icon {
-  &:before {
-    @include fa-icon;
-    @extend .fa;
-    @extend .fa-fw;
-    @extend .fa-exclamation-triangle;
-    color: $alarm-red;
-  }
+[class$="-icon"].state-shutoff-icon:before,
+[class$="-icon"].state-suspended-icon:before,
+[class$="-icon"].state-paused-icon:before {
+  background-color: $medium-gray; // off / paused / suspended
+  box-shadow: 0 0 0 2px rgba($medium-gray, 0.15);
 }
 
-tr.state-active {
-  td:first-child {
-  }
+[class$="-icon"].state-build-icon:before,
+[class$="-icon"].state-reboot-icon:before,
+[class$="-icon"].state-hard_reboot-icon:before,
+[class$="-icon"].state-resize-icon:before,
+[class$="-icon"].state-verify_resize-icon:before,
+[class$="-icon"].state-revert_resize-icon:before,
+[class$="-icon"].state-migrating-icon:before,
+[class$="-icon"].state-rebuild-icon:before {
+  background-color: $bright-orange; // transient / in progress
+  box-shadow: 0 0 0 2px rgba($bright-orange, 0.15);
 }
 
-tr.state-shutoff {
-  &:not(.deleting):not(.updating) {
-    td:first-child {
-      @extend .state-shutoff-icon;
-    }
-  }
+// `tr.state-*` rows (used elsewhere) apply the dot to their first cell. Give
+// those the shape too, since the attribute selector above only matches the
+// `state-*-icon` span classes, not the `tr.state-*` row classes. Excluded for
+// deleting/updating rows (which show a spinner instead).
+tr.state-active:not(.deleting):not(.updating) td:first-child:before,
+tr.state-shutoff:not(.deleting):not(.updating) td:first-child:before,
+tr.state-error:not(.deleting):not(.updating) td:first-child:before,
+tr.state-locked:not(.deleting):not(.updating) td:first-child:before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  vertical-align: middle;
+  margin: 0 3px;
 }
-
-tr.state-error {
-  &:not(.deleting):not(.updating) {
-    td:first-child {
-      @extend .state-error-icon;
-    }
-  }
+tr.state-active:not(.deleting):not(.updating) td:first-child:before {
+  background-color: $medium-green;
+  box-shadow: 0 0 0 2px rgba($medium-green, 0.15);
 }
-
-tr.state-locked {
-  &:not(.deleting):not(.updating) {
-    td:first-child {
-      @extend .state-locked-icon;
-    }
-  }
+tr.state-shutoff:not(.deleting):not(.updating) td:first-child:before {
+  background-color: $medium-gray;
+  box-shadow: 0 0 0 2px rgba($medium-gray, 0.15);
+}
+tr.state-error:not(.deleting):not(.updating) td:first-child:before,
+tr.state-locked:not(.deleting):not(.updating) td:first-child:before {
+  background-color: $alarm-red;
+  box-shadow: 0 0 0 2px rgba($alarm-red, 0.15);
 }
 
 tr.task-state {

@@ -13,16 +13,13 @@ select {
   }
 }
 
-// Horizontal forms: BS3 right-aligned the labels via
-// `.form-horizontal .control-label { text-align: right }` and rendered them
-// bold. BS5 dropped both `.form-horizontal` and `.control-label`; simple_form
-// now emits `.col-form-label` which is left-aligned and normal weight. Our
-// forms still carry the (now style-less) `.form-horizontal` class, so re-use
-// it as the hook to restore the right-aligned, bold labels across all
-// horizontal modal/forms.
+// Horizontal forms: BS3 right-aligned the labels. BS5 dropped `.form-horizontal`
+// and `.control-label`; simple_form now emits `.col-form-label` which is
+// left-aligned. Our forms still carry the (now style-less) `.form-horizontal`
+// class, so re-use it as the hook to restore right-aligned labels. (Bold is now
+// handled globally via `$form-label-font-weight` in _variables.scss.)
 .form-horizontal .col-form-label {
   text-align: right;
-  font-weight: bold;
 }
 
 .has-help-hint {

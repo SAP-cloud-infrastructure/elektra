@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Converged Cloud · Domain Dashboard</title>
+    <link rel="stylesheet" href="theme.css" />
+    <link rel="stylesheet" href="dashboard.css" />
+  </head>
+  <body>
+    <div class="app">
+      <!-- ============ SIDEBAR ============ -->
+      <aside class="sidebar">
+        <div class="sidebar__brand">
+          <div class="brand-mark">CC</div>
+          <div class="brand-text">
+            <span class="brand-text__title">Converged Cloud</span>
+            <span class="brand-text__sub">OpenStack Domain</span>
+          </div>
+        </div>
+
+        <nav class="nav">
+          <p class="nav__group-label">Overview</p>
+          <a class="nav__item nav__item--active" href="#">
+            <span class="nav__icon">◧</span> Dashboard
+          </a>
+          <a class="nav__item" href="#"><span class="nav__icon">◱</span> Projects</a>
+          <a class="nav__item" href="#"><span class="nav__icon">◆</span> Activity</a>
+
+          <p class="nav__group-label">Resources</p>
+          <a class="nav__item" href="#"><span class="nav__icon">▣</span> Compute</a>
+          <a class="nav__item" href="#"><span class="nav__icon">▤</span> Storage</a>
+          <a class="nav__item" href="#"><span class="nav__icon">⊹</span> Network</a>
+          <a class="nav__item" href="#"><span class="nav__icon">⬡</span> Images</a>
+
+          <p class="nav__group-label">Governance</p>
+          <a class="nav__item" href="#"><span class="nav__icon">◉</span> Quotas &amp; Limits</a>
+          <a class="nav__item" href="#"><span class="nav__icon">⚑</span> Members &amp; Roles</a>
+          <a class="nav__item" href="#"><span class="nav__icon">⚙</span> Settings</a>
+        </nav>
+
+        <div class="sidebar__footer">
+          <div class="region-pill">
+            <span class="status-dot status-dot--positive"></span>
+            Region <strong>EU-DE-1</strong>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ============ MAIN ============ -->
+      <div class="main">
+        <!-- Topbar -->
+        <header class="topbar">
+          <div class="topbar__crumbs">
+            <span class="crumb">monsoon3</span>
+            <span class="crumb-sep">/</span>
+            <span class="crumb crumb--current">Domain Dashboard</span>
+          </div>
+
+          <div class="topbar__actions">
+            <div class="search">
+              <span class="search__icon">⌕</span>
+              <input type="text" placeholder="Search resources, projects…" />
+            </div>
+            <button class="icon-btn" title="Notifications">
+              <span>❖</span><span class="badge">3</span>
+            </button>
+            <button class="theme-toggle" id="themeToggle" title="Toggle theme">
+              <span class="theme-toggle__icon">☾</span>
+            </button>
+            <div class="avatar">D064</div>
+          </div>
+        </header>
+
+        <!-- Content -->
+        <main class="content">
+          <div class="page-head">
+            <div>
+              <h1 class="page-head__title">Domain Overview</h1>
+              <p class="page-head__sub">
+                Infrastructure-as-a-Service footprint for domain
+                <strong>monsoon3</strong> across all projects.
+              </p>
+            </div>
+            <div class="page-head__actions">
+              <button class="btn btn--ghost">Export</button>
+              <button class="btn btn--primary">+ New Project</button>
+            </div>
+          </div>
+
+          <!-- KPI CARDS -->
+          <section class="kpi-grid">
+            <article class="card kpi">
+              <div class="kpi__head">
+                <span class="kpi__label">Active Instances</span>
+                <span class="chip chip--info">Compute</span>
+              </div>
+              <div class="kpi__value">248</div>
+              <div class="kpi__trend kpi__trend--up">▲ 12 this week</div>
+              <div class="meter"><span style="width: 72%"></span></div>
+            </article>
+
+            <article class="card kpi">
+              <div class="kpi__head">
+                <span class="kpi__label">vCPU Usage</span>
+                <span class="chip chip--critical">82%</span>
+              </div>
+              <div class="kpi__value">1 312<span class="kpi__unit"> / 1 600</span></div>
+              <div class="kpi__trend kpi__trend--flat">Quota nearing limit</div>
+              <div class="meter meter--critical"><span style="width: 82%"></span></div>
+            </article>
+
+            <article class="card kpi">
+              <div class="kpi__head">
+                <span class="kpi__label">Block Storage</span>
+                <span class="chip chip--positive">Healthy</span>
+              </div>
+              <div class="kpi__value">42.8<span class="kpi__unit"> TB</span></div>
+              <div class="kpi__trend kpi__trend--up">▲ 3.1 TB this month</div>
+              <div class="meter meter--positive"><span style="width: 54%"></span></div>
+            </article>
+
+            <article class="card kpi">
+              <div class="kpi__head">
+                <span class="kpi__label">Floating IPs</span>
+                <span class="chip chip--neutral">Network</span>
+              </div>
+              <div class="kpi__value">96<span class="kpi__unit"> / 120</span></div>
+              <div class="kpi__trend kpi__trend--down">▼ 4 released today</div>
+              <div class="meter"><span style="width: 80%"></span></div>
+            </article>
+          </section>
+
+          <!-- MAIN GRID -->
+          <section class="grid-2">
+            <!-- Resource consumption chart -->
+            <article class="card">
+              <div class="card__head">
+                <h2 class="card__title">Resource Consumption</h2>
+                <div class="segmented">
+                  <button class="segmented__item segmented__item--active">7d</button>
+                  <button class="segmented__item">30d</button>
+                  <button class="segmented__item">90d</button>
+                </div>
+              </div>
+              <div class="chart">
+                <div class="chart__bars">
+                  <div class="bar" style="--h: 45%"><span></span><label>Mon</label></div>
+                  <div class="bar" style="--h: 62%"><span></span><label>Tue</label></div>
+                  <div class="bar" style="--h: 55%"><span></span><label>Wed</label></div>
+                  <div class="bar" style="--h: 78%"><span></span><label>Thu</label></div>
+                  <div class="bar" style="--h: 70%"><span></span><label>Fri</label></div>
+                  <div class="bar bar--muted" style="--h: 38%"><span></span><label>Sat</label></div>
+                  <div class="bar bar--muted" style="--h: 30%"><span></span><label>Sun</label></div>
+                </div>
+                <div class="chart__legend">
+                  <span class="legend"><i class="legend__dot" style="background: var(--accent-brand)"></i> vCPU</span>
+                  <span class="legend"><i class="legend__dot" style="background: var(--accent-6)"></i> RAM</span>
+                  <span class="legend"><i class="legend__dot" style="background: var(--accent-7)"></i> Storage</span>
+                </div>
+              </div>
+            </article>
+
+            <!-- Health / Quotas -->
+            <article class="card">
+              <div class="card__head">
+                <h2 class="card__title">Quota Health</h2>
+                <span class="card__link">View all →</span>
+              </div>
+              <ul class="quota-list">
+                <li class="quota">
+                  <div class="quota__row">
+                    <span>Compute Cores</span><span class="quota__val">1 312 / 1 600</span>
+                  </div>
+                  <div class="meter meter--critical"><span style="width: 82%"></span></div>
+                </li>
+                <li class="quota">
+                  <div class="quota__row">
+                    <span>Memory (GB)</span><span class="quota__val">5 120 / 8 192</span>
+                  </div>
+                  <div class="meter"><span style="width: 63%"></span></div>
+                </li>
+                <li class="quota">
+                  <div class="quota__row">
+                    <span>Volumes</span><span class="quota__val">340 / 500</span>
+                  </div>
+                  <div class="meter meter--positive"><span style="width: 68%"></span></div>
+                </li>
+                <li class="quota">
+                  <div class="quota__row">
+                    <span>Networks</span><span class="quota__val">28 / 50</span>
+                  </div>
+                  <div class="meter meter--positive"><span style="width: 56%"></span></div>
+                </li>
+                <li class="quota">
+                  <div class="quota__row">
+                    <span>Security Groups</span><span class="quota__val">188 / 200</span>
+                  </div>
+                  <div class="meter meter--critical"><span style="width: 94%"></span></div>
+                </li>
+              </ul>
+            </article>
+          </section>
+
+          <!-- PROJECTS TABLE -->
+          <section class="card">
+            <div class="card__head">
+              <h2 class="card__title">Projects</h2>
+              <div class="card__head-actions">
+                <div class="search search--sm">
+                  <span class="search__icon">⌕</span>
+                  <input type="text" placeholder="Filter projects…" />
+                </div>
+                <button class="btn btn--ghost btn--sm">Columns</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Project</th>
+                    <th>ID</th>
+                    <th>Instances</th>
+                    <th>vCPU</th>
+                    <th>Storage</th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><div class="cell-main">cc-demo</div><div class="cell-sub">Demo workloads</div></td>
+                    <td class="mono">a1b2c3d4…</td>
+                    <td>42</td>
+                    <td>168</td>
+                    <td>6.2 TB</td>
+                    <td><span class="status status--positive">Active</span></td>
+                    <td class="row-action">⋯</td>
+                  </tr>
+                  <tr>
+                    <td><div class="cell-main">payments-prod</div><div class="cell-sub">Production</div></td>
+                    <td class="mono">9f8e7d6c…</td>
+                    <td>88</td>
+                    <td>512</td>
+                    <td>18.4 TB</td>
+                    <td><span class="status status--critical">Quota 94%</span></td>
+                    <td class="row-action">⋯</td>
+                  </tr>
+                  <tr>
+                    <td><div class="cell-main">analytics</div><div class="cell-sub">Data platform</div></td>
+                    <td class="mono">5a4b3c2d…</td>
+                    <td>64</td>
+                    <td>384</td>
+                    <td>12.0 TB</td>
+                    <td><span class="status status--positive">Active</span></td>
+                    <td class="row-action">⋯</td>
+                  </tr>
+                  <tr>
+                    <td><div class="cell-main">sandbox</div><div class="cell-sub">Experiments</div></td>
+                    <td class="mono">2d3c4b5a…</td>
+                    <td>12</td>
+                    <td>48</td>
+                    <td>1.2 TB</td>
+                    <td><span class="status status--neutral">Idle</span></td>
+                    <td class="row-action">⋯</td>
+                  </tr>
+                  <tr>
+                    <td><div class="cell-main">legacy-migration</div><div class="cell-sub">Decommissioning</div></td>
+                    <td class="mono">7e6f5a4b…</td>
+                    <td>42</td>
+                    <td>200</td>
+                    <td>4.0 TB</td>
+                    <td><span class="status status--negative">Degraded</span></td>
+                    <td class="row-action">⋯</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <script>
+      const toggle = document.getElementById("themeToggle")
+      const root = document.documentElement
+      const icon = toggle.querySelector(".theme-toggle__icon")
+      const setIcon = () => {
+        icon.textContent = root.getAttribute("data-theme") === "dark" ? "☾" : "☀"
+      }
+      setIcon()
+      toggle.addEventListener("click", () => {
+        root.setAttribute("data-theme", root.getAttribute("data-theme") === "dark" ? "light" : "dark")
+        setIcon()
+      })
+    </script>
+  </body>
+</html>
