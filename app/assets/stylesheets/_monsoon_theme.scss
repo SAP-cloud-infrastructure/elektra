@@ -905,7 +905,15 @@ section {
 
     &.radio-inline,
     &.checkbox-inline {
-      margin-right: 2px;
+      // BS3's `.radio-inline`/`.checkbox-inline` layout was removed in BS5, so
+      // the bare `<input> text` inside the label no longer aligns. Lay the
+      // label out as an inline flex row to vertically center the control with
+      // its text and give a small gap between them.
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-right: 10px;
+      font-weight: normal;
     }
   }
 
@@ -951,7 +959,9 @@ section {
 
   .radio-inline input[type="radio"],
   .checkbox-inline input[type="checkbox"] {
-    margin-top: 11px;
+    // Alignment is handled by the inline-flex label above; keep the control at
+    // its natural position (no BS3 margin-top hack, which misaligned it in BS5).
+    margin-top: 0;
   }
 
   &.toolbar-with-h {
