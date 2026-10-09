@@ -1,10 +1,10 @@
 .toolbar
   .row{style: "width:100%"}
     .col-md-10
-      %form.form-inline#inquiry-filter-form
-        .mb-3
-          %label(for="inquiry-kind-filter") Filter
-          = select_tag "filter[kind]", options_for_select(@kinds_of_inquiries, (params[:filter][:kind] if params[:filter])), class: "form-control", id: "inquiry-kind-filter", data: {container_id: container_id}
+      %form#inquiry-filter-form
+        .d-flex.align-items-center.gap-2
+          %label.col-form-label{for: "inquiry-kind-filter"} Filter
+          = select_tag "filter[kind]", options_for_select(@kinds_of_inquiries, (params[:filter][:kind] if params[:filter])), class: "form-select w-auto", id: "inquiry-kind-filter", data: {container_id: container_id}
           = text_field_tag "show_only", params[:show_only], hidden: true
           .inquiries-filter.spinner
     .col-md-2.text-end

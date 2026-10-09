@@ -102,7 +102,7 @@ export default class LiveSearchModal extends React.Component {
               <select
                 onChange={(e) => this.setState({ objectType: e.target.value })}
                 value={this.state.objectType}
-                className="form-control"
+                className="form-select"
                 disabled={this.state.isFetching}
               >
                 {this.props.types.isFetching ? (
@@ -161,7 +161,9 @@ export default class LiveSearchModal extends React.Component {
               Close and refresh results
             </Button>
           ) : (
-            <Button onClick={this.hide}>Close</Button>
+            <Button variant="secondary" onClick={this.hide}>
+              Close
+            </Button>
           )}
         </Modal.Footer>
       </Modal>

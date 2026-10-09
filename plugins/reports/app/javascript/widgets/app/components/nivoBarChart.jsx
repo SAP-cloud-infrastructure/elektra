@@ -165,7 +165,7 @@ class NivoBarChart extends React.Component {
           </div>
         )}
         {data && data.length == 0 && (
-          <div>No data available for this project.</div>
+          <div>No cost data available.</div>
         )}
         {data && data.length > 0 && services && serviceMap && (
           <div className="row">
