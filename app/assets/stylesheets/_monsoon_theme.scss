@@ -1124,6 +1124,47 @@ section {
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
 }
 
+// BS3 -> BS5 dropdown-item compat. The row-action/context menus still render
+// BS3 markup (`.dropdown-menu > li > a` and `%li.divider`), but BS5 only styles
+// `.dropdown-item` / `.dropdown-divider`. Without this the entries render as
+// bare, cramped blue links with no padding or divider. Re-apply BS5's item and
+// divider look to the legacy markup, mapped onto Bootstrap's `--bs-dropdown-*`
+// custom properties so it stays in sync with the theme.
+//
+// `:not(.dropdown-item)` leaves already-migrated links alone; `.fancy-nav` (the
+// Services mega-dropdown) has its own layout and is excluded.
+.dropdown-menu:not(.fancy-nav) > li > a:not(.dropdown-item) {
+  display: block;
+  width: 100%;
+  padding: var(--bs-dropdown-item-padding-y) var(--bs-dropdown-item-padding-x);
+  clear: both;
+  font-weight: normal;
+  color: var(--bs-dropdown-link-color);
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover,
+  &:focus {
+    color: var(--bs-dropdown-link-hover-color);
+    background-color: var(--bs-dropdown-link-hover-bg);
+  }
+
+  &:active,
+  &.active {
+    color: var(--bs-dropdown-link-active-color);
+    background-color: var(--bs-dropdown-link-active-bg);
+  }
+}
+
+// BS3 used `%li.divider`; BS5 uses `.dropdown-divider`. Re-provide the BS3
+// divider look for the legacy markup.
+.dropdown-menu > li.divider {
+  height: 0;
+  margin: var(--bs-dropdown-divider-margin-y) 0;
+  overflow: hidden;
+  border-top: 1px solid var(--bs-dropdown-divider-bg);
+}
+
 .navbar-sap {
   .dropdown-menu {
     background-color: $inverse-dropdown-bg;
