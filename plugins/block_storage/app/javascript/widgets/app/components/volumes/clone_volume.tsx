@@ -178,7 +178,7 @@ const CloneVolumeForm: React.FC<CloneVolumeFormProps> = ({
         )}
 
         <Modal.Footer>
-          <Button onClick={close}>Cancel</Button>
+          <Button variant="secondary" onClick={close}>Cancel</Button>
           <Form.SubmitButton label="Clone" />
         </Modal.Footer>
       </Form>

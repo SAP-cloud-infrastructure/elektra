@@ -44,22 +44,13 @@
       = project_id_and_name(instance.tenant_id)
   -# %td= instance.availability_zone
   %td.snug-nowrap
-    .instance-ips{ data: { collapsable: true, collapsed: true } }
-      - network_ips = network_ips_map(instance_ips(instance))
-      - network_ips.each do |network_name, ips|
-        .list-group.borderless
-          = network_name
-          = render_fixed_floating_ips(ips)
+    = render_instance_ips(instance)
   %td
     = instance.metadata.image_name || instance.image_object.try(:name) || '-'
     %br
     = instance.flavor['original_name'] || '-'
 
   %td= instance.power_state_string
-  %td
-    - if instance.task_state
-      %span.spinner
-    = instance.task_state.nil? ? instance.status.humanize : instance.task_state.humanize
 
   %td= instance.pretty_created_at
   %td.snug

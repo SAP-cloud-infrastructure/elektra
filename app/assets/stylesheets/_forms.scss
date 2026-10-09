@@ -22,6 +22,17 @@ select {
   text-align: right;
 }
 
+// simple_form's wrappers put `form-control` on EVERY input, including `<select>`
+// elements. BS5 only renders the native dropdown arrow (and select padding) for
+// `.form-select`, so all simple_form selects were left without an arrow. Give
+// every `select.form-control` the full BS5 `.form-select` look. Scoped to
+// `select.form-control` (not all selects) so bespoke selects with their own
+// layout — e.g. compact pagination selects or input-group addons — are left
+// alone.
+select.form-control {
+  @extend .form-select;
+}
+
 .has-help-hint {
 
   .input-wrapper {

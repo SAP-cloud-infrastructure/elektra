@@ -43,74 +43,76 @@ module ApplicationHelper
 
   def render_paginatable(items, filter = {}, options = {})
     return if !@pagination_enabled || !items || items.length.zero?
-    content_tag(:div, class: "pagination") do
+    content_tag(:div, class: "simple-pagination") do
       if @pagination_current_page > 1 || @pagination_has_next
         concat(
           content_tag(
             :span,
-            "#{@pagination_seen_items + 1} - #{@pagination_seen_items + items.length} ",
+            "#{@pagination_seen_items + 1} - #{@pagination_seen_items + items.length}",
             class: "current-window",
           ),
         )
         if @pagination_current_page > 1
-          concat(" | ")
           if filter.key?(:search) and filter.key?(:searchfor)
             concat(
               link_to(
                 "Previous Page",
-                page: @pagination_current_page - 1,
-                marker: items.first.id,
-                reverse: true,
-                search: filter[:search],
-                searchfor: filter[:searchfor],
+                { page: @pagination_current_page - 1,
+                  marker: items.first.id,
+                  reverse: true,
+                  search: filter[:search],
+                  searchfor: filter[:searchfor] },
+                class: "btn btn-link",
               ),
             )
           else
             concat(
               link_to(
                 "Previous Page",
-                page: @pagination_current_page - 1,
-                marker: items.first.id,
-                reverse: true,
+                { page: @pagination_current_page - 1,
+                  marker: items.first.id,
+                  reverse: true },
+                class: "btn btn-link",
               ),
             )
           end
         end
         if @pagination_has_next
-          concat(" | ")
           if filter.key?(:search) and filter.key?(:searchfor)
             concat(
               link_to(
                 "Next Page",
-                page: @pagination_current_page + 1,
-                marker: items.last.id,
-                search: filter[:search],
-                searchfor: filter[:searchfor],
+                { page: @pagination_current_page + 1,
+                  marker: items.last.id,
+                  search: filter[:search],
+                  searchfor: filter[:searchfor] },
+                class: "btn btn-link",
               ),
             )
           else
             concat(
               link_to(
                 "Next Page",
-                page: @pagination_current_page + 1,
-                marker: items.last.id,
+                { page: @pagination_current_page + 1,
+                  marker: items.last.id },
+                class: "btn btn-link",
               ),
             )
           end
         end
         unless options[:disable_show_all]
-          concat(" | ")
           if filter.key?(:search) and filter.key?(:searchfor)
             concat(
               link_to(
                 "All",
-                per_page: 9999,
-                search: filter[:search],
-                searchfor: filter[:searchfor],
+                { per_page: 9999,
+                  search: filter[:search],
+                  searchfor: filter[:searchfor] },
+                class: "btn btn-link",
               ),
             )
           else
-            concat(link_to("All", per_page: 9999))
+            concat(link_to("All", { per_page: 9999 }, class: "btn btn-link"))
           end
         end
       end

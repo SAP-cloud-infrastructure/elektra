@@ -74,3 +74,24 @@
     margin: 0 10px;
   }
 }
+
+// Instances list IP cell: show the first IP, collapse the rest behind a
+// subtle "+N more" toggle (replaces the old collapsable with no visible
+// affordance). Keeps rows compact while making extra IPs discoverable.
+.instance-ips-modern {
+  .list-group-item-text {
+    margin: 0;
+  }
+
+  .instance-ips-toggle {
+    display: inline-block;
+    margin-top: 2px;
+    font-size: 12px;
+    color: #337ab7;
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}

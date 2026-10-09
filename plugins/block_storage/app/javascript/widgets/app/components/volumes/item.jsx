@@ -54,11 +54,9 @@ const VolumeItem = ({ reloadVolume, deleteVolume, forceDeleteVolume, detachVolum
       <td>
         {(volume.bootable === true || volume.bootable === "true") && (
           <Tooltip placement="top" content="Bootable Volume">
-            <i className="fa fa-hdd-o"></i>
+            <i className="fa fa-hdd-o" style={{ marginRight: "6px" }}></i>
           </Tooltip>
         )}
-      </td>
-      <td>
         {policy.isAllowed("block_storage:volume_get", {}) ? (
           <Link to={`/volumes/${volume.id}/show`}>
             <MyHighlighter search={searchTerm || ""}>{volume.name || volume.id}</MyHighlighter>
