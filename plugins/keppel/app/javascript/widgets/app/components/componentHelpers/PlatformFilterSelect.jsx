@@ -15,6 +15,7 @@ export const PlatformFilterSelect = ({ value }) => {
       </Form.Input>
       <p className="form-control-static">
         When replicating multi-architecture images, a platform filter restricts which parts get replicated.
+        Custom platform filters can be defined when using the Keppel API directly.
       </p>
       {PLATFORM_FILTER_OPTIONS[value]?.infoText && (
         <p className="text-info">
