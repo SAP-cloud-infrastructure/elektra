@@ -1,4 +1,49 @@
 $globa-notifications-section-height: 55;
+
+// App-owned utility: Bootstrap 3 provided `.hidden` (display:none !important),
+// which Bootstrap 5 removed in favour of `.d-none`. Elektra uses `.hidden` as a
+// pervasive show/hide toggle idiom in both markup and jQuery
+// (addClass/removeClass/toggleClass "hidden"), so we keep it as our own utility
+// rather than rewrite ~85 views and ~17 JS call-sites. (BS5 equivalent: .d-none)
+.hidden {
+  display: none !important;
+}
+
+// App-owned utility: Bootstrap 3's `.caret` (a CSS triangle) was removed in BS5
+// (which uses a `::after` pseudo-element on `.dropdown-toggle`). Elektra has
+// explicit `<span class="caret">` markup, so we re-provide the triangle here.
+.caret {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  margin-left: 2px;
+  vertical-align: middle;
+  border-top: 4px dashed;
+  border-right: 4px solid transparent;
+  border-left: 4px solid transparent;
+}
+
+// Gear / cog context-menu buttons. BS3 rendered no caret on these (it required
+// an explicit `<span class="caret">`), but BS5 auto-adds a caret via
+// `.dropdown-toggle::after`. That makes the row-action gear buttons show an
+// unwanted "⚙ ▾". Suppress the auto-caret wherever the toggle is (or contains)
+// a cog icon, so the gear button stays a clean icon-only button like in BS3.
+.dropdown-toggle.fa-cog::after,
+.dropdown-toggle:has(> .fa-cog)::after {
+  display: none;
+}
+
+// App-owned utility: Bootstrap 3's `.btn-xs` (extra-small button) was removed in
+// BS5 (smallest is `.btn-sm`). Elektra uses `.btn-xs` for compact table/list
+// action buttons where `.btn-sm` would be too large, so we re-provide the BS3
+// sizing. (BS5 has no direct equivalent.)
+.btn-xs {
+  padding: 1px 5px;
+  font-size: 12px;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+
 .has-global-notifications {
   padding-top: #{$globa-notifications-section-height + 92}px;
 

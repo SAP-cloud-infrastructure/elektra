@@ -93,7 +93,7 @@ class Details extends React.Component {
               <button
                 aria-label="Close"
                 onClick={(e) => this.onClose(e)}
-                className="btn btn-default btn-xs reset-button"
+                className="btn btn-secondary btn-xs reset-button"
                 type="button"
               >
                 Reset Selection

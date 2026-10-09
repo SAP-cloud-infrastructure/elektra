@@ -12,7 +12,7 @@
     %hr/
     %label
       Create Subnet
-      = check_box_tag 'Create Subnet', 1, !@subnet.nil?, hidden: true, data:{toggle: 'collapse', target: '#collapseExample'} # checkbox hidden until create subnet available
+      = check_box_tag 'Create Subnet', 1, !@subnet.nil?, hidden: true, data:{bs_toggle: 'collapse', bs_target: '#collapseExample'} # checkbox hidden until create subnet available
     -# FIXME: anti-pattern of doing two things in one dialog - labelling already indicates a hack
     %fieldset.collapse{id: "collapseExample", class: "#{"in" if !@subnet.nil?}"}
       = f.simple_fields_for :subnets do |subnets|
@@ -22,14 +22,14 @@
         = subnets.input :cidr, icon_hint: hint, label: "#{Networking::Subnet.human_attribute_name(:cidr)}", input_html: { value: @subnet.try(:cidr) }
   .buttons{class: modal? ? 'modal-footer' : ''}
     - if modal?
-      %button.btn.btn-default{
+      %button.btn.btn-secondary{
 type: "button",
-data: { dismiss: "modal" },
+data: { bs_dismiss: "modal" },
 aria: { label: "Cancel" }
 }
         Cancel
     - else
-      = link_to 'Cancel', plugin('networking').send("networks_#{@network_type}_index_url"), class: 'btn btn-default'
+      = link_to 'Cancel', plugin('networking').send("networks_#{@network_type}_index_url"), class: 'btn btn-secondary'
     %button{
 type: "submit",
 class: "btn btn-primary",

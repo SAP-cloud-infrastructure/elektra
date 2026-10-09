@@ -38,14 +38,14 @@ class App extends React.Component {
         <div className={this.props.modal ? "modal-body" : ""}>
           <form action="" className="form-horizontal">
             <Form.Errors errors={this.state.error} />
-            <div className="form-group">
+            <div className="row align-items-center mb-3">
               <label
                 htmlFor="reverseLookupValue"
-                className="col-sm-4 control-label"
+                className="col-sm-4 col-form-label"
               >
                 Child Object
               </label>
-              <div className="col-sm-6">
+              <div className="col-sm-5">
                 <input
                   className="form-control"
                   name="searchValue"
@@ -56,7 +56,7 @@ class App extends React.Component {
                   onChange={this.handleChange}
                 />
               </div>
-              <div className="col-sm-2">
+              <div className="col-sm-3">
                 <button
                   className="btn btn-primary"
                   onClick={(e) => this.onSubmit(e)}
@@ -86,9 +86,9 @@ class App extends React.Component {
         {this.props.modal && (
           <div className="modal-footer">
             <button
-              className="btn btn-default"
+              className="btn btn-secondary"
               type="button"
-              data-dismiss="modal"
+              data-bs-dismiss="modal"
               aria-label="Cancel"
             >
               Cancel

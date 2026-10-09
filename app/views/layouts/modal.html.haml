@@ -1,15 +1,14 @@
-/ .modal#mainModal.fade{tabindex: "-1", role: "dialog", data: { backdrop: 'static' }, aria: {labelledby: "mainModalLabel", hidden: true} }
-.modal#mainModal{tabindex: "-1", role: "dialog", data: { backdrop: 'static' }, aria: {labelledby: "mainModalLabel", hidden: true} }
+/ .modal#mainModal.fade{tabindex: "-1", role: "dialog", data: { bs_backdrop: 'static' }, aria: {labelledby: "mainModalLabel", hidden: true} }
+.modal#mainModal{tabindex: "-1", role: "dialog", data: { bs_backdrop: 'static' }, aria: {labelledby: "mainModalLabel", hidden: true} }
   %div{class: "modal-dialog #{modal_size}"}
     .modal-content{class: "#{plugin_name if plugin_name}"}
       .modal-header
-        %button.close{type:"button", data: {dismiss:"modal"}, aria: {label: "Close"}}
-          %span{aria: {hidden: "true"}} &times;
         %h4.modal-title
           - if content_for? :title
             = yield :title
           - else
             = "#{action_name.capitalize} #{controller.controller_name.singularize.humanize}"
+        %button.btn-close{type:"button", data: {bs_dismiss:"modal"}, aria: {label: "Close"}}
 
       = yield
 

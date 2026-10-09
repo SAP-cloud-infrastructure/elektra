@@ -32,6 +32,6 @@
 
 %div.buttons{class: modal? ? 'modal-footer' : ''}
   - if modal?
-    %button.btn.btn-default{ type: 'button', data: { dismiss:'modal' }, aria: { label: 'Cancel' } } Close
+    %button.btn.btn-secondary{ type: 'button', data: { bs_dismiss:'modal' }, aria: { label: 'Cancel' } } Close
   - else
-    = link_to 'Back', plugin('networking').floating_ips_path, class: 'btn btn-default'
+    = link_to 'Back', plugin('networking').floating_ips_path, class: 'btn btn-secondary'

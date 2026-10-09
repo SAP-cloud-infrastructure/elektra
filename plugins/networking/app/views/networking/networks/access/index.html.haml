@@ -23,6 +23,6 @@
 
 %div.buttons{class: modal? ? 'modal-footer' : ''}
   - if modal?
-    %button.btn.btn-default{type:"button", data: {dismiss:"modal"}, aria: {label: "Close"}} Close
+    %button.btn.btn-secondary{type:"button", data: {bs_dismiss:"modal"}, aria: {label: "Close"}} Close
   - else
-    = link_to "Close", plugin('networking').send("networks_#{@network_type}_index_url"), class: 'btn btn-default'
+    = link_to "Close", plugin('networking').send("networks_#{@network_type}_index_url"), class: 'btn btn-secondary'

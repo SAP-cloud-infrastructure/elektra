@@ -178,7 +178,7 @@ span.highlight {
 }
 // ---------------------------------------------------------------------------
 
-.input-group-addon {
+.input-group-text {
   &.select-addon {
     padding-top: 4px;
     padding-bottom: 3px;
@@ -213,11 +213,57 @@ html {
 
 body {
   padding-top: $navbar-height + $context-breadcrumb-height;
-  margin-bottom: $footer-height + $footer-margin-top; // needed for sticky footer
 
   &.landing,
   &.onboarding {
     padding-top: $navbar-height;
+  }
+}
+
+// Robust flexbox sticky footer for the main application layout. Replaces the
+// fragile position:absolute footer so the footer always sits at the bottom of
+// the viewport when content is short, and below the content when it is tall.
+// The fixed navbar/breadcrumb stay position:fixed; body padding-top keeps the
+// content clear of them.
+body.app-flex-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  // Include the body's padding-top (which clears the fixed navbar/breadcrumb)
+  // in the 100vh height, otherwise the body becomes `100vh + padding-top` tall
+  // and the footer is pushed that far below the viewport bottom.
+  box-sizing: border-box;
+  margin-bottom: 0;
+
+  // The main content region fills at least the viewport height minus the fixed
+  // navbar + breadcrumb (the body's padding-top) and the footer, so the footer
+  // is pushed to the bottom on short pages. On tall pages it simply grows with
+  // the content and the page scrolls. Using an explicit min-height (rather than
+  // relying solely on flex-grow) makes this robust regardless of how the fixed
+  // navbar/breadcrumb flex children are measured.
+  .app-flex-main {
+    flex: 1 0 auto;
+    min-height: calc(
+      100vh - #{$navbar-height} - #{$context-breadcrumb-height} - #{$footer-height}
+    );
+    // Visual gap between the content and the footer.
+    padding-bottom: $footer-margin-top;
+  }
+
+  // The footer and the (normally empty/hidden) elements that follow it in the
+  // DOM must not grow or shrink, so the growing .app-flex-main controls the
+  // layout and the footer ends up flush at the bottom.
+  footer,
+  .footer,
+  #modal-holder {
+    flex: 0 0 auto;
+  }
+
+  footer,
+  .footer {
+    position: static;
+    height: auto;
+    margin-top: 0;
   }
 }
 
@@ -343,6 +389,19 @@ ul {
   }
 }
 
+// Bootstrap 5 removed the .well component. Reproduce the Bootstrap 3 look
+// (light grey padded box with a subtle border) so the existing .well markup
+// keeps its appearance.
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: $line-height-computed;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+}
+
 .navbar a,
 a.btn {
   text-decoration: none;
@@ -386,6 +445,8 @@ section {
 
 .info-text {
   opacity: 0.45;
+  font-weight: 400;
+  color: #777;
 
   &.info-clickable:hover {
     opacity: 1;
@@ -426,6 +487,40 @@ section {
     background: none;
     cursor: pointer;
     padding-left: 0;
+  }
+}
+
+// Simple inline pager used by the React searchComponents (page window +
+// Previous/Next/All links). Replaces the old raw "|" separators (which made
+// the links collapse into each other) with a flex row, dividers and spacing.
+.simple-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  .current-window {
+    color: $gray-light;
+  }
+
+  .btn-link {
+    padding: 0;
+    border: 0;
+    vertical-align: baseline;
+  }
+
+  // Each following item gets symmetric spacing with a divider centered in it.
+  > * + * {
+    position: relative;
+    margin-left: 16px;
+  }
+  > * + *::before {
+    content: "";
+    position: absolute;
+    left: -8px; // half of the margin -> divider sits centered in the gap
+    top: 50%;
+    transform: translateY(-50%);
+    height: 14px;
+    border-left: 1px solid #ddd;
   }
 }
 
@@ -477,19 +572,8 @@ section {
 // Icons
 // ---------------------------------------------------------------------------------
 
-.glyphicon-cloud {
-  top: 3px;
-}
-
 .moo-cloud {
   background: inline_svg("monsoon_logo_flat.svg") 0 0px no-repeat;
-  display: inline-block;
-  width: 32px;
-  height: 32px;
-}
-
-.moo-cloud-white {
-  background: inline_svg("monsoon_logo_flat_white.svg") 0 0px no-repeat;
   display: inline-block;
   width: 32px;
   height: 32px;
@@ -508,16 +592,6 @@ section {
   width: 49px;
   height: 43px;
   margin-right: -15px;
-}
-
-.jumbotron .moo-cloud-white {
-  opacity: 0.2;
-  width: 256px;
-  height: 256px;
-  background-size: 256px;
-  position: absolute;
-  top: -20px;
-  right: 60px;
 }
 
 .fancy-nav-icon {
@@ -679,6 +753,38 @@ section {
   }
 }
 
+// Secondary / "default" button. BS3's `.btn-default` was a light button
+// (near-white fill, grey border, dark text). BS5 maps our `$secondary` (#999)
+// onto `.btn-secondary` as a solid mid-grey fill with poor-contrast text
+// (dark text on grey). Use a subtle, modern light-grey fill with a soft
+// border and dark text that stays clearly readable.
+.btn-secondary {
+  --bs-btn-bg: #f2f3f5;
+  --bs-btn-border-color: #d4d7dc;
+  --bs-btn-color: #333;
+  --bs-btn-hover-bg: #e4e6ea;
+  --bs-btn-hover-border-color: #c3c7ce;
+  --bs-btn-hover-color: #333;
+  --bs-btn-active-bg: #d7dade;
+  --bs-btn-active-border-color: #b4b9c1;
+  --bs-btn-active-color: #333;
+  --bs-btn-disabled-bg: #f2f3f5;
+  --bs-btn-disabled-border-color: #d4d7dc;
+  --bs-btn-disabled-color: #999;
+}
+
+// Danger button. BS5 picks the button text color automatically via
+// `color-contrast()` against `$danger` (#e22). White doesn't reach the 4.5
+// min-contrast ratio on that lighter red, so BS5 falls back to BLACK text —
+// dark text on red, hard to read (e.g. the trash/delete buttons). Force white
+// text to match the BS3 look.
+.btn-danger {
+  --bs-btn-color: #fff;
+  --bs-btn-hover-color: #fff;
+  --bs-btn-active-color: #fff;
+  --bs-btn-disabled-color: #fff;
+}
+
 //----------------------------------------------------------------------------------
 // Profile
 //----------------------------------------------------------------------------------
@@ -730,6 +836,42 @@ section {
 // ---------------------------------------------------------------------------------
 // Labels
 // ---------------------------------------------------------------------------------
+// Bootstrap 5 removed BS3's `.label` / `.label-*` classes (replaced by `.badge`
+// + `.text-bg-*`). Elektra still uses `.label`/`.label-*` as a pervasive status
+// badge idiom in markup and dynamic class strings (e.g. lbaas2 useStatus,
+// router status), so we re-provide them as app-owned utilities mapping onto the
+// BS5 colour palette. (BS5 equivalent: `.badge` + `.text-bg-{color}`.)
+.label {
+  display: inline-block;
+  padding: 0.35em 0.65em;
+  font-size: 0.75em;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: 0.375rem;
+}
+
+.label-default {
+  background-color: $gray-light;
+}
+.label-primary {
+  background-color: $primary;
+}
+.label-success {
+  background-color: $success;
+}
+.label-info {
+  background-color: $info;
+}
+.label-warning {
+  background-color: $warning;
+}
+.label-danger {
+  background-color: $danger;
+}
 
 .label-warning-greyscale {
   background-color: $label-warning-greyscale-bg;
@@ -797,7 +939,15 @@ section {
 
     &.radio-inline,
     &.checkbox-inline {
-      margin-right: 2px;
+      // BS3's `.radio-inline`/`.checkbox-inline` layout was removed in BS5, so
+      // the bare `<input> text` inside the label no longer aligns. Lay the
+      // label out as an inline flex row to vertically center the control with
+      // its text and give a small gap between them.
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-right: 10px;
+      font-weight: normal;
     }
   }
 
@@ -843,7 +993,9 @@ section {
 
   .radio-inline input[type="radio"],
   .checkbox-inline input[type="checkbox"] {
-    margin-top: 11px;
+    // Alignment is handled by the inline-flex label above; keep the control at
+    // its natural position (no BS3 margin-top hack, which misaligned it in BS5).
+    margin-top: 0;
   }
 
   &.toolbar-with-h {
@@ -917,7 +1069,76 @@ section {
 
 // special top of page navbar
 .navbar-sap {
-  &.navbar-inverse .dropdown-menu > .active > a {
+  // Reproduce the BS3 "theme" navbar-inverse gradient (dropped with BS5, which
+  // has no theme module): subtle top-to-bottom dark gradient.
+  background-color: #3c3c3c;
+  background-image: linear-gradient(to bottom, #3c3c3c 0%, #222 100%);
+  background-repeat: repeat-x;
+  min-height: 50px;
+  height: 50px;
+  padding: 0;
+  flex-wrap: nowrap;
+
+  .navbar-brand {
+    color: #999;
+    display: flex;
+    align-items: center;
+    height: 50px;
+    font-size: $font-size-medium;
+    // room for the absolute-positioned SAP logo on the left + spacing before
+    // the divider so it doesn't cling to the brand name
+    padding-left: 80px;
+    padding-right: 15px;
+    margin-right: 0;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+
+    &:hover,
+    &:focus {
+      color: #ccc;
+    }
+  }
+
+  // Dividers only between the right-hand nav items (user / region), matching the
+  // production look. The left domain link must NOT get a trailing divider.
+  .navbar-nav.ms-auto {
+    height: 50px;
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      border-left: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    // No leading divider to the left of the first right-hand item (profile).
+    .nav-item:first-child {
+      border-left: 0;
+    }
+  }
+
+  .navbar-nav.me-auto {
+    height: 50px;
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+    }
+  }
+
+  .nav-link {
+    color: #999;
+    font-size: $font-size-base;
+    display: flex;
+    align-items: center;
+    height: 50px;
+
+    &:hover,
+    &:focus {
+      color: #fff;
+    }
+  }
+
+  // BS5 navbar-dark dropdown menu styling (replaces BS3 navbar-inverse)
+  .dropdown-menu > .active > a {
     background: rgba(255, 255, 255, 0.25);
     color: #999;
   }
@@ -928,9 +1149,7 @@ section {
 }
 
 .navbar-brand {
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
   position: relative;
-  padding-left: 80px;
   color: #555;
 }
 
@@ -945,34 +1164,78 @@ section {
   color: #fff;
 }
 
-.nav > li > a.navbar-identity {
+.nav-link.navbar-identity {
   display: flex;
   align-items: center;
   column-gap: 0.3rem;
 }
 
-.navbar-inverse {
+// Dropdown drop shadow. BS3 always rendered `.dropdown-menu` with a soft
+// shadow (`0 6px 12px rgba(0,0,0,.175)`). BS5 only emits it when the global
+// `$enable-shadows` flag is true (default false), so dropdowns — including the
+// Services mega-dropdown (`.fancy-nav` @extends `.dropdown-menu`) — turned
+// flat. Restore the BS3 shadow on all dropdowns without flipping the global
+// shadow flag (which would also add shadows to buttons, cards, inputs, ...).
+.dropdown-menu {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+}
+
+// BS3 -> BS5 dropdown-item compat. The row-action/context menus still render
+// BS3 markup (`.dropdown-menu > li > a` and `%li.divider`), but BS5 only styles
+// `.dropdown-item` / `.dropdown-divider`. Without this the entries render as
+// bare, cramped blue links with no padding or divider. Re-apply BS5's item and
+// divider look to the legacy markup, mapped onto Bootstrap's `--bs-dropdown-*`
+// custom properties so it stays in sync with the theme.
+//
+// `:not(.dropdown-item)` leaves already-migrated links alone; `.fancy-nav` (the
+// Services mega-dropdown) has its own layout and is excluded.
+.dropdown-menu:not(.fancy-nav) > li > a:not(.dropdown-item) {
+  display: block;
+  width: 100%;
+  padding: var(--bs-dropdown-item-padding-y) var(--bs-dropdown-item-padding-x);
+  clear: both;
+  font-weight: normal;
+  color: var(--bs-dropdown-link-color);
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover,
+  &:focus {
+    color: var(--bs-dropdown-link-hover-color);
+    background-color: var(--bs-dropdown-link-hover-bg);
+  }
+
+  &:active,
+  &.active {
+    color: var(--bs-dropdown-link-active-color);
+    background-color: var(--bs-dropdown-link-active-bg);
+  }
+}
+
+// BS3 used `%li.divider`; BS5 uses `.dropdown-divider`. Re-provide the BS3
+// divider look for the legacy markup.
+.dropdown-menu > li.divider {
+  height: 0;
+  margin: var(--bs-dropdown-divider-margin-y) 0;
+  overflow: hidden;
+  border-top: 1px solid var(--bs-dropdown-divider-bg);
+}
+
+.navbar-sap {
   .dropdown-menu {
     background-color: $inverse-dropdown-bg;
 
-    .divider {
-      @include nav-divider($inverse-dropdown-divider-bg);
+    .dropdown-divider {
+      border-top-color: $inverse-dropdown-divider-bg;
     }
 
-    > li > a {
+    .dropdown-item {
       color: $inverse-dropdown-link-color;
 
       &:hover,
       &:focus {
         color: $dropdown-link-hover-color;
-      }
-    }
-
-    > .active > a {
-      &,
-      &:hover,
-      &:focus {
-        color: $dropdown-link-active-color;
+        background-color: rgba(255, 255, 255, 0.1);
       }
     }
   }
@@ -1033,18 +1296,113 @@ section {
 
 .nav-tabs {
   margin-bottom: $line-height-computed;
+
+  // BS3 -> BS5 tab compat. The app still renders Bootstrap 3 tab markup
+  // (`.nav-tabs > li.active > a`, bare `<a>` without `.nav-link`), but the
+  // framework CSS is now BS5 which only styles `.nav-link`/`.nav-link.active`.
+  // Re-apply BS5's tab look to the legacy markup so the bare `<a>` links get
+  // the padding, borders and active "card tab" highlight again. Mapped onto
+  // Bootstrap's own `--bs-nav-*` custom properties to stay in sync with the
+  // theme (border-color, body-bg, link colors, ...).
+  //
+  // `> li > a:not(.nav-link)` deliberately excludes already-migrated `.nav-link`
+  // markup, which BS5 styles natively.
+  > li {
+    > a:not(.nav-link) {
+      padding: var(--bs-nav-link-padding-y) var(--bs-nav-link-padding-x);
+      color: var(--bs-nav-link-color);
+      border: var(--bs-nav-tabs-border-width) solid transparent;
+      border-top-left-radius: var(--bs-nav-tabs-border-radius);
+      border-top-right-radius: var(--bs-nav-tabs-border-radius);
+      text-decoration: none;
+      margin-bottom: calc(-1 * var(--bs-nav-tabs-border-width));
+
+      &:hover,
+      &:focus {
+        isolation: isolate;
+        border-color: var(--bs-nav-tabs-link-hover-border-color);
+      }
+    }
+
+    &.active > a:not(.nav-link),
+    &.active > a:not(.nav-link):hover,
+    &.active > a:not(.nav-link):focus {
+      color: var(--bs-nav-tabs-link-active-color);
+      background-color: var(--bs-nav-tabs-link-active-bg);
+      border-color: var(--bs-nav-tabs-link-active-border-color);
+    }
+  }
+
+  // Keep the tab text and its count badge (e.g. "Subnets [1]") on one line.
+  // Inside BS5's flex `.nav`, the badge wrapped onto a second line under the
+  // text; lay every tab link out as an inline flex row so text + badge stay
+  // aligned (covers both migrated `.nav-link` and legacy bare `<a>` markup).
+  .nav-link,
+  > li > a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+  }
+}
+
+// Bootstrap 3 form feedback (removed in BS5). Elektra uses `.has-feedback` +
+// `.form-control-feedback` for the search icon inside input fields, so
+// re-provide the BS3 positioning behaviour as an app utility.
+.has-feedback {
+  position: relative;
+
+  .form-control {
+    padding-right: 34px;
+  }
+
+  .form-control-feedback {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 2;
+    display: block;
+    width: 34px;
+    height: 34px;
+    line-height: 34px;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  // Variant: feedback icon rendered on the left side, inside the input.
+  &.has-feedback-left {
+    .form-control-feedback-left {
+      right: auto;
+      left: 0;
+      color: #999;
+    }
+
+    .form-control {
+      padding-left: 34px;
+    }
+  }
+}
+
+// Full-width search bar for the "Your Projects" list with the search glyph
+// sitting inside the field (modern inline search look).
+.auth-projects-search {
+  .has-feedback {
+    width: 100%;
+  }
+
+  .form-control {
+    width: 100%;
+  }
 }
 
 // ---------------------------------------------------------------------------------
 // Header
 // ---------------------------------------------------------------------------------
-
 .logo {
   background: inline_svg("sap-logo.svg") no-repeat;
   background-size: contain;
   position: absolute;
-  top: $navbar-padding-vertical - 5px;
-  left: $grid-gutter-width / 2;
+  top: 10px;
+  left: 0;
   height: 30px;
   width: 62px;
 }
@@ -1087,6 +1445,11 @@ footer,
 .breadcrumb {
   margin-top: $line-height-computed;
   margin-bottom: $line-height-computed;
+  // Bootstrap 5 dropped the breadcrumb's default background, padding and radius
+  // (bg/padding/border-radius default to null/0). Restore the Bootstrap 3 look.
+  padding: 8px 15px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
 
   > li {
     > a {
@@ -1096,10 +1459,6 @@ footer,
     &.active > a {
       color: $breadcrumb-active-color;
     }
-  }
-
-  & > li + li:before {
-    padding: 0 10px 0 14px;
   }
 }
 
@@ -1129,7 +1488,7 @@ footer,
   border-bottom: 1px solid #ddd;
   height: $context-breadcrumb-height;
   position: fixed;
-  top: $navbar-height + 1;
+  top: $navbar-height;
   left: 0;
   right: 0;
   z-index: 1029;
@@ -1161,15 +1520,20 @@ footer,
   .universal-search-input {
     input {
       height: 26px;
-      background-color: #efefef;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 4px;
       width: 260px;
-      padding-left: 10px;
+      // left padding leaves room for the inline search glyph (see
+      // `.has-feedback-left`), right padding for the clear button
+      padding-left: 30px;
       padding-right: 30px;
     }
 
     .form-control-feedback {
       line-height: 26px;
       height: 26px;
+      color: #999;
     }
   }
 
@@ -1250,6 +1614,13 @@ footer,
       > .fancy-nav {
         @extend .dropdown-menu; // extend TWBS dropdown-menu class
 
+        // Bootstrap 5 shows a .dropdown-menu via the .show class. The mega
+        // dropdown is toggled manually (see core/init.js), so ensure the shown
+        // state actually displays the menu.
+        &.show {
+          display: block;
+        }
+
         // Megaflyout (full-width, requires context-container wrapper)
         @include container-width-responsive;
         column-count: 3;
@@ -1301,16 +1672,9 @@ footer,
 
         &.open,
         &:hover {
-          > .glyphicon {
-            color: #333;
-          }
           > a {
             color: #333;
           }
-        }
-
-        > .glyphicon {
-          color: #fff;
         }
 
         > a {
@@ -1408,8 +1772,10 @@ footer,
 
     .small {
       font-size: 45%;
+      font-weight: 400;
       a {
         color: #888;
+        font-weight: 400;
 
         &.help-link {
           &:hover,
@@ -1525,8 +1891,8 @@ footer,
     .btn {
       @extend .btn-primary;
 
-      &.btn-default {
-        @extend .btn-default;
+      &.btn-secondary {
+        @extend .btn-secondary;
       }
     }
 
@@ -1551,8 +1917,8 @@ footer,
     .btn {
       @extend .btn-info;
 
-      &.btn-default {
-        @extend .btn-default;
+      &.btn-secondary {
+        @extend .btn-secondary;
       }
     }
 
@@ -1587,8 +1953,8 @@ footer,
     .btn {
       @extend .btn-info;
 
-      &.btn-default {
-        @extend .btn-default;
+      &.btn-secondary {
+        @extend .btn-secondary;
       }
     }
 
@@ -1607,8 +1973,8 @@ footer,
     .btn {
       @extend .btn-success;
 
-      // &.btn-default {
-      //   @extend .btn-default;
+      // &.btn-secondary {
+      //   @extend .btn-secondary;
       // }
     }
 
@@ -1631,8 +1997,8 @@ footer,
     .btn {
       @extend .btn-warning;
 
-      // &.btn-default {
-      //   @extend .btn-default;
+      // &.btn-secondary {
+      //   @extend .btn-secondary;
       // }
     }
 
@@ -1655,8 +2021,8 @@ footer,
     .btn {
       @extend .btn-danger;
 
-      // &.btn-default {
-      //   @extend .btn-default;
+      // &.btn-secondary {
+      //   @extend .btn-secondary;
       // }
     }
 
@@ -1697,7 +2063,14 @@ blockquote,
 // ---------------------------------------------------------------------------------
 
 .infobox {
-  border-top: 10px solid $bright-blue;
+  border-top: 4px solid $bright-blue;
+  padding-top: 12px;
+
+  // The heading sits right below the accent bar; give it no extra top margin so
+  // the container padding controls the gap consistently.
+  > h4:first-child {
+    margin-top: 0;
+  }
 
   hr {
     margin: 0;
@@ -1711,63 +2084,6 @@ blockquote,
       }
     }
   }
-}
-
-// ---------------------------------------------------------------------------------
-// Jumbotron
-// ---------------------------------------------------------------------------------
-
-.jumbotron-fancy {
-  background: $medium-blue;
-  background: linear-gradient($deep-blue, $bright-blue);
-  color: rgba(255, 255, 255, 0.8);
-  font-family: $font-family-sans-serif-light;
-
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    color: #fff;
-  }
-}
-
-.jumbotron-plain {
-  padding: $line-height-computed * 1.5 $line-height-computed $line-height-computed $line-height-computed;
-
-  h1 {
-    font-size: $font-size-h1;
-    margin-top: 0;
-    margin-bottom: $line-height-computed;
-  }
-
-  p {
-    font-size: $font-size-base;
-  }
-}
-
-// ---------------------------------------------------------------------------------
-// Hero Elements
-// ---------------------------------------------------------------------------------
-
-.hero-info {
-  margin-bottom: $line-height-computed;
-
-  .info-stat {
-    font-size: $font-size-h1;
-  }
-
-  .info-stat-text {
-    opacity: 0.7;
-    font-size: $font-size-small;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-  }
-}
-
-.jumbotron .hero-info .info-stat {
-  color: #fff;
 }
 
 // ---------------------------------------------------------------------------------
@@ -1875,15 +2191,6 @@ tr.updating {
     background-color: #efefef;
   }
 
-  .btn {
-    .glyphicon {
-      @include spinner(background rgba(0, 0, 0, 0.2));
-
-      &:before {
-        content: "";
-      }
-    }
-  }
   .state-error-icon,
   .state-suspended-icon,
   .state-paused-icon,
@@ -1903,97 +2210,99 @@ tr.updating {
   }
 }
 
-.state-locked-icon {
-  &:before {
-    @include fa-icon;
-    @extend .fa;
-    @extend .fa-fw;
-    @extend .fa-lock;
-    color: $alarm-red;
-  }
+// Status dots. Every server row shows a small coloured dot in the first column
+// so the column is consistent (previously only error/shutoff/locked rows had an
+// icon, which left running rows without one and misaligned the names).
+// A small, flat 8px dot. Colours use the theme palette:
+// green = running/active, red = error/locked, grey = off/paused/suspended,
+// amber = transient states.
+//
+// The dot SHAPE comes from the attribute selector (covers every state-* class,
+// incl. unmapped/transition statuses with a neutral grey default). The COLOUR +
+// glow are set by class-only selectors below. The shape rule intentionally sets
+// the neutral grey as the fallback for unmapped statuses.
+//
+// NOTE on specificity: the shape selector below uses two attribute matchers
+// (specificity 0,2,1). A plain `.state-active-icon:before` colour rule (0,1,1)
+// would LOSE to it and every dot would stay grey. So the shape rule sets only
+// the shape (no colour), and each colour rule is anchored with `[class$="-icon"]`
+// to match the shape's specificity and win by source order.
+[class^="state-"][class$="-icon"]:before,
+[class*=" state-"][class$="-icon"]:before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  vertical-align: middle;
+  margin: 0 3px;
+  // neutral grey fallback for unmapped statuses
+  background-color: $medium-gray;
+  box-shadow: 0 0 0 2px rgba($medium-gray, 0.15);
 }
 
-// .state-active-icon {
-//   &:before {
-//     @include fa-icon;
-//     @extend .fa;
-//     @extend .fa-fw;
-//     @extend .fa-power-off;
-//     color: $medium-green;
-//   }
-// }
-
-.state-shutoff-icon {
-  &:before {
-    @include fa-icon;
-    @extend .fa;
-    @extend .fa-fw;
-    @extend .fa-power-off;
-    color: $medium-gray;
-  }
+[class$="-icon"].state-active-icon:before {
+  background-color: $medium-green; // running
+  box-shadow: 0 0 0 2px rgba($medium-green, 0.15);
 }
 
-.state-suspended-icon,
-.state-paused-icon {
-  &:before {
-    @include fa-icon;
-    @extend .fa;
-    @extend .fa-fw;
-    @extend .fa-power-off;
-    color: $medium-gray;
-  }
+[class$="-icon"].state-error-icon:before,
+[class$="-icon"].state-locked-icon:before {
+  background-color: $alarm-red; // error / locked
+  box-shadow: 0 0 0 2px rgba($alarm-red, 0.15);
 }
 
-.state-error-icon {
-  &:before {
-    @include fa-icon;
-    @extend .fa;
-    @extend .fa-fw;
-    @extend .fa-exclamation-triangle;
-    color: $alarm-red;
-  }
+[class$="-icon"].state-shutoff-icon:before,
+[class$="-icon"].state-suspended-icon:before,
+[class$="-icon"].state-paused-icon:before {
+  background-color: $medium-gray; // off / paused / suspended
+  box-shadow: 0 0 0 2px rgba($medium-gray, 0.15);
 }
 
-tr.state-active {
-  td:first-child {
-  }
+[class$="-icon"].state-build-icon:before,
+[class$="-icon"].state-reboot-icon:before,
+[class$="-icon"].state-hard_reboot-icon:before,
+[class$="-icon"].state-resize-icon:before,
+[class$="-icon"].state-verify_resize-icon:before,
+[class$="-icon"].state-revert_resize-icon:before,
+[class$="-icon"].state-migrating-icon:before,
+[class$="-icon"].state-rebuild-icon:before {
+  background-color: $bright-orange; // transient / in progress
+  box-shadow: 0 0 0 2px rgba($bright-orange, 0.15);
 }
 
-tr.state-shutoff {
-  &:not(.deleting):not(.updating) {
-    td:first-child {
-      @extend .state-shutoff-icon;
-    }
-  }
+// `tr.state-*` rows (used elsewhere) apply the dot to their first cell. Give
+// those the shape too, since the attribute selector above only matches the
+// `state-*-icon` span classes, not the `tr.state-*` row classes. Excluded for
+// deleting/updating rows (which show a spinner instead).
+tr.state-active:not(.deleting):not(.updating) td:first-child:before,
+tr.state-shutoff:not(.deleting):not(.updating) td:first-child:before,
+tr.state-error:not(.deleting):not(.updating) td:first-child:before,
+tr.state-locked:not(.deleting):not(.updating) td:first-child:before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  vertical-align: middle;
+  margin: 0 3px;
 }
-
-tr.state-error {
-  &:not(.deleting):not(.updating) {
-    td:first-child {
-      @extend .state-error-icon;
-    }
-  }
+tr.state-active:not(.deleting):not(.updating) td:first-child:before {
+  background-color: $medium-green;
+  box-shadow: 0 0 0 2px rgba($medium-green, 0.15);
 }
-
-tr.state-locked {
-  &:not(.deleting):not(.updating) {
-    td:first-child {
-      @extend .state-locked-icon;
-    }
-  }
+tr.state-shutoff:not(.deleting):not(.updating) td:first-child:before {
+  background-color: $medium-gray;
+  box-shadow: 0 0 0 2px rgba($medium-gray, 0.15);
+}
+tr.state-error:not(.deleting):not(.updating) td:first-child:before,
+tr.state-locked:not(.deleting):not(.updating) td:first-child:before {
+  background-color: $alarm-red;
+  box-shadow: 0 0 0 2px rgba($alarm-red, 0.15);
 }
 
 tr.task-state {
   background-color: #ffffb5;
-  .btn {
-    .glyphicon {
-      @include spinner(background rgba(0, 0, 0, 0.2));
-
-      &:before {
-        content: "";
-      }
-    }
-  }
 }
 
 // DATATABLES
@@ -2088,15 +2397,28 @@ tr.task-state {
 // Lists
 // ---------------------------------------------------------------------------------
 
+// BS5 flex replacement for the removed BS3 make-md-column float mixin.
+// Keeps the original behaviour: full-width block below the md breakpoint,
+// an N/12 column from 992px up — but as a flex child, not a float.
+@mixin fancy-list-column($columns) {
+  position: relative;
+  min-height: 1px;
+  padding-left: ($grid-gutter-width / 2);
+  padding-right: ($grid-gutter-width / 2);
+  @media (min-width: $screen-md-min) {
+    flex: 0 0 auto;
+    width: percentage($columns / 12);
+  }
+}
+
 .fancy-list {
-  @include pie-clearfix;
   @extend .row;
   padding-left: 0;
   margin-top: $line-height-computed * 3;
   list-style-type: none;
 
   > li {
-    @include make-md-column(4);
+    @include fancy-list-column(4);
     background: none;
     height: $line-height-computed * 5;
     position: relative;
@@ -2123,14 +2445,14 @@ tr.task-state {
 
   &.fancy-list-2col {
     > li {
-      @include make-md-column(6);
+      @include fancy-list-column(6);
       padding-left: $font-size-large * 1.5 + $grid-gutter-width * 1.25;
     }
   }
 
   &.fancy-list-2col-indented {
     > li {
-      @include make-md-column(5);
+      @include fancy-list-column(5);
       padding-left: $font-size-large * 1.5 + $grid-gutter-width * 1.25;
     }
   }
@@ -2549,32 +2871,7 @@ label {
 // ---------------------------------------------------------------------------------
 
 .js-target-hiddenform {
-  display: none;
-}
-
-// ---------------------------------------------------------------------------------
-// DEV: News
-// ---------------------------------------------------------------------------------
-
-.news {
-  .new {
-    margin-bottom: $line-height-computed * 3;
-
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6 {
-      margin-top: $line-height-computed * 1.5;
-    }
-  }
-
-  .author-title {
-    font-weight: bold;
-    border-bottom: 2px solid $bright-blue;
-    margin: $line-height-computed 0;
-  }
+   display: none;
 }
 
 // ---------------------------------------------------------------------------------
@@ -2667,103 +2964,6 @@ label {
 // ---------------------------------------------------------------------------------
 .autocomplete-bottom ul.dropdown-menu.show {
   margin-top: 30px;
-}
-
-// --------------------------------------------------------------------------------------
-// Bootstrap Accordion
-// --------------------------------------------------------------------------------------
-
-.panel-group.smooth-accordion > .panel:first-child .panel-heading {
-  border-radius: 4px 4px 0 0;
-}
-
-.panel-group.smooth-accordion {
-  .panel {
-    margin-top: 0;
-    border-radius: 0;
-    border-width: 0 0 1px 0;
-    border-style: solid;
-    border-color: #fff;
-    background: none;
-    box-shadow: none;
-
-    &:last-child {
-      border-bottom: none;
-    }
-  }
-
-  .panel-collapse .panel-body {
-    border-top: none;
-  }
-  .panel-heading {
-    border-radius: 0;
-    border: none;
-    color: #fff;
-    padding: 0;
-    background: transparent;
-  }
-
-  .panel-title a {
-    display: block;
-    color: #008fcc;
-    padding: 15px;
-    position: relative;
-    font-size: 14px;
-    font-weight: 400;
-    background: transparent;
-
-    &.collapsed {
-      color: #888888;
-      background-color: #f9f9f9;
-    }
-
-    &:focus,
-    &:hover {
-      text-decoration: none;
-    }
-  }
-
-  .panel-body {
-    background: #fff;
-  }
-
-  .panel:last-child .panel-body {
-    border-radius: 0 0 4px 4px;
-  }
-
-  .panel:last-child .panel-heading {
-    border-radius: 0 0 4px 4px;
-    transition: border-radius 0.3s linear 0.2s;
-  }
-
-  .panel:last-child .panel-heading.active {
-    border-radius: 0;
-    transition: border-radius linear 0s;
-  }
-
-  .panel-collapse > .panel-body {
-    border-top-color: none;
-  }
-
-  /* #bs-collapse icon scale option */
-
-  .panel-heading a:before {
-    content: "\f138";
-    font-size: 20px;
-    color: #008fcc;
-    position: absolute;
-    font-family: "FontAwesome";
-    right: 10px;
-    top: 10px;
-    transform: rotate(90deg);
-    transition: all 0.5s;
-  }
-
-  .panel-heading a.collapsed:before {
-    transition: all 0.5s;
-    transform: rotate(0deg);
-    color: #888888;
-  }
 }
 
 // --------------------------------------------------------------------------------------

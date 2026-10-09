@@ -16,5 +16,5 @@
 
     = render partial: 'identity/projects/shared/form', locals: { form: f, with_cost_object: true }
   %div{class: modal? ? 'modal-footer' : ''}
-    %button.btn.btn-default{type:"button", data: {dismiss:"modal"}, aria: {label: "Cancel"}} Cancel
+    %button.btn.btn-secondary{type:"button", data: {bs_dismiss:"modal"}, aria: {label: "Cancel"}} Cancel
     = f.submit 'Create project', class: 'btn btn-primary', data: { disable_with: "Please wait..." }

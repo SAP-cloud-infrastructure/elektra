@@ -45,7 +45,7 @@ export default class ImageMemberForm extends React.Component {
             </button>
           </span>
         </div>
-        <p className="help-block">
+        <p className="form-text">
           <i className="fa fa-info-circle"></i>
           Project (name or ID) with whom the image is shared
         </p>

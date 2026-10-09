@@ -86,14 +86,14 @@ const FormBody = ({ values, securityGroups }) => {
             <>
               <Form.ElementInline label="ICMP Type" name="icmp_type">
                 <Form.Input elementType="input" type="text" name="icmp_type" />
-                <p className="help-block">
+                <p className="form-text">
                   ICMP Type is a number between 0 and 255
                 </p>
               </Form.ElementInline>
 
               <Form.ElementInline label="ICMP Code" name="icmp_code">
                 <Form.Input elementType="input" type="text" name="icmp_code" />
-                <p className="help-block">
+                <p className="form-text">
                   ICMP Code is a number between 0 and 15
                 </p>
               </Form.ElementInline>
@@ -101,7 +101,7 @@ const FormBody = ({ values, securityGroups }) => {
           ) : (
             <Form.ElementInline label="Port Range" name="port_range">
               <Form.Input elementType="input" type="text" name="port_range" />
-              <p className="help-block">
+              <p className="form-text">
                 Example for range 1-80 and single port 80
               </p>
             </Form.ElementInline>
@@ -170,7 +170,7 @@ const FormBody = ({ values, securityGroups }) => {
                   name="remote_ip_prefix"
                   placeholder="0.0.0.0/0"
                 />
-                <p className="help-block">
+                <p className="form-text">
                   Example for IPv4 0.0.0.0/0 and IPv6 ::/0
                 </p>
               </Form.ElementInline>
@@ -291,7 +291,7 @@ export default class NewRuleForm extends React.Component {
       <Modal
         show={this.state.show}
         onHide={this.close}
-        bsSize="large"
+        size="lg"
         dialogClassName="modal-xl"
         backdrop="static"
         onExited={this.restoreUrl}

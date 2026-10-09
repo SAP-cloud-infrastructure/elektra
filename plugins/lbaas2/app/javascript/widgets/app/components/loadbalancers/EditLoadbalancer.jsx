@@ -143,7 +143,7 @@ const EditLoadbalancer = (props) => {
     <Modal
       show={show}
       onHide={close}
-      bsSize="large"
+      size="lg"
       backdrop="static"
       onExited={restoreUrl}
       aria-labelledby="contained-modal-title-lg"
@@ -211,14 +211,14 @@ const EditLoadbalancer = (props) => {
                   ) : (
                     ""
                   )}
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     The network which provides the internal IP of the load
                     balancer.
                   </span>
                 </Form.ElementHorizontal>
                 <Form.ElementHorizontal>
-                  <span className="pull-right">
+                  <span className="float-end">
                     <span className="info-text">
                       No advanced network options available
                     </span>
@@ -229,7 +229,7 @@ const EditLoadbalancer = (props) => {
                     name="tags"
                     initValue={loadbalancer.item && loadbalancer.item.tags}
                   />
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     Start a new tag typing a string and hitting the Enter or Tab
                     key.

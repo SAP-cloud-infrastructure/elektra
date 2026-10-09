@@ -242,7 +242,7 @@ const NewPool = (props) => {
     <Modal
       show={show}
       onHide={close}
-      bsSize="large"
+      size="lg"
       backdrop="static"
       onExited={restoreUrl}
       aria-labelledby="contained-modal-title-lg"
@@ -293,7 +293,7 @@ const NewPool = (props) => {
 
           <Form.ElementHorizontal label="Lb Algorithm" name="lb_algorithm" required>
             <SelectInput name="lb_algorithm" items={lbAlgorithmTypes()} />
-            <span className="help-block">
+            <span className="form-text">
               <i className="fa fa-info-circle"></i>
               The method used for lbaas between members.
             </span>
@@ -306,7 +306,7 @@ const NewPool = (props) => {
               onChange={onProtocolChanged}
               value={protocol}
             />
-            <span className="help-block">
+            <span className="form-text">
               <i className="fa fa-info-circle"></i>
               The protocol used for routing the traffic to the members.
             </span>
@@ -320,7 +320,7 @@ const NewPool = (props) => {
               onChange={onPoolPersistenceTypeChanged}
               value={sessionPersistenceType}
             />
-            <span className="help-block">
+            <span className="form-text">
               <i className="fa fa-info-circle"></i>
               <span className="help-block-text">
                 Defines the method used for session stickiness. Traffic for a client will be send always to the same
@@ -335,7 +335,7 @@ const NewPool = (props) => {
               <div className="advanced-options">
                 <Form.ElementHorizontal label="Cookie Name" name="session_persistence_cookie_name" required>
                   <Form.Input elementType="input" type="text" name="session_persistence_cookie_name" />
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     The name of the HTTP cookie defined by your application. The cookie value will be used for session
                     stickiness.
@@ -358,7 +358,7 @@ const NewPool = (props) => {
               value={listener}
             />
             {listeners.error ? <span className="text-danger">{listeners.error}</span> : ""}
-            <span className="help-block">
+            <span className="form-text">
               <i className="fa fa-info-circle"></i>
               The listener for which this pool is set as the default one.
             </span>
@@ -366,7 +366,7 @@ const NewPool = (props) => {
 
           <Form.ElementHorizontal label="Use TLS" name="tls_enabled">
             <Form.Input elementType="input" type="checkbox" name="tls_enabled" onClick={onChangedTLS} />
-            <span className="help-block">
+            <span className="form-text">
               <i className="fa fa-info-circle"></i>
               When true connections to backend member servers will use TLS encryption
             </span>
@@ -393,7 +393,7 @@ const NewPool = (props) => {
                     isLoading={secrets.isLoading}
                     items={secrets.items}
                   />
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     The reference to the secret containing a PKCS12 format certificate/key bundle for TLS client
                     authentication to the member servers.
@@ -409,7 +409,7 @@ const NewPool = (props) => {
                     isLoading={secrets.isLoading}
                     items={secrets.items}
                   />
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     The reference secret containing a PEM format CA certificate bundle.
                   </span>
@@ -440,7 +440,7 @@ const NewPool = (props) => {
                     isMulti
                     useFormContext={false}
                   />
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     The TLS cipher suites.
                   </span>
@@ -452,7 +452,7 @@ const NewPool = (props) => {
 
           <Form.ElementHorizontal label="Tags" name="tags">
             <TagsInput name="tags" />
-            <span className="help-block">
+            <span className="form-text">
               <i className="fa fa-info-circle"></i>
               Start a new tag typing a string and hitting the Enter or Tab key.
             </span>

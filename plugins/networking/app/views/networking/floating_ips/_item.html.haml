@@ -2,9 +2,9 @@
 - search_name += floating_ip.subnet_object.nil? ? floating_ip.floating_network_id : floating_ip.subnet_object.name
 %tr{id: "floating_ip_#{floating_ip.id}", data: {search_name: search_name, marker_id: floating_ip.id}}
   %td
-    .pull-left
+    .float-start
       %i.fa.fa-globe.fa-fw
-    .pull-left
+    .float-start
       = floating_ip.floating_ip_address
       - if floating_ip.subnet_object
         %span.info-text= " / #{floating_ip.subnet_object.name}"
@@ -27,10 +27,10 @@
   %td.snug
     - if current_user.is_allowed?("networking:floating_ip_delete", {floating_ip: floating_ip}) or current_user.is_allowed?("networking:floating_ip_associate", {})
       .btn-group
-        %button.btn.btn-default.btn-sm.dropdown-toggle{ type: "button", data: { toggle: "dropdown"}, aria: { expanded: true} }
+        %button.btn.btn-secondary.btn-sm.dropdown-toggle{ type: "button", data: { bs_toggle: "dropdown"}, aria: { expanded: true} }
           %span.fa.fa-cog
 
-        %ul.dropdown-menu.dropdown-menu-right{ role:"menu"}
+        %ul.dropdown-menu.dropdown-menu-end{ role:"menu"}
           - if current_user.is_allowed?("networking:floating_ip_update", {floating_ip: floating_ip})
             %li= link_to 'Edit', plugin('networking').edit_floating_ip_path(floating_ip.id), data: {modal: true}
           - if current_user.is_allowed?("networking:floating_ip_delete", {floating_ip: floating_ip})

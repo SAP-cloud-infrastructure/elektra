@@ -1,7 +1,7 @@
 - details ||= nil
 
 %div{class: "alert alert-error alert-dismissible word-wrap", 'role' => 'alert'}
-  %button.close{type:'button', data: {dismiss: 'alert'}, "aria-label" => "Close"}
+  %button.close{type:'button', data: {bs_dismiss: 'alert'}, "aria-label" => "Close"}
     %span{'aria-hidden' => 'true'}
       &times;
   = h(description) if description

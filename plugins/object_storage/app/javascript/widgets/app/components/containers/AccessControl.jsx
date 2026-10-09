@@ -76,7 +76,7 @@ const FormBody = ({ staticweb, checkAcls }) => {
               Check ACLs
             </button>
             {/* 
-      // = link_to 'Check ACLs' , '#', class: 'btn btn-default pull-right', id: 'check_acls'  */}
+      // = link_to 'Check ACLs' , '#', class: 'btn btn-secondary float-end', id: 'check_acls'  */}
           </div>
         </div>
         <div className="col-md-6">
@@ -213,7 +213,7 @@ const ContainerAccessControl = () => {
       show={show}
       onHide={close}
       onExit={back}
-      bsSize="lg"
+      size="lg"
       dialogClassName="modal-xl"
       aria-labelledby="contained-modal-title-lg"
     >
@@ -238,7 +238,7 @@ const ContainerAccessControl = () => {
           ) : !metadata ? (
             <span>Container not found!</span>
           ) : error ? (
-            <Alert bsStyle="danger">{error}</Alert>
+            <Alert variant="danger">{error}</Alert>
           ) : (
             <FormBody
               staticweb={capabilities.data?.staticweb}

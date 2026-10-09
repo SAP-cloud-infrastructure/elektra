@@ -108,7 +108,7 @@ const AllowedCidrs = (props) => {
     <Modal
       show={show}
       onHide={close}
-      bsSize="large"
+      size="lg"
       backdrop="static"
       onExited={restoreUrl}
       aria-labelledby="contained-modal-title-lg"
@@ -152,7 +152,7 @@ const AllowedCidrs = (props) => {
                   name="allowed_cidrs"
                 >
                   <CidrsInput name="allowed_cidrs" />
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     Start a new CIDR typing a string and hitting the Enter or
                     Tab key.

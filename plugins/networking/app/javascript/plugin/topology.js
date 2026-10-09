@@ -6,6 +6,7 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
+import { hideModal } from "core/bootstrap_engine"
 // D3 v3 is loaded globally from vendor/assets/javascripts/d3.v3.min.js
 // Access it from window object to avoid bundling issues with 'this' context
 // Note: d3 is accessed dynamically via window.d3 throughout this file
@@ -55,8 +56,7 @@ var Topology = (function () {
       this.options = $.extend(defaults, options)
       // create popover template with left arrow and add it to container
       const popoverHolder = $('<div class="networking"></div>').appendTo("body")
-      const $popover =
-        $(`<div class="topology popover fade right in" role="tooltip"> \
+      const $popover = $(`<div class="topology popover fade right in" role="tooltip"> \
 <div class="arrow" style="top: 20px"></div> \
 <h3 class="popover-title">Details</h3> \
 <div class="popover-content"></div></div>`).appendTo(popoverHolder)
@@ -75,9 +75,7 @@ var Topology = (function () {
         .attr("height", this.height)
         .style("cursor", "move")
       // zoom feature
-      const zoom = window.d3.behavior
-        .zoom()
-        .scaleExtent([this.options.minZoom, this.options.maxZoom])
+      const zoom = window.d3.behavior.zoom().scaleExtent([this.options.minZoom, this.options.maxZoom])
       // create graph container
       this.graph = this.canvas.append("g").attr("class", "topology")
 
@@ -119,10 +117,7 @@ var Topology = (function () {
         .call(this.layout.drag)
 
       // add circles to nodes
-      this.circle = this.nodes
-        .append("circle")
-        .attr("r", this.options.nominalBaseNodeSize)
-        .style("fill", "white")
+      this.circle = this.nodes.append("circle").attr("r", this.options.nominalBaseNodeSize).style("fill", "white")
 
       // add icons to nodes
       this.icons = this.nodes
@@ -174,10 +169,7 @@ var Topology = (function () {
         .on("mouseup", (d, i) => {
           if (!this.dragFlag) {
             // show popover
-            if (
-              $popover.is(":visible") &&
-              $popover.data("currentNode") === d.id
-            ) {
+            if ($popover.is(":visible") && $popover.data("currentNode") === d.id) {
               $popover.hide()
               return false
             }
@@ -191,22 +183,15 @@ var Topology = (function () {
             }
 
             $popover.css({
-              top:
-                $element.offset().top -
-                this.options.nominalBaseNodeSize +
-                this.options.nominalBaseNodeSize * scale,
-              left:
-                $element.offset().left +
-                this.options.nominalBaseNodeSize * 2 * scale,
+              top: $element.offset().top - this.options.nominalBaseNodeSize + this.options.nominalBaseNodeSize * scale,
+              left: $element.offset().left + this.options.nominalBaseNodeSize * 2 * scale,
             })
 
             let title = d.type + (d.name ? ` (${d.name})` : "")
             title = title[0].toUpperCase() + title.slice(1)
 
             $popover.find(".popover-title").text(title)
-            $popover
-              .find(".popover-content")
-              .html('<span class="spinner"></span>')
+            $popover.find(".popover-content").html('<span class="spinner"></span>')
             $popover.show("fast")
             return this.getNodeDetails(d.type, d.id, function (html, status) {
               if (status === 404) {
@@ -239,37 +224,25 @@ var Topology = (function () {
       // define zoom behavior
       zoom.on("zoom", () => {
         let stroke = this.options.nominalStroke
-        if (
-          this.options.nominalStroke * zoom.scale() >
-          this.options.maxStroke
-        ) {
+        if (this.options.nominalStroke * zoom.scale() > this.options.maxStroke) {
           stroke = this.options.maxStroke / zoom.scale()
         }
         this.links.style("stroke-width", stroke)
         this.circle.style("stroke-width", stroke)
 
         let baseRadius = this.options.nominalBaseNodeSize
-        if (
-          this.options.nominalBaseNodeSize * zoom.scale() >
-          this.options.maxBaseNodeSize
-        ) {
+        if (this.options.nominalBaseNodeSize * zoom.scale() > this.options.maxBaseNodeSize) {
           baseRadius = this.options.maxBaseNodeSize / zoom.scale()
         }
 
         let textSize = this.options.nominalTextSize
-        if (
-          this.options.nominalTextSize * zoom.scale() >
-          this.options.maxTextSize
-        ) {
+        if (this.options.nominalTextSize * zoom.scale() > this.options.maxTextSize) {
           textSize = this.options.maxTextSize / zoom.scale()
         }
         this.labels.style("font-size", textSize + "px")
 
         return this.graph
-          .attr(
-            "transform",
-            `translate(${window.d3.event.translate})scale(${window.d3.event.scale})`
-          )
+          .attr("transform", `translate(${window.d3.event.translate})scale(${window.d3.event.scale})`)
           .attr("dx", window.d3.event.translate[0])
           .attr("dy", window.d3.event.translate[1])
           .attr("scale", zoom.scale())
@@ -297,17 +270,14 @@ var Topology = (function () {
       }
       const key = `${type}_${id}`
       if (this.nodeDetails[key]) {
-        return callback(
-          this.nodeDetails[key].content,
-          this.nodeDetails[key].status
-        )
+        return callback(this.nodeDetails[key].content, this.nodeDetails[key].status)
       }
 
       return $.get(`${this.options.details_url}`, {
         type: `${type}`,
         id: `${id}`,
       })
-        .error((jqXHR, textStatus, errorThrown) => {
+        .fail((jqXHR, textStatus, errorThrown) => {
           this.nodeDetails[key] = { status: jqXHR.status, content: "" }
           return callback("Loading error.", jqXHR.status)
         })
@@ -316,7 +286,7 @@ var Topology = (function () {
           // got a redirect response
           if (url) {
             // close modal window
-            $("#modal-holder").find(".modal").modal("hide")
+            hideModal("#modal-holder .modal")
             return (window.location = url)
           } else {
             this.nodeDetails[key] = { status: 200, content: data }
@@ -337,10 +307,7 @@ var Topology = (function () {
       for (var property in this.linksedByIndex) {
         var index = this.linksedByIndex[property]
         var s = property.split(",")
-        if (
-          (s[0] === a.index || s[1] === a.index) &&
-          this.linksedByIndex[property]
-        ) {
+        if ((s[0] === a.index || s[1] === a.index) && this.linksedByIndex[property]) {
           return true
         }
       }
@@ -357,18 +324,10 @@ var Topology = (function () {
     }
 
     setFocus(d) {
-      this.graph
-        .selectAll(".node .icon")
-        .style("opacity", (o) => (this.isConnected(d, o) ? 1 : 0.4))
+      this.graph.selectAll(".node .icon").style("opacity", (o) => (this.isConnected(d, o) ? 1 : 0.4))
       this.labels.style("opacity", (o) => (this.isConnected(d, o) ? 1 : 0.4))
-      this.links.style(
-        "opacity",
-        (o) =>
-          o.source.index === d.index || o.target.index === (d.index ? 1 : 0.4)
-      )
-      return this.icons.style("opacity", (o) =>
-        this.isConnected(d, o) ? 1 : 0.4
-      )
+      this.links.style("opacity", (o) => o.source.index === d.index || o.target.index === (d.index ? 1 : 0.4))
+      return this.icons.style("opacity", (o) => (this.isConnected(d, o) ? 1 : 0.4))
     }
 
     setHighlight(d) {
@@ -378,9 +337,7 @@ var Topology = (function () {
       }
       this.heightighlightNode = d
 
-      return this.labels.style("font-weight", (o) =>
-        this.isConnected(d, o) ? "bold" : "normal"
-      )
+      return this.labels.style("font-weight", (o) => (this.isConnected(d, o) ? "bold" : "normal"))
     }
 
     resize() {

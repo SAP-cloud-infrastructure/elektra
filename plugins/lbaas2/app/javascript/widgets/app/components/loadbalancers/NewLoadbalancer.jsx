@@ -181,7 +181,7 @@ const NewLoadbalancer = (props) => {
     <Modal
       show={show}
       onHide={close}
-      bsSize="large"
+      size="lg"
       backdrop="static"
       onExited={restoreUrl}
       aria-labelledby="contained-modal-title-lg"
@@ -231,16 +231,16 @@ const NewLoadbalancer = (props) => {
             ) : (
               ""
             )}
-            <span className="help-block">
+            <span className="form-text">
               <i className="fa fa-info-circle"></i>
               The network which provides the internal IP of the load balancer.
             </span>
           </Form.ElementHorizontal>
 
           <Form.ElementHorizontal>
-            <span className="pull-right">
+            <span className="float-end">
               <Button
-                bsStyle="link"
+                variant="link"
                 onClick={() =>
                   setShowAdvanceNetworkSettings(!showAdvanceNetworkSettings)
                 }
@@ -286,7 +286,7 @@ const NewLoadbalancer = (props) => {
                   ) : (
                     ""
                   )}
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     You may specify an availability zone (AZ). If left empty,
                     automatic cross-DC high availability will be used.
@@ -310,7 +310,7 @@ const NewLoadbalancer = (props) => {
                   ) : (
                     ""
                   )}
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     You can specify a subnet from which the fixed IP is chosen.
                     If empty any subnet is selected.
@@ -323,7 +323,7 @@ const NewLoadbalancer = (props) => {
                     type="text"
                     name="vip_address"
                   />
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     You can specify an IP from the subnet if you like. Otherwise
                     an IP will be allocated automatically.
@@ -335,7 +335,7 @@ const NewLoadbalancer = (props) => {
 
           <Form.ElementHorizontal label="Tags" name="tags">
             <TagsInput name="tags" />
-            <span className="help-block">
+            <span className="form-text">
               <i className="fa fa-info-circle"></i>
               Start a new tag typing a string and hitting the Enter or Tab key.
             </span>

@@ -59,7 +59,7 @@ export default class SecurityServiceForm extends React.Component {
 
           <Form.ElementHorizontal label="DNS IP" name="dns_ip">
             <Form.Input elementType="input" />
-            <p className="help-block">
+            <p className="form-text">
               <i className="fa fa-info-circle" />
               You can provide an IP (ipv4) of your AD's DNS. It is possible to
               specify multiple addresses separated by commas.
@@ -82,7 +82,7 @@ export default class SecurityServiceForm extends React.Component {
 
           <Form.ElementHorizontal label="Server" name="server">
             <Form.Input elementType="input" />
-            <p className="help-block">
+            <p className="form-text">
               <i className="fa fa-info-circle" />
               You can provide an IP (ipv4) of your AD's preferred DC. It is
               possible to specify multiple addresses separated by commas.
@@ -104,7 +104,7 @@ export default class SecurityServiceForm extends React.Component {
         backdrop="static"
         show={this.state.show}
         onHide={this.close}
-        bsSize="large"
+        size="lg"
         aria-labelledby="contained-modal-title-lg"
       >
         <Modal.Header closeButton>

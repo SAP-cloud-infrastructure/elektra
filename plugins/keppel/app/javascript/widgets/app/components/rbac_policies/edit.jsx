@@ -149,7 +149,7 @@ export default class RBACPoliciesEditModal extends React.Component {
         dialogClassName="modal-xl"
         show={this.state.show}
         onHide={this.close}
-        bsSize="large"
+        size="lg"
         aria-labelledby="contained-modal-title-lg"
       >
         <Modal.Header closeButton>
@@ -193,7 +193,7 @@ export default class RBACPoliciesEditModal extends React.Component {
                 <th className="col-md-1">
                   {isAdmin && (
                     <button
-                      className="btn btn-sm btn-default"
+                      className="btn btn-sm btn-secondary"
                       onClick={this.addPolicy}
                     >
                       Add policy
@@ -238,7 +238,7 @@ export default class RBACPoliciesEditModal extends React.Component {
             <>
               <Button
                 onClick={this.handleSubmit}
-                bsStyle="primary"
+                variant="primary"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? "Saving..." : "Save"}

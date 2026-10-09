@@ -59,7 +59,7 @@ const LargeFileInstruction = ({}) => {
       show={show}
       onHide={close}
       onExit={back}
-      bsSize="large"
+      size="lg"
       // dialogClassName="modal-xl"
       aria-labelledby="contained-modal-title-lg"
     >
@@ -91,7 +91,7 @@ const LargeFileInstruction = ({}) => {
                 </code>
               </p>
 
-              <div className="text-right">
+              <div className="text-end">
                 {showCopyInfo && (
                   <>
                     <span className="fade-in-info-text reverse">

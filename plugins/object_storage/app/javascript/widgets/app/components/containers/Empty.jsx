@@ -90,7 +90,7 @@ const EmptyContainer = () => {
   }, [cancelEmpty])
 
   return (
-    <Modal show={show} onHide={close} onExit={back} bsSize="lg" aria-labelledby="contained-modal-title-lg">
+    <Modal show={show} onHide={close} onExit={back} size="lg" aria-labelledby="contained-modal-title-lg">
       <Modal.Header closeButton>
         <Modal.Title id="contained-modal-title-lg">
           Empty container: <span ref={headerRef}>{container?.name}</span>{" "}
@@ -123,7 +123,7 @@ const EmptyContainer = () => {
         ) : (
           <>
             {error && (
-              <Alert bsStyle="danger">
+              <Alert variant="danger">
                 <strong>An error has occurred</strong>
                 <p>{error}</p>
               </Alert>
@@ -165,8 +165,8 @@ const EmptyContainer = () => {
                   <div className="row">
                     <div className="col-md-6">
                       <fieldset>
-                        <div className="form-group string required forms_confirm_container_action_name">
-                          <label className="control-label string required" htmlFor="confirmation">
+                        <div className="mb-3 string required forms_confirm_container_action_name">
+                          <label className="col-form-label string required" htmlFor="confirmation">
                             <abbr title="required">*</abbr> Type container name to confirm
                           </label>
                           <input
@@ -207,7 +207,7 @@ const EmptyContainer = () => {
             <Button onClick={close}>Cancel</Button>
 
             <Button
-              bsStyle="primary"
+              variant="primary"
               onClick={empty}
               disabled={!container || container.name !== confirmation || beingEmptied}
             >

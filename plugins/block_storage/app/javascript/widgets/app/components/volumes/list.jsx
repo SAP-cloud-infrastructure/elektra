@@ -58,8 +58,18 @@ const VolumesList = ({
             onSubmit={(searchType, searchTerm) => fetchVolumes({ searchType, searchTerm })}
             helpText="Search by name, ID or status will find exact or partial matches. ID and status have to be exact matches to be found."
           />
-          <input type="checkbox" checked={showAvailable} onChange={() => setShowAvailable(!showAvailable)} />
-          <span style={{ paddingLeft: "5px", paddingTop: "4px" }}>Show only available volumes</span>
+          <div className="form-check ms-3">
+            <input
+              type="checkbox"
+              className="form-check-input"
+              id="show-available-volumes"
+              checked={showAvailable}
+              onChange={() => setShowAvailable(!showAvailable)}
+            />
+            <label className="form-check-label" htmlFor="show-available-volumes">
+              Show only available volumes
+            </label>
+          </div>
           {canCreate && (
             <div className="main-buttons">
               <DefeatableLink to="/volumes/new" className="btn btn-primary">
@@ -73,7 +83,6 @@ const VolumesList = ({
       <table className="table volumes">
         <thead>
           <tr>
-            <th></th>
             <th>Volume Name</th>
             <th>Availability Zone</th>
             <th>Description</th>
@@ -102,7 +111,7 @@ const VolumesList = ({
               ))
           ) : (
             <tr>
-              <td colSpan="7">{volumes.isFetching ? <span className="spinner" /> : "No volumes found."}</td>
+              <td colSpan="8">{volumes.isFetching ? <span className="spinner" /> : "No volumes found."}</td>
             </tr>
           )}
         </tbody>

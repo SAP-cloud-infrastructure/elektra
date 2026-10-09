@@ -141,15 +141,15 @@ const Snapshot: React.FC<SnapshotProps> = ({ snapshot, searchTerm, reloadSnapsho
         {hasAnyPermission && (
           <div className="btn-group">
             <button
-              className="btn btn-default btn-sm dropdown-toggle"
+              className="btn btn-secondary btn-sm dropdown-toggle"
               disabled={isPendingState()}
               type="button"
-              data-toggle="dropdown"
+              data-bs-toggle="dropdown"
               aria-expanded={true}
             >
               <span className="fa fa-cog"></span>
             </button>
-            <ul className="dropdown-menu dropdown-menu-right" role="menu">
+            <ul className="dropdown-menu dropdown-menu-end" role="menu">
               {policy.isAllowed("block_storage:snapshot_update", {
                 target: { scoped_domain_name: scope.domain },
               }) && (

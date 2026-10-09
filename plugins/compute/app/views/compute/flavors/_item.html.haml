@@ -17,9 +17,9 @@
   %td.snug
     - if current_user.is_allowed?("compute:flavor_delete", flavor: flavor) or current_user.is_allowed?("compute:flavor_update", flavor: flavor) or current_user.is_allowed?("compute:flavor_access_list", flavor: flavor)
       .btn-group
-        %button.btn.btn-default.btn-sm.dropdown-toggle{ type: "button", data: { toggle: "dropdown"}, aria: { expanded: true} }
+        %button.btn.btn-secondary.btn-sm.dropdown-toggle{ type: "button", data: { bs_toggle: "dropdown"}, aria: { expanded: true} }
           %span.fa.fa-cog
-        %ul.dropdown-menu.dropdown-menu-right{ role:"menu"}
+        %ul.dropdown-menu.dropdown-menu-end{ role:"menu"}
           - if current_user.is_allowed?("compute:flavor_update", flavor: flavor)
             %li= link_to 'Edit', plugin('compute').edit_flavor_path(id: flavor.id), data: {modal: true}
           - if current_user.is_allowed?("compute:flavor_access_list", flavor: flavor)

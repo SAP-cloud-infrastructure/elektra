@@ -50,7 +50,7 @@ const NewObject = ({ onCreated }) => {
       show={show}
       onHide={close}
       onExit={back}
-      bsSize="large"
+      size="lg"
       aria-labelledby="contained-modal-title-lg"
     >
       <Modal.Header closeButton>
@@ -61,7 +61,7 @@ const NewObject = ({ onCreated }) => {
 
       <Modal.Body>
         {error && (
-          <Alert bsStyle="danger">
+          <Alert variant="danger">
             <strong>An error has occurred</strong>
             <p>{error}</p>
           </Alert>
@@ -70,9 +70,9 @@ const NewObject = ({ onCreated }) => {
         <div className="row">
           <div className="col-md-6">
             <fieldset>
-              <div className="form-group string required forms_confirm_container_action_name">
+              <div className="mb-3 string required forms_confirm_container_action_name">
                 <label
-                  className="control-label string required"
+                  className="col-form-label string required"
                   htmlFor="confirmation"
                 >
                   <abbr title="required">*</abbr> Type container name
@@ -98,7 +98,7 @@ const NewObject = ({ onCreated }) => {
       <Modal.Footer>
         <Button onClick={close}>Cancel</Button>
         <Button
-          bsStyle="primary"
+          variant="primary"
           onClick={submit}
           disabled={!name || processing}
         >

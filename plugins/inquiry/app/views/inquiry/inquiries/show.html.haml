@@ -3,12 +3,12 @@
 
 .modal-body
   %ul.nav.nav-tabs
-    %li.active{role: "presentation"}= link_to 'Overview', '#overview', aria: {controls:"overview"}, role: "tab", data: {toggle:"tab"}
-    %li{role: "presentation"}
-      = link_to '#payload', aria: {controls:"payload"}, role: "tab", data: {toggle:"tab"} do
+    %li.nav-item{role: "presentation"}= link_to 'Overview', '#overview', class: "nav-link active", aria: {controls:"overview"}, role: "tab", data: {bs_toggle:"tab"}
+    %li.nav-item{role: "presentation"}
+      = link_to '#payload', class: "nav-link", aria: {controls:"payload"}, role: "tab", data: {bs_toggle:"tab"} do
         Payload
-    %li{role: "presentation"}
-      = link_to '#process_steps', aria: {controls:"process_steps"}, role: "tab", data: {toggle:"tab"} do
+    %li.nav-item{role: "presentation"}
+      = link_to '#process_steps', class: "nav-link", aria: {controls:"process_steps"}, role: "tab", data: {bs_toggle:"tab"} do
         Process Steps
         %span.badge= @inquiry.process_steps.length
   .tab-content
@@ -50,6 +50,6 @@
 
 - if modal?
   .modal-footer
-    %button.btn.btn-default{type:"button", data: {dismiss:"modal"}, aria: {label: "Close"}} Close
+    %button.btn.btn-secondary{type:"button", data: {bs_dismiss:"modal"}, aria: {label: "Close"}} Close
 - else
-  = link_to "Close", plugin('inquiry').inquiries_url(), class: 'btn btn-default'
+  = link_to "Close", plugin('inquiry').inquiries_url(), class: 'btn btn-secondary'

@@ -3,16 +3,12 @@
 %form
   .toolbar.toolbar-controlcenter
     / / seach form
-    .inputwrapper
-      = select_tag 'searchfor', options_for_select(['Name', 'ID', 'IP', 'Status'], @searchfor), class: "form-control"
-
-    .inputwrapper
-      .input-group.has-feedback.has-feedback-searchable
-        %input.form-control{:id => "search", :name => 'search', :placeholder => "Name, ID, IP or Status", :type => "text", :size => 40, :value => @search }
-        .span.input-group-btn
-          %button.btn.btn-default{type: "submit"}
-            %i.fa.fa-search
-    %a.help-link.has-feedback-help{href: "#", data: {toggle: "popover", "popover-type": "help-hint", content: 'Search by name and fixed IP will find exact or partial matches. ID and status have to be exact matches to be found.'}}
+    .input-group.w-auto
+      = select_tag 'searchfor', options_for_select(['Name', 'ID', 'IP', 'Status'], @searchfor), class: "form-select w-auto flex-grow-0"
+      %input.form-control{:id => "search", :name => 'search', :placeholder => "Name, ID, IP or Status", :type => "text", :size => 40, :value => @search }
+      %button.btn.btn-secondary{type: "submit"}
+        %i.fa.fa-search
+    %a.help-link.has-feedback-help{href: "#", data: {bs_toggle: "popover", "popover-type": "help-hint", content: 'Search by name and fixed IP will find exact or partial matches. ID and status have to be exact matches to be found.'}}
       %i.fa.fa-question-circle
 
     - if current_user.is_allowed?("compute:instance_create", {target: { project: @active_project, scoped_domain_name: @scoped_domain_name}})
@@ -26,24 +22,23 @@
       %th.snug
       %th
         Name / AZ
-        %i.fa.fa-fw.fa-info-circle{data: { toggle: "tooltip", placement: "top", title: "Availability Zone"}}
+        %i.fa.fa-fw.fa-info-circle{data: { bs_toggle: "tooltip", placement: "top", title: "Availability Zone"}}
       - if @all_projects
         %th Owning Project
       -# %th
       -#   AZ
-      -#   %i.fa.fa-fw.fa-info-circle{data: { toggle: "tooltip", placement: "top", title: "Availability Zone"}}
+      -#   %i.fa.fa-fw.fa-info-circle{data: { bs_toggle: "tooltip", placement: "top", title: "Availability Zone"}}
       %th IPs
       %th
         OS / Size
       -# %th Size
       %th Power state
-      %th Status
       %th Created at
       %th.snug
   %tbody
     - if @instances.empty?
       %tr{data: {empty: true}}
-        %td{colspan: 8} No instances available
+        %td{colspan: 7} No instances available
     - else
       = render partial: 'list', locals: {instances: @instances}
 

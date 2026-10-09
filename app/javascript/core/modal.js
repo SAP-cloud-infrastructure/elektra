@@ -7,6 +7,7 @@
  */
 
 import { isValidUrl } from "../lib/tools/helpers"
+import { openModal, hideModal } from "./bootstrap_engine"
 
 var MoModal = (function () {
   let modal_holder_selector = undefined
@@ -23,7 +24,7 @@ var MoModal = (function () {
       modal_is_loading = false
 
       loading = `\
-<div class="modal loading-dialog" data-keyboard="false" tabindex="-1" role="dialog" aria-hidden="true">
+<div class="modal loading-dialog" data-bs-keyboard="false" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog modal-sm">
     <div class="modal-content">
       <div class="modal-body"><div class="loading-spinner"></div><div class="loading-text">Loading...</div></div>
@@ -70,7 +71,7 @@ var MoModal = (function () {
         if (url) {
           // url is presented
           // close modal window
-          $("#modal-holder").find(".modal").modal("hide")
+          hideModal("#modal-holder .modal")
           // Redirect to url
           window.location = url
         } else if (response_type.indexOf("javascript") > -1) {
@@ -92,7 +93,8 @@ var MoModal = (function () {
             // Remove old modal backdrop
             $(".modal-backdrop").remove()
             // Replace old modal with new one
-            $(modal_holder_selector).html(data).find(modal_selector).modal()
+            $(modal_holder_selector).html(data)
+            openModal(`${modal_holder_selector} ${modal_selector}`)
           }
 
           triggerUpdateEvent()
@@ -122,7 +124,7 @@ var MoModal = (function () {
     }
 
     static close() {
-      return $("#modal-holder").find(".modal").modal("hide")
+      return hideModal("#modal-holder .modal")
     }
 
     static load(anker) {
@@ -158,7 +160,7 @@ var MoModal = (function () {
 
       modal_is_loading = true
       $.get(location, attr)
-        .error(showError)
+        .fail(showError)
         .done(function (data, status, xhr) {
           // console.log 'done'
           //$button.removeClass('loading')
@@ -169,19 +171,21 @@ var MoModal = (function () {
           // got a redirect response
           if (url) {
             // close modal window
-            $("#modal-holder").find(".modal").modal("hide")
+            hideModal("#modal-holder .modal")
             return (window.location = url)
           } else {
-            if ($(".modal-backdrop").length === 0) {
-              // prevent multiple overlays on double click
-              // open modal with content from ajax response
-              $(modal_holder_selector).html(data).find(modal_selector).modal()
-              // for the case the response contains a form intialize it
-              return triggerUpdateEvent()
-            }
+            // BS5 tears down the loader backdrop asynchronously, so the old
+            // "backdrop count === 0" guard is unreliable. Sweep stray backdrops
+            // and open the content modal unconditionally.
+            $(".modal-backdrop").remove()
+            // open modal with content from ajax response
+            $(modal_holder_selector).html(data)
+            openModal(`${modal_holder_selector} ${modal_selector}`)
+            // for the case the response contains a form intialize it
+            return triggerUpdateEvent()
           }
         })
-        .complete(() => (modal_is_loading = false))
+        .always(() => (modal_is_loading = false))
       return false
     }
 
@@ -211,7 +215,7 @@ var MoModal = (function () {
 
           $(".modal-backdrop").remove()
           $(modal_holder_selector).find(modal_selector).replaceWith($data)
-          $(modal_holder_selector).find(modal_selector).modal()
+          openModal(`${modal_holder_selector} ${modal_selector}`)
           //
           // $(modal_holder_selector).find(modal_selector).modal('hide')
           // $(modal_holder_selector).html($data).find(modal_selector).modal()

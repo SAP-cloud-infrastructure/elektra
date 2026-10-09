@@ -1,18 +1,18 @@
 = form_for zone_transfer_request, url: plugin('dns_service').zone_transfer_requests_path(zone_id: zone_transfer_request.zone_id), method: :post, remote: request.xhr?, html: {class: 'form-horizontal', data: {modal: true} } do |f|
   .modal-body
-    .form-group.string.required.target_project_id
+    .mb-3.string.required.target_project_id
       - if zone_transfer_request.errors.present?
         .alert.alert-error
           = render_errors(zone_transfer_request.errors)
-      %label.string.required.col-sm-4.control-label{ for: "target_project_id"}
+      %label.string.required.col-sm-4.col-form-label{ for: "target_project_id"}
         %abbr{title: "required"} *
         Target Project
       .col-sm-8
         .input-wrapper
           = f.text_field :target_project_id, class: "form-control", placeholder: 'Project ID the zone is transferred to.'
 
-    .form-group.string.description
-      %label.string.col-sm-4.control-label{ for: "description"}
+    .mb-3.string.description
+      %label.string.col-sm-4.col-form-label{ for: "description"}
         Description
       .col-sm-8
         .input-wrapper
@@ -20,4 +20,4 @@
 
   .modal-footer
     = button_tag "Create", { class: 'btn btn-primary', data: { disable_with: "Please wait..." } }
-    %button.btn.btn-default{type:"button", data: {dismiss:"modal"}, aria: {label: "Close"}} Close
+    %button.btn.btn-secondary{type:"button", data: {bs_dismiss:"modal"}, aria: {label: "Close"}} Close

@@ -88,13 +88,13 @@ const FormBody: React.FC<FormBodyProps> = ({ networks, subnets, securityGroups }
       <Form.Errors />
 
       <Form.ElementHorizontal label="Network" required={true} name="network_id">
-        <p className="form-control-static">{network && network.name}</p>
+        <p className="form-control-plaintext">{network && network.name}</p>
       </Form.ElementHorizontal>
 
       <Form.ElementHorizontal label="Fixed IPs" required name="fixed_ips">
         {values.fixed_ips &&
           values.fixed_ips.map((ip: { ip_address: string; subnet_id: string }, index: number) => (
-            <div key={index} className="form-control-static">
+            <div key={index} className="form-control-plaintext">
               {renderIp(ip)}
             </div>
           ))}
@@ -153,7 +153,7 @@ const EditPortForm: React.FC<EditPortFormProps> = ({
   }
 
   return (
-    <Modal show={show} onHide={close} bsSize="large" aria-labelledby="contained-modal-title-lg">
+    <Modal show={show} onHide={close} size="lg" aria-labelledby="contained-modal-title-lg">
       <Modal.Header closeButton>
         <Modal.Title id="contained-modal-title-lg">Edit Port {port && `${port.name} (${port.id})`}</Modal.Title>
       </Modal.Header>

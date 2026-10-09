@@ -57,7 +57,7 @@ const CustomMetaTags = ({ values, onChange, reservedKeys }) => {
       {reservedKeys && reservedKeys.length > 0 && (
         <div className="small">Reserved keys: {reservedKeys.join(", ")}</div>
       )}
-      {error && <Alert bsStyle="danger">{error}</Alert>}
+      {error && <Alert variant="danger">{error}</Alert>}
       {tags.map((tag, i) => (
         <React.Fragment key={i}>
           <div className="input-group">
@@ -72,7 +72,7 @@ const CustomMetaTags = ({ values, onChange, reservedKeys }) => {
               }}
               className="string optional form-control"
             />
-            <div className="input-group-addon">=</div>
+            <div className="input-group-text">=</div>
             <input
               type="text"
               data-test={`metaDataValue_${i}`}

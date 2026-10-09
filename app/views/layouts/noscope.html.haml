@@ -17,8 +17,8 @@
     %nav.navbar.navbar-fixed-top.navbar-inverse.navbar-sap
       .container
         .navbar-header
-          %button.navbar-toggle.collapsed{"data-target": "#main-nav-collapse", "data-toggle": "collapse", type: "button"}
-            %span.sr-only Toggle navigation
+          %button.navbar-toggle.collapsed{"data-bs-target": "#main-nav-collapse", "data-bs-toggle": "collapse", type: "button"}
+            %span.visually-hidden Toggle navigation
             %span.icon-bar
             %span.icon-bar
             %span.icon-bar
@@ -46,7 +46,7 @@
 
     %footer.footer
       .container
-        = image_tag "monsoon_cloud.svg", alt: "SAP Cloud Infrastructure", class: "pull-right"
+        = image_tag "monsoon_cloud.svg", alt: "SAP Cloud Infrastructure", class: "float-end"
 
         .row
           .col-sm-2

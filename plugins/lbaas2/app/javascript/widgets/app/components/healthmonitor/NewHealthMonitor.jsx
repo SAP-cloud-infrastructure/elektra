@@ -92,7 +92,7 @@ const NewHealthMonitor = (props) => {
     <Modal
       show={show}
       onHide={close}
-      bsSize="large"
+      size="lg"
       backdrop="static"
       onExited={restoreUrl}
       aria-labelledby="contained-modal-title-lg"
@@ -122,7 +122,7 @@ const NewHealthMonitor = (props) => {
 
           <Form.ElementHorizontal label="Type" name="type" required>
             <SelectInput name="type" items={healthMonitorTypes()} onChange={onHealthMonitorTypeChanged} />
-            <span className="help-block">
+            <span className="form-text">
               <i className="fa fa-info-circle"></i>
               The type of probe sent by the load balancer to verify the member state.
             </span>
@@ -130,7 +130,7 @@ const NewHealthMonitor = (props) => {
 
           <Form.ElementHorizontal label="Max Retries Down" name="max_retries_down">
             <Form.Input elementType="input" type="number" min="1" max="10" name="max_retries_down" />
-            <span className="help-block">
+            <span className="form-text">
               <i className="fa fa-info-circle"></i>
               The number of allowed check failures before marking the member as OFFLINE. A valid value is from 1 to 10.
               The default is 3. <b>Note</b>: This parameter differs from the Octavia "Max Retries", which is not
@@ -140,7 +140,7 @@ const NewHealthMonitor = (props) => {
 
           <Form.ElementHorizontal label="Interval" name="delay" required>
             <Form.Input elementType="input" type="number" min="1" name="delay" />
-            <span className="help-block">
+            <span className="form-text">
               <i className="fa fa-info-circle"></i>
               The time, in seconds, between sending health check probes to pool members.
             </span>
@@ -154,7 +154,7 @@ const NewHealthMonitor = (props) => {
                 onChange={onHttpMethodsChanged}
                 value={{ label: "GET", value: "GET" }}
               />
-              <span className="help-block">
+              <span className="form-text">
                 <i className="fa fa-info-circle"></i>
                 The HTTP method that the health monitor uses for requests. The default is GET.
               </span>
@@ -165,7 +165,7 @@ const NewHealthMonitor = (props) => {
             <Form.ElementHorizontal label="Expected codes" name="expected_codes">
               {/* We need here the shared FormInput because of need to set a default value */}
               <FormInput type="text" name="expected_codes" defaultValue="200" />
-              <span className="help-block">
+              <span className="form-text">
                 <i className="fa fa-info-circle"></i>
                 The list of HTTP status codes expected in response from the member to declare it healthy. Specify one of
                 the following values:
@@ -183,7 +183,7 @@ const NewHealthMonitor = (props) => {
             <Form.ElementHorizontal label="Url path" name="url_path">
               {/* We need here the shared FormInput because of need to set a default value */}
               <FormInput type="text" name="url_path" defaultValue="/" />
-              <span className="help-block">
+              <span className="form-text">
                 <i className="fa fa-info-circle"></i>
                 The HTTP URL path of the request sent by the monitor to test the health of a backend member. Must be a
                 string that begins with a forward slash (/). The default URL path is /.
@@ -193,7 +193,7 @@ const NewHealthMonitor = (props) => {
 
           <Form.ElementHorizontal label="Tags" name="tags">
             <TagsInput name="tags" />
-            <span className="help-block">
+            <span className="form-text">
               <i className="fa fa-info-circle"></i>
               Start a new tag typing a string and hitting the Enter or Tab key.
             </span>

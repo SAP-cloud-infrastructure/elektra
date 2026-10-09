@@ -532,7 +532,7 @@ describe("Item Component", () => {
     it("applies correct classes to dropdown button", () => {
       renderComponent()
       const button = screen.getByRole("button")
-      expect(button).toHaveClass("btn", "btn-default", "btn-sm", "dropdown-toggle")
+      expect(button).toHaveClass("btn", "btn-secondary", "btn-sm", "dropdown-toggle")
     })
 
     it("applies 'info-text' class to subnet names", () => {
@@ -561,7 +561,7 @@ describe("Item Component", () => {
     it("has correct dropdown menu classes", () => {
       const { container } = renderComponent()
       const dropdownMenu = container.querySelector(".dropdown-menu")
-      expect(dropdownMenu).toHaveClass("dropdown-menu", "dropdown-menu-right")
+      expect(dropdownMenu).toHaveClass("dropdown-menu", "dropdown-menu-end")
       expect(dropdownMenu).toHaveAttribute("role", "menu")
     })
   })

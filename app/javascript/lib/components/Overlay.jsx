@@ -1,7 +1,8 @@
 import React from "react"
-// import { createPortal } from "react-dom"
+import { initTooltips, disposeTooltip, initPopovers, disposePopover } from "core/bootstrap_engine"
 
-// This Components uses the bootstrap 3 jQuery approach to place the tooltip
+// Uses the Bootstrap 5 native JS API (via the central engine) to attach a
+// tooltip to the wrapped child element.
 export const Tooltip = ({
   container,
   content,
@@ -14,29 +15,21 @@ export const Tooltip = ({
   const ref = React.useRef()
   React.useEffect(() => {
     if (!ref.current) return
-    window
-      .$(ref.current)
-      .tooltip({ html, placement, title: content, delay, trigger, container })
-    return () => window.$(ref.current).tooltip("destroy")
+    initTooltips(ref.current, { html, placement, title: content, delay, trigger, container })
+    return () => disposeTooltip(ref.current)
   }, [])
 
   return React.cloneElement(children, { ref })
 }
 
-// This Components uses the bootstrap 3 jQuery approach to place the tooltip
-export const Popover = ({
-  trigger,
-  title,
-  content,
-  children,
-  placement = "top",
-  html = false,
-}) => {
+// Uses the Bootstrap 5 native JS API (via the central engine) to attach a
+// popover to the wrapped child element.
+export const Popover = ({ trigger, title, content, children, placement = "top", html = false }) => {
   const ref = React.useRef()
   React.useEffect(() => {
     if (!ref.current) return
-    window.$(ref.current).popover({ html, placement, title, content, trigger })
-    return () => window.$(ref.current).popover("destroy")
+    initPopovers(ref.current, { html, placement, title, content, trigger })
+    return () => disposePopover(ref.current)
   }, [])
 
   return React.cloneElement(children, { ref })

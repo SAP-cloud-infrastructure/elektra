@@ -90,7 +90,7 @@ const UploadFile = ({ refresh }) => {
       show={show}
       onHide={close}
       onExit={back}
-      bsSize="large"
+      size="lg"
       aria-labelledby="contained-modal-title-lg"
       // dialogClassName="modal-xl"
     >
@@ -102,7 +102,7 @@ const UploadFile = ({ refresh }) => {
 
       <Modal.Body>
         {error && (
-          <Alert bsStyle="danger">
+          <Alert variant="danger">
             <strong>An error has occurred</strong>
             <p>{error}</p>
           </Alert>
@@ -127,7 +127,7 @@ const UploadFile = ({ refresh }) => {
                 </code>
               </p>
 
-              <div className="text-right">
+              <div className="text-end">
                 {showCopyInfo && (
                   <>
                     <span className="fade-in-info-text reverse">copied to clipboard</span>{" "}
@@ -144,8 +144,8 @@ const UploadFile = ({ refresh }) => {
         </div>
 
         <div className="form-horizontal">
-          <div className="form-group">
-            <label className="col-sm-2 control-label">
+          <div className="mb-3">
+            <label className="col-sm-2 col-form-label">
               <abbr title="required">*</abbr> Select file
             </label>
             <div className="col-sm-10">
@@ -153,8 +153,8 @@ const UploadFile = ({ refresh }) => {
             </div>
           </div>
 
-          <div className="form-group">
-            <label className="col-sm-2 control-label">
+          <div className="mb-3">
+            <label className="col-sm-2 col-form-label">
               <abbr title="required">*</abbr> File name
             </label>
             <div className="col-sm-10">
@@ -170,7 +170,7 @@ const UploadFile = ({ refresh }) => {
       </Modal.Body>
       <Modal.Footer>
         <Button onClick={close}>Cancel</Button>
-        <Button bsStyle="primary" onClick={submit} disabled={!valid || submitting}>
+        <Button variant="primary" onClick={submit} disabled={!valid || submitting}>
           Upload
         </Button>
       </Modal.Footer>

@@ -93,14 +93,14 @@ const ReplicaItem: React.FC<ReplicaItemProps> = ({
         {(canI("promote") || canI("delete") || canI("resync") || canI("get_error_log")) && (
           <div className="btn-group">
             <button
-              className="btn btn-default btn-sm dropdown-toggle"
+              className="btn btn-secondary btn-sm dropdown-toggle"
               type="button"
-              data-toggle="dropdown"
+              data-bs-toggle="dropdown"
               aria-expanded="true"
             >
               <i className="fa fa-cog"></i>
             </button>
-            <ul className="dropdown-menu dropdown-menu-right" role="menu">
+            <ul className="dropdown-menu dropdown-menu-end" role="menu">
               {canI("delete") && replica.status !== "creating" && (
                 <li>
                   <a

@@ -1,7 +1,7 @@
 - auto_dismissible ||= false
 - html_safe ||= false
 %div{class: "alert alert-#{key} alert-dismissible word-wrap #{"auto-dismissible" if auto_dismissible}", 'role' => 'alert','aria-expanded' => 'true'}
-  %button.close{type:'button', data: {dismiss: 'alert'}, "aria-label" => "Close"}
+  %button.close{type:'button', data: {bs_dismiss: 'alert'}, "aria-label" => "Close"}
     %span{'aria-hidden' => 'true'}
       &times;
   - if html_safe

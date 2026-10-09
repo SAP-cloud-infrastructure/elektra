@@ -6,7 +6,7 @@
 %tr{id: "zone_#{zone&.id}", class: className, data: {search_name: "#{zone&.name}_#{zone&.id}", marker_id: zone&.id} }
   %td
     - if active_zone_transfer_requests[zone.id]
-      %i.fa.fa-fw.fa-truck{ data: {toggle:"tooltip", placement:"bottom", title: "There is a transfer request for this zone."}}
+      %i.fa.fa-fw.fa-truck{ data: {bs_toggle:"tooltip", placement:"bottom", title: "There is a transfer request for this zone."}}
     - if current_user.is_allowed?("dns_service:zone_get", zone: zone.attributes)
       = link_to zone.name, zone_path(zone.id)
     - else
@@ -43,9 +43,9 @@
   %td.snug
     - if current_user.is_allowed?("dns_service:zone_get", zone: zone.attributes) or current_user.is_allowed?("dns_service:zone_delete", zone: zone.attributes) or current_user.is_allowed?("dns_service:zone_update", zone: zone.attributes)
       .btn-group
-        %button.btn.btn-default.btn-sm.dropdown-toggle{ type: "button", data: { toggle: "dropdown"}, aria: { expanded: true} }
+        %button.btn.btn-secondary.btn-sm.dropdown-toggle{ type: "button", data: { bs_toggle: "dropdown"}, aria: { expanded: true} }
           %span.fa.fa-cog
-        %ul.dropdown-menu.dropdown-menu-right{ role:"menu"}
+        %ul.dropdown-menu.dropdown-menu-end{ role:"menu"}
           - if current_user.is_allowed?("dns_service:zone_get", zone: zone.attributes)
             %li= link_to 'Manage Records', plugin('dns_service').zone_path(zone.id)
           - if current_user.is_allowed?("dns_service:maintain_shared_zones", zone: zone.attributes) && !shared_project_view

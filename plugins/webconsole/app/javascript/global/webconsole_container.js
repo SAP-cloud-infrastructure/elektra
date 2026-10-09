@@ -62,7 +62,7 @@ var WebconsoleContainer = (function () {
             for (let i = 0; i < settings.buttons.length; i++) {
               var button = settings.buttons[i]
               $buttons.append(
-                `<a href='#' data-trigger='webconsole:${button}' data-toggle='tooltip' title='${
+                `<a href='#' data-trigger='webconsole:${button}' data-bs-toggle='tooltip' title='${
                   settings[button + "Text"]
                 }'><i class='${settings[button + "Icon"]}'/></a>`
               )
@@ -306,7 +306,7 @@ var WebconsoleContainer = (function () {
 
       // load token and endpoints
       return loadWebconsoleData(this.settings)
-        .error(function (jqXHR, textStatus, errorThrown) {
+        .fail(function (jqXHR, textStatus, errorThrown) {
           const redirectTo = jqXHR.getResponseHeader("Location")
           if (redirectTo && redirectTo.indexOf("/auth/login/") > -1) {
             const loginUrl = new URL(redirectTo, window.location.origin)
@@ -318,7 +318,7 @@ var WebconsoleContainer = (function () {
             `<div class='info-text'>An error has occurred while trying to load your shell. Please try again later. The error was: <br />${jqXHR.status} - ${errorThrown}</div>`
           )
         })
-        .success(function (context, textStatus, jqXHR) {
+        .done(function (context, textStatus, jqXHR) {
           $loadingHint.find(".status").text("20%")
 
           // Check if URL is already provided by BFF

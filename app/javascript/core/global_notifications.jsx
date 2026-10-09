@@ -66,7 +66,7 @@ const GlobalNotifications = () => {
   return (
     <div className="global-notifications">
       {visibleNotifications?.length === 1 ? (
-        <Alert className="notification" bsStyle={visibleNotifications[0].type || "info"}>
+        <Alert className="notification" variant={visibleNotifications[0].type || "info"}>
           <div className="notification-container">
             <i className={`fa fa-${ICON_TYPES[visibleNotifications[0].type] || "info"}`} />
             <b>{visibleNotifications[0]?.title}</b> {visibleNotifications[0]?.description}
@@ -76,7 +76,7 @@ const GlobalNotifications = () => {
         <Carousel interval={CAROUSEL_INTERVAL} indicators={false} controls={false}>
           {visibleNotifications.map((notification, index) => (
             <Carousel.Item key={index}>
-              <Alert className="notification" bsStyle={notification.type || "info"}>
+              <Alert className="notification" variant={notification.type || "info"}>
                 <div className="notification-container">
                   <i className={`fa fa-${ICON_TYPES[notification?.type] || "info"}`} />
                   <b>{notification?.title}</b> {notification?.description}{" "}

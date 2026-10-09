@@ -40,6 +40,13 @@ i.warning {
     align-items: flex-end;
   }
 
+  // Nodepool field labels (Name, Flavor, AZ, Size): BS5 left them centered over
+  // their inputs inside the flex row. Force left alignment like the BS3 look.
+  .col-form-label {
+    display: block;
+    text-align: left;
+  }
+
   .checkbox {
     padding-bottom: 8px;
     white-space: nowrap;
@@ -97,5 +104,27 @@ i.warning {
 
   h5 {
     margin-bottom: $line-height-computed;
+  }
+}
+
+// Edit/New Cluster modal top fields (Cluster Name, Key Pair): the markup uses
+// BS3-style `col-sm-4` label + `col-sm-8` input inside a `.mb-3` wrapper, but
+// without a `.row` the BS5 grid never forms, so the label didn't sit beside the
+// input and its right-alignment looked off. Lay each group out as a flex row so
+// the label (col-sm-4) sits left of the input and right-aligns like the BS3 look.
+.form-horizontal {
+  > .mb-3 {
+    display: flex;
+    align-items: center;
+
+    > .col-sm-4 {
+      flex: 0 0 33.333%;
+      max-width: 33.333%;
+    }
+
+    > .col-sm-8 {
+      flex: 0 0 66.666%;
+      max-width: 66.666%;
+    }
   }
 }

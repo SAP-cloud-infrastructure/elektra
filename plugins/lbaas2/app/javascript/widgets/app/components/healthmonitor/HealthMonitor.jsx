@@ -169,15 +169,15 @@ const HealthMonitor = ({ props, loadbalancerID }) => {
                     <div className="main-buttons">
                       <div className="btn-group   ">
                         <button
-                          className="btn btn-default btn-xs dropdown-toggle"
+                          className="btn btn-secondary btn-xs dropdown-toggle"
                           type="button"
-                          data-toggle="dropdown"
+                          data-bs-toggle="dropdown"
                           aria-expanded={true}
                         >
                           <span className="fa fa-cog"></span>
                         </button>
                         <ul
-                          className="dropdown-menu dropdown-menu-right"
+                          className="dropdown-menu dropdown-menu-end"
                           role="menu"
                         >
                           <li>

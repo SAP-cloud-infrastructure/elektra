@@ -158,7 +158,7 @@ const EditHealthMonitor = (props) => {
     <Modal
       show={show}
       onHide={close}
-      bsSize="large"
+      size="lg"
       backdrop="static"
       onExited={restoreUrl}
       aria-labelledby="contained-modal-title-lg"
@@ -217,7 +217,7 @@ const EditHealthMonitor = (props) => {
                       }
                     }
                   />
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     The type of probe sent by the load balancer to verify the
                     member state.
@@ -235,7 +235,7 @@ const EditHealthMonitor = (props) => {
                     max="10"
                     name="max_retries_down"
                   />
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     The number of allowed check failures before marking the
                     member as OFFLINE. A valid value is from 1 to 10. The
@@ -250,7 +250,7 @@ const EditHealthMonitor = (props) => {
                     min="1"
                     name="delay"
                   />
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     The time, in seconds, between sending health check probes to
                     pool members.
@@ -268,7 +268,7 @@ const EditHealthMonitor = (props) => {
                       onChange={onHttpMethodsChanged}
                       value={httpMethod}
                     />
-                    <span className="help-block">
+                    <span className="form-text">
                       <i className="fa fa-info-circle"></i>
                       The HTTP method that the health monitor uses for requests.
                       The default is GET.
@@ -286,7 +286,7 @@ const EditHealthMonitor = (props) => {
                       type="text"
                       name="expected_codes"
                     />
-                    <span className="help-block">
+                    <span className="form-text">
                       <i className="fa fa-info-circle"></i>
                       The list of HTTP status codes expected in response from
                       the member to declare it healthy. Specify one of the
@@ -308,7 +308,7 @@ const EditHealthMonitor = (props) => {
                       type="text"
                       name="url_path"
                     />
-                    <span className="help-block">
+                    <span className="form-text">
                       <i className="fa fa-info-circle"></i>
                       The HTTP URL path of the request sent by the monitor to
                       test the health of a backend member. Must be a string that
@@ -323,7 +323,7 @@ const EditHealthMonitor = (props) => {
                     name="tags"
                     initValue={healthmonitor.item && healthmonitor.item.tags}
                   />
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     Start a new tag typing a string and hitting the Enter or Tab
                     key.

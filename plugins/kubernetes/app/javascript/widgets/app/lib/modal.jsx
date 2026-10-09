@@ -2,6 +2,7 @@
 import { connect } from "react-redux"
 import React from "react"
 import ReactHelpers from "./helpers"
+import { openModal, hideModal } from "core/bootstrap_engine"
 
 const ReactModal = {
   SHOW_MODAL: "SHOW_MODAL",
@@ -20,7 +21,7 @@ ReactModal.Wrapper = (title, WrappedComponent, options = {}) =>
         // two parameters. The first is a Proxy object (don't know what it is).
         // Deactivate the callback feature until fixed.
         // $(@refs.modal).on('hidden.bs.modal', callback) if callback
-        $(modalRef.current).modal("hide")
+        hideModal(modalRef.current)
       },
       [modalRef.current]
     )
@@ -35,8 +36,8 @@ ReactModal.Wrapper = (title, WrappedComponent, options = {}) =>
 
     React.useEffect(() => {
       if (!modalRef.current) return
-      $(modalRef.current).modal("show")
-      $(modalRef.current).on("hidden.bs.modal", handleClose)
+      openModal(modalRef.current)
+      modalRef.current.addEventListener("hidden.bs.modal", handleClose)
     }, [modalRef.current, handleClose])
 
     options = ReactHelpers.mergeObjects({ closeButton: true }, options)
@@ -48,7 +49,7 @@ ReactModal.Wrapper = (title, WrappedComponent, options = {}) =>
     return (
       <div
         className="modal fade"
-        data-backdrop={options.static === true ? "static" : true}
+        data-bs-backdrop={options.static === true ? "static" : true}
         tabIndex="-1"
         ref={modalRef}
         role="dialog"
@@ -64,8 +65,8 @@ ReactModal.Wrapper = (title, WrappedComponent, options = {}) =>
               {options.closeButton && (
                 <button
                   type="button"
-                  className="close"
-                  data-dismiss="modal"
+                  className="btn-close"
+                  data-bs-dismiss="modal"
                   aria-label="Close"
                 >
                   <span aria-hidden="true">x</span>

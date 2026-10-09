@@ -1,37 +1,17 @@
 %ul.footer-nav
   %li
-    = link_to '#', data: { toggle: "modal", target: "#news", class: 'btn btn-primary' } do
-      Development News
-      %span.badge.alert-info#news_badge
-
-    .modal.fade#news
-      .modal-dialog.modal-lg
-        .modal-content
-          .modal-header
-            = link_to 'x', '#', class:"close", data: {dismiss: "modal"}
-            %h4 Development News
-          .modal-body
-            = render 'layouts/news'
-          .modal-footer
-            = link_to 'Close', '#', data: {dismiss: "modal"}, class: "btn"
-
-    - content_for :javascripts do
-      %script{type: "text/javascript"}
-        = render partial: 'layouts/dev_tools_script', formats: :js
-
-  %li
-    = link_to 'Debug info', '#', data: { toggle: "modal", target: "#debug" } if current_user
+    = link_to 'Debug info', '#', data: { bs_toggle: "modal", bs_target: "#debug" } if current_user
 
     .modal.fade#debug
       .modal-dialog.modal-lg
         .modal-content
           .modal-header
-            = link_to 'x', '#', class:"close", data: {dismiss: "modal"}
-            %h4 Debug Info
+            %h4.modal-title Debug Info
+            %button.btn-close{type: "button", data: {bs_dismiss: "modal"}, aria: {label: "Close"}}
           .modal-body
             - if plugin_name
               %pre< Plugin Name: #{plugin_name}
             %pre< Current region: #{current_region}
             %pre<= JSON.pretty_generate(current_user.context) if current_user
           .modal-footer
-            = link_to 'Close', '#', data: {dismiss: "modal"}, class: "btn"
+            = link_to 'Close', '#', data: {bs_dismiss: "modal"}, class: "btn"

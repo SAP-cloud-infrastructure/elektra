@@ -148,7 +148,7 @@ const ShowModal: React.FC<ShowModalProps> = ({ id, snapshot, history, loadSnapsh
         )}
       </Modal.Body>
       <Modal.Footer>
-        <Button onClick={hide} name="close">
+        <Button variant="secondary" onClick={hide} name="close">
           Close
         </Button>
       </Modal.Footer>

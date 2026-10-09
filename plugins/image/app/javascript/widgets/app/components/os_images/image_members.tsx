@@ -113,7 +113,7 @@ const ImageMembersModal: React.FC<ImageMembersModalProps> = ({
   }, [image?.id, resetImageMembers])
 
   return (
-    <Modal show={show} onExited={restoreUrl} onHide={hide} bsSize="large" aria-labelledby="contained-modal-title-lg">
+    <Modal show={show} onExited={restoreUrl} onHide={hide} size="lg" aria-labelledby="contained-modal-title-lg">
       <Modal.Header closeButton>
         <Modal.Title id="contained-modal-title-lg">Access Control for Image {image ? image.name : ""}</Modal.Title>
       </Modal.Header>
@@ -188,7 +188,7 @@ const ImageMembersModal: React.FC<ImageMembersModalProps> = ({
                       <td></td>
                       <td>
                         <a
-                          className={`btn btn-${showForm ? "default" : "primary"} btn-sm pull-right`}
+                          className={`btn btn-${showForm ? "default" : "primary"} btn-sm float-end`}
                           href="#"
                           onClick={(e) => {
                             e.preventDefault()
@@ -207,7 +207,7 @@ const ImageMembersModal: React.FC<ImageMembersModalProps> = ({
         )}
       </Modal.Body>
       <Modal.Footer>
-        <Button onClick={hide}>Close</Button>
+        <Button variant="secondary" onClick={hide}>Close</Button>
       </Modal.Footer>
     </Modal>
   )

@@ -72,7 +72,7 @@ let AdvancedOptions = function ({
           } else {
             return (
               <div className="u-clearfix">
-                <div className="pull-right">
+                <div className="float-end">
                   Loading options <span className="spinner" />
                 </div>
               </div>
@@ -104,9 +104,9 @@ let AdvancedOptions = function ({
                     null,
                     React.createElement(
                       "div",
-                      { className: "form-group required string" },
+                      { className: "mb-3 required string" },
                       <label
-                        className="string required col-sm-4 control-label"
+                        className="string required col-sm-4 col-form-label"
                         htmlFor="securityGroupName"
                       >
                         <abbr title="required">*</abbr> Security Group
@@ -160,9 +160,9 @@ let AdvancedOptions = function ({
                 ? // Router
                   React.createElement(
                     "div",
-                    { className: "form-group required string" },
+                    { className: "mb-3 required string" },
                     <label
-                      className="string required col-sm-4 control-label"
+                      className="string required col-sm-4 col-form-label"
                       htmlFor="routerID"
                     >
                       <abbr title="required">*</abbr> Router
@@ -211,9 +211,9 @@ let AdvancedOptions = function ({
                 selectedRouter.networks != null
                   ? React.createElement(
                       "div",
-                      { className: "form-group required string" },
+                      { className: "mb-3 required string" },
                       <label
-                        className="string required col-sm-4 control-label"
+                        className="string required col-sm-4 col-form-label"
                         htmlFor="networkID"
                       >
                         <abbr title="required">*</abbr> Network
@@ -270,9 +270,9 @@ let AdvancedOptions = function ({
                 selectedNetwork.subnets != null
                   ? React.createElement(
                       "div",
-                      { className: "form-group required string" },
+                      { className: "mb-3 required string" },
                       <label
-                        className="string required col-sm-4 control-label"
+                        className="string required col-sm-4 col-form-label"
                         htmlFor="subnetID"
                       >
                         <abbr title="required">*</abbr> Subnet
@@ -326,9 +326,9 @@ let AdvancedOptions = function ({
           )
         }
       })()}
-      <div className="form-group required string">
+      <div className="mb-3 required string">
         <label
-          className="string col-sm-4 control-label"
+          className="string col-sm-4 col-form-label"
           htmlFor="securityGroupName"
         >
           {" "}
@@ -337,7 +337,7 @@ let AdvancedOptions = function ({
         <div className="col-sm-8">
           {!info.loaded ? (
             <div className="u-clearfix">
-              <div className="pull-right">
+              <div className="float-end">
                 Loading versions <span className="spinner" />
               </div>
             </div>

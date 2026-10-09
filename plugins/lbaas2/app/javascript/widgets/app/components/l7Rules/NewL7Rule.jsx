@@ -99,7 +99,7 @@ const NewL7Rule = (props) => {
     <Modal
       show={show}
       onHide={close}
-      bsSize="large"
+      size="lg"
       backdrop="static"
       onExited={restoreUrl}
       aria-labelledby="contained-modal-title-lg"
@@ -131,7 +131,7 @@ const NewL7Rule = (props) => {
               items={ruleTypes()}
               onChange={onSelectType}
             />
-            <span className="help-block">
+            <span className="form-text">
               <i className="fa fa-info-circle"></i>
               <span className="help-block-text">
                 The L7 rule type. See help for more information.
@@ -149,7 +149,7 @@ const NewL7Rule = (props) => {
               items={ruleCompareTypes()}
               onChange={onSelectCompareType}
             />
-            <span className="help-block">
+            <span className="form-text">
               <i className="fa fa-info-circle"></i>
               <span className="help-block-text">
                 The L7 rule compare type. See help for more information.
@@ -162,7 +162,7 @@ const NewL7Rule = (props) => {
             name="invert"
           >
             <Form.Input elementType="input" type="checkbox" name="invert" />
-            <span className="help-block">
+            <span className="form-text">
               <i className="fa fa-info-circle"></i>
               When true the logic of the rule is inverted. For example, with
               invert true, equal to would become not equal to. Default is false.
@@ -174,7 +174,7 @@ const NewL7Rule = (props) => {
               <div className="advanced-options">
                 <Form.ElementHorizontal label="Key" name="key" required>
                   <Form.Input elementType="input" type="text" name="key" />
-                  <span className="help-block">
+                  <span className="form-text">
                     <i className="fa fa-info-circle"></i>
                     The key to use for the comparison. For example, the name of
                     the cookie to evaluate.
@@ -186,7 +186,7 @@ const NewL7Rule = (props) => {
 
           <Form.ElementHorizontal label="Value" name="value" required>
             <Form.Input elementType="input" type="text" name="value" />
-            <span className="help-block">
+            <span className="form-text">
               <i className="fa fa-info-circle"></i>
               The value to use for the comparison. For example, the file type to
               compare.
@@ -194,7 +194,7 @@ const NewL7Rule = (props) => {
           </Form.ElementHorizontal>
           <Form.ElementHorizontal label="Tags" name="tags">
             <TagsInput name="tags" />
-            <span className="help-block">
+            <span className="form-text">
               <i className="fa fa-info-circle"></i>
               Start a new tag typing a string and hitting the Enter or Tab key.
             </span>
