@@ -22,11 +22,12 @@ const errorsToStringArray = function (errors) {
 }
 
 class SubnetForm {
-  constructor(url, checkCidrRange, createCallback) {
+  constructor(url, checkCidrRange, createCallback, cancelCallback) {
     this.data = { name: null, cidr: null }
     this.url = url
     this.checkCidrRange = checkCidrRange
     this.createCallback = createCallback
+    this.cancelCallback = cancelCallback
     this.state = {
       checkCidrRange: this.checkCidrRange,
       errors: null,
@@ -97,10 +98,10 @@ class SubnetForm {
       })
 
       this.$nameInput = $(
-        '<input class="form-control string required" placeholder="Name" type="text"  style="width: 400px;">'
+        '<input class="form-control string required" placeholder="Name" type="text">'
       )
       this.$cidrInput = $(
-        `<input class="form-control string required" placeholder="CIDR (${cidrHelpText})" type="text" style="width: 600px;">`
+        `<input class="form-control string required" placeholder="CIDR (${cidrHelpText})" type="text">`
       )
 
       const self = this
@@ -112,11 +113,20 @@ class SubnetForm {
       })
 
       this.$submitButton = $('<input type="submit" class="btn btn-primary" value="Add">')
+      this.$cancelButton = $('<a href="#" class="btn btn-secondary">Cancel</a>')
+      this.$cancelButton.click((e) => {
+        e.preventDefault()
+        if (this.cancelCallback) {
+          return this.cancelCallback()
+        }
+      })
 
       this.$form
         .append($('<div class="form-group"></div>').append(this.$nameInput))
         .append($('<div class="form-group"></div>').append(this.$cidrInput))
-        .append($('<div class="form-group"></div>').append(this.$submitButton))
+        .append(
+          $('<div class="form-group form-actions"></div>').append(this.$submitButton).append(this.$cancelButton)
+        )
 
       this.$error = $("<div></div>").appendTo(this.$form)
 
@@ -130,7 +140,10 @@ class SubnetForm {
     if (this.state.show) {
       this.$form.fadeIn("slow")
     } else {
-      this.$form.fadeOut("slow")
+      // Hide immediately instead of fadeOut: during the slow fade the form was
+      // still laid out and briefly reflowed its inputs wider, flashing the
+      // Add/Cancel buttons outside the modal before disappearing.
+      this.$form.hide()
     }
 
     if (this.state.errors) {
@@ -164,11 +177,19 @@ class Subnets {
       errors: null,
     }
 
-    this.form = new SubnetForm(this.url, this.checkCidrRange, (subnet) => {
-      this.state.subnets.push(subnet)
-      this.state.showForm = false
-      return this.render()
-    })
+    this.form = new SubnetForm(
+      this.url,
+      this.checkCidrRange,
+      (subnet) => {
+        this.state.subnets.push(subnet)
+        this.state.showForm = false
+        return this.render()
+      },
+      () => {
+        this.state.showForm = false
+        return this.render()
+      }
+    )
 
     this.render()
     if (!this.subnets) {
@@ -248,7 +269,9 @@ class Subnets {
         const buttons = $('<div class="main-control-buttons"></div>').appendTo(toolbar)
 
         this.form.render().appendTo(toolbar).hide()
-        this.$addButton = $('<a href="#" class="btn btn-primary">+</a>').appendTo(buttons)
+        this.$addButton = $('<a href="#" class="btn btn-primary"><i class="fa fa-plus"></i> Add Subnet</a>').appendTo(
+          buttons
+        )
         this.$addButton.click(() => this.toggleForm(this))
       }
 
@@ -325,11 +348,12 @@ class Subnets {
       })
     ) {
       if (this.state.showForm) {
+        // Form is open: hide the Add button; the form provides its own Cancel.
         this.form.show()
-        this.$addButton.addClass("btn-secondary").removeClass("btn-primary").text("x")
+        this.$addButton.hide()
       } else {
         this.form.hide()
-        this.$addButton.addClass("btn-primary").removeClass("btn-secondary").text("+")
+        this.$addButton.show()
       }
     }
 
