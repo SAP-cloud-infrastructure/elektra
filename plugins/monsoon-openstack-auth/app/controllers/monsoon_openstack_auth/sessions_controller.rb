@@ -17,12 +17,26 @@ module MonsoonOpenstackAuth
         self, (@domain_id || @domain_name)
       )
 
+      # When password login is disabled, the login page renders an SSO-only
+      # message instead of the credentials form (see the view). No redirect, so
+      # we avoid bouncing the user and triggering an OAuth loop.
+      @password_auth_disabled = !MonsoonOpenstackAuth.configuration.password_auth_allowed?
+
       @keystone_endpoint = keystone_tokens_url
     end
 
     def create
       unless MonsoonOpenstackAuth.configuration.form_auth_allowed?
         redirect_to main_app.root_path, alert: 'Not allowed!'
+        return
+      end
+
+      # Password login disabled: never create a session from the form. Re-render
+      # the login page in its SSO-only state with an explanatory notice.
+      unless MonsoonOpenstackAuth.configuration.password_auth_allowed?
+        @password_auth_disabled = true
+        flash.now[:notice] = 'Password login is disabled. Please sign in via Single Sign-On.'
+        render action: :new
         return
       end
 

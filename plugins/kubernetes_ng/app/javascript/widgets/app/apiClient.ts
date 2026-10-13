@@ -194,6 +194,13 @@ export function createGardenerApi(basepath: string) {
           error.name = "Failed to fetch garden kubeconfig"
           throw error
         }),
+    getGardenerInfo: () =>
+      apiClient
+        .get<{ data: { version?: string } | null }>("/api/gardener-api/info")
+        .then((res) => {
+          checkForApiError(res.data)
+          return res.data
+        }),
   }
 
   const scikubeApi = {

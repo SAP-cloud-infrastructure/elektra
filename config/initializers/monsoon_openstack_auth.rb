@@ -24,6 +24,13 @@ MonsoonOpenstackAuth.configure do |auth|
   # optional, default=true
   auth.form_auth_allowed = true
 
+  # optional, default=true
+  # When MONSOON_OPENSTACK_PASSWORD_AUTH_ALLOWED=false, the password login form is
+  # disabled: the login page shows an SSO-only message instead of the form and
+  # password submissions are rejected. The dedicated password_sync endpoint stays
+  # available so users can still sync a rotated password.
+  auth.password_auth_allowed = ENV.fetch('MONSOON_OPENSTACK_PASSWORD_AUTH_ALLOWED', 'true') == 'true'
+
   # optional, default=false
   auth.access_key_auth_allowed = false
 

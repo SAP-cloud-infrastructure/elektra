@@ -94,8 +94,27 @@ class AuthTokenController < ActionController::Base
     end
   end
 
-  # Handles case where token is valid but user has no Keystone access
+  # Handles case where token is valid but user has no Keystone access.
+  #
+  # In SSO-only mode (password_auth_allowed? == false) this is a terminal state:
+  # the user authenticated via SSO but has no OpenStack access, and there is no
+  # password login to fall back to. We must not expose a 401/403 (the OAuth proxy
+  # would redirect back to the IdP and loop) and must not redirect to '/'.
+  # Instead respond with HTTP 200 and carry the real outcome in the payload:
+  # JSON/XHR callers get an internal status code; top-level navigations get a
+  # terminal "no access" page.
   def handle_missing_domain_access
+    unless MonsoonOpenstackAuth.configuration.password_auth_allowed?
+      Rails.logger.info 'SSO succeeded but user has no OpenStack access (SSO-only mode)'
+      if request.format.json? || request.xhr?
+        render json: { status: MonsoonOpenstackAuth::AuthStatus::NO_ACCESS }, status: :ok
+      else
+        @no_access = true
+        render :no_access, status: :ok
+      end
+      return
+    end
+
     @error = 'Domain ID not found in response'
   end
 

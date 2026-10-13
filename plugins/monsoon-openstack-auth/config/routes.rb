@@ -7,4 +7,7 @@ MonsoonOpenstackAuth::Engine.routes.draw do
 
   get 'passcode' => 'sessions#two_factor', as: :two_factor
   post 'passcode' => 'sessions#check_passcode', as: :check_passcode
+
+  get 'password_sync' => 'password_sync#new', as: :password_sync
+  post 'password_sync' => 'password_sync#create', as: :create_password_sync
 end

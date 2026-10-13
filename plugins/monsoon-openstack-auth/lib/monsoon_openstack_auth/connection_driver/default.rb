@@ -144,6 +144,27 @@ module MonsoonOpenstackAuth
         authenticate(auth)
       end
 
+      # Validate a user's credentials unscoped (no project/domain scope on the
+      # token), without creating a session. Unlike authenticate_with_credentials
+      # this does NOT swallow errors: on failure it raises AuthenticationError so
+      # the caller can inspect the status/code (e.g. distinguish a 401 from a
+      # 5xx). The returned token is meant to be discarded by the caller (used
+      # only to confirm the credentials are valid, e.g. to trigger a backend
+      # password sync).
+      #
+      # When a domain_name is given the user is identified by name within that
+      # domain (what users actually type); without it the username is treated as
+      # a Keystone user id.
+      def validate_credentials(username, password, domain_name = nil)
+        user = if domain_name.to_s.empty?
+                 { id: username, password: password }
+               else
+                 { name: username, password: password, domain: { name: domain_name } }
+               end
+        auth = { auth: { identity: { methods: ['password'], password: { user: user } } } }
+        authenticate(auth)
+      end
+
       def revoke_token(token)
         headers = {
           'Content-Type' => 'application/json',

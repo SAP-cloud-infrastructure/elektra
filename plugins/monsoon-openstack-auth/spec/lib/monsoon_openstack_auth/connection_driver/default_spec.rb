@@ -23,6 +23,40 @@ describe MonsoonOpenstackAuth::ConnectionDriver::Default do
   end
 
 
+  describe 'validate_credentials' do
+    it 'calls authenticate by name within the given domain' do
+      @driver.validate_credentials('D123456', 'secret', 'monsoon3')
+      expect(@driver).to have_received(:authenticate).with(
+        auth: {
+          identity: {
+            methods: ['password'],
+            password: { user: { name: 'D123456', password: 'secret', domain: { name: 'monsoon3' } } }
+          }
+        }
+      )
+    end
+
+    it 'falls back to user id when no domain is given' do
+      @driver.validate_credentials('D123456', 'secret')
+      expect(@driver).to have_received(:authenticate).with(
+        auth: {
+          identity: {
+            methods: ['password'],
+            password: { user: { id: 'D123456', password: 'secret' } }
+          }
+        }
+      )
+    end
+
+    it 'does not swallow authentication errors' do
+      allow(@driver).to receive(:authenticate)
+        .and_raise(MonsoonOpenstackAuth::ConnectionDriver::AuthenticationError.new('bad', 401))
+
+      expect { @driver.validate_credentials('D123456', 'secret', 'monsoon3') }
+        .to raise_error(MonsoonOpenstackAuth::ConnectionDriver::AuthenticationError)
+    end
+  end
+
   describe 'authenticate_with_credentials' do
     context 'user_domain_params are nil' do
       it 'should call authenitcate without scope' do

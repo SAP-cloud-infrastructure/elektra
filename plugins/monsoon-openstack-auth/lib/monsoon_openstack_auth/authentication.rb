@@ -1,6 +1,7 @@
 require 'monsoon_openstack_auth/authentication/errors'
 require 'monsoon_openstack_auth/authentication/auth_user'
 require 'monsoon_openstack_auth/authentication/auth_session'
+require 'monsoon_openstack_auth/authentication/password_sync'
 
 module MonsoonOpenstackAuth
   # This module is included in a rails controller

@@ -10,6 +10,12 @@ module KubernetesNg
       end
     end
 
+    def info
+      handle_api_call do
+        kubernetes_service.gardener_info
+      end
+    end
+
     private
 
     def render_kubeconfig_error(error)

@@ -10,4 +10,5 @@ export const QUERY_KEYS = {
   cloudProfiles: ["cloudProfiles"] as const,
   externalNetworks: ["external-networks"] as const,
   scikubeInstructions: ["scikube-instructions"] as const,
+  gardenerInfo: ["gardener-info"] as const,
 } as const

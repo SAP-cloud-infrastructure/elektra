@@ -6,6 +6,7 @@ import { addSuccess } from "lib/flashes"
 
 import AccountDeleter from "../../containers/accounts/deleter"
 import { apiStateIsDeleting } from "../utils"
+import { getPlatformFilterDisplayText } from "../componentHelpers/PlatformFilterSelect"
 
 export default class AccountRow extends React.Component {
   state = {
@@ -44,15 +45,7 @@ export default class AccountRow extends React.Component {
     const accountIsDeleting = apiStateIsDeleting(state)
     const swiftContainerURL = `/_/${projectID}/object-storage/swift/containers/${containerName}/objects`
 
-    let platformFilterDisplay = ""
-    if (Array.isArray(platformFilter) && platformFilter.length > 0) {
-      const pf = platformFilter
-      if (pf.length == 1 && pf[0].os == "linux" && pf[0].architecture == "amd64") {
-        platformFilterDisplay = ", restricted to x86_64 parts of multi-arch images"
-      } else {
-        platformFilterDisplay = ", with custom platform filter for multi-arch images"
-      }
-    }
+    const platformFilterDisplay = getPlatformFilterDisplayText(platformFilter)
 
     let statusDisplay = "Ready"
     if (this.state.isDeleting) {
@@ -96,10 +89,14 @@ export default class AccountRow extends React.Component {
             <div>Primary account</div>
           )}
           <div>
-            Backed by Swift container{" "}
-            <a href={swiftContainerURL} target="_blank" rel="noreferrer">
-              {containerName}
-            </a>
+            {this.props.isKeppelSwiftRegion && (
+              <div>
+                Backed by Swift container{" "}
+                <a href={swiftContainerURL} target="_blank" rel="noreferrer">
+                  {containerName}
+                </a>
+              </div>
+            )}
           </div>
         </td>
         <td className="col-md-2">{statusDisplay}</td>
@@ -136,9 +133,14 @@ export default class AccountRow extends React.Component {
                 <>
                   <li className="divider"></li>
                   {replication && replication.strategy == "from_external_on_first_use" && (
-                    <li>
-                      <Link to={`/accounts/${accountName}/upstream_config`}>Edit replication credentials</Link>
-                    </li>
+                    <>
+                      <li>
+                        <Link to={`/accounts/${accountName}/upstream_config`}>Edit replication credentials</Link>
+                      </li>
+                      <li>
+                        <Link to={`/accounts/${accountName}/platform_filter`}>Edit platform filter</Link>
+                      </li>
+                    </>
                   )}
                   {(!replication || replication.strategy == "from_external_on_first_use") && (
                     <li>

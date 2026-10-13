@@ -127,11 +127,38 @@ RSpec.describe AuthTokenController, type: :controller do
         allow(api_client).to receive(:validate_token).with(valid_token).and_return(response_without_domain)
       end
 
-      it 'sets error when domain name is not found' do
-        post :verify, params: { token: valid_token }
+      context 'when password auth is allowed (dev/QA fallback)' do
+        before do
+          allow(MonsoonOpenstackAuth.configuration).to receive(:password_auth_allowed?).and_return(true)
+        end
 
-        expect(response).to have_http_status(:ok)
-        expect(assigns(:error)).to eq('Domain ID not found in response')
+        it 'sets error when domain name is not found' do
+          post :verify, params: { token: valid_token }
+
+          expect(response).to have_http_status(:ok)
+          expect(assigns(:error)).to eq('Domain ID not found in response')
+        end
+      end
+
+      context 'when password auth is disabled (SSO-only, terminal no-access)' do
+        before do
+          allow(MonsoonOpenstackAuth.configuration).to receive(:password_auth_allowed?).and_return(false)
+        end
+
+        it 'renders the terminal no-access page for top-level navigation (HTTP 200, no redirect)' do
+          post :verify, params: { token: valid_token }
+
+          expect(response).to have_http_status(:ok)
+          expect(response).to render_template(:no_access)
+          expect(assigns(:no_access)).to be true
+        end
+
+        it 'returns an internal AUTH_NO_ACCESS status for JSON callers (HTTP 200)' do
+          post :verify, params: { token: valid_token }, format: :json
+
+          expect(response).to have_http_status(:ok)
+          expect(JSON.parse(response.body)).to eq('status' => MonsoonOpenstackAuth::AuthStatus::NO_ACCESS)
+        end
       end
     end
 
