@@ -322,7 +322,8 @@ GEM
     ed25519 (1.4.0)
     erb (6.0.7)
     erubi (1.13.1)
-    excon (0.112.0)
+    excon (1.5.0)
+      logger
     execjs (2.10.0)
     factory_bot (6.5.4)
       activesupport (>= 6.1.0)
@@ -611,7 +612,7 @@ DEPENDENCIES
   ed25519 (>= 1.2, < 2.0)
   elektron!
   email_service!
-  excon (= 0.112.0)
+  excon (= 1.5.0)
   factory_bot_rails
   filewatcher
   font-awesome-sass (~> 4)
