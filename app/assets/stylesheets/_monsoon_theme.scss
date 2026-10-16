@@ -977,6 +977,28 @@ section {
     border-bottom-left-radius: 0;
   }
 
+  // The role-assignments add form is a BS5 input-group (x | autocomplete | Add).
+  // Two toolbar rules would otherwise break the joined look: the generic
+  // `.toolbar .btn { margin-left: 5px }` below inserts gaps between the grouped
+  // buttons, and the autocomplete input is wrapped in a div (not a direct
+  // `.form-control` child), so it must flex to fill the group.
+  .input-group {
+    flex-wrap: nowrap;
+
+    .btn {
+      margin: 0;
+    }
+
+    .input-group-autocomplete {
+      flex: 1 1 auto;
+      min-width: 0;
+
+      .form-control {
+        border-radius: 0;
+      }
+    }
+  }
+
   .btn {
     margin: 0 0 0 5px;
 

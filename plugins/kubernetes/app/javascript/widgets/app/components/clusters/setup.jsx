@@ -18,26 +18,19 @@ let SetupInfo = ({ close, setupData, kubernikusBaseUrl }) =>
       "div",
       { className: "modal-body" },
       <h4>Download Binaries</h4>,
-      <p>
-        Download the file matching your operating system, save it somewhere in
-        your path and make it executable.
-      </p>,
+      <p>Download the file matching your operating system, save it somewhere in your path and make it executable.</p>,
       Array.from(setupData.binaries).map((bin) => (
         <div key={bin.name}>
           <h5>{`${bin.name}:`}</h5>
           <ul className="content-list">
             {Array.from(bin.links).map((link, i) => (
               <li key={i}>
-                <a
-                  target="_blank"
-                  href={link.link}
-                  rel="noreferrer"
-                >{`Download for ${
+                <a target="_blank" href={link.link} rel="noreferrer">{`Download for ${
                   link.link.match(/darwin_amd64/g)
                     ? "darwin amd64"
                     : link.link.match(/darwin_arm64/g)
-                    ? "darwin arm64"
-                    : link.platform
+                      ? "darwin arm64"
+                      : link.platform
                 }`}</a>
               </li>
             ))}
@@ -48,9 +41,9 @@ let SetupInfo = ({ close, setupData, kubernikusBaseUrl }) =>
       <h4>Execute Setup Command</h4>,
       <p>Copy the below setup command and execute it in your terminal.</p>,
       React.createElement(
-        "pre",
+        "div",
         {
-          className: "snippet",
+          className: "snippet p-3 text-bg-light border",
           ref(el) {
             return $(el).initSnippetCopyToClipboard()
           },
@@ -59,12 +52,7 @@ let SetupInfo = ({ close, setupData, kubernikusBaseUrl }) =>
       )
     ),
     <div className="modal-footer">
-      <button
-        role="close"
-        type="button"
-        className="btn btn-secondary"
-        onClick={close}
-      >
+      <button role="close" type="button" className="btn btn-secondary" onClick={close}>
         Close
       </button>
     </div>

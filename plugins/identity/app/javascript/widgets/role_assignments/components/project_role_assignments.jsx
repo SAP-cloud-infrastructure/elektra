@@ -133,12 +133,13 @@ export default class ProjectRoleAssignments extends React.Component {
             <div className="main-buttons">
               {this.state.showNewMemberInput ? (
                 <div className="input-group input-group-left-button">
-                  <span className="input-group-btn">
-                    <button className="btn btn-secondary" onClick={() => this.setState({ showNewMemberInput: false })}>
-                      x
-                    </button>
-                  </span>
-                  <div className="autocomplete-bottom">
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => this.setState({ showNewMemberInput: false })}
+                  >
+                    {"\u00D7"}
+                  </button>
+                  <div className="autocomplete-bottom input-group-autocomplete">
                     <AutocompleteField
                       liveSearch={true}
                       type={`${this.props.type}s`}
@@ -146,24 +147,22 @@ export default class ProjectRoleAssignments extends React.Component {
                       onSelected={this.handleNewMember}
                     />
                   </div>
-                  <span className="input-group-btn">
-                    <button
-                      className="btn btn-primary"
-                      disabled={isMember || !this.state.newMember || !this.state.isValidMember}
-                      onClick={() => this.setState({ showNewMemberForm: true })}
-                    >
-                      {isMember ? (
-                        <Tooltip
-                          placement="top"
-                          content={`This ${this.props.type} is already a member of this project!`}
-                        >
-                          <span>Add</span>
-                        </Tooltip>
-                      ) : (
+                  <button
+                    className="btn btn-primary"
+                    disabled={isMember || !this.state.newMember || !this.state.isValidMember}
+                    onClick={() => this.setState({ showNewMemberForm: true })}
+                  >
+                    {isMember ? (
+                      <Tooltip
+                        placement="top"
+                        content={`This ${this.props.type} is already a member of this project!`}
+                      >
                         <span>Add</span>
-                      )}
-                    </button>
-                  </span>
+                      </Tooltip>
+                    ) : (
+                      <span>Add</span>
+                    )}
+                  </button>
                 </div>
               ) : (
                 <button className="btn btn-primary" onClick={() => this.setState({ showNewMemberInput: true })}>

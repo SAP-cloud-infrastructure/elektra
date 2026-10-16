@@ -55,6 +55,7 @@ const Show = () => {
       onHide={close}
       onExit={back}
       size="lg"
+      dialogClassName="modal-xl"
       aria-labelledby="contained-modal-title-lg"
     >
       <Modal.Header closeButton>

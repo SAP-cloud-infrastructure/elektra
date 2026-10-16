@@ -149,6 +149,32 @@ const BgpVpnRouters = ({ bgpvpn }) => {
       )
   }, [associationDispatch])
 
+  // Load the router objects (name + scope) from the elektra cache for this
+  // bgpvpn's routers. The parent list normally populates `cachedRouters`, but
+  // when the Show modal is opened directly (deep link / reload) that state can
+  // be empty, which made the Routers tab fall back to showing the raw ID only.
+  React.useEffect(() => {
+    if (!bgpvpnRouterIDs || bgpvpnRouterIDs.length === 0) return
+    // skip IDs already present in the cache
+    const missing = bgpvpnRouterIDs.filter((id) => !cachedRoutersData[id])
+    if (missing.length === 0) return
+
+    apiClient
+      .get(`../../../../cache/objects-by-ids`, { ids: bgpvpnRouterIDs })
+      .then((items) => {
+        const routers = items.reduce((map, i) => {
+          if (i.cached_object_type === "router") map[i.id] = i
+          return map
+        }, {})
+        if (isMounted.current && Object.keys(routers).length > 0)
+          // merge with any already-cached routers (the reducer replaces `data`)
+          globalDispatch("cachedRouters", "receive", {
+            data: { ...cachedRoutersData, ...routers },
+          })
+      })
+      .catch(() => null)
+  }, [bgpvpnRouterIDs])
+
   // load available routers (for selectbox)
   // available routers are also used for subnet infos
   React.useEffect(() => {
