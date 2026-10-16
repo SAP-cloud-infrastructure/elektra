@@ -20,7 +20,7 @@ var WebconsoleContainer = (function () {
       }
 
       defaults = {
-        toolbarCssClass: "toolbar",
+        toolbarCssClass: "toolbar d-flex",
         buttonsCssClass: "main-buttons",
         holderCssClass: "webconsole-holder",
         helpCssClass: "webconsole-help",
