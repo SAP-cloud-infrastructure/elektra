@@ -249,6 +249,120 @@ RSpec.describe ServiceLayer::KubernetesNgServices::CloudProfiles do
         end
       end
 
+      context "when versions use the new capabilityFlavors format" do
+        let(:mock_response_with_capability_flavors) do
+          double('response', body: {
+            "items" => [
+              {
+                "metadata" => { "uid" => "test-uid", "name" => "openstack" },
+                "spec" => {
+                  "type" => "openstack",
+                  "providerConfig" => {
+                    "apiVersion" => "openstack.provider.extensions.gardener.cloud/v1alpha1",
+                    "machineImages" => [
+                      {
+                        "name" => "gardenlinux",
+                        "versions" => [
+                          {
+                            "version" => "2150.10.0",
+                            "capabilityFlavors" => [
+                              {
+                                "capabilities" => { "architecture" => ["amd64"] },
+                                "regions" => [
+                                  { "id" => "id-1", "name" => "eu-de-1" },
+                                  { "id" => "id-2", "name" => "qa-de-1" }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "version" => "2150.11.0",
+                            "capabilityFlavors" => [
+                              {
+                                "capabilities" => { "architecture" => ["amd64"] },
+                                "regions" => [
+                                  { "id" => "id-3", "name" => "qa-de-1" }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "version" => "2150.12.0",
+                            "capabilityFlavors" => [
+                              {
+                                "capabilities" => { "architecture" => ["amd64"] },
+                                "regions" => [
+                                  { "id" => "id-4", "name" => "eu-de-1" }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "machineImages" => [
+                    {
+                      "name" => "gardenlinux",
+                      "versions" => [
+                        { "version" => "2150.10.0" },
+                        { "version" => "2150.11.0" },
+                        { "version" => "2150.12.0" }
+                      ]
+                    }
+                  ],
+                  "kubernetes" => { "versions" => [] },
+                  "machineTypes" => [],
+                  "regions" => [],
+                  "volumeTypes" => []
+                }
+              }
+            ]
+          })
+        end
+
+        before do
+          allow(elektron_gardener).to receive(:get).and_return(mock_response_with_capability_flavors)
+        end
+
+        context "when region is qa-de-1" do
+          before { allow(self).to receive(:region).and_return("qa-de-1") }
+
+          it "filters versions using regions from capabilityFlavors" do
+            result = list_cloud_profiles
+            machine_image = result.first[:machineImages].first
+
+            expect(machine_image[:name]).to eq("gardenlinux")
+            expect(machine_image[:versions]).to contain_exactly("2150.10.0", "2150.11.0")
+            expect(machine_image[:versions]).not_to include("2150.12.0")
+          end
+        end
+
+        context "when region is eu-de-1" do
+          before { allow(self).to receive(:region).and_return("eu-de-1") }
+
+          it "filters versions using regions from capabilityFlavors" do
+            result = list_cloud_profiles
+            machine_image = result.first[:machineImages].first
+
+            expect(machine_image[:name]).to eq("gardenlinux")
+            expect(machine_image[:versions]).to contain_exactly("2150.10.0", "2150.12.0")
+            expect(machine_image[:versions]).not_to include("2150.11.0")
+          end
+        end
+
+        context "when region is not set" do
+          before { allow(self).to receive(:region).and_return(nil) }
+
+          it "returns all versions without filtering" do
+            result = list_cloud_profiles
+            machine_image = result.first[:machineImages].first
+
+            expect(machine_image[:versions]).to contain_exactly("2150.10.0", "2150.11.0", "2150.12.0")
+          end
+        end
+      end
+
       context "when providerConfig is missing" do
         let(:mock_response_without_provider_config) do
           double('response', body: {
