@@ -62,10 +62,20 @@ module ServiceLayer
             next unless version_info.is_a?(Hash) && version_info['version']
 
             version = version_info['version']
-            regions = version_info['regions']
-            next unless regions.is_a?(Array)
 
-            region_names = regions.filter_map { |r| r['name'] if r.is_a?(Hash) }
+            # New format: regions are inside capabilityFlavors[].regions
+            # Fallback: regions at the version level (old format)
+            region_names = if version_info['capabilityFlavors'].is_a?(Array)
+              version_info['capabilityFlavors'].flat_map do |flavor|
+                next [] unless flavor.is_a?(Hash) && flavor['regions'].is_a?(Array)
+                flavor['regions'].filter_map { |r| r['name'] if r.is_a?(Hash) }
+              end.uniq
+            elsif version_info['regions'].is_a?(Array)
+              version_info['regions'].filter_map { |r| r['name'] if r.is_a?(Hash) }
+            end
+
+            next unless region_names&.any?
+
             lookup[image_name][version] = region_names
           end
         end
