@@ -99,7 +99,7 @@ const ErrorMessageList: React.FC<ErrorMessageListProps> = ({
         )}
       </Modal.Body>
       <Modal.Footer>
-        <Button onClick={hide}>Close</Button>
+        <Button variant="secondary" onClick={hide}>Close</Button>
       </Modal.Footer>
     </Modal>
   )

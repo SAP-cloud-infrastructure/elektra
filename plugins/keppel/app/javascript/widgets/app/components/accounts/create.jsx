@@ -336,7 +336,7 @@ export default class AccountCreateModal extends React.Component {
 
           <Modal.Footer>
             <Form.SubmitButton label="Create" />
-            <Button onClick={this.close}>Cancel</Button>
+            <Button variant="secondary" onClick={this.close}>Cancel</Button>
           </Modal.Footer>
         </Form>
       </Modal>

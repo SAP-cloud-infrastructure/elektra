@@ -212,10 +212,10 @@ export default class TagPoliciesEditModal extends React.Component {
               <Button onClick={this.handleSubmit} variant="primary" disabled={!isValid || isSubmitting}>
                 {isSubmitting ? "Saving..." : "Save"}
               </Button>
-              <Button onClick={this.close}>Cancel</Button>
+              <Button variant="secondary" onClick={this.close}>Cancel</Button>
             </>
           ) : (
-            <Button onClick={this.close}>Close</Button>
+            <Button variant="secondary" onClick={this.close}>Close</Button>
           )}
         </Modal.Footer>
       </Modal>

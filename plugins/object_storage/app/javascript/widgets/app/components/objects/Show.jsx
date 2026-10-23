@@ -358,7 +358,7 @@ const ShowObject = () => {
         )}
       </Modal.Body>
       <Modal.Footer>
-        <Button onClick={close}>Cancel</Button>
+        <Button variant="secondary" onClick={close}>Cancel</Button>
         <Button
           variant="primary"
           onClick={submit}

@@ -266,7 +266,7 @@ const DelteContainer = () => {
         {container ? (
           container.count <= 0 ? (
             <>
-              <Button onClick={close}>Cancel</Button>
+              <Button variant="secondary" onClick={close}>Cancel</Button>
 
               <Button
                 variant="primary"
@@ -282,10 +282,10 @@ const DelteContainer = () => {
               </Button>
             </>
           ) : (
-            <Button onClick={close}>Got it!</Button>
+            <Button variant="secondary" onClick={close}>Got it!</Button>
           )
         ) : (
-          <Button onClick={close}>Cancel</Button>
+          <Button variant="secondary" onClick={close}>Cancel</Button>
         )}
       </Modal.Footer>
     </Modal>

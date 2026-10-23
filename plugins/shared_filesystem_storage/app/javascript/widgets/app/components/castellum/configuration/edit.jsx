@@ -170,7 +170,7 @@ const FormBody = ({ close, errors }) => {
       <Modal.Footer>
         <span className="not-valid-explanation">{validationError}</span>
         <Form.SubmitButton label="Save" />
-        <Button onClick={close}>Cancel</Button>
+        <Button variant="secondary" onClick={close}>Cancel</Button>
       </Modal.Footer>
     </>
   )

@@ -186,7 +186,7 @@ const ShowSearchObjectModal: React.FC<ShowSearchObjectModalProps> = ({
             Switch to Project
           </a>
         )}
-        <Button onClick={close}>Close</Button>
+        <Button variant="secondary" onClick={close}>Close</Button>
       </Modal.Footer>
     </Modal>
   )

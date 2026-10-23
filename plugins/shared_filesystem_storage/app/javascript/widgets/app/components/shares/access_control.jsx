@@ -128,7 +128,7 @@ export default class AccessControlModal extends React.Component {
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button onClick={this.close}>Close</Button>
+          <Button variant="secondary" onClick={this.close}>Close</Button>
         </Modal.Footer>
       </Modal>
     )

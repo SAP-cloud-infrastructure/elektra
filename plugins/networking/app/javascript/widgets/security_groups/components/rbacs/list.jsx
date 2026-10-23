@@ -266,7 +266,7 @@ const RBACs = ({ securityGroup }) => {
         )}
       </Modal.Body>
       <Modal.Footer>
-        <Button onClick={close}>Close</Button>
+        <Button variant="secondary" onClick={close}>Close</Button>
       </Modal.Footer>
     </Modal>
   )

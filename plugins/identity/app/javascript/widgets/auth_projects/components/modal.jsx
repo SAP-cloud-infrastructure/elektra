@@ -29,7 +29,7 @@ const ModalAuth = (props) => (
       </div>
     </Modal.Body>
     <Modal.Footer>
-      <Button onClick={props.toggleModal}>Close</Button>
+      <Button variant="secondary" onClick={props.toggleModal}>Close</Button>
     </Modal.Footer>
   </Modal>
 )

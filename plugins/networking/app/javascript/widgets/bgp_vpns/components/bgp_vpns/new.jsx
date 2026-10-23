@@ -71,7 +71,7 @@ const New = () => {
         <FormBody />
 
         <Modal.Footer>
-          <Button onClick={close}>Cancel</Button>
+          <Button variant="secondary" onClick={close}>Cancel</Button>
           <Form.SubmitButton label="Save" />
         </Modal.Footer>
       </Form>
