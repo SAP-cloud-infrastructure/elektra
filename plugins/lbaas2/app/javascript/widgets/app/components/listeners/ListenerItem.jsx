@@ -308,16 +308,12 @@ const ListenerItem = ({
             popoverId={"l7policies-popover-" + listener.id}
             buttonName={l7PolicyIDs.length}
             title={
-              <>
-                L7 Policies
-                <Link
-                  to="#"
-                  onClick={onListenerClick}
-                  style={{ float: "right" }}
-                >
+              <div className="d-flex justify-content-between w-100">
+                <span>L7 Policies</span>
+                <Link to="#" onClick={onListenerClick}>
                   Show all
                 </Link>
-              </>
+              </div>
             }
             content={
               <CachedInfoPopoverContent

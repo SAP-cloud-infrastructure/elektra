@@ -27,7 +27,7 @@ const PopoverInfo = ({ popoverId, buttonName, title, content, footer }) => {
         // container={this}
         containerPadding={20}
       >
-        <Popover className="lbaas2 cached-info-popover" id={popoverId}>
+        <Popover className="lbaas2 cached-info-popover" id={popoverId} style={{ minWidth: "180px" }}>
           {title && <Popover.Header as="h3">{title}</Popover.Header>}
           <Popover.Body>
             <div className="cached-info-content">{content}</div>
