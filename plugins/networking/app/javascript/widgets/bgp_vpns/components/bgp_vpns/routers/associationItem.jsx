@@ -75,7 +75,7 @@ const Item = ({
           <button
             disabled={isDeleting}
             onClick={() => (confirm ? remove() : getConfirmation())}
-            className={`btn btn-${confirm ? "danger" : "default"} ${
+            className={`btn btn-${confirm ? "danger" : "secondary"} ${
               isDeleting ? "loading" : ""
             } btn-sm`}
           >
