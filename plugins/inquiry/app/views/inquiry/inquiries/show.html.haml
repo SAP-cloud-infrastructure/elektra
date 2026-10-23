@@ -10,7 +10,7 @@
     %li.nav-item{role: "presentation"}
       = link_to '#process_steps', class: "nav-link", aria: {controls:"process_steps"}, role: "tab", data: {bs_toggle:"tab"} do
         Process Steps
-        %span.badge= @inquiry.process_steps.length
+        %span.badge.bg-secondary.text-white= @inquiry.process_steps.length
   .tab-content
     .tab-pane.active{role:"tabpanel", id:"overview"}
       %table.table.datatable
