@@ -272,15 +272,12 @@ const LoadbalancerItem = ({
             popoverId={"listener-popover-" + loadbalancer.id}
             buttonName={listenerIds.length}
             title={
-              <>
-                Listeners
-                <Link
-                  to={`/loadbalancers/${loadbalancer.id}/show`}
-                  style={{ float: "right" }}
-                >
+              <div className="d-flex justify-content-between w-100">
+                <span>Listeners</span>
+                <Link to={`/loadbalancers/${loadbalancer.id}/show`}>
                   Show all
                 </Link>
-              </>
+              </div>
             }
             content={
               <CachedInfoPopoverListenerContent
@@ -301,15 +298,12 @@ const LoadbalancerItem = ({
             popoverId={"pools-popover-" + loadbalancer.id}
             buttonName={poolIds.length}
             title={
-              <>
-                Pools
-                <Link
-                  to={`/loadbalancers/${loadbalancer.id}/show`}
-                  style={{ float: "right" }}
-                >
+              <div className="d-flex justify-content-between w-100">
+                <span>Pools</span>
+                <Link to={`/loadbalancers/${loadbalancer.id}/show`}>
                   Show all
                 </Link>
-              </>
+              </div>
             }
             content={
               <CachedInfoPopoverPoolContent
