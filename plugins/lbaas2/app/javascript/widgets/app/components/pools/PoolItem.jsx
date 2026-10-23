@@ -266,7 +266,7 @@ const PoolItem = ({ props, pool, searchTerm, disabled, shouldPoll }) => {
 
   const memberIDs = pool.members.map((m) => m.id)
   return (
-    <tr className={disabled ? "active" : ""}>
+    <tr className={disabled ? "table-active" : ""}>
       <td className="snug-nowrap">
         {displayName()}
         {displayID()}
