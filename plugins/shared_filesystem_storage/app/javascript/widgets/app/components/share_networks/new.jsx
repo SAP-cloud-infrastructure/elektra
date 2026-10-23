@@ -119,7 +119,7 @@ export default class NewShareNetworkForm extends React.Component {
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button onClick={this.close}>Cancel</Button>
+          <Button variant="secondary" onClick={this.close}>Cancel</Button>
           <Form.SubmitButton label="Save" />
         </Modal.Footer>
       </>

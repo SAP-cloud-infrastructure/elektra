@@ -252,10 +252,10 @@ export default class SecurityScanPoliciesEditModal extends React.Component {
               >
                 {isSubmitting ? "Saving..." : "Save"}
               </Button>
-              <Button onClick={this.close}>Cancel</Button>
+              <Button variant="secondary" onClick={this.close}>Cancel</Button>
             </>
           ) : (
-            <Button onClick={this.close}>Close</Button>
+            <Button variant="secondary" onClick={this.close}>Close</Button>
           )}
         </Modal.Footer>
       </Modal>

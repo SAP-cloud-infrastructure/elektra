@@ -190,7 +190,7 @@ const ShowPortModal: React.FC<ShowPortModalProps> = ({
       </Modal.Header>
       <Modal.Body>{port ? renderTable(port) : <span className="spinner"></span>}</Modal.Body>
       <Modal.Footer>
-        <Button onClick={close}>Close</Button>
+        <Button variant="secondary" onClick={close}>Close</Button>
       </Modal.Footer>
     </Modal>
   )

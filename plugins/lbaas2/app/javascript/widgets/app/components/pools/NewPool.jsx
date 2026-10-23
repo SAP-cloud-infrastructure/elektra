@@ -459,7 +459,7 @@ const NewPool = (props) => {
           </Form.ElementHorizontal>
         </Modal.Body>
         <Modal.Footer>
-          <Button onClick={close}>Cancel</Button>
+          <Button variant="secondary" onClick={close}>Cancel</Button>
           <Form.SubmitButton label="Save" />
         </Modal.Footer>
       </Form>

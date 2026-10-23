@@ -260,7 +260,7 @@ const ContainerAccessControl = () => {
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button onClick={close}>Cancel</Button>
+          <Button variant="secondary" onClick={close}>Cancel</Button>
           {metadata && <Form.SubmitButton label="Save" />}
         </Modal.Footer>
       </Form>

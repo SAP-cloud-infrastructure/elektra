@@ -382,7 +382,7 @@ const ContainerProperties = () => {
             )}
           </Modal.Body>
           <Modal.Footer>
-            <Button onClick={close}>Cancel</Button>
+            <Button variant="secondary" onClick={close}>Cancel</Button>
             {metadata && <Form.SubmitButton label="Update container" />}
           </Modal.Footer>
         </Form>

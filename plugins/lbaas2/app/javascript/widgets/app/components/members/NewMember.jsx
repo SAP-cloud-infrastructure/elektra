@@ -120,9 +120,8 @@ const NewMember = (props) => {
         <ExistingMembersDropDown props={props} poolID={poolID} />
       </Modal.Body>
       <Modal.Footer>
-        <Button disabled={formSubmitting} onClick={close}>
-          Cancel
-        </Button>
+        <Button variant="secondary" disabled={formSubmitting} onClick={close}>
+          Cancel</Button>
         <SaveButton
           disabled={formSubmitting || !isFormValid}
           showTooltip={!isFormValid}

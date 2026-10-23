@@ -133,11 +133,11 @@ export default class RBACPoliciesEditModal extends React.Component {
           {isAdmin ? (
             <Modal.Footer>
               <Form.SubmitButton label="Save" />
-              <Button onClick={this.close}>Cancel</Button>
+              <Button variant="secondary" onClick={this.close}>Cancel</Button>
             </Modal.Footer>
           ) : (
             <Modal.Footer>
-              <Button onClick={this.close}>Close</Button>
+              <Button variant="secondary" onClick={this.close}>Close</Button>
             </Modal.Footer>
           )}
         </Form>

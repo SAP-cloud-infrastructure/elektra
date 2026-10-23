@@ -98,7 +98,7 @@ export default class AccountUpstreamConfigModal extends React.Component {
 
           <Modal.Footer>
             <Form.SubmitButton label="Save" />
-            <Button onClick={this.close}>Cancel</Button>
+            <Button variant="secondary" onClick={this.close}>Cancel</Button>
           </Modal.Footer>
         </Form>
       </Modal>

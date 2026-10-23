@@ -76,7 +76,7 @@ const EditShareSizeForm = ({
           </Form.ElementHorizontal>
         </Modal.Body>
         <Modal.Footer>
-          <Button onClick={hide}>Cancel</Button>
+          <Button variant="secondary" onClick={hide}>Cancel</Button>
           <Form.SubmitButton label="Save" />
         </Modal.Footer>
       </Form>

@@ -183,7 +183,7 @@ const NewPortForm: React.FC<NewPortFormProps> = ({
         <FormBody networks={networks} subnets={subnets} securityGroups={securityGroups} />
 
         <Modal.Footer>
-          <Button onClick={close}>Cancel</Button>
+          <Button variant="secondary" onClick={close}>Cancel</Button>
           <Form.SubmitButton label="Save" />
         </Modal.Footer>
       </Form>

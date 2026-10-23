@@ -312,7 +312,7 @@ export default class NewRuleForm extends React.Component {
           <FormBody securityGroups={this.props.securityGroups} />
 
           <Modal.Footer>
-            <Button onClick={this.close}>Cancel</Button>
+            <Button variant="secondary" onClick={this.close}>Cancel</Button>
             <Form.SubmitButton label="Save" />
           </Modal.Footer>
         </Form>

@@ -123,7 +123,7 @@ export default class ImageDetailsModal extends React.Component {
         </Modal.Header>
         <Modal.Body>{this.renderModalBody()}</Modal.Body>
         <Modal.Footer>
-          <Button onClick={this.close}>Close</Button>
+          <Button variant="secondary" onClick={this.close}>Close</Button>
         </Modal.Footer>
       </Modal>
     )
