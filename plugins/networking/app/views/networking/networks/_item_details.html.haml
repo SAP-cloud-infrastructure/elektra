@@ -5,17 +5,17 @@
       %li.nav-item{role: "presentation"}
         = link_to '#segments', class: "nav-link", aria: {controls:"segments"}, role: "tab", data: {bs_toggle:"tab"} do
           Segments
-          %span.badge= @network.segments.length
+          %span.badge.bg-secondary.text-white= @network.segments.length
 
     %li.nav-item{role: "presentation"}
       = link_to '#subnets', class: "nav-link", aria: {controls:"subnets"}, role: "tab", data: {bs_toggle:"tab"} do
         Subnets
-        %span.badge= @subnets.length
+        %span.badge.bg-secondary.text-white= @subnets.length
 
     %li.nav-item{role: "presentation"}
       = link_to '#network_ports', class: "nav-link", aria: {controls:"network_ports"}, role: "tab", data: {bs_toggle:"tab"} do
         Ports
-        %span.badge= @ports.length
+        %span.badge.bg-secondary.text-white= @ports.length
 
   .tab-content
     .tab-pane.active{role:"tabpanel", id:"overview"}
