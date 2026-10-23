@@ -78,7 +78,7 @@ module Identity
       if skip_button_options
         label = skip_button_options[:label] || "Do this later"
         url = skip_button_options[:url]
-        css_class = "btn btn-default btn-xs pull-right"
+        css_class = "btn btn-secondary btn-sm float-end"
         data = skip_button_options[:data] || {}
         if url
           skip_button = link_to(label, url, class: css_class, data: data)

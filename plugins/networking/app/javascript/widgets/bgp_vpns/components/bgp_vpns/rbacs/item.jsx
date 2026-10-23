@@ -36,7 +36,7 @@ const Item = ({ item, onDelete, canDelete, cachedProject }) => {
       <td>
         {canDelete && (
           <button
-            className={`btn btn-${confirm ? "danger" : "default"} btn-sm ${
+            className={`btn btn-${confirm ? "danger" : "secondary"} btn-sm ${
               item.isDeleting ? "loading" : ""
             }`}
             disabled={item.isDeleting}
