@@ -8,7 +8,7 @@
     %li.nav-item{role: "presentation"}
       = link_to '#process_steps', class: "nav-link", aria: {controls:"process_steps"}, role: "tab", data: {bs_toggle:"tab"} do
         Process Steps
-        %span.badge= @inquiry.process_steps.length
+        %span.badge.bg-secondary.text-white= @inquiry.process_steps.length
   .tab-content
     .tab-pane.active{role: "tabpanel", id: "process"}
       = simple_form_for @inquiry, url: plugin('inquiry').inquiry_path(domain_id: @scoped_domain_fid, project_id: @scoped_project_fid, id:@inquiry.id), method: :put, remote: request.xhr?, html: {data: {modal: true} } do |f|
