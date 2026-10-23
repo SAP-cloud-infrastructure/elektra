@@ -18,7 +18,7 @@
     - if shared_project_view
       -# target project view
       - project = ObjectCache.where(id:parent_project_id).first
-      %span.bg-info= "shared by project #{project ? project.name : parent_project_id}"
+      %span.badge.bg-info.bg-opacity-25.text-dark.fw-normal= "shared by project #{project ? project.name : parent_project_id}"
     - else
       -# source project view
       - zone_shared_with = 0
@@ -26,9 +26,9 @@
         - if zone.id == shared_zone.zone_id && @scoped_project_id ==  shared_zone.project_id
           - zone_shared_with += 1
       - if zone_shared_with == 1
-        %span.bg-success= "shared with other project"
+        %span.badge.bg-success.bg-opacity-25.text-dark.fw-normal= "shared with other project"
       - if zone_shared_with > 1
-        %span.bg-success= "shared with other projects"
+        %span.badge.bg-success.bg-opacity-25.text-dark.fw-normal= "shared with other projects"
 
     %br
     %span.info-text= zone.id
