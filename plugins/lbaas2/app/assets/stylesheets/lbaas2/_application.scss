@@ -103,6 +103,13 @@
   }
 }
 
+// .info-text in monsoon_theme sets color:#777 and opacity:0.45 which makes
+// nested cp-string/cp-substring text too faint; restore readable color here.
+.info-text {
+  color: #333;
+  opacity: 1;
+}
+
 .copy-paste-ids {
   span.cp-substring,
   span.cp-string,
