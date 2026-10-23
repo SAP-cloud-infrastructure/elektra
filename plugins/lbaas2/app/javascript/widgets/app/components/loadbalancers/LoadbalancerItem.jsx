@@ -207,7 +207,7 @@ const LoadbalancerItem = ({
 
   Log.debug("RENDER loadbalancer list item id-->", loadbalancer.id)
   return (
-    <tr className={disabled ? "active" : ""}>
+    <tr className={disabled ? "table-active" : ""}>
       <td className="snug-nowrap">
         {displayName()}
         {displayID()}
