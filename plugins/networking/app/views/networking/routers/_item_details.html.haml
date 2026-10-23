@@ -8,7 +8,7 @@
     %li.nav-item{role: "presentation"}
       = link_to '#internal_networks', class: "nav-link", aria: {controls:"internal_networks"}, role: "tab", data: {bs_toggle:"tab"} do
         Internal Networks
-        %span.badge= @router_interface_ports.length
+        %span.badge.bg-secondary.text-white= @router_interface_ports.length
 
   .tab-content
     .tab-pane.active{role:"tabpanel", id:"overview"}
