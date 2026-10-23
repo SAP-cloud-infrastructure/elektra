@@ -49,7 +49,8 @@
   .table-responsive {
     max-height: 850px;
   }
-  .pagination {
+  // bs5 .pagination is a flex list component; use a custom class to avoid conflicts
+  .lbaas2-pagination {
     margin-top: 10px;
   }
 }

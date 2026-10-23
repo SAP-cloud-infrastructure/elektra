@@ -2,7 +2,7 @@ import React from "react"
 
 const Pagination = ({ isLoading, items, hasNext, handleClick }) => {
   return (
-    <div className="pagination">
+    <div className="lbaas2-pagination text-end">
       {isLoading ? (
         <>
           <span>{items.length} Items</span>
