@@ -19,8 +19,7 @@ module ServiceLayer
       body["url"]
     rescue => e
       Rails.logger.error("Webconsole URL fetch failed: #{e.message}")
-      Rails.logger.error(e.backtrace.join("\n"))
-      raise  
+      return ""
     end
   end
 end
