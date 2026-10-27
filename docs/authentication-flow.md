@@ -36,11 +36,10 @@ Understanding *why* the flow looks the way it does:
 4. **JS SSO precheck added:** the SSO check moved to the browser, but **only for
    some QA domains**. Where the JS precheck is active, the backend certificate
    SSO check is not needed.
-5. **TFA-bypass hardening:** a user not activated in elektra but valid at the IdP
-   could complete the OIDC flow and still land on the login page (because
-   elektra checks SSO), after which a different user — activated in elektra but
-   not at the IdP (so no TFA) — could log in. The latest changes disabled
-   password login globally and tightened the SSO-only path to close this.
+5. **TFA-enforcement hardening:** an edge case was identified where the TFA
+   layer could be bypassed under a specific combination of IdP and elektra
+   account states. It was closed by disabling password login globally and
+   tightening the SSO-only path. Details are tracked internally.
 
 ## Authentication decision order (backend)
 
@@ -149,9 +148,9 @@ token and creates the session. It has a **dual response**:
 - **JSON / XHR** (the JS precheck `fetch`) -> `{ redirect_to: ... }`.
 - **top-level navigation** (IdP redirect) -> an HTTP redirect.
 
-If SSO succeeds but the user has **no Keystone access** (the TFA-bypass concern),
-it returns a terminal "no access" response (HTTP 200 / `AUTH_NO_ACCESS`) instead
-of a 401/403 — see "oauth2-proxy loop protection".
+If SSO succeeds but the user has **no Keystone access**, it returns a terminal
+"no access" response (HTTP 200 / `AUTH_NO_ACCESS`) instead of a 401/403 — see
+"oauth2-proxy loop protection".
 
 Key files:
 
