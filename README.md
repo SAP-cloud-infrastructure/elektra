@@ -266,6 +266,13 @@ bundle config build.sqlite3 --with-sqlite3-include="$(nix eval nixpkgs#sqlite.de
 2. Configure MONSOON_DASHBOARD_MAIL_SERVER accordingly
 3. Restart Elektra Application
 
+## Authentication & Login Flow
+
+The login mechanism is layered and non-trivial (session token, certificate SSO,
+JS SSO precheck, OIDC/oauth2-proxy with TFA, and Keystone federation per
+`DomainConfig`). See [docs/authentication-flow.md](docs/authentication-flow.md)
+for a conceptual map of the flow, the decision order, and the relevant files.
+
 ## Available Services in Elektra
 
 If elektra is configured against a standard DevStack installation, only the core services like identity, nova, neutron and cinder are (sometimes partly) available and
