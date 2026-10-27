@@ -3,10 +3,10 @@
 = inside_layout 'login' do
   .container
 
-    - if @password_auth_disabled
-      = render partial: 'monsoon_openstack_auth/sessions/sso_only'
-    - elsif domain_config.federation?
+    - if domain_config.federation?
       = render partial: 'monsoon_openstack_auth/sessions/federation', locals: { domain_config: domain_config }
+    - elsif @password_auth_disabled
+      = render partial: 'monsoon_openstack_auth/sessions/sso_only'
     - else
       = render partial: 'monsoon_openstack_auth/sessions/login_form', locals: { password_sync_mode: password_sync_mode, domain_config: domain_config}
 
