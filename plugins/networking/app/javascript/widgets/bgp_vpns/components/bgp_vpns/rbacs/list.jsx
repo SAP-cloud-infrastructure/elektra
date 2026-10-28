@@ -11,6 +11,9 @@ const RBACs = ({ bgpvpn }) => {
   const [isCreating, setIsCreating] = React.useState(false)
   const [newItem, setNewItem] = React.useState()
   const [cachedProjects, setCachedProjects] = React.useState({})
+  // controls the inline "Add Access" form (same UX as the Networks Access
+  // Control dialog: a "+ Add Access" button reveals an inline field + actions)
+  const [showForm, setShowForm] = React.useState(false)
   const isMounted = React.useRef(false)
   const url = React.useMemo(() => `../../bgp-vpns/${bgpvpn.id}/rbacs`, [bgpvpn])
 
@@ -28,16 +31,14 @@ const RBACs = ({ bgpvpn }) => {
       .map((i) => i.target_tenant)
       .filter((value, index, self) => self.indexOf(value) === index)
 
-    apiClient
-      .get(`../../cache/objects-by-ids?ids=${projectIDs.join(",")}`)
-      .then((items) => {
-        items = items || []
-        const itemsById = items.reduce((map, i) => {
-          map[i.id] = i
-          return map
-        }, {})
-        setCachedProjects(itemsById)
-      })
+    apiClient.get(`../../cache/objects-by-ids?ids=${projectIDs.join(",")}`).then((items) => {
+      items = items || []
+      const itemsById = items.reduce((map, i) => {
+        map[i.id] = i
+        return map
+      }, {})
+      setCachedProjects(itemsById)
+    })
   }, [rbacs.items])
 
   // Load rbacs
@@ -49,10 +50,7 @@ const RBACs = ({ bgpvpn }) => {
       .then((items) => {
         if (isMounted.current) dispatch({ type: "receive", items })
       })
-      .catch(
-        (error) =>
-          isMounted.current && dispatch({ type: "error", error: error.message })
-      )
+      .catch((error) => isMounted.current && dispatch({ type: "error", error: error.message }))
   }, [url])
 
   // Create rbac
@@ -61,17 +59,20 @@ const RBACs = ({ bgpvpn }) => {
     dispatch({ type: "resetError" })
     apiClient
       .post(`${url}`, { target_tenant: newItem })
-      .then(
-        (item) =>
-          isMounted.current && dispatch({ type: "add", name: "items", item })
-      )
-      .then(() => setNewItem(""))
-      .catch(
-        (error) =>
-          isMounted.current && dispatch({ type: "error", error: error.message })
-      )
+      .then((item) => isMounted.current && dispatch({ type: "add", name: "items", item }))
+      .then(() => {
+        setNewItem("")
+        if (isMounted.current) setShowForm(false)
+      })
+      .catch((error) => isMounted.current && dispatch({ type: "error", error: error.message }))
       .finally(() => isMounted.current && setIsCreating(false))
   }, [newItem])
+
+  // close and reset the inline add form
+  const cancelForm = React.useCallback(() => {
+    setShowForm(false)
+    setNewItem("")
+  }, [])
 
   // Delete rbac
   const remove = React.useCallback((id) => {
@@ -82,10 +83,7 @@ const RBACs = ({ bgpvpn }) => {
       .then(() => {
         if (isMounted.current) dispatch({ type: "remove", name: "items", id })
       })
-      .catch(
-        (error) =>
-          isMounted.current && dispatch({ type: "error", error: error.message })
-      )
+      .catch((error) => isMounted.current && dispatch({ type: "error", error: error.message }))
       .finally(() =>
         dispatch({
           type: "patch",
@@ -109,13 +107,62 @@ const RBACs = ({ bgpvpn }) => {
               ))}
         </Alert>
       )}
+
+      {/* Add-access control, same UX as the Networks Access Control dialog:
+          a "+ Add Access" button that toggles an inline field + Add/Cancel row. */}
+      {policy.isAllowed("networking:bgp_vpn_rbac_policy_create", {
+        bgp_vpn: bgpvpn,
+      }) && (
+        <div className="toolbar toolbar-controlcenter">
+          {showForm ? (
+            <form
+              className="form-inline"
+              onSubmit={(e) => {
+                e.preventDefault()
+                if (newItem && !isCreating) add()
+              }}
+            >
+              <div className="form-group">
+                <AutocompleteField
+                  type="projects"
+                  disabled={isCreating}
+                  onSelected={(list) => {
+                    const id = list[0]?.id
+                    if (id) setNewItem(id)
+                  }}
+                  onInputChange={(id) => setNewItem(id)}
+                />
+              </div>
+              <div className="form-group form-actions">
+                <button
+                  type="submit"
+                  disabled={!newItem || isCreating}
+                  className={`btn btn-primary ${isCreating ? "loading" : ""}`}
+                >
+                  Add
+                </button>
+                <button type="button" className="btn btn-secondary" disabled={isCreating} onClick={() => cancelForm()}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="main-control-buttons">
+              <button type="button" className="btn btn-primary" onClick={() => setShowForm(true)}>
+                <i className="fa fa-plus" /> Add Access
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       {rbacs.isFetching ? (
         <span>
           <span className="spinner" />
           Loading...
         </span>
       ) : rbacs.items.length === 0 ? (
-        <span>No items found!</span>
+        <p>No items found!</p>
       ) : (
         <table className="table">
           <thead>
@@ -132,47 +179,11 @@ const RBACs = ({ bgpvpn }) => {
                 item={item}
                 cachedProject={cachedProjects[item.target_tenant]}
                 onDelete={remove}
-                canDelete={policy.isAllowed(
-                  "networking:bgp_vpn_rbac_policy_delete",
-                  {
-                    bgp_vpn: bgpvpn,
-                  }
-                )}
+                canDelete={policy.isAllowed("networking:bgp_vpn_rbac_policy_delete", {
+                  bgp_vpn: bgpvpn,
+                })}
               />
             ))}
-          </tbody>
-        </table>
-      )}
-
-      {policy.isAllowed("networking:bgp_vpn_rbac_policy_create", {
-        bgp_vpn: bgpvpn,
-      }) && (
-        <table className="table">
-          <tbody>
-            <tr>
-              <td></td>
-              <td width="45%">
-                <AutocompleteField
-                  type="projects"
-                  disabled={isCreating}
-                  onSelected={(list) => {
-                    const id = list[0]?.id
-                    if (id) setNewItem(id)
-                  }}
-                  onInputChange={(id) => setNewItem(id)}
-                />
-              </td>
-              <td className="snug">
-                <button
-                  disabled={isCreating}
-                  type="button"
-                  className={`btn btn-primary ${isCreating ? "loading" : ""}`}
-                  onClick={add}
-                >
-                  Add
-                </button>
-              </td>
-            </tr>
           </tbody>
         </table>
       )}

@@ -726,6 +726,16 @@ section {
   border: 1px solid #ccc;
 }
 
+// Bootstrap 5 removed the `.btn-block` modifier (replaced by the `d-grid`
+// wrapper utility). Elektra still renders BS3 `.btn-block` markup (e.g. the
+// login / password-sync / 2FA "Sign in" buttons), so re-provide it as an
+// app-owned utility that makes the button span the full width of its
+// container (matching the width of the login form inputs).
+.btn-block {
+  display: block;
+  width: 100%;
+}
+
 .btn-md {
   // line-height: ensure even-numbered height of button next to large input
   @include button-size(
@@ -750,6 +760,21 @@ section {
 
   &.hover-danger:hover {
     @extend .btn-danger;
+  }
+}
+
+// bootstrap-multiselect renders its toggle as a `<button class="multiselect
+// form-select dropdown-toggle">` whose selected-text label inherits the
+// button's centered text alignment. Force the toggle (and its selected-text
+// span) to be left-aligned so the current selection reads like a normal
+// select field.
+button.multiselect {
+  text-align: left;
+
+  .multiselect-selected-text {
+    text-align: left;
+    display: inline-block;
+    width: 100%;
   }
 }
 
@@ -884,6 +909,69 @@ section {
 // ---------------------------------------------------------------------------------
 // Toolbar
 // ---------------------------------------------------------------------------------
+
+// Inline "add" toolbar used by the networking dialogs (Manage Subnets, Access
+// Control / RBAC, BGP VPN router associations). A "+ Add ..." button toggles an
+// inline `form.form-inline` with a field row + Add/Cancel actions. Defined
+// globally (not inside a plugin scope) because some of these dialogs render in
+// a React modal portal mounted on <body>, outside any plugin CSS namespace.
+.toolbar.toolbar-controlcenter {
+  .main-control-buttons {
+    margin-top: 2px;
+    margin-bottom: 3px;
+  }
+
+  // BS5 removed `.form-inline`: re-create the horizontal row of fields + action
+  // buttons. The fields flex to share the available width so the Add/Cancel
+  // buttons always stay inside the modal.
+  form.form-inline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+
+    // Input fields: grow/shrink to fit, with a sensible minimum.
+    > .form-group {
+      flex: 1 1 180px;
+      min-width: 0;
+      margin-bottom: 0;
+    }
+
+    // Save + Cancel buttons keep their natural size and never shrink.
+    .form-actions {
+      flex: 0 0 auto;
+      display: flex;
+      gap: 8px;
+    }
+
+    // Any bare <div> after the fields (error / help text) takes a full row
+    // below the inputs instead of sitting inline with them.
+    > div:not(.form-group) {
+      flex-basis: 100%;
+    }
+  }
+
+  // Override any inline width set by JS so text inputs can flex.
+  form input[type="text"] {
+    width: 100%;
+  }
+
+  // react-bootstrap-typeahead (AutocompleteField) renders a `.rbt` wrapper
+  // around its input; make it fill the flex field so the autocomplete grows to
+  // the full width like the other inline fields (BGP VPN Access Control).
+  form .form-group .rbt {
+    width: 100%;
+  }
+}
+
+// The BGP VPN "Routers" tab row-delete button toggles between a trash icon and
+// a "Confirm Delete" label. Keep it single-line so the button height stays
+// consistent (it renders in a React modal portal outside any plugin scope, so
+// this rule is global). Matches the Manage Subnets / RBAC delete buttons.
+td.snug .btn-danger.bgpvpn-router-delete {
+  white-space: nowrap;
+}
 
 .toolbar {
   @include pie-clearfix;
@@ -1266,6 +1354,19 @@ section {
 .navbar-login {
   max-width: $login-max-width;
   margin: 0 auto;
+
+  // The SAP logo (`.logo`) is absolutely positioned on the left of the brand.
+  // Give the brand a left padding so the "Cloud Infrastructure" slogan clears
+  // the logo instead of being overlapped by it, and align the logo with the
+  // login form's inner padding (the form has 15px padding).
+  .navbar-brand {
+    display: inline-block;
+    padding-left: 90px;
+  }
+
+  .logo {
+    left: 15px;
+  }
 }
 
 .fancy-nav {

@@ -1,1 +1,7 @@
 $("#rbac_<%=params[:id]%>").remove();
+
+// If that was the last entry, replace the now-empty table with the
+// "No Access" message so no empty table with headers is left behind.
+if ($("table#rbacs tbody tr").length == 0) {
+  $("#rbacs-container").html('<p id="rbacs-empty">No Access given to other projects</p>');
+}

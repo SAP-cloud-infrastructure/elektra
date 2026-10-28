@@ -20,9 +20,9 @@ $.fn.dhcpFormControl = function (options) {
     if (typeof options === "string") {
       if (options === "hide") {
         $(this).text("+").addClass("btn-primary").removeClass("btn-secondary")
-        $form.hide("slow")
+        $form.hide()
       } else if (options === "show") {
-        $form.show("slow")
+        $form.show()
         $(this)
           .text("cancel")
           .removeClass("btn-primary")
@@ -35,9 +35,9 @@ $.fn.dhcpFormControl = function (options) {
     $control.click(function () {
       if ($form.is(":visible")) {
         $(this).text("+").addClass("btn-primary").removeClass("btn-secondary")
-        return $form.hide("slow")
+        return $form.hide()
       } else {
-        $form.show("slow")
+        $form.show()
         return $(this)
           .text("cancel")
           .removeClass("btn-primary")

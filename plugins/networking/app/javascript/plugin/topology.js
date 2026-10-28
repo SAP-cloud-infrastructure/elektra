@@ -61,8 +61,11 @@ var Topology = (function () {
 <h3 class="popover-title">Details</h3> \
 <div class="popover-content"></div></div>`).appendTo(popoverHolder)
 
-      this.width = Math.max($(container).innerWidth(), 900)
-      this.height = Math.max($(container).innerHeight(), 500)
+      // Use the actual container size so the graph fills the modal width.
+      // Only fall back to a default when the container has not been laid out
+      // yet (e.g. measured before the modal finished rendering -> width 0).
+      this.width = $(container).innerWidth() || 900
+      this.height = $(container).innerHeight() || 500
 
       this.focusNode = null
       this.heightighlightNode = null
@@ -250,7 +253,12 @@ var Topology = (function () {
 
       this.canvas.call(zoom)
 
-      window.d3.select(window).on("resize", this.resize)
+      // Bind resize to this instance and register it under a unique d3 event
+      // namespace so (a) `this` is correct inside resize() and (b) the handler
+      // from a previous topology modal does not keep firing after that modal
+      // is gone (which threw "Cannot read properties of undefined (attr)").
+      this.resize = this.resize.bind(this)
+      window.d3.select(window).on("resize.topology", this.resize)
 
       this.layout.on("tick", () => {
         this.nodes.attr("transform", (d) => `translate(${d.x},${d.y})`)
@@ -341,17 +349,20 @@ var Topology = (function () {
     }
 
     resize() {
-      const newWidth = Math.max($(this.containerSelector).innerWidth(), 900)
-      const newHeight = Math.max($(this.containerSelector).innerHeight(), 500)
+      // The graph container may be gone (modal closed) while a stale window
+      // resize event still fires; bail out instead of throwing on a missing
+      // canvas, and detach the now-orphaned listener.
+      if (!this.canvas || $(this.containerSelector).length === 0) {
+        window.d3.select(window).on("resize.topology", null)
+        return
+      }
+
+      const newWidth = $(this.containerSelector).innerWidth() || 900
+      const newHeight = $(this.containerSelector).innerHeight() || 500
 
       this.canvas.attr("width", newWidth).attr("height", newHeight)
 
-      this.layout
-        .size([
-          force.size()[0] + (newWidth - this.width) / zoom.scale(),
-          force.size()[1] + (newHeight - this.height) / zoom.scale(),
-        ])
-        .resume()
+      this.layout.size([newWidth, newHeight]).resume()
       this.width = newWidth
       return (this.height = newHeight)
     }

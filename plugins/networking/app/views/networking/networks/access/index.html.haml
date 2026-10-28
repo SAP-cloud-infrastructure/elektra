@@ -2,23 +2,15 @@
   Role Based Access Control
 
 %div{class: modal? ? 'modal-body' : ''}
-  %table.table#rbacs
-    %thead
-      %tr
-        %th.snug Action
-        %th ID
-        %th Target Project
-        %th.snug
-    %tbody
-      - if @rbacs.length == 0
-        %tr
-          %td{colspan: 5} No Access given to other projects
-      - else
-        - @rbacs.each do | rbac |
-          = render partial: 'rbac_item', locals: {rbac: rbac, network: @network}
+  - if current_user.is_allowed?("networking:rbac_policy_create",{tenant_id:@scoped_project_id, network: @network})
+    .toolbar.toolbar-controlcenter
+      = render partial: 'networking/networks/access/new_rbac_form', locals: { auth_projects: @auth_projects }
 
-      - if current_user.is_allowed?("networking:rbac_policy_create",{tenant_id:@scoped_project_id, network: @network})
-        = render partial: 'networking/networks/access/new_rbac_form', locals: { auth_projects: @auth_projects }
+  #rbacs-container
+    - if @rbacs.length == 0
+      %p#rbacs-empty No Access given to other projects
+    - else
+      = render partial: 'rbacs_table', locals: { rbacs: @rbacs, network: @network }
 
 
 %div.buttons{class: modal? ? 'modal-footer' : ''}
