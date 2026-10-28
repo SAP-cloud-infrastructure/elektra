@@ -45,13 +45,8 @@ const isValidSubleaseToken = (token) => {
 
 const BackingStorageInfo = ({ accountName, isKeppelSwiftRegion }) => (
   <Form.ElementHorizontal label="Backing storage" name="backing_storage">
-<<<<<<< HEAD
     <p className="form-control-static">
       {isKeppelSwiftRegion ? "Swift" : "Ceph"} container <strong>keppel-{accountName}</strong>
-=======
-    <p className="form-control-plaintext">
-      Swift container <strong>keppel-{accountName}</strong>
->>>>>>> 197423e55 (refactor: migrate remaining BS3 utility classes to BS5 (phase 4))
       <br />
       <span className="text-muted">
         The container will be created if it does not exist yet. Please ensure that you have sufficient object storage
@@ -109,47 +104,27 @@ const FormBody = ({ values, isKeppelSwiftRegion }) => {
                   </Form.ElementHorizontal>
 
                   <Form.ElementHorizontal label="Password" name="password">
-                    <Form.Input
-                      elementType="input"
-                      type="password"
-                      name="password"
-                    />
+                    <Form.Input elementType="input" type="password" name="password" />
                     <p className="form-control-plaintext">
-                      These credentials are used by Keppel to pull images from
-                      the upstream source. Leave blank to pull as an anonymous
-                      user.
+                      These credentials are used by Keppel to pull images from the upstream source. Leave blank to pull
+                      as an anonymous user.
                     </p>
                   </Form.ElementHorizontal>
 
-                  <Form.ElementHorizontal
-                    label="Platform filter"
-                    name="platform_filter"
-                  >
-                    <Form.Input
-                      elementType="input"
-                      type="checkbox"
-                      name="platform_filter_linux_amd64"
-                    />{" "}
-                    Only x86_64 Linux
+                  <Form.ElementHorizontal label="Platform filter" name="platform_filter">
+                    <Form.Input elementType="input" type="checkbox" name="platform_filter_linux_amd64" /> Only x86_64
+                    Linux
                     <p className="form-control-plaintext">
-                      When replicating a multi-architecture images, a platform
-                      filter restricts which parts get replicated. Custom
-                      platform filters can be defined when using the Keppel API
-                      directly.
+                      When replicating a multi-architecture images, a platform filter restricts which parts get
+                      replicated. Custom platform filters can be defined when using the Keppel API directly.
                     </p>
                   </Form.ElementHorizontal>
                 </>
               )}
 
               <Form.ElementHorizontal label="Advanced" name="advanced">
-<<<<<<< HEAD
                 <p className="form-control-static text-muted">
                   You can set up access policies and validation rules after the account has been created.
-=======
-                <p className="form-control-plaintext text-muted">
-                  You can set up access policies and validation rules after the
-                  account has been created.
->>>>>>> 197423e55 (refactor: migrate remaining BS3 utility classes to BS5 (phase 4))
                 </p>
               </Form.ElementHorizontal>
             </>
@@ -162,28 +137,15 @@ const FormBody = ({ values, isKeppelSwiftRegion }) => {
           <Form.ElementHorizontal label="Sublease token" name="token" required>
             <Form.Input elementType="input" type="text" name="token" />
             {!isValidToken && (
-<<<<<<< HEAD
               <p className="form-control-static">
                 If you do not have a sublease token yet, open the Converged Cloud dashboard in the region hosting the
                 primary account and select "Issue Sublease Token" from the account's dropdown menu.
-=======
-              <p className="form-control-plaintext">
-                If you do not have a sublease token yet, open the Converged
-                Cloud dashboard in the region hosting the primary account and
-                select "Issue Sublease Token" from the account's dropdown menu.
->>>>>>> 197423e55 (refactor: migrate remaining BS3 utility classes to BS5 (phase 4))
               </p>
             )}
 
             {values.token && !isValidToken && (
-<<<<<<< HEAD
               <p className="form-control-static text-danger">
                 This token does not look quite right. Try clearing the input field and pasting again.
-=======
-              <p className="form-control-plaintext text-danger">
-                This token does not look quite right. Try clearing the input
-                field and pasting again.
->>>>>>> 197423e55 (refactor: migrate remaining BS3 utility classes to BS5 (phase 4))
               </p>
             )}
           </Form.ElementHorizontal>
@@ -209,14 +171,8 @@ const FormBody = ({ values, isKeppelSwiftRegion }) => {
               </Form.ElementHorizontal>
 
               <Form.ElementHorizontal label="Advanced" name="advanced">
-<<<<<<< HEAD
                 <p className="form-control-static text-muted">
                   You can set up access policies after the account has been created.
-=======
-                <p className="form-control-plaintext text-muted">
-                  You can set up access policies after the account has been
-                  created.
->>>>>>> 197423e55 (refactor: migrate remaining BS3 utility classes to BS5 (phase 4))
                 </p>
               </Form.ElementHorizontal>
             </>
@@ -336,7 +292,9 @@ export default class AccountCreateModal extends React.Component {
 
           <Modal.Footer>
             <Form.SubmitButton label="Create" />
-            <Button variant="secondary" onClick={this.close}>Cancel</Button>
+            <Button variant="secondary" onClick={this.close}>
+              Cancel
+            </Button>
           </Modal.Footer>
         </Form>
       </Modal>
