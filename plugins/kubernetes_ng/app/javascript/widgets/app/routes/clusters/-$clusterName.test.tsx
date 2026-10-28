@@ -152,6 +152,23 @@ describe("<ClusterDetail />", () => {
     })
   })
 
+  describe("Permission denied", () => {
+    it("shows friendly error with role guidance when get permission is false", async () => {
+      const permissionsNoGet: Permissions = { list: false, get: false, create: false, update: false, delete: false }
+
+      await act(async () =>
+        renderComponent({
+          permissionsPromise: Promise.resolve(permissionsNoGet),
+        })
+      )
+
+      await waitFor(() => {
+        expect(screen.getByText(/You don't have permission to view cluster details/i)).toBeInTheDocument()
+        expect(screen.getByText(/kubernetes_admin/i)).toBeInTheDocument()
+      })
+    })
+  })
+
   describe("Loader Error", () => {
     let consoleErrorSpy: MockInstance
 
