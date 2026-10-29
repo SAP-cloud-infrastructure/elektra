@@ -2,26 +2,25 @@
 - search_name += floating_ip.subnet_object.nil? ? floating_ip.floating_network_id : floating_ip.subnet_object.name
 %tr{id: "floating_ip_#{floating_ip.id}", data: {search_name: search_name, marker_id: floating_ip.id}}
   %td
-    .float-start
-      %i.fa.fa-globe.fa-fw
-    .float-start
+    %i.fa.fa-globe.fa-fw.me-1
+    %span{style: "white-space:nowrap"}
       = floating_ip.floating_ip_address
       - if floating_ip.subnet_object
         %span.info-text= " / #{floating_ip.subnet_object.name}"
+    - if floating_ip.subnet_object
+      - if defined?(fip_ptr_record) && fip_ptr_record&.ptrdname.present?
+        %br
+        %small.info-text{style: "word-break:break-all"}= fip_ptr_record.ptrdname
+      - elsif floating_ip.dns_domain.present? && floating_ip.dns_name.present?
+        %br
+        %small.info-text{style: "word-break:break-all"}= "#{floating_ip.dns_name}.#{floating_ip.dns_domain}"
 
-        - if defined?(fip_ptr_record) && fip_ptr_record&.ptrdname.present?
-          %br
-          %small.info-text{style: "word-break:break-all"}= fip_ptr_record.ptrdname
-        - elsif floating_ip.dns_domain.present? && floating_ip.dns_name.present?
-          %br
-          %small.info-text{style: "word-break:break-all"}= "#{floating_ip.dns_name}.#{floating_ip.dns_domain}"
-            
   %td
     - if floating_ip.fixed_ip_address.present?
       = link_to plugin('networking').floating_ip_path(floating_ip.id), data: {modal: true} do
         %i.fa.fa-desktop.fa-fw
         = floating_ip.fixed_ip_address
-  %td{style: "overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:0", title: floating_ip.description}= floating_ip.description
+  %td{style: "white-space:normal; word-break:break-word; max-width:500px", title: floating_ip.description}= truncate(floating_ip.description.to_s, length: 500)
   %td= floating_ip.status
   %td.snug
     - if current_user.is_allowed?("networking:floating_ip_delete", {floating_ip: floating_ip}) or current_user.is_allowed?("networking:floating_ip_associate", {})
