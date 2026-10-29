@@ -61,7 +61,8 @@ const receivePort = function (state, { port }) {
   if (index >= 0) {
     items[index] = port
   } else {
-    items.unshift(port)
+    // mark freshly created ports so the row can briefly highlight itself
+    items.unshift({ ...port, isNew: true })
   }
   return { ...state, items: items }
 }

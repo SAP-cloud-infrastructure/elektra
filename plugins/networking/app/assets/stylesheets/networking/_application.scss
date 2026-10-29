@@ -48,3 +48,17 @@
     opacity: 1;
   }
 }
+
+// Briefly highlight a newly created port row, then fade back to normal.
+.port-row-new td {
+  animation: port-row-new-highlight 2.5s ease-out;
+}
+
+@keyframes port-row-new-highlight {
+  0% {
+    background-color: #dff0d8; // success green
+  }
+  100% {
+    background-color: transparent;
+  }
+}

@@ -360,7 +360,21 @@ const PortList: React.FC<PortListProps> = ({
               ) : (
                 <TableRowFadeTransition>
                   <tr>
-                    <td colSpan={6}>No IPs found.</td>
+                    <td colSpan={8}>
+                      <div style={{ textAlign: "center", padding: "2rem 1rem", color: "#888" }}>
+                        <i className="fa fa-search fa-2x" style={{ opacity: 0.3, marginBottom: "0.5rem" }} />
+                        {searchTerm || attachment !== "all" ? (
+                          <>
+                            <div>No ports match your current search or filter.</div>
+                            <div className="info-text" style={{ marginTop: "0.25rem" }}>
+                              Try a different search term or reset the filter.
+                            </div>
+                          </>
+                        ) : (
+                          <div>No ports found.</div>
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 </TableRowFadeTransition>
               )}

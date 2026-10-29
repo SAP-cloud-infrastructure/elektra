@@ -22,6 +22,7 @@ interface Port {
   status?: string
   fixed_ips?: FixedIP[]
   isDeleting?: boolean
+  isNew?: boolean
 }
 
 interface Network {
@@ -75,7 +76,7 @@ const Item: React.FC<ItemProps> = ({
   const canUpdate = policy.isAllowed("networking:port_update", { port: port })
 
   return (
-    <tr className={port.isDeleting ? "updating" : ""}>
+    <tr className={`${port.isDeleting ? "updating" : ""} ${port.isNew ? "port-row-new" : ""}`.trim()}>
       <td>
         <AttachedIcon port={port} />
       </td>

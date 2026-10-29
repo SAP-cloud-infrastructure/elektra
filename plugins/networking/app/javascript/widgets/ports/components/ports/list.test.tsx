@@ -315,7 +315,7 @@ describe("Ports List", () => {
       renderComponent({ searchTerm: "nonexistent" })
       expect(screen.queryByTestId("port-item-port-a")).not.toBeInTheDocument()
       expect(screen.queryByTestId("port-item-port-b")).not.toBeInTheDocument()
-      expect(screen.getByText("No IPs found.")).toBeInTheDocument()
+      expect(screen.getByText("No ports match your current search or filter.")).toBeInTheDocument()
     })
   })
 
@@ -347,12 +347,12 @@ describe("Ports List", () => {
     it("shows skeleton rows when fetching with no items", () => {
       renderComponent({ items: [], isFetching: true })
       expect(screen.getByTestId("ports-skeleton")).toBeInTheDocument()
-      expect(screen.queryByText("No IPs found.")).not.toBeInTheDocument()
+      expect(screen.queryByText("No ports found.")).not.toBeInTheDocument()
     })
 
-    it("shows 'No IPs found' when no ports and not fetching", () => {
+    it("shows an empty state when no ports and not fetching", () => {
       renderComponent({ items: [], isFetching: false })
-      expect(screen.getByText("No IPs found.")).toBeInTheDocument()
+      expect(screen.getByText("No ports found.")).toBeInTheDocument()
     })
   })
 

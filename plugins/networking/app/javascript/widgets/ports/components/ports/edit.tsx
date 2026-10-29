@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useContext } from "react"
 import { Button } from "react-bootstrap"
 import { Modal } from "lib/components/Modal"
 // @ts-expect-error - elektra-form has no types
@@ -68,7 +68,8 @@ interface FormBodyProps {
 }
 
 const FormBody: React.FC<FormBodyProps> = ({ networks, subnets, securityGroups }) => {
-  const values = Form.useFormValues?.() || {}
+  const context = useContext(Form.Context) as any
+  const values = context.formValues || {}
   const network = networks && networks.items.find((n) => n.id === values.network_id)
 
   const renderIp = (ip: { ip_address: string; subnet_id: string }) => {
