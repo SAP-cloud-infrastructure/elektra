@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react"
+import React, { useEffect, useState } from "react"
 import { TransitionGroup, CSSTransition } from "react-transition-group"
 // @ts-expect-error - defeatable_link has no types
 import { DefeatableLink } from "lib/components/defeatable_link"
@@ -14,6 +14,7 @@ interface Port {
   name?: string
   description?: string
   network_id: string
+  device_id?: string
   fixed_ips?: Array<{ ip_address: string; subnet_id: string }>
   status?: string
   isHidden?: boolean
@@ -74,6 +75,40 @@ const TableRowFadeTransition: React.FC<any> = ({ children, ...props }) => (
   </CSSTransition>
 )
 
+type SortDirection = "asc" | "desc"
+
+interface SortState {
+  column: string | null
+  direction: SortDirection
+}
+
+interface SortableHeaderProps {
+  label: string
+  column: string
+  sort: SortState
+  onSort: (column: string) => void
+}
+
+const SortableHeader: React.FC<SortableHeaderProps> = ({ label, column, sort, onSort }) => {
+  const active = sort.column === column
+  const iconClass = !active ? "fa-sort" : sort.direction === "asc" ? "fa-sort-asc" : "fa-sort-desc"
+
+  return (
+    <th>
+      <a
+        href="#"
+        onClick={(e) => {
+          e.preventDefault()
+          onSort(column)
+        }}
+        style={{ textDecoration: "none", color: "inherit", cursor: "pointer", whiteSpace: "nowrap" }}
+      >
+        {label} <i className={`fa ${iconClass}`} style={{ opacity: active ? 1 : 0.4 }} />
+      </a>
+    </th>
+  )
+}
+
 const PortList: React.FC<PortListProps> = ({
   items,
   networks,
@@ -91,24 +126,15 @@ const PortList: React.FC<PortListProps> = ({
   loadNext,
   handleDelete,
 }) => {
-  const [filters] = useState(["fixed ip ports", "other ports"])
-  const [activeFilter, setActiveFilter] = useState<string | null>(null)
-  const isFirstRenderForFilter = useRef(true)
+  const [sort, setSort] = useState<SortState>({ column: null, direction: "asc" })
+  // attachment filter: "all" | "attached" | "free"
+  const [attachment, setAttachment] = useState<string>("all")
 
   useEffect(() => {
     loadPortsOnce()
     loadNetworksOnce()
     loadSubnetsOnce()
     loadSecurityGroupsOnce()
-
-    // Set initial active filter after first effect runs (mimics UNSAFE_componentWillReceiveProps behavior)
-    // This only runs after props are received, not on the very first render
-    if (isFirstRenderForFilter.current) {
-      isFirstRenderForFilter.current = false
-    } else if (activeFilter === null) {
-      const index = filters.indexOf("fixed ip ports")
-      setActiveFilter(filters[index >= 0 ? index : 0])
-    }
   }, [
     loadPortsOnce,
     loadNetworksOnce,
@@ -120,43 +146,77 @@ const PortList: React.FC<PortListProps> = ({
     securityGroups,
   ])
 
-  const changeActiveFilter = (name: string) => {
-    setActiveFilter(name)
+  const onSort = (column: string) => {
+    setSort((prev) => {
+      // Cycle: asc -> desc -> no sort (back to the original order)
+      if (prev.column !== column) return { column, direction: "asc" }
+      if (prev.direction === "asc") return { column, direction: "desc" }
+      return { column: null, direction: "asc" }
+    })
+  }
+
+  // The sortable value for a port in a given column (name/description/network/status).
+  const sortValue = (port: Port, column: string): string => {
+    switch (column) {
+      case "name":
+        return (port.name || port.id || "").toLowerCase()
+      case "description":
+        return (port.description || "").toLowerCase()
+      case "network": {
+        const network = networks.items.find((n) => n.id === port.network_id)
+        return (network ? network.name : port.network_id || "").toLowerCase()
+      }
+      case "status":
+        return (port.status || "").toLowerCase()
+      default:
+        return ""
+    }
   }
 
   const filterPorts = (): Port[] => {
-    // If activeFilter is null, return empty array (initial state before filter is set)
-    if (activeFilter === null) {
-      return []
+    let result = items.filter((i) => !i.isHidden)
+
+    // attachment filter: a port is "attached" when it has a device_id
+    if (attachment === "attached") {
+      result = result.filter((i) => !!i.device_id)
+    } else if (attachment === "free") {
+      result = result.filter((i) => !i.device_id)
     }
 
-    let filteredItems = items.filter(
-      (i) =>
-        (activeFilter === "other ports" && i.name !== "fixed_ip_allocation") ||
-        (activeFilter === "fixed ip ports" && i.name === "fixed_ip_allocation")
-    )
+    if (searchTerm) {
+      const regex = new RegExp(searchTerm.trim(), "i")
 
-    if (!searchTerm) return filteredItems
+      result = result.filter((i) => {
+        const network = networks.items.find((n) => n.id === i.network_id)
+        const values: any = { network: network ? network.name : "", subnet: "", ip: "" }
 
-    const regex = new RegExp(searchTerm.trim(), "i")
+        const fixed_ips = i.fixed_ips || []
+        for (const ip of fixed_ips) {
+          const subnet = subnets.items.find((s) => s.id === ip.subnet_id)
+          values.subnet = `${values.subnet} ${subnet ? subnet.name : ""}`
+          values.ip = `${values.ip} ${ip.ip_address}`
+        }
 
-    return filteredItems.filter((i) => {
-      const network = networks.items.find((n) => n.id === i.network_id)
-      const values: any = { network: network ? network.name : "", subnet: "", ip: "" }
+        return (
+          `${i.id} ${i.name} ${i.description} ${values.ip} ${values.network} ${values.subnet} ${i.network_id} ${i.status}`.search(
+            regex
+          ) >= 0
+        )
+      })
+    }
 
-      const fixed_ips = i.fixed_ips || []
-      for (const ip of fixed_ips) {
-        const subnet = subnets.items.find((s) => s.id === ip.subnet_id)
-        values.subnet = `${values.subnet} ${subnet ? subnet.name : ""}`
-        values.ip = `${values.ip} ${ip.ip_address}`
-      }
+    if (sort.column) {
+      const dir = sort.direction === "asc" ? 1 : -1
+      result = [...result].sort((a, b) => {
+        const av = sortValue(a, sort.column as string)
+        const bv = sortValue(b, sort.column as string)
+        if (av < bv) return -1 * dir
+        if (av > bv) return 1 * dir
+        return 0
+      })
+    }
 
-      return (
-        `${i.id} ${i.description} ${values.ip} ${values.network} ${values.subnet} ${i.network_id} ${i.status}`.search(
-          regex
-        ) >= 0
-      )
-    })
+    return result
   }
 
   const getNetworks = (): Record<string, Network> => {
@@ -182,32 +242,31 @@ const PortList: React.FC<PortListProps> = ({
       <div className="toolbar">
         <SearchField
           onChange={(term: string) => searchPorts(term)}
-          placeholder="ID, IP, network, subnet or description"
-          text="Searches by ID, IP, network, subnet or description in visible IP list only.
+          placeholder="ID, name, IP, network, subnet or description"
+          text="Searches by ID, name, IP, network, subnet or description in visible IP list only.
                 Entering a search term will automatically start loading the next pages
                 and filter the loaded items using the search term. Emptying the search
                 input field will show all currently loaded items."
         />
 
-        {filters.length > 1 && (
-          <>
-            <span className="toolbar-input-divider"></span>
-            <label>Show:</label>
-            {filters.map((name, index) => (
-              <label className="radio-inline" key={index}>
-                <input type="radio" onChange={() => changeActiveFilter(name)} checked={activeFilter === name} />
-                {name}
-              </label>
-            ))}
-          </>
-        )}
-        {activeFilter === "fixed ip ports" && (
-          <div className="main-buttons">
-            <DefeatableLink to="/ports/new" className="btn btn-primary">
-              Reserve new IP
-            </DefeatableLink>
-          </div>
-        )}
+        <span className="toolbar-input-divider"></span>
+        <label>Show:</label>
+        <select
+          className="form-control"
+          style={{ width: "auto" }}
+          value={attachment}
+          onChange={(e) => setAttachment(e.target.value)}
+        >
+          <option value="all">All ports</option>
+          <option value="attached">Attached</option>
+          <option value="free">Free</option>
+        </select>
+
+        <div className="main-buttons">
+          <DefeatableLink to="/ports/new" className="btn btn-primary">
+            Reserve new IP
+          </DefeatableLink>
+        </div>
       </div>
     )
   }
@@ -223,12 +282,12 @@ const PortList: React.FC<PortListProps> = ({
           <thead>
             <tr>
               <th className="snug"></th>
-              <th>Port ID / Name</th>
-              <th>Description</th>
-              <th>Network</th>
+              <SortableHeader label="Name / ID" column="name" sort={sort} onSort={onSort} />
+              <SortableHeader label="Description" column="description" sort={sort} onSort={onSort} />
+              <SortableHeader label="Network" column="network" sort={sort} onSort={onSort} />
               <th>Fixed IPs / Subnet</th>
               <th>Device Owner / ID</th>
-              <th>Status</th>
+              <SortableHeader label="Status" column="status" sort={sort} onSort={onSort} />
               <th></th>
             </tr>
           </thead>

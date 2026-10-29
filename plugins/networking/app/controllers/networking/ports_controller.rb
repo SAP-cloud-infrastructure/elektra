@@ -10,7 +10,7 @@ module Networking
     authorization_required only: %i[index create]
 
     def index
-      per_page = params[:per_page] || 30
+      per_page = params[:per_page] || 1000
 
       ports =
         paginatable(per_page: per_page) do |pagination_options|
@@ -35,11 +35,9 @@ module Networking
     end
 
     def create
-      # for now it is allowed to create a port only for fixed ips.
-      # Other ports are created automatically by compute or neutron.
       port = services.networking.new_port
-      # mark as fixed ip
-      port.name = Networking::Port::FIXED_IP_PORT_NAME
+      # name is provided by the user (optional)
+      port.name = params[:port][:name] unless params[:port][:name].blank?
       port.network_id = params[:port][:network_id]
       port.description = params[:port][:description] unless params[:port][
         :description
@@ -64,10 +62,8 @@ module Networking
     end
 
     def update
-      # for now it is allowed to create a port only for fixed ips.
-      # Other ports are created automatically by compute or neutron.
       port = services.networking.find_port(params[:id])
-      # mark as fixed ip
+      port.name = params[:port][:name]
       port.description = params[:port][:description]
       port.security_groups = params[:port][:security_groups]
 

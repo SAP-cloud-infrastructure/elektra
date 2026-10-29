@@ -73,6 +73,10 @@ const FormBody: React.FC<FormBodyProps> = ({ networks, subnets, securityGroups }
     <Modal.Body>
       <Form.Errors />
 
+      <Form.ElementHorizontal label="Name" name="name">
+        <Form.Input elementType="input" type="text" className="string optional form-control" name="name" />
+      </Form.ElementHorizontal>
+
       <Form.ElementHorizontal label="Network" required={true} name="network_id">
         {networks.isFetching ? (
           <span className="spinner" />
@@ -183,7 +187,9 @@ const NewPortForm: React.FC<NewPortFormProps> = ({
         <FormBody networks={networks} subnets={subnets} securityGroups={securityGroups} />
 
         <Modal.Footer>
-          <Button variant="secondary" onClick={close}>Cancel</Button>
+          <Button variant="secondary" onClick={close}>
+            Cancel
+          </Button>
           <Form.SubmitButton label="Save" />
         </Modal.Footer>
       </Form>

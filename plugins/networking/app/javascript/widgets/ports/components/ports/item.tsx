@@ -71,9 +71,7 @@ const Item: React.FC<ItemProps> = ({
   isFetchingSubnets,
   handleDelete,
 }) => {
-  const FIXED = "fixed_ip_allocation"
-  const canDelete =
-    policy.isAllowed("networking:port_delete", { port: port }) && (!port.device_id || port.name == FIXED)
+  const canDelete = policy.isAllowed("networking:port_delete", { port: port }) && !port.device_id
   const canUpdate = policy.isAllowed("networking:port_update", { port: port })
 
   return (
@@ -83,10 +81,12 @@ const Item: React.FC<ItemProps> = ({
       </td>
       <td>
         {policy.isAllowed("networking:port_get", { port: port }) ? (
-          <Link to={`/ports/${port.id}/show`}>{port.description || truncate(port.id, 20)}</Link>
+          <Link to={`/ports/${port.id}/show`}>{truncate(port.name || port.id, 30)}</Link>
         ) : (
-          port.name || truncate(port.id, 20)
+          truncate(port.name || port.id, 30)
         )}
+        <br />
+        <span className="info-text">{truncate(port.id, 20)}</span>
       </td>
       <td>{port.description}</td>
       <td>
