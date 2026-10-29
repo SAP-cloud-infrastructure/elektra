@@ -5,27 +5,31 @@
     = text_field_tag 'search_ips_input', '', class: "form-control", placeholder: 'floating ip or subnet name'
 
   .has-feedback-help
-    %a.help-link{href: "#", data: {toggle: "popover", "popover-type": "help-hint", content: "Searches by Floating IP name or subnet name in visible list only. Entering a search term will automatically start loading the next pages and filter the loaded items using the search term. Emptying the search input field will show all currently loaded items."}}
+    %a.help-link{href: "#", data: {bs_toggle: "popover", "popover-type": "help-hint", content: "Searches by Floating IP name or subnet name in visible list only. Entering a search term will automatically start loading the next pages and filter the loaded items using the search term. Emptying the search input field will show all currently loaded items."}}
       %i.fa.fa-question-circle
 
   - if current_user.is_allowed?("networking:floating_ip_create", {})
     .main-buttons
       = link_to 'Allocate new', plugin('networking').new_floating_ip_path, data: {modal: true}, class: 'btn btn-primary'
 
-%table.table#floating_ips.searchable{data:{search_input: '#search_ips_input'}}
-  %thead
-    %tr
-      %th Floating IP Address / Subnet
-      %th Fixed IP Address
-      %th Description
-      %th Status
-      %th.snug
-  %tbody
-    - if @floating_ips.length==0
-      %tr{data:{empty:true}}
-        %td{colspa: 5} No Floating IP available
-    - else
-      = render partial: 'list', locals: { floating_ips: @floating_ips, fip_ptr_records: @fip_ptr_records }
+.table-responsive
+  %table.table#floating_ips.searchable{data:{search_input: '#search_ips_input'}}
+    %thead
+      %tr
+        %th Floating IP Address / Subnet
+        %th Fixed IP Address
+        %th Description
+        %th Status
+        %th.snug
+    %tbody
+      - if @floating_ips.length==0
+        %tr{data:{empty:true}}
+          %td{colspan: 5}
+            .text-center.text-body-secondary{style: "padding:2rem 1rem; color:#888"}
+              %i.fa.fa-globe.fa-2x{style: "opacity:0.3; margin-bottom:0.5rem"}
+              %div No Floating IPs found.
+      - else
+        = render partial: 'list', locals: { floating_ips: @floating_ips, fip_ptr_records: @fip_ptr_records }
 
 - if @pagination_has_next
   .ajax-paginate{ data: { ajax_paginate: true, list_selector: 'table#floating_ips tbody', search_input_selector: '#search_ips_input'} }

@@ -77,7 +77,7 @@ export default class LiveSearchModal extends React.Component {
         show={this.state.show}
         onExited={this.restoreUrl}
         onHide={this.hide}
-        bsSize="large"
+        size="lg"
         aria-labelledby="contained-modal-title-lg"
       >
         <Modal.Header closeButton>
@@ -98,11 +98,11 @@ export default class LiveSearchModal extends React.Component {
               this.search()
             }}
           >
-            <div className="form-group">
+            <div className="mb-3">
               <select
                 onChange={(e) => this.setState({ objectType: e.target.value })}
                 value={this.state.objectType}
-                className="form-control"
+                className="form-select"
                 disabled={this.state.isFetching}
               >
                 {this.props.types.isFetching ? (
@@ -119,7 +119,7 @@ export default class LiveSearchModal extends React.Component {
                 )}
               </select>
             </div>
-            <div className="form-group">
+            <div className="mb-3">
               <SearchField
                 isFetching={this.state.isFetching}
                 onChange={(term) => this.setState({ term })}
@@ -157,11 +157,13 @@ export default class LiveSearchModal extends React.Component {
         </Modal.Body>
         <Modal.Footer>
           {responseData && responseData.items > 0 ? (
-            <Button bsStyle="primary" onClick={this.search}>
+            <Button variant="primary" onClick={this.search}>
               Close and refresh results
             </Button>
           ) : (
-            <Button onClick={this.hide}>Close</Button>
+            <Button variant="secondary" onClick={this.hide}>
+              Close
+            </Button>
           )}
         </Modal.Footer>
       </Modal>

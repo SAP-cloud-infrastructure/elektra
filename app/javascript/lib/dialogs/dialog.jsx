@@ -38,7 +38,7 @@ export class ModalDialog extends React.Component {
     return (
       <Modal
         show={this.state.show}
-        bsSize={this.props.size}
+        size={this.props.size}
         onExited={this.props.onHide}
         aria-labelledby="contained-modal-title-lg"
       >
@@ -55,7 +55,9 @@ export class ModalDialog extends React.Component {
         </Modal.Body>
         <Modal.Footer>
           {this.props.showAbortButton && (
-            <Button onClick={this.abort}>{this.props.abortLabel}</Button>
+            <Button variant="secondary" onClick={this.abort}>
+              {this.props.abortLabel}
+            </Button>
           )}
           <button
             className="btn btn-primary"

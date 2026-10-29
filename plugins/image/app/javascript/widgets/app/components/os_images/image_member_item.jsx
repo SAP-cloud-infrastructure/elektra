@@ -46,7 +46,7 @@ export default class ImageMemberItem extends React.Component {
         <td>
           {canRemoveMember ? (
             <button
-              className="btn btn-danger btn-sm pull-right"
+              className="btn btn-danger btn-sm float-end"
               onClick={(e) => {
                 e.preventDefault()
                 this.handleDelete()
@@ -58,7 +58,7 @@ export default class ImageMemberItem extends React.Component {
           ) : (
             canReject && (
               <button
-                className="btn btn-warning btn-sm pull-right"
+                className="btn btn-secondary btn-sm float-end"
                 onClick={(e) => {
                   e.preventDefault()
                   this.handleReject()

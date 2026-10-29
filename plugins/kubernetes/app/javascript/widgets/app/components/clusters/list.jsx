@@ -30,9 +30,7 @@ class Clusters extends React.Component {
       <div>
         {flashError != null || error != null ? (
           <div className="alert alert-error alert-dismissible">
-            <button className="close" type="button" data-dismiss="alert">
-              <span>×</span>
-            </button>
+            <button className="btn-close" type="button" data-bs-dismiss="alert" aria-label="Close"></button>
             {
               // &times;
               flashError

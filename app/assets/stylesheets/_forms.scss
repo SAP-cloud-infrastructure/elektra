@@ -1,3 +1,38 @@
+// BS3 restored the soft blue focus glow on *every* form field via element
+// selectors. BS5 only styles the `.form-control`/`.form-select` classes, so
+// bare <input>/<textarea>/<select> (e.g. the login fields) lost the effect.
+// Re-apply the same BS3 glow to those bare controls. Specialised inputs
+// (checkbox/radio/range/etc.) keep their own focus styling and are excluded.
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="image"]),
+textarea,
+select {
+  &:focus {
+    border-color: $input-focus-border-color;
+    outline: 0;
+    box-shadow: $input-focus-box-shadow;
+  }
+}
+
+// Horizontal forms: BS3 right-aligned the labels. BS5 dropped `.form-horizontal`
+// and `.control-label`; simple_form now emits `.col-form-label` which is
+// left-aligned. Our forms still carry the (now style-less) `.form-horizontal`
+// class, so re-use it as the hook to restore right-aligned labels. (Bold is now
+// handled globally via `$form-label-font-weight` in _variables.scss.)
+.form-horizontal .col-form-label {
+  text-align: right;
+}
+
+// simple_form's wrappers put `form-control` on EVERY input, including `<select>`
+// elements. BS5 only renders the native dropdown arrow (and select padding) for
+// `.form-select`, so all simple_form selects were left without an arrow. Give
+// every `select.form-control` the full BS5 `.form-select` look. Scoped to
+// `select.form-control` (not all selects) so bespoke selects with their own
+// layout — e.g. compact pagination selects or input-group addons — are left
+// alone.
+select.form-control {
+  @extend .form-select;
+}
+
 .has-help-hint {
 
   .input-wrapper {
@@ -20,6 +55,15 @@
   .fa {
     margin-right: 5px;
   }
+}
+
+// Form hints render an info icon directly in front of the text
+// (`<p class="form-text"><i class="fa fa-info-circle"></i>…`, see the
+// `icon_hint` simple_form component, used across many forms). BS3's Font Awesome
+// gave the icon some spacing; BS5 does not, so icon and text collided. Add a
+// small gap for any icon leading a `.form-text` hint, app-wide.
+.form-text > .fa:first-child {
+  margin-right: 3px;
 }
 
 .inline-form-buttons {

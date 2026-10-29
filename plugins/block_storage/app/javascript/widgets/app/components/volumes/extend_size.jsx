@@ -61,7 +61,7 @@ export default class ResetVolumeStatusForm extends React.Component {
       <Modal
         show={this.state.show}
         onHide={this.close}
-        bsSize="large"
+        size="lg"
         onExited={this.restoreUrl}
         aria-labelledby="contained-modal-title-lg"
       >
@@ -90,7 +90,7 @@ export default class ResetVolumeStatusForm extends React.Component {
           )}
 
           <Modal.Footer>
-            <Button onClick={this.close}>Cancel</Button>
+            <Button variant="secondary" onClick={this.close}>Cancel</Button>
             <Form.SubmitButton label="Extend" />
           </Modal.Footer>
         </Form>

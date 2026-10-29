@@ -119,7 +119,7 @@ export default class NewShareNetworkForm extends React.Component {
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button onClick={this.close}>Cancel</Button>
+          <Button variant="secondary" onClick={this.close}>Cancel</Button>
           <Form.SubmitButton label="Save" />
         </Modal.Footer>
       </>
@@ -133,7 +133,7 @@ export default class NewShareNetworkForm extends React.Component {
         backdrop="static"
         show={this.state.show}
         onHide={this.close}
-        bsSize="large"
+        size="lg"
         aria-labelledby="contained-modal-title-lg"
       >
         <Modal.Header closeButton>

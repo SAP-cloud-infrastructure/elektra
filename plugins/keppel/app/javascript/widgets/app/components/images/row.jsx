@@ -140,7 +140,7 @@ export default class ImageRow extends React.Component {
             {vulnerabilityStatus}
           </td>
           {(this.props.canEdit || mediaTypeInfo.hasDetails) && (
-            <td className="snug text-right text-nobreak">
+            <td className="snug text-end text-nobreak">
               {this.state.isUntagging ? (
                 <>
                   <span className="spinner" /> Deleting tag...
@@ -152,15 +152,15 @@ export default class ImageRow extends React.Component {
               ) : (
                 <div className="btn-group">
                   <button
-                    className="btn btn-default btn-sm dropdown-toggle"
+                    className="btn btn-secondary btn-sm dropdown-toggle"
                     disabled={false}
                     type="button"
-                    data-toggle="dropdown"
+                    data-bs-toggle="dropdown"
                     aria-expanded={true}
                   >
                     <span className="fa fa-cog"></span>
                   </button>
-                  <ul className="dropdown-menu dropdown-menu-right" role="menu">
+                  <ul className="dropdown-menu dropdown-menu-end" role="menu">
                     {mediaTypeInfo.hasDetails ? (
                       <li>
                         <Link

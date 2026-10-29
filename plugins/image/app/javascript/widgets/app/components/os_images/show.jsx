@@ -41,7 +41,7 @@ const ShowModal = ({ activeTab, image, loadImage, ...props }) => {
       show={isVisible}
       onExited={restoreUrl}
       onHide={hide}
-      bsSize="large"
+      size="lg"
       aria-labelledby="contained-modal-title-lg"
     >
       <Modal.Header closeButton={true}>
@@ -121,7 +121,7 @@ const ShowModal = ({ activeTab, image, loadImage, ...props }) => {
         )}
       </Modal.Body>
       <Modal.Footer>
-        <Button onClick={hide}>Close</Button>
+        <Button variant="secondary" onClick={hide}>Close</Button>
       </Modal.Footer>
     </Modal>
   )

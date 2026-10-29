@@ -9,7 +9,7 @@ const FormBody = ({ values, volume }) => (
     <Form.Errors />
 
     <Form.ElementHorizontal label="Source Volume" name="volume_id" required>
-      <p className="form-control-static">
+      <p className="form-control-plaintext">
         {volume ? (
           <>
             {volume.name}
@@ -70,7 +70,7 @@ export default class NewPortForm extends React.Component {
       <Modal
         show={this.state.show}
         onHide={this.close}
-        bsSize="large"
+        size="lg"
         backdrop="static"
         onExited={this.restoreUrl}
         aria-labelledby="contained-modal-title-lg"
@@ -88,7 +88,7 @@ export default class NewPortForm extends React.Component {
           <FormBody volume={this.props.volume} />
 
           <Modal.Footer>
-            <Button onClick={this.close}>Cancel</Button>
+            <Button variant="secondary" onClick={this.close}>Cancel</Button>
             <Form.SubmitButton label="Save" />
           </Modal.Footer>
         </Form>

@@ -19,11 +19,8 @@
     "@tanstack/react-router-devtools": "1.131.25",
     "@types/js-yaml": "^4.0.9",
     "ansi-up": "^1.0.0",
-    "bootstrap": "3.4.1",
-    "bootstrap-3-typeahead": "^4.0.2",
-    "bootstrap-multiselect": "0.9.15",
-    "bootstrap-select": "1.13.6",
-    "bootstrap-slider": "9.1.3",
+    "bootstrap": "5.3.8",
+    "bootstrap-multiselect": "2.0.0",
     "check-files": "^0.0.2",
     "clipboard": "^2.0.10",
     "coffeescript": "^2.6.1",
@@ -44,7 +41,7 @@
     "global": "^4.4.0",
     "ip-range-check": "^0.2.0",
     "ip-regex": "^5.0.0",
-    "jquery": "1.12.4",
+    "jquery": "3.7.1",
     "jquery-ujs": "^1.2.3",
     "jquery.cookie": "1.4.1",
     "js-base64": "^2.1.8",
@@ -55,7 +52,7 @@
     "prop-types": "^15.5.7",
     "query-string": "^7.1.1",
     "react": "19.2.8",
-    "react-bootstrap": "0.33.1",
+    "react-bootstrap": "2.10.10",
     "react-bootstrap-typeahead": "^6.4.1",
     "react-clipboard.js": "^2.0.16",
     "react-datetime": "^3.3.1",
@@ -94,7 +91,6 @@
     "@testing-library/user-event": "^14.6.1",
     "@types/node": "^24.7.1",
     "@types/react": "19.2.0",
-    "@types/react-bootstrap": "^1.1.0",
     "@types/react-dom": "19.2.0",
     "@types/react-router-dom": "^5.3.3",
     "@types/react-transition-group": "^4.4.12",
@@ -173,7 +169,8 @@
       "react-clipboard.js>react": "$react",
       "react-clipboard.js>react-dom": "$react-dom",
       "react-bootstrap-typeahead>react": "$react",
-      "react-bootstrap-typeahead>react-dom": "$react-dom"
+      "react-bootstrap-typeahead>react-dom": "$react-dom",
+      "bootstrap-multiselect>jquery": "$jquery"
     }
   }
 }

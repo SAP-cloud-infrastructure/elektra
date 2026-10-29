@@ -207,7 +207,7 @@ const LoadbalancerItem = ({
 
   Log.debug("RENDER loadbalancer list item id-->", loadbalancer.id)
   return (
-    <tr className={disabled ? "active" : ""}>
+    <tr className={disabled ? "table-active" : ""}>
       <td className="snug-nowrap">
         {displayName()}
         {displayID()}
@@ -272,15 +272,12 @@ const LoadbalancerItem = ({
             popoverId={"listener-popover-" + loadbalancer.id}
             buttonName={listenerIds.length}
             title={
-              <>
-                Listeners
-                <Link
-                  to={`/loadbalancers/${loadbalancer.id}/show`}
-                  style={{ float: "right" }}
-                >
+              <div className="d-flex justify-content-between w-100">
+                <span>Listeners</span>
+                <Link to={`/loadbalancers/${loadbalancer.id}/show`}>
                   Show all
                 </Link>
-              </>
+              </div>
             }
             content={
               <CachedInfoPopoverListenerContent
@@ -301,15 +298,12 @@ const LoadbalancerItem = ({
             popoverId={"pools-popover-" + loadbalancer.id}
             buttonName={poolIds.length}
             title={
-              <>
-                Pools
-                <Link
-                  to={`/loadbalancers/${loadbalancer.id}/show`}
-                  style={{ float: "right" }}
-                >
+              <div className="d-flex justify-content-between w-100">
+                <span>Pools</span>
+                <Link to={`/loadbalancers/${loadbalancer.id}/show`}>
                   Show all
                 </Link>
-              </>
+              </div>
             }
             content={
               <CachedInfoPopoverPoolContent
@@ -325,14 +319,14 @@ const LoadbalancerItem = ({
       <td>
         <div className="btn-group">
           <button
-            className="btn btn-default btn-sm dropdown-toggle"
+            className="btn btn-secondary btn-sm dropdown-toggle"
             type="button"
-            data-toggle="dropdown"
+            data-bs-toggle="dropdown"
             aria-expanded={true}
           >
             <span className="fa fa-cog"></span>
           </button>
-          <ul className="dropdown-menu dropdown-menu-right" role="menu">
+          <ul className="dropdown-menu dropdown-menu-end" role="menu">
             <li>
               <SmartLink
                 to={

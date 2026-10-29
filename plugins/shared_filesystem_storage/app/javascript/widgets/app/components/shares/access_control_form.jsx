@@ -43,7 +43,7 @@ const AccessControlForm = (props) => {
       <Form.ElementInline
         label="Access Type"
         name="access_type"
-        labelClass="sr-only"
+        labelClass="visually-hidden"
       >
         <Form.Input elementType="select" name="access_type">
           <option value="">Select Access Type</option>
@@ -58,7 +58,7 @@ const AccessControlForm = (props) => {
       <Form.ElementInline
         label="Access To"
         name="access_to"
-        labelClass="sr-only"
+        labelClass="visually-hidden"
       >
         <Form.Input
           elementType="input"
@@ -71,7 +71,7 @@ const AccessControlForm = (props) => {
       <Form.ElementInline
         label="Access Level"
         name="access_level"
-        labelClass="sr-only"
+        labelClass="visually-hidden"
       >
         <Form.Input elementType="select" name="access_level">
           <option value="">Select Access Level</option>
@@ -83,11 +83,11 @@ const AccessControlForm = (props) => {
         </Form.Input>
       </Form.ElementInline>
 
-      <div className="form-group">
+      <div className="mb-3">
         <Form.SubmitButton label="Save" />
       </div>
       {accessToInfo() && (
-        <p className="help-block">
+        <p className="form-text">
           <i className="fa fa-info-circle" />
           {accessToInfo()}
         </p>

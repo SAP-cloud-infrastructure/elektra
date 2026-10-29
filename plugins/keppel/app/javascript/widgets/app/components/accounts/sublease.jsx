@@ -79,7 +79,7 @@ export default class AccountSubleaseTokenModal extends React.Component {
         backdrop="static"
         show={this.state.show}
         onHide={this.close}
-        bsSize="large"
+        size="lg"
         aria-labelledby="contained-modal-title-lg"
       >
         <Modal.Header closeButton>
@@ -98,8 +98,8 @@ export default class AccountSubleaseTokenModal extends React.Component {
           </p>
         </Modal.Body>
         <Modal.Footer>
-          {this.state.token !== null && <Button onClick={this.getToken}>Generate new token</Button>}
-          <Button onClick={this.close}>Close</Button>
+          {this.state.token !== null && <Button variant="primary" onClick={this.getToken}>Generate new token</Button>}
+          <Button variant="secondary" onClick={this.close}>Close</Button>
         </Modal.Footer>
       </Modal>
     )

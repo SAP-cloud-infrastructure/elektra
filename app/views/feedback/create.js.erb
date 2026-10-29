@@ -5,7 +5,7 @@
     $messageDiv.removeClass('alert-danger').addClass('alert-success')
       .text('<%= j(@message) %>').show();
     setTimeout(function() {
-      $('.modal').modal('hide');
+      window.BootstrapEngine.hideModal('.modal');
       $messageDiv.hide();
     }, 2000);
   <% else %>

@@ -1,24 +1,24 @@
 = form_tag url_for(params.to_unsafe_hash), method: :get, class: 'form-horizontal' do
-  .form-group.string.col-sm-12.well
+  .mb-3.string.col-sm-12.well
     .row
 
-      %label.string.required.control-label.col-sm-2
+      %label.string.required.col-form-label.col-sm-2
         Domain
 
       .col-sm-5
         .input-wrapper
           %input.string.required.form-control#pid{name:"domain", value:params[:domain]}
-        %p.help-block
+        %p.form-text
           %i.fa.fa-info-circle
           Domain name or ID
     .row
-      %label.string.required.control-label.col-sm-2
+      %label.string.required.col-form-label.col-sm-2
         Project
 
       .col-sm-5
         .input-wrapper
           %input.string.required.form-control#pid{name:"project", value:params[:project]}
-        %p.help-block
+        %p.form-text
           %i.fa.fa-info-circle
           Project name or ID
 

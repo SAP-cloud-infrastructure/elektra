@@ -7,9 +7,8 @@
   %td.snug
     - if current_user.is_allowed?("networking:rbac_policy_delete", {network: network })
       = link_to plugin('networking').send("networks_#{@network_type}_access_path", @network_id, rbac.id),
-        class: "btn btn-danger btn-sm",
+        class: "btn btn-danger btn-sm rbac-delete",
         method: :delete,
-        data: { confirm: 'Are you sure you want to delete this access?', ok: "Yes, delete it", confirmed: :loading_status },
+        data: { confirmed: :loading_status },
         remote: true do
         %i.fa.fa-trash.fa-fw
-        Remove

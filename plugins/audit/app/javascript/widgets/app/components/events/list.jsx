@@ -167,7 +167,7 @@ const EventList = ({
 
         <span className="tool">
           <button
-            className="btn btn-default btn-sm"
+            className="btn btn-secondary btn-sm"
             onClick={onDownloadClick}
             disabled={isDownloading || isFetching}
             title="Download all matching events as JSONL"

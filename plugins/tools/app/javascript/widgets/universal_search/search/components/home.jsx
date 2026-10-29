@@ -69,6 +69,7 @@ export default class Search extends React.Component {
             </span>
           ) : (
             <select
+              className="form-select w-auto"
               onChange={(e) =>
                 this.props.search({ objectType: e.target.value })
               }

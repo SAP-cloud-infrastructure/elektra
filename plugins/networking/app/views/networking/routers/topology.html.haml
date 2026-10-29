@@ -7,9 +7,14 @@
 / Load D3 v3 from vendor directory since it requires global context
 %script{src: asset_path("d3.v3.min.js")}
 :javascript
-  // Wait for both D3 and networking.Topology to be available
+  // Wait for D3, networking.Topology, AND for the #graph container to have a
+  // real width (the modal animates in, so an early measurement would be 0 and
+  // the graph would fall back to a narrow fixed width).
   (function initTopology() {
-    if (typeof window.d3 !== 'undefined' && window.networking && window.networking.Topology) {
+    var ready = typeof window.d3 !== 'undefined' && window.networking && window.networking.Topology;
+    var container = document.querySelector('#graph');
+    var hasWidth = container && container.offsetWidth > 0;
+    if (ready && hasWidth) {
       try {
         new networking.Topology("#graph",#{sanitize(@topology_graph.to_json)}, {details_url: "#{plugin('networking').router_node_details_path(@router.id)}"});
       } catch(e) {
@@ -23,6 +28,6 @@
 - if modal?
   .modal-footer
     - if modal?
-      %button.btn.btn-default{type:"button", data: {dismiss:"modal"}, aria: {label: "Close"}} Close
+      %button.btn.btn-secondary{type:"button", data: {bs_dismiss:"modal"}, aria: {label: "Close"}} Close
     - else
-      = link_to "Close", networks_url(), class: 'btn btn-default'
+      = link_to "Close", networks_url(), class: 'btn btn-secondary'

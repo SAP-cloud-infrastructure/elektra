@@ -307,6 +307,7 @@ describe("NewPortForm Component", () => {
 
     it("renders all form fields", () => {
       renderComponent()
+      expect(screen.getByTestId("form-element-name")).toBeInTheDocument()
       expect(screen.getByTestId("form-element-network_id")).toBeInTheDocument()
       expect(screen.getByTestId("form-element-subnet_id")).toBeInTheDocument()
       expect(screen.getByTestId("form-element-ip_address")).toBeInTheDocument()

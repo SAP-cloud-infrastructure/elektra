@@ -45,7 +45,7 @@ const FormBody: React.FC<FormBodyProps> = ({ values, snapshot, volume }) => (
   <Modal.Body>
     <Form.Errors />
     <Form.ElementHorizontal label="Source Snapshot" name="snapshot_id" required>
-      <p className="form-control-static">
+      <p className="form-control-plaintext">
         {snapshot ? (
           <>
             {snapshot.name}
@@ -138,7 +138,7 @@ const NewVolumeForm: React.FC<NewVolumeFormProps> = ({
     <Modal
       show={show}
       onHide={close}
-      bsSize="large"
+      size="lg"
       backdrop="static"
       onExited={restoreUrl}
       aria-labelledby="contained-modal-title-lg"
@@ -151,7 +151,7 @@ const NewVolumeForm: React.FC<NewVolumeFormProps> = ({
         <FormBody values={{ snapshot_id, name: "", description: "" }} snapshot={snapshot} volume={volume} />
 
         <Modal.Footer>
-          <Button onClick={close}>Cancel</Button>
+          <Button variant="secondary" onClick={close}>Cancel</Button>
           <Form.SubmitButton label="Save" />
         </Modal.Footer>
       </Form>

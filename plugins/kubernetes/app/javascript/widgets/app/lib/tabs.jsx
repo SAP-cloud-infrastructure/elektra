@@ -20,16 +20,13 @@ const ReactTabs = function ({ tabsConfig, activeTabUid, onSelect }) {
     const panels = []
     for (var tab of Array.from(tabsConfig)) {
       tabs.push(
-        <li
-          key={`${tab.uid}_tab`}
-          role="presentation"
-          className={activeTabUid === tab.uid ? "active" : undefined}
-        >
+        <li key={`${tab.uid}_tab`} role="presentation" className="nav-item">
           <a
             href={`#${tab.uid}`}
             aria-controls="home"
             role="tab"
-            data-toggle="tab"
+            data-bs-toggle="tab"
+            className={`nav-link ${activeTabUid === tab.uid ? "active" : ""}`}
             onClick={(function () {
               const { uid } = tab
               return function (e) {

@@ -42,7 +42,7 @@ const FormBody: React.FC<FormBodyProps> = ({ values, volume, availabilityZones }
     <Form.Errors />
 
     <Form.ElementHorizontal label="Source Volume" name="source_volid">
-      <p className="form-control-static">
+      <p className="form-control-plaintext">
         {volume.name}
         <br />
         <span className="info-text">ID: {volume.id}</span>
@@ -178,7 +178,7 @@ const CloneVolumeForm: React.FC<CloneVolumeFormProps> = ({
         )}
 
         <Modal.Footer>
-          <Button onClick={close}>Cancel</Button>
+          <Button variant="secondary" onClick={close}>Cancel</Button>
           <Form.SubmitButton label="Clone" />
         </Modal.Footer>
       </Form>

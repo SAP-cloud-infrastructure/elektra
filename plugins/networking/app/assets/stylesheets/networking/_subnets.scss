@@ -1,10 +1,24 @@
-.subnets .toolbar {
-  .main-control-buttons{
-    margin-top: 2px;
-    margin-bottom: 3px;
+// The per-row delete button toggles between a trash icon and a "Confirm
+// Delete" label (see subnets.js#removeSubnet and rbacs.js). The default narrow
+// button width made "Confirm Delete" wrap onto two lines, making that row's
+// button much taller than the others. Keep the label on a single line so the
+// button keeps a consistent height in both states.
+.subnets .table td.snug .btn-danger,
+#rbacs td.snug .btn-danger {
+  white-space: nowrap;
+}
+
+// Keep the add-RBAC form's help text compact: no extra top/bottom whitespace
+// around the "Choose from one of your projects..." hint.
+#new_rbac_form {
+  .form-text {
+    margin: 2px 0 0 0;
+    font-size: $font-size-small;
   }
 
-  form input[type='text'] {
-    width: 350px;
+  // The wrapper div that holds the hint sits on its own flex row (see the
+  // `> div:not(.form-group)` rule above); drop its default spacing.
+  > div:last-child {
+    margin: 0;
   }
 }

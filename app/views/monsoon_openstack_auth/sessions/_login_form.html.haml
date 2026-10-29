@@ -19,14 +19,14 @@
       - flash.each do |name, msg|
         .alert{class: "alert-#{name}"}= msg
 
-    %label.sr-only{:for => "domain"} Domain
+    %label.visually-hidden{:for => "domain"} Domain
     - if @domain_name
       = text_field_tag :domain, @domain_name, placeholder: "Domain", class: "form-control top-input", disabled: "true"
 
-    %label.sr-only{:for => "username"} User ID
+    %label.visually-hidden{:for => "username"} User ID
     = text_field_tag :username, @username, autofocus: "", placeholder: "User ID", required: "", class: "form-control"
 
-    %label.sr-only{:for => "password"} Password
+    %label.visually-hidden{:for => "password"} Password
     = password_field_tag :password, nil, placeholder: "Password", required: "", class: "form-control bottom-input"
 
     %button.btn.btn-lg.btn-primary.btn-block{:type => "submit"} Sign in

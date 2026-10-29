@@ -19,14 +19,14 @@ $.fn.dhcpFormControl = function (options) {
 
     if (typeof options === "string") {
       if (options === "hide") {
-        $(this).text("+").addClass("btn-primary").removeClass("btn-default")
-        $form.hide("slow")
+        $(this).text("+").addClass("btn-primary").removeClass("btn-secondary")
+        $form.hide()
       } else if (options === "show") {
-        $form.show("slow")
+        $form.show()
         $(this)
           .text("cancel")
           .removeClass("btn-primary")
-          .addClass("btn-default")
+          .addClass("btn-secondary")
       }
       return this
     }
@@ -34,14 +34,14 @@ $.fn.dhcpFormControl = function (options) {
     // setup control behavior
     $control.click(function () {
       if ($form.is(":visible")) {
-        $(this).text("+").addClass("btn-primary").removeClass("btn-default")
-        return $form.hide("slow")
+        $(this).text("+").addClass("btn-primary").removeClass("btn-secondary")
+        return $form.hide()
       } else {
-        $form.show("slow")
+        $form.show()
         return $(this)
           .text("cancel")
           .removeClass("btn-primary")
-          .addClass("btn-default")
+          .addClass("btn-secondary")
       }
     })
 

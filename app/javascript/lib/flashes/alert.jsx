@@ -38,9 +38,7 @@ export class Alert extends React.Component {
 
     return (
       <div className={alertClassName}>
-        <button className="close" onClick={this.props.onClose}>
-          &times;
-        </button>
+        <button className="btn-close" aria-label="Close" onClick={this.props.onClose} />
         {this.renderMessageBody(message)}
       </div>
     )

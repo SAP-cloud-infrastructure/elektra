@@ -2,8 +2,8 @@
 - co_name = @cost_object["name"]
 
 %div{ class: @inheritance.co_inheritable ? 'col-md-2' : 'col-md-3' }
-  .form-group.select.required.project_masterdata_cost_object_type
-    %label.control-label.select.required
+  .mb-3.select.required.project_masterdata_cost_object_type
+    %label.col-form-label.select.required
       %abbr{title:"", "data-original-title":"required"} *
       Type
       = render partial: '/masterdata_cockpit/application/help_icon', locals: { help_text: t('masterdata_cockpit.co_type_help') }
@@ -11,8 +11,8 @@
       %option{value: co_type}
         #{MasterdataCockpit::Config.cost_object_types[co_type]}
 .col-md-3
-  .form-group.string.required.project_masterdata_cost_object_name
-    %label.control-label.string.required
+  .mb-3.string.required.project_masterdata_cost_object_name
+    %label.col-form-label.string.required
       %abbr{title:"", "data-original-title": "required"} *
       Name/Number
       = render partial: '/masterdata_cockpit/application/help_icon', locals: { help_text: t('masterdata_cockpit.co_name_help') }

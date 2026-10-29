@@ -11,8 +11,8 @@
     -# wizard type
     - if @network_wizard.setup_options.length>1
       %fieldset
-        .form-group.string.network_wizard_wizard_type
-          %label.radio.control-label{for: "network_wizard_setup_option"} Setup Options
+        .mb-3.string.network_wizard_wizard_type
+          %label.radio.col-form-label{for: "network_wizard_setup_option"} Setup Options
 
           %label.radio-inline
             %input{type:"radio", name:"network_wizard[setup_option]", value:"advanced", checked: @network_wizard.setup_option=='advanced', "aria-controls": "advanced", role: "tab", "data-target": "#advanced"} advanced
@@ -36,11 +36,11 @@
             Network as well as a Router and connect the networks to each other.
 
   %div.buttons{class: modal? ? 'modal-footer' : ''}
-    %button.btn.btn-default{ type: 'button', data: { dismiss:'modal' }, aria: { label: 'Cancel' } } Cancel
+    %button.btn.btn-secondary{ type: 'button', data: { bs_dismiss:'modal' }, aria: { label: 'Cancel' } } Cancel
     %button{ type: 'submit', class: 'btn btn-primary', data: { disable_with: 'Please wait...'}, disabled: (!@network_wizard.errors.blank?) } Setup
 
 :javascript
   $('input[name="network_wizard[setup_option]"]').click(function () {
     console.log(this.id)
-    $(this).tab('show');
+    window.BootstrapEngine.showTab(this);
   });

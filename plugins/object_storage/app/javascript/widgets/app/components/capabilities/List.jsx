@@ -138,7 +138,7 @@ const Capabilities = ({ data }) => {
         )}
       </ul>
 
-      <p className="help-block">
+      <p className="form-text">
         For a more detailed report, use the
         <code>swift info</code>
         command on the

@@ -1,12 +1,12 @@
 .btn-group
-  %button.btn.btn-default.btn-sm.dropdown-toggle{
+  %button.btn.btn-secondary.btn-sm.dropdown-toggle{
     type: "button",
-    data: { toggle: "dropdown" },
+    data: { bs_toggle: "dropdown" },
     aria: { expanded: true }
   }
     %span.fa.fa-cog
     -# %span.spinner
-  %ul.dropdown-menu.dropdown-menu-right{role: "menu"}
+  %ul.dropdown-menu.dropdown-menu-end{role: "menu"}
     - if current_user.is_allowed?("compute:instance_get", {target: { project: @active_project, scoped_domain_name: @scoped_domain_name}})
       %li
         = link_to 'Web Console', console_instance_path(id: instance.id), target: '_blank'#data: { modal: true, load_console: true}

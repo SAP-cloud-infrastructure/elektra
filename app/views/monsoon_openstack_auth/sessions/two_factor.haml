@@ -13,7 +13,7 @@
 
       = hidden_field_tag :username, @username if @username
 
-      %label.sr-only{:for => "username"} User ID
+      %label.visually-hidden{:for => "username"} User ID
       = text_field_tag :username, @username,
         placeholder: "User ID",
         required: "",
@@ -23,16 +23,16 @@
       =# password_field_tag :passcode, nil, placeholder: "SecurID Passcode", autofocus: "", required: "", class: "form-control bottom-input"
  
       .input-group.rsa
-        %label.sr-only{:for => "passcode"} Password
+        %label.visually-hidden{:for => "passcode"} Password
         = password_field_tag :passcode, nil, placeholder: "SecurID Passcode", autofocus: "", required: "", class: "form-control"
-        %span.input-group-addon{data: { toggle: 'tooltip', placement: 'top'}, title: "Click here for more information about SecureID."}
+        %span.input-group-text{data: { bs_toggle: 'tooltip', placement: 'top'}, title: "Click here for more information about SecureID."}
           %a{href:"https://portal.wdf.sap.corp/go/securid ", target: "_blank"}= image_tag "rsa_logo.jpg", height: 43
       
 
 
       %button.btn.btn-lg.btn-primary.btn-block{:type => "submit"} Sign in
 
-      %p.pull-right
+      %p.float-end
         %br
         %i.fa.fa-info-circle.text-info
         This is valid for 4 hours.

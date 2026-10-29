@@ -35,18 +35,18 @@
                     = "Key: #{zt.key}"
 
               %td
-                %form.form-inline.pull-right.transfer-request-accept{action: plugin('dns_service').accept_transfer_request_path(id: zt.id), method: :put, "data-remote": "true"}
-                  .form-group{style: 'display: none;'}
+                %form.form-inline.float-end.transfer-request-accept{action: plugin('dns_service').accept_transfer_request_path(id: zt.id), method: :put, "data-remote": "true"}
+                  .mb-3{style: 'display: none;'}
                     .input-group
-                      %input.form-control.input-sm{name: 'key', placeholder: 'Transfer Key'}
-                      .input-group-addon
-                        %i.fa.fa-fw.fa-info-circle{ data: {toggle:"tooltip", placement:"bottom", title: "Key that is used as part of the zone transfer accept process. This is only shown to the creator, and must be communicated out of band."}}
+                      %input.form-control.form-control-sm{name: 'key', placeholder: 'Transfer Key'}
+                      .input-group-text
+                        %i.fa.fa-fw.fa-info-circle{ data: {bs_toggle:"tooltip", placement:"bottom", title: "Key that is used as part of the zone transfer accept process. This is only shown to the creator, and must be communicated out of band."}}
                         -# %i.fa.fa-fw.fa-times.danger
                   %button.btn.btn-primary.btn-sm{type: 'submit', data: {url: plugin('dns_service').accept_transfer_request_path(id: zt.id) }} Accept
 
 - if modal?
   .modal-footer
-    %button.btn.btn-default{type:"button", data: {dismiss:"modal"}, aria: {label: "Close"}} Close
+    %button.btn.btn-secondary{type:"button", data: {bs_dismiss:"modal"}, aria: {label: "Close"}} Close
 
 :javascript
   $(document).ready(function(){

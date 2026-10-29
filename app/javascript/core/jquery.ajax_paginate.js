@@ -4,6 +4,7 @@
  * DS102: Remove unnecessary code created because of implicit returns
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
+import { initTooltips } from "./bootstrap_engine"
 // jQuery plugin
 jQuery.fn.ajaxPaginate = function (options) {
   // default values for all paginate plugins
@@ -15,7 +16,7 @@ jQuery.fn.ajaxPaginate = function (options) {
     loadNextLabel: "Load Next",
     loadAllLabel: "Load All",
     loadNextItemsCssClass: "btn btn-primary btn-sm",
-    loadAllItemsCssClass: "btn btn-default btn-sm",
+    loadAllItemsCssClass: "btn btn-secondary btn-sm",
   }
 
   // merge defaults and options
@@ -180,9 +181,9 @@ jQuery.fn.ajaxPaginate = function (options) {
     // add load all items button
     if (loadAllButton) {
       const $loadAllButton = $(
-        ` <button class='${loadAllItemsCssClass}' data-toggle='tooltip' title='This might take a while!'>${loadAllLabel}</button> `
+        ` <button class='${loadAllItemsCssClass}' data-bs-toggle='tooltip' title='This might take a while!'>${loadAllLabel}</button> `
       ).appendTo($buttons)
-      $loadAllButton.tooltip()
+      initTooltips($loadAllButton)
       return $loadAllButton.click(function () {
         showLoading()
         return loadAll((data) => hideLoading())

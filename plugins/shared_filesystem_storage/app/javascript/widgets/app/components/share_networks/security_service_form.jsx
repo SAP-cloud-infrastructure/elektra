@@ -13,7 +13,7 @@ const SecurityServiceForm = (props) => {
       <Form.ElementInline
         label="Security Service"
         name="id"
-        labelClass="sr-only"
+        labelClass="visually-hidden"
       >
         <Form.Input elementType="select">
           <option value="">Select Security Service</option>
@@ -25,7 +25,7 @@ const SecurityServiceForm = (props) => {
         </Form.Input>
       </Form.ElementInline>
 
-      <div className="form-group">
+      <div className="mb-3">
         <Form.SubmitButton label="Add" />
       </div>
     </Form>

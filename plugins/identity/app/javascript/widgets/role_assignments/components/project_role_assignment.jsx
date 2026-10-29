@@ -79,7 +79,7 @@ export default class ProjectRoleAssignmentsItem extends React.Component {
               {canEdit && (
                 <button
                   onClick={() => this.setState({ editMode: true })}
-                  className="btn btn-default"
+                  className="btn btn-secondary"
                 >
                   Edit
                 </button>

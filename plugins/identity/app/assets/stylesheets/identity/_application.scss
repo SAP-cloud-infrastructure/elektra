@@ -22,3 +22,9 @@
 */
 
 @import "projects";
+
+// Domain users list: widen the filter/search field (default was only as wide as
+// its content/flex box). Scoped to this plugin's `.users-filter` wrapper.
+.toolbar .has-feedback.users-filter {
+  width: 400px;
+}

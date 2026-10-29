@@ -91,11 +91,11 @@ const TagItem = ({ item, onUpdate, onRemove, isNew }) => {
           </span>
         )}
       </td>
-      <td className="text-right">
+      <td className="text-end">
         <div className="btn-group">
           {isEditing && (
             <button
-              className="btn btn-default"
+              className="btn btn-secondary"
               onClick={() => {
                 if (isNew) onRemove()
                 setIsEditing(false)
@@ -107,7 +107,7 @@ const TagItem = ({ item, onUpdate, onRemove, isNew }) => {
           <button
             className={
               !isEditing
-                ? "btn btn-default"
+                ? "btn btn-secondary"
                 : isToSmall
                 ? "btn btn-success disabled"
                 : "btn btn-success"

@@ -27,3 +27,38 @@
 .loading-place {
   display: inline-block !important;
 }
+
+// Pulsing placeholder bars used by the ports table skeleton loading rows.
+.ports-skeleton-bar {
+  display: inline-block;
+  height: 0.75rem;
+  border-radius: 3px;
+  background: #e9e9e9;
+  animation: ports-skeleton-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes ports-skeleton-pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+// Briefly highlight a newly created port row, then fade back to normal.
+.port-row-new td {
+  animation: port-row-new-highlight 2.5s ease-out;
+}
+
+@keyframes port-row-new-highlight {
+  0% {
+    background-color: #dff0d8; // success green
+  }
+  100% {
+    background-color: transparent;
+  }
+}

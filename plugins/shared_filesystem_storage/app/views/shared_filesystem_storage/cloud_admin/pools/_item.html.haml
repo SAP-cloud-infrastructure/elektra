@@ -8,12 +8,12 @@
   %td= pool.host
   %td= pool.total_capacity
   %td
-    %span{title: "#{pool.allocated_capacity_percentage}%", data: {toggle: :tooltip}}= pool.allocated_capacity
+    %span{title: "#{pool.allocated_capacity_percentage}%", data: {bs_toggle: :tooltip}}= pool.allocated_capacity
     = #format_percentage(pool.allocated_capacity, pool.allocated_capacity_percentage)
   %td
-    %span{title: "#{pool.free_capacity_percentage}%", data: {toggle: :tooltip}}= pool.free_capacity
+    %span{title: "#{pool.free_capacity_percentage}%", data: {bs_toggle: :tooltip}}= pool.free_capacity
     =# format_percentage(pool.free_capacity, pool.free_capacity_percentage)
   %td
-    %span{title: "#{pool.reserved_capacity_percentage}%", data: {toggle: :tooltip}}= pool.reserved_capacity
+    %span{title: "#{pool.reserved_capacity_percentage}%", data: {bs_toggle: :tooltip}}= pool.reserved_capacity
     =# format_percentage(pool.reserved_capacity, pool.reserved_capacity_percentage)
   %td.snug

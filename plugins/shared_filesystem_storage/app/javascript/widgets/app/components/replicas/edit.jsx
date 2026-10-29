@@ -34,7 +34,7 @@ export default class EditSnapshotForm extends React.Component {
       <Modal
         show={this.state.show}
         onHide={this.close}
-        bsSize="large"
+        size="lg"
         aria-labelledby="contained-modal-title-lg"
       >
         <Modal.Header closeButton>
@@ -74,7 +74,7 @@ export default class EditSnapshotForm extends React.Component {
             )}
           </Modal.Body>
           <Modal.Footer>
-            <Button onClick={this.close}>Cancel</Button>
+            <Button variant="secondary" onClick={this.close}>Cancel</Button>
             <Form.SubmitButton label="Save" />
           </Modal.Footer>
         </Form>

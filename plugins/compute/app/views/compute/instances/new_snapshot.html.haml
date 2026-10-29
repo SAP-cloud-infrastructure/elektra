@@ -8,10 +8,10 @@
 
     %div.buttons{class: modal? ? 'modal-footer' : ''}
       - if modal?
-        %button.btn.btn-default{type:"button", data: {dismiss:"modal"}, aria: {label: "Cancel"}} Cancel
+        %button.btn.btn-secondary{type:"button", data: {bs_dismiss:"modal"}, aria: {label: "Cancel"}} Cancel
       - else
-        = link_to "Cancel", instances_url(), class: 'btn btn-default'
-      = button_tag "Create Snapshot", { class: 'btn btn-primary pull-right', data: { disable_with: "Please wait..." } }
+        = link_to "Cancel", instances_url(), class: 'btn btn-secondary'
+      = button_tag "Create Snapshot", { class: 'btn btn-primary float-end', data: { disable_with: "Please wait..." } }
 - else
   %div{class: modal? ? 'modal-body' : ''}
     .alert.alert-info
@@ -21,5 +21,5 @@
         and
         %code objectstore_admin
         role. Take a look to your
-        = link_to "Profile", '#', data: { toggle: "modal", target: "#profile"}
+        = link_to "Profile", '#', data: { bs_toggle: "modal", bs_target: "#profile"}
         to find out which roles you have.

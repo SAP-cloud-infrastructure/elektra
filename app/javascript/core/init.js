@@ -6,6 +6,7 @@
  * DS205: Consider reworking code to avoid use of IIFEs
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
+import { hideModal, initTooltips, initPopovers } from "./bootstrap_engine"
 class Dashboard {
   static hideRevealFormParts() {
     const allTargets = $(".dynamic-form-target")
@@ -32,7 +33,7 @@ class Dashboard {
   }
 
   static hideModal() {
-    return $("#modal-holder .modal").modal("hide")
+    return hideModal("#modal-holder .modal")
   }
 }
 
@@ -53,10 +54,18 @@ if (typeof window.console === "undefined" || typeof window.console.log === "unde
 // init help hint popovers
 const initHelpHint = function () {
   // https://stackoverflow.com/questions/32911355/whats-the-tabindex-1-in-bootstrap-for
-  $('[data-toggle="popover"][data-popover-type="help-hint"]').attr("tabindex", "0")
-  return $('[data-toggle="popover"][data-popover-type="help-hint"]').popover({
-    placement: "top",
-    trigger: "focus",
+  // The markup carries the popover text in the BS3-style `data-content`
+  // attribute, but Bootstrap 5 reads it from `data-bs-content`. Rather than
+  // touch every view, read `data-content` here and pass it as the `content`
+  // option so the popovers show their text again.
+  $('[data-bs-toggle="popover"][data-popover-type="help-hint"]').each(function () {
+    const $el = $(this)
+    $el.attr("tabindex", "0")
+    initPopovers(this, {
+      placement: "top",
+      trigger: "focus",
+      content: $el.attr("data-content") || $el.attr("data-bs-content") || "",
+    })
   })
 }
 
@@ -74,9 +83,9 @@ $(function () {
   }
 
   // Tooltips
-  $("abbr[title], abbr[data-original-title]").tooltip({ delay: { show: 300 } })
+  initTooltips("abbr[title], abbr[data-original-title]", { delay: { show: 300 } })
   // init tooltips
-  $('[data-toggle="tooltip"]').tooltip()
+  initTooltips('[data-bs-toggle="tooltip"]')
 
   // init Form
   Dashboard.initForm()
@@ -93,6 +102,19 @@ $(function () {
   })
   $("tr [data-confirmed=loading_status]").attr("data-confirmed", "$(this).closest('tr').addClass('updating')")
 
+  // Toggle the collapsed "+N more" IPs in the instances list (see
+  // Compute::InstancesHelper#render_instance_ips). Delegated so it also works
+  // for ajax-paginated rows.
+  $(document).on("click", "[data-ips-toggle]", function (e) {
+    e.preventDefault()
+    const $toggle = $(this)
+    const $more = $toggle.siblings(".instance-ips-more")
+    const nowHidden = $more.is(":visible")
+    $more.toggle()
+    const count = $more.children().length
+    $toggle.text(nowHidden ? "+" + count + " more" : "show less")
+  })
+
   $("#accept_tos").click(function () {
     return $("#register-button").prop("disabled", !$(this).prop("checked"))
   })
@@ -104,6 +126,28 @@ $(function () {
   $('[data-toggle="help"]').click(function (e) {
     e.preventDefault()
     return $(".plugin-help").toggleClass("visible")
+  })
+
+  // Mega dropdown (breadcrumb services menu). Its menu is a custom
+  // render_navigation fancy-list, NOT a real .dropdown-menu, so Bootstrap 5's
+  // dropdown JS cannot drive it. Toggle visibility manually via `.open` on the
+  // `.dropdown-mega` container (BS5 .dropdown-menu.show is applied to the menu).
+  $(document).on("click", '[data-mega-dropdown="true"]', function (e) {
+    e.preventDefault()
+    e.stopPropagation()
+    const $mega = $(this).closest(".dropdown-mega")
+    const isOpen = $mega.hasClass("open")
+    // close any other open mega dropdowns
+    $(".dropdown-mega.open").removeClass("open").find("> .fancy-nav").removeClass("show")
+    if (!isOpen) {
+      $mega.addClass("open").find("> .fancy-nav").addClass("show")
+    }
+  })
+  // close the mega dropdown when clicking outside of it
+  $(document).on("click", function (e) {
+    if (!$(e.target).closest(".dropdown-mega").length) {
+      $(".dropdown-mega.open").removeClass("open").find("> .fancy-nav").removeClass("show")
+    }
   })
 
   // generic visibility toggle
@@ -173,6 +217,18 @@ const observer = new MutationObserver(function (mutations) {
           result.push(
             multiselect_boxes.multiselect({
               numberDisplayed: 1,
+              // show a search box and cap the dropdown height so long lists
+              // (e.g. many security groups) stay scannable and scrollable
+              enableFiltering: true,
+              enableCaseInsensitiveFiltering: true,
+              maxHeight: 250,
+              templates: {
+                // the lib's default filter uses Font Awesome 5/6 classes
+                // (`fas fa-sm`), but this project ships Font Awesome 4
+                // (`fa` prefix), so the search icon would not render.
+                filter:
+                  '<div class="multiselect-filter d-flex align-items-center"><i class="fa fa-search text-body-secondary"></i><input type="search" class="multiselect-search form-control" /></div>',
+              },
             })
           )
         } else {
@@ -248,7 +304,7 @@ $(document).on("modal:contentUpdated", function (e) {
 
   // -------------
   // init tooltips
-  $('[data-toggle="tooltip"]').tooltip()
+  initTooltips('[data-bs-toggle="tooltip"]')
 
   // generic visibility toggle
   return $('[data-action="toggle"]').click(function (e) {

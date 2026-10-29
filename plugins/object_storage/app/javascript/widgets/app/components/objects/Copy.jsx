@@ -107,7 +107,7 @@ const CopyObject = ({ showCopyMetadata, deleteAfter, refresh }) => {
       show={show}
       onHide={close}
       onExit={back}
-      bsSize="large"
+      size="lg"
       dialogClassName="modal-xl"
       aria-labelledby="contained-modal-title-lg"
     >
@@ -119,7 +119,7 @@ const CopyObject = ({ showCopyMetadata, deleteAfter, refresh }) => {
 
       <Modal.Body>
         {error && (
-          <Alert bsStyle="danger">
+          <Alert variant="danger">
             <strong>An error has occurred</strong>
             <p>{error}</p>
           </Alert>
@@ -132,8 +132,8 @@ const CopyObject = ({ showCopyMetadata, deleteAfter, refresh }) => {
           <fieldset>
             <div className="row">
               <div className="col-md-4">
-                <div className="form-group select required">
-                  <label className="control-label select required">
+                <div className="mb-3 select required">
+                  <label className="col-form-label select required">
                     <abbr title="required">*</abbr> Target container
                   </label>
                   <Select
@@ -158,8 +158,8 @@ const CopyObject = ({ showCopyMetadata, deleteAfter, refresh }) => {
                 </div>
               </div>
               <div className="col-md-8">
-                <div className="form-group string required">
-                  <label className="control-label string required">
+                <div className="mb-3 string required">
+                  <label className="col-form-label string required">
                     <abbr title="required">*</abbr> Target path
                   </label>
                   <input
@@ -170,7 +170,7 @@ const CopyObject = ({ showCopyMetadata, deleteAfter, refresh }) => {
                     onChange={(e) => setNewObjectPath(e.target.value)}
                   />
                   {showCopyMetadata && (
-                    <div className="form-group boolean optional">
+                    <div className="mb-3 boolean optional">
                       <div className="checkbox">
                         <label className="boolean optional">
                           <input
@@ -192,9 +192,9 @@ const CopyObject = ({ showCopyMetadata, deleteAfter, refresh }) => {
         )}
       </Modal.Body>
       <Modal.Footer>
-        <Button onClick={close}>Cancel</Button>
+        <Button variant="secondary" onClick={close}>Cancel</Button>
         <Button
-          bsStyle="primary"
+          variant="primary"
           onClick={submit}
           disabled={!containerName || !objectName || loading || submitting}
         >

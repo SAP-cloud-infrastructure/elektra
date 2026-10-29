@@ -58,12 +58,12 @@ export class FormMultiselect extends React.Component {
     return (
       <>
         <div
-          className={`dropdown ${this.state.collapsed ? "" : "open"}`}
+          className={`dropdown ${this.state.collapsed ? "" : "show"}`}
           tabIndex="0"
           onBlur={this.handleOnBlur}
         >
           <button
-            className="btn btn-default"
+            className="btn btn-secondary"
             type="button"
             onClick={this.toggle}
           >
@@ -73,13 +73,14 @@ export class FormMultiselect extends React.Component {
             <span className="caret"></span>
           </button>
           <ul
-            className="dropdown-menu"
+            className={`dropdown-menu${this.state.collapsed ? "" : " show"}`}
             style={{ maxHeight: 300, overflow: "auto" }}
           >
             {this.props.options.map((i) => (
               <li key={i.id}>
                 <a
                   href="#"
+                  className="dropdown-item"
                   onClick={(e) => {
                     e.preventDefault()
                     this.onChange(i.id)

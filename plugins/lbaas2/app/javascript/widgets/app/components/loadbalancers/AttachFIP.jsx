@@ -112,7 +112,7 @@ const AttachFIP = (props) => {
     <Modal
       show={show}
       onHide={close}
-      bsSize="large"
+      size="lg"
       backdrop="static"
       onExited={restoreUrl}
       aria-labelledby="contained-modal-title-lg"
@@ -157,7 +157,7 @@ const AttachFIP = (props) => {
         </Modal.Body>
 
         <Modal.Footer>
-          <Button onClick={close}>Cancel</Button>
+          <Button variant="secondary" onClick={close}>Cancel</Button>
           <Form.SubmitButton label="Save" />
         </Modal.Footer>
       </Form>

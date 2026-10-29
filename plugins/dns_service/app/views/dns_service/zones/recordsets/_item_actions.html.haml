@@ -1,9 +1,9 @@
 .btn-group
-  %button.btn.btn-default.btn-sm.dropdown-toggle{ type: "button", data: { toggle: "dropdown"}, aria: { expanded: true} }
+  %button.btn.btn-secondary.btn-sm.dropdown-toggle{ type: "button", data: { bs_toggle: "dropdown"}, aria: { expanded: true} }
     %span.fa.fa-cog
     -# %span.spinner
 
-  %ul.dropdown-menu.dropdown-menu-right{ role:"menu"}
+  %ul.dropdown-menu.dropdown-menu-end{ role:"menu"}
     - if recordset.type!='NS' && current_user.is_allowed?("dns_service:recordset_update", zone: zone)
       %li= link_to 'Edit', plugin('dns_service').edit_zone_recordset_path(zone_id:zone.id,id: recordset.id, action_from_show: show_view), data: {modal: true}
     - if current_user.is_allowed?("dns_service:recordset_delete", zone: zone)

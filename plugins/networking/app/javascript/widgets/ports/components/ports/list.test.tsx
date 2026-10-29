@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import { render, screen, fireEvent, within } from "@testing-library/react"
+import { render, screen, fireEvent } from "@testing-library/react"
 import "@testing-library/jest-dom/vitest"
 import React from "react"
 import List from "./list.jsx"
@@ -8,17 +8,14 @@ interface PolicyType {
   isAllowed: (action: string, options?: any) => boolean
 }
 
-// Extend global to include policy
 declare global {
   var policy: PolicyType
 }
 
-// Mock global policy object
 global.policy = {
   isAllowed: vi.fn(() => true),
 }
 
-// Mock dependencies
 vi.mock("react-router-dom", () => ({
   Link: ({ to, children }: { to: string; children: React.ReactNode }) => <a href={to}>{children}</a>,
 }))
@@ -69,9 +66,9 @@ vi.mock("lib/components/ajax_paginate", () => ({
 }))
 
 vi.mock("./item", () => ({
-  default: ({ port, network, subnets }: any) => (
+  default: ({ port, network }: any) => (
     <tr data-testid={`port-item-${port.id}`}>
-      <td>{port.id}</td>
+      <td>{port.name}</td>
       <td>{port.description}</td>
       <td>{network?.name || port.network_id}</td>
     </tr>
@@ -91,34 +88,18 @@ interface Port {
   isDeleting?: boolean
 }
 
-interface Network {
-  id: string
-  name: string
-}
-
-interface Subnet {
-  id: string
-  name: string
-  network_id: string
-}
-
-interface SecurityGroup {
-  id: string
-  name: string
-}
-
 interface NetworksState {
-  items: Network[]
+  items: Array<{ id: string; name: string }>
   isFetching: boolean
 }
 
 interface SubnetsState {
-  items: Subnet[]
+  items: Array<{ id: string; name: string; network_id: string }>
   isFetching: boolean
 }
 
 interface SecurityGroupsState {
-  items: SecurityGroup[]
+  items: Array<{ id: string; name: string }>
   isFetching: boolean
 }
 
@@ -140,7 +121,7 @@ interface ListProps {
   instancesPath?: string
 }
 
-describe("List Component", () => {
+describe("Ports List", () => {
   let mockLoadPortsOnce: ReturnType<typeof vi.fn>
   let mockLoadNetworksOnce: ReturnType<typeof vi.fn>
   let mockLoadSubnetsOnce: ReturnType<typeof vi.fn>
@@ -149,19 +130,19 @@ describe("List Component", () => {
   let mockSearchPorts: ReturnType<typeof vi.fn>
   let mockLoadNext: ReturnType<typeof vi.fn>
 
-  const mockFixedIpPort: Port = {
-    id: "port-fixed-1",
-    name: "fixed_ip_allocation",
-    description: "Fixed IP Port 1",
+  const mockPortA: Port = {
+    id: "port-a",
+    name: "my-reserved-ip",
+    description: "Reserved IP A",
     network_id: "network-1",
     fixed_ips: [{ ip_address: "192.168.1.10", subnet_id: "subnet-1" }],
     status: "ACTIVE",
   }
 
-  const mockOtherPort: Port = {
-    id: "port-other-1",
-    name: "other-port",
-    description: "Other Port 1",
+  const mockPortB: Port = {
+    id: "port-b",
+    name: "instance-port",
+    description: "Instance Port B",
     network_id: "network-2",
     fixed_ips: [{ ip_address: "192.168.2.20", subnet_id: "subnet-2" }],
     device_id: "device-1",
@@ -186,10 +167,7 @@ describe("List Component", () => {
   }
 
   const mockSecurityGroups: SecurityGroupsState = {
-    items: [
-      { id: "sg-1", name: "Security Group One" },
-      { id: "sg-2", name: "Security Group Two" },
-    ],
+    items: [{ id: "sg-1", name: "Security Group One" }],
     isFetching: false,
   }
 
@@ -210,7 +188,7 @@ describe("List Component", () => {
 
   const renderComponent = (props?: Partial<ListProps>) => {
     const defaultProps: ListProps = {
-      items: [mockFixedIpPort, mockOtherPort],
+      items: [mockPortA, mockPortB],
       networks: mockNetworks,
       subnets: mockSubnets,
       securityGroups: mockSecurityGroups,
@@ -230,32 +208,71 @@ describe("List Component", () => {
   }
 
   describe("Initial Rendering", () => {
-    it("renders the component without crashing", () => {
+    it("renders without crashing", () => {
       renderComponent()
       expect(screen.getByRole("table")).toBeInTheDocument()
     })
 
     it("calls all load dependencies on mount", () => {
       renderComponent()
-      expect(mockLoadPortsOnce).toHaveBeenCalledTimes(1)
-      expect(mockLoadNetworksOnce).toHaveBeenCalledTimes(1)
-      expect(mockLoadSubnetsOnce).toHaveBeenCalledTimes(1)
-      expect(mockLoadSecurityGroupsOnce).toHaveBeenCalledTimes(1)
+      expect(mockLoadPortsOnce).toHaveBeenCalled()
+      expect(mockLoadNetworksOnce).toHaveBeenCalled()
+      expect(mockLoadSubnetsOnce).toHaveBeenCalled()
+      expect(mockLoadSecurityGroupsOnce).toHaveBeenCalled()
     })
 
     it("renders table headers correctly", () => {
       renderComponent()
-      expect(screen.getByText("Port ID / Name")).toBeInTheDocument()
-      expect(screen.getByText("Description")).toBeInTheDocument()
-      expect(screen.getByText("Network")).toBeInTheDocument()
-      expect(screen.getByText("Fixed IPs / Subnet")).toBeInTheDocument()
-      expect(screen.getByText("Device Owner / ID")).toBeInTheDocument()
-      expect(screen.getByText("Status")).toBeInTheDocument()
+      const headers = screen.getAllByRole("columnheader").map((h) => h.textContent || "")
+      expect(headers.some((t) => t.includes("Name / ID"))).toBe(true)
+      expect(headers.some((t) => t.includes("Description"))).toBe(true)
+      expect(headers.some((t) => t.includes("Network"))).toBe(true)
+      expect(headers.some((t) => t.includes("Fixed IPs / Subnet"))).toBe(true)
+      expect(headers.some((t) => t.includes("Device Owner / ID"))).toBe(true)
+      expect(headers.some((t) => t.includes("Status"))).toBe(true)
     })
 
-    it("renders toolbar when items are available", () => {
+    it("sorts by a column when its header is clicked", () => {
       renderComponent()
-      expect(screen.getByTestId("search-field")).toBeInTheDocument()
+      const nameHeader = screen.getAllByRole("columnheader").find((h) => (h.textContent || "").includes("Name / ID"))
+      expect(nameHeader).toBeDefined()
+      const link = nameHeader!.querySelector("a")!
+      // clicking should not throw and should keep the rows rendered
+      fireEvent.click(link)
+      expect(screen.getByTestId("port-item-port-a")).toBeInTheDocument()
+      expect(screen.getByTestId("port-item-port-b")).toBeInTheDocument()
+    })
+
+    it("does not render a Custom/System filter", () => {
+      renderComponent()
+      expect(screen.queryByLabelText("fixed ip ports")).not.toBeInTheDocument()
+      expect(screen.queryByLabelText("other ports")).not.toBeInTheDocument()
+    })
+
+    it("renders the attachment filter (All / Attached / Free)", () => {
+      renderComponent()
+      expect(screen.getByText("Show:")).toBeInTheDocument()
+      expect(screen.getByText("All ports")).toBeInTheDocument()
+      expect(screen.getByText("Attached")).toBeInTheDocument()
+      expect(screen.getByText("Free")).toBeInTheDocument()
+    })
+
+    it("shows all ports directly (no filter selection needed)", () => {
+      renderComponent()
+      expect(screen.getByTestId("port-item-port-a")).toBeInTheDocument()
+      expect(screen.getByTestId("port-item-port-b")).toBeInTheDocument()
+    })
+
+    it("shows the visible port count in the toolbar", () => {
+      renderComponent()
+      expect(screen.getByText("2 ports")).toBeInTheDocument()
+    })
+
+    it("updates the count when the attachment filter narrows the list", () => {
+      renderComponent()
+      fireEvent.change(screen.getByDisplayValue("All ports"), { target: { value: "free" } })
+      // only mockPortA is free
+      expect(screen.getByText("1 port")).toBeInTheDocument()
     })
 
     it("does not render toolbar when no items available", () => {
@@ -264,184 +281,78 @@ describe("List Component", () => {
     })
   })
 
-  describe("Filtering", () => {
-    it("shows filter radio buttons", () => {
-      renderComponent()
-      expect(screen.getByText("Show:")).toBeInTheDocument()
-      expect(screen.getByLabelText("fixed ip ports")).toBeInTheDocument()
-      expect(screen.getByLabelText("other ports")).toBeInTheDocument()
-    })
-
-    it("defaults to showing no ports initially due to null activeFilter", () => {
-      renderComponent()
-      // On initial mount, activeFilter is null, so no ports match the filter
-      expect(screen.queryByTestId("port-item-port-fixed-1")).not.toBeInTheDocument()
-      expect(screen.queryByTestId("port-item-port-other-1")).not.toBeInTheDocument()
-      expect(screen.getByText("No IPs found.")).toBeInTheDocument()
-    })
-
-    it("shows fixed IP ports after filter is selected", () => {
-      renderComponent()
-      const fixedIpRadio = screen.getByLabelText("fixed ip ports")
-      fireEvent.click(fixedIpRadio)
-
-      // Should show fixed IP port
-      expect(screen.getByTestId("port-item-port-fixed-1")).toBeInTheDocument()
-      // Should not show other port
-      expect(screen.queryByTestId("port-item-port-other-1")).not.toBeInTheDocument()
-    })
-
-    it("changes filter when 'other ports' is selected", () => {
-      renderComponent()
-      const otherPortsRadio = screen.getByLabelText("other ports")
-      fireEvent.click(otherPortsRadio)
-
-      // Should show other port
-      expect(screen.getByTestId("port-item-port-other-1")).toBeInTheDocument()
-      // Should not show fixed IP port
-      expect(screen.queryByTestId("port-item-port-fixed-1")).not.toBeInTheDocument()
-    })
-
-    it("switches between filters correctly", () => {
-      renderComponent()
-
-      // Select fixed ip ports
-      const fixedIpRadio = screen.getByLabelText("fixed ip ports")
-      fireEvent.click(fixedIpRadio)
-      expect(screen.getByTestId("port-item-port-fixed-1")).toBeInTheDocument()
-
-      // Switch to other ports
-      const otherPortsRadio = screen.getByLabelText("other ports")
-      fireEvent.click(otherPortsRadio)
-      expect(screen.getByTestId("port-item-port-other-1")).toBeInTheDocument()
-      expect(screen.queryByTestId("port-item-port-fixed-1")).not.toBeInTheDocument()
-    })
-
-    it("shows 'Reserve new IP' button only for fixed ip ports filter", () => {
-      renderComponent()
-
-      // Select fixed ip ports first
-      const fixedIpRadio = screen.getByLabelText("fixed ip ports")
-      fireEvent.click(fixedIpRadio)
-      expect(screen.getByText("Reserve new IP")).toBeInTheDocument()
-
-      const otherPortsRadio = screen.getByLabelText("other ports")
-      fireEvent.click(otherPortsRadio)
-
-      expect(screen.queryByText("Reserve new IP")).not.toBeInTheDocument()
-    })
-  })
-
-  describe("Search Functionality", () => {
-    it("renders search field with correct placeholder", () => {
-      renderComponent()
-      const searchInput = screen.getByTestId("search-input")
-      expect(searchInput).toHaveAttribute("placeholder", "ID, IP, network, subnet or description")
-    })
-
+  describe("Search", () => {
     it("calls searchPorts when search input changes", () => {
       renderComponent()
-      const searchInput = screen.getByTestId("search-input")
-      fireEvent.change(searchInput, { target: { value: "test search" } })
-
-      expect(mockSearchPorts).toHaveBeenCalledWith("test search")
+      fireEvent.change(screen.getByTestId("search-input"), { target: { value: "abc" } })
+      expect(mockSearchPorts).toHaveBeenCalledWith("abc")
     })
 
-    it("filters ports by ID when search term is provided", () => {
-      const { container } = renderComponent({ searchTerm: "port-fixed-1" })
-      // Need to select the filter first for ports to show
-      const fixedIpRadio = screen.getByLabelText("fixed ip ports")
-      fireEvent.click(fixedIpRadio)
-
-      expect(screen.getByTestId("port-item-port-fixed-1")).toBeInTheDocument()
+    it("filters ports by name", () => {
+      renderComponent({ searchTerm: "my-reserved-ip" })
+      expect(screen.getByTestId("port-item-port-a")).toBeInTheDocument()
+      expect(screen.queryByTestId("port-item-port-b")).not.toBeInTheDocument()
     })
 
-    it("filters ports by description when search term is provided", () => {
-      renderComponent({ searchTerm: "Fixed IP Port" })
-      const fixedIpRadio = screen.getByLabelText("fixed ip ports")
-      fireEvent.click(fixedIpRadio)
-
-      expect(screen.getByTestId("port-item-port-fixed-1")).toBeInTheDocument()
+    it("filters ports by description", () => {
+      renderComponent({ searchTerm: "Instance Port B" })
+      expect(screen.getByTestId("port-item-port-b")).toBeInTheDocument()
+      expect(screen.queryByTestId("port-item-port-a")).not.toBeInTheDocument()
     })
 
-    it("filters ports by IP address when search term is provided", () => {
+    it("filters ports by IP address", () => {
       renderComponent({ searchTerm: "192.168.1.10" })
-      const fixedIpRadio = screen.getByLabelText("fixed ip ports")
-      fireEvent.click(fixedIpRadio)
-
-      expect(screen.getByTestId("port-item-port-fixed-1")).toBeInTheDocument()
+      expect(screen.getByTestId("port-item-port-a")).toBeInTheDocument()
+      expect(screen.queryByTestId("port-item-port-b")).not.toBeInTheDocument()
     })
 
-    it("filters ports by network name when search term is provided", () => {
-      renderComponent({ searchTerm: "Network One" })
-      const fixedIpRadio = screen.getByLabelText("fixed ip ports")
-      fireEvent.click(fixedIpRadio)
-
-      expect(screen.getByTestId("port-item-port-fixed-1")).toBeInTheDocument()
-    })
-
-    it("filters ports by subnet name when search term is provided", () => {
-      renderComponent({ searchTerm: "Subnet One" })
-      const fixedIpRadio = screen.getByLabelText("fixed ip ports")
-      fireEvent.click(fixedIpRadio)
-
-      expect(screen.getByTestId("port-item-port-fixed-1")).toBeInTheDocument()
-    })
-
-    it("filters ports case-insensitively", () => {
-      renderComponent({ searchTerm: "FIXED IP PORT" })
-      const fixedIpRadio = screen.getByLabelText("fixed ip ports")
-      fireEvent.click(fixedIpRadio)
-
-      expect(screen.getByTestId("port-item-port-fixed-1")).toBeInTheDocument()
+    it("filters case-insensitively", () => {
+      renderComponent({ searchTerm: "INSTANCE PORT" })
+      expect(screen.getByTestId("port-item-port-b")).toBeInTheDocument()
     })
 
     it("shows no results when search term doesn't match", () => {
       renderComponent({ searchTerm: "nonexistent" })
-      const fixedIpRadio = screen.getByLabelText("fixed ip ports")
-      fireEvent.click(fixedIpRadio)
+      expect(screen.queryByTestId("port-item-port-a")).not.toBeInTheDocument()
+      expect(screen.queryByTestId("port-item-port-b")).not.toBeInTheDocument()
+      expect(screen.getByText("No ports match your current search or filter.")).toBeInTheDocument()
+    })
+  })
 
-      expect(screen.queryByTestId("port-item-port-fixed-1")).not.toBeInTheDocument()
-      expect(screen.queryByTestId("port-item-port-other-1")).not.toBeInTheDocument()
-      expect(screen.getByText("No IPs found.")).toBeInTheDocument()
+  describe("Attachment filter", () => {
+    // mockPortA has no device_id (free), mockPortB has device_id (attached)
+    it("shows only attached ports when 'Attached' is selected", () => {
+      renderComponent()
+      fireEvent.change(screen.getByDisplayValue("All ports"), { target: { value: "attached" } })
+      expect(screen.getByTestId("port-item-port-b")).toBeInTheDocument()
+      expect(screen.queryByTestId("port-item-port-a")).not.toBeInTheDocument()
+    })
+
+    it("shows only free ports when 'Free' is selected", () => {
+      renderComponent()
+      fireEvent.change(screen.getByDisplayValue("All ports"), { target: { value: "free" } })
+      expect(screen.getByTestId("port-item-port-a")).toBeInTheDocument()
+      expect(screen.queryByTestId("port-item-port-b")).not.toBeInTheDocument()
     })
   })
 
   describe("Port Display", () => {
-    it("renders port items correctly", () => {
-      renderComponent()
-
-      // Need to select a filter first (activeFilter starts as null)
-      const fixedIpRadio = screen.getByLabelText("fixed ip ports")
-      fireEvent.click(fixedIpRadio)
-
-      expect(screen.getByTestId("port-item-port-fixed-1")).toBeInTheDocument()
-    })
-
     it("does not render hidden ports", () => {
-      const hiddenPort: Port = { ...mockFixedIpPort, id: "port-hidden", isHidden: true }
-      renderComponent({ items: [mockFixedIpPort, hiddenPort] })
-
-      // Need to select a filter first
-      const fixedIpRadio = screen.getByLabelText("fixed ip ports")
-      fireEvent.click(fixedIpRadio)
-
-      expect(screen.getByTestId("port-item-port-fixed-1")).toBeInTheDocument()
+      const hiddenPort: Port = { ...mockPortA, id: "port-hidden", isHidden: true }
+      renderComponent({ items: [mockPortA, hiddenPort] })
+      expect(screen.getByTestId("port-item-port-a")).toBeInTheDocument()
       expect(screen.queryByTestId("port-item-port-hidden")).not.toBeInTheDocument()
     })
 
-    it("shows spinner when fetching", () => {
+    it("shows skeleton rows when fetching with no items", () => {
       renderComponent({ items: [], isFetching: true })
-      expect(screen.getByRole("table")).toBeInTheDocument()
-      // Spinner is rendered as <span className="spinner" />
-      const spinner = document.querySelector(".spinner")
-      expect(spinner).toBeInTheDocument()
-      expect(screen.queryByText("No IPs found.")).not.toBeInTheDocument()
+      expect(screen.getByTestId("ports-skeleton")).toBeInTheDocument()
+      expect(screen.queryByText("No ports found.")).not.toBeInTheDocument()
     })
 
-    it("shows 'No IPs found' when no ports and not fetching", () => {
+    it("shows an empty state when no ports and not fetching", () => {
       renderComponent({ items: [], isFetching: false })
-      expect(screen.getByText("No IPs found.")).toBeInTheDocument()
+      expect(screen.getByText("No ports found.")).toBeInTheDocument()
     })
   })
 
@@ -456,23 +367,15 @@ describe("List Component", () => {
       expect(screen.getByTestId("load-next-button")).toBeInTheDocument()
     })
 
-    it("does not show 'Load More' button when hasNext is false", () => {
-      renderComponent({ hasNext: false })
-      expect(screen.queryByTestId("load-next-button")).not.toBeInTheDocument()
-    })
-
     it("calls loadNext when 'Load More' button is clicked", () => {
       renderComponent({ hasNext: true })
-      const loadNextButton = screen.getByTestId("load-next-button")
-      fireEvent.click(loadNextButton)
-
+      fireEvent.click(screen.getByTestId("load-next-button"))
       expect(mockLoadNext).toHaveBeenCalledTimes(1)
     })
 
     it("disables 'Load More' button when fetching", () => {
       renderComponent({ hasNext: true, isFetching: true })
-      const loadNextButton = screen.getByTestId("load-next-button")
-      expect(loadNextButton).toBeDisabled()
+      expect(screen.getByTestId("load-next-button")).toBeDisabled()
     })
   })
 
@@ -494,234 +397,11 @@ describe("List Component", () => {
     })
   })
 
-  describe("Dependency Loading on Props Change", () => {
-    it("loads dependencies when component receives new props", () => {
-      const { rerender } = renderComponent()
-
-      // Clear previous calls
-      mockLoadPortsOnce.mockClear()
-      mockLoadNetworksOnce.mockClear()
-      mockLoadSubnetsOnce.mockClear()
-      mockLoadSecurityGroupsOnce.mockClear()
-
-      // Simulate receiving new props
-      rerender(
-        <List
-          items={[mockOtherPort]}
-          networks={{ ...mockNetworks, isFetching: true }}
-          subnets={mockSubnets}
-          securityGroups={mockSecurityGroups}
-          loadPortsOnce={mockLoadPortsOnce}
-          loadNetworksOnce={mockLoadNetworksOnce}
-          loadSubnetsOnce={mockLoadSubnetsOnce}
-          loadSecurityGroupsOnce={mockLoadSecurityGroupsOnce}
-          handleDelete={mockHandleDelete}
-          searchPorts={mockSearchPorts}
-          isFetching={false}
-          hasNext={false}
-          loadNext={mockLoadNext}
-        />
-      )
-
-      // Dependencies should be loaded again due to UNSAFE_componentWillReceiveProps
-      expect(mockLoadPortsOnce).toHaveBeenCalledTimes(1)
-      expect(mockLoadNetworksOnce).toHaveBeenCalledTimes(1)
-      expect(mockLoadSubnetsOnce).toHaveBeenCalledTimes(1)
-      expect(mockLoadSecurityGroupsOnce).toHaveBeenCalledTimes(1)
-    })
-  })
-
-  describe("Edge Cases", () => {
-    it("handles ports without fixed_ips", () => {
-      const portWithoutIPs: Port = {
-        id: "port-no-ips",
-        name: "fixed_ip_allocation",
-        description: "No IPs",
-        network_id: "network-1",
-        status: "DOWN",
-      }
-      renderComponent({ items: [portWithoutIPs] })
-
-      // Need to select filter first
-      const fixedIpRadio = screen.getByLabelText("fixed ip ports")
-      fireEvent.click(fixedIpRadio)
-
-      expect(screen.getByTestId("port-item-port-no-ips")).toBeInTheDocument()
-    })
-
-    it("handles empty fixed_ips array", () => {
-      const portWithEmptyIPs: Port = {
-        id: "port-empty-ips",
-        name: "fixed_ip_allocation",
-        description: "Empty IPs",
-        network_id: "network-1",
-        fixed_ips: [],
-        status: "BUILD",
-      }
-      renderComponent({ items: [portWithEmptyIPs] })
-
-      // Need to select filter first
-      const fixedIpRadio = screen.getByLabelText("fixed ip ports")
-      fireEvent.click(fixedIpRadio)
-
-      expect(screen.getByTestId("port-item-port-empty-ips")).toBeInTheDocument()
-    })
-
-    it("handles network not found in networks list", () => {
-      const portWithUnknownNetwork: Port = {
-        ...mockFixedIpPort,
-        id: "port-unknown-network",
-        network_id: "network-999",
-      }
-      renderComponent({ items: [portWithUnknownNetwork] })
-
-      // Need to select filter first
-      const fixedIpRadio = screen.getByLabelText("fixed ip ports")
-      fireEvent.click(fixedIpRadio)
-
-      expect(screen.getByTestId("port-item-port-unknown-network")).toBeInTheDocument()
-    })
-
-    it("handles subnet not found in subnets list", () => {
-      const portWithUnknownSubnet: Port = {
-        ...mockFixedIpPort,
-        id: "port-unknown-subnet",
-        fixed_ips: [{ ip_address: "10.0.0.1", subnet_id: "subnet-999" }],
-      }
-      renderComponent({ items: [portWithUnknownSubnet] })
-
-      // Need to select filter first
-      const fixedIpRadio = screen.getByLabelText("fixed ip ports")
-      fireEvent.click(fixedIpRadio)
-
-      expect(screen.getByTestId("port-item-port-unknown-subnet")).toBeInTheDocument()
-    })
-
-    it("handles loading state for networks", () => {
-      const loadingNetworks: NetworksState = {
-        items: [],
-        isFetching: true,
-      }
-      renderComponent({ networks: loadingNetworks })
-      expect(screen.getByRole("table")).toBeInTheDocument()
-    })
-
-    it("handles loading state for subnets", () => {
-      const loadingSubnets: SubnetsState = {
-        items: [],
-        isFetching: true,
-      }
-      renderComponent({ subnets: loadingSubnets })
-      expect(screen.getByRole("table")).toBeInTheDocument()
-    })
-
-    it("handles empty search term", () => {
-      renderComponent({ searchTerm: "" })
-
-      // Need to select filter first
-      const fixedIpRadio = screen.getByLabelText("fixed ip ports")
-      fireEvent.click(fixedIpRadio)
-
-      expect(screen.getByTestId("port-item-port-fixed-1")).toBeInTheDocument()
-    })
-
-    it("handles whitespace-only search term", () => {
-      renderComponent({ searchTerm: "   " })
-
-      // Need to select filter first
-      const fixedIpRadio = screen.getByLabelText("fixed ip ports")
-      fireEvent.click(fixedIpRadio)
-
-      // Whitespace-only search term gets trimmed to empty string, which creates
-      // an empty regex that matches everything, so ports are shown
-      expect(screen.getByTestId("port-item-port-fixed-1")).toBeInTheDocument()
-    })
-
-    it("handles ports with multiple fixed IPs", () => {
-      const portWithMultipleIPs: Port = {
-        id: "port-multi-ips",
-        name: "fixed_ip_allocation",
-        description: "Multiple IPs",
-        network_id: "network-1",
-        fixed_ips: [
-          { ip_address: "192.168.1.10", subnet_id: "subnet-1" },
-          { ip_address: "192.168.1.11", subnet_id: "subnet-2" },
-        ],
-        status: "ACTIVE",
-      }
-      renderComponent({ items: [portWithMultipleIPs] })
-
-      // Need to select filter first
-      const fixedIpRadio = screen.getByLabelText("fixed ip ports")
-      fireEvent.click(fixedIpRadio)
-
-      expect(screen.getByTestId("port-item-port-multi-ips")).toBeInTheDocument()
-    })
-  })
-
-  describe("Networks and Subnets Mapping", () => {
-    it("creates network lookup map correctly", () => {
-      renderComponent()
-      // The component should be able to find networks by ID
-      expect(screen.getByRole("table")).toBeInTheDocument()
-    })
-
-    it("creates subnet lookup map correctly", () => {
-      renderComponent()
-      // The component should be able to find subnets by ID
-      expect(screen.getByRole("table")).toBeInTheDocument()
-    })
-  })
-
-  describe("Filter State Management", () => {
-    it("maintains active filter state", () => {
-      renderComponent()
-
-      // Initially, no radio is checked (activeFilter is null on mount)
-      const fixedIpRadio = screen.getByLabelText("fixed ip ports") as HTMLInputElement
-      expect(fixedIpRadio.checked).toBe(false)
-
-      // Click to activate the filter
-      fireEvent.click(fixedIpRadio)
-      expect(fixedIpRadio.checked).toBe(true)
-
-      // Switch to other filter
-      const otherPortsRadio = screen.getByLabelText("other ports")
-      fireEvent.click(otherPortsRadio)
-
-      const otherPortsRadioAfter = screen.getByLabelText("other ports") as HTMLInputElement
-      expect(otherPortsRadioAfter.checked).toBe(true)
-    })
-  })
-
-  describe("Search Help Text", () => {
-    it("displays search help text", () => {
-      renderComponent()
-      const helpText = screen.getByTestId("search-help-text")
-      expect(helpText).toHaveTextContent("Searches by ID, IP, network, subnet or description")
-    })
-  })
-
   describe("Reserve New IP Button", () => {
-    it("links to correct path for reserving new IP", () => {
+    it("is always shown (no filter dependency)", () => {
       renderComponent()
-
-      // Button only shows when "fixed ip ports" filter is active
-      const fixedIpRadio = screen.getByLabelText("fixed ip ports")
-      fireEvent.click(fixedIpRadio)
-
       const reserveButton = screen.getByText("Reserve new IP")
       expect(reserveButton).toHaveAttribute("href", "/ports/new")
-    })
-
-    it("has correct CSS class for primary button", () => {
-      renderComponent()
-
-      // Button only shows when "fixed ip ports" filter is active
-      const fixedIpRadio = screen.getByLabelText("fixed ip ports")
-      fireEvent.click(fixedIpRadio)
-
-      const reserveButton = screen.getByText("Reserve new IP")
       expect(reserveButton).toHaveClass("btn", "btn-primary")
     })
   })

@@ -22,7 +22,7 @@
 
     %div.buttons{class: modal? ? 'modal-footer' : ''}
       - if modal?
-        %button.btn.btn-default{type:"button", data: {dismiss:"modal"}, aria: {label: "Cancel"}} Cancel
+        %button.btn.btn-secondary{type:"button", data: {bs_dismiss:"modal"}, aria: {label: "Cancel"}} Cancel
       - else
-        = link_to "Cancel", instances_url(), class: 'btn btn-default'
-      = button_tag "Detach", { class: 'btn btn-primary pull-right', data: { disable_with: "Please wait..." } }
+        = link_to "Cancel", instances_url(), class: 'btn btn-secondary'
+      = button_tag "Detach", { class: 'btn btn-primary float-end', data: { disable_with: "Please wait..." } }

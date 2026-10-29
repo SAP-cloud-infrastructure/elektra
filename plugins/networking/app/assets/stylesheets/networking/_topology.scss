@@ -1,3 +1,17 @@
+// The topology graph container must fill the full width of the modal so the
+// D3 force layout (which measures `#graph` innerWidth) centers the graph across
+// the whole dialog instead of a narrow fixed-width strip. A fixed height gives
+// the layout vertical room and lets the SVG size itself reliably.
+#graph {
+  width: 100%;
+  height: 500px;
+
+  svg {
+    display: block;
+    width: 100%;
+  }
+}
+
 .node path {
   fill: gray;
 }

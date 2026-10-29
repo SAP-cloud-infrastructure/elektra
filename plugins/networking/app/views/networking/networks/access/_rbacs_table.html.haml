@@ -1,0 +1,10 @@
+%table.table#rbacs
+  %thead
+    %tr
+      %th.snug Action
+      %th ID
+      %th Target Project
+      %th.snug
+  %tbody
+    - rbacs.each do | rbac |
+      = render partial: 'rbac_item', locals: {rbac: rbac, network: network}

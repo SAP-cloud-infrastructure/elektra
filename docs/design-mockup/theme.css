@@ -1,0 +1,140 @@
+/*
+ * SAP Horizon Design Tokens — Light (Morning Horizon) & Dark (Evening Horizon)
+ * ---------------------------------------------------------------------------
+ * Dark values are the official "Evening Horizon" reference colors supplied by SAP.
+ * Light values are the corresponding official "Morning Horizon" reference colors.
+ * Tokens are decoupled from raw hex and consumed semantically by the UI (as SAP
+ * recommends: never use reference values directly in component styling).
+ */
+
+/* ============================ DARK (Evening Horizon) ============================ */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* --- Primary --- */
+  --primary-1: #1d2d3e; /* list selection */
+  --primary-2: #4db1ff; /* brand */
+  --primary-3: #1d232a; /* base: headers & containers */
+  --primary-4: #12171c; /* app background base */
+  --primary-5: #a9b4be; /* borders / derived controls */
+  --primary-6: #f5f6f7; /* text & titles */
+  --primary-7: #8396a8; /* subtitles & labels */
+
+  /* --- Accents --- */
+  --accent-1: #ffdf72;
+  --accent-2: #ff8cb2;
+  --accent-5: #d3b6ff;
+  --accent-6: #a6e0ff;
+  --accent-7: #64edd2;
+  --accent-8: #bde986;
+  --accent-brand: #4db1ff;
+
+  /* --- Grayscale --- */
+  --bg-app: #12171c; /* home / content background */
+  --bg-surface: #1d232a; /* card / container background */
+  --bg-surface-2: #171b21; /* group header / subtle surface */
+  --bg-selection: #1d2d3e;
+  --border: #2e3742; /* container / list borders */
+  --border-strong: #758ca4;
+  --text: #f5f6f7;
+  --text-muted: #8396a8;
+  --text-placeholder: #8396a8;
+
+  /* --- Semantic foreground --- */
+  --fg-negative: #fa6161;
+  --fg-critical: #ffdf72;
+  --fg-positive: #97dd40;
+  --fg-neutral: #a9b4be;
+  --fg-information: #4db1ff;
+
+  /* --- Semantic background --- */
+  --bg-negative: #490000;
+  --bg-critical: #382700;
+  --bg-positive: #143e20;
+  --bg-neutral: #242e38;
+  --bg-information: #00144a;
+
+  /* --- Elevation / effects --- */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.55);
+  --overlay: rgba(18, 23, 28, 0.72);
+}
+
+/* ============================ LIGHT (Morning Horizon) ============================ */
+[data-theme="light"] {
+  color-scheme: light;
+
+  /* --- Primary --- */
+  --primary-1: #e5f0fa; /* list selection */
+  --primary-2: #0070f2; /* brand */
+  --primary-3: #ffffff; /* base: headers & containers */
+  --primary-4: #f5f6f7; /* app background base */
+  --primary-5: #556b82; /* borders / derived controls */
+  --primary-6: #1d2d3e; /* text & titles */
+  --primary-7: #556b82; /* subtitles & labels */
+
+  /* --- Accents --- */
+  --accent-1: #e76500;
+  --accent-2: #d20a0a;
+  --accent-5: #7858ff;
+  --accent-6: #1b90ff;
+  --accent-7: #049f9a;
+  --accent-8: #36a41d;
+  --accent-brand: #0070f2;
+
+  /* --- Grayscale --- */
+  --bg-app: #f5f6f7; /* home / content background */
+  --bg-surface: #ffffff; /* card / container background */
+  --bg-surface-2: #f2f4f6; /* group header / subtle surface */
+  --bg-selection: #e5f0fa;
+  --border: #d9dde1; /* container / list borders */
+  --border-strong: #a9b4be;
+  --text: #1d2d3e;
+  --text-muted: #556b82;
+  --text-placeholder: #758ca4;
+
+  /* --- Semantic foreground --- */
+  --fg-negative: #d20a0a;
+  --fg-critical: #e76500;
+  --fg-positive: #36a41d;
+  --fg-neutral: #556b82;
+  --fg-information: #0070f2;
+
+  /* --- Semantic background --- */
+  --bg-negative: #ffd6e0;
+  --bg-critical: #fff8d6;
+  --bg-positive: #ebf5cb;
+  --bg-neutral: #eaecee;
+  --bg-information: #d1efff;
+
+  /* --- Elevation / effects --- */
+  --shadow-sm: 0 1px 2px rgba(29, 45, 62, 0.08);
+  --shadow-md: 0 4px 16px rgba(29, 45, 62, 0.1);
+  --shadow-lg: 0 12px 40px rgba(29, 45, 62, 0.16);
+  --overlay: rgba(29, 45, 62, 0.4);
+}
+
+/* ============================ Shared tokens ============================ */
+:root {
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  --font-sans: "72", "72full", -apple-system, "Segoe UI", Roboto, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+
+  --sidebar-w: 264px;
+  --topbar-h: 60px;
+
+  --transition: 160ms cubic-bezier(0.2, 0, 0.1, 1);
+}

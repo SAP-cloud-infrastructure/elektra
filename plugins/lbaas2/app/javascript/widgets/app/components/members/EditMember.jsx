@@ -65,7 +65,7 @@ const EditMember = (props) => {
     <Modal
       show={show}
       onHide={close}
-      bsSize="large"
+      size="lg"
       backdrop="static"
       onExited={restoreUrl}
       aria-labelledby="contained-modal-title-lg"
@@ -96,9 +96,8 @@ const EditMember = (props) => {
         <ExistingMembersDropDown props={props} poolID={poolID} />
       </Modal.Body>
       <Modal.Footer>
-        <Button disabled={formSubmitting} onClick={close}>
-          Cancel
-        </Button>
+        <Button variant="secondary" disabled={formSubmitting} onClick={close}>
+          Cancel</Button>
         <SaveButton
           disabled={formSubmitting || !isFormValid}
           text={<>{formSubmitting && <span className="spinner" />}Save</>}

@@ -34,7 +34,7 @@ const NewContainer = () => {
       show={show}
       onHide={close}
       onExit={back}
-      bsSize="large"
+      size="lg"
       aria-labelledby="contained-modal-title-lg"
     >
       <Modal.Header closeButton>
@@ -45,7 +45,7 @@ const NewContainer = () => {
         <Modal.Body>
           <Form.Errors />
           {error && (
-            <Alert bsStyle="danger">
+            <Alert variant="danger">
               <strong>An error has occurred</strong>
               <p>{error}</p>
             </Alert>
@@ -67,7 +67,7 @@ const NewContainer = () => {
           </div>
         </Modal.Body>
         <Modal.Footer>
-          <Button onClick={close}>Cancel</Button>
+          <Button variant="secondary" onClick={close}>Cancel</Button>
           <Form.SubmitButton label="Save" />
         </Modal.Footer>
       </Form>

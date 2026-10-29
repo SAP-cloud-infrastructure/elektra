@@ -1,20 +1,19 @@
-%tr
-  %td
-  %td.form_content
+= form_for :rbac, url: plugin('networking').send("networks_#{@network_type}_access_index_path", @network_id), method: :post, remote: true, html: {data: {inline:true}, class: 'form-inline hidden', id: 'new_rbac_form'} do |f|
+  .form-group
+    = f.text_field :target_tenant, class: 'form-control', placeholder: 'Target project'
+    #suggestions
+  .form-group.form-actions
+    = f.submit 'Add', class: 'btn btn-primary', data: { disable_with: 'Please wait...' }
+    = link_to 'Cancel', '#', class: 'btn btn-secondary', data: {control_rbac_form: '#new_rbac_form', action: 'cancel'}
+  %div
+    %p.form-text
+      %i.fa.fa-info-circle
+      Choose from one of your projects or enter any project ID.
 
-    = form_for :rbac, url: plugin('networking').send("networks_#{@network_type}_access_index_path", @network_id), method: :post, remote: true, html: {data: {inline:true}, class: 'hidden', id: 'new_rbac_form'} do |f|
-      %p.alert.alert-error.hidden
-      .input-group
-        = f.text_field :target_tenant, class: 'form-control'
-        #suggestions
-        %span.input-group-btn
-          = f.submit 'Add', class: 'btn btn-primary', data: { disable_with: 'Please wait...' }
-      %p.help-block
-        %i.fa.fa-info-circle
-        Choose from one of your projects or enter any project ID.
-
-
-  %td= link_to '+', '#', class: 'btn btn-primary', data: {control_rbac_form: '#new_rbac_form'}
+.main-control-buttons
+  = link_to '#', class: 'btn btn-primary', data: {control_rbac_form: '#new_rbac_form'} do
+    %i.fa.fa-plus
+    Add Access
 
 :javascript
   $('[data-control-rbac-form]').rbacFormControl({

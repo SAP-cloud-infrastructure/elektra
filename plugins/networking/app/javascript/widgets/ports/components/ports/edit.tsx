@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useContext } from "react"
 import { Button } from "react-bootstrap"
 import { Modal } from "lib/components/Modal"
 // @ts-expect-error - elektra-form has no types
@@ -68,7 +68,8 @@ interface FormBodyProps {
 }
 
 const FormBody: React.FC<FormBodyProps> = ({ networks, subnets, securityGroups }) => {
-  const values = Form.useFormValues?.() || {}
+  const context = useContext(Form.Context) as any
+  const values = context.formValues || {}
   const network = networks && networks.items.find((n) => n.id === values.network_id)
 
   const renderIp = (ip: { ip_address: string; subnet_id: string }) => {
@@ -87,14 +88,18 @@ const FormBody: React.FC<FormBodyProps> = ({ networks, subnets, securityGroups }
     <Modal.Body>
       <Form.Errors />
 
+      <Form.ElementHorizontal label="Name" name="name">
+        <Form.Input elementType="input" type="text" className="string optional form-control" name="name" />
+      </Form.ElementHorizontal>
+
       <Form.ElementHorizontal label="Network" required={true} name="network_id">
-        <p className="form-control-static">{network && network.name}</p>
+        <p className="form-control-plaintext">{network && network.name}</p>
       </Form.ElementHorizontal>
 
       <Form.ElementHorizontal label="Fixed IPs" required name="fixed_ips">
         {values.fixed_ips &&
           values.fixed_ips.map((ip: { ip_address: string; subnet_id: string }, index: number) => (
-            <div key={index} className="form-control-static">
+            <div key={index} className="form-control-plaintext">
               {renderIp(ip)}
             </div>
           ))}
@@ -153,7 +158,7 @@ const EditPortForm: React.FC<EditPortFormProps> = ({
   }
 
   return (
-    <Modal show={show} onHide={close} bsSize="large" aria-labelledby="contained-modal-title-lg">
+    <Modal show={show} onHide={close} size="lg" aria-labelledby="contained-modal-title-lg">
       <Modal.Header closeButton>
         <Modal.Title id="contained-modal-title-lg">Edit Port {port && `${port.name} (${port.id})`}</Modal.Title>
       </Modal.Header>
@@ -168,7 +173,9 @@ const EditPortForm: React.FC<EditPortFormProps> = ({
         )}
 
         <Modal.Footer>
-          <Button onClick={close}>Cancel</Button>
+          <Button variant="secondary" onClick={close}>
+            Cancel
+          </Button>
           <Form.SubmitButton label="Save" />
         </Modal.Footer>
       </Form>

@@ -18,6 +18,7 @@ interface Port {
   project_id?: string
   status?: string
   security_groups: string[]
+  tags?: string[]
 }
 
 interface Network {
@@ -161,6 +162,17 @@ const ShowPortModal: React.FC<ShowPortModalProps> = ({
     return <ul className="plain-list">{items}</ul>
   }
 
+  const renderTags = (portData: Port) => {
+    const tags = portData.tags || []
+    if (tags.length === 0) return <span className="info-text">No tags</span>
+
+    return tags.map((tag) => (
+      <span key={tag} className="label label-default" style={{ marginRight: "4px" }}>
+        {tag}
+      </span>
+    ))
+  }
+
   const renderTable = (portData: Port) => {
     return (
       <table className="table no-borders">
@@ -178,19 +190,22 @@ const ShowPortModal: React.FC<ShowPortModalProps> = ({
           <Row label="Project ID" value={portData.tenant_id || portData.project_id} />
           <Row label="Status" value={portData.status} />
           <Row label="Security Groups">{renderSecurityGroups(portData)}</Row>
+          <Row label="Tags">{renderTags(portData)}</Row>
         </tbody>
       </table>
     )
   }
 
   return (
-    <Modal show={show} onHide={close} bsSize="large" aria-labelledby="contained-modal-title-lg">
+    <Modal show={show} onHide={close} size="lg" aria-labelledby="contained-modal-title-lg">
       <Modal.Header closeButton>
         <Modal.Title id="contained-modal-title-lg">Port {port && (port.description || port.id)}</Modal.Title>
       </Modal.Header>
       <Modal.Body>{port ? renderTable(port) : <span className="spinner"></span>}</Modal.Body>
       <Modal.Footer>
-        <Button onClick={close}>Close</Button>
+        <Button variant="secondary" onClick={close}>
+          Close
+        </Button>
       </Modal.Footer>
     </Modal>
   )
