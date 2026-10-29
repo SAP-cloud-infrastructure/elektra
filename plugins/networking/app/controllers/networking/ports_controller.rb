@@ -9,23 +9,32 @@ module Networking
     # investigate the rule name.
     authorization_required only: %i[index create]
 
+    PORTS_BATCH_LIMIT = 1000
+
     def index
-      per_page = params[:per_page] || 1000
+      # Load ports in batches of up to 5000 (enough for most projects in one
+      # go). Neutron caps a single response at its pagination_max_limit, so the
+      # service follows the marker pagination internally until the batch is
+      # full. If more ports exist beyond the batch, `has_next` is true and the
+      # frontend shows a "Load Next" button which passes the last id as marker.
+      result =
+        services.networking.ports_batch(
+          limit: PORTS_BATCH_LIMIT,
+          start_marker: params[:marker].presence,
+        )
 
-      ports =
-        paginatable(per_page: per_page) do |pagination_options|
-          services.networking.ports(
-            { sort_key: "id" }.merge(pagination_options),
-          )
-        end
-
-      # render json: { ports: ports, has_next: @pagination_has_next }
       if request.xhr?
-        render json: { ports: ports, has_next: @pagination_has_next }
+        render json: {
+                 ports: result[:ports],
+                 has_next: result[:has_next],
+                 marker: result[:marker],
+               }
       else
         # common case, render index page with layout
         render action: :index
       end
+    rescue Elektron::Errors::ApiResponse => e
+      render json: { errors: e.message }, status: e.code
     end
 
     def show

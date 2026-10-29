@@ -263,6 +263,18 @@ describe("Ports List", () => {
       expect(screen.getByTestId("port-item-port-b")).toBeInTheDocument()
     })
 
+    it("shows the visible port count in the toolbar", () => {
+      renderComponent()
+      expect(screen.getByText("2 ports")).toBeInTheDocument()
+    })
+
+    it("updates the count when the attachment filter narrows the list", () => {
+      renderComponent()
+      fireEvent.change(screen.getByDisplayValue("All ports"), { target: { value: "free" } })
+      // only mockPortA is free
+      expect(screen.getByText("1 port")).toBeInTheDocument()
+    })
+
     it("does not render toolbar when no items available", () => {
       renderComponent({ items: [] })
       expect(screen.queryByTestId("search-field")).not.toBeInTheDocument()
@@ -332,10 +344,9 @@ describe("Ports List", () => {
       expect(screen.queryByTestId("port-item-port-hidden")).not.toBeInTheDocument()
     })
 
-    it("shows spinner when fetching with no items", () => {
+    it("shows skeleton rows when fetching with no items", () => {
       renderComponent({ items: [], isFetching: true })
-      const spinner = document.querySelector(".spinner")
-      expect(spinner).toBeInTheDocument()
+      expect(screen.getByTestId("ports-skeleton")).toBeInTheDocument()
       expect(screen.queryByText("No IPs found.")).not.toBeInTheDocument()
     })
 

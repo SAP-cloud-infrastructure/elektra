@@ -109,6 +109,47 @@ const SortableHeader: React.FC<SortableHeaderProps> = ({ label, column, sort, on
   )
 }
 
+// A single grey placeholder bar used inside skeleton loading rows.
+const SkeletonBar: React.FC<{ width?: string }> = ({ width = "80%" }) => (
+  <span className="ports-skeleton-bar" style={{ width }} />
+)
+
+// Skeleton loading rows shown while the first page of ports is loading. They
+// mirror the table's column layout so the content appears to "fill in" instead
+// of popping in after a bare spinner.
+const SkeletonRows: React.FC<{ rows?: number }> = ({ rows = 8 }) => (
+  <tbody data-testid="ports-skeleton">
+    {Array.from({ length: rows }).map((_, i) => (
+      <tr key={i}>
+        <td className="snug">
+          <SkeletonBar width="16px" />
+        </td>
+        <td>
+          <SkeletonBar width="70%" />
+          <br />
+          <SkeletonBar width="40%" />
+        </td>
+        <td>
+          <SkeletonBar width="60%" />
+        </td>
+        <td>
+          <SkeletonBar width="65%" />
+        </td>
+        <td>
+          <SkeletonBar width="55%" />
+        </td>
+        <td>
+          <SkeletonBar width="65%" />
+        </td>
+        <td>
+          <SkeletonBar width="50%" />
+        </td>
+        <td></td>
+      </tr>
+    ))}
+  </tbody>
+)
+
 const PortList: React.FC<PortListProps> = ({
   items,
   networks,
@@ -235,6 +276,11 @@ const PortList: React.FC<PortListProps> = ({
     return subnetsMap
   }
 
+  // The currently visible ports (after attachment filter + search + sort).
+  // Computed once so both the toolbar count and the table use the same list.
+  const filteredItems = filterPorts()
+  const visibleCount = filteredItems.length
+
   const renderToolbar = () => {
     if (items.length <= 0) return null
 
@@ -248,7 +294,6 @@ const PortList: React.FC<PortListProps> = ({
                 and filter the loaded items using the search term. Emptying the search
                 input field will show all currently loaded items."
         />
-
         <span className="toolbar-input-divider"></span>
         <label>Show:</label>
         <select
@@ -261,7 +306,8 @@ const PortList: React.FC<PortListProps> = ({
           <option value="attached">Attached</option>
           <option value="free">Free</option>
         </select>
-
+        <span className="toolbar-input-divider"></span>
+        {visibleCount} {visibleCount === 1 ? "port" : "ports"}
         <div className="main-buttons">
           <DefeatableLink to="/ports/new" className="btn btn-primary">
             Reserve new IP
@@ -272,7 +318,6 @@ const PortList: React.FC<PortListProps> = ({
   }
 
   const renderTable = () => {
-    const filteredItems = filterPorts()
     const networksMap = getNetworks()
     const subnetsMap = getSubnets()
 
@@ -291,35 +336,43 @@ const PortList: React.FC<PortListProps> = ({
               <th></th>
             </tr>
           </thead>
-          <TransitionGroup component="tbody">
-            {filteredItems && filteredItems.length > 0 ? (
-              filteredItems.map(
-                (port, index) =>
-                  !port.isHidden && (
-                    <TableRowFadeTransition key={index}>
-                      <PortItem
-                        port={port}
-                        instancesPath={instancesPath}
-                        handleDelete={handleDelete}
-                        isFetchingNetworks={networks.isFetching}
-                        isFetchingSubnets={subnets.isFetching}
-                        network={networksMap[port.network_id]}
-                        subnets={subnetsMap}
-                      />
-                    </TableRowFadeTransition>
-                  )
-              )
-            ) : (
-              <TableRowFadeTransition>
-                <tr>
-                  <td colSpan={6}>{isFetching ? <span className="spinner" /> : "No IPs found."}</td>
-                </tr>
-              </TableRowFadeTransition>
-            )}
-          </TransitionGroup>
+          {isFetching && items.length === 0 ? (
+            <SkeletonRows />
+          ) : (
+            <TransitionGroup component="tbody">
+              {filteredItems && filteredItems.length > 0 ? (
+                filteredItems.map(
+                  (port, index) =>
+                    !port.isHidden && (
+                      <TableRowFadeTransition key={index}>
+                        <PortItem
+                          port={port}
+                          instancesPath={instancesPath}
+                          handleDelete={handleDelete}
+                          isFetchingNetworks={networks.isFetching}
+                          isFetchingSubnets={subnets.isFetching}
+                          network={networksMap[port.network_id]}
+                          subnets={subnetsMap}
+                        />
+                      </TableRowFadeTransition>
+                    )
+                )
+              ) : (
+                <TableRowFadeTransition>
+                  <tr>
+                    <td colSpan={6}>No IPs found.</td>
+                  </tr>
+                </TableRowFadeTransition>
+              )}
+            </TransitionGroup>
+          )}
         </table>
 
-        <AjaxPaginate hasNext={hasNext} isFetching={isFetching} onLoadNext={loadNext} />
+        {/* Only let AjaxPaginate show its own loading spinner while loading
+            MORE items (i.e. when some are already shown). During the initial
+            load the empty table already shows a spinner, so we avoid a second
+            one here. */}
+        <AjaxPaginate hasNext={hasNext} isFetching={isFetching && items.length > 0} onLoadNext={loadNext} />
       </div>
     )
   }
