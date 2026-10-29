@@ -747,6 +747,15 @@ section {
   );
 }
 
+// Bootstrap 5 removed the extra-small `.btn-xs` size (BS4/5 only ship
+// `.btn-sm`). Elektra still renders `.btn-xs` in many React widgets (reports
+// "Reset Selection", audit, lbaas2, keppel, object_storage, ...), which then
+// fell back to the default button size. Re-provide the BS3 `.btn-xs` sizing as
+// an app-owned utility so those buttons render compact again.
+.btn-xs {
+  @include button-size(1px, 5px, $font-size-small, 1.5, 3px);
+}
+
 .btn {
   &.btn-icon-text i {
     margin-right: 5px;
