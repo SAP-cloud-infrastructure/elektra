@@ -75,7 +75,7 @@ config/support/domain_config.local.yaml
 .out-of-code-insights
 .pnpm-store
 
-CLAUDE.md
+AGENTS.local.md
 *playground*
 *claude
 ROADMAP.md

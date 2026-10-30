@@ -80,6 +80,6 @@ on-demand context for agents.
 - Keeping them current is itself a skill — see
   [`skills/skill-curator`](skills/skill-curator/SKILL.md).
 
-> **Note:** A private, uncommitted `CLAUDE.md` may exist locally with
-> Claude-specific and environment-specific notes. It is not part of the repository;
-> this file and the skills are the canonical public guidance.
+> **Local overrides:** personal, machine-specific notes go in `AGENTS.local.md`
+> (gitignored, not part of the repository). Claude Code loads `AGENTS.md` and
+> `AGENTS.local.md` via the `CLAUDE.md` stub; other tools can read them directly.
