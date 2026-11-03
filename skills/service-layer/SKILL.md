@@ -164,12 +164,157 @@ name/domain/password.
   `delete_<name>` on the service.
 - Rescue `Elektron::Errors::ApiResponse` where a nil/empty result is acceptable.
 
+## Service availability and the services menu
+
+The project-level navigation (`config/navigations/services_navigation.rb`) uses
+two independent checks before showing any menu item:
+
+### 1. `plugin_available?(name)` — is the Rails Engine mounted?
+
+Defined in `app/helpers/application_helper.rb:186`. Two conditions must both pass:
+
+1. `@domain_config.plugin_hidden?(name)` must be `false` (see the
+   [`domain-config`](../domain-config/SKILL.md) skill).
+2. `self.respond_to?("#{name}_plugin")` must be `true` — i.e. a named route
+   helper `<name>_plugin` must exist.
+
+The route helper is registered at boot: `config/routes.rb:84` iterates
+`Core::PluginsManager.mountable_plugins` and mounts each engine as
+`mount <Engine> => "/<mount_point>", as: "<name>_plugin"`. So
+`plugin_available?(:compute)` is `true` iff the `compute` gem is loaded **and**
+not hidden by `domain_config`.
+
+`plugin(name)` (`app/helpers/application_helper.rb:175`) builds a
+`PluginUrlHelper` for generating scoped URL paths — it returns
+`UnavailablePluginURLHelper` (all methods return `"#<method>-plugin-not-available"`)
+when the plugin is not available, so nav URL lambdas never raise.
+
+### 2. `services.available?(name, action)` — does the OpenStack endpoint exist?
+
+`ServicesManager#available?` (`lib/core/service_layer/services_manager.rb:68`)
+instantiates the service and delegates to its `available?` instance method:
+
+```ruby
+def available?(service_name, action_name = nil)
+  send(service_name.to_sym).send(:available?, action_name.try(:to_sym))
+rescue StandardError
+  false
+end
+```
+
+Each plugin service overrides `available?` (base returns `false`). The standard
+pattern is an Elektron catalog lookup:
+
+```ruby
+# compute, networking, dns, lbaas2, keppel, …
+def available?(_action_name_sym = nil)
+  elektron.service?("compute")   # checks the Keystone service catalog
+end
+```
+
+`kubernetes_ng` uses the `action_name` parameter to distinguish landscapes:
+
+```ruby
+def available?(landscape_name_or_action = nil)
+  service_to_check = KubernetesNg.service_for(landscape_name_or_action.to_s)
+  return false unless service_to_check
+  elektron.service?(service_to_check)
+end
+```
+
+`ServicesManager#has_service_endpoint?` (`services_manager.rb:63`) is a lighter
+alternative — it checks only whether a URL exists in the catalog without
+instantiating the service:
+
+```ruby
+def has_service_endpoint?(name_or_sym, options = {})
+  @api_client.service_url(name_or_sym.to_s, options) != nil
+end
+```
+
+Used e.g. for `pca` in the nav: `services.has_service_endpoint?("pca")`.
+
+### 3. `current_user.has_service?(type)` — Keystone service catalog on the token
+
+Defined in `plugins/monsoon-openstack-auth/lib/monsoon_openstack_auth/authentication/auth_user.rb:97`.
+Scans the token's embedded service catalog directly (no HTTP call):
+
+```ruby
+def has_service?(type)
+  service_catalog.each { |service| throw(:found, true) if service["type"] == type }
+  false
+end
+```
+
+Used in the nav for services where a catalog type check is enough (e.g. `image`,
+`object-store`, `kubernikus`) rather than a full service availability probe.
+
+### Combined pattern in the navigation
+
+Most nav items use all three guards together:
+
+```ruby
+# services_navigation.rb
+if: lambda {
+  services.available?(:compute, :instances) &&  # OpenStack endpoint exists
+    plugin_available?(:compute)                 # Engine mounted + not domain-hidden
+}
+```
+
+The `services.available?` call goes through the network (or cache); the
+`plugin_available?` check is local. The `domain_config.plugin_hidden?` inside
+`plugin_available?` is the server-side enforcement — the `ScopeController`
+`hidden_plugin_redirect` before-action blocks direct URL access too.
+
+## The OS API proxy
+
+`OsApiController < AjaxController` (`app/controllers/os_api_controller.rb`)
+exposes a **reverse proxy** that lets frontend JavaScript call OpenStack APIs
+directly under the authenticated user's token, without CORS or token exposure.
+
+**URL pattern:** `GET|POST|PUT|PATCH|DELETE /os-api/<service_name>/<path>`
+
+The controller:
+1. Extracts `service_name` and `path` from `REQUEST_PATH` (undecoded, to
+   preserve special characters).
+2. Collects request headers prefixed `HTTP_OS_API_*` and strips the prefix —
+   these become custom OpenStack headers (e.g. `X-Microversion`).
+3. Calls `services.os_api.service(service_name)` to get an Elektron service
+   handle for that OpenStack service type.
+4. Issues the request with `service.public_send(method, path, query_params, headers:)`;
+   POST/PUT/PATCH read the raw body via `request.body.read` and pass it as a
+   block.
+5. Copies all response headers with an `x-` prefix to the Rails response.
+6. Renders the response: JSON as JSON, binary/PDF/audio/image/video via
+   `send_data`, HTML inline, or plain text — unless `params[:inline]` is absent,
+   in which case it always renders JSON with the upstream status code.
+7. On error: renders `{ error: e.response.body || e.message }` with `e.code`.
+
+**Browser usage example:**
+```javascript
+fetch("/os-api/compute/servers/detail")       // GET Nova servers
+fetch("/os-api/network/v2.0/networks", {
+  method: "POST",
+  headers: { "OS-API-Content-Type": "application/json" },
+  body: JSON.stringify({ network: { name: "my-net" } })
+})
+```
+
+The proxy inherits `services` from `AjaxController`, which inherits from
+`ApplicationController` (the `Services` concern) — so it uses the **user-scoped**
+Elektron client with the current user's token.
+
 ## Key files
 
 - `lib/core/service_layer/service.rb` — `Service` base class
 - `lib/core/service_layer/model.rb` — `Model` base class
-- `lib/core/service_layer/services_manager.rb` — `services.NAME` dispatcher
+- `lib/core/service_layer/services_manager.rb` — `services.NAME` dispatcher, `available?`, `has_service_endpoint?`
 - `app/controllers/concerns/services.rb` — defines `services` / `service_user` / `cloud_admin`
 - `lib/core/api_client_manager.rb` — builds the Elektron client tiers
 - `lib/core/elektron_middlewares/` — request UUID, object cache, loggers
+- `lib/core/plugins_manager.rb` — discovers and registers plugins at boot
+- `config/routes.rb:84` — mounts plugins as `<name>_plugin` route helpers
+- `app/helpers/application_helper.rb:186` — `plugin_available?` and `plugin(name)`
+- `config/navigations/services_navigation.rb` — project-level services menu
+- `app/controllers/os_api_controller.rb` — OS API reverse proxy
 - `plugins/compute/app/services/service_layer/` — a complete real-world example
