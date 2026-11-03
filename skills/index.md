@@ -11,6 +11,7 @@ Read a skill before working in the area it covers. See the repo-root
 | Skill | Description |
 | --- | --- |
 | [domain-config](domain-config/SKILL.md) | Per-domain behaviour: plugin/feature visibility, floating IP networks, DNS options, federation/SSO settings, CIDR validation. Covers the YAML file, DomainConfig class, and multi-entry merge. |
+| [error-handling](error-handling/SKILL.md) | How exceptions flow from OpenStack through Elektron to rendered pages. Covers ErrorRenderer, the Rescue concern, rescue_and_render_exception_page, all error classes, templates, and request-format routing. |
 | [service-layer](service-layer/SKILL.md) | How controllers reach OpenStack through the service layer: `services.NAME`, `Service`/`Model` base classes, the Elektron client, and the API-client tiers. |
 | [skill-curator](skill-curator/SKILL.md) | Routine to keep these skills accurate and tidy — verify facts against code, reconcile this index, check frontmatter. Run regularly. |
 
