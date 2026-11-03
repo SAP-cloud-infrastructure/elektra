@@ -15,7 +15,13 @@ loads as a **Rails Engine**. From the Ruby side they all look the same
 (`isolate_namespace`, routes, controllers, services, models). The variety is
 entirely on the frontend: a plugin may have no React at all, one full-page
 React app, several small React widgets embedded in HAML, or a modern Juno
-design-system app with an isolated shadow DOM.
+design-system app.
+
+The 27 plugins are: `audit`, `block_storage`, `cloudops`, `compute`, `dns_service`,
+`email_service`, `identity`, `image`, `inquiry`, `keppel`, `keymanagerng`,
+`kubernetes`, `kubernetes_ng`, `lbaas2`, `lookup`, `masterdata_cockpit`, `metrics`,
+`monsoon-openstack-auth`, `networking`, `object_storage`, `reports`, `resources`,
+`shared_filesystem_storage`, `smartops`, `testikus`, `tools`, `webconsole`.
 
 ## Rails Engine structure
 
@@ -145,7 +151,7 @@ because the codebase evolved over many years without a single migration effort.
 
 ### Pattern 1: Pure HAML + jQuery (no React widget)
 
-**Plugins:** `dns_service`, `inquiry`, `masterdata_cockpit`, `metrics`, `webconsole`
+**Plugins:** `dns_service`, `inquiry`, `masterdata_cockpit`, `metrics`, `webconsole`, `monsoon-openstack-auth`
 
 No `widgets/` directory. The controller renders HAML; `plugin.js` (and
 occasionally inline `:javascript` blocks in HAML) adds jQuery behaviour.
@@ -162,14 +168,19 @@ This is the oldest pattern. New features should not use it.
 
 ### Pattern 2: HAML + React widget (Redux + React Router v5)
 
-**Plugins:** `audit`, `block_storage`, `cloudops`, `keppel`, `kubernetes` (legacy),
-`lbaas2`, `networking` (most widgets), `object_storage`, `reports`, `shared_filesystem_storage`,
+**Plugins:** `audit`, `block_storage`, `cloudops`, `image`, `keppel`, `kubernetes` (legacy),
+`lbaas2`, `lookup`, `networking` (bgp_vpns, network_usage_stats, ports, security_groups),
+`object_storage`, `reports`, `shared_filesystem_storage`,
 `tools` (universal_search, castellum, limes widgets)
 
 The HAML view contains `javascript_include_tag "..._widget"`. The widget uses
 `createWidget()` + `widget.createStore(reducers)` (Redux) + `widget.render(App)`.
 State management is Redux + Redux Thunk. Routing is `react-router-dom` v5
 (`<HashRouter>` or `<BrowserRouter>`) or no routing at all.
+
+`createWidget` args vary: `createWidget()` (no args), `createWidget(null)` (explicit null),
+or `createWidget(null, { html: { class: "flex-body" } })` (with container options).
+The `null` vs no-arg difference is cosmetic — `createWidget` treats both the same.
 
 `audit/app/javascript/widgets/app/init.js`:
 ```js
@@ -178,13 +189,21 @@ import * as reducers from "./reducers"
 import App from "./containers/app"
 
 createWidget().then(async (widget) => {
-  const token = await globalThis[widget.config.scriptParams.getTokenFunc]()
-  widget.configureAjaxHelper({ baseURL: scriptParams.eventsApi, headers: { "X-Auth-Token": token.authToken } })
+  const getTokenFunc = globalThis[widget.config.scriptParams.getTokenFunc]
+  const token = await getTokenFunc()
+  widget.configureAjaxHelper({ baseURL: widget.config.scriptParams.eventsApi,
+                                headers: { "X-Auth-Token": token.authToken } })
   widget.setPolicy()
   widget.createStore(reducers)
   widget.render(App)
 })
 ```
+
+**Notable Pattern 2 sub-variants:**
+
+- **`lbaas2`**: uses `useReducer` + React Context (`StateProvider`) instead of Redux, plus TanStack Query for server state. No `widget.createStore`. Still Pattern 2 by routing (BrowserRouter v5) but state management is closer to Pattern 3.
+- **`cloudops`**: uses Redux + HashRouter; imports `SearchRoutes` directly from `tools/universal_search` widget via `plugins/` alias.
+- **`shared_filesystem_storage`**: Pattern 2 Redux + optional Castellum direct API (token in `data-*`).
 
 Juno components may appear **individually** (e.g. `<JsonViewer>`, `<Spinner>`
 from `@cloudoperators/juno-ui-components`) without using `AppShellProvider` —
@@ -192,18 +211,17 @@ so the Juno design system is used à la carte, not as a full shell.
 
 ### Pattern 3: HAML + React widget (TanStack Query, no Redux, Juno AppShellProvider, no shadow DOM)
 
-**Plugins:** `email_service`, `identity` (app_credentials, prodel widgets),
-`keymanagerng`, `smartops`
+**Plugins:** `compute` (server_tags widget), `email_service`, `identity` (app_credentials, prodel, prodel_cloud_admin widgets),
+`keymanagerng`, `object_storage`
 
 Uses `createWidget({ pluginName, widgetName })` but **no** `widget.createStore`.
-State management is TanStack Query (server state) + Zustand or context
+State management is TanStack Query (server state) + Zustand or React Context
 (client state). The root component wraps everything in Juno's
 `<AppShellProvider theme="theme-light">` which provides the design-system CSS
 variables and theming — but **without** a shadow DOM.
 
 Styles are imported with `?inline` and injected via `<style>{styles}</style>`
-inside the component tree. This avoids global CSS leakage while not fully
-isolating from the page DOM.
+inside the component tree.
 
 `keymanagerng/app/javascript/widgets/app/init.js`:
 ```js
@@ -232,6 +250,13 @@ const Application = () => (
   </AppShellProvider>
 )
 ```
+
+**Notable Pattern 3 sub-variants:**
+
+- **`email_service`**: uses Zustand for client state, TanStack Query for server state, BrowserRouter v5 for routing. Calls `window._getCurrentToken()` at runtime (token refresh on expiry). AppShellProvider wraps everything.
+- **`compute/server_tags`**: minimal — no routing, no Juno shell, just a plain component. The simplest Pattern 3 widget in the codebase.
+- **`object_storage`**: uses React Context (`StateProvider`) for state, BrowserRouter v5. No Juno shell. Migrated away from Redux but not yet to TanStack Query.
+- **`identity/prodel_cloud_admin`**: uses `AppShellProvider` but no `AppShell`, no router. Renders a single `<JsonViewer>` component from Juno.
 
 ### Pattern 4: HAML + React widget (TanStack Router + TanStack Query + Juno AppShellProvider, no shadow DOM)
 
@@ -322,24 +347,29 @@ mount(wrapper, { props: JSON.parse(dataset?.props) })
 
 Several plugins have **multiple independent widgets** on different views:
 
-| Plugin | Widgets |
-|--------|---------|
-| `identity` | `role_assignments`, `prodel`, `prodel_cloud_admin`, `app_credentials`, `auth_projects` |
-| `networking` | `network_usage_stats`, `bgp_vpns`, `asr`, `security_groups`, `ports` |
-| `tools` | `universal_search`, `castellum`, `limes` |
-| `resources` | `limes-ui`, `usage` |
+| Plugin | Widgets | Notes |
+|--------|---------|-------|
+| `identity` | `role_assignments`, `prodel`, `prodel_cloud_admin`, `app_credentials` | Pattern 2 (role_assignments), Pattern 3 (prodel, prodel_cloud_admin, app_credentials) |
+| `identity` (global) | `auth_projects` | **Globally-mounted via `global.jsx`**, not a `javascript_include_tag` widget — loaded on every page, mounted via jQuery `$(() => {...})` against `[data-react-auth-projects]` DOM nodes |
+| `networking` | `bgp_vpns`, `network_usage_stats`, `ports`, `security_groups` | All Pattern 2. `asr` has no `init.js` — it's a React component imported directly by `tools/universal_search` via the `plugins/` alias |
+| `tools` | `universal_search`, `castellum`, `limes` | All Pattern 2 |
+| `resources` | `limes-ui`, `usage` | Both Pattern 6 (different entry points of `@sapcc/limes-ui`) |
+| `compute` | `server_tags` | Pattern 3 — only widget in compute; main instances page is HAML |
 
 Each widget is its own esbuild entry point and bundle. The HAML view for each
 feature page includes only the relevant widget's `javascript_include_tag`.
 
 Widgets within a plugin can import from each other — `tools/universal_search`
-directly imports components from `networking/asr` and `identity/role_assignments`
+directly imports `networking/asr` and `identity/role_assignments` components
 using the `plugins/` path alias:
 
 ```tsx
-import NetworkUsageStats from "plugins/networking/app/javascript/widgets/network_usage_stats/containers/application"
 import Asr from "plugins/networking/app/javascript/widgets/asr/application"
 ```
+
+The `networking/asr` widget is unusual: it has no `init.js` and therefore no
+esbuild bundle of its own. It is purely a React component consumed by
+`universal_search`.
 
 ---
 
@@ -347,16 +377,67 @@ import Asr from "plugins/networking/app/javascript/widgets/asr/application"
 
 | Pattern | State mgmt | Router | Juno | Shadow DOM | Plugins |
 |---------|-----------|--------|------|-----------|---------|
-| 1 — Pure HAML + jQuery | — | — | — | — | dns_service, inquiry, masterdata_cockpit, metrics, webconsole |
-| 2 — Redux + React Router v5 | Redux + Thunk | react-router v5 | à la carte | — | audit, block_storage, cloudops, keppel, kubernetes, lbaas2, networking, object_storage, reports, shared_filesystem_storage, tools |
-| 3 — TanStack Query + Juno AppShellProvider | TanStack Query + Zustand/context | react-router v5 or none | AppShellProvider | — | email_service, identity (some widgets), keymanagerng, smartops |
+| 1 — Pure HAML + jQuery | — | — | — | — | dns_service, inquiry, masterdata_cockpit, metrics, webconsole, monsoon-openstack-auth |
+| 2 — Redux + React Router v5 | Redux+Thunk or useReducer+Context | react-router v5 or none | à la carte | — | audit, block_storage, cloudops, image, keppel, kubernetes (legacy), lbaas2, lookup, networking (bgp_vpns/network_usage_stats/ports/security_groups), object_storage, reports, shared_filesystem_storage, tools (castellum/limes/universal_search) |
+| 3 — TanStack Query + Juno AppShellProvider | TanStack Query + Zustand/Context | react-router v5 or none | AppShellProvider | — | compute (server_tags), email_service, identity (app_credentials/prodel/prodel_cloud_admin), keymanagerng, object_storage |
 | 4 — TanStack Router + TanStack Query + Juno | TanStack Query | TanStack Router | AppShellProvider | — | kubernetes_ng, smartops |
-| 5 — Juno StyleProvider + shadow DOM (legacy) | Redux / context | react-router v5 | StyleProvider | yes | testikus |
-| 6 — External Juno app (`mount()`) | internal | internal | internal | yes | resources |
+| 5 — Juno StyleProvider + shadow DOM (legacy) | React Context | react-router v5 | StyleProvider | yes | testikus |
+| 6 — External Juno app (`mount()`) | internal | internal | internal | yes | resources (limes-ui, usage) |
+
+**Notes on the table:**
+- `identity/role_assignments` is Pattern 2 (Redux); the other identity widgets (app_credentials, prodel, prodel_cloud_admin) are Pattern 3.
+- `identity/auth_projects` is globally-loaded via `global.jsx` — not a standard widget bundle.
+- `lbaas2` uses `useReducer`+Context instead of Redux but otherwise fits Pattern 2 (BrowserRouter v5, no Juno shell).
+- `networking/asr` has no `init.js`; it is a shared component imported by `tools/universal_search`, not a standalone bundle.
+- `object_storage` uses React Context (no Redux, no TanStack Query) and BrowserRouter v5, with no Juno shell — borderline between Pattern 2 and 3.
 
 **Guidance for new plugins:** use Pattern 4 (TanStack Router + TanStack Query +
 Juno `AppShellProvider`) — it is the most recent, used in `kubernetes_ng` and
 `smartops`. Generate a scaffold with `bin/generate <name> --react --mountable`.
+
+---
+
+## Global widget pattern (`global.jsx`)
+
+`identity/auth_projects` is not embedded via `javascript_include_tag` like
+standard widgets. Instead it is loaded via `identity/global.jsx` which runs on
+**every page** alongside the global `plugins.js` bundle. It mounts React
+components against any `[data-react-auth-projects]` or
+`[data-react-auth-projects-link]` DOM nodes found on the page:
+
+```js
+// identity/global.jsx  (simplified)
+import { createWidget } from "lib/widget"
+import * as reducers from "./widgets/auth_projects/reducers"
+
+$(() => {
+  const containers = [...document.querySelectorAll("[data-react-auth-projects]")]
+  createWidget(null, { containers })
+    .then((widget) => {
+      widget.createStore(reducers)
+      widget.render(App)
+    })
+})
+```
+
+The key difference from standard widgets: `createWidget` receives an explicit
+`containers` array instead of replacing the current `<script>` tag. This allows
+one React tree to mount into multiple DOM nodes on the same page.
+
+Only `webconsole` has a similar `global.js` that loads on every page — but it
+uses vanilla JS (no React), not this `global.jsx` pattern.
+
+## `createWidget` argument reference
+
+`createWidget(options, containerOptions)` — both arguments are optional:
+
+| Call form | When used | Effect |
+|-----------|-----------|--------|
+| `createWidget()` | Older Pattern 2 widgets | `pluginName`/`widgetName` derived from `<script>` src basename |
+| `createWidget(null)` | Explicit opt-out of name params | Same as above; null is ignored |
+| `createWidget({ pluginName, widgetName })` | Pattern 3/4 widgets | Explicit names; used for CSS `?inline` scoping and Juno provider identification |
+| `createWidget(null, { html: { class: "flex-body" } })` | Widgets needing a full-height flex container | Sets class on the replacement `<div>` |
+| `createWidget(null, { containers: [...] })` | `auth_projects` global pattern | Mounts into multiple explicit DOM nodes instead of replacing the script tag |
 
 ---
 
