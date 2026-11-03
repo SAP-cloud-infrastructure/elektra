@@ -190,36 +190,165 @@ errors and keeps AJAX flows intact even when error handlers call `redirect_to`.
 
 ## Adding error handling to a plugin controller
 
-**Option A — per-class mapping via `rescue_and_render_exception_page`:**
+The global `rescue_from` chain in `Rescue` catches all `Elektron::Errors::ApiResponse`
+errors and renders an appropriate page — so read-only HAML controllers often need
+no plugin-level rescue at all.
+
+For write actions (create/update/destroy) that return JSON, add explicit rescue:
+
+**Option A — inline rescue per action (actual practice in most plugins):**
 
 ```ruby
-class MyPlugin::ThingsController < ::DashboardController
-  rescue_and_render_exception_page [
-    { "MyPlugin::NotFoundError" => {
-        title: "Thing Not Found",
-        description: :message,
-        warning: true
-      }
-    }
-  ]
-end
-```
-
-**Option B — inline rescue in an action:**
-
-```ruby
-def show
-  @thing = services.my_plugin.find_thing(params[:id])
+def create
+  @thing = services.my_plugin.build_thing(params[:thing])
+  if @thing.save
+    render json: @thing
+  else
+    render json: { errors: @thing.errors }, status: 422
+  end
 rescue Elektron::Errors::ApiResponse => e
-  render_exception_page(e, title: "Could not load thing", warning: true)
+  render json: { errors: e.message }, status: e.code
+rescue StandardError => e
+  render json: { errors: e.message }, status: 500
 end
 ```
 
-**Option C — return nil / empty for non-critical failures:**
+Use `{ errors: }` (plural, string) and integer status codes to stay consistent
+with existing React widgets. Never use `rescue Exception`.
 
-Service methods that call `rescue Elektron::Errors::ApiResponse; nil` (the
-pattern in the service layer checklist) let the controller decide how to handle
-a missing resource without triggering the global error page.
+**Option B — `rescue_from` at class level (cleanest for JSON-only controllers):**
+
+```ruby
+class MyPlugin::Api::ThingsController < ::AjaxController
+  rescue_from StandardError do |e|
+    render json: { success: false, error: e.message }, status: :bad_request
+  end
+end
+```
+
+Used by `smartops`. Good for controllers where every action is JSON.
+
+**Option C — `handle_api_call` wrapper (kubernetes_ng pattern):**
+
+```ruby
+def index
+  handle_api_call do
+    services.my_plugin.things
+  end
+end
+```
+
+Returns `{ error:, code:, message: }` with the correct status for `ApiResponse`,
+`Request`, and `Net::HTTPError`. Requires the `handle_api_call` helper from
+`kubernetes_ng`'s base controller — copy it if you want this pattern.
+
+**Option D — let errors bubble to global handler (HAML controllers):**
+
+```ruby
+def index
+  @things = services.my_plugin.things   # ApiResponse → global rescue_from → HTML error page
+end
+```
+
+Fine for HAML views. The global chain handles 401/403/404/422/429/501 with
+appropriate warning pages and HTTP 200 for NotAuthorized.
+
+**Option E — `rescue_and_render_exception_page` (available but unused in plugins):**
+
+```ruby
+rescue_and_render_exception_page [
+  { "MyPlugin::NotFoundError" => { title: "Thing Not Found", warning: true } }
+]
+```
+
+This DSL is defined in `ErrorRenderer` and documented in `AGENTS.local.md`, but
+no plugin currently uses it at the plugin-controller level. Prefer Option A or B
+for new code.
+
+## Plugin-level error handling — patterns and known issues
+
+Each plugin grew independently. The result is a zoo of rescue styles that the
+global `rescue_from` chain backstops but does not replace.
+
+### Rescue mechanisms in use across plugins
+
+| Mechanism | Plugins | Notes |
+|-----------|---------|-------|
+| Falls through to global `rescue_from` (no plugin-level rescue) | `audit`, `cloudops`, `inquiry`, `keppel`, `kubernetes`, `lookup` (most), `object_storage`, `reports`, `testikus`, `tools`, `webconsole` | Fine for read-only or HAML-only controllers |
+| Explicit `rescue Elektron::Errors::ApiResponse` per action | `block_storage`, `lbaas2`, `shared_filesystem_storage`, `networking` (some controllers) | Returns JSON `{ errors: e.message }` with `e.code` status |
+| `handle_api_call` wrapper | `kubernetes_ng` | Most structured; always `{ error:, code:, message: }` — see "JSON-first controllers" in service-layer skill |
+| `rescue_from StandardError, with:` at class level | `smartops` | Most Rails-idiomatic for JSON controllers |
+| `rescue StandardError` swallowed silently | `compute` (console actions), `networking` (routers, floating_ips) | Sets ivar to `nil` / shows no error; operator debugging is painful |
+| `rescue Exception` | `lbaas2` (throughout), `keymanagerng`, `email_service`, `masterdata_cockpit` | **Anti-pattern** — see below |
+
+**Note:** `rescue_and_render_exception_page` is documented as the recommended
+approach but is not used at the plugin controller level anywhere in the
+codebase. It is used only inside the global `Rescue` concern. Inline `rescue` is
+the actual practice.
+
+### JSON error shape inconsistency
+
+Three different shapes appear in plugin JSON error responses:
+
+| Shape | Used by |
+|-------|---------|
+| `{ errors: e.message }` + status `e.code` | `block_storage`, `lbaas2`, `shared_filesystem_storage` |
+| `{ errors: e.message }` + status `"500"` (string) | `lbaas2`, `keymanagerng` |
+| `{ error: e.message }` + status code | `networking/asr`, `resources` |
+| `{ error:, code:, message: }` + status code | `kubernetes_ng` |
+| `{ success: false, error: e.message }` | `smartops` |
+
+For new JSON controllers, use `{ errors: }` (plural) with an integer status —
+this matches what the existing React widgets (lbaas2, block_storage) expect.
+`kubernetes_ng`'s `{ error:, code:, message: }` shape is self-contained for
+its own frontend.
+
+### `rescue Exception` anti-pattern
+
+`lbaas2` (every controller action), `keymanagerng`, `email_service`, and
+`masterdata_cockpit` use `rescue Exception` or bare `rescue` (equivalent).
+This catches `SignalException`, `Interrupt`, and `SystemExit` — Ruby signals
+that should terminate the process. It also catches `NoMemoryError`, `LoadError`,
+and other non-recoverable conditions.
+
+Always use `rescue StandardError` (or a specific subclass) in new code.
+
+Additionally, `masterdata_cockpit` accesses `.code` on the caught exception —
+this only works for `Elektron::Errors::ApiResponse` (which has `.code`). A
+generic `StandardError` does not have `.code`, so the rescue branch itself
+raises `NoMethodError`, which the global handler then catches.
+
+### Known bug: typo in `networking/bgp_vpns_controller.rb`
+
+Line ~96 of `networking/bgp_vpns_controller.rb` contains `ender json:` instead
+of `render json:`. Ruby interprets this as a method call to a non-existent
+`ender` method — the rescue branch raises `NoMethodError` instead of returning
+the intended JSON error response. The global handler catches the `NoMethodError`
+and renders an HTML error page.
+
+### `reports` — no JSON error handling
+
+`reports` controller uses `respond_to { format.json }` for JSON requests but
+has no `rescue` for OS API errors. An `Elektron::Errors::ApiResponse` bubbles
+to the global `rescue_from` chain, which dispatches on `request.format` — but
+since the global chain was registered for HTML responses, the client receives an
+HTML error page instead of JSON.
+
+### `metrics/MaiaProxyController` — best-practice for Net::HTTP proxies
+
+`MaiaProxyController` has the most specific network error taxonomy in the
+codebase — a useful template when writing server-side HTTP proxies:
+
+```ruby
+rescue Net::OpenTimeout, Net::ReadTimeout
+  render json: { error: "Upstream timeout" }, status: :gateway_timeout
+rescue SocketError, SystemCallError, Errno::ECONNREFUSED, Errno::ECONNRESET
+  render json: { error: "Proxy error: could not connect" }, status: :bad_gateway
+rescue OpenSSL::SSL::SSLError => e
+  render json: { error: "SSL error: #{e.message}" }, status: :bad_gateway
+```
+
+---
 
 ## Frontend error handling (React plugins)
 
