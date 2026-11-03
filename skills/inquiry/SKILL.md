@@ -192,6 +192,13 @@ inquiry_service.create_inquiry(
 
 Returns a `Delegates::Inquiry`. Transitions to `:open` immediately after creation.
 
+**The processor list is fixed at creation time.** `set_inquiry_state` and
+`change_inquiry` have no parameter to update processors — the join table rows
+written by `create_inquiry` are permanent for the lifetime of the inquiry. If
+the set of resource admins changes after creation (e.g. a new admin is added),
+they will not receive notifications and will not see the inquiry in their queue
+unless it is reopened and a new inquiry is created.
+
 ### `set_inquiry_state`
 
 ```ruby
