@@ -10,6 +10,7 @@ Read a skill before working in the area it covers. See the repo-root
 
 | Skill | Description |
 | --- | --- |
+| [authentication](authentication/SKILL.md) | The monsoon-openstack-auth plugin: login flow (SessionsController), AuthSession lifecycle (three auth paths, token rescoping, 2FA, cross-dashboard SSO cookie), AuthUser (current_user wrapper, roles, service catalog), ConnectionDriver (Excon-based Keystone v3 client), PasswordSync, and configuration options. |
 | [api-clients](api-clients/SKILL.md) | The three Elektron client tiers: `services` (user token), `service_user` / `cloud_admin` (privileged, same underlying client). Covers auth strategies (app credentials vs. password), middleware stacks, ObjectCache, `current_user` wrapper, `AuthUser`, scope resolution, and FriendlyIdEntry. |
 | [build-system](build-system/SKILL.md) | esbuild JS pipeline (entry point discovery, path aliases, ?inline CSS, TanStack Router codegen) and Sprockets CSS pipeline (Bootstrap, Tailwind, plugin SCSS). Covers dev watch mode, production asset:precompile sequence, non-digest widget copies, Vitest setup, and TypeScript config. |
 | [database](database/SKILL.md) | What Elektra stores locally in PostgreSQL: FriendlyIdEntry (UUID↔slug), ObjectCache (OpenStack API response cache), UserProfile/DomainProfile (identity metadata), ProjectProfile (wizard state), and the Inquiry workflow tables. Covers the AR vs. ServiceLayer::Model distinction. |
