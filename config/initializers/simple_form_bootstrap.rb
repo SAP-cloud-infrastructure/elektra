@@ -139,7 +139,7 @@ SimpleForm.setup do |config|
 
     b.wrapper tag: "div", class: "offset-sm-3 col-sm-9" do |wr|
       wr.wrapper tag: "div", class: "form-check" do |ba|
-        ba.use :label_input, class: "col-sm-9"
+        ba.use :label_input
       end
 
       wr.use :error, wrap_with: { tag: "span", class: "invalid-feedback d-block" }
@@ -156,7 +156,7 @@ SimpleForm.setup do |config|
 
     b.wrapper tag: "div", class: "offset-sm-4 col-sm-8" do |wr|
       wr.wrapper tag: "div", class: "form-check" do |ba|
-        ba.use :label_input, class: "col-sm-8"
+        ba.use :label_input
       end
 
       wr.use :error, wrap_with: { tag: "span", class: "invalid-feedback d-block" }

@@ -756,6 +756,27 @@ section {
   @include button-size(1px, 5px, $font-size-small, 1.5, 3px);
 }
 
+// SimpleForm renders boolean inputs with `boolean_style = :nested`, i.e. the
+// label element wraps the checkbox: `.form-check > label > input + text`.
+// Without Bootstrap's `.form-check-input` / `.form-check-label` classes BS5
+// does not apply its flex layout, so the checkbox stacks above the text and the
+// label wraps onto two lines (e.g. "Is public"). Lay the label out as an inline
+// flex row so the checkbox sits left of the label text.
+.form-check > label {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  margin-bottom: 0;
+
+  input[type="checkbox"],
+  input[type="radio"] {
+    flex: 0 0 auto;
+    margin: 0;
+    position: relative;
+    top: 1px;
+  }
+}
+
 .btn {
   &.btn-icon-text i {
     margin-right: 5px;
