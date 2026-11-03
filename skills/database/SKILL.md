@@ -54,23 +54,56 @@ Maps OpenStack UUIDs to human-readable slugs used in Elektra's URLs
 `scope` (domain UUID for projects, null for domains), `endpoint` (Keystone URL —
 disambiguates entries across environments).
 
+### Lifecycle — how entries are created
+
+Every request to a scoped URL passes through `ScopeController#load_scoped_objects`
+(prepend_before_action). It calls `Dashboard::RescopingService.new(service_user)`,
+then:
+
+1. `rescoping_service.domain_friendly_id(key_or_slug)` — ILIKE match on both `key`
+   and `slug` columns, filtered by current `endpoint`.
+2. **Cache miss** → `service_user.identity.find_domain(id)` (Keystone API call).
+3. Entry found in Keystone → `FriendlyIdEntry.find_or_create_entry("Domain", nil, domain.id, domain.name)`.
+   The `friendly_id` gem auto-generates `slug` from `name`.
+4. Same flow for project: `find_or_create_entry("Project", project.domain_id, project.id, project.name)` —
+   `scope` = domain UUID (needed because project names are not globally unique; the
+   `friendly_id` `:scoped` strategy partitions slug uniqueness per domain).
+
+**Endpoint mismatch edge case:** if entries exist but `endpoint !=
+Rails.application.config.keystone_endpoint`, `find_or_create_entry` calls
+`entries.delete_all` and recreates. Handles DB migrations between environments.
+
+### UUID → slug redirect
+
+If the URL contains a raw UUID where a slug is expected (`domain_id !=
+@scoped_domain_fid`), `load_scoped_objects` does a `gsub` on `request.path`
+replacing the UUID with the slug and redirects. UUID bookmarks auto-redirect
+transparently.
+
+### Rename and delete
+
+- **Rename:** `FriendlyIdEntry.update_project_entry(project)` sets `slug = nil` then
+  saves — `friendly_id` regenerates the slug from the new name. Name unchanged → entry
+  left alone.
+- **Delete:** `FriendlyIdEntry.delete_project_entry(project)` removes the entry.
+  Deletions performed directly in OpenStack (bypassing Elektra) leave orphan entries.
+
+### Path generation
+
+`plugin("compute").service_path(...)` builds URLs using `@scoped_domain_fid` and
+`@scoped_project_fid` (the slug values). Generated links always use slug form.
+
 **Key methods:**
 - `FriendlyIdEntry.find_domain(key_or_slug)` — looks up by UUID or slug
 - `FriendlyIdEntry.find_project(domain_id, key_or_slug)` — scoped to domain
-- `FriendlyIdEntry.find_or_create_entry(class_name, scope, key, name)` — upserts;
-  if the endpoint changed (env migration) it deletes the old entry and creates fresh
-- `FriendlyIdEntry.update_project_entry(project)` — called when a project is
-  renamed; clears the slug so `friendly_id` regenerates it
-- `FriendlyIdEntry.search(class_name, scope, term)` — ILIKE search on key + name,
-  used by the lookup plugin
+- `FriendlyIdEntry.find_or_create_entry(class_name, scope, key, name)` — upserts; handles endpoint mismatch
+- `FriendlyIdEntry.update_project_entry(project)` — called when project is renamed
+- `FriendlyIdEntry.search(class_name, scope, term)` — ILIKE on `key` + `name`;
+  used by the lookup plugin and by `ObjectCache.find_objects` to resolve friendly
+  names to UUIDs
 
-**Populated by:** `RescopingService` (`app/services/dashboard/rescoping_service.rb`)
-on every request that contains a `domain_id` or `project_id` URL segment. If no
-local entry exists for the UUID, `RescopingService` calls Keystone via `service_user`
-to look up the name, then creates the entry.
-
-**Used by:** `ScopeController#load_scoped_objects` to resolve URL segments →
-`@scoped_domain_id`, `@scoped_domain_fid`, `@scoped_domain_name`, etc.
+**Populated by:** `RescopingService` on every scoped request (cache miss → Keystone call).
+**Used by:** `ScopeController#load_scoped_objects`, `ObjectCache.find_objects`, `lookup` plugin.
 
 ---
 
@@ -80,30 +113,81 @@ Denormalized cache of OpenStack objects. Every successful API response
 processed by Elektron's `ObjectCache` middleware
 (`lib/core/elektron_middlewares/object_cache.rb`) is stored here.
 
-**Columns:** `id` (string — the OpenStack object UUID), `cached_object_type`
-(e.g. `"server"`, `"network"`, `"port"`), `name`, `project_id`, `domain_id`,
+**Columns:** `id` (string — OpenStack object UUID or composite key), `cached_object_type`
+(e.g. `"server"`, `"network"`), `name`, `project_id`, `domain_id`,
 `search_label` (concatenated searchable fields), `payload` (JSON — full
-response hash merged across calls).
+response hash, merged across calls).
 
-**Key features:**
-- `ObjectCache.cache_objects(objects)` — bulk upsert; merges payload if the
-  object already exists (new fields are added, existing fields updated)
-- `ObjectCache.find_objects(type:, term:, include_scope:, paginate:)` — full-text
-  search across `id`, `name`, `project_id`, `domain_id`, `search_label`, plus
-  FriendlyIdEntry name matching
-- `search_label` is computed from `TYPE_SEARCH_LABEL_KEYS` — a per-type list of
-  which payload fields to concatenate for search (e.g. for `"server"`:
-  `description`, `hostId`, `user_id`, `addresses`, `OS-EXT-SRV-ATTR:host`)
-- `project` and `domain` self-referential associations allow `include_scope:` to
-  enrich results with domain/project names without extra queries
+### Write path — the middleware
 
-**Used by:** `cloudops/TopologyObjectsController` queries it directly —
-`ObjectCache.where(id: params[:topology_object_id])` — to look up objects by ID
-without making live OpenStack calls. The lookup plugin (`lookup/`) also uses
-`ObjectCache.find_objects` for cross-service object search.
+`Core::ElektronMiddlewares::ObjectCache#call` runs on every Elektron response:
 
-**Important:** this cache is never explicitly expired. It grows over time. Old or
-deleted objects remain until manually purged.
+**Error path (HTTP >= 400):** creates an `error`-type object. ID = request's `req-*`
+header (OpenStack request-tracing convention) or `SecureRandom.hex`. Payload = response
+body + service_name, http_method, path, project_id from request context.
+
+**Success path:** calls `find_objects(response.body)` — a recursive walk:
+
+```
+Hash with id key + >1 keys  → cache it; type = parent_key.singularize
+Hash with only id key        → skip (stub reference, not worth caching)
+Hash without id key          → recurse into values
+Array                        → recurse each element
+parent_key in blacklist      → skip (e.g. "versions", "version")
+```
+
+`parent_key.singularize` derives the type from context: `{ "servers": [{...}] }` →
+`cached_object_type = "server"`. **Aggregate special case:** ID becomes
+`"aggregate_#{data["id"]}"` to avoid collision with flavor IDs.
+
+**Role assignments:** have no native `id` field. The middleware parses the
+`links.assignment` URL to extract entity IDs (project, user, role, group, domain)
+and joins them as a composite key (`project_id-user_id-role_id`). Type is also
+URL-derived (`project_user_role_assignment` etc.).
+
+### Payload merging
+
+`cache_objects` loads existing payloads, deep-merges new data on top, then bulk
+updates and inserts. Fields accumulate over time — a richer `show` response
+preserves its extra fields even when a later `list` response for the same object
+omits them.
+
+### `search_label`
+
+`TYPE_SEARCH_LABEL_KEYS` maps each type to payload fields that should be
+full-text indexed. For `"server"`: `description hostId user_id addresses
+OS-EXT-SRV-ATTR:host`. These are concatenated as `"key: value key: value"` into
+the `search_label` column. Types not in the map are searchable only by
+`id`, `name`, `project_id`, `domain_id`.
+
+### Consumer: `lookup` plugin
+
+`ObjectCache.find_objects(type:, term:, include_scope:)`:
+
+1. Queries `FriendlyIdEntry` to find UUIDs matching `term` by name/slug.
+2. ORs `where(id: friendly_uuid_ids).or(search_label/name/id ILIKE term)`.
+
+Searching `"marioworld"` finds all objects scoped to that project even when
+searching by project name rather than UUID. `include_scope: true` → `includes(:domain, project: :domain)`
+enriches each result with human-readable scope names for display.
+
+### Consumer: `cloudops` topology
+
+`Cloudops::TopologyObjectsController` queries the cache directly — zero live API calls:
+
+```ruby
+object = ObjectCache.where(id: params[:topology_object_id]).first
+children = ObjectCache.where.not(cached_object_type: %w[error message])
+  .where("project_id ILIKE :t OR domain_id ILIKE :t OR search_label ILIKE :t",
+         t: "%#{object.id}%")
+```
+
+Finds all objects referencing the given object's ID anywhere in their scope or
+`search_label`. This is how the topology graph is built.
+
+**Important:** this cache is never explicitly expired. It grows unboundedly. Deleted
+OS objects remain until manually purged. There is no TTL, no expiry job, no purge
+on delete (only `delete_project_entry` when Elektra itself deletes a project).
 
 ---
 
