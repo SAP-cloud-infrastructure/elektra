@@ -81,5 +81,6 @@ on-demand context for agents.
   [`skills/skill-curator`](skills/skill-curator/SKILL.md).
 
 > **Local overrides:** personal, machine-specific notes go in `AGENTS.local.md`
-> (gitignored, not part of the repository). Claude Code loads `AGENTS.md` and
-> `AGENTS.local.md` via the `CLAUDE.md` stub; other tools can read them directly.
+> (gitignored, not part of the repository). Claude Code loads `AGENTS.md`,
+> `AGENTS.local.md`, and `CLAUDE.local.md` via the `CLAUDE.md` stub; other tools
+> can read `AGENTS.md` and `AGENTS.local.md` directly.
