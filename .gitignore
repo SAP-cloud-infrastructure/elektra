@@ -76,6 +76,7 @@ config/support/domain_config.local.yaml
 .pnpm-store
 
 AGENTS.local.md
+CLAUDE.local.md
 *playground*
 *claude
 ROADMAP.md
