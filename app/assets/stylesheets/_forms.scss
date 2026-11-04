@@ -50,13 +50,6 @@ select.form-control {
 
 }
 
-.help-block {
-  font-size: $font-size-small;
-  .fa {
-    margin-right: 5px;
-  }
-}
-
 // Form hints render an info icon directly in front of the text
 // (`<p class="form-text"><i class="fa fa-info-circle"></i>…`, see the
 // `icon_hint` simple_form component, used across many forms). BS3's Font Awesome
