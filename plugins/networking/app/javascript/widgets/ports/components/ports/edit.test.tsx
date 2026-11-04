@@ -9,29 +9,34 @@ import EditPortForm from "./edit.jsx"
 vi.mock("lib/elektra-form", () => {
   let currentFormValues = {}
 
+  // The real Form exposes its values through Form.Context (useContext),
+  // so the mock must provide a matching React context, not just a prop.
+  const FormContext = React.createContext<{ formValues?: Record<string, unknown> }>({})
+
   const FormComponent = ({ children, initialValues, onSubmit, validate }: any) => {
-    // The real Form component uses React.cloneElement to inject values prop into children
-    // We need to replicate that behavior in our mock
     const values = initialValues || {}
     currentFormValues = values
 
     return (
-      <form
-        data-testid="mock-form"
-        onSubmit={(e) => {
-          e.preventDefault()
-          if (onSubmit) onSubmit(values)
-        }}
-      >
-        {React.Children.map(children, (child) => {
-          if (!child) return null
-          // Clone each child and inject the values prop
-          return React.cloneElement(child as React.ReactElement, { values })
-        })}
-      </form>
+      <FormContext.Provider value={{ formValues: values }}>
+        <form
+          data-testid="mock-form"
+          onSubmit={(e) => {
+            e.preventDefault()
+            if (onSubmit) onSubmit(values)
+          }}
+        >
+          {React.Children.map(children, (child) => {
+            if (!child) return null
+            // Clone each child and inject the values prop (legacy path)
+            return React.cloneElement(child as React.ReactElement, { values })
+          })}
+        </form>
+      </FormContext.Provider>
     )
   }
 
+  FormComponent.Context = FormContext
   FormComponent.Errors = () => <div data-testid="form-errors">Form Errors</div>
   FormComponent.ElementHorizontal = ({ label, children }: { label: string; children: React.ReactNode }) => (
     <div data-testid={`form-element-${label.toLowerCase().replace(/\s+/g, "-")}`}>

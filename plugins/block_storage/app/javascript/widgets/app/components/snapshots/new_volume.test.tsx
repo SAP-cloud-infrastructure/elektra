@@ -278,7 +278,7 @@ describe("NewVolumeForm Component", () => {
 
     await waitFor(() => {
       const modal = document.querySelector(".modal")
-      expect(modal).not.toHaveClass("in")
+      expect(modal).not.toHaveClass("show")
     })
   })
 
@@ -293,7 +293,7 @@ describe("NewVolumeForm Component", () => {
 
     // Modal should be visible initially
     const modal = document.querySelector(".modal")
-    expect(modal).toHaveClass("in")
+    expect(modal).toHaveClass("show")
 
     await act(async () => {
       await user.click(cancelButton)
@@ -301,7 +301,7 @@ describe("NewVolumeForm Component", () => {
 
     await waitFor(() => {
       const modal = document.querySelector(".modal")
-      expect(modal).not.toHaveClass("in")
+      expect(modal).not.toHaveClass("show")
     })
   })
 

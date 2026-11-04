@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import { render, screen, fireEvent } from "@testing-library/react"
+import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import "@testing-library/jest-dom/vitest"
 import React from "react"
 import List from "./list.jsx"
@@ -321,18 +321,24 @@ describe("Ports List", () => {
 
   describe("Attachment filter", () => {
     // mockPortA has no device_id (free), mockPortB has device_id (attached)
-    it("shows only attached ports when 'Attached' is selected", () => {
+    it("shows only attached ports when 'Attached' is selected", async () => {
       renderComponent()
       fireEvent.change(screen.getByDisplayValue("All ports"), { target: { value: "attached" } })
-      expect(screen.getByTestId("port-item-port-b")).toBeInTheDocument()
-      expect(screen.queryByTestId("port-item-port-a")).not.toBeInTheDocument()
+      // Rows leave via a 200ms CSSTransition; wait for the list to settle so the
+      // exiting row (and any transient reconciliation duplicate) is gone.
+      await waitFor(() => {
+        expect(screen.queryByTestId("port-item-port-a")).not.toBeInTheDocument()
+        expect(screen.getAllByTestId("port-item-port-b")).toHaveLength(1)
+      })
     })
 
-    it("shows only free ports when 'Free' is selected", () => {
+    it("shows only free ports when 'Free' is selected", async () => {
       renderComponent()
       fireEvent.change(screen.getByDisplayValue("All ports"), { target: { value: "free" } })
-      expect(screen.getByTestId("port-item-port-a")).toBeInTheDocument()
-      expect(screen.queryByTestId("port-item-port-b")).not.toBeInTheDocument()
+      await waitFor(() => {
+        expect(screen.queryByTestId("port-item-port-b")).not.toBeInTheDocument()
+        expect(screen.getAllByTestId("port-item-port-a")).toHaveLength(1)
+      })
     })
   })
 

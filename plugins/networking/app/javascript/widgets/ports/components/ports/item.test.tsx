@@ -210,8 +210,10 @@ describe("Item Component", () => {
       const portWithoutName: Port = { ...mockPort, name: undefined }
       renderComponent({ port: portWithoutName })
       // ID is "port-123" which is less than 20 chars, so it won't be truncated.
-      // It appears both as the link label and as the info-text id line.
-      const link = screen.getByRole("link")
+      // The name cell falls back to the ID as the link label. (A second link to
+      // the same href exists in the actions dropdown's "Show" entry, so target
+      // the name-cell link by its ID label rather than by role alone.)
+      const link = screen.getByRole("link", { name: mockPort.id })
       expect(link).toHaveAttribute("href", `/ports/${mockPort.id}/show`)
       expect(link).toHaveTextContent(mockPort.id)
     })
@@ -554,7 +556,7 @@ describe("Item Component", () => {
       renderComponent()
       const button = screen.getByRole("button")
       expect(button).toHaveAttribute("type", "button")
-      expect(button).toHaveAttribute("data-toggle", "dropdown")
+      expect(button).toHaveAttribute("data-bs-toggle", "dropdown")
       expect(button).toHaveAttribute("aria-expanded", "true")
     })
 

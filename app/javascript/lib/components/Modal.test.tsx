@@ -60,7 +60,7 @@ describe("Modal", () => {
     const user = userEvent.setup()
     const onHide = vi.fn()
     render(<Sample show onHide={onHide} />)
-    const x = document.querySelector("button.close") as HTMLElement
+    const x = document.querySelector("button.btn-close") as HTMLElement
     await user.click(x)
     expect(onHide).toHaveBeenCalled()
   })

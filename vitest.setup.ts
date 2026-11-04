@@ -9,13 +9,30 @@ import { vi } from "vitest"
 expect.extend(matchers)
 
 // Mock jQuery
+type JQueryMock = ReturnType<typeof vi.fn> & { fn: Record<string, unknown> }
 const jqueryMock = vi.fn(() => ({
   popover: vi.fn(),
   tooltip: vi.fn(),
   modal: vi.fn(),
   dropdown: vi.fn(),
   // Add other jQuery methods your code might use
-}))
+})) as unknown as JQueryMock
+
+// Bootstrap 5 ships an optional jQuery integration: on DOMContentLoaded its
+// `defineJQueryPlugin` does `$.fn[name] = ...`. Because our mock sets
+// `window.jQuery`, BS5's `getjQuery()` returns the mock and then crashes on the
+// missing `.fn` (`Cannot read properties of undefined (reading 'alert')`),
+// taking down every test file that transitively imports `bootstrap`.
+// Give the mock an `fn` bag so the plugin registration is a harmless no-op.
+jqueryMock.fn = {}
+
+// Belt-and-suspenders: tell BS5 to skip its jQuery integration entirely (the
+// mitigation documented in the BS5 migration spike). `defineJQueryPlugin`
+// fires on DOMContentLoaded during `import "bootstrap"`, so the attribute must
+// be set here (setup runs before any test file's imports).
+if (typeof document !== "undefined" && document.body) {
+  document.body.setAttribute("data-bs-no-jquery", "")
+}
 
 declare global {
   var $: typeof jqueryMock
