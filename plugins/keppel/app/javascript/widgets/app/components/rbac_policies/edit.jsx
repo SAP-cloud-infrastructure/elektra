@@ -180,7 +180,7 @@ export default class RBACPoliciesEditModal extends React.Component {
                 <th className="col-md-3">Permissions</th>
                 <th className="col-md-1">
                   {isAdmin && (
-                    <button className="btn btn-sm btn-default" onClick={this.addPolicy}>
+                    <button className="btn btn-sm btn-secondary" onClick={this.addPolicy}>
                       Add policy
                     </button>
                   )}
