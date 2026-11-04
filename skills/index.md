@@ -33,6 +33,6 @@ Read a skill before working in the area it covers. See the repo-root
 - Frontmatter requires `name` (matches the directory) and `description` (a one-line
   "use when …" that states when the skill is relevant).
 - Cite real file paths (e.g. `lib/core/service_layer/service.rb`) for every
-  architectural claim. Do not document from memory or from the private `CLAUDE.md`;
-  verify against the code.
+  architectural claim. Do not document from memory or from the private AGENTS.local.md or CLAUDE.local.md`;
+- Verify against the code.
 - Add a row to this table whenever you add a skill.
