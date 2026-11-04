@@ -409,7 +409,7 @@ Handles password synchronisation between LDAP and Keystone. Available even when 
 ### B. Cross-dashboard cookie (Elektra ↔ Aurora SSO)
 
 - Cookie named by `Rails.configuration.cross_dashboard_cookie_name`
-- Wildcard domain (e.g. `.qa-de-1.cloud.sap`) — shared between Elektra and Aurora
+- Wildcard domain scoped to the current region's TLD — shared between Elektra and Aurora
 - Contains the raw Keystone token value (not encrypted)
 - Read in `validate_session_token` as a fallback after checking `session[:auth_token_value]`
 - `token_domain_matches_scope_domain?` (line 458) guards against stale cookies from wrong domains
@@ -450,8 +450,8 @@ MonsoonOpenstackAuth::AuthStatus::SERVICE_UNAVAILABLE # 'AUTH_SERVICE_UNAVAILABL
 | `access_key_auth_allowed` | `false` | `false` |
 | `two_factor_enabled` | `false` | `TWO_FACTOR_AUTHENTICATION == 'on'` |
 | `enforce_natural_user` | `false` | `ENFORCE_NATURAL_USER_LOGIN == 'true'` |
-| `natural_user_name_pattern` | nil | `/\A([DCIdci]\d*\|TI_EC5A3E_.*)\z/` |
-| `rsa_dns` | `false` | `'dashboard-rsa'` |
+| `natural_user_name_pattern` | nil | deployment-specific regex (set in auth initializer) |
+| `rsa_dns` | `false` | deployment-specific hostname prefix (set in auth initializer) |
 | `token_cache` | `NoopCache` | unchanged (no caching by default) |
 | `debug` | `false` | `Rails.configuration.debug_api_calls` |
 
@@ -488,7 +488,7 @@ MonsoonOpenstackAuth::AuthStatus::SERVICE_UNAVAILABLE # 'AUTH_SERVICE_UNAVAILABL
 | `TWO_FACTOR_AUTH_DOMAINS` | Comma-separated list of domains requiring TFA. |
 | `MONSOON_DASHBOARD_REGION` | Current region; substituted into federation WebSSO URLs, oauth2-proxy URLs, trusted-origin checks, and the cross-dashboard cookie domain. |
 | `FEDERATION_CUSTOM_AUTH_URL` | Overrides the auto-generated Keystone WebSSO URL for federation domains. |
-| `ENFORCE_NATURAL_USER_LOGIN` | `true` → reject logins where username doesn't match `natural_user_name_pattern` (pattern: `/\A([DCIdci]\d*\|TI_EC5A3E_.*)\z/`). |
+| `ENFORCE_NATURAL_USER_LOGIN` | `true` → reject logins where username doesn't match `natural_user_name_pattern` (a deployment-specific regex set in `config/initializers/monsoon_openstack_auth.rb`). |
 
 ---
 
