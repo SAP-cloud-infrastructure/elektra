@@ -10,6 +10,7 @@ Read a skill before working in the area it covers. See the repo-root
 
 | Skill | Description |
 | --- | --- |
+| [big-picture](big-picture/SKILL.md) | Start here for orientation: the full request lifecycle, a map of all subsystems and how they connect, and a "I want to…" quick-reference table pointing to the right skill for each task. |
 | [authentication](authentication/SKILL.md) | The monsoon-openstack-auth plugin: login flow (SessionsController), AuthSession lifecycle (three auth paths, token rescoping, 2FA, cross-dashboard SSO cookie), AuthUser (current_user wrapper, roles, service catalog), ConnectionDriver (Excon-based Keystone v3 client), PasswordSync, and configuration options. |
 | [api-clients](api-clients/SKILL.md) | The three Elektron client tiers: `services` (user token), `service_user` / `cloud_admin` (privileged, same underlying client). Covers auth strategies (app credentials vs. password), middleware stacks, ObjectCache, `current_user` wrapper, `AuthUser`, scope resolution, and FriendlyIdEntry. |
 | [configuration](configuration/SKILL.md) | All environment variables: OpenStack service user credentials, database connection, Rails/Puma server, region/deployment identity, authentication/SSO feature flags, TFA, email, logging/debug, and plugin-specific vars. Covers Helm value names, defaults, and where each var is consumed in code. |
