@@ -148,7 +148,7 @@ class SubnetForm {
 
     if (this.state.errors) {
       this.$error.append(
-        `<div class="has-error"><span class="help-block">${this.state.errors.join(" and ")}</span></div>`
+        `<div class="text-danger mt-1">${this.state.errors.join(" and ")}</div>`
       )
     }
 
@@ -366,7 +366,7 @@ class Subnets {
     this.$error.empty()
     if (this.state.errors) {
       return this.$error.append(
-        `<div class="has-error"><span class="help-block">${this.state.errors.join(" and ")}</span></div>`
+        `<div class="text-danger mt-1">${this.state.errors.join(" and ")}</div>`
       )
     }
   }

@@ -56,7 +56,7 @@ const loadSubnets = function (networkId) {
       return $("#floating_ip_floating_subnet_id")
         .parent()
         .append(
-          "<p class='help-block'>To see availability information for IPs you need the role network_viewer or network_admin</p>"
+          "<p class='form-text'>To see availability information for IPs you need the role network_viewer or network_admin</p>"
         )
     }
   }
