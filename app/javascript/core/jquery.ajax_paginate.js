@@ -169,9 +169,13 @@ jQuery.fn.ajaxPaginate = function (options) {
 
     // add load next items button
     if (settings.loadNextButton) {
-      const $loadNextButton = $(
-        `<button class='${loadNextItemsCssClass}'>${loadNextLabel}</button> `
-      ).appendTo($buttons)
+      // Build via DOM APIs (not an HTML string): the label and CSS class come
+      // from data-* attributes (untrusted library input), so interpolating them
+      // into HTML would be an XSS sink. .addClass()/.text() escape safely.
+      const $loadNextButton = $("<button></button>")
+        .addClass(loadNextItemsCssClass)
+        .text(loadNextLabel)
+        .appendTo($buttons)
       $loadNextButton.click(function (e) {
         showLoading()
         return loadNext(() => hideLoading())
@@ -180,9 +184,14 @@ jQuery.fn.ajaxPaginate = function (options) {
 
     // add load all items button
     if (loadAllButton) {
-      const $loadAllButton = $(
-        ` <button class='${loadAllItemsCssClass}' data-bs-toggle='tooltip' title='This might take a while!'>${loadAllLabel}</button> `
-      ).appendTo($buttons)
+      // Same reasoning as above: construct safely instead of interpolating
+      // untrusted data-* values into an HTML template string.
+      const $loadAllButton = $("<button></button>")
+        .addClass(loadAllItemsCssClass)
+        .attr("data-bs-toggle", "tooltip")
+        .attr("title", "This might take a while!")
+        .text(loadAllLabel)
+        .appendTo($buttons)
       initTooltips($loadAllButton)
       return $loadAllButton.click(function () {
         showLoading()
