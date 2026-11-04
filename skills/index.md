@@ -24,7 +24,7 @@ Read a skill before working in the area it covers. See the repo-root
 | [plugin-architecture](plugin-architecture/SKILL.md) | Rails Engine structure, esbuild build system, and all six frontend patterns (pure HAML, Redux+ReactRouter, TanStack Query+Juno, TanStack Router+Juno, Juno shadow DOM, external mount). Covers widget embedding, multi-widget plugins, and new plugin generation. |
 | [policy-rbac](policy-rbac/SKILL.md) | Elektra's UI-layer permission system: policy.json format, server-side enforce_permissions / authorization_required, JS delivery via window.policyConfig, and client-side policy.isAllowed() in React widgets. |
 | [service-layer](service-layer/SKILL.md) | How controllers reach OpenStack through the service layer: `services.NAME`, `Service`/`Model` base classes, the Elektron client, and the API-client tiers. |
-| [skill-curator](skill-curator/SKILL.md) | Routine to keep these skills accurate and tidy — verify facts against code, reconcile this index, check frontmatter. Run regularly. |
+| [skill-curator](skill-curator/SKILL.md) | Use when adding or changing a skill, after a large refactor, or as a periodic hygiene pass. Also governs when to create a new skill vs. update AGENTS.md (always-on vs. on-demand). |
 | [testing](testing/SKILL.md) | RSpec controller specs (auth stubbing, FriendlyIdEntry seeding, Elektron doubles, shared examples), Vitest component/unit tests (jsdom setup, fetch/policy/ajaxHelper mocking), and Playwright E2E (smoke vs. UI profiles, e2e Rails environment, CI job structure). |
 
 ## Conventions for skills

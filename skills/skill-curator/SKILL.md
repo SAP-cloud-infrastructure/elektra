@@ -1,24 +1,74 @@
 ---
 name: skill-curator
 description: >-
-  Use periodically (and before shipping new skills) to keep the skills under
-  `skills/` accurate and tidy: verify every factual claim against the current code,
-  reconcile `skills/index.md` with the skills that actually exist, and check that
-  each SKILL.md has valid frontmatter. Run this as a maintenance routine, not for
-  feature work.
+  Use when adding or changing a skill, after a large refactor, or periodically to
+  keep skills accurate. Also governs when to create a new skill vs. update AGENTS.md:
+  always-on rules belong in AGENTS.md, situational deep-dives belong in a skill.
 ---
 
 # Skill Curator
 
 Skills double as technical documentation, so they rot the moment the code moves on
 (wrong file paths, renamed classes, stale versions, dead index links). This skill is
-the routine that keeps them trustworthy. Run it on a schedule, after large refactors,
-and whenever a new skill is added.
+the routine that keeps them trustworthy.
 
 The guiding rule for all skills: **every architectural claim must be verifiable
-against the current code — never from memory or from the private `CLAUDE.md`.**
+against the current code — never from memory.**
 
-## Routine
+---
+
+## When to run the curator
+
+Run the full routine whenever:
+- A new skill is added or an existing one is significantly changed
+- A large refactor touches areas covered by skills
+- Periodically as a hygiene pass
+
+Run at minimum the **check script** (step 1–2 below) after any skill edit.
+
+### Proactive agent behaviour
+
+**Do not wait to be asked.** When a session produces a durable rule, pattern, or
+architectural insight that is not yet captured in a skill, surface it proactively:
+
+> "This session established [X]. I can add/update a skill for it — want me to?"
+
+Present a concrete proposal (which skill, what to add) rather than a vague offer.
+If the user agrees, apply the update and run the check script in the same change.
+If the user declines, drop it — do not re-ask in the same session.
+
+---
+
+## When to create a skill vs. update AGENTS.md
+
+**Put it in `AGENTS.md`** if the rule must apply to every session — a short
+invariant or pointer is enough. Keep it brief; details belong in a skill.
+
+**Put it in a skill** if the guidance is detailed, situational, or
+workflow-specific. Skills are loaded on demand; `AGENTS.md` is always loaded.
+
+**One source of truth.** Never duplicate the full text in both places — a short
+pointer in `AGENTS.md` linking to the skill is the right pattern.
+
+### Checklist for a new or changed durable rule
+
+1. Decide: always-on (`AGENTS.md`) or on-demand (skill)?
+2. Add or update the relevant `skills/<name>/SKILL.md`.
+3. Add a row to `skills/index.md` (new skill) or update the existing description.
+4. Add or update the short pointer in `AGENTS.md` if always-on.
+5. Cross-link related skills instead of copying text.
+6. Include the skill update in the same commit as the behaviour it governs.
+
+### When NOT to create a skill
+
+- One-off fixes or task-specific notes
+- Unconfirmed ideas
+- Content already covered by an existing skill
+- Temporary debugging context
+
+---
+
+## Maintenance routine
 
 ### 1. Structure & frontmatter
 
