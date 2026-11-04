@@ -30,7 +30,7 @@ const mediaTypes = {
 const renderLabel = (key, value) => {
   const isLink = /^https?:\/\//.test(value)
   let label = (
-    <span className={isLink ? "label label-primary" : "label label-default"}>
+    <span className={isLink ? "badge text-bg-primary" : "badge text-bg-secondary"}>
       <span className="image-label-key">{key}:</span>
       <span className="image-label-value">{value}</span>
     </span>

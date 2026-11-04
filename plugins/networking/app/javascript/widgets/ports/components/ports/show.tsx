@@ -167,7 +167,7 @@ const ShowPortModal: React.FC<ShowPortModalProps> = ({
     if (tags.length === 0) return <span className="info-text">No tags</span>
 
     return tags.map((tag) => (
-      <span key={tag} className="label label-default" style={{ marginRight: "4px" }}>
+      <span key={tag} className="badge text-bg-secondary" style={{ marginRight: "4px" }}>
         {tag}
       </span>
     ))
