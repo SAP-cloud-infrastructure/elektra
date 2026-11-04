@@ -82,7 +82,6 @@ function ClusterDetail({
   // Determine the error to display
   const getError = () => {
     if (error) return error
-    if (shootPermissions?.get === false) return new Error("You do not have permission to view cluster details.")
     if (!isLoading && !cluster) return new Error("Cluster not found")
     if (!isLoading && !shootPermissions) return new Error("Permissions failed to load")
     return undefined
@@ -135,8 +134,17 @@ function ClusterDetailWithQueries() {
   } = useKubeconfigPermissionsQuery(apiClient)
 
   const isLoading = clusterLoading || shootPermissionsLoading || kubeconfigPermissionsLoading
+
+  // When permissions resolve with get: false, show a friendly error instead of the raw Gardener 403
+  const permissionDeniedError =
+    shootPermissions?.get === false
+      ? Object.assign(new Error("Ask your project administrator to assign you the kubernetes_admin role."), {
+          name: "You don't have permission to view cluster details",
+        })
+      : undefined
+
   // TanStack Query v4 returns null when there's no error, convert to undefined
-  const error = clusterError || shootPermissionsError || kubeconfigPermissionsError || undefined
+  const error = permissionDeniedError || clusterError || shootPermissionsError || kubeconfigPermissionsError || undefined
 
   // Disable all actions when there's an error fetching cluster or permissions
   const validShootPermissions = error ? undefined : shootPermissions

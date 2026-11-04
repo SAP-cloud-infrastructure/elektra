@@ -163,22 +163,18 @@ interface ClustersViewProps {
 
 function ClusterContent({
   clusters = [],
-  permissions,
   error,
   isLoading = false,
   updatedAt,
   isFetching,
   onRefreshClusters,
 }: ClustersViewProps) {
-  const listError =
-    error ?? (permissions?.list === false ? new Error("You do not have permission to view clusters.") : undefined)
-
   return (
     <Container py px={false}>
       <ClusterList
-        clusters={listError ? [] : clusters}
+        clusters={error ? [] : clusters}
         isLoading={isLoading}
-        error={listError}
+        error={error}
         updatedAt={updatedAt}
         isFetching={isFetching}
         onRefresh={onRefreshClusters}
@@ -266,11 +262,21 @@ function ClustersWithQueries() {
   } = useShootPermissionsQuery(apiClient)
 
   const isLoading = clustersLoading || permissionsLoading
+
+  // When permissions resolve with list: false, show a friendly error instead of the raw Gardener 403
+  const permissionDeniedError =
+    permissions?.list === false
+      ? Object.assign(new Error("Ask your project administrator to assign you the kubernetes_admin role."), {
+          name: "You don't have permission to list clusters",
+        })
+      : undefined
+
   // TanStack Query v4 returns null when there's no error, convert to undefined
-  const error = clustersError || permissionsError || undefined
+  const error = permissionDeniedError || clustersError || permissionsError || undefined
 
   // Disable all actions when there's an error fetching either clusters or permissions
-  const validPermissions = error ? undefined : permissions
+  // For permission-denied errors keep the real permissions so buttons show accurate disabled messages
+  const validPermissions = permissionDeniedError ? permissions : error ? undefined : permissions
 
   // if there is an error, independently of fetching either clusters or permissions, we show an error state,
   // so we don't want to show a stale updatedAt timestamp in that case
