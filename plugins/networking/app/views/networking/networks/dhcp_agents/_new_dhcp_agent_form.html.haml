@@ -6,8 +6,7 @@
       .input-group
         = f.collection_select :agent_id, @new_dhcp_agents, :id, :host, class: 'form-control'
 
-        %span.input-group-btn
-          = f.submit 'Add', class: 'btn btn-primary', data: { disable_with: 'Please wait...' }
+        = f.submit 'Add', class: 'btn btn-primary', data: { disable_with: 'Please wait...' }
 
   %td#plus{class: @new_dhcp_agents.length == 0 ? 'hidden' : ''}
     = link_to '+', '#', class: 'btn btn-primary', data: {control_dhcp_form: '#new_dhcp_form'}

@@ -23,8 +23,7 @@
               = form_for :member, url: plugin('compute').flavor_members_path(flavor_id: params[:flavor_id]), method: :post, remote: request.xhr?, html: {data: {modal: true} } do |f|
                 .input-group
                   = f.text_field :tenant_id, data: {autocomplete_url: main_app.projects_cache_index_path}, class: "form-control", placeholder: 'Project ID with whom this flavor is shared.'
-                  %span.input-group-btn
-                    = button_tag "Add", { class: 'btn btn-primary', data: { disable_with: "Please wait..." } }
+                  = button_tag "Add", { class: 'btn btn-primary', data: { disable_with: "Please wait..." } }
           %td
             = link_to ' + ', '#', class: 'btn btn-info', id:'toggle_form'
 

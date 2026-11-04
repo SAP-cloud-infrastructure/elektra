@@ -32,18 +32,16 @@ export default class ImageMemberForm extends React.Component {
             onSelected={this.handleSelected}
             onInputChange={(id) => this.handleSelected([{ id }])}
           />
-          <span className="input-group-btn">
-            <button
-              className="btn btn-primary"
-              type="button"
-              onClick={this.handleSubmit}
-              disabled={this.state.isSubmitting}
-            >
-              {this.state.isSubmitting
-                ? "...Please wait"
-                : this.props.buttonLabel || "Add"}
-            </button>
-          </span>
+          <button
+            className="btn btn-primary"
+            type="button"
+            onClick={this.handleSubmit}
+            disabled={this.state.isSubmitting}
+          >
+            {this.state.isSubmitting
+              ? "...Please wait"
+              : this.props.buttonLabel || "Add"}
+          </button>
         </div>
         <p className="form-text">
           <i className="fa fa-info-circle"></i>
