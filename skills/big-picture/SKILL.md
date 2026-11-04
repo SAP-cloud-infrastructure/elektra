@@ -47,7 +47,7 @@ Plugin controller action
   │         │
   │         ▼
   │       Elektron middleware stack
-  │         RequestUUID → DebugLogger → ObjectCache → ResponseErrorHandler → Net::HTTP
+  │         ResponseHandler → ResponseErrorHandler → DebugLogger → UserLogger/CloudAdminLogger → ObjectCache → RequestUUID → HttpRequestPerformer
   │         Response → ObjectCache writes to DB → ResponseHandler wraps in map_to
   │
   ▼

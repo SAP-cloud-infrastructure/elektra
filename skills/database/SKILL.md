@@ -16,13 +16,8 @@ workflow data.
 
 Single database, single schema (`db/schema.rb`). No multi-db setup.
 
-```
-Connection: PostgreSQL via env vars
-  MONSOON_DB_USER / MONSOON_DB_PASSWORD
-  ELEKTRA_POSTGRESQL_SERVICE_HOST / POSTGRES_SERVICE_HOST (multiple fallbacks)
-  ELEKTRA_POSTGRESQL_SERVICE_PORT / POSTGRES_SERVICE_PORT
-  MONSOON_DB_NAME (default: monsoon-dashboard_development / _production)
-```
+Connection via `MONSOON_DB_*` and `POSTGRES_*` env vars (multiple fallback
+hostnames). See the `configuration` skill for the full fallback chain.
 
 ---
 

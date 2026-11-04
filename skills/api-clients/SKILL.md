@@ -116,17 +116,18 @@ All three tiers share a common base stack; they differ only in the logger
 middleware:
 
 ```
-DebugLogger          (outermost — logs request/response in development)
-  → UserLogger / ServiceUserLogger / CloudAdminLogger  (tier-specific colour)
-      → ObjectCache    (caches response objects by id; logs errors silently)
-          → RequestUUID  (injects X-Request-ID header)
-              → [Elektron built-in middlewares]
-                  → ResponseErrorHandler  (raises ApiResponse on HTTP 4xx/5xx)
-                      → ResponseHandler
-                          → HttpRequestPerformer  (actual HTTP call)
+ResponseHandler      (outermost — wraps response, provides map_to)
+  → ResponseErrorHandler  (raises ApiResponse on HTTP 4xx/5xx)
+      → DebugLogger    (logs request/response in development)
+          → UserLogger / CloudAdminLogger  (tier-specific colour banner; debug only)
+              → ObjectCache    (caches response objects by id; logs errors silently)
+                  → RequestUUID  (injects X-OpenStack-Request-ID header)
+                      → HttpRequestPerformer  (innermost — actual Net::HTTP call)
 ```
 
 Middleware is added `before: <target>` via Elektron's middleware API.
+`ServiceUserLogger` exists in `lib/core/elektron_middlewares/service_user_logger.rb`
+but is never added to any client — dead code.
 
 ### ObjectCache middleware (`lib/core/elektron_middlewares/object_cache.rb`)
 
@@ -161,31 +162,15 @@ old_user_details[:id]` check at line 27). On first load it:
 
 ## `AuthUser` — what `current_user` exposes
 
-`MonsoonOpenstackAuth::Authentication::AuthUser`
-(`plugins/monsoon-openstack-auth/lib/monsoon_openstack_auth/authentication/auth_user.rb`).
+`MonsoonOpenstackAuth::Authentication::AuthUser` wraps the Keystone token hash
+and provides all token attributes (`token`, `id`, `name`, `domain_id`,
+`project_id`, `roles`, `has_role?`, `admin?`, `has_service?`, `service_url`,
+`is_allowed?`, `token_expires_at`, etc.).
 
-The object wraps the Keystone token hash (`@context`). Key attributes:
-
-| Method | Returns |
-|--------|---------|
-| `token` | Raw Keystone token string |
-| `id` | User UUID |
-| `name` | Username |
-| `domain_id` / `domain_name` | Token's domain scope |
-| `project_id` / `project_name` | Token's project scope |
-| `user_domain_id` / `user_domain_name` | Domain the user belongs to |
-| `roles` / `role_names` | List of role hashes / names |
-| `admin?` | `true` if any role is `"admin"` |
-| `has_role?(name)` | Check a specific role name |
-| `has_service?(type)` | Scan service catalog for a service type (no HTTP) |
-| `service_catalog` | Array of service catalog entries from the token |
-| `service_url(type, options)` | URL for a service type + region + interface |
-| `is_allowed?(actions, params)` | Policy engine enforcement |
-| `token_expires_at` / `token_expired?` | Token lifetime |
-| `is_admin_project_token?` | Whether token carries the admin project flag |
-
-`email` and `full_name` are **not** on `AuthUser`; they come from the
+`email` and `full_name` are **not** on `AuthUser` — they come from the
 `CurrentUserWrapper` enrichment described above.
+
+See the `authentication` skill for the full `AuthUser` method reference.
 
 ## Scope resolution — `ScopeController` and rescoping
 

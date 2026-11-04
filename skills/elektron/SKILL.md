@@ -105,13 +105,13 @@ development (no direct access to internal network).
 Elektron uses a linked middleware chain. The execution order (outermost → innermost):
 
 ```
-ResponseHandler
-  → ResponseErrorHandler
-      → ObjectCache
-          → UserLogger / CloudAdminLogger   (debug only)
-              → DebugLogger                  (debug only)
-                  → RequestUUID
-                      → HttpRequestPerformer  ← actual Net::HTTP call
+ResponseHandler      (outermost — wraps response, provides map_to)
+  → ResponseErrorHandler  (raises ApiResponse on HTTP 4xx/5xx)
+      → DebugLogger        (logs full request/response; debug only)
+          → UserLogger / CloudAdminLogger   (colored tier banner; debug only)
+              → ObjectCache         (writes API responses to DB)
+                  → RequestUUID     (adds X-OpenStack-Request-ID header)
+                      → HttpRequestPerformer  (innermost — actual Net::HTTP call)
 ```
 
 `ResponseHandler` wraps the response; `ResponseErrorHandler` raises on HTTP ≥ 400;
