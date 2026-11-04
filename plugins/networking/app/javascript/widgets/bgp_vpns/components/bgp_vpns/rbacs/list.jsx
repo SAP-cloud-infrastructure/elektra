@@ -122,7 +122,7 @@ const RBACs = ({ bgpvpn }) => {
                 if (newItem && !isCreating) add()
               }}
             >
-              <div className="form-group">
+              <div className="mb-3">
                 <AutocompleteField
                   type="projects"
                   disabled={isCreating}
@@ -133,7 +133,7 @@ const RBACs = ({ bgpvpn }) => {
                   onInputChange={(id) => setNewItem(id)}
                 />
               </div>
-              <div className="form-group form-actions">
+              <div className="mb-3 form-actions">
                 <button
                   type="submit"
                   disabled={!newItem || isCreating}

@@ -122,10 +122,10 @@ class SubnetForm {
       })
 
       this.$form
-        .append($('<div class="form-group"></div>').append(this.$nameInput))
-        .append($('<div class="form-group"></div>').append(this.$cidrInput))
+        .append($('<div class="mb-3"></div>').append(this.$nameInput))
+        .append($('<div class="mb-3"></div>').append(this.$cidrInput))
         .append(
-          $('<div class="form-group form-actions"></div>').append(this.$submitButton).append(this.$cancelButton)
+          $('<div class="mb-3 form-actions"></div>').append(this.$submitButton).append(this.$cancelButton)
         )
 
       this.$error = $("<div></div>").appendTo(this.$form)

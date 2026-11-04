@@ -23,12 +23,12 @@ const showSubnets = function (subnets) {
       }, available IPs: ${available_ips})</option>`
     )
   }
-  return $("fieldset#subnets .form-group").show()
+  return $("fieldset#subnets .mb-3").show()
 }
 
 const loadSubnets = function (networkId) {
   if (!networkId || networkId.trim().length === 0) {
-    $("fieldset#subnets .form-group").hide()
+    $("fieldset#subnets .mb-3").hide()
     $('form#new_floating_ip button[type="submit"]').prop("disabled", true)
     return
   }
@@ -37,7 +37,7 @@ const loadSubnets = function (networkId) {
     return showSubnets(subnets[networkId])
   } else {
     $('form#new_floating_ip button[type="submit"]').prop("disabled", true)
-    $("fieldset#subnets .form-group").hide()
+    $("fieldset#subnets .mb-3").hide()
     if (policy.isAllowed("networking:ip_availability")) {
       $("fieldset#subnets").append($loader)
       return $.ajax({
@@ -52,7 +52,7 @@ const loadSubnets = function (networkId) {
     } else {
       const $select = $("#floating_ip_floating_subnet_id")
       $select.empty()
-      $("fieldset#subnets .form-group").show()
+      $("fieldset#subnets .mb-3").show()
       return $("#floating_ip_floating_subnet_id")
         .parent()
         .append(
@@ -67,7 +67,7 @@ const init = function () {
     $("#floating_ip_floating_subnet_id").length === 0 ||
     ($("#floating_ip_floating_subnet_id")[0].value || "").trim().length === 0
   ) {
-    $("fieldset#subnets .form-group").hide()
+    $("fieldset#subnets .mb-3").hide()
     $('form#new_floating_ip button[type="submit"]').prop("disabled", true)
   }
 

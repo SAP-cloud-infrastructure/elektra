@@ -77,7 +77,7 @@ $(function () {
         `Please confirm "${confirmTerm}"`
       const $modalBody = $('<div class="modal-body"></div>')
       const $confirmSection = $(
-        `<div class="confirm-term form-group string required"><label class="string required">${label} </label></div>`
+        `<div class="confirm-term mb-3 string required"><label class="string required">${label} </label></div>`
       ).appendTo($modalBody)
       const $confirmField = $('<input type="text"/>').appendTo($confirmSection)
 

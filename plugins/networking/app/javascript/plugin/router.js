@@ -99,7 +99,9 @@ const handleFlavorChange = function () {
   const $azGroup = $("#availability_zone_group")
   const $azInput = $("#router_availability_zone_hints")
   const $azLabel = $("#availability_zone_group label")
-  const $internalSubnets = $("#router_internal_subnets").closest(".form-group")
+  // SimpleForm's horizontal wrapper renders `div.row.mb-3` in Bootstrap 5
+  // (it used `.form-group` in Bootstrap 3).
+  const $internalSubnets = $("#router_internal_subnets").closest(".mb-3")
   const $immutableWarning = $("#flavor_immutable_warning")
   const requiredMarker = '<abbr id="az_required_marker" title="required">*</abbr> '
 

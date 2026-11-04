@@ -236,7 +236,7 @@ const BgpVpnRouters = ({ bgpvpn }) => {
                 if (routerID && !isAdding) addAssociation()
               }}
             >
-              <div className="form-group">
+              <div className="mb-3">
                 <AddRouterAssociation
                   routerID={routerID}
                   disabled={isAdding}
@@ -244,7 +244,7 @@ const BgpVpnRouters = ({ bgpvpn }) => {
                   onSelect={(routerID) => setRouterID(routerID)}
                 />
               </div>
-              <div className="form-group form-actions">
+              <div className="mb-3 form-actions">
                 <button
                   type="submit"
                   disabled={!routerID || isAdding}

@@ -1,8 +1,8 @@
 = form_for :rbac, url: plugin('networking').send("networks_#{@network_type}_access_index_path", @network_id), method: :post, remote: true, html: {data: {inline:true}, class: 'form-inline hidden', id: 'new_rbac_form'} do |f|
-  .form-group
+  .mb-3
     = f.text_field :target_tenant, class: 'form-control', placeholder: 'Target project'
     #suggestions
-  .form-group.form-actions
+  .mb-3.form-actions
     = f.submit 'Add', class: 'btn btn-primary', data: { disable_with: 'Please wait...' }
     = link_to 'Cancel', '#', class: 'btn btn-secondary', data: {control_rbac_form: '#new_rbac_form', action: 'cancel'}
   %div

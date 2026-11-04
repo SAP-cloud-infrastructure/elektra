@@ -962,7 +962,8 @@ button.multiselect {
     width: 100%;
 
     // Input fields: grow/shrink to fit, with a sensible minimum.
-    > .form-group {
+    // (Field wrappers are now `.mb-3` under Bootstrap 5; BS3 used `.form-group`.)
+    > .mb-3 {
       flex: 1 1 180px;
       min-width: 0;
       margin-bottom: 0;
@@ -977,7 +978,7 @@ button.multiselect {
 
     // Any bare <div> after the fields (error / help text) takes a full row
     // below the inputs instead of sitting inline with them.
-    > div:not(.form-group) {
+    > div:not(.mb-3) {
       flex-basis: 100%;
     }
   }
@@ -990,7 +991,7 @@ button.multiselect {
   // react-bootstrap-typeahead (AutocompleteField) renders a `.rbt` wrapper
   // around its input; make it fill the flex field so the autocomplete grows to
   // the full width like the other inline fields (BGP VPN Access Control).
-  form .form-group .rbt {
+  form .mb-3 .rbt {
     width: 100%;
   }
 }
@@ -2910,7 +2911,7 @@ table.searchable.search-mode {
 // ---------------------------------------------------------------------------------
 
 .form-inline {
-  .form-group {
+  .mb-3 {
     margin-right: 3px;
   }
 
@@ -2926,7 +2927,7 @@ table.searchable.search-mode {
       margin-right: 8px;
     }
 
-    .form-group {
+    .mb-3 {
       flex: 1 1 auto;
       margin-left: 15px;
     }
@@ -2965,7 +2966,7 @@ label {
 .inline-form {
   display: table;
 
-  .form-group {
+  .mb-3 {
     margin: 0;
   }
 }
