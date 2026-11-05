@@ -218,6 +218,7 @@ The migration branch is large; use history to spot accidental drops.
 | 7 | `bootstrap-kaminari-views` gem (pagination) | potential BS-coupled markup | medium | confirm pagination renders correctly under BS5 | open — §3 runtime check |
 | 8 | app-wide flash alerts (`alert-error`/`alert-alert`/`alert-notice`, 81 uses) | BS2/BS3 variant names | info | generated from Rails flash keys (`flash_helper.rb`: notice/alert/error); `_monsoon_theme.scss:1915` `@extend`s them to BS5 `.alert-danger`/`.alert-info` | **kept by design** (shim correct; renaming Rails flash keys is riskier). Scanner now tracks it. |
 | — | masterdata_cockpit domain show | visual check | — | navbars, Edit btn, status box (`.infobox` blue border), `badge text-bg-warning`, table, email link all render correctly (screenshot) | **pass** |
+| 9 | core modal lifecycle (app-wide) | regression | high | after opening+closing an edit modal, focus/click-triggered widgets on the page die — repro: masterdata Cost Object help-hint `?` does nothing until reload. BS5 FocusTrap not released + stray `.modal-backdrop` swallows focus/clicks because `MoModal` never disposed the modal instance | **fixed** (dispose + backdrop/body sweep on `hidden.bs.modal`, commit `6e3043ab7`) |
 
 ### Static review result (§1, §2, §4, §5)
 
