@@ -6,7 +6,7 @@
  * DS205: Consider reworking code to avoid use of IIFEs
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-import { hideModal, initTooltips, initPopovers } from "./bootstrap_engine"
+import { hideModal, initTooltips, initPopovers, disposePopover } from "./bootstrap_engine"
 class Dashboard {
   static hideRevealFormParts() {
     const allTargets = $(".dynamic-form-target")
@@ -61,6 +61,11 @@ const initHelpHint = function () {
   $('[data-bs-toggle="popover"][data-popover-type="help-hint"]').each(function () {
     const $el = $(this)
     $el.attr("tabindex", "0")
+    // Dispose any pre-existing instance first and recreate a fresh one. A
+    // focus-triggered popover can be left in a non-opening state after a modal
+    // open/close cycle; `getOrCreateInstance` alone would keep that stale
+    // instance, so we force a clean re-init here (idempotent on first run).
+    disposePopover(this)
     initPopovers(this, {
       placement: "top",
       trigger: "focus",
@@ -121,6 +126,14 @@ $(function () {
 
   // init help hint popovers
   initHelpHint()
+
+  // Re-init the page's help-hint popovers after a modal closes. A modal
+  // open/close cycle can leave a focus-triggered popover in a state where it no
+  // longer opens on click (e.g. the masterdata "Cost Object" ? icon); a clean
+  // re-init restores it.
+  $(document).on("hidden.bs.modal", function () {
+    initHelpHint()
+  })
 
   // help text toggle
   $('[data-toggle="help"]').click(function (e) {
