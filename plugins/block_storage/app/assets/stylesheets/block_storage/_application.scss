@@ -44,3 +44,15 @@
     margin-bottom: 0;
   }
 }
+
+// The volumes/snapshots rows carry a `tr.state-<status>` class, which globally
+// paints a coloured dot into the row's first cell (see the `tr.state-*
+// td:first-child:before` rules in _monsoon_theme.scss). Since these tables now
+// show the status as an explicit pill in its own column, that leading dot in
+// front of the volume/snapshot name is redundant — suppress it here.
+table.volumes,
+table.snapshots {
+  tr[class*="state-"] td:first-child:before {
+    content: none;
+  }
+}

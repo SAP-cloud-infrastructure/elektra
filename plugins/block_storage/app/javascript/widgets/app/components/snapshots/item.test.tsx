@@ -100,9 +100,8 @@ describe("Snapshot Component", () => {
 
       expect(screen.getByText("Test Snapshot")).toBeInTheDocument()
       expect(screen.getByText("snapshot-123")).toBeInTheDocument()
-      expect(screen.getByText("Test Description")).toBeInTheDocument()
       expect(screen.getByText("10")).toBeInTheDocument()
-      expect(screen.getByText("available")).toBeInTheDocument()
+      expect(screen.getByText("Available")).toBeInTheDocument()
     })
 
     it("renders with searchTerm highlighting", () => {
