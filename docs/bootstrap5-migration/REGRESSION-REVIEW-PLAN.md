@@ -210,7 +210,28 @@ The migration branch is large; use history to spot accidental drops.
 | # | Area | Type (miss / regression) | Severity | Detail | Status |
 | --- | --- | --- | --- | --- | --- |
 | 1 | identity/inquiry | regression (self-inflicted) | high | `.well` shim removed in Phase 6 but 6 live users → boxes unstyled | **fixed** (restore shim, commit `ad19ef1b9`) |
-| | | | | | |
+| 2 | `lib/components/Overlay.jsx` | dead BS3 code | low | commented-out `Tooltip2`/`TooltipContent2` (BS3 `.in` tooltip markup) + stray `console.log`; 0 importers | **fixed** (deleted, commit `97975d9e0`) |
+| 3 | `app/javascript/react-bootstrap.d.ts` | stale shim (type safety) | medium | `declare module "react-bootstrap"` forced `any`, hiding rb2's real types + declaring dead `react-bootstrap/lib/*` imports | **fixed** (removed + tsconfig include; tsc/build green, commit `97975d9e0`) |
+| 4 | masterdata_cockpit SCSS | dead CSS (pre-existing) | low | `.co-help-block`/`.op-help-block` rules have 0 markup users | open — Phase 6 cleanup (not migration-introduced) |
+| 5 | `font-awesome-sass ~>4` (Gemfile), `_bs5_compat_shim.scss` | deferred | info | FA4 and the BS3 vars/mixins shim intentionally kept | open — Phase 6/6b (by design) |
+| 6 | `.multiselect(` (2), jquery-ui `.autocomplete(` (9) | BS3-era jQuery plugins | info | still present; run under jQuery 3.7 — verify in §3 runtime | open — §3 runtime check |
+| 7 | `bootstrap-kaminari-views` gem (pagination) | potential BS-coupled markup | medium | confirm pagination renders correctly under BS5 | open — §3 runtime check |
+
+### Static review result (§1, §2, §4, §5)
+
+- **§1 remnant scan:** 0 un-explained BS3 classes / data-attrs. Only app-owned
+  `.well`/`.btn-xs`/`.caret` and the known jQuery plugins remain (findings 5–6).
+- **§2 build gate:** typecheck ✅, esbuild ✅, Sprockets SCSS ✅ (824 KB),
+  Vitest ✅ (2227 passed), RSpec ✅ (1700 examples, 0 failures).
+- **§4 pnpm audit:** **0 jQuery and 0 Bootstrap advisories** (the migration's
+  security goal is met — jQuery 1.12.4, Bootstrap 3.4.1, bootstrap-multiselect
+  0.9.15 CVEs all closed). The remaining 77 advisories are all build/dev
+  toolchain (commitlint/fast-uri, postcss, vitest, js-yaml, …), out of BS5 scope.
+- **§5 git hunt:** every SCSS rule removed on the branch that still has live
+  markup users also still has a style (verified class-by-class); the only gap
+  was `.well` (finding #1, fixed). No other shim removed without replacement.
+
+Remaining work is **runtime/visual only** (§3) + the deferred Phase-6 items.
 
 ---
 
@@ -223,3 +244,65 @@ The migration branch is large; use history to spot accidental drops.
 - §4: BS3/jQuery advisories closed.
 - All tracker rows resolved (fixed, or consciously accepted with rationale).
 - `README.md` §9 progress log + PR #2214 status table updated to match reality.
+
+---
+
+## 8. §3 runtime walkthrough checklist (for the browser pass)
+
+Start Rails in e2e mode, log in (`http://localhost:4001`), tick each box. The
+static review (§1/§2/§4/§5) is **done and green** — this is the only part left,
+and it's what actually catches rb2-prop / BS5-JS / SCSS-value regressions.
+
+### Cross-cutting (test on any page that shows them)
+
+- [ ] Modal opens/closes, backdrop OK, `Esc` closes, no stacked/leftover backdrop
+- [ ] AJAX-loaded modal (e.g. networking router new/edit) opens & closes
+- [ ] Top-nav **user menu** dropdown opens (dashboard `_nav` + CLOUDOPS `_cloudops_nav`)
+- [ ] Top-nav **region switcher** dropdown opens and lists regions
+- [ ] Breadcrumb **mega-dropdown** opens (`data-mega-dropdown`)
+- [ ] Table/row action dropdowns open (e.g. networking ports, lbaas2 lists)
+- [ ] Tooltips show (`abbr[title]`, `[data-bs-toggle=tooltip]`)
+- [ ] simple_form **help_hint** info-icon popover shows (finding re: `help_hint.rb`)
+- [ ] Tabs switch (identity, image, tools, …)
+- [ ] Collapse/accordion toggles
+- [ ] Flash/alert **dismiss** button (`btn-close`) works and shows the ✕
+- [ ] **Multiselect** fields work — finding #6 (`core/init.js`, identity project members)
+- [ ] **jQuery-UI autocomplete** works — finding #6 (networking rbac `new`, compute fixed-ip)
+- [ ] **Pagination** renders correctly — finding #7 (`bootstrap-kaminari-views`): any long list
+
+### Forms / validation
+
+- [ ] Labels + hints (`form-text`) positioned correctly
+- [ ] Validation errors styled red (`is-invalid`/`invalid-feedback`/`text-danger`)
+- [ ] Inline add-forms layout: networking subnets (name/CIDR + Add/Cancel inline),
+      bgp_vpns rbacs/routers Add row, networks access `_new_rbac_form`
+- [ ] Horizontal forms (router new/edit) field/label columns align
+
+### Per-plugin click-through (main list + create/edit/show)
+
+Priority by rb2/BS coupling:
+
+- [ ] **lbaas2** — buttons (variant/size), `btn-xs` action buttons, StateLabel
+      badges, PopoverInfo/CopyPastePopover, health monitor/listener/pool/member forms
+- [ ] **networking** — ports (list/edit/show, dropdown, tags badges), routers
+      (status badges), subnets, floating IPs, bgp_vpns, dhcp agents, security groups
+- [ ] **identity** — domains/projects api-endpoints **`.well`** boxes, choose-scope,
+      role assignments (typeahead), project members (multiselect)
+- [ ] **compute** — servers/volumes/images/flavors lists, create-instance wizard, fixed-ip autocomplete
+- [ ] **masterdata_cockpit** — additional-infos warning badges, help_hint popovers
+- [ ] **keppel** — image labels (badges), rbac add button, move/hovercopier btn-xs
+- [ ] **object_storage / block_storage / image / dns_service / inquiry** — lists, modals, badges
+- [ ] **reports / audit / lookup / tools** — btn-xs, caret toggles, tables
+- [ ] **kubernetes / shared_filesystem_storage / email_service / keymanagerng** — forms, Juno host pages unaffected
+
+### Auth/layout shells
+
+- [ ] Login, SSO-only, noscope, error page, 2FA, password-sync — navbar + full-width buttons render
+
+### Responsive + theme
+
+- [ ] md breakpoint: navbar toggler works, grid reflows, no horizontal overflow
+- [ ] monsoon look: navbar-sap gradient, btn-secondary/btn-danger contrast, `.well` boxes
+
+> File every visual miss into the §6 tracker; fixes that change markup/SCSS must
+> re-pass §2 (and ideally a Playwright snapshot once Phase 0 exists).
