@@ -7,7 +7,7 @@
  */
 
 import { isValidUrl } from "../lib/tools/helpers"
-import { openModal, hideModal } from "./bootstrap_engine"
+import { openModal, hideModal, disposeModal } from "./bootstrap_engine"
 
 var MoModal = (function () {
   let modal_holder_selector = undefined
@@ -109,6 +109,25 @@ var MoModal = (function () {
       })
       $(document).on("click", "[data-modal-transition]", function () {
         return MoModal.replace(this)
+      })
+      // When the modal closes, dispose its Bootstrap instance and sweep any
+      // leftover backdrop / body state. Two BS5 quirks break the page otherwise:
+      //  1. Modal keeps a document-level FocusTrap alive until disposed; since we
+      //     swap modal content via `.html(data)`, an undisposed instance would be
+      //     orphaned with its FocusTrap still stealing focus.
+      //  2. A stray `.modal-backdrop` sometimes survives the hide animation and,
+      //     being `position:fixed; inset:0`, sits invisibly over the page and
+      //     swallows clicks.
+      // Both silently break focus/click-triggered widgets on the page — e.g. the
+      // `help-hint` popovers stop opening after you close an edit modal.
+      $(document).on("hidden.bs.modal", modal_holder_selector + " " + modal_selector, function () {
+        disposeModal(this)
+        // Only clean up global state when no other modal/dialog is still open
+        // (confirm dialogs can stack on top of the main modal view).
+        if ($(".modal.show").length === 0) {
+          $(".modal-backdrop").remove()
+          $("body").removeClass("modal-open").css({ overflow: "", "padding-right": "" })
+        }
       })
       $(document).on(
         "ajax:beforeSend",
