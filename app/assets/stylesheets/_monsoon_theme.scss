@@ -1212,10 +1212,14 @@ td.snug .btn-danger.bgpvpn-router-delete {
     }
   }
 
-  // BS5 navbar-dark dropdown menu styling (replaces BS3 navbar-inverse)
+  // BS5 navbar-dark dropdown menu styling (replaces BS3 navbar-inverse).
+  // The region/profile menus now emit BS5 markup (`a.dropdown-item.active`),
+  // so target that — the old `.active > a` (BS3 `<li class="active">`) no longer
+  // matched and left the current region as dark-on-dark / unreadable.
+  .dropdown-menu .dropdown-item.active,
   .dropdown-menu > .active > a {
-    background: rgba(255, 255, 255, 0.25);
-    color: #999;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
   }
 }
 
@@ -1309,7 +1313,9 @@ td.snug .btn-danger.bgpvpn-router-delete {
 
       &:hover,
       &:focus {
-        color: $dropdown-link-hover-color;
+        // On the dark navbar dropdown the text must stay light on hover — the
+        // default dark hover colour was grey-on-dark and unreadable.
+        color: #fff;
         background-color: rgba(255, 255, 255, 0.1);
       }
     }
