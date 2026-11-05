@@ -72,6 +72,7 @@ scan "badge-pill"           '\bbadge-pill\b'
 scan "dropdown-menu-right"  '\bdropdown-menu-right\b'
 scan "glyphicon"            '\bglyphicon'
 scan "navbar BS3"           '\b(navbar-inverse|navbar-header|navbar-right|navbar-toggle|navbar-fixed-top|icon-bar)\b'
+scan "alert-error/alert/notice" '\balert-(error|alert|notice)\b'
 
 # --- BS3 data attributes (custom values excluded) ---
 scan "data-toggle (BS)"     'data-toggle=' 'data-toggle="help"|paginationSpinner|show-error-details'

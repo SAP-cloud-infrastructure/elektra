@@ -216,6 +216,8 @@ The migration branch is large; use history to spot accidental drops.
 | 5 | `font-awesome-sass ~>4` (Gemfile), `_bs5_compat_shim.scss` | deferred | info | FA4 and the BS3 vars/mixins shim intentionally kept | open — Phase 6/6b (by design) |
 | 6 | `.multiselect(` (2), jquery-ui `.autocomplete(` (9) | BS3-era jQuery plugins | info | still present; run under jQuery 3.7 — verify in §3 runtime | open — §3 runtime check |
 | 7 | `bootstrap-kaminari-views` gem (pagination) | potential BS-coupled markup | medium | confirm pagination renders correctly under BS5 | open — §3 runtime check |
+| 8 | app-wide flash alerts (`alert-error`/`alert-alert`/`alert-notice`, 81 uses) | BS2/BS3 variant names | info | generated from Rails flash keys (`flash_helper.rb`: notice/alert/error); `_monsoon_theme.scss:1915` `@extend`s them to BS5 `.alert-danger`/`.alert-info` | **kept by design** (shim correct; renaming Rails flash keys is riskier). Scanner now tracks it. |
+| — | masterdata_cockpit domain show | visual check | — | navbars, Edit btn, status box (`.infobox` blue border), `badge text-bg-warning`, table, email link all render correctly (screenshot) | **pass** |
 
 ### Static review result (§1, §2, §4, §5)
 
