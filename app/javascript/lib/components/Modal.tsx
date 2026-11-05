@@ -169,7 +169,14 @@ const ModalBase: React.FC<ModalProps> = ({
     .filter((t) => t && t !== "modal")
     .join(" ")
 
-  const onBackdropClick = () => {
+  const onBackdropClick = (e: React.MouseEvent) => {
+    // Only close when the click is on the modal backdrop itself, not on content
+    // inside the dialog. We check the event target instead of stopping
+    // propagation on the dialog, because stopPropagation would also hide the
+    // click from document-level listeners that libraries rely on — e.g.
+    // react-bootstrap-typeahead's "close menu on outside click", which made the
+    // Attach-Volume server dropdown stay open forever inside the modal.
+    if (e.target !== e.currentTarget) return
     if (backdrop === "static") return
     onHide?.()
   }
@@ -187,7 +194,6 @@ const ModalBase: React.FC<ModalProps> = ({
       >
         <div
           className={[bsPrefix, "modal-dialog", sizeClass, dialogClassName].filter(Boolean).join(" ")}
-          onClick={(e) => e.stopPropagation()}
         >
           <div className={[bsPrefix, "modal-content"].filter(Boolean).join(" ")} role="document">
             {wireHeader(children, onHide)}
