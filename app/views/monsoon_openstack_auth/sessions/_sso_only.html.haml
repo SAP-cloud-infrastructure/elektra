@@ -20,7 +20,7 @@
         %p
           Password login is disabled. Please sign in via Single Sign-On.
 
-    = link_to 'Return to dashboard', '/', class: 'btn btn-lg btn-primary btn-block'
+    = link_to 'Return to dashboard', '/', class: 'btn btn-lg btn-primary d-block w-100'
 
 - if sso_precheck_enabled
   #sso-config{ "data-keystone-url" => @keystone_endpoint,

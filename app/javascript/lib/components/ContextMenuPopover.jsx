@@ -39,7 +39,7 @@ const ContextMenu = ({ children, disabled }) => {
         type="button"
         disabled={disabled}
         ref={setReferenceElement}
-        className="btn btn-sm btn-default"
+        className="btn btn-sm btn-secondary"
         data-test="dropdown"
         onClick={() => {
           setShow(!show)

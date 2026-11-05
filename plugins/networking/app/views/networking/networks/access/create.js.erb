@@ -1,12 +1,15 @@
 <% if @rbac.errors.empty? %>
   $('#new_rbac_form .alert-error').empty().addClass('hidden');
-  var html="<%= j(render(partial: 'networking/networks/access/rbac_item', locals:{rbac: @rbac, network: @network})) %>"
+  var rowHtml="<%= j(render(partial: 'networking/networks/access/rbac_item', locals:{rbac: @rbac, network: @network})) %>"
 
-
-  if($("table#rbacs tr[data-empty]").length==1) {
-    $("table#rbacs tr[data-empty]").replaceWith(html);
+  if($("table#rbacs tbody").length == 1) {
+    // Table already present: prepend the new row.
+    $("table#rbacs tbody").prepend(rowHtml);
   } else {
-    $("table#rbacs tbody").prepend(html);
+    // List was empty (only the "No Access" message was shown): replace the
+    // whole container with the table so it becomes visible.
+    var tableHtml="<%= j(render(partial: 'networking/networks/access/rbacs_table', locals:{rbacs: [@rbac], network: @network})) %>"
+    $("#rbacs-container").html(tableHtml);
   }
 
   $('[data-control-rbac-form]').rbacFormControl('hide');

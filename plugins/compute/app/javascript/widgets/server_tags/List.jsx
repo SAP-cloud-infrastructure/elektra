@@ -145,8 +145,8 @@ const TagsList = ({ instanceId }) => {
       <div className="buttons modal-footer">
         <button
           aria-label="Close"
-          className="btn btn-default"
-          data-dismiss="modal"
+          className="btn btn-secondary"
+          data-bs-dismiss="modal"
           type="button"
         >
           Close

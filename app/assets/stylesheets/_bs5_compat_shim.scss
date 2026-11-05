@@ -1,0 +1,165 @@
+// -----------------------------------------------------------------------------
+// Bootstrap 3 -> 5 compatibility shim (temporary, Phase 1 of the CSS migration)
+// -----------------------------------------------------------------------------
+// Bootstrap 5 removed a number of SCSS variables and mixins that the former
+// `bootstrap-sass` (v3) gem provided and that our custom theme
+// (_monsoon_theme.scss, _mixins.scss and some plugin SCSS) still references.
+//
+// This file re-provides that small, measured surface in terms of Bootstrap 5
+// equivalents so the stylesheet compiles while the views/theme are migrated
+// incrementally. It is a BRIDGE, not a second framework, and is to be removed
+// once the custom SCSS no longer references BS3-only symbols.
+//
+// IMPORTANT: this file must be imported AFTER `bootstrap/scss/bootstrap` so the
+// BS5 variables it derives from ($font-size-base, $line-height-base, $primary,
+// grid breakpoints, …) are already defined.
+//
+// px pinning: several BS3 vars were px-based; BS5 moved its base vars to rem.
+// Our theme does px arithmetic with them, so we pin the bridge vars to their
+// historical BS3 px values to avoid "Incompatible units: px and rem" errors.
+//
+// -----------------------------------------------------------------------------
+// Current state & removal plan
+// -----------------------------------------------------------------------------
+// The dead symbols have been pruned: everything left here is either still
+// referenced by the theme/plugins, or an internal building block of a symbol
+// that is (e.g. $state-*-bg feed the $alert-*-bg; $screen-sm/md/lg feed the
+// $screen-*-min; $gray-lighter feeds $input-bg-disabled; $padding-base-vertical
+// feeds $input-height-base). Do not delete a "looks unused" symbol without
+// checking these internal dependencies first.
+//
+// Removal plan (final step of the BS5 migration, deliberately DEFERRED until
+// the UI migration/adjustments are complete):
+//   1. Replace each remaining usage in the theme/plugins with its concrete
+//      BS5-native or literal value (e.g. $line-height-computed -> 20px,
+//      $link-color -> #337ab7, $brand-* -> the resolved $primary/$success/…,
+//      $alert-*-bg -> their hex values).
+//   2. Once no SCSS references any symbol below, delete this file and remove
+//      its `@import "bs5_compat_shim"` from application.scss.erb.
+// -----------------------------------------------------------------------------
+
+// Note: this project compiles SCSS with sassc (LibSass), so legacy global
+// color functions (darken/lighten) are used rather than the sass:color module.
+
+// --- Removed BS3 variables -------------------------------------------------
+
+// Dominant one (45 refs across theme + plugins). BS3: $font-size-base *
+// $line-height-base with px base => 14px * ~1.428 = 20px. Pin to px.
+// NOTE: no !default — BS5 already defines these (in rem) before this file is
+// imported, so we must hard-override to px for our theme's px arithmetic.
+$line-height-computed: 20px;
+
+// Brand colors -> BS5 theme colors
+$brand-primary: $primary !default;
+$brand-success: $success !default;
+$brand-warning: $warning !default;
+$brand-danger: $danger !default;
+
+// Font sizes (BS3 px-based) — hard-override BS5's rem values for our theme.
+$font-size-base: 14px;
+$font-size-large: 18px;
+$font-size-small: 12px;
+$font-size-h2: 30px;
+$font-size-h3: 24px;
+$font-size-h4: 18px;
+$font-size-h5: 14px;
+
+// Links
+$link-color: $primary !default;
+
+// Screen breakpoints (BS3 names -> BS5 breakpoint map values)
+$screen-sm: 768px !default;
+$screen-sm-min: $screen-sm !default;
+$screen-md: 992px !default;
+$screen-md-min: $screen-md !default;
+$screen-lg: 1200px !default;
+$screen-lg-min: $screen-lg !default;
+
+// Grid
+$grid-gutter-width: 30px; // override BS5 default (no !default) to keep BS3 gutters
+
+// Container max widths (BS3 names removed in BS5)
+$container-sm: (720px + $grid-gutter-width) !default;
+$container-md: (940px + $grid-gutter-width) !default;
+$container-lg: (1140px + $grid-gutter-width) !default;
+
+// Border radius (BS3)
+$border-radius-base: 4px !default;
+
+// Padding (BS3 button/input sizing)
+$padding-base-vertical: 6px !default;
+
+// Misc commonly-referenced BS3 vars
+$gray-light: #777 !default;
+$gray-lighter: #eee !default;
+$border-radius: $border-radius-base !default;
+
+// Line height (BS3)
+$line-height-large: 1.3333333 !default;
+
+// Navbar (BS3 removed in BS5)
+$navbar-height: 50px !default;
+
+// Dropdown (BS3 names removed in BS5)
+$dropdown-bg: #fff !default;
+$dropdown-border: rgba(0, 0, 0, 0.15) !default;
+$dropdown-link-hover-color: darken(#333, 5%) !default;
+
+// Inputs (BS3 names removed in BS5)
+$input-bg-disabled: $gray-lighter !default;
+$input-height-base: ($line-height-computed + ($padding-base-vertical * 2) + 2) !default;
+
+// State colors (BS3 contextual backgrounds, removed in BS5) — feed the alerts
+$state-success-bg: #dff0d8 !default;
+$state-info-bg: #d9edf7 !default;
+$state-warning-bg: #fcf8e3 !default;
+$state-danger-bg: #f2dede !default;
+
+// Alerts (BS3 names removed in BS5) — reuse state colors
+$alert-padding: 15px !default;
+$alert-success-bg: $state-success-bg !default;
+$alert-info-bg: $state-info-bg !default;
+$alert-warning-bg: $state-warning-bg !default;
+$alert-danger-bg: $state-danger-bg !default;
+
+// Breadcrumb (BS3 names removed in BS5)
+$breadcrumb-active-color: $gray-light !default;
+
+// --- Removed BS3 mixins ----------------------------------------------------
+
+@mixin box-shadow($shadow...) {
+  box-shadow: $shadow;
+}
+
+@mixin transition($transition...) {
+  transition: $transition;
+}
+
+@mixin opacity($opacity) {
+  opacity: $opacity;
+  // IE8 filter kept out on purpose (dropped platform)
+}
+
+@mixin border-top-radius($radius) {
+  border-top-left-radius: $radius;
+  border-top-right-radius: $radius;
+}
+
+// BS3 button-size took 5 args; BS5's button-size takes 4 (no line-height).
+// Provide the BS3 signature so existing @includes keep working.
+@mixin button-size(
+  $padding-vertical,
+  $padding-horizontal,
+  $font-size,
+  $line-height,
+  $border-radius
+) {
+  padding: $padding-vertical $padding-horizontal;
+  font-size: $font-size;
+  line-height: $line-height;
+  border-radius: $border-radius;
+}
+
+@mixin box-sizing($boxmodel) {
+  box-sizing: $boxmodel;
+}

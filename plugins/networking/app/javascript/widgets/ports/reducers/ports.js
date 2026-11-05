@@ -6,13 +6,12 @@ const initialState = {
   receivedAt: null,
   updatedAt: null,
   isFetching: false,
-  hasNext: true,
+  hasNext: false,
   currentPage: 0,
   searchTerm: null,
 }
 
-const requestPorts = (state, { requestedAt }) =>
-  Object.assign({}, state, { isFetching: true, requestedAt })
+const requestPorts = (state, { requestedAt }) => Object.assign({}, state, { isFetching: true, requestedAt })
 
 const requestPortsFailure = function (state, ...rest) {
   const obj = rest[0]
@@ -62,7 +61,8 @@ const receivePort = function (state, { port }) {
   if (index >= 0) {
     items[index] = port
   } else {
-    items.unshift(port)
+    // mark freshly created ports so the row can briefly highlight itself
+    items.unshift({ ...port, isNew: true })
   }
   return { ...state, items: items }
 }
@@ -100,8 +100,7 @@ const deletePortSuccess = function (state, { id }) {
   return Object.assign({}, state, { items, currentPage })
 }
 
-const setSearchTerm = (state, { searchTerm }) =>
-  Object.assign({}, state, { searchTerm })
+const setSearchTerm = (state, { searchTerm }) => Object.assign({}, state, { searchTerm })
 export const ports = function (state, action) {
   if (state == null) {
     state = initialState

@@ -29,7 +29,7 @@ const AddNewMemberButton = ({ disabled, addMembersCallback }) => {
         >
           <Link
             to={""}
-            className="btn btn-default btn-xs"
+            className="btn btn-secondary btn-xs"
             disabled={true}
             onClick={(e) => {
               e.preventDefault()
@@ -41,7 +41,7 @@ const AddNewMemberButton = ({ disabled, addMembersCallback }) => {
       ) : (
         <Link
           to={""}
-          className="btn btn-default btn-xs"
+          className="btn btn-secondary btn-xs"
           onClick={(e) => {
             e.preventDefault()
             addMembersCallback()

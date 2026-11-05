@@ -8,7 +8,7 @@ const ModalAuth = (props) => (
     show={props.showModal}
     onHide={props.toggleModal}
     className="identity"
-    bsSize="large"
+    size="lg"
     aria-labelledby="contained-modal-title-lg"
   >
     <Modal.Header closeButton={true}>
@@ -29,7 +29,7 @@ const ModalAuth = (props) => (
       </div>
     </Modal.Body>
     <Modal.Footer>
-      <Button onClick={props.toggleModal}>Close</Button>
+      <Button variant="secondary" onClick={props.toggleModal}>Close</Button>
     </Modal.Footer>
   </Modal>
 )

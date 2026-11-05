@@ -32,7 +32,7 @@ const ShowReplica = ({ history, replica }) => {
     <Modal
       show={isOpen}
       onHide={close}
-      bsSize="large"
+      size="lg"
       aria-labelledby="contained-modal-title-lg"
     >
       <Modal.Header closeButton>
@@ -71,7 +71,7 @@ const ShowReplica = ({ history, replica }) => {
         )}
       </Modal.Body>
       <Modal.Footer>
-        <Button onClick={close}>Close</Button>
+        <Button variant="secondary" onClick={close}>Close</Button>
       </Modal.Footer>
     </Modal>
   )

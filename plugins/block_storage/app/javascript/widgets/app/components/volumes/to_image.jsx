@@ -10,7 +10,7 @@ const FormBody = ({ values, volume, availabilityZones }) => (
     <Form.Errors />
 
     <Form.ElementHorizontal label="Source Volume" name="source_volid">
-      <p className="form-control-static">
+      <p className="form-control-plaintext">
         {volume ? (
           <>
             {volume.name}
@@ -124,7 +124,7 @@ export default class ToImageForm extends React.Component {
       <Modal
         show={this.state.show}
         onHide={this.close}
-        bsSize="large"
+        size="lg"
         onExited={this.restoreUrl}
         aria-labelledby="contained-modal-title-lg"
       >
@@ -153,7 +153,7 @@ export default class ToImageForm extends React.Component {
           )}
 
           <Modal.Footer>
-            <Button onClick={this.close}>Cancel</Button>
+            <Button variant="secondary" onClick={this.close}>Cancel</Button>
             <Form.SubmitButton label="Clone" />
           </Modal.Footer>
         </Form>

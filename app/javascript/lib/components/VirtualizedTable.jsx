@@ -100,7 +100,7 @@ SortIcon.propTypes = {
 const FilterInput = ({ className, name, maxWidth, onChange, initialValue }) => {
   return (
     <input
-      className={`${className} form-control input-sm`}
+      className={`${className} form-control form-control-sm`}
       style={{ maxWidth: maxWidth || 200 }}
       defaultValue={initialValue}
       type="text"

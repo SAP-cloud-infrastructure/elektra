@@ -1,5 +1,5 @@
 
 $("*[data-wizard-update-url]").html("<%= escape_javascript(render(partial: '/identity/projects/wizard_steps')) %>");
 $("*[data-wizard-action-button]").click(function(e){
-  $(this).replaceWith('<span class="spinner pull-right"></span>');
+  $(this).replaceWith('<span class="spinner float-end"></span>');
 });

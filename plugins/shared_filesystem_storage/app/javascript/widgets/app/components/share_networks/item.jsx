@@ -86,15 +86,15 @@ const Item = ({
           )) && (
           <div className="btn-group">
             <button
-              className="btn btn-default btn-sm dropdown-toggle"
+              className="btn btn-secondary btn-sm dropdown-toggle"
               type="button"
-              data-toggle="dropdown"
+              data-bs-toggle="dropdown"
               aria-expanded={true}
             >
               <span className="fa fa-cog" />
             </button>
 
-            <ul className="dropdown-menu dropdown-menu-right" role="menu">
+            <ul className="dropdown-menu dropdown-menu-end" role="menu">
               {policy.isAllowed(
                 "shared_filesystem_storage:share_network_delete"
               ) && (

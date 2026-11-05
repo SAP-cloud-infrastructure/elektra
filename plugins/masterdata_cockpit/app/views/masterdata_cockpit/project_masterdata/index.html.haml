@@ -17,7 +17,7 @@
             data: {
             content: "To edit the project details, navigate to the Project Overview and click on the 'Edit Project' button.",
             popover: { type: "help-hint" },
-            toggle: "popover"
+            bs_toggle: "popover"
             }
           }
             = icon('info-circle')
@@ -31,7 +31,7 @@
           %h4 Masterdata
           - if current_user.is_allowed?('masterdata_cockpit:project_masterdatum_update', {target: {project: @active_project}})
             .main-buttons
-              = link_to 'Edit', plugin('masterdata_cockpit').project_masterdata_edit_path(), id: 'edit_masterdata_btn', data: {modal: true, toggle: "tooltip", placement: "left"}, class: 'btn btn-primary'
+              = link_to 'Edit', plugin('masterdata_cockpit').project_masterdata_edit_path(), id: 'edit_masterdata_btn', data: {modal: true, bs_toggle: "tooltip", placement: "left"}, class: 'btn btn-primary'
       #project_masterdata_details
         = render partial: 'masterdata_details'
   .col-md-3

@@ -18,14 +18,14 @@ export const MoveOperation = ({ index, itemCount, onMove }) => {
   return (
     <div>
       <button
-        className="btn btn-xs btn-default"
+        className="btn btn-xs btn-secondary"
         onClick={() => moveUpEnabled && onMove({ index: index, step: -1 })}
         disabled={!moveUpEnabled}
       >
         Move up
       </button>
       <button
-        className="btn btn-xs btn-default"
+        className="btn btn-xs btn-secondary"
         onClick={() => moveDownEnabled && onMove({ index: index, step: +1 })}
         disabled={!moveDownEnabled}
       >

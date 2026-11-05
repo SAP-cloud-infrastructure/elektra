@@ -34,7 +34,7 @@ describe("FormElement", () => {
 
       expect(screen.getByText("Test Label")).toBeInTheDocument()
       expect(container.querySelector("input")).toBeInTheDocument()
-      expect(container.querySelector(".form-group")).toBeInTheDocument()
+      expect(container.querySelector(".mb-3")).toBeInTheDocument()
     })
 
     it("should render without children", () => {
@@ -114,7 +114,7 @@ describe("FormElement", () => {
       expect(label).toHaveAttribute("for", "email")
     })
 
-    it("should apply control-label class by default", () => {
+    it("should apply col-form-label class by default", () => {
       renderWithContext(defaultContext, {
         label: "Test Label",
         name: "testField",
@@ -122,7 +122,7 @@ describe("FormElement", () => {
       })
 
       const label = screen.getByText("Test Label").closest("label")
-      expect(label).toHaveClass("control-label")
+      expect(label).toHaveClass("col-form-label")
     })
 
     it("should apply custom labelClass", () => {
@@ -135,7 +135,7 @@ describe("FormElement", () => {
 
       const label = screen.getByText("Test Label").closest("label")
       expect(label).toHaveClass("custom-label-class")
-      expect(label).not.toHaveClass("control-label")
+      expect(label).not.toHaveClass("col-form-label")
     })
   })
 
@@ -194,18 +194,18 @@ describe("FormElement", () => {
   })
 
   describe("Validation Classes", () => {
-    it("should not apply has-error class when field is valid", () => {
+    it("should not apply is-invalid class when field is valid", () => {
       const { container } = renderWithContext(defaultContext, {
         label: "Test Label",
         name: "testField",
         children: <input type="text" />,
       })
 
-      const formGroup = container.querySelector(".form-group")
-      expect(formGroup).not.toHaveClass("has-error")
+      const formGroup = container.querySelector(".mb-3")
+      expect(formGroup).not.toHaveClass("is-invalid")
     })
 
-    it("should apply has-error class when field has error", () => {
+    it("should apply is-invalid class when field has error", () => {
       const contextWithError = {
         ...defaultContext,
         formErrors: { testField: "This field is required" },
@@ -217,8 +217,8 @@ describe("FormElement", () => {
         children: <input type="text" />,
       })
 
-      const formGroup = container.querySelector(".form-group")
-      expect(formGroup).toHaveClass("has-error")
+      const formGroup = container.querySelector(".mb-3")
+      expect(formGroup).toHaveClass("is-invalid")
     })
 
     it("should handle null formErrors gracefully", () => {
@@ -233,8 +233,8 @@ describe("FormElement", () => {
         children: <input type="text" />,
       })
 
-      const formGroup = container.querySelector(".form-group")
-      expect(formGroup).not.toHaveClass("has-error")
+      const formGroup = container.querySelector(".mb-3")
+      expect(formGroup).not.toHaveClass("is-invalid")
     })
 
     it("should handle undefined formErrors gracefully", () => {
@@ -249,8 +249,8 @@ describe("FormElement", () => {
         children: <input type="text" />,
       })
 
-      const formGroup = container.querySelector(".form-group")
-      expect(formGroup).not.toHaveClass("has-error")
+      const formGroup = container.querySelector(".mb-3")
+      expect(formGroup).not.toHaveClass("is-invalid")
     })
 
     it("should handle non-object formErrors gracefully", () => {
@@ -265,8 +265,8 @@ describe("FormElement", () => {
         children: <input type="text" />,
       })
 
-      const formGroup = container.querySelector(".form-group")
-      expect(formGroup).not.toHaveClass("has-error")
+      const formGroup = container.querySelector(".mb-3")
+      expect(formGroup).not.toHaveClass("is-invalid")
     })
   })
 
@@ -342,7 +342,7 @@ describe("FormElement", () => {
         children: <input type="text" />,
       })
 
-      const formGroup = container.querySelector(".form-group")
+      const formGroup = container.querySelector(".mb-3")
       expect(formGroup).toHaveClass("row")
     })
   })
@@ -378,7 +378,7 @@ describe("FormElement", () => {
         children: <input type="text" />,
       })
 
-      const formGroup = container.querySelector(".form-group")
+      const formGroup = container.querySelector(".mb-3")
       expect(formGroup).not.toHaveClass("row")
     })
   })
@@ -464,8 +464,8 @@ describe("FormElement", () => {
         children: <input type="text" />,
       })
 
-      const formGroup = container.querySelector(".form-group")
-      expect(formGroup).toHaveClass("has-error")
+      const formGroup = container.querySelector(".mb-3")
+      expect(formGroup).toHaveClass("is-invalid")
       const label = screen.getByText("Test Label").closest("label")
       expect(label).toHaveClass("col-sm-4")
     })
@@ -620,7 +620,7 @@ describe("FormElementInline", () => {
     })
 
     expect(container.querySelector(".input-wrapper")).not.toBeInTheDocument()
-    const formGroup = container.querySelector(".form-group")
+    const formGroup = container.querySelector(".mb-3")
     expect(formGroup).not.toHaveClass("row")
   })
 

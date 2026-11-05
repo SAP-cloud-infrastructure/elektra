@@ -1,11 +1,5 @@
-%nav.navbar.navbar-fixed-top.navbar-inverse.navbar-sap
+%nav.navbar.navbar-expand-md.fixed-top.navbar-dark.navbar-sap
   .container
-    .navbar-header
-      %button.navbar-toggle.collapsed{"data-target": "#main-nav-collapse", "data-toggle": "collapse", type: "button"}
-        %span.sr-only Toggle navigation
-        %span.icon-bar
-        %span.icon-bar
-        %span.icon-bar
-      = link_to main_app.landing_page_url(Rails.configuration.default_domain), class: "navbar-brand" do
-        .logo
-        Cloud Infrastructure
+    = link_to main_app.landing_page_url(Rails.configuration.default_domain), class: "navbar-brand" do
+      .logo
+      Cloud Infrastructure

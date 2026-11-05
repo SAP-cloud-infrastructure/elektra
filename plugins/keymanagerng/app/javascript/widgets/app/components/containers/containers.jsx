@@ -120,13 +120,13 @@ const Containers = () => {
         <ButtonRow>
           {policy.isAllowed("keymanagerng:container_create") ? (
             <Link to="/containers/newContainer">
-              <Button>New Container</Button>
+              <Button variant="primary">New Container</Button>
             </Link>
           ) : (
             <Tooltip triggerEvent="hover">
               <TooltipTrigger asChild>
                 <span>
-                  <Button disabled>New Container</Button>
+                  <Button variant="primary" disabled>New Container</Button>
                 </span>
               </TooltipTrigger>
               <TooltipContent>

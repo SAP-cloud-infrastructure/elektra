@@ -384,30 +384,66 @@ module Compute
 
     def render_fixed_floating_ips(ips)
       ips.collect do |ip_data|
-        fixed = ip_data["fixed"]
-        floating = ip_data["floating"]
-
-        content_tag :p, class: "list-group-item-text" do
-          content = (content_tag :span, data: { toggle: "tooltip" }, title: "Fixed IP (#{fixed["network_name"]})" do
-            concat content_tag :i, "", class: "fa fa-desktop fa-fw"
-            concat " "
-            concat fixed["addr"]
-            concat " "
-          end)
-          if floating
-            content << (content_tag :span, data: { toggle: "tooltip" }, title: "Floating IP (#{floating["network_name"]})" do
-              concat content_tag(:i, "", class: "fa fa-arrows-h")
-              concat " "
-              concat content_tag(:i, "", class: "fa fa-globe fa-fw")
-              concat " "
-              concat floating["addr"]
-            end)
-          end
-          content
-        end
-      # join all content tags together
+        render_single_ip(ip_data)
       end.join.html_safe
     end
+
+    # Renders one fixed (+ optional floating) IP line.
+    def render_single_ip(ip_data)
+      fixed = ip_data["fixed"]
+      floating = ip_data["floating"]
+
+      content_tag :p, class: "list-group-item-text" do
+        content = (content_tag :span, data: { toggle: "tooltip" }, title: "Fixed IP (#{fixed["network_name"]})" do
+          concat content_tag :i, "", class: "fa fa-desktop fa-fw"
+          concat " "
+          concat fixed["addr"]
+          concat " "
+        end)
+        if floating
+          content << (content_tag :span, data: { toggle: "tooltip" }, title: "Floating IP (#{floating["network_name"]})" do
+            concat content_tag(:i, "", class: "fa fa-arrows-h")
+            concat " "
+            concat content_tag(:i, "", class: "fa fa-globe fa-fw")
+            concat " "
+            concat floating["addr"]
+          end)
+        end
+        content
+      end
+    end
+
+    # Modern IP cell: show the first IP, collapse the rest behind a "+N" toggle
+    # so rows stay compact and the "there is more" affordance is visible
+    # (the old `collapsable` had no visible trigger).
+    def render_instance_ips(instance)
+      # flatten all IPs across networks into one ordered list
+      network_ips = network_ips_map(instance_ips(instance))
+      all_ips = network_ips.values.flatten(1)
+
+      return content_tag(:span, "-", class: "info-text") if all_ips.empty?
+
+      first, *rest = all_ips
+
+      content_tag :div, class: "instance-ips-modern" do
+        html = render_single_ip(first)
+
+        if rest.any?
+          # hidden container with the remaining IPs
+          html << content_tag(:div, class: "instance-ips-more", style: "display:none") do
+            rest.collect { |ip| render_single_ip(ip) }.join.html_safe
+          end
+          # visible toggle badge
+          html << content_tag(:a, "+#{rest.size} more",
+                              href: "#",
+                              class: "instance-ips-toggle",
+                              data: { ips_toggle: true })
+        end
+
+        html
+      end
+    end
+
     #########################################################################
     # End op Floating IPs
     #########################################################################

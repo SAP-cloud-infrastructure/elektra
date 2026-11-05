@@ -92,7 +92,7 @@ const Entries = () => {
       >
         {policy.isAllowed("testikus:entry_create") && (
           <Link to="/entries/new">
-            <Button>Create new</Button>
+            <Button variant="primary">Create new</Button>
           </Link>
         )}
       </DataGridToolbar>

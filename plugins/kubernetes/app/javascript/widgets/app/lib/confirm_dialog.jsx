@@ -40,7 +40,7 @@ const ReactConfirmDialog = ({
         {
           role: "cancel",
           type: "button",
-          className: "btn btn-default",
+          className: "btn btn-secondary",
           onClick() {
             close()
             if (cancelCallback) {

@@ -14,27 +14,23 @@
 
   %body{class: "#{body_class}"}
 
-    %nav.navbar.navbar-fixed-top.navbar-inverse.navbar-sap
+    %nav.navbar.navbar-expand-md.fixed-top.navbar-dark.navbar-sap
       .container
-        .navbar-header
-          %button.navbar-toggle.collapsed{"data-target": "#main-nav-collapse", "data-toggle": "collapse", type: "button"}
-            %span.sr-only Toggle navigation
-            %span.icon-bar
-            %span.icon-bar
-            %span.icon-bar
-          = link_to main_app.landing_page_url(@scoped_domain_fid ? @scoped_domain_fid : params[:domain_id]), class: "navbar-brand" do
-            .logo
-            SAP Cloud Infrastructure
+        = link_to main_app.landing_page_url(@scoped_domain_fid ? @scoped_domain_fid : params[:domain_id]), class: "navbar-brand" do
+          .logo
+          SAP Cloud Infrastructure
+        %button.navbar-toggler{"data-bs-target": "#main-nav-collapse", "data-bs-toggle": "collapse", type: "button", "aria-controls": "main-nav-collapse", "aria-expanded": "false", "aria-label": "Toggle navigation"}
+          %span.navbar-toggler-icon
 
         .collapse.navbar-collapse#main-nav-collapse
-          %ul.nav.navbar-nav
-            %li
-              = link_to params[:domain_id], "/#{params[:domain_id]}"
+          %ul.navbar-nav.me-auto
+            %li.nav-item
+              = link_to params[:domain_id], "/#{params[:domain_id]}", class: "nav-link"
 
-          %ul.nav.navbar-nav.navbar-right
+          %ul.navbar-nav.ms-auto
             - unless logged_in?
-              %li
-                = link_to "Log in", main_app.domain_home_path(domain_id: params[:domain_id], project_id:nil), id: "navbar-login-btn"
+              %li.nav-item
+                = link_to "Log in", main_app.domain_home_path(domain_id: params[:domain_id], project_id:nil), id: "navbar-login-btn", class: "nav-link"
 
     = yield :page_lead
 
@@ -46,7 +42,7 @@
 
     %footer.footer
       .container
-        = image_tag "monsoon_cloud.svg", alt: "SAP Cloud Infrastructure", class: "pull-right"
+        = image_tag "monsoon_cloud.svg", alt: "SAP Cloud Infrastructure", class: "float-end"
 
         .row
           .col-sm-2

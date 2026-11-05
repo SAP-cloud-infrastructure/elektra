@@ -26,7 +26,7 @@ const ReactInfoDialog = ({ title, message, close }) => (
       <button
         role="cancel"
         type="button"
-        className="btn btn-default"
+        className="btn btn-secondary"
         onClick={close}
       >
         Close

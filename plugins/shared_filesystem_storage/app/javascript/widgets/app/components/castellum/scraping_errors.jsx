@@ -61,7 +61,7 @@ const AssetWithScrapingError = ({ asset, share, handleDelete, handleForceDelete 
         <td className="col-md-3">
           <PrettyDate date={checked.at} />
         </td>
-        <td className="col-md-1 text-right">
+        <td className="col-md-1 text-end">
           {share && (
             <ShareActions
               share={share}

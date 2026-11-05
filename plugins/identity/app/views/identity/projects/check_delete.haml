@@ -4,15 +4,15 @@
   = f.input :project_domain_name, icon_hint: 'domain id is also supported'
   = f.input :project_name, icon_hint: 'project id is also supported (and should be provided when domain is omited)'
 
-  = button_tag "Check", { class: 'btn btn-primary pull-right', data: { disable_with: "Please wait..." } }
+  = button_tag "Check", { class: 'btn btn-primary float-end', data: { disable_with: "Please wait..." } }
 
 - if @resources == []
   .clearfix
   %hr
-    = link_to plugin("identity").delete_with_prodel_path( :project_to_delete_id => @project_to_delete.id, :project_to_delete_name => @project_to_delete.name , :prodel_project_domain_name => @prodel_project_domain&.name ), method: :delete , class: 'btn btn-danger pull-right', data: { confirm:'This cannot be undone, are you sure?', ok: 'Yes, delete it!', confirm_term: @project_to_delete.name, confirm_term_label: "Type project name to confirm (#{@project_to_delete.name})", disable_with: "Please wait..." } do
+    = link_to plugin("identity").delete_with_prodel_path( :project_to_delete_id => @project_to_delete.id, :project_to_delete_name => @project_to_delete.name , :prodel_project_domain_name => @prodel_project_domain&.name ), method: :delete , class: 'btn btn-danger float-end', data: { confirm:'This cannot be undone, are you sure?', ok: 'Yes, delete it!', confirm_term: @project_to_delete.name, confirm_term_label: "Type project name to confirm (#{@project_to_delete.name})", disable_with: "Please wait..." } do
       %i.fa.fa-trash.fa-fw
       Delete project
-    %p{class: "pull-right", style: "padding: 8px 10px 0 0;"}
+    %p{class: "float-end", style: "padding: 8px 10px 0 0;"}
       No resources found
       = icon('check')
 - else

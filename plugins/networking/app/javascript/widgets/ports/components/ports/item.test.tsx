@@ -197,43 +197,46 @@ describe("Item Component", () => {
   })
 
   describe("Port Name/ID Column", () => {
-    it("renders description as link when port_get is allowed", () => {
+    it("renders name as link when port_get is allowed", () => {
       global.policy.isAllowed = vi.fn((action) => action === "networking:port_get")
       renderComponent()
-      const link = screen.getByRole("link", { name: mockPort.description })
+      const link = screen.getByRole("link", { name: mockPort.name })
       expect(link).toBeInTheDocument()
       expect(link).toHaveAttribute("href", `/ports/${mockPort.id}/show`)
     })
 
-    it("renders truncated ID as link when description is missing and port_get is allowed", () => {
+    it("renders truncated ID as link when name is missing and port_get is allowed", () => {
       global.policy.isAllowed = vi.fn((action) => action === "networking:port_get")
-      const portWithoutDescription: Port = { ...mockPort, description: undefined }
-      renderComponent({ port: portWithoutDescription })
-      // ID is "port-123" which is less than 20 chars, so it won't be truncated
+      const portWithoutName: Port = { ...mockPort, name: undefined }
+      renderComponent({ port: portWithoutName })
+      // ID is "port-123" which is less than 20 chars, so it won't be truncated.
+      // The name cell falls back to the ID as the link label. (A second link to
+      // the same href exists in the actions dropdown's "Show" entry, so target
+      // the name-cell link by its ID label rather than by role alone.)
       const link = screen.getByRole("link", { name: mockPort.id })
-      expect(link).toBeInTheDocument()
+      expect(link).toHaveAttribute("href", `/ports/${mockPort.id}/show`)
+      expect(link).toHaveTextContent(mockPort.id)
     })
 
     it("renders port name as text when port_get is not allowed", () => {
       global.policy.isAllowed = vi.fn((action) => action !== "networking:port_get")
       renderComponent()
-      expect(screen.queryByRole("link", { name: mockPort.description })).not.toBeInTheDocument()
+      expect(screen.queryByRole("link", { name: mockPort.name })).not.toBeInTheDocument()
       expect(screen.getByText(mockPort.name!)).toBeInTheDocument()
     })
 
-    it("renders truncated ID as text when port_get is not allowed and name is missing", () => {
-      global.policy.isAllowed = vi.fn((action) => action !== "networking:port_get")
-      const portWithoutName: Port = { ...mockPort, name: undefined }
-      renderComponent({ port: portWithoutName })
-      // ID is "port-123" which is less than 20 chars, so it won't be truncated
-      expect(screen.getByText(mockPort.id)).toBeInTheDocument()
+    it("shows the port id as info text", () => {
+      renderComponent()
+      const cells = screen.getAllByRole("cell")
+      // the Name/ID cell (index 1) contains the id as a secondary line
+      expect(cells[1]).toHaveTextContent(mockPort.id)
     })
   })
 
   describe("Description Column", () => {
     it("renders port description", () => {
       renderComponent()
-      // Find description in the third column (not the link)
+      // Description is the third column (index 2)
       const cells = screen.getAllByRole("cell")
       expect(cells[2]).toHaveTextContent(mockPort.description!)
     })
@@ -396,15 +399,14 @@ describe("Item Component", () => {
       expect(deleteLink).toBeInTheDocument()
     })
 
-    it("shows 'Delete' action for fixed_ip_allocation port even when attached", () => {
+    it("hides 'Delete' action for any attached port", () => {
       global.policy.isAllowed = vi.fn((action) => action === "networking:port_delete")
-      const fixedIpPort: Port = { ...mockPort, name: "fixed_ip_allocation", device_id: "device-1" }
-      renderComponent({ port: fixedIpPort })
-      const deleteLink = screen.getByRole("link", { name: "Delete" })
-      expect(deleteLink).toBeInTheDocument()
+      const attachedPort: Port = { ...mockPort, device_id: "device-1" }
+      renderComponent({ port: attachedPort })
+      expect(screen.queryByRole("link", { name: "Delete" })).not.toBeInTheDocument()
     })
 
-    it("hides 'Delete' action when port is attached and not fixed_ip_allocation", () => {
+    it("hides 'Delete' action when port is attached", () => {
       global.policy.isAllowed = vi.fn((action) => action === "networking:port_delete")
       const attachedPort: Port = { ...mockPort, device_id: "device-1" }
       renderComponent({ port: attachedPort })
@@ -532,7 +534,7 @@ describe("Item Component", () => {
     it("applies correct classes to dropdown button", () => {
       renderComponent()
       const button = screen.getByRole("button")
-      expect(button).toHaveClass("btn", "btn-default", "btn-sm", "dropdown-toggle")
+      expect(button).toHaveClass("btn", "btn-secondary", "btn-sm", "dropdown-toggle")
     })
 
     it("applies 'info-text' class to subnet names", () => {
@@ -554,14 +556,14 @@ describe("Item Component", () => {
       renderComponent()
       const button = screen.getByRole("button")
       expect(button).toHaveAttribute("type", "button")
-      expect(button).toHaveAttribute("data-toggle", "dropdown")
+      expect(button).toHaveAttribute("data-bs-toggle", "dropdown")
       expect(button).toHaveAttribute("aria-expanded", "true")
     })
 
     it("has correct dropdown menu classes", () => {
       const { container } = renderComponent()
       const dropdownMenu = container.querySelector(".dropdown-menu")
-      expect(dropdownMenu).toHaveClass("dropdown-menu", "dropdown-menu-right")
+      expect(dropdownMenu).toHaveClass("dropdown-menu", "dropdown-menu-end")
       expect(dropdownMenu).toHaveAttribute("role", "menu")
     })
   })

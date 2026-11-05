@@ -53,7 +53,7 @@ const New = () => {
       show={show}
       onHide={close}
       onExited={restoreURL}
-      bsSize="large"
+      size="lg"
       aria-labelledby="contained-modal-title-lg"
     >
       <Modal.Header closeButton>
@@ -81,7 +81,7 @@ const New = () => {
           </Form.ElementHorizontal>
         </Modal.Body>
         <Modal.Footer>
-          <Button onClick={close}>Cancel</Button>
+          <Button variant="secondary" onClick={close}>Cancel</Button>
           <Form.SubmitButton label="Save" />
         </Modal.Footer>
       </Form>

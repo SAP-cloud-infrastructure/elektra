@@ -3,10 +3,8 @@
     .modal-dialog.modal-lg{ role: "document" }
       .modal-content
         .modal-header
-          %button.close{type: "button", "data-dismiss": "modal", "aria-label": "Close"}
-            %span{ "aria-hidden": "true"} &times;
-
           %h4.modal-title My Profile
+          %button.btn-close{type: "button", "data-bs-dismiss": "modal", "aria-label": "Close"}
         .modal-body
           .profile
 
@@ -22,17 +20,75 @@
                   %tr
                     %th.text-nobreak Current Scope
                     %td
-                      %b Domain:
-                      = current_user.project_domain_name || current_user.domain_name
-                      %br
-                      %b Project:
-                      = current_user.project_name
-                      %br
-                      %b Assigned Roles:
-                      = current_user.role_names.join(', ')
-                      - if @scoped_project_id && current_user.is_allowed?('identity:project_member_list')
-                        %br
-                        = link_to 'edit role assignments', plugin('identity').projects_role_assignments_path
+                      %div
+                        %b Domain:
+                        = current_user.project_domain_name || current_user.domain_name
+                      %div
+                        %b Project:
+                        = current_user.project_name
+                      .mt-3
+                        %button.btn.btn-link.p-0.text-decoration-none.d-inline-flex.align-items-center.fw-bold{ type: "button", "data-bs-toggle": "collapse", "data-bs-target": "#assigned-roles", "aria-expanded": "false", "aria-controls": "assigned-roles" }
+                          %i.fa.fa-caret-right.me-1#assigned-roles-caret
+                          Assigned Roles
+                          %span.badge.rounded-pill.bg-light.text-secondary.border.fw-normal.ms-2= current_user.role_names.size
+                        .collapse.mt-2#assigned-roles
+                          .mb-2
+                            %input.form-control.form-control-sm#assigned-roles-filter{ type: "search", placeholder: "Filter roles…", autocomplete: "off" }
+                          - roles = current_user.role_names.sort
+                          - admin_roles = roles.select { |r| r.end_with?('_admin') || r == 'admin' }
+                          - viewer_roles = roles.select { |r| r.end_with?('_viewer') || r.end_with?('viewer') }
+                          - other_roles = roles - admin_roles - viewer_roles
+                          - role_groups = [['Admin', admin_roles, 'text-primary border-primary'], ['Viewer', viewer_roles, 'text-info border-info'], ['Other', other_roles, 'text-secondary border-secondary']]
+                          #assigned-roles-list
+                            - role_groups.each do |label, group, badge_class|
+                              - next if group.empty?
+                              .role-group.mb-3
+                                .d-flex.align-items-center.justify-content-between.border-bottom.pb-1.mb-2
+                                  %span.text-muted.text-uppercase{ style: "font-size: 75%; letter-spacing: .05em;" }= label
+                                  %span.text-muted.role-group-count{ style: "font-size: 75%;" }= group.size
+                                .d-flex.flex-wrap.gap-2
+                                  - group.each do |role|
+                                    %span.badge.border.bg-transparent.fw-normal.role-badge{ class: badge_class, style: "font-size: 90%;" }= role
+                          %p.text-muted.small.d-none.mt-1#assigned-roles-empty No roles match your filter.
+                          - if @scoped_project_id && current_user.is_allowed?('identity:project_member_list')
+                            .mt-2
+                              = link_to 'edit role assignments', plugin('identity').projects_role_assignments_path
+                        :javascript
+                          (function () {
+                            var root = document.getElementById("assigned-roles")
+                            if (!root || root.dataset.rolesInit) return
+                            root.dataset.rolesInit = "1"
+                            var caret = document.getElementById("assigned-roles-caret")
+                            root.addEventListener("shown.bs.collapse", function () {
+                              if (caret) { caret.classList.remove("fa-caret-right"); caret.classList.add("fa-caret-down") }
+                              var f = document.getElementById("assigned-roles-filter")
+                              if (f) f.focus()
+                            })
+                            root.addEventListener("hidden.bs.collapse", function () {
+                              if (caret) { caret.classList.remove("fa-caret-down"); caret.classList.add("fa-caret-right") }
+                            })
+                            var filter = document.getElementById("assigned-roles-filter")
+                            var empty = document.getElementById("assigned-roles-empty")
+                            if (filter) {
+                              filter.addEventListener("input", function () {
+                                var term = this.value.trim().toLowerCase()
+                                var anyVisible = false
+                                document.querySelectorAll("#assigned-roles-list .role-group").forEach(function (grp) {
+                                  var groupVisible = false
+                                  var visibleCount = 0
+                                  grp.querySelectorAll(".role-badge").forEach(function (b) {
+                                    var match = b.textContent.toLowerCase().indexOf(term) !== -1
+                                    b.classList.toggle("d-none", !match)
+                                    if (match) { groupVisible = true; anyVisible = true; visibleCount++ }
+                                  })
+                                  var count = grp.querySelector(".role-group-count")
+                                  if (count) count.textContent = visibleCount
+                                  grp.classList.toggle("d-none", !groupVisible)
+                                })
+                                if (empty) empty.classList.toggle("d-none", anyVisible)
+                              })
+                            }
+                          })()
                   %tr
                     %th.text-nobreak Sync password
                     %td
@@ -47,4 +103,4 @@
 
 
         .modal-footer
-          %button.btn.btn-default{ type: "button", "data-dismiss": "modal"} Close
+          %button.btn.btn-secondary{ type: "button", "data-bs-dismiss": "modal"} Close

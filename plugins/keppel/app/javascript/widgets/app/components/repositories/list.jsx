@@ -81,10 +81,10 @@ export default class RepositoryList extends React.Component {
     return (
       <>
         <ol className="breadcrumb followed-by-search-box">
-          <li>
+          <li className="breadcrumb-item">
             <Link to="/accounts">All accounts</Link>
           </li>
-          <li className="active">Account: {account.name}</li>
+          <li className="breadcrumb-item active">Account: {account.name}</li>
           {!howtoVisible && makeHowtoOpener(showHowto)}
         </ol>
         <div className="search-box">

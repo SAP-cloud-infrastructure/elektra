@@ -23,7 +23,9 @@
 
 ol.breadcrumb {
   & > li.help-link {
-    float: right;
+    // Bootstrap 5's .breadcrumb is a flex container, so the old float:right no
+    // longer pushes this item to the right edge — use an auto left margin.
+    margin-left: auto;
 
     // do not use breadcrumb separator
     &:before {

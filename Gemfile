@@ -26,7 +26,6 @@ gem 'benchmark', require: false  # Ruby 3.4 compatibility
 gem 'ostruct'
 gem 'csv'
 
-gem 'bootstrap-sass'
 gem 'haml-rails'
 gem 'redcarpet'
 gem 'simple_form'

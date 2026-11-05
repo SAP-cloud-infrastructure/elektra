@@ -277,7 +277,7 @@ const ShowModal: React.FC<ShowModalProps> = ({ id, volume, history, location, lo
         </Tabs>
       </Modal.Body>
       <Modal.Footer>
-        <Button onClick={hide}>Close</Button>
+        <Button variant="secondary" onClick={hide}>Close</Button>
       </Modal.Footer>
     </Modal>
   )

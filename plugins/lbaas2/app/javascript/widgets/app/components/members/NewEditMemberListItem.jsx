@@ -17,7 +17,7 @@ const styles = {
 }
 
 const CustomLabel = ({ htmlFor, labelText, required }) => {
-  let className = "control-label" + " " + (required ? "required" : "optional")
+  let className = "col-form-label" + " " + (required ? "required" : "optional")
   return (
     <label className={className} htmlFor={htmlFor}>
       {labelText}
@@ -78,8 +78,8 @@ const NewEditMemberListItem = ({ id, index, servers, edit }) => {
                     <div
                       className="action-link"
                       onClick={() => setShowServers(!showServers)}
-                      data-toggle="collapse"
-                      data-target={`#${collapseId}`}
+                      data-bs-toggle="collapse"
+                      data-bs-target={`#${collapseId}`}
                       aria-expanded={showServers}
                       aria-controls={collapseId}
                     >
@@ -193,7 +193,7 @@ const NewEditMemberListItem = ({ id, index, servers, edit }) => {
                     value={member.address || ""}
                     disabled={edit}
                     placeholder="IP Address &#42;"
-                    bsClass="form-control icon-in-input"
+                    className="icon-in-input"
                     onChange={(e) => {
                       onUpdateItem("address", e.target.value)
                     }}
@@ -242,7 +242,7 @@ const NewEditMemberListItem = ({ id, index, servers, edit }) => {
                     name="monitor_address"
                     value={member.monitor_address || ""}
                     placeholder="Alternate Monitor IP"
-                    bsClass="form-control icon-in-input"
+                    className="icon-in-input"
                     onChange={(e) => {
                       onUpdateItem("monitor_address", e.target.value)
                     }}
@@ -278,7 +278,7 @@ const NewEditMemberListItem = ({ id, index, servers, edit }) => {
                     onUpdateItem("tags", tags)
                   }}
                 />
-                <span className="help-block">
+                <span className="form-text">
                   <i className="fa fa-info-circle"></i>
                   Start a new tag typing a string and hitting the <b>
                     Enter

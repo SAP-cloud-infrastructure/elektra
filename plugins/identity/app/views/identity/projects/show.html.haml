@@ -22,5 +22,5 @@
 .row
   .col-md-9
     = render_navigation(expand_all: true, renderer: :fancy_list, context: navigation_context(@scoped_domain_name, @scoped_project_name))
-  .col-md-3
+  .col-md-3.project-detail-sidebar
     = render partial: 'identity/projects/additional_infos'

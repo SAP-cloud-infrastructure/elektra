@@ -29,6 +29,6 @@
 
           .col-md-2
             - if has_access
-              %i.fa.fa-check.fa-3x.pull-right
+              %i.fa.fa-check.fa-3x.float-end
             - else
               = link_to 'Get Access', plugin('networking').new_backup_network_path , class: 'btn btn-primary', data: { modal: true }

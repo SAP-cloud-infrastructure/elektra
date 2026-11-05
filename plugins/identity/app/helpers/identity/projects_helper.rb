@@ -51,7 +51,7 @@ module Identity
       if action_button_options
         label = action_button_options[:label] || "Activate"
         url = action_button_options[:url]
-        css_class = "btn btn-info pull-right"
+        css_class = "btn btn-info float-end"
 
         if url
           action_button =
@@ -78,7 +78,7 @@ module Identity
       if skip_button_options
         label = skip_button_options[:label] || "Do this later"
         url = skip_button_options[:url]
-        css_class = "btn btn-default btn-xs pull-right"
+        css_class = "btn btn-secondary btn-sm float-end"
         data = skip_button_options[:data] || {}
         if url
           skip_button = link_to(label, url, class: css_class, data: data)
@@ -112,10 +112,10 @@ module Identity
           concat(
             content_tag(:div, class: "col-md-2") do
               if status == ProjectProfile::STATUS_SKIPPED
-                concat(content_tag :span, "skipped", class: "pull-right")
+                concat(content_tag :span, "skipped", class: "float-end")
                 concat(action_button)
               elsif status == ProjectProfile::STATUS_DONE
-                content_tag :i, "", class: "fa fa-check fa-3x pull-right"
+                content_tag :i, "", class: "fa fa-check fa-3x float-end"
               else
                 concat(content_tag :p, action_button)
                 concat(content_tag :p, skip_button)

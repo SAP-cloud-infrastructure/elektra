@@ -24,7 +24,7 @@ export const FormElement: React.FC<FormElementProps> = ({
   horizontal = false,
   inline = false,
   labelWidth = 4,
-  labelClass = "control-label",
+  labelClass = "col-form-label",
   children,
 }) => {
   const context = useContext<FormContextType>(FormContext)
@@ -77,7 +77,7 @@ export const FormElement: React.FC<FormElementProps> = ({
   }
 
   return (
-    <div className={`form-group ${inline ? "" : "row"} ${isValid ? "" : "has-error"}`}>
+    <div className={`mb-3 ${inline ? "" : "row"} ${isValid ? "" : "is-invalid"}`}>
       {renderLabel()}
       {horizontal ? <div className={`col-sm-${12 - labelWidth}`}>{renderInputWrapper()}</div> : renderInputWrapper()}
     </div>

@@ -64,7 +64,7 @@ const ErrorMessageList: React.FC<ErrorMessageListProps> = ({
       show={show}
       onExited={restoreUrl}
       onHide={hide}
-      bsSize="large"
+      size="lg"
       aria-labelledby="contained-modal-title-lg"
     >
       <Modal.Header closeButton>
@@ -99,7 +99,7 @@ const ErrorMessageList: React.FC<ErrorMessageListProps> = ({
         )}
       </Modal.Body>
       <Modal.Footer>
-        <Button onClick={hide}>Close</Button>
+        <Button variant="secondary" onClick={hide}>Close</Button>
       </Modal.Footer>
     </Modal>
   )

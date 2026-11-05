@@ -20,3 +20,27 @@
   ***************************************************
 
 */
+
+// Volumes list toolbar: the "Show only available volumes" checkbox sits in the
+// flex `.toolbar` next to the search field. BS5's `.form-check` uses block
+// layout + an absolute-positioned input (with left padding), which doesn't
+// vertically center against the other toolbar items. Lay it out as an inline
+// flex row so the checkbox and its label align on one line with the rest.
+.toolbar .form-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 0;
+  margin-bottom: 0;
+  min-height: 0;
+
+  .form-check-input {
+    margin-top: 0;
+    margin-left: 0;
+    float: none;
+  }
+
+  .form-check-label {
+    margin-bottom: 0;
+  }
+}

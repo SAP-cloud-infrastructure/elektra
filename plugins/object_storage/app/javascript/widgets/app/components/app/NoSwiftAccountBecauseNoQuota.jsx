@@ -6,7 +6,7 @@ const NoSwiftAccountBecauseNoQuota = ({ projectPath, resourcesPath }) => (
       Object storage is not enabled for this project, yet. To enable it, request
       an Object Storage quota in the Resource Management tool.
     </div>
-    <a className="btn btn-default" href={projectPath}>
+    <a className="btn btn-secondary" href={projectPath}>
       Got to Project Start Page
     </a>{" "}
     <a className="btn btn-primary" href={resourcesPath}>

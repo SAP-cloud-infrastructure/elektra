@@ -210,7 +210,7 @@ const BgpVpnRouters = ({ bgpvpn }) => {
   return (
     <>
       {associations.error && (
-        <Alert bsStyle="danger">{associations.error.toString()}</Alert>
+        <Alert variant="danger">{associations.error.toString()}</Alert>
       )}
 
       <table className="table">
@@ -264,7 +264,7 @@ const BgpVpnRouters = ({ bgpvpn }) => {
           <tr>
             <td></td>
             <td width="45%">
-              <div className="pull-right">
+              <div className="float-end">
                 {availableRouters.data && (
                   <AddRouterAssociation
                     routerID={routerID}

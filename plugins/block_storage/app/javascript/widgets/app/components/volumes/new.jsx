@@ -60,7 +60,7 @@ const FormBody = ({ values, availabilityZones, images, volumes }) => {
                 ))}
             </Form.Input>
           )}
-          <span className="help-block">
+          <span className="form-text">
             The UUID of the image from which you want to create the volume. Required to create a bootable volume.
           </span>
         </Form.ElementHorizontal>
@@ -163,7 +163,7 @@ const NewVolumeForm = ({
     <Modal
       show={show}
       onHide={close}
-      bsSize="large"
+      size="lg"
       backdrop="static"
       onExited={restoreUrl}
       aria-labelledby="contained-modal-title-lg"
@@ -176,7 +176,7 @@ const NewVolumeForm = ({
         <FormBody availabilityZones={availabilityZones} images={images} volumes={volumes} />
 
         <Modal.Footer>
-          <Button onClick={close}>Cancel</Button>
+          <Button variant="secondary" onClick={close}>Cancel</Button>
           <Form.SubmitButton label="Save" />
         </Modal.Footer>
       </Form>

@@ -378,7 +378,7 @@ SimpleNavigation::Configuration.run do |navigation|
                       capture {
                         concat 'Object Storage '
                         concat content_tag(
-                          :span, 'swift', class: 'label label-info'
+                          :span, 'swift', class: 'badge text-bg-info'
                         )
                        },
                        -> { plugin('object_storage').service_path(service_name: 'swift') },
@@ -392,7 +392,7 @@ SimpleNavigation::Configuration.run do |navigation|
                        capture {
                          concat 'Object Storage '
                          concat content_tag(
-                           :span, 'ceph', class: 'label label-info'
+                           :span, 'ceph', class: 'badge text-bg-info'
                          )
                        },
                        -> { plugin('object_storage').service_path(service_name: 'ceph') },

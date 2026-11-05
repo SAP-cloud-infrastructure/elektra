@@ -66,7 +66,7 @@ export default class ResetSnapshotStatusForm extends React.Component {
       <Modal
         show={this.state.show}
         onHide={this.close}
-        bsSize="large"
+        size="lg"
         backdrop="static"
         onExited={this.restoreUrl}
         aria-labelledby="contained-modal-title-lg"
@@ -96,7 +96,7 @@ export default class ResetSnapshotStatusForm extends React.Component {
           )}
 
           <Modal.Footer>
-            <Button onClick={this.close}>Cancel</Button>
+            <Button variant="secondary" onClick={this.close}>Cancel</Button>
             <Form.SubmitButton label="Save" />
           </Modal.Footer>
         </Form>

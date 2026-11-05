@@ -51,12 +51,8 @@ interface HeaderProps {
 
 const ModalHeader: React.FC<HeaderProps> = ({ closeButton, onHide, children }) => (
   <div className="modal-header">
-    {closeButton && (
-      <button type="button" className="close" aria-label="Close" onClick={onHide}>
-        <span aria-hidden="true">&times;</span>
-      </button>
-    )}
     {children}
+    {closeButton && <button type="button" className="btn-close" aria-label="Close" onClick={onHide} />}
   </div>
 )
 
@@ -114,7 +110,7 @@ const ModalBase: React.FC<ModalProps> = ({
   children,
 }) => {
   // `mounted` keeps the DOM present through the closing transition; `visible`
-  // toggles the `.in` class. On close: drop `.in`, then unmount + fire onExited.
+  // toggles the `.show` class. On close: drop `.in`, then unmount + fire onExited.
   const [mounted, setMounted] = useState(show)
   const [visible, setVisible] = useState(show)
   const prevShow = useRef(show)
@@ -123,7 +119,7 @@ const ModalBase: React.FC<ModalProps> = ({
     if (show && !prevShow.current) {
       onEnter?.()
       setMounted(true)
-      // next tick so the `.in` transition can apply
+      // next tick so the `.show` transition can apply
       requestAnimationFrame(() => setVisible(true))
     } else if (!show && prevShow.current) {
       onExit?.()
@@ -163,7 +159,8 @@ const ModalBase: React.FC<ModalProps> = ({
 
   const sizeClass = normalizeSize(size ?? bsSize)
   const fadeClass = animation ? "fade" : ""
-  const inClass = visible ? "in" : ""
+  // Bootstrap 5 uses `.show` (BS3 used `.in`) to toggle modal/backdrop visibility.
+  const inClass = visible ? "show" : ""
   // react-bootstrap 0.33 treated bsClass as the class prefix: "lbaas2 modal"
   // yielded `.lbaas2.modal-dialog` etc. Reproduce that by prefixing every extra
   // token (anything other than "modal") onto the modal/dialog/content classes.
@@ -172,7 +169,14 @@ const ModalBase: React.FC<ModalProps> = ({
     .filter((t) => t && t !== "modal")
     .join(" ")
 
-  const onBackdropClick = () => {
+  const onBackdropClick = (e: React.MouseEvent) => {
+    // Only close when the click is on the modal backdrop itself, not on content
+    // inside the dialog. We check the event target instead of stopping
+    // propagation on the dialog, because stopPropagation would also hide the
+    // click from document-level listeners that libraries rely on — e.g.
+    // react-bootstrap-typeahead's "close menu on outside click", which made the
+    // Attach-Volume server dropdown stay open forever inside the modal.
+    if (e.target !== e.currentTarget) return
     if (backdrop === "static") return
     onHide?.()
   }
@@ -190,7 +194,6 @@ const ModalBase: React.FC<ModalProps> = ({
       >
         <div
           className={[bsPrefix, "modal-dialog", sizeClass, dialogClassName].filter(Boolean).join(" ")}
-          onClick={(e) => e.stopPropagation()}
         >
           <div className={[bsPrefix, "modal-content"].filter(Boolean).join(" ")} role="document">
             {wireHeader(children, onHide)}

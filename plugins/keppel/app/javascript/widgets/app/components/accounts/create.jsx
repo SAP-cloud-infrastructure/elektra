@@ -75,7 +75,7 @@ const FormBody = ({ values, isKeppelSwiftRegion }) => {
           <option value="replica">Replica account</option>
           <option value="external_replica">External replica account</option>
         </Form.Input>
-        {roleInfoText && <p className="form-control-static">{roleInfoText}</p>}
+        {roleInfoText && <p className="form-control-plaintext">{roleInfoText}</p>}
       </Form.ElementHorizontal>
 
       {(values.role == "primary" || values.role == "external_replica") && (
@@ -92,7 +92,7 @@ const FormBody = ({ values, isKeppelSwiftRegion }) => {
                 <>
                   <Form.ElementHorizontal label="Upstream source" name="url" required>
                     <Form.Input elementType="input" type="text" name="url" />
-                    <p className="form-control-static">
+                    <p className="form-control-plaintext">
                       {
                         'Enter the domain name of a registry (for Docker Hub, use "index.docker.io"). If you only want to replicate images below a certain path, append the path after the domain name (e.g. "gcr.io/google_containers").'
                       }
@@ -105,13 +105,20 @@ const FormBody = ({ values, isKeppelSwiftRegion }) => {
 
                   <Form.ElementHorizontal label="Password" name="password">
                     <Form.Input elementType="input" type="password" name="password" />
-                    <p className="form-control-static">
+                    <p className="form-control-plaintext">
                       These credentials are used by Keppel to pull images from the upstream source. Leave blank to pull
                       as an anonymous user.
                     </p>
                   </Form.ElementHorizontal>
 
-                  <PlatformFilterSelect value={values.platform_filter} />
+                  <Form.ElementHorizontal label="Platform filter" name="platform_filter">
+                    <Form.Input elementType="input" type="checkbox" name="platform_filter_linux_amd64" /> Only x86_64
+                    Linux
+                    <p className="form-control-plaintext">
+                      When replicating a multi-architecture images, a platform filter restricts which parts get
+                      replicated. Custom platform filters can be defined when using the Keppel API directly.
+                    </p>
+                  </Form.ElementHorizontal>
                 </>
               )}
 
@@ -146,7 +153,7 @@ const FormBody = ({ values, isKeppelSwiftRegion }) => {
           {isValidToken && (
             <>
               <Form.ElementHorizontal label="Name" name="name">
-                <p className="form-control-static">
+                <p className="form-control-plaintext">
                   <strong>{accountNameFromToken}</strong>
                 </p>
               </Form.ElementHorizontal>
@@ -154,7 +161,7 @@ const FormBody = ({ values, isKeppelSwiftRegion }) => {
               <BackingStorageInfo accountName={accountNameFromToken} />
 
               <Form.ElementHorizontal label="Primary account" name="primary">
-                <p className="form-control-static">
+                <p className="form-control-plaintext">
                   This account will replicate from{" "}
                   <strong>
                     {primaryHostNameFromToken}/{accountNameFromToken}
@@ -268,7 +275,7 @@ export default class AccountCreateModal extends React.Component {
         backdrop="static"
         show={this.state.show}
         onHide={this.close}
-        bsSize="large"
+        size="lg"
         aria-labelledby="contained-modal-title-lg"
       >
         <Modal.Header closeButton>
@@ -285,7 +292,9 @@ export default class AccountCreateModal extends React.Component {
 
           <Modal.Footer>
             <Form.SubmitButton label="Create" />
-            <Button onClick={this.close}>Cancel</Button>
+            <Button variant="secondary" onClick={this.close}>
+              Cancel
+            </Button>
           </Modal.Footer>
         </Form>
       </Modal>

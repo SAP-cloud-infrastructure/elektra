@@ -81,12 +81,12 @@ let NewCluster = ({
 
         <form className="form form-horizontal">
           <div
-            className={`form-group required string cluster_name ${
-              !validateName(cluster.name) && "has-error"
+            className={`mb-3 required string cluster_name ${
+              !validateName(cluster.name) && "is-invalid"
             }`}
           >
             <label
-              className="string required col-sm-4 control-label"
+              className="string required col-sm-4 col-form-label"
               htmlFor="name"
             >
               <abbr title="required">*</abbr> Cluster Name
@@ -102,7 +102,7 @@ let NewCluster = ({
                   onChange={onChange}
                 />
                 {!validateName(cluster.name) && (
-                  <p className="help-block">
+                  <p className="form-text">
                     Name should start with a lowercase letter and can contain
                     lowercase letters, numbers, and hyphens. It must end with a
                     lowercase letter or number.
@@ -112,9 +112,9 @@ let NewCluster = ({
             </div>
           </div>
           <div>
-            <div className="form-group string">
+            <div className="mb-3 string">
               <label
-                className="string col-sm-4 control-label"
+                className="string col-sm-4 col-form-label"
                 htmlFor="keypair"
               >
                 Key Pair
@@ -148,9 +148,9 @@ let NewCluster = ({
           {/* SSH Public Key */}
           {metaData.keyPairs != null && spec.keyPair === "other" && (
             <div>
-              <div className="form-group required string">
+              <div className="mb-3 required string">
                 <label
-                  className="string required col-sm-4 control-label"
+                  className="string required col-sm-4 col-form-label"
                   htmlFor="sshkey"
                 >
                   SSH Public Key
@@ -172,7 +172,7 @@ let NewCluster = ({
           )}
           <p className="u-clearfix">
             <a
-              className="pull-right"
+              className="float-end"
               onClick={(e) => {
                 e.preventDefault()
                 return handleAdvancedOptionsToggle()
@@ -198,7 +198,7 @@ let NewCluster = ({
           <div className="main-buttons">
             {!metaData.loaded ||
             (metaData.error != null && metaData.errorCount <= 20) ? (
-              <button className="btn btn-default" disabled="disabled">
+              <button className="btn btn-secondary" disabled="disabled">
                 <span className="spinner" />
               </button>
             ) : (
@@ -220,8 +220,8 @@ let NewCluster = ({
               <h5 className="title">{`Pool ${i + 1}:`}</h5>
 
               {/* Nodepool name */}
-              <div className="form-group required string">
-                <label className="string required control-label" htmlFor="name">
+              <div className="mb-3 required string">
+                <label className="string required col-form-label" htmlFor="name">
                   Name <abbr title="required">*</abbr>
                 </label>
                 <input
@@ -243,8 +243,8 @@ let NewCluster = ({
               </div>
 
               {/* Nodepool flavor */}
-              <div className="form-group string">
-                <label className="string control-label" htmlFor="flavor">
+              <div className="mb-3 string">
+                <label className="string col-form-label" htmlFor="flavor">
                   Flavor <abbr title="required">*</abbr>
                 </label>
                 <select
@@ -279,8 +279,8 @@ let NewCluster = ({
               </div>
 
               {/* Nodepool Availability Zone */}
-              <div className="form-group string">
-                <label className="string control-label" htmlFor="az">
+              <div className="mb-3 string">
+                <label className="string col-form-label" htmlFor="az">
                   Availability Zone <abbr title="required">*</abbr>
                 </label>
                 <select
@@ -314,8 +314,8 @@ let NewCluster = ({
               </div>
 
               {/* Nodepool size */}
-              <div className="form-group form-group-size">
-                <label className="string control-label" htmlFor="size">
+              <div className="mb-3 form-group-size">
+                <label className="string col-form-label" htmlFor="size">
                   Size <abbr title="required">*</abbr>
                 </label>
                 <input
@@ -338,8 +338,8 @@ let NewCluster = ({
               </div>
 
               {/* Nodepool Allow Reboot */}
-              <div className="checkbox inline-checkbox form-group">
-                <label className="string control-label">
+              <div className="checkbox inline-checkbox mb-3">
+                <label className="string col-form-label">
                   <input
                     type="checkbox"
                     data-index={i}
@@ -357,8 +357,8 @@ let NewCluster = ({
               </div>
 
               {/* Nodepool Allow Replace */}
-              <div className="checkbox inline-checkbox form-group">
-                <label className="string control-label">
+              <div className="checkbox inline-checkbox mb-3">
+                <label className="string col-form-label">
                   <input
                     type="checkbox"
                     data-index={i}
@@ -375,7 +375,7 @@ let NewCluster = ({
                 </label>
               </div>
               <button
-                className="btn btn-default"
+                className="btn btn-secondary"
                 data-index={i}
                 disabled={clusterForm?.data?.spec?.nodePools?.length <= 1}
                 onClick={(e) => {
@@ -387,8 +387,8 @@ let NewCluster = ({
               </button>
             </form>
             {!validateNodePoolName(nodePool.name) && (
-              <div className="has-error">
-                <p className="help-block">
+              <div className="is-invalid">
+                <p className="form-text">
                   Name should start with a lowercase letter and can contain
                   lowercase letters, numbers, and hyphens. It must end with a
                   lowercase letter or number.
@@ -403,7 +403,7 @@ let NewCluster = ({
         <button
           role="close"
           type="button"
-          className="btn btn-default"
+          className="btn btn-secondary"
           onClick={close}
         >
           Close

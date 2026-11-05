@@ -1,5 +1,5 @@
 = content_for :page_lead do
-  .jumbotron
+  .bg-light.p-5.rounded-3
     .container
       %h1
         Welcome
@@ -12,27 +12,27 @@
   = hidden_field_tag 'orginal_url', "#{@orginal_url}"
   .row
     .col-sm-8
-      .form-group
+      .mb-3
         %label Terms and Conditions
         .scrollable-text
           :markdown
             #{Settings.send(@domain_config&.terms_of_use_name).terms}
 
     .col-sm-4
-      .form-group
+      .mb-3
         %label User
         %input.form-control{type: "text", placeholder: "#{current_user.full_name} (#{current_user.name})", readonly: "readonly"}
 
-      .form-group
+      .mb-3
         %label Domain
         %input.form-control{type: "text", placeholder: @scoped_domain_name, readonly: "readonly"}
 
 
-      .form-group
-        .checkbox
+      .mb-3
+        .form-check
           %label
             = check_box_tag 'terms_of_use', 'accepted', false, id: "accept_tos"
             I have read and agree to the terms of use
 
-      .form-group
+      .mb-3
         = submit_tag "Accept", class: "btn btn-primary btn-lg", id: "register-button", disabled: true

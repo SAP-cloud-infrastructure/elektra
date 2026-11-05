@@ -6,7 +6,8 @@
     %table.table
       %tbody
         %tr
-          %th
+          %th.snug-nowrap
+            Status:
           %td
             - if @domain_masterdata.is_complete
               = icon('thumbs-up')
@@ -15,7 +16,7 @@
               = icon('thumbs-down')
               Incomplete
               %br
-              %span.label.label-warning 
+              %span.badge.text-bg-warning 
                 = @domain_masterdata.missing_attributes  
         %tr
           %th.snug-nowrap

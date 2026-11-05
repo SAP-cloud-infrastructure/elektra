@@ -63,7 +63,7 @@ export default class RBACPoliciesEditModal extends React.Component {
         backdrop="static"
         show={this.state.show}
         onHide={this.close}
-        bsSize="large"
+        size="lg"
         aria-labelledby="contained-modal-title-lg"
       >
         <Modal.Header closeButton>
@@ -86,7 +86,7 @@ export default class RBACPoliciesEditModal extends React.Component {
             )}
             <Form.ElementHorizontal label="Rule" labelWidth={1} name="rule_for_manifest">
               <Form.Input elementType="input" type="text" name="rule_for_manifest" readOnly={!isAdmin} />
-              <div className="form-control-static tw-mt-2">
+              <div className="form-control-plaintext tw-mt-2">
                 Setting a validation rule for manifests will restrict image pushes to only allow images that match the
                 provided rule. Validation rules for Keppel are written in{" "}
                 {getDocumentationLink("https://cel.dev/", "Common Expression Language (CEL)")}.<h4>Examples</h4>
@@ -133,11 +133,11 @@ export default class RBACPoliciesEditModal extends React.Component {
           {isAdmin ? (
             <Modal.Footer>
               <Form.SubmitButton label="Save" />
-              <Button onClick={this.close}>Cancel</Button>
+              <Button variant="secondary" onClick={this.close}>Cancel</Button>
             </Modal.Footer>
           ) : (
             <Modal.Footer>
-              <Button onClick={this.close}>Close</Button>
+              <Button variant="secondary" onClick={this.close}>Close</Button>
             </Modal.Footer>
           )}
         </Form>

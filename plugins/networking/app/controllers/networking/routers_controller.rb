@@ -169,8 +169,15 @@ module Networking
       end
 
       if @router.valid?
-        # convert AZ string to array before saving to API
-        @router.write("availability_zone_hints", az.blank? ? [] : [az])
+        # Availability zones are only meaningful for VPNaaS flavors. For a
+        # standard router, sending availability_zone_hints prevents the private
+        # network from being attached (see issue #2221), so only forward the AZ
+        # when a VPNaaS flavor is selected; otherwise always send an empty list.
+        if @router.vpnaas_flavor? && az.present?
+          @router.write("availability_zone_hints", [az])
+        else
+          @router.write("availability_zone_hints", [])
+        end
         @router.save
         # router is created -> add subnets as interfaces
         services.networking.add_router_interfaces(
@@ -338,15 +345,30 @@ module Networking
       @external_networks = []
       @internal_subnets = []
 
-      allowed_networks.each do |network|
-        if network.external?
-          @external_networks << network
-          # FIXME: shared networks are not permitted for non cloud admin
-          # this is a neutron bug https://bugs.launchpad.net/neutron/+bug/1662477
-          # should be just 'else'
-        else
-          network.subnet_objects.each do |subnet|
-            subnet.network_name = network.name
+      networks = allowed_networks
+      internal_networks = networks.reject(&:external?)
+      @external_networks = networks.select(&:external?)
+
+      # Fetch ALL subnets in a single request and group them by network_id,
+      # instead of one request per internal network (N+1). Only subnets of the
+      # internal networks are relevant here.
+      unless internal_networks.empty?
+        internal_network_ids = internal_networks.map(&:id)
+        internal_network_names = internal_networks.each_with_object({}) do |n, h|
+          h[n.id] = n.name
+        end
+
+        subnets_by_network =
+          services
+            .networking
+            .subnets
+            .select { |s| internal_network_ids.include?(s.network_id) }
+            .group_by(&:network_id)
+
+        # Preserve the previous ordering (iterate networks, then their subnets).
+        internal_networks.each do |network|
+          (subnets_by_network[network.id] || []).each do |subnet|
+            subnet.network_name = internal_network_names[network.id]
             @internal_subnets << subnet
           end
         end
@@ -370,42 +392,42 @@ module Networking
       # and then we want to prefer the networks that have the lowest count of routers per asr1k agent
       # this sorting is done routers/new.html.haml -> field -> network_id
 
-      @external_networks.each do |external_network|
-        asr_agents_count = {}
-        ports = []
-        highest_asr_agents_count = 0
-        ports =
-          begin
-            cloud_admin.networking.ports(
-              {
-                "network_id" => external_network.id,
-                "status" => "ACTIVE",
-                "device_owner" => "network:router_gateway",
-              },
+      # Fetch ALL active router-gateway ports in a single request and group them
+      # by network_id, instead of one request per external network (N+1).
+      gateway_ports_by_network =
+        begin
+          cloud_admin
+            .networking
+            .ports(
+              "status" => "ACTIVE",
+              "device_owner" => "network:router_gateway",
             )
-          rescue StandardError
-            highest_asr_agents_count = -1
-          end
+            .group_by(&:network_id)
+        rescue StandardError
+          nil
+        end
 
-        unless highest_asr_agents_count == -1
-          ports.each do |port|
-            unless asr_agents_count.key?(port.binding_host_id)
-              asr_agents_count[port.binding_host_id] = 0
-            end
-            asr_agents_count[port.binding_host_id] += 1
-            if highest_asr_agents_count < asr_agents_count[port.binding_host_id]
-              highest_asr_agents_count = asr_agents_count[port.binding_host_id]
-            end
+      @external_networks.each do |external_network|
+        if gateway_ports_by_network.nil?
+          # the single ports request failed -> keep the previous "unknown" marker
+          external_network.set_highest_asr_agents_count(-1)
+          next
+        end
+
+        asr_agents_count = {}
+        highest_asr_agents_count = 0
+        ports = gateway_ports_by_network[external_network.id] || []
+
+        ports.each do |port|
+          unless asr_agents_count.key?(port.binding_host_id)
+            asr_agents_count[port.binding_host_id] = 0
+          end
+          asr_agents_count[port.binding_host_id] += 1
+          if highest_asr_agents_count < asr_agents_count[port.binding_host_id]
+            highest_asr_agents_count = asr_agents_count[port.binding_host_id]
           end
         end
 
-        #puts "##################"
-        #puts highest_asr_agents_count
-        #pp asr_agents_count
-
-        #external_network.name(
-        #  "#{external_network.name} (router usage:#{highest_asr_agents_count})",
-        #)
         external_network.set_highest_asr_agents_count(highest_asr_agents_count)
       end
     end

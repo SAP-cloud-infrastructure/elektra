@@ -65,7 +65,7 @@ const Details = (props) => {
   const headerTitle = (loading, lb) => {
     if (loading) {
       return (
-        <h3>
+        <h3 className="mt-4">
           Details for{" "}
           <small>
             <span className="spinner" />
@@ -76,13 +76,13 @@ const Details = (props) => {
     if (loadbalancer) {
       if (loadbalancer.name) {
         return (
-          <h3>
+          <h3 className="mt-4">
             Details for <b>{loadbalancer.name}</b>{" "}
             <small>({loadbalancer.id})</small>
           </h3>
         )
       } else {
-        return <h3>Details for {loadbalancer.id}</h3>
+        return <h3 className="mt-4">Details for {loadbalancer.id}</h3>
       }
     }
   }

@@ -9,23 +9,32 @@ module Networking
     # investigate the rule name.
     authorization_required only: %i[index create]
 
+    PORTS_BATCH_LIMIT = 1000
+
     def index
-      per_page = params[:per_page] || 30
+      # Load ports in batches of up to 5000 (enough for most projects in one
+      # go). Neutron caps a single response at its pagination_max_limit, so the
+      # service follows the marker pagination internally until the batch is
+      # full. If more ports exist beyond the batch, `has_next` is true and the
+      # frontend shows a "Load Next" button which passes the last id as marker.
+      result =
+        services.networking.ports_batch(
+          limit: PORTS_BATCH_LIMIT,
+          start_marker: params[:marker].presence,
+        )
 
-      ports =
-        paginatable(per_page: per_page) do |pagination_options|
-          services.networking.ports(
-            { sort_key: "id" }.merge(pagination_options),
-          )
-        end
-
-      # render json: { ports: ports, has_next: @pagination_has_next }
       if request.xhr?
-        render json: { ports: ports, has_next: @pagination_has_next }
+        render json: {
+                 ports: result[:ports],
+                 has_next: result[:has_next],
+                 marker: result[:marker],
+               }
       else
         # common case, render index page with layout
         render action: :index
       end
+    rescue Elektron::Errors::ApiResponse => e
+      render json: { errors: e.message }, status: e.code
     end
 
     def show
@@ -35,11 +44,9 @@ module Networking
     end
 
     def create
-      # for now it is allowed to create a port only for fixed ips.
-      # Other ports are created automatically by compute or neutron.
       port = services.networking.new_port
-      # mark as fixed ip
-      port.name = Networking::Port::FIXED_IP_PORT_NAME
+      # name is provided by the user (optional)
+      port.name = params[:port][:name] unless params[:port][:name].blank?
       port.network_id = params[:port][:network_id]
       port.description = params[:port][:description] unless params[:port][
         :description
@@ -64,10 +71,8 @@ module Networking
     end
 
     def update
-      # for now it is allowed to create a port only for fixed ips.
-      # Other ports are created automatically by compute or neutron.
       port = services.networking.find_port(params[:id])
-      # mark as fixed ip
+      port.name = params[:port][:name]
       port.description = params[:port][:description]
       port.security_groups = params[:port][:security_groups]
 

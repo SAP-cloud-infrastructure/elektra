@@ -1,9 +1,9 @@
-import Button from "react-bootstrap/lib/Button"
+import { Button } from "react-bootstrap"
 import { PrettyDate } from "lib/components/pretty_date"
 import React from "react"
 
 const ErrorRow = (props) => {
-  const { label="None", fn=() => {} } = props.action ||{} 
+  const { label = "None", fn = () => {} } = props.action || {}
   const {
     project_id: projectID,
     asset_type: assetType,
@@ -22,18 +22,11 @@ const ErrorRow = (props) => {
     <>
       <tr>
         <td className={hasSizeColumn ? "col-md-3" : "col-md-4"}>
-          <a
-            href={`/_/${projectID}/home`}
-            target="_blank"
-            title="Jump to project"
-            rel="noreferrer"
-          >
+          <a href={`/_/${projectID}/home`} target="_blank" title="Jump to project" rel="noreferrer">
             {projectID}
           </a>
         </td>
-        <td className="col-md-4">
-          {hasAssetID ? `${assetType} ${assetID}` : assetType}
-        </td>
+        <td className="col-md-4">{hasAssetID ? `${assetType} ${assetID}` : assetType}</td>
         {hasSizeColumn && (
           <td className="col-md-2">
             {oldSize} {"->"} {newSize}
@@ -42,9 +35,17 @@ const ErrorRow = (props) => {
         <td className={hasSizeColumn ? "col-md-2" : "col-md-3"}>
           {result.at ? <PrettyDate date={result.at} /> : "None"}
         </td>
-        {hasSizeColumn && <td className="col-md-1">
-          <Button onClick={() => {fn(props.error)}}>{label}</Button>
-        </td>}
+        {hasSizeColumn && (
+          <td className="col-md-1">
+            <Button
+              onClick={() => {
+                fn(props.error)
+              }}
+            >
+              {label}
+            </Button>
+          </td>
+        )}
       </tr>
       <tr className="explains-previous-line">
         <td colSpan={hasSizeColumn ? 4 : 3} className="text-danger">

@@ -25,13 +25,13 @@
           %th
           %th= data[:total_capacity]
           %th
-            %span{title: "#{data[:allocated_capacity_percentage]}%", data: {toggle: :tooltip}}= data[:allocated_capacity]
+            %span{title: "#{data[:allocated_capacity_percentage]}%", data: {bs_toggle: :tooltip}}= data[:allocated_capacity]
             =# data[:allocated_capacity]
           %th
-            %span{title: "#{data[:free_capacity_percentage]}%", data: {toggle: :tooltip}}= data[:free_capacity]
+            %span{title: "#{data[:free_capacity_percentage]}%", data: {bs_toggle: :tooltip}}= data[:free_capacity]
             =# data[:free_capacity]
           %th
-            %span{title: "#{data[:reserved_capacity_percentage]}%", data: {toggle: :tooltip}}= data[:reserved_capacity]
+            %span{title: "#{data[:reserved_capacity_percentage]}%", data: {bs_toggle: :tooltip}}= data[:reserved_capacity]
             =# data[:reserved_capacity]
           %th
 

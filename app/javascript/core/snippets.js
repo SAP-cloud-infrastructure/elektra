@@ -5,6 +5,7 @@
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 import Clipboard from "clipboard"
+import { showTooltip as bsShowTooltip, hideTooltip as bsHideTooltip } from "./bootstrap_engine"
 
 $.fn.initSnippetCopyToClipboard = function () {
   return this.each(function () {
@@ -16,7 +17,7 @@ $.fn.initSnippetCopyToClipboard = function () {
 
     // add copy button
     $element.prepend(
-      '<button class="btn btn-default btn-icon-only" data-clipboard-snippet><i class="fa fa-clipboard"></i></button>'
+      '<button class="btn btn-secondary btn-icon-only" data-clipboard-snippet><i class="fa fa-clipboard"></i></button>'
     )
     const button = $element.find("[data-clipboard-snippet]")
     // add click event
@@ -40,15 +41,15 @@ $.fn.initSnippetCopyToClipboard = function () {
 }
 
 var showTooltip = function (elem, msg) {
-  elem.setAttribute("data-toggle", "tooltip")
-  elem.setAttribute("data-placement", "bottom")
-  elem.setAttribute("data-trigger", "manual")
+  elem.setAttribute("data-bs-toggle", "tooltip")
+  elem.setAttribute("data-bs-placement", "bottom")
+  elem.setAttribute("data-bs-trigger", "manual")
   elem.setAttribute("title", msg)
-  $(elem).tooltip("show")
+  bsShowTooltip(elem)
 
   // leave tooltip for 1 sec then clean up and hide
   setTimeout(() => {
-    $(elem).tooltip("hide")
+    bsHideTooltip(elem)
     elem.setAttribute("title", "")
     return $(elem).blur()
   }, 1000)

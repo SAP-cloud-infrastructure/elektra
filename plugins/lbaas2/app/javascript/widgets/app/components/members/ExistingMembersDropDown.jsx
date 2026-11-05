@@ -22,8 +22,8 @@ const ExistingMembersDropDown = (props, poolID) => {
         <div
           className="action-link"
           onClick={() => setShowExistingMembers(!showExistingMembers)}
-          data-toggle="collapse"
-          data-target="#collapseExistingMembers"
+          data-bs-toggle="collapse"
+          data-bs-target="#collapseExistingMembers"
           aria-expanded={showExistingMembers}
           aria-controls="collapseExistingMembers"
         >

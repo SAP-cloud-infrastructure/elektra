@@ -45,7 +45,7 @@ const EditShareSizeForm = ({
       show={show}
       onHide={hide}
       onExited={restoreUrl}
-      bsSize="large"
+      size="lg"
       aria-labelledby="contained-modal-title-lg"
     >
       <Modal.Header closeButton>
@@ -76,7 +76,7 @@ const EditShareSizeForm = ({
           </Form.ElementHorizontal>
         </Modal.Body>
         <Modal.Footer>
-          <Button onClick={hide}>Cancel</Button>
+          <Button variant="secondary" onClick={hide}>Cancel</Button>
           <Form.SubmitButton label="Save" />
         </Modal.Footer>
       </Form>

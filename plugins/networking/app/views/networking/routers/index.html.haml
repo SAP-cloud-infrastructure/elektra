@@ -53,14 +53,14 @@
           %td
             - flavor = @flavors_by_id[router.flavor_id]
             - if flavor
-              %span.label.label-default{title: flavor.description}= flavor.name
+              %span.badge.text-bg-secondary{title: flavor.description}= flavor.name
           %td
 
             - status_class = case router.status
-              - when 'ACTIVE' then 'label-success'
-              - when 'ERROR' then 'label-danger'
-              - when 'DOWN' then 'label-default'
-              - else 'label-warning'
-            %span.label{class: status_class}= router.status
+              - when 'ACTIVE' then 'text-bg-success'
+              - when 'ERROR' then 'text-bg-danger'
+              - when 'DOWN' then 'text-bg-secondary'
+              - else 'text-bg-warning'
+            %span.badge{class: status_class}= router.status
           %td.snug
             = render partial: 'item_actions', locals: {router:router, show_view:false}

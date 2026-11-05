@@ -18,9 +18,9 @@
 
   %div{ class: modal? ? 'modal-footer' : '' }
     - if modal?
-      %button.btn.btn-default{ type: 'button', data: { dismiss: 'modal' }, aria: { label: 'Cancel' } } Cancel
+      %button.btn.btn-secondary{ type: 'button', data: { bs_dismiss: 'modal' }, aria: { label: 'Cancel' } } Cancel
     - else
-      = link_to 'Back', plugin('networking').send("networks_#{@network_type}_access_index_path", @network_id), class: 'btn btn-default' 
+      = link_to 'Back', plugin('networking').send("networks_#{@network_type}_access_index_path", @network_id), class: 'btn btn-secondary' 
     = f.submit 'Add', class: 'btn btn-primary', data: { disable_with: 'Please wait...' }
 
 

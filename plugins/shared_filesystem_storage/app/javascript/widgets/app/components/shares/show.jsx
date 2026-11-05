@@ -85,7 +85,7 @@ export default class ShowShareModal extends React.Component {
       <Modal
         show={this.state.show}
         onHide={this.close}
-        bsSize="large"
+        size="lg"
         aria-labelledby="contained-modal-title-lg"
       >
         <Modal.Header closeButton>
@@ -109,7 +109,7 @@ export default class ShowShareModal extends React.Component {
             ))}
         </Modal.Body>
         <Modal.Footer>
-          <Button onClick={this.close}>Close</Button>
+          <Button variant="secondary" onClick={this.close}>Close</Button>
         </Modal.Footer>
       </Modal>
     )

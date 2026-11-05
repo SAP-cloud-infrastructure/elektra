@@ -2,18 +2,26 @@ import React from "react"
 
 const Item = ({ item, onDelete, canDelete, cachedProject }) => {
   const [confirm, setConfirm] = React.useState(false)
-  let timer
+  const timer = React.useRef(null)
 
   const getConfirmation = React.useCallback(() => {
-    if (timer) clearTimeout(timer)
+    if (timer.current) clearTimeout(timer.current)
     setConfirm(true)
-    timer = setTimeout(() => setConfirm(false), 5000)
-  }, [timer])
+    timer.current = setTimeout(() => setConfirm(false), 5000)
+  }, [])
 
   const remove = React.useCallback(() => {
+    if (timer.current) clearTimeout(timer.current)
     setConfirm(false)
     onDelete(item.id)
-  }, [timer, item])
+  }, [item])
+
+  // clear a pending reset timer on unmount
+  React.useEffect(() => {
+    return () => {
+      if (timer.current) clearTimeout(timer.current)
+    }
+  }, [])
 
   return (
     <tr>
@@ -33,17 +41,14 @@ const Item = ({ item, onDelete, canDelete, cachedProject }) => {
           item.target_tenant
         )}
       </td>
-      <td>
+      <td className="snug">
         {canDelete && (
           <button
-            className={`btn btn-${confirm ? "danger" : "default"} btn-sm ${
-              item.isDeleting ? "loading" : ""
-            }`}
+            className={`btn btn-danger btn-sm bgpvpn-router-delete ${item.isDeleting ? "loading" : ""}`}
             disabled={item.isDeleting}
             onClick={() => (confirm ? remove() : getConfirmation())}
           >
-            {confirm && "Confirm"}
-            <i className="fa fa-trash fa-fw" />
+            {confirm ? "Confirm Delete" : <i className="fa fa-trash fa-fw" />}
           </button>
         )}
       </td>

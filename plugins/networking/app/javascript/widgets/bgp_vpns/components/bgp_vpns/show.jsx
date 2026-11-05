@@ -54,7 +54,8 @@ const Show = () => {
       show={show}
       onHide={close}
       onExit={back}
-      bsSize="large"
+      size="lg"
+      dialogClassName="modal-xl"
       aria-labelledby="contained-modal-title-lg"
     >
       <Modal.Header closeButton>
@@ -131,7 +132,7 @@ const Show = () => {
         )}
       </Modal.Body>
       <Modal.Footer>
-        <Button onClick={close}>Close</Button>
+        <Button variant="secondary" onClick={close}>Close</Button>
       </Modal.Footer>
     </Modal>
   )

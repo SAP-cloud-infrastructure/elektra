@@ -53,7 +53,7 @@ const EditShareNetworkForm: React.FC<EditShareNetworkFormProps> = ({
     <Modal
       show={show}
       onHide={close}
-      bsSize="large"
+      size="lg"
       aria-labelledby="contained-modal-title-lg"
     >
       <Modal.Header closeButton>
@@ -82,7 +82,7 @@ const EditShareNetworkForm: React.FC<EditShareNetworkFormProps> = ({
           </Form.ElementHorizontal>
         </Modal.Body>
         <Modal.Footer>
-          <Button onClick={close}>Cancel</Button>
+          <Button variant="secondary" onClick={close}>Cancel</Button>
           <Form.SubmitButton label="Save" />
         </Modal.Footer>
       </Form>

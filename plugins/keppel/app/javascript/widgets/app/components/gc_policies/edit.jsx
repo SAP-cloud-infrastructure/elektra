@@ -237,7 +237,7 @@ export default class GCPoliciesEditModal extends React.Component {
         backdrop="static"
         show={this.state.show}
         onHide={this.close}
-        bsSize="large"
+        size="lg"
         aria-labelledby="contained-modal-title-lg"
       >
         <Modal.Header closeButton>
@@ -269,7 +269,7 @@ export default class GCPoliciesEditModal extends React.Component {
                 <th className="col-md-1">
                   {isAdmin && (
                     <button
-                      className="btn btn-sm btn-default"
+                      className="btn btn-sm btn-secondary"
                       onClick={this.addPolicy}
                     >
                       Add policy
@@ -322,15 +322,15 @@ export default class GCPoliciesEditModal extends React.Component {
             <>
               <Button
                 onClick={this.handleSubmit}
-                bsStyle="primary"
+                variant="primary"
                 disabled={!isValid || isSubmitting}
               >
                 {isSubmitting ? "Saving..." : "Save"}
               </Button>
-              <Button onClick={this.close}>Cancel</Button>
+              <Button variant="secondary" onClick={this.close}>Cancel</Button>
             </>
           ) : (
-            <Button onClick={this.close}>Close</Button>
+            <Button variant="secondary" onClick={this.close}>Close</Button>
           )}
         </Modal.Footer>
       </Modal>

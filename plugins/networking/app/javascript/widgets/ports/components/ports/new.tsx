@@ -73,6 +73,10 @@ const FormBody: React.FC<FormBodyProps> = ({ networks, subnets, securityGroups }
     <Modal.Body>
       <Form.Errors />
 
+      <Form.ElementHorizontal label="Name" name="name">
+        <Form.Input elementType="input" type="text" className="string optional form-control" name="name" />
+      </Form.ElementHorizontal>
+
       <Form.ElementHorizontal label="Network" required={true} name="network_id">
         {networks.isFetching ? (
           <span className="spinner" />
@@ -174,7 +178,7 @@ const NewPortForm: React.FC<NewPortFormProps> = ({
   }, [securityGroups])
 
   return (
-    <Modal show={show} onHide={close} bsSize="large" aria-labelledby="contained-modal-title-lg">
+    <Modal show={show} onHide={close} size="lg" aria-labelledby="contained-modal-title-lg">
       <Modal.Header closeButton>
         <Modal.Title id="contained-modal-title-lg">New Fixed IP Reservation</Modal.Title>
       </Modal.Header>
@@ -183,7 +187,9 @@ const NewPortForm: React.FC<NewPortFormProps> = ({
         <FormBody networks={networks} subnets={subnets} securityGroups={securityGroups} />
 
         <Modal.Footer>
-          <Button onClick={close}>Cancel</Button>
+          <Button variant="secondary" onClick={close}>
+            Cancel
+          </Button>
           <Form.SubmitButton label="Save" />
         </Modal.Footer>
       </Form>

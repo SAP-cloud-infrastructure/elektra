@@ -9,7 +9,7 @@
 %div{class: modal? ? 'modal-body' : ''}
   / .projects{ data: {update_path: plugin('identity').projects_path(params.merge(partial:true)), update_interval: 1000*60*30} }
   .projects
-    .form-group.has-feedback
+    .mb-3.has-feedback
       = text_field_tag 'jump-to-search-input', '', class: "form-control", placeholder: 'project name'
     %ul.content-list.searchable{data:{search_input: '#jump-to-search-input'}}
       - @projects.each do |project|

@@ -7,6 +7,7 @@
  */
 
 import { isValidUrl } from "../lib/tools/helpers"
+import { openModal, hideModal, disposeModal } from "./bootstrap_engine"
 
 var MoModal = (function () {
   let modal_holder_selector = undefined
@@ -23,7 +24,7 @@ var MoModal = (function () {
       modal_is_loading = false
 
       loading = `\
-<div class="modal loading-dialog" data-keyboard="false" tabindex="-1" role="dialog" aria-hidden="true">
+<div class="modal loading-dialog" data-bs-keyboard="false" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog modal-sm">
     <div class="modal-content">
       <div class="modal-body"><div class="loading-spinner"></div><div class="loading-text">Loading...</div></div>
@@ -70,7 +71,7 @@ var MoModal = (function () {
         if (url) {
           // url is presented
           // close modal window
-          $("#modal-holder").find(".modal").modal("hide")
+          hideModal("#modal-holder .modal")
           // Redirect to url
           window.location = url
         } else if (response_type.indexOf("javascript") > -1) {
@@ -92,7 +93,8 @@ var MoModal = (function () {
             // Remove old modal backdrop
             $(".modal-backdrop").remove()
             // Replace old modal with new one
-            $(modal_holder_selector).html(data).find(modal_selector).modal()
+            $(modal_holder_selector).html(data)
+            openModal(`${modal_holder_selector} ${modal_selector}`)
           }
 
           triggerUpdateEvent()
@@ -108,6 +110,25 @@ var MoModal = (function () {
       $(document).on("click", "[data-modal-transition]", function () {
         return MoModal.replace(this)
       })
+      // When the modal closes, dispose its Bootstrap instance and sweep any
+      // leftover backdrop / body state. Two BS5 quirks break the page otherwise:
+      //  1. Modal keeps a document-level FocusTrap alive until disposed; since we
+      //     swap modal content via `.html(data)`, an undisposed instance would be
+      //     orphaned with its FocusTrap still stealing focus.
+      //  2. A stray `.modal-backdrop` sometimes survives the hide animation and,
+      //     being `position:fixed; inset:0`, sits invisibly over the page and
+      //     swallows clicks.
+      // Both silently break focus/click-triggered widgets on the page — e.g. the
+      // `help-hint` popovers stop opening after you close an edit modal.
+      $(document).on("hidden.bs.modal", modal_holder_selector + " " + modal_selector, function () {
+        disposeModal(this)
+        // Only clean up global state when no other modal/dialog is still open
+        // (confirm dialogs can stack on top of the main modal view).
+        if ($(".modal.show").length === 0) {
+          $(".modal-backdrop").remove()
+          $("body").removeClass("modal-open").css({ overflow: "", "padding-right": "" })
+        }
+      })
       $(document).on(
         "ajax:beforeSend",
         modal_holder_selector + ' form[data-inline!="true"]',
@@ -122,7 +143,7 @@ var MoModal = (function () {
     }
 
     static close() {
-      return $("#modal-holder").find(".modal").modal("hide")
+      return hideModal("#modal-holder .modal")
     }
 
     static load(anker) {
@@ -158,7 +179,7 @@ var MoModal = (function () {
 
       modal_is_loading = true
       $.get(location, attr)
-        .error(showError)
+        .fail(showError)
         .done(function (data, status, xhr) {
           // console.log 'done'
           //$button.removeClass('loading')
@@ -169,19 +190,21 @@ var MoModal = (function () {
           // got a redirect response
           if (url) {
             // close modal window
-            $("#modal-holder").find(".modal").modal("hide")
+            hideModal("#modal-holder .modal")
             return (window.location = url)
           } else {
-            if ($(".modal-backdrop").length === 0) {
-              // prevent multiple overlays on double click
-              // open modal with content from ajax response
-              $(modal_holder_selector).html(data).find(modal_selector).modal()
-              // for the case the response contains a form intialize it
-              return triggerUpdateEvent()
-            }
+            // BS5 tears down the loader backdrop asynchronously, so the old
+            // "backdrop count === 0" guard is unreliable. Sweep stray backdrops
+            // and open the content modal unconditionally.
+            $(".modal-backdrop").remove()
+            // open modal with content from ajax response
+            $(modal_holder_selector).html(data)
+            openModal(`${modal_holder_selector} ${modal_selector}`)
+            // for the case the response contains a form intialize it
+            return triggerUpdateEvent()
           }
         })
-        .complete(() => (modal_is_loading = false))
+        .always(() => (modal_is_loading = false))
       return false
     }
 
@@ -211,7 +234,7 @@ var MoModal = (function () {
 
           $(".modal-backdrop").remove()
           $(modal_holder_selector).find(modal_selector).replaceWith($data)
-          $(modal_holder_selector).find(modal_selector).modal()
+          openModal(`${modal_holder_selector} ${modal_selector}`)
           //
           // $(modal_holder_selector).find(modal_selector).modal('hide')
           // $(modal_holder_selector).html($data).find(modal_selector).modal()

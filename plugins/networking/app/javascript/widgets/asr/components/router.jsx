@@ -13,7 +13,7 @@ const Router = ({ routerId, isFetching, data, error }) => {
         </div>
         <div className="col-sm-2">
           {data.diffs && Object.keys(data.diffs).length > 0 && (
-            <button className="btn btn-success pull-right" onClick={() => syncRouter(routerId)}>
+            <button className="btn btn-success float-end" onClick={() => syncRouter(routerId)}>
               Sync
             </button>
           )}

@@ -10,7 +10,7 @@ module Networking
     authorization_required
 
     def index
-      per_page = params[:per_page] || 20
+      per_page = params[:per_page] || 1000
       @fip_ptr_records = []
       @fip_ptr_records = begin 
         services.dns_service.list_floating_ips_ptr_records 

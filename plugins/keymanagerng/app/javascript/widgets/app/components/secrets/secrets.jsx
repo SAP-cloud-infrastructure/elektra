@@ -116,13 +116,13 @@ const Secrets = () => {
         <ButtonRow>
           {policy.isAllowed("keymanagerng:secret_create") ? (
             <Link to="/secrets/newSecret">
-              <Button>New Secret</Button>
+              <Button variant="primary">New Secret</Button>
             </Link>
           ) : (
             <Tooltip triggerEvent="hover">
               <TooltipTrigger asChild>
                 <span>
-                  <Button disabled>New Secret</Button>
+                  <Button variant="primary" disabled>New Secret</Button>
                 </span>
               </TooltipTrigger>
               <TooltipContent>

@@ -109,7 +109,7 @@ const BgpVpns = () => {
           )}
         </div>
       </div>
-      {bgpvpns.error && <Alert bsStyle="danger">{bgpvpns.error}</Alert>}
+      {bgpvpns.error && <Alert variant="danger">{bgpvpns.error}</Alert>}
 
       {!policy.isAllowed("networking:bgp_vpn_list") ? (
         <span>You are not allowed to see this page</span>
@@ -181,14 +181,14 @@ const BgpVpns = () => {
                   {!item.isDeleting && (
                     <div className="btn-group">
                       <button
-                        className="btn btn-default btn-sm dropdown-toggle"
+                        className="btn btn-secondary btn-sm dropdown-toggle"
                         type="button"
-                        data-toggle="dropdown"
+                        data-bs-toggle="dropdown"
                         aria-expanded="false"
                       >
                         <span className="fa fa-cog" />
                       </button>
-                      <ul className="dropdown-menu dropdown-menu-right super-colors" role="menu">
+                      <ul className="dropdown-menu dropdown-menu-end super-colors" role="menu">
                         <li>
                           <a
                             href="#"

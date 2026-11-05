@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 const pathsResolverPlugin = require("./paths_resolver_plugin")
 const globImportPlugin = require("./glob_import_plugin")
+const bootstrapSingletonPlugin = require("./bootstrap_singleton_plugin")
 const postcss = require("postcss")
 const { transform } = require("@svgr/core")
 const sass = require("sass")
@@ -65,6 +66,7 @@ const config = {
       config: "config",
     }),
     globImportPlugin(),
+    bootstrapSingletonPlugin(),
     ...collectPluginConfigsSync(), // all TanStack + other plugin configs merged here
     {
       name: "svg-loader",

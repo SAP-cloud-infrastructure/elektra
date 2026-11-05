@@ -17,7 +17,7 @@
           %th.snug-nowrap
             Project:
           %td
-            = link_to plugin('identity').edit_project_path({load_project_root: true}), data: {modal: true, toggle: "tooltip", placement: "left"} do
+            = link_to plugin('identity').edit_project_path({load_project_root: true}), data: {modal: true, bs_toggle: "tooltip", placement: "left"} do
               Edit
       - if services.available?(:identity,:elektron_prodel) && current_user.is_allowed?("identity:project_delete", {target: {project: @active_project}})
         %tr
@@ -30,10 +30,10 @@
 %h4.action-heading
   Sub Projects
   - if current_user.is_allowed?('identity:project_create',{project: {domain_id: @scoped_domain_id}})
-    = link_to plugin('identity').domains_create_project_path(parent_id:@project_id, parent_name:@project.name), class: "header-action" , title: "Create new Subproject", data: {modal: true, toggle: "tooltip", placement: "left"} do
+    = link_to plugin('identity').domains_create_project_path(parent_id:@project_id, parent_name:@project.name), class: "header-action" , title: "Create new Subproject", data: {modal: true, bs_toggle: "tooltip", placement: "left"} do
       %i.fa.fa-plus-square-o
   - else
-    = link_to plugin('identity').projects_request_project_path(), class: "header-action" , title: "Request new Subproject", data: {modal: true, toggle: "tooltip", placement: "left"} do
+    = link_to plugin('identity').projects_request_project_path(), class: "header-action" , title: "Request new Subproject", data: {modal: true, bs_toggle: "tooltip", placement: "left"} do
       %i.fa.fa-plus-square-o
 
 %div{data: {react_auth_projects: true, root: @scoped_project_id, title: 'false' } }
@@ -43,7 +43,7 @@
     Not all resource pools are enabled. 
     - if current_user.is_allowed?("identity:project_update", {target: {project: @active_project}})
       To get access to additional resources click
-      = link_to plugin('identity').project_enable_sharding_path(), title: "Enable Resource Pooling", data: {modal: true, toggle: "tooltip", placement: "left"}  do
+      = link_to plugin('identity').project_enable_sharding_path(), title: "Enable Resource Pooling", data: {modal: true, bs_toggle: "tooltip", placement: "left"}  do
         %i.fa.fa-arrow-right.fa-fw
         here
 

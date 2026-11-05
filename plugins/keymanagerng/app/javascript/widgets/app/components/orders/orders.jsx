@@ -126,14 +126,14 @@ const Orders = () => {
       >
         <ButtonRow>
           {policy.isAllowed("keymanagerng:order_create") ? (
-            <Button onClick={handleCreateOrder}>
+            <Button variant="primary" onClick={handleCreateOrder}>
               New Order
             </Button>
           ) : (
             <Tooltip triggerEvent="hover">
               <TooltipTrigger asChild>
                 <span>
-                  <Button disabled>New Order</Button>
+                  <Button variant="primary" disabled>New Order</Button>
                 </span>
               </TooltipTrigger>
               <TooltipContent>

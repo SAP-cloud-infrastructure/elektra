@@ -58,14 +58,14 @@ const DropDownMenu = ({ buttonIcon, children }) => {
     <>
       <div className="btn-group custom-dropdown" id={componentID}>
         <button
-          className="btn btn-default btn-sm dropdown-toggle"
+          className="btn btn-secondary btn-sm dropdown-toggle"
           type="button"
-          data-toggle="dropdown"
+          data-bs-toggle="dropdown"
           aria-expanded={true}
         >
           {buttonIcon}
         </button>
-        <ul className="dropdown-menu dropdown-menu-right" role="menu">
+        <ul className="dropdown-menu dropdown-menu-end" role="menu">
           {children}
         </ul>
       </div>

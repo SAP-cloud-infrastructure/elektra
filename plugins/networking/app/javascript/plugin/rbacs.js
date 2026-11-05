@@ -10,40 +10,48 @@ $.fn.rbacFormControl = function (options) {
     options = {}
   }
   return this.each(function () {
-    // get form control button
+    // get form control button ("+ Add Access" or the form's "Cancel" link)
     const $control = $(this)
     // get form
     const $form = $($control.data("controlRbacForm"))
-    // setup form
+    // the "+ Add Access" trigger (everything that is not the cancel link)
+    const $addButton = $('[data-control-rbac-form]').not('[data-action="cancel"]')
+    // setup form (start hidden, remove the bootstrap `hidden` class)
     $form.css("display", "none").removeClass("hidden")
+
+    const showForm = () => {
+      $form.show()
+      $addButton.hide()
+    }
+    const hideForm = () => {
+      $form.hide()
+      $addButton.show()
+    }
 
     if (typeof options === "string") {
       if (options === "hide") {
-        $(this).text("+").addClass("btn-primary").removeClass("btn-default")
-        $form.hide("slow")
+        hideForm()
       } else if (options === "show") {
-        $form.show("slow")
-        $(this)
-          .text("cancel")
-          .removeClass("btn-primary")
-          .addClass("btn-default")
+        showForm()
       }
       return this
     }
 
-    // setup control behavior
-    $control.click(function () {
-      if ($form.is(":visible")) {
-        $(this).text("+").addClass("btn-primary").removeClass("btn-default")
-        return $form.hide("slow")
-      } else {
-        $form.show("slow")
-        return $(this)
-          .text("cancel")
-          .removeClass("btn-primary")
-          .addClass("btn-default")
+    // setup control behavior. The cancel link always hides the form; the add
+    // button toggles it (mirrors the "Manage Subnets" add-button behaviour).
+    $control.click(function (e) {
+      e.preventDefault()
+      if ($control.data("action") === "cancel" || $form.is(":visible")) {
+        return hideForm()
       }
+      return showForm()
     })
+
+    // Only wire up the autocomplete once, via the add button (the cancel link
+    // shares the same selector but must not re-bind it to the same input).
+    if ($control.data("action") === "cancel") {
+      return this
+    }
 
     // initialize autocomplete on form input
     $form
@@ -77,3 +85,42 @@ $.fn.rbacFormControl = function (options) {
     return this
   })
 }
+
+// Inline delete confirmation for RBAC rows, matching the "Manage Subnets"
+// behaviour: the first click turns the trash button into a "Confirm Delete"
+// label (reverting after 3s); the second click lets the native Rails-UJS
+// delete request through. The listener runs in the capture phase so it fires
+// before Rails-UJS' own (bubble-phase) click handler, letting us suppress the
+// delete until the user confirms.
+document.addEventListener(
+  "click",
+  function (e) {
+    const btn = e.target.closest && e.target.closest("a.rbac-delete")
+    if (!btn) {
+      return
+    }
+
+    const $btn = $(btn)
+
+    if ($btn.data("confirm-pending")) {
+      // Confirmed: clear the timer and let Rails-UJS handle the delete.
+      clearTimeout($btn.data("confirm-timer"))
+      $btn.removeData("confirm-pending")
+      $btn.closest("tr").addClass("updating")
+      $btn.html('<i class="fa fa-trash fa-fw"></i>')
+      return // do not stop the event -> UJS performs the DELETE
+    }
+
+    // First click: ask for confirmation inline, revert after 3s.
+    e.preventDefault()
+    e.stopImmediatePropagation()
+
+    $btn.data("confirm-pending", true).text("Confirm Delete")
+    const timer = setTimeout(() => {
+      $btn.removeData("confirm-pending")
+      $btn.html('<i class="fa fa-trash fa-fw"></i>')
+    }, 3000)
+    $btn.data("confirm-timer", timer)
+  },
+  true // capture phase
+)

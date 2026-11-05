@@ -5,12 +5,12 @@ module SimpleForm
       # Name of the component method
       def help_hint(wrapper_options = nil)
         help_hint_container =
-          'data-container="' + options[:icon_hint_container].to_s + '"'
+          'data-bs-container="' + options[:icon_hint_container].to_s + '"'
         @help_hint ||=
           begin
             if options[:help_hint].present?
               '<a class="help-hint" data-content="' + options[:help_hint].to_s +
-                '" data-placement="top" ' +
+                '" data-bs-placement="top" ' +
                 (
                   if options[:icon_hint_container].present?
                     help_hint_container
@@ -18,7 +18,7 @@ module SimpleForm
                     ""
                   end
                 ) +
-                ' data-popover-type="help-hint" data-toggle="popover" href="#" role="button" >' \
+                ' data-popover-type="help-hint" data-bs-toggle="popover" href="#" role="button" >' \
                   '<span class="fa-stack">' \
                   '<i class="fa fa-square fa-stack-2x"></i>' \
                   '<i class="fa fa-info fa-inverse fa-stack-1x"></i>' \

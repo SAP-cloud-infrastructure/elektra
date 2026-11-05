@@ -320,3 +320,15 @@
     linear-gradient(80deg, #6637cd 0%, #b8149d 100%);
   vertical-align: middle;
 }
+
+// Project detail sidebar (plugins/identity .../projects/show.html.haml).
+// Under Bootstrap 3 the .row columns were floats, so the .col-md-3 sidebar was
+// only as tall as its own content and the "New Dashboard in Development" box
+// sat directly below the Sub Projects list. Bootstrap 5's grid row is a flex
+// container whose columns stretch to the full row height, so this sidebar was
+// stretched to match the much taller service-navigation column and the box got
+// pushed to the bottom of that stretched column (below the footer). Pinning the
+// column to the top restores the content-height behaviour.
+.project-detail-sidebar {
+  align-self: flex-start;
+}

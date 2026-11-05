@@ -10,7 +10,7 @@ $.fn.initAcceptButtons = function () {
 
   $table
     .closest(".modal-content")
-    .find('[data-dismiss="modal"]')
+    .find('[data-bs-dismiss="modal"]')
     .click(function () {
       if ($table.find("tbody tr").length < itemsLength) {
         const l = window.location
@@ -21,7 +21,9 @@ $.fn.initAcceptButtons = function () {
   return $("form.transfer-request-accept").each(function (index, form) {
     const $button = $(form).find('button[type="submit"]')
     const $keyInput = $(form).find('input[name="key"]')
-    const $keyInputContainer = $keyInput.closest(".form-group")
+    // simple_form renders the field wrapper as `.mb-3` under Bootstrap 5
+    // (BS3 used `.form-group`).
+    const $keyInputContainer = $keyInput.closest(".mb-3")
 
     $button.click(function (e) {
       if ($keyInput.val()) {

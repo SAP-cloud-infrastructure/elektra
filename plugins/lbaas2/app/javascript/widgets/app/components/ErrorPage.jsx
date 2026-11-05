@@ -16,7 +16,7 @@ const serverError = (errorText, onReload) => {
       </p>
       {onReload && (
         <div className="ep-reload-button">
-          <Button bsStyle="primary" onClick={onReload}>
+          <Button variant="primary" onClick={onReload}>
             Reload <i className="fa fa-refresh"></i>
           </Button>
         </div>
@@ -80,7 +80,7 @@ const ErrorPage = ({ error, headTitle, onReload }) => {
   return (
     <>
       <div className="row error-page">
-        <div className="col-md-10 col-md-offset-2">
+        <div className="col-md-10 offset-md-2">
           <div className="row">
             <div className="col-md-10">
               <h3>{headTitle}</h3>
@@ -92,8 +92,8 @@ const ErrorPage = ({ error, headTitle, onReload }) => {
                     <div
                       className="action-link"
                       onClick={() => setShowDetails(!showDetails)}
-                      data-toggle="collapse"
-                      data-target="#collapseDetails"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#collapseDetails"
                       aria-expanded={showDetails}
                       aria-controls="collapseDetails"
                     >

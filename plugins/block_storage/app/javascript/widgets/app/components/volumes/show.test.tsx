@@ -548,7 +548,7 @@ describe("ShowModal (Volume)", () => {
       renderComponent({ id: "volume-123", volume: mockVolume })
 
       // Bootstrap modal close (X) button in the header
-      const headerCloseButton = document.querySelector("button.close") as HTMLElement
+      const headerCloseButton = document.querySelector("button.btn-close") as HTMLElement
       expect(headerCloseButton).toBeInTheDocument()
 
       await user.click(headerCloseButton)

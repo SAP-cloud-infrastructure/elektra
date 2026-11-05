@@ -4,6 +4,7 @@
  * DS102: Remove unnecessary code created because of implicit returns
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
+import { initTooltips } from "./bootstrap_engine"
 // jQuery plugin
 jQuery.fn.ajaxPaginate = function (options) {
   // default values for all paginate plugins
@@ -15,7 +16,7 @@ jQuery.fn.ajaxPaginate = function (options) {
     loadNextLabel: "Load Next",
     loadAllLabel: "Load All",
     loadNextItemsCssClass: "btn btn-primary btn-sm",
-    loadAllItemsCssClass: "btn btn-default btn-sm",
+    loadAllItemsCssClass: "btn btn-secondary btn-sm",
   }
 
   // merge defaults and options
@@ -168,9 +169,13 @@ jQuery.fn.ajaxPaginate = function (options) {
 
     // add load next items button
     if (settings.loadNextButton) {
-      const $loadNextButton = $(
-        `<button class='${loadNextItemsCssClass}'>${loadNextLabel}</button> `
-      ).appendTo($buttons)
+      // Build via DOM APIs (not an HTML string): the label and CSS class come
+      // from data-* attributes (untrusted library input), so interpolating them
+      // into HTML would be an XSS sink. .addClass()/.text() escape safely.
+      const $loadNextButton = $("<button></button>")
+        .addClass(loadNextItemsCssClass)
+        .text(loadNextLabel)
+        .appendTo($buttons)
       $loadNextButton.click(function (e) {
         showLoading()
         return loadNext(() => hideLoading())
@@ -179,10 +184,15 @@ jQuery.fn.ajaxPaginate = function (options) {
 
     // add load all items button
     if (loadAllButton) {
-      const $loadAllButton = $(
-        ` <button class='${loadAllItemsCssClass}' data-toggle='tooltip' title='This might take a while!'>${loadAllLabel}</button> `
-      ).appendTo($buttons)
-      $loadAllButton.tooltip()
+      // Same reasoning as above: construct safely instead of interpolating
+      // untrusted data-* values into an HTML template string.
+      const $loadAllButton = $("<button></button>")
+        .addClass(loadAllItemsCssClass)
+        .attr("data-bs-toggle", "tooltip")
+        .attr("title", "This might take a while!")
+        .text(loadAllLabel)
+        .appendTo($buttons)
+      initTooltips($loadAllButton)
       return $loadAllButton.click(function () {
         showLoading()
         return loadAll((data) => hideLoading())

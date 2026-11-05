@@ -54,11 +54,9 @@ const VolumeItem = ({ reloadVolume, deleteVolume, forceDeleteVolume, detachVolum
       <td>
         {(volume.bootable === true || volume.bootable === "true") && (
           <Tooltip placement="top" content="Bootable Volume">
-            <i className="fa fa-hdd-o"></i>
+            <i className="fa fa-hdd-o" style={{ marginRight: "6px" }}></i>
           </Tooltip>
         )}
-      </td>
-      <td>
         {policy.isAllowed("block_storage:volume_get", {}) ? (
           <Link to={`/volumes/${volume.id}/show`}>
             <MyHighlighter search={searchTerm || ""}>{volume.name || volume.id}</MyHighlighter>
@@ -119,16 +117,16 @@ const VolumeItem = ({ reloadVolume, deleteVolume, forceDeleteVolume, detachVolum
           })) && (
           <div className="btn-group">
             <button
-              className="btn btn-default btn-sm dropdown-toggle"
+              className="btn btn-secondary btn-sm dropdown-toggle"
               disabled={pending}
               type="button"
-              data-toggle="dropdown"
+              data-bs-toggle="dropdown"
               aria-expanded={true}
             >
               <span className="fa fa-cog"></span>
             </button>
 
-            <ul className="dropdown-menu dropdown-menu-right" role="menu">
+            <ul className="dropdown-menu dropdown-menu-end" role="menu">
               {policy.isAllowed("block_storage:volume_update", {
                 target: { scoped_domain_name: scope.domain },
               }) && (

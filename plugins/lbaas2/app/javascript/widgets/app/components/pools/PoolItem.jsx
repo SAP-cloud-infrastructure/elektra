@@ -266,7 +266,7 @@ const PoolItem = ({ props, pool, searchTerm, disabled, shouldPoll }) => {
 
   const memberIDs = pool.members.map((m) => m.id)
   return (
-    <tr className={disabled ? "active" : ""}>
+    <tr className={disabled ? "table-active" : ""}>
       <td className="snug-nowrap">
         {displayName()}
         {displayID()}
@@ -310,12 +310,12 @@ const PoolItem = ({ props, pool, searchTerm, disabled, shouldPoll }) => {
             popoverId={"member-popover-" + memberIDs.id}
             buttonName={memberIDs.length}
             title={
-              <>
-                Members
-                <Link to="#" onClick={onPoolClick} style={{ float: "right" }}>
+              <div className="d-flex justify-content-between w-100">
+                <span>Members</span>
+                <Link to="#" onClick={onPoolClick}>
                   Show all
                 </Link>
-              </>
+              </div>
             }
             content={
               <CachedInfoPopoverContent
