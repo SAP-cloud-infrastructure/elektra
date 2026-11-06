@@ -4,7 +4,7 @@ import { scope } from "lib/ajax_helper"
 import { Highlighter } from "react-bootstrap-typeahead"
 import { Tooltip } from "lib/components/Overlay"
 import { policy } from "lib/policy"
-import StatusPill from "../status_pill"
+import StatusPill from "lib/components/StatusPill"
 import * as constants from "../../constants"
 
 const MyHighlighter = ({ search, children }) => {

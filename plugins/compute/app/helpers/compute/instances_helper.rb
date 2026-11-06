@@ -2,15 +2,12 @@
 
 module Compute
   module InstancesHelper
-    # Renders the instance's POWER STATE as a status pill (a coloured dot +
-    # label in a tinted capsule). The LABEL is the human power state
+    # Renders the instance's POWER STATE as a status pill (using the shared
+    # `status_pill` core helper). The LABEL is the human power state
     # (Running / Shut off / ...), but the COLOUR is driven by the OpenStack
     # vm/task state and error/lock condition, so an ERROR instance still lights
     # up red even if its power state looks harmless. Full details (status,
     # task_state, error message) live in the tooltip.
-    #
-    # Reuses the shared `.status-pill` / `state-<status>-icon` styles from
-    # _monsoon_theme.scss (same look as the block-storage StatusPill).
     INSTANCE_STATUS_CATEGORY = {
       "active" => "ok",
       "shutoff" => "idle",
@@ -22,9 +19,8 @@ module Compute
 
     def instance_status_pill(instance)
       status = instance.status.to_s.downcase
-      label = instance.power_state_string
 
-      # Semantic category drives the pill tint + dot colour.
+      # Semantic category drives the pill tint.
       category =
         if instance.locked? || !instance.errors.blank?
           "error"
@@ -32,16 +28,6 @@ module Compute
           "busy" # any in-flight task state (spawning, resizing, ...)
         else
           INSTANCE_STATUS_CATEGORY[status] || "idle"
-        end
-
-      # Dot colour follows the category: map it onto an existing
-      # `state-<x>-icon` class whose colour we already defined.
-      dot_status =
-        case category
-        when "error" then "error"
-        when "ok" then "active"
-        when "busy" then "build"
-        else "shutoff" # idle -> grey
         end
 
       # Tooltip: full detail on hover (errors / lock take precedence).
@@ -59,15 +45,12 @@ module Compute
           text
         end
 
-      content_tag(
-        :span,
-        class: "status-pill status-pill-#{category}",
-        data: { bs_toggle: "tooltip", bs_placement: "top" },
-        title: tooltip,
-      ) do
-        concat content_tag(:span, "", class: "state-#{dot_status}-icon status-pill-dot")
-        concat label
-      end
+      status_pill(
+        status,
+        category: category,
+        label: instance.power_state_string,
+        tooltip: tooltip,
+      )
     end
 
     # IMAGES

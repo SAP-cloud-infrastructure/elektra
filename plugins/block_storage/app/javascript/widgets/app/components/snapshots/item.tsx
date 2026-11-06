@@ -10,7 +10,7 @@ import React, { useEffect, useRef, useCallback } from "react"
 import { Link } from "react-router-dom"
 import { scope } from "lib/ajax_helper"
 import { Highlighter } from "react-bootstrap-typeahead"
-import StatusPill from "../status_pill"
+import StatusPill from "lib/components/StatusPill"
 import * as constants from "../../constants"
 
 // Type definitions

@@ -94,10 +94,10 @@ const List = ({
                 <th>#</th>
                 <th></th>
                 <th>Name</th>
+                <th>Status</th>
                 <th>Format</th>
                 <th>Size</th>
                 <th>Created</th>
-                <th>Status</th>
                 <th></th>
               </tr>
             </thead>
@@ -121,7 +121,7 @@ const List = ({
               ) : (
                 <TableRowFadeTransition>
                   <tr>
-                    <td colSpan="7">{isFetching ? <span className="spinner" /> : "No images found."}</td>
+                    <td colSpan="8">{isFetching ? <span className="spinner" /> : "No images found."}</td>
                   </tr>
                 </TableRowFadeTransition>
               )}

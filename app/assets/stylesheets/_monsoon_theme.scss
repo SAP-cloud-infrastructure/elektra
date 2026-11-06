@@ -2436,7 +2436,8 @@ tr.updating {
 }
 
 [class$="-icon"].state-detached-icon:before,
-[class$="-icon"].state-maintenance-icon:before {
+[class$="-icon"].state-maintenance-icon:before,
+[class$="-icon"].state-down-icon:before {
   background-color: $medium-gray; // idle / offline
   box-shadow: 0 0 0 2px rgba($medium-gray, 0.15);
 }
@@ -2459,26 +2460,40 @@ tr.updating {
   box-shadow: 0 0 0 2px rgba($bright-orange, 0.15);
 }
 
-// Status pill: a compact capsule combining the coloured status dot and a
-// humanised label (see status_pill.tsx). The dot colour comes from the shared
-// `state-<status>-icon` classes above; the pill only adds a tinted background
-// per semantic category (ok/active/error/busy/idle).
+// Glance image statuses (active/queued/saving/importing/uploading/killed/
+// deleted/pending_delete/deactivated). Reuse the same dot palette so the
+// images list can show a status pill like volumes/snapshots.
+[class$="-icon"].state-queued-icon:before,
+[class$="-icon"].state-saving-icon:before,
+[class$="-icon"].state-importing-icon:before {
+  background-color: $bright-orange; // in progress
+  box-shadow: 0 0 0 2px rgba($bright-orange, 0.15);
+}
+
+[class$="-icon"].state-killed-icon:before,
+[class$="-icon"].state-deleted-icon:before,
+[class$="-icon"].state-pending_delete-icon:before {
+  background-color: $alarm-red; // failed / gone
+  box-shadow: 0 0 0 2px rgba($alarm-red, 0.15);
+}
+
+[class$="-icon"].state-deactivated-icon:before {
+  background-color: $medium-gray; // disabled / idle
+  box-shadow: 0 0 0 2px rgba($medium-gray, 0.15);
+}
+
+// Status pill: a compact capsule with a humanised status label, coloured by
+// semantic category (ok/active/error/busy/idle). Shared by the React
+// `StatusPill` component and the `status_pill` HAML helper.
 .status-pill {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 2px 10px 2px 8px;
+  padding: 2px 10px;
   border-radius: 999px;
   font-size: $font-size-small;
   font-weight: 600;
   line-height: 1.6;
   white-space: nowrap;
-
-  // The dot span sits inside the pill; neutralise the default dot margins so it
-  // aligns tightly with the label (the `gap` above handles spacing).
-  .status-pill-dot:before {
-    margin: 0;
-  }
 
   &.status-pill-ok {
     color: darken($medium-green, 18%);
@@ -2506,9 +2521,10 @@ tr.updating {
   }
 }
 
-// Neutral attribute tag used for the availability zone (volumes + server
-// instances). Deliberately low-key (grey outline) so it reads as metadata and
-// never competes with the coloured status pills.
+// Neutral attribute tag for low-key metadata (availability zone, flavor, ...).
+// Deliberately low-key (grey outline) so it reads as metadata and never
+// competes with the coloured status pills. `.az-badge` kept as an alias.
+.attr-badge,
 .az-badge {
   display: inline-flex;
   align-items: center;
