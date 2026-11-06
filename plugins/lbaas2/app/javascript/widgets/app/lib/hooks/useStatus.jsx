@@ -1,6 +1,22 @@
 import React from "react"
-import StateLabel from "../../components/shared/StateLabel"
-import StatusLabel from "../../components/shared/StatusLabel"
+import StatusPill from "lib/components/StatusPill"
+
+// Map lbaas2's BS3-era label-* class names to the shared StatusPill
+// semantic categories.
+const labelClassToCategory = (labelClassName) => {
+  switch (labelClassName) {
+    case "label-success":
+      return "ok"
+    case "label-danger":
+      return "error"
+    case "label-warning":
+      return "busy"
+    case "label-warning-greyscale":
+    case "label-info":
+    default:
+      return "idle"
+  }
+}
 
 export const operationStatusOptions = (option) => {
   switch (option) {
@@ -149,18 +165,32 @@ const useStatus = (operatingStatus, provisioningStatus, options) => {
 
     return (
       <>
-        <StateLabel
+        <StatusPill
+          status={operatingStatusLable(operatingStatus)}
+          category={labelClassToCategory(opStatusOptions.labelClassName)}
           label={operatingStatusLable(operatingStatus)}
-          labelClassName={opStatusOptions.labelClassName}
-          tooltipContent={stateLabelTooltipContent()}
+          tooltip={
+            <>
+              <b>Operating Status</b>
+              <br />
+              {stateLabelTooltipContent()}
+            </>
+          }
         />
         {provisioningStatus !== "ACTIVE" && (
           <>
             <br />
-            <StatusLabel
+            <StatusPill
+              status={provisioningStatus}
+              category={labelClassToCategory(provStatusOptions.labelClassName)}
               label={provisioningStatus}
-              textClassName={provStatusOptions.textClassName}
-              title={provStatusOptions.title}
+              tooltip={
+                <>
+                  <b>Provisioning Status</b>
+                  <br />
+                  {provStatusOptions.title}
+                </>
+              }
             />
           </>
         )}
