@@ -4,6 +4,7 @@ import { scope } from "lib/ajax_helper"
 import { Highlighter } from "react-bootstrap-typeahead"
 import { Tooltip } from "lib/components/Overlay"
 import { policy } from "lib/policy"
+import StatusPill from "lib/components/StatusPill"
 import * as constants from "../../constants"
 
 const MyHighlighter = ({ search, children }) => {
@@ -52,17 +53,17 @@ const VolumeItem = ({ reloadVolume, deleteVolume, forceDeleteVolume, detachVolum
   return (
     <tr className={`state-${volume.status}`}>
       <td>
-        {(volume.bootable === true || volume.bootable === "true") && (
-          <Tooltip placement="top" content="Bootable Volume">
-            <i className="fa fa-hdd-o" style={{ marginRight: "6px" }}></i>
-          </Tooltip>
-        )}
         {policy.isAllowed("block_storage:volume_get", {}) ? (
           <Link to={`/volumes/${volume.id}/show`}>
             <MyHighlighter search={searchTerm || ""}>{volume.name || volume.id}</MyHighlighter>
           </Link>
         ) : (
           <MyHighlighter search={searchTerm}>{volume.name}</MyHighlighter>
+        )}
+        {(volume.bootable === true || volume.bootable === "true") && (
+          <Tooltip placement="top" content="This volume can be used to boot an instance">
+            <span className="badge rounded-pill bg-info-subtle text-info-emphasis fw-normal ms-2 text-nowrap">bootable</span>
+          </Tooltip>
         )}
         {volume.name && (
           <>
@@ -73,13 +74,13 @@ const VolumeItem = ({ reloadVolume, deleteVolume, forceDeleteVolume, detachVolum
           </>
         )}
       </td>
-      <td>{volume.availability_zone}</td>
-      <td>{volume.description}</td>
+      <td>
+        {pending && <span className="spinner" />}
+        <StatusPill status={volume.status} />
+      </td>
       <td>{volume.size}</td>
       <td>
-        {volume &&
-          volume.attachments &&
-          volume.attachments.length > 0 &&
+        {volume && volume.attachments && volume.attachments.length > 0 ? (
           volume.attachments.map((attachment, index) => (
             <div key={index}>
               <a href={`/${scope.domain}/${scope.project}/compute/instances/${attachment.server_id}`} data-modal={true}>
@@ -93,8 +94,12 @@ const VolumeItem = ({ reloadVolume, deleteVolume, forceDeleteVolume, detachVolum
                 </>
               )}
             </div>
-          ))}
+          ))
+        ) : (
+          <span className="info-text">&mdash;</span>
+        )}
       </td>
+      <td>{volume.availability_zone && <span className="az-badge">{volume.availability_zone}</span>}</td>
       <td style={{ whiteSpace: "nowrap" }}>
         {new Date(volume.updated_at).toLocaleDateString("en-US", {
           month: "short",
@@ -103,10 +108,6 @@ const VolumeItem = ({ reloadVolume, deleteVolume, forceDeleteVolume, detachVolum
           hour: "2-digit",
           minute: "2-digit",
         })}
-      </td>
-      <td>
-        {pending && <span className="spinner" />}
-        <MyHighlighter search={searchTerm}>{volume.status}</MyHighlighter>
       </td>
       <td className="snug">
         {(policy.isAllowed("block_storage:volume_delete", {

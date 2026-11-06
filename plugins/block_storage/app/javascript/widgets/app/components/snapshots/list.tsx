@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 
 // @ts-expect-error no types
-import { SearchField } from "lib/components/search_field"
+import { Form } from "lib/components/searchComponents"
 import Item from "./item"
 // @ts-expect-error no types
 import { AjaxPaginate } from "lib/components/ajax_paginate"
@@ -14,6 +14,7 @@ interface Snapshot {
   volume_id: string
   size: number
   status: string
+  created_at?: string
 }
 
 interface SnapshotsState {
@@ -47,17 +48,26 @@ const List: React.FC<ListProps> = ({
     loadSnapshotsOnce()
   }, [active, loadSnapshotsOnce])
 
+  // The field the user picked in the search dropdown. When unset we fall back
+  // to matching across all fields (same as before the Form migration).
+  const [searchType, setSearchType] = useState<string | null>(null)
+
   const filterItems = useMemo(() => {
     const { items = [], searchTerm } = snapshots
     if (!searchTerm) return items
-    
+
     // filter items using case-insensitive string matching
     const lowerSearch = searchTerm.trim().toLowerCase()
     return items.filter((i) => {
-      const searchableText = `${i.id} ${i.name} ${i.description} ${i.volume_id} ${i.size} ${i.status}`.toLowerCase()
-      return searchableText.includes(lowerSearch)
+      // When a specific field is selected, match only that field; otherwise
+      // match across all searchable fields.
+      const haystack =
+        searchType && searchType in i
+          ? `${(i as unknown as Record<string, unknown>)[searchType] ?? ""}`
+          : `${i.id} ${i.name} ${i.description} ${i.volume_id} ${i.size} ${i.status}`
+      return haystack.toLowerCase().includes(lowerSearch)
     })
-  }, [snapshots])
+  }, [snapshots, searchType])
 
   const { hasNext, isFetching, searchTerm, items } = snapshots
   const filteredItems = filterItems
@@ -65,11 +75,15 @@ const List: React.FC<ListProps> = ({
   return (
     <>
       {items.length > 5 && (
-        <div className="toolbar">
-          <SearchField
-            onChange={(term: string) => search(term)}
-            placeholder="name, ID, format or status"
-            text="Searches by name, ID, format or status in visible snapshots list only.
+        <div className="toolbar toolbar-controlcenter">
+          <Form
+            isLoading={isFetching}
+            searchFor={["name", "description", "id", "status"]}
+            onSubmit={(type: string | null, term: string | null) => {
+              setSearchType(type)
+              search(term || "")
+            }}
+            helpText="Searches by name, description, ID or status in the visible snapshots list only.
               Entering a search term will automatically start loading the next pages
               and filter the loaded items using the search term. Emptying the search
               input field will show all currently loaded items."
@@ -80,10 +94,10 @@ const List: React.FC<ListProps> = ({
         <thead>
           <tr>
             <th>Snapshot</th>
-            <th>Description</th>
+            <th>Status</th>
             <th>Size(GB)</th>
             <th>Source Volume</th>
-            <th>Status</th>
+            <th style={{ whiteSpace: "nowrap" }}>Created At</th>
             <th className="snug"></th>
           </tr>
         </thead>

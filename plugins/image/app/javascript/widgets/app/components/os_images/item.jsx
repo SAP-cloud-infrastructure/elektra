@@ -4,6 +4,7 @@ import { Tooltip } from "lib/components/Overlay"
 import { PrettyDate } from "lib/components/pretty_date"
 import { PrettySize } from "lib/components/pretty_size"
 import { ImageIcon } from "./icon"
+import StatusPill from "lib/components/StatusPill"
 import React from "react"
 
 export const OwnerIcon = () => {
@@ -49,6 +50,9 @@ const Item = (props) => {
           </span>
         )}
       </td>
+      <td>
+        <StatusPill status={image.status} />
+      </td>
       <td>{image.disk_format}</td>
       <td>
         <PrettySize size={image.size} />
@@ -56,7 +60,6 @@ const Item = (props) => {
       <td>
         <PrettyDate date={image.created_at} />
       </td>
-      <td>{image.status}</td>
       <td className="snug">
         {(canCreateInstance ||
           policy.isAllowed("image:image_unpublish") ||

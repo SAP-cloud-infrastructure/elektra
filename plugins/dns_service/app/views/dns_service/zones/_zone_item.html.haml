@@ -1,12 +1,17 @@
-- className= ''
-- className= 'bg-success' if zone.status=='PENDING' and zone.action=='CREATE'
-- className= 'bg-warning' if zone.status=='PENDING' and zone.action=='UPDATE'
-- className= 'bg-danger' if zone.status=='PENDING' and zone.action=='DELETE'
+- # Pill category: ACTIVE -> ok, ERROR -> error, PENDING -> busy (an in-flight
+- # create/update/delete), everything else -> idle. The specific action is kept
+- # in its own column and shown in the pill tooltip.
+- pill_category = case zone.status
+  - when 'ACTIVE' then 'ok'
+  - when 'ERROR' then 'error'
+  - when 'PENDING' then 'busy'
+  - else 'idle'
+- pill_tooltip = zone.action.present? ? "#{zone.status.to_s.humanize} (#{zone.action.to_s.humanize})" : nil
 
-%tr{id: "zone_#{zone&.id}", class: className, data: {search_name: "#{zone&.name}_#{zone&.id}", marker_id: zone&.id} }
+%tr{id: "zone_#{zone&.id}", data: {search_name: "#{zone&.name}_#{zone&.id}", marker_id: zone&.id} }
   %td
     - if active_zone_transfer_requests[zone.id]
-      %i.fa.fa-fw.fa-truck{ data: {bs_toggle:"tooltip", placement:"bottom", title: "There is a transfer request for this zone."}}
+      %i.fa.fa-fw.fa-truck{ data: {bs_toggle:"tooltip", bs_placement:"bottom"}, title: "There is a transfer request for this zone."}
     - if current_user.is_allowed?("dns_service:zone_get", zone: zone.attributes)
       = link_to zone.name, zone_path(zone.id)
     - else
@@ -32,13 +37,13 @@
 
     %br
     %span.info-text= zone.id
+  %td= status_pill(zone.status, category: pill_category, tooltip: pill_tooltip)
   - if @all_projects
     %td
       = project_id_and_name(zone.project_id)
     %td= pool_name(zone.pool_id, pools)
   %td= zone.email
   %td= zone.ttl
-  %td= zone.status
   %td= zone.action
   %td.snug
     - if current_user.is_allowed?("dns_service:zone_get", zone: zone.attributes) or current_user.is_allowed?("dns_service:zone_delete", zone: zone.attributes) or current_user.is_allowed?("dns_service:zone_update", zone: zone.attributes)

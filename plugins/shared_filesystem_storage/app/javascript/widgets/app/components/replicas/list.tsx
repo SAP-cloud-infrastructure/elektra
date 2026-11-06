@@ -76,9 +76,9 @@ const ReplicaList: React.FC<ReplicaListProps> = ({
       <thead>
         <tr>
           <th>ID</th>
-          <th>Source Share</th>
           <th>Replica State</th>
           <th>Status</th>
+          <th>Source Share</th>
           <th></th>
         </tr>
       </thead>

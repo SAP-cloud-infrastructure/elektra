@@ -113,7 +113,7 @@ describe("ShareItem", () => {
 
     it("renders status", () => {
       render(<table><tbody><ShareItem {...defaultProps} /></tbody></table>)
-      expect(screen.getByText("available")).toBeInTheDocument()
+      expect(screen.getByText("Available")).toBeInTheDocument()
     })
 
     it("shows spinner when status is creating", () => {

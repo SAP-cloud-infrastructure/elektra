@@ -328,11 +328,11 @@ const PortList: React.FC<PortListProps> = ({
             <tr>
               <th className="snug"></th>
               <SortableHeader label="Name / ID" column="name" sort={sort} onSort={onSort} />
+              <SortableHeader label="Status" column="status" sort={sort} onSort={onSort} />
               <SortableHeader label="Description" column="description" sort={sort} onSort={onSort} />
               <SortableHeader label="Network" column="network" sort={sort} onSort={onSort} />
               <th>Fixed IPs / Subnet</th>
               <th>Device Owner / ID</th>
-              <SortableHeader label="Status" column="status" sort={sort} onSort={onSort} />
               <th></th>
             </tr>
           </thead>

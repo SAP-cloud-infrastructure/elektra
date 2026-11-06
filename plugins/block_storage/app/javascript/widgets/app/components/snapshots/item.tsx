@@ -10,6 +10,7 @@ import React, { useEffect, useRef, useCallback } from "react"
 import { Link } from "react-router-dom"
 import { scope } from "lib/ajax_helper"
 import { Highlighter } from "react-bootstrap-typeahead"
+import StatusPill from "lib/components/StatusPill"
 import * as constants from "../../constants"
 
 // Type definitions
@@ -21,6 +22,7 @@ interface SnapshotData {
   status: string
   volume_id?: string
   volume_name?: string
+  created_at?: string
 }
 
 interface SnapshotProps {
@@ -117,7 +119,8 @@ const Snapshot: React.FC<SnapshotProps> = ({ snapshot, searchTerm, reloadSnapsho
         </span>
       </td>
       <td>
-        <MyHighlighter search={searchTerm}>{snapshot.description}</MyHighlighter>
+        {isPendingState() && <span className="spinner" />}
+        <StatusPill status={snapshot.status} />
       </td>
       <td>
         <MyHighlighter search={searchTerm}>{snapshot.size}</MyHighlighter>
@@ -133,9 +136,16 @@ const Snapshot: React.FC<SnapshotProps> = ({ snapshot, searchTerm, reloadSnapsho
           snapshot.volume_id
         )}
       </td>
-      <td>
-        {isPendingState() && <span className="spinner" />}
-        <MyHighlighter search={searchTerm}>{snapshot.status}</MyHighlighter>
+      <td style={{ whiteSpace: "nowrap" }}>
+        {snapshot.created_at
+          ? new Date(snapshot.created_at).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : ""}
       </td>
       <td className="snug">
         {hasAnyPermission && (

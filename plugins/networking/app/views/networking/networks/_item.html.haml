@@ -1,12 +1,14 @@
 %tr{id: "network_#{network.id}", data: {search_name: network.name, marker_id: network.id}, class: "#{'foreign-object' if network.shared}"}
   %td
     - if network.shared
-      %i.fa.fa-share-alt.fa-fw{data: { bs_toggle: "tooltip", placement: "top", title: "This network is shared"}}
+      %i.fa.fa-share-alt.fa-fw{data: { bs_toggle: "tooltip", bs_placement: "top" }, title: "This network is shared"}
       
     - if current_user.is_allowed?("networking:network_get", network: network.attributes)
       = link_to network.name, plugin('networking').send("networks_#{@network_type}_path", network.id), data: {modal: true}
     - else
       = network.name
+
+  %td= status_pill(network.status)
 
   %td
     - if @network_subnets[network.id]
@@ -24,7 +26,6 @@
     %br
     %span.info-text= network.tenant_id
   %td= network.shared ? 'Yes' : 'No'
-  %td= network.status
   %td= network.admin_state_up==true ? 'UP' : 'DOWN'
 
   %td.snug

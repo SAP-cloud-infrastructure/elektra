@@ -154,16 +154,14 @@ const FormBody = ({ close, errors }) => {
           labelClass="col-form-label secondary-label"
         >
           <Form.Input elementType="input" type="number" min="0" />
-          <div className="checkbox">
-            <label>
-              <Form.Input
-                elementType="input"
-                type="checkbox"
-                name="minimum_free_is_critical"
-                disabled={values.free_minimum == ""}
-              />
-              <span>When crossing this threshold, resize without delay</span>
-            </label>
+          <div className="form-check">
+            <Form.Input
+              elementType="input"
+              type="checkbox"
+              name="minimum_free_is_critical"
+              disabled={values.free_minimum == ""}
+            />
+            <label className="form-check-label">When crossing this threshold, resize without delay</label>
           </div>
         </Form.ElementHorizontal>
       </Modal.Body>

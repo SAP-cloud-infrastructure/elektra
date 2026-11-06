@@ -922,6 +922,42 @@ button.multiselect {
     width: 100%;
   }
 
+  // The shared search `Form` (lib/components/searchComponents.jsx) also renders
+  // as `form.form-inline`, but it is NOT a modal add-form: it holds an
+  // `.input-group` (optional type <select> + search field + buttons) rather than
+  // `.mb-3` fields. The `width: 100%` rule above would make it fill the whole
+  // toolbar and push the trailing controls (e.g. a checkbox and the
+  // right-aligned `.main-buttons` action) outside the toolbar. Detect the search
+  // variant via its direct `.input-group` child and let it keep its natural
+  // width so sibling controls stay inside the toolbar.
+  form.form-inline:has(> .input-group) {
+    width: auto;
+    flex-wrap: nowrap;
+    align-items: center;
+    // Keep clear of the next toolbar control (e.g. the "Show only available
+    // volumes" checkbox); without it the trailing help `?` icon butts up
+    // against / overlaps the following sibling once the form shrinks to auto.
+    margin-right: 28px;
+
+    input[type="text"] {
+      width: 320px;
+    }
+
+    // The help `?` icon is the form's last child. Give it a fixed, self-
+    // contained box so it sits right after the search button and never
+    // overlaps the following toolbar control.
+    .has-feedback-help {
+      padding-left: 4px;
+      line-height: normal;
+
+      .btn-link {
+        padding: 0;
+        margin: 0;
+        line-height: 1;
+      }
+    }
+  }
+
   // react-bootstrap-typeahead (AutocompleteField) renders a `.rbt` wrapper
   // around its input; make it fill the flex field so the autocomplete grows to
   // the full width like the other inline fields (BGP VPN Access Control).
@@ -1591,6 +1627,12 @@ footer,
   .context-container {
     position: relative;
     display: flex;
+    // Vertically center all breadcrumb items (project name, service menu
+    // label, search box) on one baseline. Previously only `.special-crumb`
+    // was flex-centered while `.context-list` items used BS3 float + a
+    // hand-computed vertical padding, so after the BS3→BS5 migration the
+    // items no longer lined up. Centering here unifies them.
+    align-items: center;
 
     .dropdown-mega {
       position: static;
@@ -1664,13 +1706,17 @@ footer,
     margin-right: $context-breadcrumb-padding-horizontal;
     margin-bottom: 0;
     padding: 0;
+    // Lay the list items out as a flex row (was BS3 `float: left`). The list
+    // itself stretches to the full bar height so each item's hover background,
+    // right border and dropdown anchoring still span the whole 42px.
+    display: flex;
+    align-self: stretch;
 
     > li {
       border-right: 1px solid rgba(51, 51, 51, 0.4);
-      display: block;
+      display: flex;
       font-size: $context-breadcrumb-font-size;
       position: relative;
-      float: left;
       padding: 0 0 0 $context-breadcrumb-padding-horizontal;
 
       &.context-admin {
@@ -1742,11 +1788,12 @@ footer,
 
       > a {
         color: #333;
-        display: inline-block;
-        padding: (
-            ($context-breadcrumb-height - ($context-breadcrumb-font-size - $font-size-base) - $line-height-computed) / 2
-          )
-          0; // to calculate the correct padding subtract from the total height the actual line-height (computed + adjustment for font size (if other than base size)), then divide by 2
+        // Fill the item's full height and center the label vertically via
+        // flex instead of the old hand-computed BS3 padding, so the project
+        // name and service menu label sit on the same baseline as the search
+        // box (which is already flex-centered in `.special-crumb`).
+        display: flex;
+        align-items: center;
         padding-right: $context-breadcrumb-padding-horizontal;
 
         &:active,
@@ -2364,6 +2411,143 @@ tr.updating {
   background-color: $bright-orange; // transient / in progress
   box-shadow: 0 0 0 2px rgba($bright-orange, 0.15);
 }
+
+// Block-storage volume/snapshot statuses (see
+// plugins/block_storage/.../constants.js). Reuse the same dot palette as
+// compute so Volumes and Snapshots rows show a status dot for every state
+// (not just `error`), consistent with the Servers list.
+[class$="-icon"].state-available-icon:before {
+  background-color: $medium-green; // ready / available
+  box-shadow: 0 0 0 2px rgba($medium-green, 0.15);
+}
+
+[class$="-icon"].state-error_deleting-icon:before,
+[class$="-icon"].state-error_backing-up-icon:before,
+[class$="-icon"].state-error_restoring-icon:before,
+[class$="-icon"].state-error_extending-icon:before {
+  background-color: $alarm-red; // error states
+  box-shadow: 0 0 0 2px rgba($alarm-red, 0.15);
+}
+
+[class$="-icon"].state-in-use-icon:before,
+[class$="-icon"].state-attached-icon:before {
+  background-color: $bright-blue; // active / in use (occupied, not an alarm)
+  box-shadow: 0 0 0 2px rgba($bright-blue, 0.15);
+}
+
+[class$="-icon"].state-detached-icon:before,
+[class$="-icon"].state-maintenance-icon:before,
+[class$="-icon"].state-down-icon:before {
+  background-color: $medium-gray; // idle / offline
+  box-shadow: 0 0 0 2px rgba($medium-gray, 0.15);
+}
+
+[class$="-icon"].state-creating-icon:before,
+[class$="-icon"].state-deleting-icon:before,
+[class$="-icon"].state-attaching-icon:before,
+[class$="-icon"].state-detaching-icon:before,
+[class$="-icon"].state-extending-icon:before,
+[class$="-icon"].state-retyping-icon:before,
+[class$="-icon"].state-uploading-icon:before,
+[class$="-icon"].state-downloading-icon:before,
+[class$="-icon"].state-backing-up-icon:before,
+[class$="-icon"].state-restoring-backup-icon:before,
+[class$="-icon"].state-restoring-icon:before,
+[class$="-icon"].state-unmanaging-icon:before,
+[class$="-icon"].state-awaiting-transfer-icon:before,
+[class$="-icon"].state-reserved-icon:before {
+  background-color: $bright-orange; // transient / in progress
+  box-shadow: 0 0 0 2px rgba($bright-orange, 0.15);
+}
+
+// Glance image statuses (active/queued/saving/importing/uploading/killed/
+// deleted/pending_delete/deactivated). Reuse the same dot palette so the
+// images list can show a status pill like volumes/snapshots.
+[class$="-icon"].state-queued-icon:before,
+[class$="-icon"].state-saving-icon:before,
+[class$="-icon"].state-importing-icon:before {
+  background-color: $bright-orange; // in progress
+  box-shadow: 0 0 0 2px rgba($bright-orange, 0.15);
+}
+
+[class$="-icon"].state-killed-icon:before,
+[class$="-icon"].state-deleted-icon:before,
+[class$="-icon"].state-pending_delete-icon:before {
+  background-color: $alarm-red; // failed / gone
+  box-shadow: 0 0 0 2px rgba($alarm-red, 0.15);
+}
+
+[class$="-icon"].state-deactivated-icon:before {
+  background-color: $medium-gray; // disabled / idle
+  box-shadow: 0 0 0 2px rgba($medium-gray, 0.15);
+}
+
+// Status pill: a compact capsule with a humanised status label, coloured by
+// semantic category (ok/active/error/busy/idle). Shared by the React
+// `StatusPill` component and the `status_pill` HAML helper.
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: $font-size-small;
+  font-weight: 600;
+  line-height: 1.6;
+  white-space: nowrap;
+
+  &.status-pill-ok {
+    color: darken($medium-green, 18%);
+    background-color: rgba($medium-green, 0.15);
+  }
+
+  &.status-pill-active {
+    color: darken($bright-blue, 8%);
+    background-color: rgba($bright-blue, 0.12);
+  }
+
+  &.status-pill-error {
+    color: darken($alarm-red, 8%);
+    background-color: rgba($alarm-red, 0.12);
+  }
+
+  &.status-pill-busy {
+    color: darken($bright-orange, 12%);
+    background-color: rgba($bright-orange, 0.15);
+  }
+
+  &.status-pill-idle {
+    color: darken($medium-gray, 18%);
+    background-color: rgba($medium-gray, 0.18);
+  }
+
+  // Outline variant: low-key bordered capsule with no background, for
+  // secondary status values that shouldn't compete with a coloured pill
+  // next to them (e.g. the replica lifecycle status beside replica_state).
+  &.status-pill-outline {
+    font-weight: normal;
+    color: #666;
+    background-color: transparent;
+    border: 1px solid #ccc;
+  }
+}
+
+// Neutral attribute tag for low-key metadata (availability zone, flavor, ...).
+// Deliberately low-key (grey outline) so it reads as metadata and never
+// competes with the coloured status pills. `.az-badge` kept as an alias.
+.attr-badge,
+.az-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid #ccc;
+  font-size: $font-size-small;
+  line-height: 1.6;
+  white-space: nowrap;
+  color: #666;
+  background-color: #fff;
+}
+
 
 // `tr.state-*` rows (used elsewhere) apply the dot to their first cell. Give
 // those the shape too, since the attribute selector above only matches the

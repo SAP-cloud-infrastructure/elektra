@@ -236,16 +236,16 @@ describe("Item Component", () => {
   describe("Description Column", () => {
     it("renders port description", () => {
       renderComponent()
-      // Description is the third column (index 2)
+      // Description is the fourth column (index 3): icon, name, status, description
       const cells = screen.getAllByRole("cell")
-      expect(cells[2]).toHaveTextContent(mockPort.description!)
+      expect(cells[3]).toHaveTextContent(mockPort.description!)
     })
 
     it("renders empty when description is missing", () => {
       const portWithoutDescription: Port = { ...mockPort, description: undefined }
       renderComponent({ port: portWithoutDescription })
       const cells = screen.getAllByRole("cell")
-      expect(cells[2]).toBeEmptyDOMElement()
+      expect(cells[3]).toBeEmptyDOMElement()
     })
   })
 
@@ -335,8 +335,8 @@ describe("Item Component", () => {
       const portWithoutDevice: Port = { ...mockPort, device_id: undefined, device_owner: undefined }
       renderComponent({ port: portWithoutDevice })
       const cells = screen.getAllByRole("cell")
-      // Device owner/id column should be empty
-      expect(cells[5]).toBeEmptyDOMElement()
+      // Device owner/id column (index 6: icon, name, status, description, network, fixed_ips, device)
+      expect(cells[6]).toBeEmptyDOMElement()
     })
 
     it("uses instancesPath prop for compute instance links", () => {
@@ -351,14 +351,16 @@ describe("Item Component", () => {
   describe("Status Column", () => {
     it("renders port status", () => {
       renderComponent()
-      expect(screen.getByText(mockPort.status!)).toBeInTheDocument()
+      // StatusPill humanises the raw status ("ACTIVE" -> "Active")
+      expect(screen.getByText("Active")).toBeInTheDocument()
     })
 
     it("handles missing status", () => {
       const portWithoutStatus: Port = { ...mockPort, status: undefined }
       renderComponent({ port: portWithoutStatus })
       const cells = screen.getAllByRole("cell")
-      expect(cells[6]).toBeEmptyDOMElement()
+      // status is now the third column (index 2): icon, name, status
+      expect(cells[2]).toBeEmptyDOMElement()
     })
   })
 

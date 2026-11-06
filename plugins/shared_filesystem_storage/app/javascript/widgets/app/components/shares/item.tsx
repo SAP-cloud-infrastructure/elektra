@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react"
 import { Link } from "react-router-dom"
 import { policy } from "lib/policy"
 import { Tooltip } from "lib/components/Overlay"
+import StatusPill from "lib/components/StatusPill"
 import * as constants from "../../constants"
 import ShareActions from "./actions"
 
@@ -103,13 +104,13 @@ const ShareItem: React.FC<ShareItemProps> = ({
       <td>
         <Link to={`/shares/${share.id}/show`}>{share.name || share.id}</Link>
       </td>
+      <td>
+        {isCreating && <span className="spinner"></span>}
+        <StatusPill status={share.status} />
+      </td>
       <td>{share.availability_zone}</td>
       <td>{share.share_proto}</td>
       <td>{(share.size || 0) + " GB"}</td>
-      <td>
-        {isCreating && <span className="spinner"></span>}
-        {share.status}
-      </td>
       <td>
         {shareNetwork ? (
           <span>
