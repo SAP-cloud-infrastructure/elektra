@@ -30,6 +30,10 @@ module Networking
         network_project_ids_map.each_with_object(
           [],
         ) do |(network_id, project_ids), stats|
+          # skip networks without ip availability data (e.g. network no longer
+          # external or not accessible) to avoid null usage entries
+          next if networks_usage[network_id].nil?
+
           # calculate the sum of approved floating ips of all projects
           approved_quota_sum = 0
           project_ids.each do |id|
