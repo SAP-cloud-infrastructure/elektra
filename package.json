@@ -97,7 +97,7 @@
     "@typescript-eslint/eslint-plugin": "^8.46.0",
     "@typescript-eslint/parser": "^8.46.0",
     "@vitejs/plugin-react": "^5.0.4",
-    "autoprefixer": "^10.4.12",
+    "autoprefixer": "^10.6.2",
     "babel-plugin-transform-import-meta": "^2.2.0",
     "chokidar": "^3.5.3",
     "eslint": "^9.37.0",
