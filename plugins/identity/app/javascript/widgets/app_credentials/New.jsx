@@ -21,7 +21,7 @@ const NewAppCredentials = ({ userId, refreshList, setOverlay }) => {
   const handleSubmit = (formData) => {
     //console.log("formData", formData)
     if (!formData.name) {
-      setError("Name are required.")
+      setError("Name is required.")
       return
     }
     setError(null)
