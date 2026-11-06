@@ -55,6 +55,9 @@ export const DEFAULT_STATUS_CATEGORY: Record<string, StatusCategory> = {
   saving: "busy",
   importing: "busy",
   build: "busy",
+  creating_from_snapshot: "busy",
+  migrating: "busy",
+  migrating_to: "busy",
 }
 
 /**
@@ -84,6 +87,11 @@ interface StatusPillProps {
   label?: string
   /** Optional tooltip shown on hover. Pass a string or rich React content. */
   tooltip?: React.ReactNode
+  /**
+   * Visual variant: "solid" (default) is a tinted capsule; "outline" is a
+   * low-key bordered capsule (no background), for secondary status values.
+   */
+  variant?: "solid" | "outline"
 }
 
 /**
@@ -95,15 +103,19 @@ interface StatusPillProps {
  *   <StatusPill status={volume.status} />
  *   <StatusPill status={image.status} categoryMap={{ queued: "busy" }} />
  *   <StatusPill status={lb.operating_status} category="busy" tooltip={<...>} />
+ *   <StatusPill status={replica.status} variant="outline" />
  */
-const StatusPill: React.FC<StatusPillProps> = ({ status, categoryMap, category, label, tooltip }) => {
+const StatusPill: React.FC<StatusPillProps> = ({ status, categoryMap, category, label, tooltip, variant }) => {
   if (!status) return null
   const map = categoryMap ? { ...DEFAULT_STATUS_CATEGORY, ...categoryMap } : DEFAULT_STATUS_CATEGORY
   // Status values can arrive in any case (e.g. networking "ACTIVE"/"DOWN"),
   // so look up the category case-insensitively.
   const key = `${status}`.toLowerCase()
   const resolvedCategory = category || map[key] || "idle"
-  const pill = <span className={`status-pill status-pill-${resolvedCategory}`}>{label || humanizeStatus(status)}</span>
+  const variantClass = variant === "outline" ? " status-pill-outline" : ""
+  const pill = (
+    <span className={`status-pill status-pill-${resolvedCategory}${variantClass}`}>{label || humanizeStatus(status)}</span>
+  )
 
   if (!tooltip) return pill
 

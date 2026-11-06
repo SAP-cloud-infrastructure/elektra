@@ -60,9 +60,9 @@ const SnapshotList: React.FC<SnapshotListProps> = ({
       <thead>
         <tr>
           <th>Name</th>
+          <th>Status</th>
           <th>Source</th>
           <th>Size</th>
-          <th>Status</th>
           <th></th>
         </tr>
       </thead>

@@ -1,6 +1,7 @@
 import React, { useEffect, useCallback } from "react"
 import { Link } from "react-router-dom"
 import { policy } from "lib/policy"
+import StatusPill from "lib/components/StatusPill"
 
 // availability_zone: "qa-de-1a"
 // cached_object_type: "share_replica"
@@ -74,6 +75,21 @@ const ReplicaItem: React.FC<ReplicaItemProps> = ({
         )}
       </td>
       <td>
+        {replica.replica_state && (
+          <StatusPill
+            status={replica.replica_state}
+            categoryMap={{ active: "ok", in_sync: "ok", out_of_sync: "busy", error: "error" }}
+          />
+        )}
+      </td>
+      <td>
+        {replica.status === "creating" && <span className="spinner" />}{" "}
+        {/* Outline (border-only) pill: the colourful replica_state (left) is
+            the meaningful health dimension; the lifecycle status stays low-key
+            so the two don't compete visually. */}
+        <StatusPill status={replica.status} variant="outline" />
+      </td>
+      <td>
         {share && typeof share === "object" ? (
           <div>
             {share.name}
@@ -83,11 +99,6 @@ const ReplicaItem: React.FC<ReplicaItemProps> = ({
         ) : (
           replica.share_id
         )}
-      </td>
-      <td>{replica.replica_state}</td>
-      <td>
-        {replica.status === "creating" && <span className="spinner" />}{" "}
-        {replica.status}
       </td>
       <td className="snug">
         {(canI("promote") || canI("delete") || canI("resync") || canI("get_error_log")) && (

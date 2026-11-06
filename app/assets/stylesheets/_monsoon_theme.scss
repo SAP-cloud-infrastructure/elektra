@@ -2519,6 +2519,16 @@ tr.updating {
     color: darken($medium-gray, 18%);
     background-color: rgba($medium-gray, 0.18);
   }
+
+  // Outline variant: low-key bordered capsule with no background, for
+  // secondary status values that shouldn't compete with a coloured pill
+  // next to them (e.g. the replica lifecycle status beside replica_state).
+  &.status-pill-outline {
+    font-weight: normal;
+    color: #666;
+    background-color: transparent;
+    border: 1px solid #ccc;
+  }
 }
 
 // Neutral attribute tag for low-key metadata (availability zone, flavor, ...).

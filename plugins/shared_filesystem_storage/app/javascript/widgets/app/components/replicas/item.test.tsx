@@ -88,12 +88,12 @@ describe("ReplicaItem", () => {
 
     it("renders replica_state", () => {
       renderComponent()
-      expect(screen.getByText("active")).toBeInTheDocument()
+      expect(screen.getByText("Active")).toBeInTheDocument()
     })
 
     it("renders status", () => {
       renderComponent()
-      expect(screen.getByText("available")).toBeInTheDocument()
+      expect(screen.getByText("Available")).toBeInTheDocument()
     })
 
     it("shows spinner when status is creating", () => {
