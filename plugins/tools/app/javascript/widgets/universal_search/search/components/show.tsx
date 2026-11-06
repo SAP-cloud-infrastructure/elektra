@@ -162,7 +162,7 @@ const ShowSearchObjectModal: React.FC<ShowSearchObjectModalProps> = ({
                 <Asr routerId={item.id} />
               </Tab>
             )}
-            {policy.isAllowed("tools:universal_search_asr") && (
+            {!isDomain && policy.isAllowed("tools:universal_search_asr") && (
               <Tab eventKey="objectTopology" title="Topology">
                 <ObjectTopology size={[500, 500]} objectId={item.id} />
               </Tab>
