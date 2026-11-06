@@ -7,6 +7,7 @@ import { byteToHuman } from "lib/tools/size_formatter"
 import Digest from "../digest"
 import TagName from "../tagname"
 import { makeGCNotice } from "../utils"
+import StatusPill from "lib/components/StatusPill"
 
 const mediaTypes = {
   "application/vnd.docker.distribution.manifest.v2+json": {
@@ -136,8 +137,23 @@ export default class ImageRow extends React.Component {
             )}
           </td>
           <td className="col-md-1">{byteToHuman(sizeBytes)}</td>
-          <td className={vulnerabilityStatus === "Error" ? "col-md-1 text-danger" : "col-md-1"}>
-            {vulnerabilityStatus}
+          <td className="col-md-1">
+            {vulnerabilityStatus && (
+              <StatusPill
+                status={vulnerabilityStatus}
+                categoryMap={{
+                  clean: "ok",
+                  medium: "busy",
+                  high: "error",
+                  critical: "error",
+                  low: "idle",
+                  unknown: "idle",
+                  error: "idle",
+                  pending: "idle",
+                  unsupported: "idle",
+                }}
+              />
+            )}
           </td>
           {(this.props.canEdit || mediaTypeInfo.hasDetails) && (
             <td className="snug text-end text-nobreak">
