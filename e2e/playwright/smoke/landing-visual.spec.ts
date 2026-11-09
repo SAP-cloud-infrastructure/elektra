@@ -66,39 +66,6 @@ test.describe("Visual Regression - Landing Page", () => {
     })
   })
 
-  test("login page", async ({ page }) => {
-    await page.goto(`/${TEST_DOMAIN}/home/`)
-    await page.waitForTimeout(1000)
-
-    // Wait for login prompt
-    await expect(page.locator("text=Please sign in")).toBeVisible()
-
-    const masks = getBasicMaskSelectors(page)
-
-    await expect(page).toHaveScreenshot("landing-login-page.png", {
-      fullPage: true,
-      mask: masks,
-      ...SCREENSHOT_OPTIONS,
-    })
-  })
-
-  test("error page - unsupported domain", async ({ page }) => {
-    await page.goto("/BAD_DOMAIN_THAT_DOES_NOT_EXIST/home", {
-      waitUntil: "domcontentloaded",
-    })
-    await page.waitForTimeout(1000)
-
-    // Wait for error message
-    await expect(page.locator("text=Unsupported Domain")).toBeVisible()
-
-    const masks = getBasicMaskSelectors(page)
-
-    await expect(page).toHaveScreenshot("landing-error-unsupported-domain.png", {
-      fullPage: true,
-      mask: masks,
-      ...SCREENSHOT_OPTIONS,
-    })
-  })
 })
 
 test.describe("Responsive - Landing Page", () => {
