@@ -1627,6 +1627,13 @@ footer,
   .context-container {
     position: relative;
     display: flex;
+    // Fill the fixed-height breadcrumb bar so `align-items: center` has the
+    // full 42px to work with. Without an explicit height the `.container` only
+    // grows to its content, sits at the top of the bar, and vertically centres
+    // its items within that shorter box instead of the bar — on pages like the
+    // Web Shell (where the service-menu glyph may not paint and the content is
+    // shorter) the whole row then visibly shifts upward.
+    height: 100%;
     // Vertically center all breadcrumb items (project name, service menu
     // label, search box) on one baseline. Previously only `.special-crumb`
     // was flex-centered while `.context-list` items used BS3 float + a
