@@ -15,6 +15,7 @@ function show_help() {
   echo "  --headed                 Run tests in headed mode (show browser - requires DISPLAY)"
   echo "  --debug                  Run tests in debug mode"
   echo "  --ui                     Run tests in UI mode (interactive - requires DISPLAY)"
+  echo "  -u, --update-snapshots   Update/recreate visual baseline screenshots"
   echo "  --pull                   Force pull latest Docker image"
   echo "  --help                   Show this help message"
   echo ""
@@ -37,6 +38,7 @@ BROWSER="chromium"
 HEADED=""
 DEBUG=""
 UI=""
+UPDATE_SNAPSHOTS=""
 TESTNAME=""
 PULL_IMAGE=false
 
@@ -65,6 +67,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --ui)
       UI="--ui"
+      shift
+      ;;
+    -u|--update-snapshots)
+      UPDATE_SNAPSHOTS="--update-snapshots"
       shift
       ;;
     --pull)
@@ -185,7 +191,7 @@ docker run --rm \
   --network=host \
   --ipc=host \
   $PLAYWRIGHT_IMAGE \
-  /bin/bash -c "npx playwright test $TEST_SPEC $PROJECT_FLAG $HEADED $DEBUG $UI"
+  /bin/bash -c "npx playwright test $TEST_SPEC $PROJECT_FLAG $HEADED $DEBUG $UI $UPDATE_SNAPSHOTS"
 
 EXIT_CODE=$?
 
