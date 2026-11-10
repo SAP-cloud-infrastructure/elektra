@@ -78,7 +78,8 @@ export default class CastellumConfigurationView extends React.Component {
         <select
           data-testid="autoscalingSelect"
           id="scalingOptions"
-          className="select form-control tw-w-48"
+          className="select form-control"
+          style={{ width: "10rem" }}
           value={this.state.selected.label}
           onChange={(e) => {
             this.handleSelectChange(e, configMap)
