@@ -1,0 +1,4 @@
+{
+  "compute_ng:instance_list": "@",
+  "compute_ng:instance_get": "@"
+}

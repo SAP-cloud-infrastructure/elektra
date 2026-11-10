@@ -83,6 +83,10 @@ Rails.application.routes.draw do
       ###################### MOUNT PLUGINS #####################
       Core::PluginsManager.mountable_plugins.each do |plugin|
         next if %w[docs cloudops tools].include?(plugin.name)
+        # compute_ng is a work-in-progress, development-only plugin. The hard
+        # production exclusion is BLACK_LIST_PLUGINS at bundle time; this guard
+        # is defense-in-depth so it never mounts outside development.
+        next if plugin.name == 'compute_ng' && !Rails.env.development?
 
         Logger.new(STDOUT).debug(
           "Mount plugin #{plugin.mount_point} as #{plugin.name}_plugin"

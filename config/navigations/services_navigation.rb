@@ -81,6 +81,18 @@ SimpleNavigation::Configuration.run do |navigation|
                        },
                        highlights_on:
                          proc { params[:controller][%r{compute/instances}] }
+      # Development-only entry for the new React/BFF compute plugin. The hard
+      # production exclusion is BLACK_LIST_PLUGINS at bundle time (plus the
+      # Rails.env.development? mount guard in config/routes.rb); this guard
+      # keeps the nav link out of any non-development environment.
+      compute_nav.item :servers_ng,
+                       'Servers (NG)',
+                       -> { plugin('compute_ng').start_path },
+                       if: lambda {
+                         Rails.env.development? && plugin_available?(:compute_ng)
+                       },
+                       highlights_on:
+                         proc { params[:controller][%r{compute_ng/.*}] }
       compute_nav.item :block_storage,
                        'Volumes & Snapshots',
                        -> { plugin('block_storage').root_path + '?r=' },
