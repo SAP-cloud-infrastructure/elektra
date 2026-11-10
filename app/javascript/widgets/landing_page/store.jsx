@@ -162,7 +162,7 @@ const REGIONS_BY_CONTINENT = [
 ]
 
 const REGION_KEYS = Object.keys(REGIONS)
-const QA_REGION_KEYS = ["QA-DE-1", "QA-DE-2", "QA-DE-3"]
+const QA_REGION_KEYS = ["QA-DE-1", "QA-DE-2", "QA-DE-3", "EU-DE-3"]
 
 // global store
 const useStore = create(
