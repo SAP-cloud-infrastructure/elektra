@@ -38,6 +38,16 @@ Layout/Spacing, so macht es `kubernetes_ng` mit ~95 `tw-`-Klassen), (2) **Bootst
 react-bootstrap 2.10.10 für fehlende Komponenten. `smartops` bleibt bewusst Juno-only (0 `tw-`),
 `kubernetes_ng` mischt Juno + Tailwind — beide Enden sind im Repo erprobt.
 
+> **Update (2026-11-10, Team-Entscheidung — kehrt die UI-Strategie um):** Statt „Juno zuerst"
+> jetzt **Bootstrap 5 zuerst**, damit `compute_ng` **optisch wie die alte `compute`-Seite**
+> aussieht. Juno wird **vollständig aus dem Plugin entfernt** (keine `@cloudoperators/juno`-Imports).
+> Die alte UI ist reines BS5 (`.table.instances`, `.toolbar`, `.input-group`, `.form-control`,
+> `.btn`, `.status-pill`), und BS5 ist global geladen — das Widget rendert ohne Shadow-DOM in die
+> Host-Seite und erbt die BS5-Styles direkt. Status-Pills nutzen die **geteilte Core-Komponente**
+> `app/javascript/lib/components/StatusPill.tsx` (gleiche `.status-pill`-Optik wie die HAML-Welt);
+> das ist Core-Infra (`lib/*`, wie `lib/ajax_helper`), **kein Fremd-Plugin** → Autarkie bleibt
+> gewahrt. TanStack Router/Query, Zod und die BFF-JSON-Shape bleiben unverändert (reine UI-Änderung).
+
 ---
 
 ## Verifizierte Fakten (als Grundlage)

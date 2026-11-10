@@ -1,5 +1,4 @@
 import { createFileRoute, useRouteContext } from "@tanstack/react-router"
-import { IntroBox, Message, Spinner } from "@cloudoperators/juno-ui-components"
 import { useInstancesQuery } from "../../hooks/useInstanceQueries"
 import { InstanceTable } from "./-components/InstanceTable"
 
@@ -13,10 +12,16 @@ function Instances() {
 
   return (
     <div>
-      <IntroBox text="Instances in this project, aggregated server-side from compute, network and image APIs." />
-      {isError && <Message variant="error" title="Failed to load instances" text={error?.message} />}
+      {isError && (
+        <div className="alert alert-danger" role="alert">
+          <strong>Failed to load instances.</strong>
+          {error?.message && <span className="ms-1">{error.message}</span>}
+        </div>
+      )}
       {isLoading ? (
-        <Spinner size="small" aria-label="Loading instances" />
+        <div className="spinner-border spinner-border-sm" role="status">
+          <span className="visually-hidden">Loading instances…</span>
+        </div>
       ) : (
         <InstanceTable instances={instances ?? []} />
       )}

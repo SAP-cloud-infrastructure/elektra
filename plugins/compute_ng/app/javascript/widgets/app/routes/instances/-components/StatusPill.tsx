@@ -1,14 +1,16 @@
-import { Badge, Stack } from "@cloudoperators/juno-ui-components"
+import CoreStatusPill, { type StatusCategory } from "lib/components/StatusPill"
 import type { InstanceStatus } from "../../../types/instance"
 
-// Maps the BFF's semantic state to a Juno Badge variant. The backend emits the
-// *meaning* (active/stopped/error/...); the colour choice is a presentation
-// concern and therefore lives here, on the client.
-const VARIANT_BY_STATE: Record<string, "success" | "danger" | "warning" | "info"> = {
-  active: "success",
-  stopped: "info",
-  error: "danger",
-  building: "warning",
+// Maps the BFF's semantic state to the shared status-pill category that drives
+// the colour tint. The backend emits the *meaning* (active/stopped/error/...);
+// the colour choice is a presentation concern and therefore lives here, on the
+// client. We reuse the core `.status-pill` component so compute_ng looks
+// identical to the server-rendered (HAML) pages.
+const CATEGORY_BY_STATE: Record<string, StatusCategory> = {
+  active: "ok",
+  stopped: "idle",
+  error: "error",
+  building: "busy",
 }
 
 interface StatusPillProps {
@@ -16,12 +18,12 @@ interface StatusPillProps {
 }
 
 export function StatusPill({ status }: StatusPillProps) {
-  const variant = VARIANT_BY_STATE[status.state] ?? "info"
+  const category = CATEGORY_BY_STATE[status.state] ?? "idle"
 
   return (
-    <Stack gap="1" alignment="center">
-      <Badge variant={variant}>{status.state}</Badge>
-      {status.transition && <Badge variant="warning">{status.transition}</Badge>}
-    </Stack>
+    <span className="d-inline-flex flex-wrap align-items-center gap-1">
+      <CoreStatusPill status={status.state} category={category} />
+      {status.transition && <CoreStatusPill status={status.transition} category="busy" variant="outline" />}
+    </span>
   )
 }

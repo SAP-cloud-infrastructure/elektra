@@ -1,5 +1,4 @@
 import { useState } from "react"
-import { Stack, Button } from "@cloudoperators/juno-ui-components"
 import type { InstanceIps } from "../../../types/instance"
 
 const MAX_VISIBLE = 2
@@ -18,29 +17,29 @@ export function IpList({ ips }: IpListProps) {
     ...ips.fixed.map((ip) => ({ ip, kind: "fixed" as const })),
   ]
 
-  if (all.length === 0) return <span className="tw-text-theme-light">—</span>
+  if (all.length === 0) return <span className="text-muted">—</span>
 
   const visible = expanded ? all : all.slice(0, MAX_VISIBLE)
   const hidden = all.length - visible.length
 
   return (
-    <Stack direction="vertical" gap="0.5">
+    <div className="d-flex flex-column gap-1">
       {visible.map(({ ip, kind }) => (
         <span key={`${kind}-${ip}`}>
           {ip}
-          {kind === "floating" && <span className="tw-text-theme-light tw-ml-1">(floating)</span>}
+          {kind === "floating" && <span className="text-muted ms-1">(floating)</span>}
         </span>
       ))}
       {hidden > 0 && !expanded && (
-        <Button size="small" variant="subdued" onClick={() => setExpanded(true)}>
+        <button type="button" className="btn btn-link btn-sm p-0 text-start" onClick={() => setExpanded(true)}>
           +{hidden} more
-        </Button>
+        </button>
       )}
       {expanded && all.length > MAX_VISIBLE && (
-        <Button size="small" variant="subdued" onClick={() => setExpanded(false)}>
+        <button type="button" className="btn btn-link btn-sm p-0 text-start" onClick={() => setExpanded(false)}>
           Show less
-        </Button>
+        </button>
       )}
-    </Stack>
+    </div>
   )
 }

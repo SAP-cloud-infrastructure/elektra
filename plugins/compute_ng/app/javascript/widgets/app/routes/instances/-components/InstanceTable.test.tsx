@@ -23,9 +23,11 @@ describe("InstanceTable", () => {
   it("renders instance name, resolved flavor and image, and status", () => {
     render(<InstanceTable instances={[instance]} />)
     expect(screen.getByText("web-01")).toBeInTheDocument()
-    expect(screen.getByText("m1.small")).toBeInTheDocument()
-    expect(screen.getByText("ubuntu-24.04")).toBeInTheDocument()
-    expect(screen.getByText("active")).toBeInTheDocument()
+    // Image and flavor share the "OS / Size" cell (image over flavor), so match
+    // the combined cell text rather than isolated nodes.
+    const osSizeCell = screen.getByText((_, el) => el?.textContent === "ubuntu-24.04m1.small" && el.tagName === "TD")
+    expect(osSizeCell).toBeInTheDocument()
+    expect(screen.getByText("Active")).toBeInTheDocument()
   })
 
   it("falls back to the id when the name is null", () => {
@@ -35,10 +37,10 @@ describe("InstanceTable", () => {
 
   it("falls back to a dash when flavor/image names are unresolved", () => {
     render(
-      <InstanceTable
-        instances={[{ ...instance, flavor: { id: null, name: null }, image: { id: null, name: null } }]}
-      />
+      <InstanceTable instances={[{ ...instance, flavor: { id: null, name: null }, image: { id: null, name: null } }]} />
     )
-    expect(screen.getAllByText("—").length).toBeGreaterThanOrEqual(2)
+    // Both image and flavor collapse to a dash in the shared "OS / Size" cell.
+    const osSizeCell = screen.getByText((_, el) => el?.textContent === "——" && el.tagName === "TD")
+    expect(osSizeCell).toBeInTheDocument()
   })
 })

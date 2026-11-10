@@ -1,8 +1,6 @@
 import { StrictMode } from "react"
-import { AppShellProvider, Message } from "@cloudoperators/juno-ui-components"
 import { RouterProvider } from "@tanstack/react-router"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { MessagesProvider } from "@cloudoperators/juno-messages-provider"
 import { createAppRouter } from "./router"
 import styles from "./styles.scss?inline"
 
@@ -19,21 +17,20 @@ export default function App({ basepath, region, projectid }: AppProps) {
   const router = createAppRouter(basepath, region, projectid)
 
   return (
-    <AppShellProvider theme="theme-light">
+    <StrictMode>
       <style>{styles}</style>
-      <StrictMode>
-        <MessagesProvider>
-          <QueryClientProvider client={queryClient}>
-            <RouterProvider
-              basepath={basepath}
-              router={router}
-              defaultErrorComponent={({ error }) => (
-                <Message variant="error" title="Something went wrong" text={error.message} />
-              )}
-            />
-          </QueryClientProvider>
-        </MessagesProvider>
-      </StrictMode>
-    </AppShellProvider>
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider
+          basepath={basepath}
+          router={router}
+          defaultErrorComponent={({ error }) => (
+            <div className="alert alert-danger" role="alert">
+              <strong>Something went wrong.</strong>
+              {error?.message && <span className="ms-1">{error.message}</span>}
+            </div>
+          )}
+        />
+      </QueryClientProvider>
+    </StrictMode>
   )
 }
