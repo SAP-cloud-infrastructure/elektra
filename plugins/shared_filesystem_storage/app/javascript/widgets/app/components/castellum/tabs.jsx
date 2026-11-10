@@ -52,12 +52,16 @@ export default class CastellumTabs extends React.Component {
     const CurrentComponent = pages[this.state.active].component
 
     return (
-      <div>
+      <div className="row">
         <div className="col-sm-2">
-          <ul className="nav nav-pills nav-stacked">
+          <ul className="nav nav-pills flex-column">
             {pages.map((conf, idx) => (
-              <li key={idx} role="presentation" className={idx == this.state.active ? "active" : ""}>
-                <a href="#" onClick={(e) => this.handleSelect(idx, e)}>
+              <li key={idx} className="nav-item">
+                <a
+                  href="#"
+                  className={`nav-link${idx == this.state.active ? " active" : ""}`}
+                  onClick={(e) => this.handleSelect(idx, e)}
+                >
                   {conf.label}
                 </a>
               </li>

@@ -10,12 +10,12 @@
   %thead
     %tr
       %th Name
+      %th Status
       %th Project
       %th External Network
       %th External Subnet
       %th Private Network
       %th Flavor
-      %th Status
       %th.snug
   %tbody
     - if @routers.length==0
@@ -31,6 +31,7 @@
             = link_to router.name, plugin('networking').router_path(router.id), data: {modal: true}
             %br
             %span.info-text= router.id
+          %td= status_pill(router.status)
           %td
             = cached_object(router.tenant_id, type: 'project')
             -# %br
@@ -53,14 +54,6 @@
           %td
             - flavor = @flavors_by_id[router.flavor_id]
             - if flavor
-              %span.badge.text-bg-secondary{title: flavor.description}= flavor.name
-          %td
-
-            - status_class = case router.status
-              - when 'ACTIVE' then 'text-bg-success'
-              - when 'ERROR' then 'text-bg-danger'
-              - when 'DOWN' then 'text-bg-secondary'
-              - else 'text-bg-warning'
-            %span.badge{class: status_class}= router.status
+              %span.attr-badge{data: { bs_toggle: "tooltip", bs_placement: "top" }, title: flavor.description}= flavor.name
           %td.snug
             = render partial: 'item_actions', locals: {router:router, show_view:false}

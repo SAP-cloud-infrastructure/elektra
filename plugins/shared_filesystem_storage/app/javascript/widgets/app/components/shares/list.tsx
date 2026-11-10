@@ -173,6 +173,7 @@ const ShareList: React.FC<ShareListProps> = ({
           <thead>
             <tr>
               <th>Name</th>
+              <th>Status</th>
               <th>
                 AZ
                 <Tooltip placement="top" content="Availability Zone">
@@ -181,7 +182,6 @@ const ShareList: React.FC<ShareListProps> = ({
               </th>
               <th>Protocol</th>
               <th>Size</th>
-              <th>Status</th>
               <th>Network</th>
               <th></th>
             </tr>

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react"
 import { Link } from "react-router-dom"
 import { policy } from "lib/policy"
+import StatusPill from "lib/components/StatusPill"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -63,6 +64,10 @@ const SnapshotItem: React.FC<SnapshotItemProps> = ({
         )}
       </td>
       <td>
+        {snapshot.status === "creating" && <span className="spinner" />}{" "}
+        <StatusPill status={snapshot.status} />
+      </td>
+      <td>
         {share ? (
           <div>
             {share.name}
@@ -74,10 +79,6 @@ const SnapshotItem: React.FC<SnapshotItemProps> = ({
         )}
       </td>
       <td>{(snapshot.size || 0) + " GB"}</td>
-      <td>
-        {snapshot.status === "creating" && <span className="spinner" />}{" "}
-        {snapshot.status}
-      </td>
       <td className="snug">
         {(policy.isAllowed("shared_filesystem_storage:snapshot_delete") ||
           policy.isAllowed("shared_filesystem_storage:snapshot_update")) && (

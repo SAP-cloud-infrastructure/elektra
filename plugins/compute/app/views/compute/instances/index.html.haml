@@ -19,10 +19,10 @@
 %table.table.instances
   %thead
     %tr
-      %th.snug
       %th
         Name / AZ
-        %i.fa.fa-fw.fa-info-circle{data: { bs_toggle: "tooltip", placement: "top", title: "Availability Zone"}}
+        %i.fa.fa-fw.fa-info-circle{data: { bs_toggle: "tooltip", bs_placement: "top" }, title: "Availability Zone"}
+      %th Power state
       - if @all_projects
         %th Owning Project
       -# %th
@@ -32,7 +32,6 @@
       %th
         OS / Size
       -# %th Size
-      %th Power state
       %th Created at
       %th.snug
   %tbody

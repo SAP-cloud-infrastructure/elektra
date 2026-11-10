@@ -2,6 +2,57 @@
 
 module Compute
   module InstancesHelper
+    # Renders the instance's POWER STATE as a status pill (using the shared
+    # `status_pill` core helper). The LABEL is the human power state
+    # (Running / Shut off / ...), but the COLOUR is driven by the OpenStack
+    # vm/task state and error/lock condition, so an ERROR instance still lights
+    # up red even if its power state looks harmless. Full details (status,
+    # task_state, error message) live in the tooltip.
+    INSTANCE_STATUS_CATEGORY = {
+      "active" => "ok",
+      "shutoff" => "idle",
+      "suspended" => "idle",
+      "paused" => "idle",
+      "error" => "error",
+      "deleted" => "idle",
+    }.freeze
+
+    def instance_status_pill(instance)
+      status = instance.status.to_s.downcase
+
+      # Semantic category drives the pill tint.
+      category =
+        if instance.locked? || !instance.errors.blank?
+          "error"
+        elsif instance.task_state.present?
+          "busy" # any in-flight task state (spawning, resizing, ...)
+        else
+          INSTANCE_STATUS_CATEGORY[status] || "idle"
+        end
+
+      # Tooltip: full detail on hover (errors / lock take precedence).
+      effective = instance.task_state.presence || instance.status.to_s
+      tooltip =
+        if !instance.errors.blank?
+          instance.errors.full_messages.to_sentence
+        elsif instance.locked?
+          "This instance is locked. Please note that this status is only " \
+            "displayed correctly if you use the lock/unlock functions via " \
+            "Elektra exclusively!"
+        else
+          text = "Status: #{effective.humanize}"
+          text += " (for more information see server details)" if status == "error"
+          text
+        end
+
+      status_pill(
+        status,
+        category: category,
+        label: instance.power_state_string,
+        tooltip: tooltip,
+      )
+    end
+
     # IMAGES
     # handle image data
     # array of hashes

@@ -5,6 +5,7 @@ import { Link } from "react-router-dom"
 import { truncate } from "lib/tools/helpers"
 // @ts-expect-error - lib/components/Overlay has no types
 import { Tooltip } from "lib/components/Overlay"
+import StatusPill from "lib/components/StatusPill"
 
 // Types
 interface FixedIP {
@@ -89,6 +90,7 @@ const Item: React.FC<ItemProps> = ({
         <br />
         <span className="info-text">{truncate(port.id, 20)}</span>
       </td>
+      <td>{port.status && <StatusPill status={port.status} />}</td>
       <td>{port.description}</td>
       <td>
         {(network && network.name) || port.network_id}
@@ -124,7 +126,6 @@ const Item: React.FC<ItemProps> = ({
           </>
         )}
       </td>
-      <td>{port.status}</td>
 
       <td className="snug">
         <div className="btn-group">

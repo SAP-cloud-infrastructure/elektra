@@ -82,7 +82,6 @@ describe("List Component", () => {
     render(<List {...defaultProps} />, { wrapper: RouterWrapper })
 
     expect(screen.getByText("Snapshot")).toBeInTheDocument()
-    expect(screen.getByText("Description")).toBeInTheDocument()
     expect(screen.getByText("Size(GB)")).toBeInTheDocument()
     expect(screen.getByText("Source Volume")).toBeInTheDocument()
     expect(screen.getByText("Status")).toBeInTheDocument()
@@ -93,8 +92,6 @@ describe("List Component", () => {
 
     expect(screen.getByText("Snapshot 1")).toBeInTheDocument()
     expect(screen.getByText("Snapshot 2")).toBeInTheDocument()
-    expect(screen.getByText("Description 1")).toBeInTheDocument()
-    expect(screen.getByText("Description 2")).toBeInTheDocument()
   })
 
   it("renders snapshot IDs", () => {
@@ -123,8 +120,8 @@ describe("List Component", () => {
   it("renders snapshot statuses", () => {
     render(<List {...defaultProps} />, { wrapper: RouterWrapper })
 
-    expect(screen.getByText("available")).toBeInTheDocument()
-    expect(screen.getByText("creating")).toBeInTheDocument()
+    expect(screen.getByText("Available")).toBeInTheDocument()
+    expect(screen.getByText("Creating")).toBeInTheDocument()
   })
 
   it("shows search field when more than 5 items", () => {
@@ -140,16 +137,16 @@ describe("List Component", () => {
 
     render(<List {...propsWithManyItems} />, { wrapper: RouterWrapper })
 
-    expect(screen.getByPlaceholderText("name, ID, format or status")).toBeInTheDocument()
+    expect(document.querySelector(".toolbar form.form-inline")).toBeInTheDocument()
   })
 
   it("does not show search field when 5 or fewer items", () => {
     render(<List {...defaultProps} />, { wrapper: RouterWrapper })
 
-    expect(screen.queryByPlaceholderText("name, ID, format or status")).not.toBeInTheDocument()
+    expect(document.querySelector(".toolbar form.form-inline")).not.toBeInTheDocument()
   })
 
-  it("calls search function when typing in search field", async () => {
+  it("calls search function when the search form is submitted", async () => {
     const propsWithManyItems = {
       ...defaultProps,
       snapshots: {
@@ -162,16 +159,15 @@ describe("List Component", () => {
 
     render(<List {...propsWithManyItems} />, { wrapper: RouterWrapper })
 
-    const searchInput = screen.getByPlaceholderText("name, ID, format or status")
+    // Form submits on Enter / search button click (not live while typing).
+    const searchInput = document.querySelector(".toolbar form.form-inline input[type=text]") as HTMLInputElement
 
-    // Wrap in act and use fireEvent for immediate execution
     await act(async () => {
-      await userEvent.type(searchInput, "t")
+      await userEvent.type(searchInput, "test{enter}")
     })
 
-    // Wait for any pending updates
     await waitFor(() => {
-      expect(defaultProps.search).toHaveBeenCalled()
+      expect(defaultProps.search).toHaveBeenCalledWith("test")
     })
   })
 

@@ -89,7 +89,7 @@ describe("SnapshotItem", () => {
 
     it("renders status", () => {
       render(<table><tbody><SnapshotItem {...defaultProps} /></tbody></table>)
-      expect(screen.getByText("available")).toBeInTheDocument()
+      expect(screen.getByText("Available")).toBeInTheDocument()
     })
 
     it("shows spinner when status is creating", () => {

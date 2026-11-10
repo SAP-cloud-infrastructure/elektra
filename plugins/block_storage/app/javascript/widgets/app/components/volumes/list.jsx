@@ -84,12 +84,11 @@ const VolumesList = ({
         <thead>
           <tr>
             <th>Volume Name</th>
-            <th>Availability Zone</th>
-            <th>Description</th>
+            <th>Status</th>
             <th>Size(GB)</th>
             <th style={{ whiteSpace: "nowrap" }}>Attached To</th>
+            <th>Availability Zone</th>
             <th style={{ whiteSpace: "nowrap" }}>Updated At</th>
-            <th>Status</th>
             <th className="snug"></th>
           </tr>
         </thead>
@@ -111,7 +110,7 @@ const VolumesList = ({
               ))
           ) : (
             <tr>
-              <td colSpan="8">{volumes.isFetching ? <span className="spinner" /> : "No volumes found."}</td>
+              <td colSpan="7">{volumes.isFetching ? <span className="spinner" /> : "No volumes found."}</td>
             </tr>
           )}
         </tbody>
