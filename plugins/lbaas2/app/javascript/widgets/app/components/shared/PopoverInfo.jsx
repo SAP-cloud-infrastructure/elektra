@@ -30,7 +30,12 @@ const PopoverInfo = ({ popoverId, buttonName, title, content, footer }) => {
         <Popover className="lbaas2 cached-info-popover" id={popoverId} style={{ minWidth: "180px" }}>
           {title && <Popover.Header as="h3">{title}</Popover.Header>}
           <Popover.Body>
-            <div className="cached-info-content">{content}</div>
+            <div
+              className="cached-info-content"
+              style={{ maxHeight: "300px", overflowY: "auto" }}
+            >
+              {content}
+            </div>
 
             {footer && <div className="cached-info-footer">{footer}</div>}
           </Popover.Body>

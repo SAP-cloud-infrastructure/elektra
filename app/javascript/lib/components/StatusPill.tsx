@@ -124,10 +124,13 @@ const StatusPill: React.FC<StatusPillProps> = ({ status, categoryMap, category, 
   // plain strings are passed through as-is. Rich content is wrapped in a
   // left-aligned container (Bootstrap tooltips are centre-aligned by default,
   // and the tooltip renders in a body portal outside any plugin CSS scope).
+  // NOTE: Bootstrap 5 sanitises the tooltip HTML and strips inline `style`
+  // attributes, so the left alignment must come from a CSS class (see the
+  // global `.status-pill-tooltip` rule) rather than an inline style.
   const isString = typeof tooltip === "string"
   const tooltipContent = isString
     ? tooltip
-    : renderToString(<div style={{ textAlign: "left" }}>{tooltip}</div>)
+    : renderToString(<div className="status-pill-tooltip">{tooltip}</div>)
   return (
     // @ts-expect-error lib/components/Overlay is untyped; container/delay are optional at runtime
     <Tooltip placement="top" content={tooltipContent} html={!isString}>
