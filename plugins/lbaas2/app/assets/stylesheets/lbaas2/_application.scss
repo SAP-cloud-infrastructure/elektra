@@ -83,10 +83,24 @@
   display: flex;
   align-items: center;
 
+  // Bootstrap headings carry an asymmetric `margin-bottom`, which shifts the
+  // flex box centre above the visible text and makes the margin-less help icon
+  // appear too high. Drop the heading margin so the icon lines up with the text.
+  > h1,
+  > h2,
+  > h3,
+  > h4,
+  > h5,
+  > h6 {
+    margin-bottom: 0;
+  }
+
   .has-feedback-help {
     padding-left: 8px;
     font-size: 16px;
-    line-height: 34px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
   }
   .btn-right {
     margin-left: auto;
@@ -496,8 +510,8 @@ ul.less-left-margin {
 .cached-info-popover {
   .cached-info-content {
     padding: 9px 14px;
-    overflow-y: scroll;
-    max-height: 250px;
+    overflow-y: auto;
+    max-height: 150px;
   }
 
   .cached-info-footer {

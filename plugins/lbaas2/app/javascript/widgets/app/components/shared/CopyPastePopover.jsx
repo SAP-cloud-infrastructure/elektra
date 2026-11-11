@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react"
 import uniqueId from "lodash/uniqueId"
 import { Popover, Tooltip, Overlay } from "react-bootstrap"
-import Clipboard from "react-clipboard.js"
 import { Highlighter } from "react-bootstrap-typeahead"
 
 const MyHighlighter = ({ search, children }) => {
@@ -31,10 +30,10 @@ const CopyPastePopover = ({
   searchTerm,
 }) => {
   const [showTooltip, setShowTooltip] = useState(false)
-  const [target, setTarget] = useState(null)
   const [showIcon, setShowIcon] = useState(false)
   const [showPopover, setShowPopover] = useState(false)
   const [popoverTarget, setPopoverTarget] = useState(null)
+  const copyButtonRef = React.useRef(null)
   let ref = React.useRef(null)
   const baseClass = bsClass || "cp"
   const shouldCopyText = shouldCopy == false ? false : true
@@ -49,25 +48,50 @@ const CopyPastePopover = ({
     setTimeout(() => setShowTooltip(false), 500)
   }
 
+  const handleCopyClick = (e) => {
+    if (e) e.preventDefault()
+    if (e) e.stopPropagation()
+    const value = `${text}`
+
+    const legacyCopy = () => {
+      const textarea = document.createElement("textarea")
+      textarea.value = value
+      textarea.style.position = "fixed"
+      textarea.style.opacity = "0"
+      document.body.appendChild(textarea)
+      textarea.select()
+      try {
+        document.execCommand("copy")
+        onCopySuccess()
+      } catch (err) {
+        /* ignore */
+      }
+      document.body.removeChild(textarea)
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(value).then(onCopySuccess, legacyCopy)
+    } else {
+      legacyCopy()
+    }
+  }
+
   const clipboard = (
-    <Clipboard
-      ref={(cb) => {
-        setTarget(cb)
-      }}
+    <button
+      type="button"
+      ref={copyButtonRef}
       className="btn btn-link"
-      data-clipboard-text={text}
-      onSuccess={onCopySuccess}
+      onClick={handleCopyClick}
     >
       <i className="fa fa-copy fa-fw"></i>
-    </Clipboard>
+    </button>
   )
 
   const tooltip = (
     <Overlay
       show={showTooltip}
       placement="top"
-      // container={this}
-      target={target}
+      target={() => copyButtonRef.current}
     >
       <Tooltip id={uniqueId("copy-paste-tooltip-")}>Copied!</Tooltip>
     </Overlay>
@@ -103,7 +127,7 @@ const CopyPastePopover = ({
     if (e) e.preventDefault()
     if (e) e.stopPropagation()
     setShowPopover(!showPopover)
-    setPopoverTarget(event.target)
+    setPopoverTarget(e.target)
   }
 
   const textSliced = () => {
