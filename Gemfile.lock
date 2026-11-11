@@ -21,9 +21,9 @@ PATH
     cloudops (0.0.1)
 
 PATH
-  remote: plugins/compute_ng
+  remote: plugins/compute_njq
   specs:
-    compute_ng (0.0.1)
+    compute_njq (0.0.1)
 
 PATH
   remote: plugins/compute
@@ -601,7 +601,7 @@ DEPENDENCIES
   byebug
   cloudops!
   compute!
-  compute_ng!
+  compute_njq!
   config (>= 2.2)
   csv
   database_cleaner

@@ -85,14 +85,14 @@ SimpleNavigation::Configuration.run do |navigation|
       # production exclusion is BLACK_LIST_PLUGINS at bundle time (plus the
       # Rails.env.development? mount guard in config/routes.rb); this guard
       # keeps the nav link out of any non-development environment.
-      compute_nav.item :servers_ng,
-                       'Servers (NG)',
-                       -> { plugin('compute_ng').start_path },
+      compute_nav.item :servers_njq,
+                       'Servers (no jQuery)',
+                       -> { plugin('compute_njq').start_path },
                        if: lambda {
-                         Rails.env.development? && plugin_available?(:compute_ng)
+                         Rails.env.development? && plugin_available?(:compute_njq)
                        },
                        highlights_on:
-                         proc { params[:controller][%r{compute_ng/.*}] }
+                         proc { params[:controller][%r{compute_njq/.*}] }
       compute_nav.item :block_storage,
                        'Volumes & Snapshots',
                        -> { plugin('block_storage').root_path + '?r=' },

@@ -1,9 +1,0 @@
-// compute_ng renders into the normal document (no shadow DOM), so it inherits
-// the globally loaded Bootstrap 5 styles from the host page. Keep plugin-local
-// overrides minimal and scoped under `.compute-ng` to avoid leaking into the
-// rest of the dashboard.
-.compute-ng {
-  .table.instances {
-    margin-top: 0.5rem;
-  }
-}
