@@ -10,3 +10,19 @@
  * That would break the rule because react-bootstrap mounts tooltips directly below
  * <body>, outside of <div class="content resources">.
  */
+
+/* StatusPill renders rich tooltip content wrapped in `.status-pill-tooltip`.
+ * Bootstrap tooltips are centre-aligned by default and are mounted directly
+ * below <body> (outside any plugin CSS scope), and Bootstrap 5 sanitises away
+ * inline `style` attributes — so the left alignment has to live here as a
+ * global, unscoped rule. */
+.tooltip .status-pill-tooltip {
+  text-align: left;
+
+  /* The leading bold label (e.g. "Operating Status") acts as a title and
+   * stays centred as a block, while the list/body below is left-aligned. */
+  > b:first-child {
+    display: block;
+    text-align: center;
+  }
+}
