@@ -14,7 +14,10 @@ const validInstance = {
   status: { state: "active", transition: null },
   flavor: { id: "f1", name: "m1.small" },
   image: { id: "i1", name: "ubuntu-24.04" },
-  ips: { fixed: ["10.0.0.5"], floating: ["203.0.113.9"] },
+  ips: [
+    { addr: "10.0.0.5", type: "fixed" },
+    { addr: "203.0.113.9", type: "floating" },
+  ],
   created: "2026-01-01T00:00:00Z",
 }
 
