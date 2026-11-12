@@ -3,12 +3,7 @@ import Numeral from "numeral"
 import React from "react"
 
 const DetailsViewHighlightTransition = ({ children, ...props }) => (
-  <CSSTransition
-    {...props}
-    timeout={300}
-    unmountOnExit
-    classNames="css-transition-highlight"
-  >
+  <CSSTransition {...props} timeout={300} unmountOnExit classNames="css-transition-highlight">
     {children}
   </CSSTransition>
 )
@@ -30,10 +25,7 @@ const ServiceDetail = (props) => (
       <thead>
         <tr>
           <th colSpan="2">
-            <i
-              className="fa fa-square header-square"
-              style={{ color: props.getColor(props.service.service) }}
-            />
+            <i className="fa fa-square header-square" style={{ color: props.getColor(props.service.service) }} />
             <span>
               {props.service.service} - {props.service.measure}
             </span>
@@ -44,16 +36,11 @@ const ServiceDetail = (props) => (
         {Object.keys(props.service).map(
           (key) =>
             !keysNotPrinted.includes(key) && (
-              <tr
-                className={key == "price_loc" ? "heighlight" : "undefined"}
-                key={props.service + key}
-              >
+              <tr className={key == "price_loc" ? "highlight" : ""} key={props.service + key}>
                 <th>{key}</th>
                 <td>
                   <TransitionGroup>
-                    <DetailsViewHighlightTransition
-                      key={props.service + key + props.service[key]}
-                    >
+                    <DetailsViewHighlightTransition key={props.service + key + props.service[key]}>
                       <span>{renderValue(props, key)}</span>
                     </DetailsViewHighlightTransition>
                   </TransitionGroup>
