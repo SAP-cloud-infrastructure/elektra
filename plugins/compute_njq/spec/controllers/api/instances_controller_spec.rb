@@ -104,4 +104,42 @@ RSpec.describe ComputeNjq::Api::InstancesController, type: :controller do
       expect(JSON.parse(response.body)).to eq("instance" => { "id" => "s1" })
     end
   end
+
+  describe "GET #detail" do
+    it "returns the aggregated instance detail" do
+      allow(scoped_service).to receive(:find_instance_detail).with("s1").and_return({ id: "s1", name: "web-01" })
+
+      get :detail, params: default_params.merge(id: "s1")
+
+      expect(response).to have_http_status(:success)
+      expect(JSON.parse(response.body)).to eq("instance" => { "id" => "s1", "name" => "web-01" })
+    end
+
+    it "returns a null instance when the server is not found" do
+      allow(scoped_service).to receive(:find_instance_detail).with("missing").and_return(nil)
+
+      get :detail, params: default_params.merge(id: "missing")
+
+      expect(response).to have_http_status(:success)
+      expect(JSON.parse(response.body)).to eq("instance" => nil)
+    end
+  end
+
+  describe "GET #metrics" do
+    it "returns the proxied Thanos metrics" do
+      allow(scoped_service).to receive(:thanos_cpu_recommendation).with("s1").and_return("4")
+      allow(scoped_service).to receive(:thanos_memory_recommendation).with("s1").and_return(8.0)
+      allow(scoped_service).to receive(:thanos_guest_tools).with("s1").and_return(
+        { installed: "12.0.0", target: "12.0.0", state: "up_to_date" },
+      )
+
+      get :metrics, params: default_params.merge(id: "s1")
+
+      expect(response).to have_http_status(:success)
+      body = JSON.parse(response.body)
+      expect(body["metrics"]["cpu_recommendation"]).to eq("4")
+      expect(body["metrics"]["memory_recommendation"]).to eq(8.0)
+      expect(body["metrics"]["guest_tools"]["state"]).to eq("up_to_date")
+    end
+  end
 end

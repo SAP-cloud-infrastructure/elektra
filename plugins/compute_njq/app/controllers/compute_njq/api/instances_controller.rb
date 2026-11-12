@@ -19,6 +19,30 @@ module ComputeNjq
         end
       end
 
+      # GET /:scope/compute-njq/api/instances/:id/detail
+      # The full instance detail (all legacy Show tabs), aggregated server-side.
+      def detail
+        handle_api_call do
+          { instance: compute_service.find_instance_detail(params.require(:id)) }
+        end
+      end
+
+      # GET /:scope/compute-njq/api/instances/:id/metrics
+      # vROps / Thanos sizing recommendations + VMware guest-tools status,
+      # proxied through the BFF so the React layer consumes plain JSON.
+      def metrics
+        handle_api_call do
+          id = params.require(:id)
+          {
+            metrics: {
+              cpu_recommendation: compute_service.thanos_cpu_recommendation(id),
+              memory_recommendation: compute_service.thanos_memory_recommendation(id),
+              guest_tools: compute_service.thanos_guest_tools(id),
+            },
+          }
+        end
+      end
+
       private
 
       # Only the filters the UI actually offers are accepted.
