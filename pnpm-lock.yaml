@@ -84,7 +84,7 @@ dependencies:
     version: 2.11.8
   '@rails/actioncable':
     specifier: ^7
-    version: 7.2.300
+    version: 7.2.400
   '@react-spring/types':
     specifier: ^10.0.3
     version: 10.0.3
@@ -3605,8 +3605,8 @@ packages:
     resolution: {integrity: sha512-P1st0aksCrn9sGZhp8GMYwBnQsbvAWsZAX44oXNNvLHGqAOcoVxmjZiohstwQ7SqKnbR47akdNi+uleWD8+g6A==}
     dev: false
 
-  /@rails/actioncable@7.2.300:
-    resolution: {integrity: sha512-bmrp+HgCPd2BlhDfJ81hJ6Nvd6yh0B2hIW8ThOmUdOr3L+sFjU1glpBmn+MoQF2K0HLvnWCGqF3TxT/S0jj3QA==}
+  /@rails/actioncable@7.2.400:
+    resolution: {integrity: sha512-rxVBAeaekdA0G8HOl+rQZVKU5XVMM7Wnat+0PLz+qDy1HCe+YCjvrAYaqU9gP5XtXbhz0SLGm/iub3EwCcP5pw==}
     dev: false
 
   /@react-aria/ssr@3.10.1(react-dom@19.2.8)(react@19.2.8):
