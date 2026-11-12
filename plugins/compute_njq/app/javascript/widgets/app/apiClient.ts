@@ -1,5 +1,13 @@
 import { createAjaxHelper } from "lib/ajax_helper"
-import { Instance, InstancesResponseSchema, InstanceResponseSchema } from "./types/instance"
+import {
+  Instance,
+  InstanceDetail,
+  InstanceMetrics,
+  InstancesResponseSchema,
+  InstanceResponseSchema,
+  InstanceDetailResponseSchema,
+  InstanceMetricsResponseSchema,
+} from "./types/instance"
 import {
   FlavorsResponseSchema,
   ImagesResponseSchema,
@@ -69,6 +77,24 @@ export function createComputeApi(basepath: string) {
       apiClient.post<{ data: { instance: Instance } }>("instances", { instance: payload }).then((res) => {
         checkForApiError(res.data)
         return parseOrThrow(InstanceResponseSchema, res.data, "instance").instance
+      }),
+
+    // Full instance detail (all legacy Show tabs). The BFF returns null when
+    // the server cannot be found; surface that as a thrown error so the query
+    // fails cleanly rather than rendering an empty modal.
+    getInstanceDetail: (id: string): Promise<InstanceDetail> =>
+      apiClient.get<{ data: { instance: InstanceDetail | null } }>(`instances/${id}/detail`).then((res) => {
+        checkForApiError(res.data)
+        const { instance } = parseOrThrow(InstanceDetailResponseSchema, res.data, "instance detail")
+        if (!instance) throw new Error("Server could not be found")
+        return instance
+      }),
+
+    // vROps / Thanos sizing + guest-tools metrics, proxied through the BFF.
+    getInstanceMetrics: (id: string): Promise<InstanceMetrics> =>
+      apiClient.get<{ data: { metrics: InstanceMetrics } }>(`instances/${id}/metrics`).then((res) => {
+        checkForApiError(res.data)
+        return parseOrThrow(InstanceMetricsResponseSchema, res.data, "instance metrics").metrics
       }),
   }
 

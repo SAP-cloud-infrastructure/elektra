@@ -6,4 +6,196 @@
   .table.instances {
     margin-top: 0.5rem;
   }
+
+  // Compact row density: tighter vertical padding so more servers are visible
+  // at a glance (state-of-the-art dashboards favour density), and a fixed
+  // vertical rhythm so transition rows don't grow taller than idle ones.
+  .table.instances > tbody > tr > td {
+    padding-top: 0.45rem;
+    padding-bottom: 0.45rem;
+    vertical-align: middle;
+  }
+
+  // The Name column should be only as wide as its content needs (the id line is
+  // the widest part and must not wrap). `width: 1px` + nowrap makes the column
+  // shrink to its content instead of stealing the row's free width.
+  .table.instances th:first-child,
+  .table.instances td:first-child {
+    width: 1px;
+    white-space: nowrap;
+  }
+
+  // Width balance: let the IPs column (4th) take a comfortable share and the
+  // OS / Size column (5th) absorb the remaining free width, so the leading
+  // columns stay snug and there is no large empty gap between AZ and OS / Size.
+  .table.instances th:nth-child(4),
+  .table.instances td:nth-child(4) {
+    min-width: 14rem;
+  }
+
+  .table.instances th:nth-child(5),
+  .table.instances td:nth-child(5) {
+    width: 100%;
+  }
+
+  // The AZ column (3rd) is narrow; keep its value on a single line so short
+  // zone names like "qa-de-1a" don't wrap across several lines.
+  .table.instances th:nth-child(3),
+  .table.instances td:nth-child(3) {
+    white-space: nowrap;
+  }
+
+  // Pulsing placeholder bars used by the instance table skeleton loading rows,
+  // mirroring the networking ports list skeleton.
+  .instance-skeleton-bar {
+    display: inline-block;
+    height: 0.75rem;
+    border-radius: 3px;
+    background: #e9e9e9;
+    animation: instance-skeleton-pulse 1.2s ease-in-out infinite;
+  }
+
+  // The server ID shown beneath the name, with a copy button that only appears
+  // while hovering the row (keeps the list calm, reveals the affordance on need).
+  .instance-id {
+    font-size: 0.8125rem;
+  }
+
+  .instance-id-copy {
+    visibility: hidden;
+    text-decoration: none;
+  }
+
+  .table.instances tbody tr:hover .instance-id-copy,
+  .instance-id-copy:focus-visible {
+    visibility: visible;
+  }
+
+  // IP cell: a single primary IP plus an optional clickable "Floating" badge,
+  // with a "+N more" link opening the detail view. Kept compact so rows stay calm.
+  .instance-ips {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+
+  .instance-ip-primary {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    white-space: nowrap;
+  }
+
+  // Reserve a consistent width for the primary IP so the Floating badge starts
+  // at the same position across rows (IPv4 addresses vary in length).
+  .instance-ip-addr {
+    display: inline-block;
+    min-width: 7.5rem;
+  }
+
+  // Clickable badge flagging that the server has a floating (externally
+  // reachable) IP; opens the detail view's IP tab.
+  .instance-ip-floating-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.05rem 0.4rem;
+    border-radius: 10px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: #3a7bd5;
+    background: rgba(58, 123, 213, 0.1);
+    text-decoration: none;
+
+    &:hover {
+      background: rgba(58, 123, 213, 0.18);
+    }
+  }
+
+  .instance-ip-more {
+    font-size: 0.8125rem;
+  }
+
+  // Unresolved image id: muted + monospace so this least-useful value never
+  // dominates the row.
+  .instance-image-id {
+    font-family: var(--bs-font-monospace, monospace);
+    font-size: 0.8125rem;
+    color: #8a8a8a;
+  }
+
+  // Relative "created at" time stays on a single line.
+  .instance-created {
+    white-space: nowrap;
+  }
+
+  // Transition pill: spinner sits inside the capsule, inheriting its colour;
+  // the task_state is appended in slightly muted text within the same pill.
+  .spinner-on-pill {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-width: 2px;
+    margin: 0;
+  }
+
+  .status-pill-sub {
+    opacity: 0.75;
+    font-size: 0.9em;
+  }
+
+  // OS / Size cell: two labelled rows (OS over Size). A small muted label makes
+  // the two values unmistakable even when the image is a bare id or missing.
+  .os-size-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    line-height: 1.35;
+  }
+
+  .os-size-label {
+    flex: 0 0 auto;
+    min-width: 2.2rem;
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #9a9a9a;
+  }
+
+  // The flavor (size) value: a neutral, readable dark grey — distinct from the
+  // black image name above, but not the link-blue it used to be.
+  .instance-flavor {
+    color: #555;
+    font-size: 0.8125rem;
+  }
+
+  // Detail modal → IP Addresses tab: keep fixed IP, arrow and floating IP on a
+  // single line (mirrors the legacy compute `.details-ips` layout, whose CSS
+  // lives in the compute plugin and is not available here).
+  .details-ips {
+    display: flex;
+    align-items: baseline;
+
+    .ip-container {
+      display: flex;
+      align-items: baseline;
+    }
+
+    .delimiter {
+      margin: 0 10px;
+    }
+  }
+}
+
+@keyframes instance-skeleton-pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 1;
+  }
 }

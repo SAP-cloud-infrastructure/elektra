@@ -1,33 +1,60 @@
-import { describe, it, expect } from "vitest"
+import { describe, it, expect, vi } from "vitest"
 import { render, screen } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
 import "@testing-library/jest-dom/vitest"
+import type { ReactNode } from "react"
 import { IpList } from "./IpList"
+
+// Stub the router Link with a plain anchor so the cell can be unit tested
+// without a RouterProvider.
+vi.mock("@tanstack/react-router", () => ({
+  Link: ({ children, className, "aria-label": ariaLabel }: { children: ReactNode; className?: string; "aria-label"?: string }) => (
+    <a href="#" className={className} aria-label={ariaLabel}>
+      {children}
+    </a>
+  ),
+}))
 
 describe("IpList", () => {
   it("renders a dash when there are no IPs", () => {
-    render(<IpList ips={{ fixed: [], floating: [] }} />)
+    render(<IpList ips={[]} instanceId="s1" />)
     expect(screen.getByText("—")).toBeInTheDocument()
   })
 
-  it("lists floating IPs first and marks them", () => {
-    render(<IpList ips={{ fixed: ["10.0.0.1"], floating: ["1.2.3.4"] }} />)
-    expect(screen.getByText("1.2.3.4")).toBeInTheDocument()
-    expect(screen.getByText("(floating)")).toBeInTheDocument()
+  it("shows the first fixed IP as the primary address", () => {
+    render(
+      <IpList
+        ips={[
+          { addr: "10.0.0.1", type: "fixed" },
+          { addr: "10.0.0.2", type: "fixed" },
+        ]}
+        instanceId="s1"
+      />
+    )
     expect(screen.getByText("10.0.0.1")).toBeInTheDocument()
+    // Secondary IPs are not shown inline; a "+N more" link appears instead.
+    expect(screen.queryByText("10.0.0.2")).not.toBeInTheDocument()
+    expect(screen.getByText("+1 more")).toBeInTheDocument()
   })
 
-  it("collapses to +N more and expands on click", async () => {
-    const user = userEvent.setup()
-    render(<IpList ips={{ fixed: ["10.0.0.1", "10.0.0.2", "10.0.0.3"], floating: ["1.2.3.4"] }} />)
+  it("shows a clickable Floating badge when the server has a floating IP", () => {
+    render(
+      <IpList
+        ips={[
+          { addr: "10.0.0.1", type: "fixed" },
+          { addr: "1.2.3.4", type: "floating" },
+        ]}
+        instanceId="s1"
+      />
+    )
+    // Primary fixed IP shown; floating surfaced as a badge, not inline.
+    expect(screen.getByText("10.0.0.1")).toBeInTheDocument()
+    expect(screen.queryByText("1.2.3.4")).not.toBeInTheDocument()
+    const badge = screen.getByRole("link", { name: /floating ip/i })
+    expect(badge).toHaveTextContent("Floating")
+  })
 
-    // 4 total, MAX_VISIBLE = 2 → 2 hidden
-    expect(screen.getByRole("button", { name: "+2 more" })).toBeInTheDocument()
-    expect(screen.queryByText("10.0.0.3")).not.toBeInTheDocument()
-
-    await user.click(screen.getByRole("button", { name: "+2 more" }))
-
-    expect(screen.getByText("10.0.0.3")).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: "Show less" })).toBeInTheDocument()
+  it("shows no '+N more' when there is only one IP", () => {
+    render(<IpList ips={[{ addr: "10.0.0.1", type: "fixed" }]} instanceId="s1" />)
+    expect(screen.queryByText(/more/)).not.toBeInTheDocument()
   })
 })

@@ -13,6 +13,7 @@ import { Route as InstancesRouteRouteImport } from './routes/instances/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as InstancesIndexRouteImport } from './routes/instances/index'
 import { Route as InstancesNewRouteImport } from './routes/instances/new'
+import { Route as InstancesIdRouteImport } from './routes/instances/$id'
 
 const InstancesRouteRoute = InstancesRouteRouteImport.update({
   id: '/instances',
@@ -34,15 +35,22 @@ const InstancesNewRoute = InstancesNewRouteImport.update({
   path: '/new',
   getParentRoute: () => InstancesRouteRoute,
 } as any)
+const InstancesIdRoute = InstancesIdRouteImport.update({
+  id: '/instances/$id',
+  path: '/instances/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/instances': typeof InstancesRouteRouteWithChildren
+  '/instances/$id': typeof InstancesIdRoute
   '/instances/new': typeof InstancesNewRoute
   '/instances/': typeof InstancesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/instances/$id': typeof InstancesIdRoute
   '/instances/new': typeof InstancesNewRoute
   '/instances': typeof InstancesIndexRoute
 }
@@ -50,20 +58,28 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/instances': typeof InstancesRouteRouteWithChildren
+  '/instances/$id': typeof InstancesIdRoute
   '/instances/new': typeof InstancesNewRoute
   '/instances/': typeof InstancesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/instances' | '/instances/new' | '/instances/'
+  fullPaths: '/' | '/instances' | '/instances/$id' | '/instances/new' | '/instances/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/instances/new' | '/instances'
-  id: '__root__' | '/' | '/instances' | '/instances/new' | '/instances/'
+  to: '/' | '/instances/$id' | '/instances/new' | '/instances'
+  id:
+    | '__root__'
+    | '/'
+    | '/instances'
+    | '/instances/$id'
+    | '/instances/new'
+    | '/instances/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   InstancesRouteRoute: typeof InstancesRouteRouteWithChildren
+  InstancesIdRoute: typeof InstancesIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -96,6 +112,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InstancesNewRouteImport
       parentRoute: typeof InstancesRouteRoute
     }
+    '/instances/$id': {
+      id: '/instances/$id'
+      path: '/instances/$id'
+      fullPath: '/instances/$id'
+      preLoaderRoute: typeof InstancesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -116,6 +139,7 @@ const InstancesRouteRouteWithChildren = InstancesRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   InstancesRouteRoute: InstancesRouteRouteWithChildren,
+  InstancesIdRoute: InstancesIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
