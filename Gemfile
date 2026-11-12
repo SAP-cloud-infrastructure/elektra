@@ -14,9 +14,9 @@ gem 'unf', '>= 0.2.0beta2'
 gem 'jsbundling-rails'
 gem 'sprockets-rails'
 # https://rubygems.org/gems/rails/versions
-gem 'rails', '8.1.3.1'
+gem 'rails', '8.1.4.1'
 # Pin json to 2.x: json 3.0 changed JSON.parse to accept only one positional
-# argument, which breaks ActiveSupport 8.1.3.1's JSON.decode (calls JSON.parse(json, options)).
+# argument, which breaks ActiveSupport 8.1.4.1's JSON.decode (calls JSON.parse(json, options)).
 gem 'json', '~> 2.21'
 # Security fixes for Rack CVEs (multipart parsing, DoS, file exposure)
 gem 'rack', '>= 3.2.6'
@@ -45,7 +45,8 @@ gem 'responders'
 gem 'pg', '>= 1.3.4'
 
 # Openstack
-gem 'net-ssh'
+# Security fixes for net-ssh CVEs (GHSA-qpg5-fx6p-8cq3, GHSA-vxj5-fg65-x765)
+gem 'net-ssh', '~> 7.3', '>= 7.3.5'
 # ed25519 support for ssh keys
 gem 'bcrypt_pbkdf', '>= 1.0', '< 2.0'
 gem 'ed25519', '>= 1.2', '< 2.0'
