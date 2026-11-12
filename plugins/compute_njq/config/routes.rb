@@ -3,7 +3,14 @@ ComputeNjq::Engine.routes.draw do
 
   # JSON BFF endpoints consumed by the React widget.
   namespace :api do
-    resources :instances, only: %i[index show create]
+    resources :instances, only: %i[index show create] do
+      member do
+        # Full instance detail (all legacy Show tabs), aggregated server-side.
+        get :detail
+        # vROps / Thanos sizing + guest-tools metrics, proxied server-side.
+        get :metrics
+      end
+    end
     get "form_options/flavors", to: "form_options#flavors"
     get "form_options/images", to: "form_options#images"
     get "form_options/keypairs", to: "form_options#keypairs"
