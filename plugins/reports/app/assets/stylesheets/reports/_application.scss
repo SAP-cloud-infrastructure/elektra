@@ -78,8 +78,11 @@
     .datatable {
       margin-top: 20px;
 
-      .heighlight {
-        background-color: #eee;
+      .highlight {
+        th,
+        td {
+          background-color: #e8f3fc;
+        }
       }
 
       tr th {
