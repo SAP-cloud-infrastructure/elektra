@@ -9,30 +9,37 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as InstancesRouteRouteImport } from './routes/instances/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as InstancesIndexRouteImport } from './routes/instances/index'
 import { Route as InstancesIdRouteImport } from './routes/instances/$id'
 
+const InstancesRouteRoute = InstancesRouteRouteImport.update({
+  id: '/instances',
+  path: '/instances',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InstancesIndexRoute = InstancesIndexRouteImport.update({
-  id: '/instances/',
-  path: '/instances/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => InstancesRouteRoute,
 } as any)
 const InstancesIdRoute = InstancesIdRouteImport.update({
-  id: '/instances/$id',
-  path: '/instances/$id',
-  getParentRoute: () => rootRouteImport,
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => InstancesRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/instances': typeof InstancesRouteRouteWithChildren
   '/instances/$id': typeof InstancesIdRoute
-  '/instances': typeof InstancesIndexRoute
+  '/instances/': typeof InstancesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -42,25 +49,32 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/instances': typeof InstancesRouteRouteWithChildren
   '/instances/$id': typeof InstancesIdRoute
   '/instances/': typeof InstancesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/instances/$id' | '/instances'
+  fullPaths: '/' | '/instances' | '/instances/$id' | '/instances/'
   fileRoutesByTo: FileRoutesByTo
   to: '/' | '/instances/$id' | '/instances'
-  id: '__root__' | '/' | '/instances/$id' | '/instances/'
+  id: '__root__' | '/' | '/instances' | '/instances/$id' | '/instances/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  InstancesIdRoute: typeof InstancesIdRoute
-  InstancesIndexRoute: typeof InstancesIndexRoute
+  InstancesRouteRoute: typeof InstancesRouteRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/instances': {
+      id: '/instances'
+      path: '/instances'
+      fullPath: '/instances'
+      preLoaderRoute: typeof InstancesRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -70,25 +84,38 @@ declare module '@tanstack/react-router' {
     }
     '/instances/': {
       id: '/instances/'
-      path: '/instances'
-      fullPath: '/instances'
+      path: '/'
+      fullPath: '/instances/'
       preLoaderRoute: typeof InstancesIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof InstancesRouteRoute
     }
     '/instances/$id': {
       id: '/instances/$id'
-      path: '/instances/$id'
+      path: '/$id'
       fullPath: '/instances/$id'
       preLoaderRoute: typeof InstancesIdRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof InstancesRouteRoute
     }
   }
 }
 
-const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+interface InstancesRouteRouteChildren {
+  InstancesIdRoute: typeof InstancesIdRoute
+  InstancesIndexRoute: typeof InstancesIndexRoute
+}
+
+const InstancesRouteRouteChildren: InstancesRouteRouteChildren = {
   InstancesIdRoute: InstancesIdRoute,
   InstancesIndexRoute: InstancesIndexRoute,
+}
+
+const InstancesRouteRouteWithChildren = InstancesRouteRoute._addFileChildren(
+  InstancesRouteRouteChildren,
+)
+
+const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
+  InstancesRouteRoute: InstancesRouteRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

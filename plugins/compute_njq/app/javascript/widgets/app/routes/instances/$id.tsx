@@ -1,6 +1,5 @@
 import { createFileRoute, useNavigate, useRouteContext } from "@tanstack/react-router"
-import { useInstancesQuery, useInstanceDetailQuery, useInstanceMetricsQuery } from "../../hooks/useInstanceQueries"
-import { InstanceTable } from "./-components/InstanceTable"
+import { useInstanceDetailQuery, useInstanceMetricsQuery } from "../../hooks/useInstanceQueries"
 import { InstanceModal, TABS, type TabName } from "./-components/InstanceModal"
 
 interface InstanceDetailSearch {
@@ -18,18 +17,15 @@ export const Route = createFileRoute("/instances/$id")({
   component: InstanceShow,
 })
 
-// The detail view is a Bootstrap modal overlaid on the instance list, mirroring
-// the legacy compute Show modal: the list stays rendered in the background and
-// the modal sits on top. Closing navigates back to the plain list.
+// Renders only the detail modal into the /instances layout's <Outlet/>, so the
+// list behind it stays mounted (no re-mount, no scroll/filter reset). On a deep
+// link the layout route still renders the list; the modal shows its own loading
+// state until the detail arrives.
 function InstanceShow() {
   const { id } = Route.useParams()
   const { tab } = Route.useSearch()
   const { apiClient } = useRouteContext({ from: Route.id })
   const navigate = useNavigate()
-
-  // Keep the list visible behind the modal (served from cache populated by the
-  // list route) so the background does not disappear while the modal is open.
-  const { data: instances } = useInstancesQuery(apiClient)
 
   const detailQuery = useInstanceDetailQuery(apiClient, id)
   const metricsQuery = useInstanceMetricsQuery(apiClient, id)
@@ -39,15 +35,12 @@ function InstanceShow() {
     navigate({ to: "/instances/$id", params: { id }, search: { tab: next }, replace: true })
 
   return (
-    <div>
-      <InstanceTable instances={instances ?? []} />
-      <InstanceModal
-        detailQuery={detailQuery}
-        metricsQuery={metricsQuery}
-        onClose={close}
-        activeTab={tab}
-        onTabChange={setTab}
-      />
-    </div>
+    <InstanceModal
+      detailQuery={detailQuery}
+      metricsQuery={metricsQuery}
+      onClose={close}
+      activeTab={tab}
+      onTabChange={setTab}
+    />
   )
 }
