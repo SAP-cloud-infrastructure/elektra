@@ -20,7 +20,7 @@ describe("IpList", () => {
     expect(screen.getByText("—")).toBeInTheDocument()
   })
 
-  it("shows the first fixed IP as the primary address", () => {
+  it("shows the first fixed IP as the primary address when there is no floating IP", () => {
     render(
       <IpList
         ips={[
@@ -36,7 +36,7 @@ describe("IpList", () => {
     expect(screen.getByText("+1 more")).toBeInTheDocument()
   })
 
-  it("shows a clickable Floating badge when the server has a floating IP", () => {
+  it("prioritises the floating IP as the primary line and shows the fixed IP beneath", () => {
     render(
       <IpList
         ips={[
@@ -46,11 +46,27 @@ describe("IpList", () => {
         instanceId="s1"
       />
     )
-    // Primary fixed IP shown; floating surfaced as a badge, not inline.
+    // Floating address is shown prominently as a link to the detail IP tab...
+    const floating = screen.getByRole("link", { name: /floating ip/i })
+    expect(floating).toHaveTextContent("1.2.3.4")
+    // ...with the fixed IP beneath it. Both inline, so no "+N more".
     expect(screen.getByText("10.0.0.1")).toBeInTheDocument()
-    expect(screen.queryByText("1.2.3.4")).not.toBeInTheDocument()
-    const badge = screen.getByRole("link", { name: /floating ip/i })
-    expect(badge).toHaveTextContent("Floating")
+    expect(screen.queryByText(/more/)).not.toBeInTheDocument()
+  })
+
+  it("counts additional IPs beyond the two shown in '+N more'", () => {
+    render(
+      <IpList
+        ips={[
+          { addr: "10.0.0.1", type: "fixed" },
+          { addr: "10.0.0.2", type: "fixed" },
+          { addr: "1.2.3.4", type: "floating" },
+        ]}
+        instanceId="s1"
+      />
+    )
+    // floating (primary) + first fixed (secondary) shown → 1 remaining.
+    expect(screen.getByText("+1 more")).toBeInTheDocument()
   })
 
   it("shows no '+N more' when there is only one IP", () => {
