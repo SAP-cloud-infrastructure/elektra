@@ -22,6 +22,7 @@ class ApplicationController < ActionController::Base
 
   helper_method :modal?, :plugin_name, :modal_size
   helper_method :release_state
+  helper_method :quota_project
 
   # Overwrite this method in your controller if you want to set the release
   # state of your plugin to a different value. A tag will be displayed in
@@ -84,5 +85,14 @@ class ApplicationController < ActionController::Base
       @plugin_name = tokens.find { |t| Core::PluginsManager.plugin?(t) }
     end
     @plugin_name
+  end
+
+  # The Limes quota category used by the quota-usage widget in the main
+  # toolbar. Defaults to plugin_name, but a plugin whose name does not match a
+  # Limes service (e.g. a rewrite like compute_njq) can override this to point
+  # at the right category (e.g. "compute") without changing plugin_name, which
+  # also drives JS/CSS/policy lookups.
+  def quota_project
+    plugin_name
   end
 end
