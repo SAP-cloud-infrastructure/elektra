@@ -19,6 +19,7 @@ import {
 import { apiClient } from "./lib/apiClient"
 
 import DeleteConfirm from "./DeleteConfirm"
+import ObjectStorageLink from "./ObjectStorageLink"
 
 export default function ProjectResourceCheck({ opened, onClose }) {
   // This state is used to store the data fetched from the API
@@ -153,7 +154,15 @@ export default function ProjectResourceCheck({ opened, onClose }) {
     ) {
       typeHref = "/networking/networks/external"
     } else if (resourceType === "object_store_containers" && serviceType === "object-store") {
-      typeHref = "/object-storage/containers"
+      // Object storage serves two backends (Swift/Ceph) behind a required service_name
+      // URL segment, so let the user pick the backend before jumping into the plugin.
+      return (
+        <ObjectStorageLink
+          domainFid={window.scopedDomainFid}
+          projectFid={window.scopedProjectFid}
+          serviceType={serviceType}
+        />
+      )
     } else if (resourceType === "key_manager_containers") {
       typeHref = "/keymanager/containers"
     } else if (resourceType === "key_manager_secrets") {
@@ -218,9 +227,7 @@ export default function ProjectResourceCheck({ opened, onClose }) {
               Help
             </Button>
           </ContentAreaToolbar>
-          {apiError && (
-            <Message onDismiss={() => setApiError(null)} text={apiError} variant="error" />
-          )}
+          {apiError && <Message onDismiss={() => setApiError(null)} text={apiError} variant="error" />}
           {loading && <p>Loading...</p>}
           {data && !loading && (
             <>
