@@ -19,7 +19,6 @@ RUN apk upgrade --no-cache --no-progress \
   postgresql16-jit \
   postgresql16-client \
   openssh \
-  pnpm \
   bash \
   unzip \
   jq \
@@ -41,8 +40,15 @@ RUN apk upgrade --no-cache --no-progress \
   zlib-dev \
   tshark \
   rust \
-  cargo \ 
+  cargo \
   yaml-dev
+
+# Enable corepack so pnpm is provisioned from package.json's "packageManager" field
+# (single source of truth). Alpine's nodejs package does not ship
+# corepack, so install it explicitly. Corepack fetches the pinned pnpm on first use.
+# COREPACK_ENABLE_DOWNLOAD_PROMPT=0 keeps the first provisioning non-interactive.
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+RUN npm install -g corepack@latest && corepack enable
 
 # Create and activate a virtual environment
 RUN python3 -m venv /opt/venv
