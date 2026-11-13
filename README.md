@@ -160,17 +160,15 @@ Alternatively, we use NVM to manage Node versions — please ensure you’re usi
     nvm use
     ```
 
-5.  [Install]
+5.  Enable [corepack](https://nodejs.org/api/corepack.html) so the pnpm version
+    pinned in `package.json` (`"packageManager"`) is used automatically. Corepack
+    ships with Node (≥ 16.9), so this is a one-time step:
 
     ```bash
-    npm install -g pnpm
+    corepack enable
     ```
 
-    or optional **On MAC**
-
-    ```bash
-    brew install pnpm
-    ```
+    pnpm is then provisioned on first use — no global `npm install -g pnpm` needed.
 
 6.  Clone this repository to your machine.
 
