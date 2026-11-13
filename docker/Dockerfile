@@ -47,7 +47,9 @@ RUN apk --no-cache add git curl nodejs npm shared-mime-info build-base
 # Enable corepack so pnpm is provisioned from package.json's "packageManager" field
 # (single source of truth, see issue #2157). Alpine's nodejs package ships neither
 # npm nor corepack, so npm is added above and corepack installed explicitly here.
-# Corepack fetches the pinned pnpm on first use.
+# Corepack fetches the pinned pnpm on first use; COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+# keeps that provisioning non-interactive during assets:precompile.
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 RUN npm install -g corepack@latest && corepack enable
 
 # Install gems with native extensions before running bundle install
