@@ -97,7 +97,7 @@ jobs:
           node-version: "22.x"
 
       # pnpm version is read from package.json ("packageManager" field) — the single
-      # source of truth. Do not pass a version here (see issue #2157).
+      # source of truth. Do not pass a version here.
       - name: Install pnpm
         uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
 
@@ -144,7 +144,7 @@ jobs:
           node-version: "22.x"
 
       # pnpm version is read from package.json ("packageManager" field) — the single
-      # source of truth. Do not pass a version here (see issue #2157).
+      # source of truth. Do not pass a version here.
       - name: Install pnpm
         uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
 
@@ -191,7 +191,7 @@ jobs:
           node-version: "22.x"
 
       # pnpm version is read from package.json ("packageManager" field) — the single
-      # source of truth. Do not pass a version here (see issue #2157).
+      # source of truth. Do not pass a version here.
       - name: Install pnpm
         uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
 
