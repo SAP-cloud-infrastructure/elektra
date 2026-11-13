@@ -40,9 +40,15 @@ RUN apk upgrade --no-cache --no-progress \
     && apk --no-cache add dumb-init tzdata postgresql16-client
 
 ################################### BUILDER ################################
-FROM base AS builder 
+FROM base AS builder
 
-RUN apk --no-cache add git curl nodejs pnpm shared-mime-info build-base
+RUN apk --no-cache add git curl nodejs npm shared-mime-info build-base
+
+# Enable corepack so pnpm is provisioned from package.json's "packageManager" field
+# (single source of truth, see issue #2157). Alpine's nodejs package ships neither
+# npm nor corepack, so npm is added above and corepack installed explicitly here.
+# Corepack fetches the pinned pnpm on first use.
+RUN npm install -g corepack@latest && corepack enable
 
 # Install gems with native extensions before running bundle install
 # This avoids recompiling them everytime the Gemfile.lock changes.
