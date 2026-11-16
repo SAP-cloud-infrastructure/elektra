@@ -35,7 +35,6 @@ RSpec.describe ServiceLayer::ComputeNjqServices::Neutron do
 
   describe "#neutron_networks" do
     it "requests non-external networks and returns them" do
-      allow(test_class).to receive(:scoped_project_id).and_return("p1")
       allow(elektron_neutron).to receive(:get).with("networks", { "router:external" => false }).and_return(
         double("response", body: { "networks" => [{ "id" => "n1", "name" => "private" }] }),
       )
