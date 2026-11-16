@@ -1,265 +1,307 @@
-# Architektur-Spec: `compute_njq` — autarkes React/BFF-Plugin neben `compute`
+# Architecture Spec: `compute_njq` — autonomous React/BFF plugin alongside `compute`
 
 ## Context
 
-Das bestehende `compute`-Plugin ist eine klassische Rails-App: HAML Server-Side-Rendering
-+ jQuery fürs Frontend, serverseitige `.js.erb`-DOM-Patches, Service-Layer der Rails-Model-
-Objekte liefert. Das ist in die Jahre gekommen: 50 HAML-Templates, 16 `.js.erb`-Dateien,
-dekaffeiniertes CoffeeScript (`fixed_ip.js`), inline `:javascript`-Blöcke mit rohen
-`fetch()`-Calls. Ziel: jQuery loswerden (Security + UX), moderne React-UX, saubere Trennung.
+The existing `compute` plugin is a classic Rails app: HAML server-side rendering
++ jQuery for the frontend, server-side `.js.erb` DOM patches, a service layer that
+returns Rails model objects. It has aged: 50 HAML templates, 16 `.js.erb` files,
+decaffeinated CoffeeScript (`fixed_ip.js`), inline `:javascript` blocks with raw
+`fetch()` calls. Goal: get rid of jQuery (security + UX), modern React UX, clean
+separation.
 
-**Entscheidung des Teams (bewusst, nicht Migration):** Ein **komplett neues, autarkes
-Plugin `compute_njq`** wird **parallel** aufgebaut. Das alte `compute` bleibt unangetastet und
-wird **nicht** abgeschaltet. Das neue Plugin hat **keine** Querverbindungen zu anderen
-Service-Layern/Plugins (`services.networking`, `services.image`, `services.block_storage`,
-`services.identity`). Alles — auch Netzwerke, Floating IPs, Images, Volumes — wird **im
-eigenen Scope** gegen die OpenStack-APIs implementiert. Querverbindungen entstehen nur noch
-**auf API-Ebene** (der Browser ruft mehrere BFF-Endpunkte *dieses* Plugins). Bewusst in Kauf
-genommener Preis: **Redundanz** gegenüber bestehenden Service-Layern. Gewinn: Wenn an einem
-anderen Plugin/Service etwas geändert wird, bricht `compute_njq` nicht.
+**Team decision (deliberate, not a migration):** A **completely new, autonomous
+plugin `compute_njq`** is built **in parallel**. The old `compute` stays untouched
+and is **not** disabled. The new plugin has **no** cross-connections to other
+service layers/plugins (`services.networking`, `services.image`,
+`services.block_storage`, `services.identity`). Everything — networks, floating
+IPs, images, volumes too — is implemented **in its own scope** against the
+OpenStack APIs. Cross-connections exist only **at the API level** (the browser
+calls several BFF endpoints of *this* plugin). Deliberately accepted price:
+**redundancy** versus the existing service layers. Gain: when something changes in
+another plugin/service, `compute_njq` does not break.
 
-**Scope-Beschränkung:** `compute_njq` darf **nur im Dev auftauchen** — kein Prod-Deployment,
-solange entwickelt wird.
+**Scope restriction:** `compute_njq` must **only appear in dev** — no prod
+deployment while under development.
 
-**Bewertung (warum dieser Weg gut ist):** Der Stack existiert bereits als Referenz in
-`smartops` (einfache, saubere Struktur) und `kubernetes_ng` (robustere Patterns): `AjaxController`-
-BFF + React Pattern 4 (TanStack Router + Juno `AppShellProvider`) + Service-Layer, der direkt
-OpenStack ruft und plain Hashes liefert. Das Autarkie-Prinzip ist genau das, was ein echtes
-Backend-for-Frontend ausmacht. Risiko ist niedrig, weil parallel (Fallback = altes Plugin bleibt).
+**Assessment (why this path is good):** The stack already exists as a reference in
+`smartops` (simple, clean structure) and `kubernetes_ng` (more robust patterns):
+`AjaxController` BFF + React Pattern 4 (TanStack Router + Juno `AppShellProvider`)
++ a service layer that calls OpenStack directly and returns plain hashes. The
+autonomy principle is exactly what makes a real backend-for-frontend. Risk is low
+because it runs in parallel (fallback = the old plugin stays).
 
-**Referenz-Strategie (Best Practice, keine halben Sachen):** `smartops` dient als **Struktur-
-Skelett** (minimal, gut lesbar), aber seine Patterns werden **nicht 1:1 kopiert** — mehrere sind
-Rough Edges. Wo `smartops` schwächer ist, werden die **robusteren `kubernetes_ng`-Patterns**
-übernommen. Siehe Abschnitt „Best-Practice-Filter".
+**Reference strategy (best practice, no half measures):** `smartops` serves as the
+**structural skeleton** (minimal, readable), but its patterns are **not copied
+1:1** — several are rough edges. Where `smartops` is weaker, the **more robust
+`kubernetes_ng` patterns** are adopted. See the "Best-practice filter" section.
 
-**UI-Framework:** **Juno UI 4.0.1 zuerst.** Wo Juno eine Komponente/Funktion nicht hergibt,
-ist der **Fallback erlaubt** — in dieser Reihenfolge: (1) Tailwind `tw-`-Utilities (für
-Layout/Spacing, so macht es `kubernetes_ng` mit ~95 `tw-`-Klassen), (2) **Bootstrap 5.3.8** /
-react-bootstrap 2.10.10 für fehlende Komponenten. `smartops` bleibt bewusst Juno-only (0 `tw-`),
-`kubernetes_ng` mischt Juno + Tailwind — beide Enden sind im Repo erprobt.
+**UI framework:** **Juno UI 4.0.1 first.** Where Juno does not provide a
+component/function, the **fallback is allowed** — in this order: (1) Tailwind
+`tw-` utilities (for layout/spacing, as `kubernetes_ng` does with ~95 `tw-`
+classes), (2) **Bootstrap 5.3.8** / react-bootstrap 2.10.10 for missing
+components. `smartops` stays deliberately Juno-only (0 `tw-`), `kubernetes_ng`
+mixes Juno + Tailwind — both ends are proven in the repo.
 
-> **Update (2026-11-10, Team-Entscheidung — kehrt die UI-Strategie um):** Statt „Juno zuerst"
-> jetzt **Bootstrap 5 zuerst**, damit `compute_njq` **optisch wie die alte `compute`-Seite**
-> aussieht. Juno wird **vollständig aus dem Plugin entfernt** (keine `@cloudoperators/juno`-Imports).
-> Die alte UI ist reines BS5 (`.table.instances`, `.toolbar`, `.input-group`, `.form-control`,
-> `.btn`, `.status-pill`), und BS5 ist global geladen — das Widget rendert ohne Shadow-DOM in die
-> Host-Seite und erbt die BS5-Styles direkt. Status-Pills nutzen die **geteilte Core-Komponente**
-> `app/javascript/lib/components/StatusPill.tsx` (gleiche `.status-pill`-Optik wie die HAML-Welt);
-> das ist Core-Infra (`lib/*`, wie `lib/ajax_helper`), **kein Fremd-Plugin** → Autarkie bleibt
-> gewahrt. TanStack Router/Query, Zod und die BFF-JSON-Shape bleiben unverändert (reine UI-Änderung).
-
----
-
-## Verifizierte Fakten (als Grundlage)
-
-- **Kein `RAILS_ENV=e2e`.** Rails-Envs sind nur `development`, `production`, `test`. E2E ist
-  Playwright gegen einen normal laufenden Server.
-- **Plugins werden env-agnostisch per Gemfile-Glob geladen** (`Gemfile:76-84`, Glob über
-  `plugins/*`). Das Prod-Docker-Image (`docker/Dockerfile`) kopiert **alle** `plugins/*` und
-  esbuild globbt alle Widget-Entrypoints. Ein `Rails.env`-Guard in der Engine verhindert nur
-  das *Mounten*, nicht Gem-Load/JS-Build → Plugin wäre trotzdem im Prod-Image.
-- **Einziger echter Prod-Ausschluss-Hebel:** `BLACK_LIST_PLUGINS` (`Gemfile:76-84`), gelesen
-  zur `bundle install`-Zeit. Aktuell nirgends gesetzt. Muss als Build-Arg/ENV in den Prod-
-  `bundle install`-Schritt in `docker/Dockerfile` injiziert werden.
-- **Engine-Auto-Mount:** `config/routes.rb:82-93` mountet jedes `mountable_plugin` automatisch
-  unter `/:domain/:project/<mount_point>`. `mount_point` kommt aus Gemspec
-  `spec.metadata["mount_path"]`. Kein expliziter `mount`-Eintrag nötig.
-- **esbuild Auto-Discovery:** `config/esbuild/build.js` scannt `plugins/*/esbuild.plugin.js`
-  und merged die exportierten Plugins. Entrypoint `widgets/app/init.js` → Asset
-  `compute_njq_app_widget`. Keine Root-Build-Config-Änderung nötig.
-- **Keine neuen npm-Deps nötig:** React 19, `@tanstack/react-query@^4.28.0`,
-  `@tanstack/react-router@1.131.25`, `zod@^4.1.12`, Juno `4.0.1` sind in Root-`package.json`.
-- **Bootstrap 5.3.8 IST vorhanden und aktiv** (`package.json`, `application.scss.erb` importiert
-  `bootstrap/scss/bootstrap`, BS5-JS als Singleton via `essentials.js` auf `window.bootstrap`).
-  **Die Doku ist falsch:** CLAUDE.md und `skills/css-styling/SKILL.md` behaupten BS 3.4.1 — das
-  stimmt nicht mehr. react-bootstrap 2.10.10 (BS5-kompatibel) ist ebenfalls installiert.
-- **`smartops`/`kubernetes_ng` haben KEIN `db/` und KEINE Engine-Initializer** → für BFF ohne DB
-  nicht replizieren.
-- **Shared-Infra-Fakten:** `createAjaxHelper` (`app/javascript/lib/ajax_helper.js`) bietet
-  `get/post/put/patch/delete`, `baseURL`, CSRF-Injection, `.cancelable.*` (AbortController) und
-  wirft bei `!response.ok` einen Error mit `.status/.data/.response`. **Bekannter latenter Bug**:
-  `osApi`-Header-Prefixing (`ajax_helper.js:392`, `heders`-Tippfehler) — `osApi` daher meiden,
-  wir sprechen eh unser eigenes BFF an, nicht den OS-API-Proxy.
+> **Update (2026-11-10, team decision — reverses the UI strategy):** Instead of
+> "Juno first" now **Bootstrap 5 first**, so that `compute_njq` **looks like the
+> old `compute` page**. Juno is **removed entirely from the plugin** (no
+> `@cloudoperators/juno` imports). The old UI is pure BS5 (`.table.instances`,
+> `.toolbar`, `.input-group`, `.form-control`, `.btn`, `.status-pill`), and BS5 is
+> loaded globally — the widget renders without Shadow DOM into the host page and
+> inherits the BS5 styles directly. Status pills use the **shared core component**
+> `app/javascript/lib/components/StatusPill.tsx` (same `.status-pill` look as the
+> HAML world); that is core infra (`lib/*`, like `lib/ajax_helper`), **not a
+> foreign plugin** → autonomy is preserved. TanStack Router/Query, Zod and the BFF
+> JSON shape stay unchanged (pure UI change).
 
 ---
 
-## Zielarchitektur
+## Verified facts (as the basis)
 
-### Autarkie-Prinzip (Kernregel)
-Kein `services.<fremd>`-Aufruf. `compute_njq_service` baut eigene Elektron-Handles pro
-OpenStack-Backend (Nova, Neutron, Glance, Cinder) und ruft diese direkt. Redundanz bewusst,
-aber **schmal** (nur die Felder, die die neue UI zeigt) und **modular** (ein Mixin pro Backend).
-
-### Datenfluss
-`DashboardController#show` rendert eine HAML-Seite mit einem React-Mount-Point. React (Pattern 4)
-ruft die BFF-JSON-Endpunkte unter `/:scope/api/...`. **Aggregation im BFF**: `GET /api/instances`
-führt Nova + Neutron + Glance serverseitig in einem `InstanceAssembler` zusammen und liefert
-UI-fertiges JSON (Pattern C, plain Hashes). React aggregiert nicht über mehrere Queries.
-
-### Logik-Platzierung (löst die „wo landet die Helper-Logik?"-Frage)
-- **Datenbeschaffung + -formung** (heute `grouped_images`, `grouped_flavors`, IP-Aggregation
-  in `instances_helper.rb`) → **neu & schmal** in `compute_njq_services/*` + `instance_assembler.rb`
-  (Ruby). Nicht aus dem alten Helper aufrufen — neu implementieren.
-- **Darstellung** (IP-Pills, Status-Pills, Labels, „+N more"-Toggle) → React/TS-Komponenten.
-- **Semantisches Status-Mapping** (vm_state/task_state → Status) → im BFF (liefert semantischen
-  Zustand); Farbe/Icon/Pill → React (nutzt bestehende Juno-Status-Pills, vgl. Commit `b853617`).
-- **Anti-Pattern (verboten):** HTML-Strings als JSON durchreichen (`{ ip_html: "<p>..." }`).
-  BFF liefert Daten, React entscheidet über Markup.
-
----
-
-## Best-Practice-Filter (COPY vs. NICHT reproduzieren)
-
-`smartops` = Struktur-Vorbild (schlank), aber mehrere Patterns sind Rough Edges. Verbindlich:
-
-**COPY (von `kubernetes_ng`, das robustere Vorbild):**
-- **Typisierte, vollständige Error-Hülle** `handle_api_call` → einheitlich `{ error, code, message }`
-  mit passendem HTTP-Status + Upstream-Status-Passthrough. Fehlerleiter nach Typ:
-  `Elektron::Errors::ApiResponse` → `e.code`, `Elektron::Errors::Request` → 500,
-  `Net::HTTPError` → 500, eigene Domain-Errors → 400. (kng `base_controller.rb:28-60`.)
-- **Elektron-Handle mit Robustheit** wo nötig: internal→public-Interface-Fallback via
-  `rescue Elektron::Errors::ServiceEndpointUnavailable` + Memoisierung (kng `elektron_gardener`).
-- **Zod `safeParse` pro Endpoint zur RUNTIME** (nicht nur `z.infer`-Typen) + Error-Normalisierung.
-- **TanStack Query** für allen Server-State (`useQuery`/`useMutation`, `isLoading`/Error,
-  `invalidateQueries`), nicht Daten nur über Route-Loader ziehen.
-- **Tiefe Testabdeckung**: RSpec pro Service-Modul + Assembler + Controller-Fehlerfälle; Vitest
-  pro Komponente + apiClient-Parsing.
-
-**NICHT reproduzieren (Rough Edges aus `smartops` / Shared Infra):**
-- ❌ `smartops`-Error-Hülle `{ success, error }` mit **Blanket-`:bad_request`** für alle Nicht-
-  Elektron-Fehler und Annahme, dass `error.response` existiert. → Stattdessen kng-Hülle.
-- ❌ Misnamed ivar (`@elektron_identity` im smartops-Service) → saubere, sprechende Namen.
-- ❌ Hartcodiertes `return true` nach POST ohne Response-Auswertung.
-- ❌ Zod-Schemas nur als Typen (smartops validiert Responses NICHT zur Runtime) → wir validieren.
-- ❌ Dead `available?`, das nie aufgerufen wird → entweder am Request-Boundary nutzen oder weglassen.
-- ❌ Logging von Objekt-/Job-IDs (`Rails.logger.info` mit IDs) — AGENTS.md: kein sensibles Logging.
-- ❌ Zurückgelassene Debug-Kommentare / auskommentierter Code.
-- ❌ `osApi` des ajax_helper (latenter `heders`-Bug) — wir rufen nur unser eigenes BFF.
-
-**Juno-first + Fallback (dokumentieren, wo abgewichen wird):** Juno 4.0.1 zuerst (Referenz-
-Komponenten aus smartops: `AppShellProvider`, `AppShell embedded`, `DataGrid*`, `Panel`,
-`PanelBody`, `Message`, `Badge`, `Stack`, `Button`, `Spinner`, `IntroBox`). Fehlt etwas:
-Tailwind `tw-` (Layout) → BS5/react-bootstrap (Komponenten). Jede Abweichung von Juno im Code
-kurz begründen.
+- **No `RAILS_ENV=e2e`.** Rails envs are only `development`, `production`, `test`.
+  E2E is Playwright against a normally running server.
+- **Plugins are loaded env-agnostically via a Gemfile glob** (`Gemfile:76-84`, glob
+  over `plugins/*`). The prod Docker image (`docker/Dockerfile`) copies **all**
+  `plugins/*` and esbuild globs all widget entrypoints. A `Rails.env` guard in the
+  engine only prevents *mounting*, not gem load/JS build → the plugin would still
+  be in the prod image.
+- **The only real prod-exclusion lever:** `BLACK_LIST_PLUGINS` (`Gemfile:76-84`),
+  read at `bundle install` time. Currently set nowhere. Must be injected as a
+  build arg/ENV into the prod `bundle install` step in `docker/Dockerfile`.
+- **Engine auto-mount:** `config/routes.rb:82-93` mounts every `mountable_plugin`
+  automatically under `/:domain/:project/<mount_point>`. `mount_point` comes from
+  the gemspec `spec.metadata["mount_path"]`. No explicit `mount` entry needed.
+- **esbuild auto-discovery:** `config/esbuild/build.js` scans
+  `plugins/*/esbuild.plugin.js` and merges the exported plugins. Entrypoint
+  `widgets/app/init.js` → asset `compute_njq_app_widget`. No root build-config
+  change needed.
+- **No new npm deps needed:** React 19, `@tanstack/react-query@^4.28.0`,
+  `@tanstack/react-router@1.131.25`, `zod@^4.1.12`, Juno `4.0.1` are in the root
+  `package.json`.
+- **Bootstrap 5.3.8 IS present and active** (`package.json`,
+  `application.scss.erb` imports `bootstrap/scss/bootstrap`, BS5 JS as a singleton
+  via `essentials.js` on `window.bootstrap`). **The docs are wrong:** CLAUDE.md and
+  `skills/css-styling/SKILL.md` claim BS 3.4.1 — that is no longer true.
+  react-bootstrap 2.10.10 (BS5-compatible) is also installed.
+- **`smartops`/`kubernetes_ng` have NO `db/` and NO engine initializers** → do not
+  replicate for a DB-less BFF.
+- **Shared-infra facts:** `createAjaxHelper` (`app/javascript/lib/ajax_helper.js`)
+  provides `get/post/put/patch/delete`, `baseURL`, CSRF injection, `.cancelable.*`
+  (AbortController) and throws on `!response.ok` an error with
+  `.status/.data/.response`. **Known latent bug**: `osApi` header prefixing
+  (`ajax_helper.js:392`, `heders` typo) — avoid `osApi` therefore; we talk to our
+  own BFF anyway, not the OS API proxy.
 
 ---
 
-## File-Struktur (verifiziert gegen reale `kubernetes_ng`-Dateien)
+## Target architecture
+
+### Autonomy principle (core rule)
+No `services.<foreign>` call. `compute_njq_service` builds its own Elektron
+handles per OpenStack backend (Nova, Neutron, Glance, Cinder) and calls them
+directly. Redundancy is deliberate, but **narrow** (only the fields the new UI
+shows) and **modular** (one mixin per backend).
+
+### Data flow
+`DashboardController#show` renders a HAML page with a React mount point. React
+(Pattern 4) calls the BFF JSON endpoints under `/:scope/api/...`. **Aggregation in
+the BFF**: `GET /api/instances` joins Nova + Neutron + Glance server-side in an
+`InstanceAssembler` and returns UI-ready JSON (Pattern C, plain hashes). React does
+not aggregate across multiple queries.
+
+### Logic placement (solves the "where does the helper logic land?" question)
+- **Data fetching + shaping** (today `grouped_images`, `grouped_flavors`, IP
+  aggregation in `instances_helper.rb`) → **new & narrow** in
+  `compute_njq_services/*` + `instance_assembler.rb` (Ruby). Do not call the old
+  helper — reimplement.
+- **Presentation** (IP pills, status pills, labels, "+N more" toggle) → React/TS
+  components.
+- **Semantic status mapping** (vm_state/task_state → status) → in the BFF (returns
+  the semantic state); color/icon/pill → React (uses the existing Juno status
+  pills, cf. commit `b853617`).
+- **Anti-pattern (forbidden):** passing HTML strings as JSON (`{ ip_html:
+  "<p>..." }`). The BFF returns data, React decides on markup.
+
+---
+
+## Best-practice filter (COPY vs. do NOT reproduce)
+
+`smartops` = structural model (lean), but several patterns are rough edges.
+Binding:
+
+**COPY (from `kubernetes_ng`, the more robust model):**
+- **Typed, complete error envelope** `handle_api_call` → uniform `{ error, code,
+  message }` with a matching HTTP status + upstream status passthrough. Error
+  ladder by type: `Elektron::Errors::ApiResponse` → `e.code`,
+  `Elektron::Errors::Request` → 500, `Net::HTTPError` → 500, own domain errors →
+  400. (kng `base_controller.rb:28-60`.)
+- **Elektron handle with robustness** where needed: internal→public interface
+  fallback via `rescue Elektron::Errors::ServiceEndpointUnavailable` +
+  memoization (kng `elektron_gardener`).
+- **Zod `safeParse` per endpoint at RUNTIME** (not just `z.infer` types) + error
+  normalization.
+- **TanStack Query** for all server state (`useQuery`/`useMutation`,
+  `isLoading`/error, `invalidateQueries`), not pulling data only via route loaders.
+- **Deep test coverage**: RSpec per service module + assembler + controller error
+  cases; Vitest per component + apiClient parsing.
+
+**Do NOT reproduce (rough edges from `smartops` / shared infra):**
+- ❌ The `smartops` error envelope `{ success, error }` with a **blanket
+  `:bad_request`** for all non-Elektron errors and the assumption that
+  `error.response` exists. → Use the kng envelope instead.
+- ❌ Misnamed ivar (`@elektron_identity` in the smartops service) → clean,
+  descriptive names.
+- ❌ Hardcoded `return true` after POST without evaluating the response.
+- ❌ Zod schemas as types only (smartops does NOT validate responses at runtime) →
+  we validate.
+- ❌ Dead `available?` that is never called → either use it at the request
+  boundary or drop it.
+- ❌ Logging object/job IDs (`Rails.logger.info` with IDs) — AGENTS.md: no
+  sensitive logging.
+- ❌ Leftover debug comments / commented-out code.
+- ❌ The ajax_helper's `osApi` (latent `heders` bug) — we only call our own BFF.
+
+**Juno-first + fallback (document where deviating):** Juno 4.0.1 first (reference
+components from smartops: `AppShellProvider`, `AppShell embedded`, `DataGrid*`,
+`Panel`, `PanelBody`, `Message`, `Badge`, `Stack`, `Button`, `Spinner`,
+`IntroBox`). If something is missing: Tailwind `tw-` (layout) → BS5/react-bootstrap
+(components). Briefly justify every deviation from Juno in the code.
+
+---
+
+## File structure (verified against real `kubernetes_ng` files)
 
 ```
 plugins/compute_njq/
 ├── compute_njq.gemspec                     # spec.metadata = { "mount_path" => "compute-njq" }
-├── tsconfig.json                          # 4 Zeilen: extends ../../tsconfig.json, include widgets
-├── esbuild.plugin.js                      # createTanstackRouterPlugin mit compute_njq-Pfaden
+├── tsconfig.json                          # 4 lines: extends ../../tsconfig.json, include widgets
+├── esbuild.plugin.js                      # createTanstackRouterPlugin with compute_njq paths
 ├── lib/
 │   ├── compute_njq.rb                      # require version + engine
 │   └── compute_njq/
-│       ├── engine.rb                      # isolate_namespace ComputeNjq (minimal, KEINE Initializer)
+│       ├── engine.rb                      # isolate_namespace ComputeNjq (minimal, NO initializers)
 │       └── version.rb
 ├── config/
-│   ├── routes.rb                          # show + api-scope + *path catch-all
+│   ├── routes.rb                          # show + api scope + *path catch-all
 │   └── policy.json                        # RBAC
 ├── app/
 │   ├── controllers/compute_njq/
-│   │   ├── application_controller.rb      # < DashboardController, nur #show (rendert React-Mount)
+│   │   ├── application_controller.rb      # < DashboardController, only #show (renders React mount)
 │   │   └── api/
-│   │       ├── base_controller.rb         # < AjaxController, handle_api_call (kng-Hülle) + scoped-service-accessor
-│   │       ├── instances_controller.rb    # thin: handle_api_call { ... } (aggregiert via Assembler)
-│   │       ├── networks_controller.rb     # autark – eigene Neutron-Calls
-│   │       ├── floating_ips_controller.rb # autark – eigene Neutron-Calls
-│   │       ├── images_controller.rb       # autark – eigene Glance-Calls
-│   │       └── flavors_controller.rb      # autark – eigene Nova-Calls
+│   │       ├── base_controller.rb         # < AjaxController, handle_api_call (kng envelope) + scoped-service accessor
+│   │       ├── instances_controller.rb    # thin: handle_api_call { ... } (aggregates via assembler)
+│   │       ├── networks_controller.rb     # autonomous – own Neutron calls
+│   │       ├── floating_ips_controller.rb # autonomous – own Neutron calls
+│   │       ├── images_controller.rb       # autonomous – own Glance calls
+│   │       └── flavors_controller.rb      # autonomous – own Nova calls
 │   ├── services/service_layer/
-│   │   ├── compute_njq_service.rb          # < Core::ServiceLayer::Service; scoped(...), includes Mixins
+│   │   ├── compute_njq_service.rb          # < Core::ServiceLayer::Service; scoped(...), includes mixins
 │   │   └── compute_njq_services/
-│   │       ├── nova.rb                     # eigener elektron-Handle (Nova microversion), Server/Flavor/Keypair
-│   │       ├── neutron.rb                  # eigener Handle: Netze/Ports/FIPs
+│   │       ├── nova.rb                     # own elektron handle (Nova microversion), Server/Flavor/Keypair
+│   │       ├── neutron.rb                  # own handle: networks/ports/FIPs
 │   │       ├── glance.rb                   # Images
-│   │       ├── cinder.rb                   # Volumes/Volume-Types
-│   │       └── instance_assembler.rb       # Aggregation Nova+Neutron+Glance → UI-JSON
+│   │       ├── cinder.rb                   # Volumes/volume types
+│   │       └── instance_assembler.rb       # aggregation Nova+Neutron+Glance → UI JSON
 │   ├── views/compute_njq/application/
 │   │   └── show.html.haml                  # javascript_include_tag "compute_njq_app_widget", data: {basepath,region,projectid}
 │   └── javascript/
-│       ├── plugin.js                       # Kommentar-Stub
+│       ├── plugin.js                       # comment stub
 │       └── widgets/app/
 │           ├── init.js                     # createWidget({pluginName:"compute_njq",widgetName:"app"}).render(App)
 │           ├── App.tsx                     # AppShellProvider → MessagesProvider → QueryClientProvider → RouterProvider(basepath)
 │           ├── router.ts                   # createAppRouter(basepath, region, projectid)
-│           ├── routeTree.gen.ts            # GENERIERT (esbuild) — nicht manuell editieren
-│           ├── apiClient.ts                # createAjaxHelper({baseURL}), Zod safeParse PRO Endpoint (Runtime), checkForApiError-Guard
-│           ├── styles.scss                 # ?inline (Juno + ggf. tw-)
+│           ├── routeTree.gen.ts            # GENERATED (esbuild) — do not edit manually
+│           ├── apiClient.ts                # createAjaxHelper({baseURL}), Zod safeParse PER endpoint (runtime), checkForApiError guard
+│           ├── styles.scss                 # ?inline (Juno + possibly tw-)
 │           ├── hooks/                       # useInstanceQueries.ts (TanStack Query), queryKeys.ts
-│           ├── types/                       # Zod-Schemas (instance, network, flavor, image) — Runtime-validiert
+│           ├── types/                       # Zod schemas (instance, network, flavor, image) — runtime-validated
 │           └── routes/
 │               ├── __root.tsx              # RouterContext { apiClient, region, projectid }, AppShell + Outlet
 │               ├── index.tsx               # redirect → /instances
 │               └── instances/
-│                   ├── route.tsx           # Loader + Outlet
-│                   ├── index.tsx           # Liste (ERSTER DURCHSTICH)
-│                   ├── $instanceName.tsx   # Detail (später)
-│                   └── -components/         # InstanceTable, StatusPill, IpList (— Präfix = aus Route-Gen ausgeschlossen)
-└── spec/                                   # RSpec: Services (Nova/Neutron gemockt) + Assembler + Controller
+│                   ├── route.tsx           # loader + Outlet
+│                   ├── index.tsx           # list (FIRST VERTICAL SLICE)
+│                   ├── $instanceName.tsx   # detail (later)
+│                   └── -components/         # InstanceTable, StatusPill, IpList (— prefix = excluded from route gen)
+└── spec/                                   # RSpec: services (Nova/Neutron mocked) + assembler + controller
 ```
 
 ---
 
-## Dev-only erzwingen (beides kombinieren)
+## Enforce dev-only (combine both)
 
-1. **Harte Grenze — `BLACK_LIST_PLUGINS`:** Im Prod-Build (`docker/Dockerfile`) vor dem
-   `bundle install`-Schritt `ENV BLACK_LIST_PLUGINS=compute_njq` (bzw. Build-Arg) setzen, sodass
-   das Gem gar nicht geladen wird → keine Route, kein JS im Image. (Gemfile liest es bereits aus,
-   es muss nur im Prod-Build gesetzt werden.)
-2. **Defense-in-depth — Mount-Guard:** In `config/routes.rb` den Auto-Mount für `compute_njq`
-   zusätzlich an `Rails.env.development?` koppeln (analog zum bestehenden `next if %w[docs ...]`-
-   Filter bzw. dem `unless Rails.env.test?`-Muster in `config/application.rb`), falls der
-   Blacklist-Eintrag mal vergessen wird.
+1. **Hard boundary — `BLACK_LIST_PLUGINS`:** In the prod build
+   (`docker/Dockerfile`), before the `bundle install` step, set `ENV
+   BLACK_LIST_PLUGINS=compute_njq` (or a build arg) so the gem is not loaded at all
+   → no route, no JS in the image. (The Gemfile already reads it; it just needs to
+   be set in the prod build.)
+2. **Defense-in-depth — mount guard:** In `config/routes.rb` additionally couple
+   the auto-mount for `compute_njq` to `Rails.env.development?` (analogous to the
+   existing `next if %w[docs ...]` filter resp. the `unless Rails.env.test?`
+   pattern in `config/application.rb`), in case the blacklist entry is ever
+   forgotten.
 
-> Hinweis: `domain-config` `disabled_plugins` wäre nur ein Runtime-*Hide* (Plugin bleibt geladen
-> & gemountet) — als alleinige Lösung ungeeignet, höchstens ergänzend.
-
----
-
-## Erster Durchstich (vertikale Scheibe)
-
-**Instanz-Liste mit Netzwerk/FIP** — zeigt das Autarkie-Prinzip + BFF-Aggregation exemplarisch:
-1. `GET /:scope/api/instances` → `instances_controller#index` → `handle_api_call { compute_njq_service.scoped(...).list_instances }`.
-2. `list_instances` im `InstanceAssembler`: ruft `nova.rb` (Server) + `neutron.rb` (Ports/FIPs) +
-   `glance.rb` (Image-Namen), führt zu UI-JSON zusammen. **Kein** `services.networking` o.ä.
-3. React: `useInstancesQuery` (TanStack Query) → `InstanceTable` mit Suche/Pagination, `StatusPill`,
-   `IpList` (+N-more-Toggle als Komponente).
-4. Läuft **parallel** zur alten `compute`-Seite, erreichbar unter `/:domain/:project/compute-njq`.
+> Note: `domain-config` `disabled_plugins` would only be a runtime *hide* (the
+> plugin stays loaded & mounted) — unsuitable as the sole solution, at most
+> complementary.
 
 ---
 
-## Verifikation (end-to-end)
+## First vertical slice
 
-- **Dev-Container:** `bin/workspace start-rails` (Port 4001) + `bin/workspace start-js` (esbuild watch).
-- **Plugin mountet:** `/:domain/:project/compute-njq` lädt die HAML-Seite; `compute_njq_app_widget`-
-  Asset wird gebaut (esbuild-Log „Found plugin configs in: [... compute_njq]").
-- **BFF liefert JSON:** `GET /:domain/:project/compute-njq/api/instances` → 200 mit aggregiertem JSON;
-  Fehlerfall → `{ error, code, message }` (handle_api_call).
-- **React:** Instanz-Liste rendert mit Daten, Suche/Pagination funktionieren, keine jQuery-Abhängigkeit.
-- **Autarkie-Check:** `grep -rn "services\.\(networking\|image\|block_storage\|identity\)" plugins/compute_njq`
-  → **keine Treffer** (Akzeptanzkriterium).
+**Instance list with network/FIP** — demonstrates the autonomy principle + BFF
+aggregation by example:
+1. `GET /:scope/api/instances` → `instances_controller#index` → `handle_api_call {
+   compute_njq_service.scoped(...).list_instances }`.
+2. `list_instances` in the `InstanceAssembler`: calls `nova.rb` (servers) +
+   `neutron.rb` (ports/FIPs) + `glance.rb` (image names), joins into UI JSON. **No**
+   `services.networking` etc.
+3. React: `useInstancesQuery` (TanStack Query) → `InstanceTable` with
+   search/pagination, `StatusPill`, `IpList` (+N-more toggle as a component).
+4. Runs **in parallel** with the old `compute` page, reachable under
+   `/:domain/:project/compute-njq`.
+
+---
+
+## Verification (end-to-end)
+
+- **Dev container:** `bin/workspace start-rails` (port 4001) + `bin/workspace
+  start-js` (esbuild watch).
+- **Plugin mounts:** `/:domain/:project/compute-njq` loads the HAML page;
+  `compute_njq_app_widget` asset is built (esbuild log "Found plugin configs in:
+  [... compute_njq]").
+- **BFF returns JSON:** `GET /:domain/:project/compute-njq/api/instances` → 200 with
+  aggregated JSON; error case → `{ error, code, message }` (handle_api_call).
+- **React:** instance list renders with data, search/pagination work, no jQuery
+  dependency.
+- **Autonomy check:** `grep -rn
+  "services\.\(networking\|image\|block_storage\|identity\)" plugins/compute_njq`
+  → **no hits** (acceptance criterion).
 - **Tests:**
-  - RSpec: `bin/workspace bundle exec rspec plugins/compute_njq/spec` — Service-Mixins (Elektron
-    gemockt), `InstanceAssembler` (Aggregation), API-Controller (JSON + Fehlerhülle).
-  - Vitest: `bin/workspace pnpm test plugins/compute_njq/...` — Komponenten (InstanceTable,
-    StatusPill, IpList), apiClient-Zod-Parsing, Query-Hooks.
+  - RSpec: `bin/workspace bundle exec rspec plugins/compute_njq/spec` — service
+    mixins (Elektron mocked), `InstanceAssembler` (aggregation), API controller
+    (JSON + error envelope).
+  - Vitest: `bin/workspace pnpm test plugins/compute_njq/...` — components
+    (InstanceTable, StatusPill, IpList), apiClient Zod parsing, query hooks.
   - `bin/workspace pnpm typecheck` + `pnpm lint`.
-- **Prod-Ausschluss:** Nach Setzen von `BLACK_LIST_PLUGINS=compute_njq` im Prod-Build darf das
-  Plugin nicht gemountet sein und kein `compute_njq_app_widget`-Asset erzeugt werden.
+- **Prod exclusion:** After setting `BLACK_LIST_PLUGINS=compute_njq` in the prod
+  build, the plugin must not be mounted and no `compute_njq_app_widget` asset
+  produced.
 
 ---
 
-## Explizite Nicht-Ziele / Risiken
+## Explicit non-goals / risks
 
-- **Kein Umbau/Abschalten von `compute`.** Parallelbetrieb.
-- **API-Umfang hart an „was die neue UI zeigt" grenzen**, nicht an „was das alte Plugin kann"
-  (sonst Duplizierung von ~45 Actions ohne Not).
-- **Verlagerte Kopplung:** Redundanz bedeutet, OpenStack-API-Änderungen (Nova-Microversion,
-  Neutron-Payloads) müssen in `compute` *und* `compute_njq` gepflegt werden. Bewusster Trade-off.
-- **Naming:** `compute_njq` (konsistent mit `kubernetes_ng`-Konvention) — bestätigt.
-- **Doku-Korrektur fällig:** `skills/css-styling/SKILL.md` + CLAUDE.md behaupten BS 3.4.1, real ist
-  **BS 5.3.8**. Nicht Teil dieses Plugins, aber als Folge-Hygiene notieren (nicht blind der Doku folgen).
-- **Kein `smartops`-1:1-Klon:** Struktur ja, Patterns nur gefiltert (siehe Best-Practice-Filter).
+- **No rework/disabling of `compute`.** Parallel operation.
+- **Hard-bound the API surface to "what the new UI shows"**, not "what the old
+  plugin can do" (otherwise duplicating ~45 actions needlessly).
+- **Shifted coupling:** redundancy means OpenStack API changes (Nova microversion,
+  Neutron payloads) must be maintained in `compute` *and* `compute_njq`. A
+  deliberate trade-off.
+- **Naming:** `compute_njq` (consistent with the `kubernetes_ng` convention) —
+  confirmed.
+- **Docs correction due:** `skills/css-styling/SKILL.md` + CLAUDE.md claim BS
+  3.4.1, really it is **BS 5.3.8**. Not part of this plugin, but note as follow-up
+  hygiene (do not blindly follow the docs).
+- **No `smartops` 1:1 clone:** structure yes, patterns only filtered (see
+  best-practice filter).
