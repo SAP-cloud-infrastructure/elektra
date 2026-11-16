@@ -45,4 +45,29 @@ RSpec.describe ServiceLayer::ComputeNjqServices::Nova do
       expect(test_class.nova_flavors).to eq([{ "id" => "f1", "name" => "m1.small" }])
     end
   end
+
+  describe "#nova_keypairs" do
+    it "returns the keypair hashes unwrapped" do
+      allow(elektron_nova).to receive(:get).with("os-keypairs").and_return(
+        double("response", body: { "keypairs" => [{ "keypair" => { "name" => "my-key" } }] }),
+      )
+      expect(test_class.nova_keypairs).to eq([{ "name" => "my-key" }])
+    end
+
+    it "returns [] when there are no keypairs" do
+      allow(elektron_nova).to receive(:get).with("os-keypairs").and_return(
+        double("response", body: {}),
+      )
+      expect(test_class.nova_keypairs).to eq([])
+    end
+  end
+
+  describe "#nova_availability_zones" do
+    it "returns the availabilityZoneInfo array" do
+      allow(elektron_nova).to receive(:get).with("os-availability-zone").and_return(
+        double("response", body: { "availabilityZoneInfo" => [{ "zoneName" => "az-1" }] }),
+      )
+      expect(test_class.nova_availability_zones).to eq([{ "zoneName" => "az-1" }])
+    end
+  end
 end

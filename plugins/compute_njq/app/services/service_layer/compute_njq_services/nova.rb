@@ -18,6 +18,16 @@ module ServiceLayer
       def nova_flavors
         elektron_nova.get("flavors/detail").body["flavors"] || []
       end
+
+      # Keypairs for the scoped project; Nova wraps each entry under "keypair".
+      def nova_keypairs
+        (elektron_nova.get("os-keypairs").body["keypairs"] || []).map { |k| k["keypair"] }
+      end
+
+      # Availability zones (name + state); the create form only needs available ones.
+      def nova_availability_zones
+        elektron_nova.get("os-availability-zone").body["availabilityZoneInfo"] || []
+      end
     end
   end
 end
