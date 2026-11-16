@@ -54,7 +54,7 @@ export function SearchableSelect<T>({
     <div className="dropdown" ref={ref}>
       <button
         type="button"
-        className="btn btn-default dropdown-toggle w-100 text-start"
+        className="btn btn-outline-secondary dropdown-toggle w-100 text-start"
         onClick={() => setOpen((o) => !o)}
       >
         {buttonText}
