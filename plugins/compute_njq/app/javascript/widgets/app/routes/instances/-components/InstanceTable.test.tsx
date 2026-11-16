@@ -132,12 +132,13 @@ describe("InstanceTable sorting", () => {
     created: "2026-02-01T00:00:00Z",
   }
 
-  // Order of the data rows by their row link (name) text.
+  // Order of the data rows by their row link (name) text. The name link is the
+  // first link in each row (the IP cell may add further links).
   const rowNames = () =>
     screen
       .getAllByRole("row")
       .slice(1) // drop the header row
-      .map((row) => within(row).getByRole("link").textContent)
+      .map((row) => within(row).getAllByRole("link")[0].textContent)
 
   it("keeps the given order until a sortable header is clicked", () => {
     render(<InstanceTable instances={[bravo, alpha, charlie]} />)
