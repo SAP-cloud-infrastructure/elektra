@@ -114,7 +114,7 @@ group :development do
   gem 'web-console'
   # this version is the last version that works with mitmproxy
   # if you use the versions above you will get "Excon::Error::ProxyConnectionError" if you use http_proxy env with Excon
-  gem 'excon', '0.112.0'
+  gem 'excon', '1.5.0'
 end
 
 group :development, :test do
