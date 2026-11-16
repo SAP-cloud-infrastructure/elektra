@@ -69,7 +69,7 @@ RSpec.describe ServiceLayer::ComputeNjqServices::FormOptionsAssembler do
       allow(test_class).to receive(:neutron_security_groups).and_return([
         { "id" => "sg1", "name" => "default", "project_id" => "p1" },
       ])
-      allow(test_class).to receive(:security_group_project_labels).and_return({ "p1" => "monsoon3/demo" })
+      allow(test_class).to receive(:project_labels).and_return({ "p1" => "monsoon3/demo" })
 
       expect(test_class.form_security_groups).to eq([
         { id: "sg1", name: "default", project_id: "p1", project_label: "monsoon3/demo" },
@@ -80,7 +80,7 @@ RSpec.describe ServiceLayer::ComputeNjqServices::FormOptionsAssembler do
       allow(test_class).to receive(:neutron_security_groups).and_return([
         { "id" => "sg2", "name" => "shared", "tenant_id" => "p2" },
       ])
-      allow(test_class).to receive(:security_group_project_labels).and_return({})
+      allow(test_class).to receive(:project_labels).and_return({})
 
       expect(test_class.form_security_groups).to eq([
         { id: "sg2", name: "shared", project_id: "p2", project_label: "p2" },
@@ -111,8 +111,25 @@ RSpec.describe ServiceLayer::ComputeNjqServices::FormOptionsAssembler do
       expect(result[:images].map { |i| i[:id] }).to eq(%w[i1 i2 i3])
       expect(result[:images].first).to eq(
         { id: "i1", name: "ubuntu", visibility: "private", hypervisor_type: "kvm", img_hv_type: "kvm",
-          image_type: nil, disk_format: "qcow2", buildnumber: "42", min_disk: 10, size: 1024 },
+          image_type: nil, disk_format: "qcow2", buildnumber: "42", min_disk: 10, size: 1024,
+          created: nil, owner: nil, owner_label: nil },
       )
+    end
+
+    it "resolves the owner project label only for private images" do
+      allow(test_class).to receive(:glance_all_images).and_return([])
+      allow(test_class).to receive(:glance_all_images).with("visibility" => "private").and_return([
+        { "id" => "p", "name" => "priv", "visibility" => "private", "owner" => "o1", "created_at" => "2026-01-01" },
+      ])
+      allow(test_class).to receive(:glance_all_images).with("visibility" => "public").and_return([
+        { "id" => "q", "name" => "pub", "visibility" => "public", "owner" => "o2" },
+      ])
+      allow(test_class).to receive(:project_labels).and_return({ "o1" => "monsoon3/demo" })
+
+      images = test_class.form_images[:images].index_by { |i| i[:id] }
+      expect(images["p"]).to include(owner: "o1", owner_label: "monsoon3/demo", created: "2026-01-01")
+      # Public images never carry an owner label suffix.
+      expect(images["q"]).to include(owner: "o2", owner_label: nil)
     end
 
     it "passes through image_type for snapshot detection and the extra label fields" do

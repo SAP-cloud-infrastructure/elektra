@@ -21,6 +21,13 @@ export const ImageSchema = z.object({
   buildnumber: z.string().nullable(),
   min_disk: z.number().nullable(),
   size: z.number().nullable(),
+  // Used as the secondary sort key within a visibility group (name, then
+  // created), and nullable because Glance may omit it.
+  created: z.string().nullable(),
+  // Owner project id + resolved "<domain>/<project>" label, shown as a suffix on
+  // private images (mirrors the legacy ". Project: <name>" label).
+  owner: z.string().nullable(),
+  owner_label: z.string().nullable(),
 })
 
 export const KeypairSchema = z.object({ name: z.string() })

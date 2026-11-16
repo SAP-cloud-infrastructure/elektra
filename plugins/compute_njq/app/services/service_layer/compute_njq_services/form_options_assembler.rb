@@ -52,23 +52,24 @@ module ServiceLayer
       # not cached, the raw id is used as the label so grouping still works.
       def form_security_groups
         groups = neutron_security_groups
-        labels = security_group_project_labels(groups)
+        labels = project_labels(groups.map { |sg| sg["project_id"] || sg["tenant_id"] })
         groups.map do |sg|
           project_id = sg["project_id"] || sg["tenant_id"]
           { id: sg["id"], name: sg["name"], project_id: project_id, project_label: labels[project_id] || project_id }
         end
       end
 
-      # Batch-resolves the project ids of the given security groups to
-      # "<domain>/<project>" (or just "<project>") labels using the ObjectCache.
-      # Returns a { project_id => label } map; ids missing from the cache are
-      # simply absent (the caller falls back to the raw id).
-      def security_group_project_labels(security_groups)
-        project_ids = security_groups.map { |sg| sg["project_id"] || sg["tenant_id"] }.compact.uniq
-        return {} if project_ids.empty?
+      # Batch-resolves a list of project ids to "<domain>/<project>" (or just
+      # "<project>") labels via the ObjectCache. Returns a { project_id => label }
+      # map; ids missing from the cache are simply absent (callers fall back to
+      # the raw id). Used for both security-group grouping and private-image
+      # owner labels.
+      def project_labels(project_ids)
+        ids = Array(project_ids).compact.uniq
+        return {} if ids.empty?
 
         ObjectCache
-          .where(id: project_ids)
+          .where(id: ids)
           .includes(:domain)
           .each_with_object({}) do |project, map|
             label = project.name
@@ -76,7 +77,7 @@ module ServiceLayer
             map[project.id] = label
           end
       rescue StandardError
-        # The grouping is a nicety; never let a cache lookup failure break the
+        # The labels are a nicety; never let a cache lookup failure break the
         # form. Fall back to raw ids (handled by the caller).
         {}
       end
@@ -99,7 +100,14 @@ module ServiceLayer
             # names as blank.
             .reject { |i| i["name"].nil? || i["name"].to_s.strip.empty? }
 
+        # Resolve owner project labels for private images only (the UI shows the
+        # ". Project: <name>" suffix for private images, mirroring the legacy
+        # image_label_for_select). Public/shared images don't carry the suffix.
+        private_owner_ids = raw.select { |i| i["visibility"] == "private" }.map { |i| i["owner"] }
+        owner_labels = project_labels(private_owner_ids)
+
         images = raw.map do |i|
+          owner = i["owner"]
           {
             id: i["id"],
             name: i["name"],
@@ -115,6 +123,11 @@ module ServiceLayer
             buildnumber: i["buildnumber"],
             min_disk: i["min_disk"],
             size: i["size"],
+            # Secondary sort key (name, then created) within a visibility group.
+            created: i["created_at"],
+            # Owner project; only private images get a resolved label suffix.
+            owner: owner,
+            owner_label: (i["visibility"] == "private" ? owner_labels[owner] : nil),
           }
         end
 
