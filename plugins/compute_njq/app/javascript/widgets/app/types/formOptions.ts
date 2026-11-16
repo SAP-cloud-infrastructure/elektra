@@ -25,7 +25,15 @@ export const ImageSchema = z.object({
 
 export const KeypairSchema = z.object({ name: z.string() })
 export const NetworkSchema = z.object({ id: z.string(), name: z.string().nullable() })
-export const SecurityGroupSchema = z.object({ id: z.string(), name: z.string() })
+export const SecurityGroupSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  // The owning project; used to group SGs (the list includes shared SGs from
+  // other projects). project_label is a resolved "<domain>/<project>" name,
+  // falling back to the raw project id when the project is not cached.
+  project_id: z.string().nullable(),
+  project_label: z.string().nullable(),
+})
 export const AvailabilityZoneSchema = z.object({ name: z.string() })
 
 export const FlavorsResponseSchema = z.object({ flavors: z.array(FlavorSchema) })

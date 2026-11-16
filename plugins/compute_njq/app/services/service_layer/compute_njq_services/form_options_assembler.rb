@@ -45,8 +45,40 @@ module ServiceLayer
         neutron_networks.map { |n| { id: n["id"], name: n["name"] } }
       end
 
+      # Security groups carry their owning project so the UI can group them (the
+      # list includes shared SGs from other projects — no tenant filter). The
+      # project id is resolved to a "<domain>/<project>" label via Elektra's
+      # ObjectCache (same source the legacy compute form used); when a project is
+      # not cached, the raw id is used as the label so grouping still works.
       def form_security_groups
-        neutron_security_groups.map { |sg| { id: sg["id"], name: sg["name"] } }
+        groups = neutron_security_groups
+        labels = security_group_project_labels(groups)
+        groups.map do |sg|
+          project_id = sg["project_id"] || sg["tenant_id"]
+          { id: sg["id"], name: sg["name"], project_id: project_id, project_label: labels[project_id] || project_id }
+        end
+      end
+
+      # Batch-resolves the project ids of the given security groups to
+      # "<domain>/<project>" (or just "<project>") labels using the ObjectCache.
+      # Returns a { project_id => label } map; ids missing from the cache are
+      # simply absent (the caller falls back to the raw id).
+      def security_group_project_labels(security_groups)
+        project_ids = security_groups.map { |sg| sg["project_id"] || sg["tenant_id"] }.compact.uniq
+        return {} if project_ids.empty?
+
+        ObjectCache
+          .where(id: project_ids)
+          .includes(:domain)
+          .each_with_object({}) do |project, map|
+            label = project.name
+            label = "#{project.domain.name}/#{label}" if project.domain
+            map[project.id] = label
+          end
+      rescue StandardError
+        # The grouping is a nicety; never let a cache lookup failure break the
+        # form. Fall back to raw ids (handled by the caller).
+        {}
       end
 
       # Loads the full image catalog for the create dialog, per visibility.

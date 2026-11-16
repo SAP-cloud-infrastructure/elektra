@@ -65,9 +65,26 @@ RSpec.describe ServiceLayer::ComputeNjqServices::FormOptionsAssembler do
   end
 
   describe "#form_security_groups" do
-    it "maps to id + name" do
-      allow(test_class).to receive(:neutron_security_groups).and_return([{ "id" => "sg1", "name" => "default" }])
-      expect(test_class.form_security_groups).to eq([{ id: "sg1", name: "default" }])
+    it "maps to id + name + project, resolving the project label from the cache" do
+      allow(test_class).to receive(:neutron_security_groups).and_return([
+        { "id" => "sg1", "name" => "default", "project_id" => "p1" },
+      ])
+      allow(test_class).to receive(:security_group_project_labels).and_return({ "p1" => "monsoon3/demo" })
+
+      expect(test_class.form_security_groups).to eq([
+        { id: "sg1", name: "default", project_id: "p1", project_label: "monsoon3/demo" },
+      ])
+    end
+
+    it "falls back to the raw project id when the project is not cached" do
+      allow(test_class).to receive(:neutron_security_groups).and_return([
+        { "id" => "sg2", "name" => "shared", "tenant_id" => "p2" },
+      ])
+      allow(test_class).to receive(:security_group_project_labels).and_return({})
+
+      expect(test_class.form_security_groups).to eq([
+        { id: "sg2", name: "shared", project_id: "p2", project_label: "p2" },
+      ])
     end
   end
 

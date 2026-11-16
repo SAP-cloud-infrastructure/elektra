@@ -96,9 +96,11 @@ describe("createComputeApi", () => {
     })
 
     it("returns security_groups", async () => {
-      mockGet.mockResolvedValue({ data: { security_groups: [{ id: "sg1", name: "default" }] } })
+      mockGet.mockResolvedValue({
+        data: { security_groups: [{ id: "sg1", name: "default", project_id: "p1", project_label: "monsoon3/demo" }] },
+      })
       const result = await api.formOptions.getSecurityGroups()
-      expect(result).toEqual([{ id: "sg1", name: "default" }])
+      expect(result).toEqual([{ id: "sg1", name: "default", project_id: "p1", project_label: "monsoon3/demo" }])
     })
 
     it("returns availability_zones", async () => {
