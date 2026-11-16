@@ -66,3 +66,28 @@ select.form-control {
     margin-bottom: 0;
   }
 }
+
+// lib/components/MultiSelect: keep the search box fixed and let only the option
+// list scroll, so a long list never overflows the viewport. The option rows use
+// Bootstrap list-group items, whose default hover state is a strong primary-blue
+// bar that looks like a selection; tone it down to a subtle grey hover.
+.multi-select-options {
+  max-height: 40vh;
+  overflow-y: auto;
+
+  .list-group-item-action {
+    cursor: pointer;
+
+    &:hover,
+    &:focus {
+      background-color: #f2f3f5;
+      color: inherit;
+    }
+
+    &:active {
+      background-color: #e9ecef;
+      color: inherit;
+    }
+  }
+}
+
