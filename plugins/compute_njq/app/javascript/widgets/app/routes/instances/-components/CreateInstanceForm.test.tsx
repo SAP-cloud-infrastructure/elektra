@@ -29,7 +29,10 @@ vi.mock("../../../hooks/useFormOptionQueries", () => ({
   }),
   useKeypairsQuery: () => ({ data: [{ name: "k1" }], isLoading: false }),
   useNetworksQuery: () => ({ data: [{ id: "n1", name: "private" }], isLoading: false }),
-  useSecurityGroupsQuery: () => ({ data: [{ id: "sg1", name: "default" }], isLoading: false }),
+  useSecurityGroupsQuery: () => ({
+    data: [{ id: "sg1", name: "default", project_id: "p1", project_label: "monsoon3/demo" }],
+    isLoading: false,
+  }),
   useAvailabilityZonesQuery: () => ({ data: [{ name: "az-1" }], isLoading: false }),
 }))
 
@@ -68,6 +71,43 @@ describe("CreateInstanceForm", () => {
     expect(screen.queryByRole("button", { name: /cancel/i })).not.toBeInTheDocument()
   })
 
+  it("in modal mode (formId set) renders no in-form buttons and tags the form id", () => {
+    mutationState = { mutate, isPending: false, isError: false, error: null }
+    const { container } = render(
+      <CreateInstanceForm
+        api={api}
+        queryClient={queryClient}
+        onSuccess={vi.fn()}
+        onCancel={vi.fn()}
+        formId="create-instance-form"
+      />
+    )
+    // The footer (outside the form) owns the buttons now.
+    expect(screen.queryByRole("button", { name: /create/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: /cancel/i })).not.toBeInTheDocument()
+    // The form carries the id so a footer button can target it via `form=`.
+    expect(container.querySelector("form#create-instance-form")).toBeInTheDocument()
+  })
+
+  it("reports its submit-ability to onStatusChange", () => {
+    mutationState = { mutate, isPending: false, isError: false, error: null }
+    flavorData = [
+      { id: "f1", name: "m1.small", vcpus: 1, ram: 2048, disk: 20, hypervisor_type: "kvm", is_public: true },
+    ]
+    const onStatusChange = vi.fn()
+    render(
+      <CreateInstanceForm
+        api={api}
+        queryClient={queryClient}
+        onSuccess={vi.fn()}
+        formId="create-instance-form"
+        onStatusChange={onStatusChange}
+      />
+    )
+    // Nothing filled in yet → not submittable.
+    expect(onStatusChange).toHaveBeenLastCalledWith({ canSubmit: false, isPending: false })
+  })
+
   it("forces a prefilled root disk size for a disk-less kvm flavor", () => {
     mutationState = { mutate, isPending: false, isError: false, error: null }
     flavorData = [{ id: "f0", name: "no-disk", vcpus: 1, ram: 2048, disk: 0, hypervisor_type: "kvm", is_public: true }]
@@ -81,7 +121,7 @@ describe("CreateInstanceForm", () => {
     // The size field is forced visible with the 64 GB prefill, and there is no checkbox.
     expect(screen.getByText(/Custom Root Disk Size/i)).toBeInTheDocument()
     expect(screen.getByDisplayValue("64")).toBeInTheDocument()
-    expect(screen.queryByLabelText(/custom root disk/i)).not.toBeInTheDocument()
+    expect(screen.queryByLabelText("Custom root disk")).not.toBeInTheDocument()
   })
 
   it("does not show a custom root disk control for a flavor with a disk", () => {
@@ -96,7 +136,7 @@ describe("CreateInstanceForm", () => {
     fireEvent.click(screen.getByText(/m1.small/))
 
     // Optional mode: a checkbox appears, but no size field until it is checked.
-    expect(screen.getByLabelText(/custom root disk/i)).toBeInTheDocument()
+    expect(screen.getByLabelText("Custom root disk")).toBeInTheDocument()
     expect(screen.queryByText(/Custom Root Disk Size/i)).not.toBeInTheDocument()
   })
 

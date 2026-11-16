@@ -46,6 +46,23 @@ describe("SearchableSelect", () => {
     expect(onChange).toHaveBeenCalledWith("b")
   })
 
+  it("sorts ungrouped options alphabetically by label", () => {
+    render(<SearchableSelect {...common} onChange={vi.fn()} />)
+    fireEvent.click(screen.getByText("Select…"))
+    const rendered = screen.getAllByRole("option").map((el) => el.textContent)
+    // Input order is ["ubuntu", "debian"]; ungrouped lists are sorted → debian first.
+    expect(rendered).toEqual(["debian", "ubuntu"])
+  })
+
+  it("keeps grouped options in the order the grouping function returns", () => {
+    const getGroups = (opts: typeof options) => [{ label: "distros", options: opts }]
+    render(<SearchableSelect {...common} onChange={vi.fn()} getGroups={getGroups} />)
+    fireEvent.click(screen.getByText("Select…"))
+    const rendered = screen.getAllByRole("option").map((el) => el.textContent)
+    // Grouped lists are NOT alphabetised; they keep the input order.
+    expect(rendered).toEqual(["ubuntu", "debian"])
+  })
+
   it("renders non-clickable group headers above options when getGroups is provided", () => {
     const onChange = vi.fn()
     const getGroups = (opts: typeof options) => [{ label: "distros", options: opts }]

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react"
+import { InlineLoading } from "./tabs/InlineLoading"
 
 interface SearchableSelectProps<T> {
   options: T[]
@@ -48,7 +49,16 @@ export function SearchableSelect<T>({
   }, [])
 
   // Local filtering only when the parent did not take over search.
-  const visible = onSearch ? options : options.filter((o) => getLabel(o).toLowerCase().includes(query.toLowerCase()))
+  const filtered = onSearch ? options : options.filter((o) => getLabel(o).toLowerCase().includes(query.toLowerCase()))
+
+  // Ungrouped, client-side lists (Key Pair, Network, AZ) have no inherent order,
+  // so sort them alphabetically by label to make long lists scannable. Grouped
+  // lists (flavors, images) and server-side-searched lists keep their own,
+  // meaning-carrying order.
+  const visible =
+    getGroups || onSearch
+      ? filtered
+      : [...filtered].sort((a, b) => getLabel(a).localeCompare(getLabel(b)))
 
   const selectedLabel = value != null ? options.find((o) => getValue(o) === value) : undefined
   const buttonText = selectedLabel ? getLabel(selectedLabel) : placeholder
@@ -75,7 +85,7 @@ export function SearchableSelect<T>({
     <div className="dropdown" ref={ref}>
       <button
         type="button"
-        className="btn btn-outline-secondary dropdown-toggle w-100 text-start"
+        className={`form-select w-100 text-start${selectedLabel ? "" : " text-muted"}`}
         onClick={() => setOpen((o) => !o)}
       >
         {buttonText}
@@ -89,24 +99,28 @@ export function SearchableSelect<T>({
             placeholder="Search…"
             onChange={(e) => setQuery(e.target.value)}
           />
-          {isLoading ? (
-            <div className="spinner-border spinner-border-sm" role="status">
-              <span className="visually-hidden">Loading…</span>
-            </div>
-          ) : visible.length === 0 ? (
-            <div className="text-muted px-2 py-1">{emptyMessage}</div>
-          ) : groups ? (
-            <ul className="list-group list-group-flush">
-              {groups.flatMap((g) => [
-                <li key={`group-${g.label}`} className="list-group-item disabled fw-bold text-muted" aria-disabled>
-                  {g.label}
-                </li>,
-                ...g.options.map(renderOption),
-              ])}
-            </ul>
-          ) : (
-            <ul className="list-group list-group-flush">{visible.map(renderOption)}</ul>
-          )}
+          {/* Keep the search box fixed and let only the option list scroll, so a
+              long list (e.g. 100+ networks) never overflows the viewport. */}
+          <div className="searchable-select-options">
+            {isLoading ? (
+              <div className="px-2 py-1">
+                <InlineLoading />
+              </div>
+            ) : visible.length === 0 ? (
+              <div className="text-muted px-2 py-1">{emptyMessage}</div>
+            ) : groups ? (
+              <ul className="list-group list-group-flush">
+                {groups.flatMap((g) => [
+                  <li key={`group-${g.label}`} className="list-group-item disabled fw-bold text-muted" aria-disabled>
+                    {g.label}
+                  </li>,
+                  ...g.options.map(renderOption),
+                ])}
+              </ul>
+            ) : (
+              <ul className="list-group list-group-flush">{visible.map(renderOption)}</ul>
+            )}
+          </div>
         </div>
       )}
     </div>
