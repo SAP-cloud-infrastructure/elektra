@@ -19,11 +19,23 @@ module ComputeNjq
         end
       end
 
+      # POST /:scope/compute-njq/api/instances
+      def create
+        handle_api_call { { instance: compute_service.create_instance(create_params) } }
+      end
+
       private
 
       # Only the filters the UI actually offers are accepted.
       def filter_params
         params.permit(:name, :status).to_h.symbolize_keys.reject { |_, v| v.blank? }
+      end
+
+      def create_params
+        params.permit(
+          :name, :flavor_id, :image_id, :keypair, :availability_zone, :network_id, :user_data,
+          security_groups: [],
+        ).to_h.stringify_keys
       end
     end
   end

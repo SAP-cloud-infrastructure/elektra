@@ -104,4 +104,42 @@ RSpec.describe ComputeNjq::Api::InstancesController, type: :controller do
       expect(JSON.parse(response.body)).to eq("instance" => { "id" => "s1" })
     end
   end
+
+  describe "POST #create" do
+    let(:create_params) do
+      { name: "web-01", flavor_id: "f1", image_id: "i1", keypair: "my-key",
+        availability_zone: "az-1", network_id: "n1", security_groups: ["default"], user_data: "" }
+    end
+
+    it "creates the instance and returns it" do
+      allow(scoped_service).to receive(:create_instance).and_return({ "id" => "s1", "name" => "web-01" })
+      post :create, params: default_params.merge(create_params)
+      expect(response).to have_http_status(:success)
+      expect(JSON.parse(response.body)).to eq("instance" => { "id" => "s1", "name" => "web-01" })
+    end
+
+    it "passes the permitted attributes to the service" do
+      captured = nil
+      allow(scoped_service).to receive(:create_instance) { |a| captured = a; { "id" => "s1" } }
+      post :create, params: default_params.merge(create_params)
+      expect(captured["name"]).to eq("web-01")
+      expect(captured["security_groups"]).to eq(["default"])
+    end
+
+    it "renders a 400 envelope when the service rejects the payload" do
+      allow(scoped_service).to receive(:create_instance).and_raise(ComputeNjq::RequestError.new("flavor is required"))
+      post :create, params: default_params.merge(create_params.merge(flavor_id: ""))
+      expect(response).to have_http_status(:bad_request)
+      expect(JSON.parse(response.body)).to include("error" => "Request Error", "code" => 400)
+    end
+
+    it "passes through an upstream Nova quota error with its status" do
+      allow(scoped_service).to receive(:create_instance).and_raise(
+        Elektron::Errors::ApiResponse.new(double(code: 403, body: { "message" => "Quota exceeded" })),
+      )
+      post :create, params: default_params.merge(create_params)
+      expect(response).to have_http_status(403)
+      expect(JSON.parse(response.body)["code"]).to eq(403)
+    end
+  end
 end

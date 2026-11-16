@@ -3,7 +3,7 @@ ComputeNjq::Engine.routes.draw do
 
   # JSON BFF endpoints consumed by the React widget.
   namespace :api do
-    resources :instances, only: %i[index show]
+    resources :instances, only: %i[index show create]
     get "form_options/flavors", to: "form_options#flavors"
     get "form_options/images", to: "form_options#images"
     get "form_options/keypairs", to: "form_options#keypairs"

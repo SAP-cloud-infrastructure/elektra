@@ -1,4 +1,5 @@
 {
   "compute_njq:instance_list": "@",
-  "compute_njq:instance_get": "@"
+  "compute_njq:instance_get": "@",
+  "compute_njq:instance_create": "@"
 }
