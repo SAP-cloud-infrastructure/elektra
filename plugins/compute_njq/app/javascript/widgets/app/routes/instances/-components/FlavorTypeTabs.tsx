@@ -1,3 +1,4 @@
+import { Fragment } from "react"
 import { FlavorTypeTab, FLAVOR_TYPE_LABELS } from "./imageGrouping"
 
 interface Props {
@@ -10,22 +11,32 @@ interface Props {
 
 // First-stage hypervisor-type selector. Picking a type narrows both the flavor
 // and the image list, making the flavor<->image coupling visible to the user.
+//
+// Rendered as Bootstrap 5 radio toggle buttons (btn-check + label.btn): the
+// choices are mutually exclusive, so a radiogroup is the semantically correct
+// control (keyboard arrow navigation, proper a11y) rather than a tablist.
 export function FlavorTypeTabs({ value, onChange, availableTabs }: Props) {
   return (
-    <ul className="nav nav-pills mb-3" role="tablist">
-      {availableTabs.map((tab) => (
-        <li className="nav-item" key={tab} role="presentation">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={value === tab}
-            className={`nav-link ${value === tab ? "active" : ""}`}
-            onClick={() => onChange(tab)}
-          >
-            {FLAVOR_TYPE_LABELS[tab]}
-          </button>
-        </li>
-      ))}
-    </ul>
+    <>
+      {availableTabs.map((tab) => {
+        const id = `flavor-type-${tab}`
+        return (
+          <Fragment key={tab}>
+            <input
+              type="radio"
+              className="btn-check"
+              name="flavor-type"
+              id={id}
+              autoComplete="off"
+              checked={value === tab}
+              onChange={() => onChange(tab)}
+            />
+            <label className="btn btn-secondary" htmlFor={id}>
+              {FLAVOR_TYPE_LABELS[tab]}
+            </label>
+          </Fragment>
+        )
+      })}
+    </>
   )
 }

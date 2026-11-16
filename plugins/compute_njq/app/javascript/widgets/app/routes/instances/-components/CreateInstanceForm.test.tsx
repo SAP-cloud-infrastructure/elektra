@@ -46,6 +46,11 @@ const api = {} as never
 const queryClient = new QueryClient()
 
 describe("CreateInstanceForm", () => {
+  it("focuses the Name field on open", () => {
+    render(<CreateInstanceForm api={api} queryClient={queryClient} onSuccess={vi.fn()} />)
+    expect(screen.getByLabelText(/name/i)).toHaveFocus()
+  })
+
   it("keeps submit disabled until required fields are valid", () => {
     render(<CreateInstanceForm api={api} queryClient={queryClient} onSuccess={vi.fn()} />)
     expect(screen.getByRole("button", { name: /create/i })).toBeDisabled()
@@ -114,7 +119,7 @@ describe("CreateInstanceForm", () => {
     render(<CreateInstanceForm api={api} queryClient={queryClient} onSuccess={vi.fn()} />)
 
     // Type first, then pick the disk-less flavor from the (now visible) dropdown.
-    fireEvent.click(screen.getByRole("tab", { name: "KVM" }))
+    fireEvent.click(screen.getByRole("radio", { name: "KVM" }))
     fireEvent.click(screen.getByText("Select a flavor…"))
     fireEvent.click(screen.getByText(/no-disk/))
 
@@ -131,7 +136,7 @@ describe("CreateInstanceForm", () => {
     ]
     render(<CreateInstanceForm api={api} queryClient={queryClient} onSuccess={vi.fn()} />)
 
-    fireEvent.click(screen.getByRole("tab", { name: "KVM" }))
+    fireEvent.click(screen.getByRole("radio", { name: "KVM" }))
     fireEvent.click(screen.getByText("Select a flavor…"))
     fireEvent.click(screen.getByText(/m1.small/))
 
@@ -149,14 +154,14 @@ describe("CreateInstanceForm", () => {
     render(<CreateInstanceForm api={api} queryClient={queryClient} onSuccess={vi.fn()} />)
 
     // KVM tab → only the kvm flavor is offered.
-    fireEvent.click(screen.getByRole("tab", { name: "KVM" }))
+    fireEvent.click(screen.getByRole("radio", { name: "KVM" }))
     fireEvent.click(screen.getByText("Select a flavor…"))
     expect(screen.getByText(/kvm-flavor/)).toBeInTheDocument()
     expect(screen.queryByText(/vmware-flavor/)).not.toBeInTheDocument()
     fireEvent.click(screen.getByText(/kvm-flavor/))
 
     // Switch to VMware → the kvm pick is cleared, and only the vmware flavor shows.
-    fireEvent.click(screen.getByRole("tab", { name: "VMware" }))
+    fireEvent.click(screen.getByRole("radio", { name: "VMware" }))
     fireEvent.click(screen.getByText("Select a flavor…"))
     expect(screen.getByText(/vmware-flavor/)).toBeInTheDocument()
     expect(screen.queryByText(/kvm-flavor/)).not.toBeInTheDocument()
@@ -172,7 +177,7 @@ describe("CreateInstanceForm", () => {
     // No hint before a flavor is chosen.
     expect(screen.queryByText(/run on any hypervisor/i)).not.toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole("tab", { name: "KVM" }))
+    fireEvent.click(screen.getByRole("radio", { name: "KVM" }))
     fireEvent.click(screen.getByText("Select a flavor…"))
     fireEvent.click(screen.getByText(/kvm-flavor/))
 

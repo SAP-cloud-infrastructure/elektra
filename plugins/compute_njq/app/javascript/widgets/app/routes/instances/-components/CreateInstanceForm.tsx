@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 import { QueryClient } from "@tanstack/react-query"
 import { ComputeApi } from "../../../apiClient"
 import { SearchableSelect } from "./SearchableSelect"
@@ -81,6 +81,14 @@ function FormRow({
   )
 }
 
+// A subtle group separator: extra vertical space between field blocks, with no
+// heading or divider line — just enough breathing room to make the three
+// logical groups (compute/placement, access/networking, advanced) scannable
+// without the weight of section headers or rules.
+function SectionGap() {
+  return <div className="create-instance-section-gap" aria-hidden="true" />
+}
+
 const EMPTY = {
   name: "",
   flavor_id: "",
@@ -99,6 +107,13 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
   const [flavorType, setFlavorType] = useState<FlavorTypeTab | null>(null)
   const [customRootDisk, setCustomRootDisk] = useState(false)
   const [rootDiskSize, setRootDiskSize] = useState("")
+
+  // Focus the Name field when the dialog opens, so the user can start typing
+  // immediately (mirrors the legacy form's autofocus).
+  const nameRef = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    nameRef.current?.focus()
+  }, [])
 
   const set = (key: keyof typeof EMPTY, value: string | string[]) => setForm((f) => ({ ...f, [key]: value }))
   const open = (key: string) => setOpened((o) => ({ ...o, [key]: true }))
@@ -194,12 +209,15 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
       >
         <input
           id="ci-name"
+          ref={nameRef}
           type="text"
           className={`form-control ${nameError ? "is-invalid" : ""}`}
           value={form.name}
           onChange={(e) => set("name", e.target.value)}
         />
       </FormRow>
+
+      <SectionGap />
 
       <FormRow label="Flavor Type" required>
         <FlavorTypeTabs value={flavorType} onChange={onTypeChange} availableTabs={availableTabs} />
@@ -276,6 +294,23 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
         </FormRow>
       )}
 
+      <div onClick={() => open("az")}>
+        <FormRow label="Availability Zone">
+          <SearchableSelect
+            options={azs.data ?? []}
+            value={form.availability_zone || null}
+            onChange={(v) => set("availability_zone", v)}
+            getLabel={(z) => z.name}
+            getValue={(z) => z.name}
+            isLoading={azs.isLoading}
+            placeholder="Any availability zone…"
+            emptyMessage="No availability zones"
+          />
+        </FormRow>
+      </div>
+
+      <SectionGap />
+
       <div onClick={() => open("keypair")}>
         <FormRow label="Key Pair" required>
           <SearchableSelect
@@ -321,20 +356,7 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
         />
       </FormRow>
 
-      <div onClick={() => open("az")}>
-        <FormRow label="Availability Zone">
-          <SearchableSelect
-            options={azs.data ?? []}
-            value={form.availability_zone || null}
-            onChange={(v) => set("availability_zone", v)}
-            getLabel={(z) => z.name}
-            getValue={(z) => z.name}
-            isLoading={azs.isLoading}
-            placeholder="Any availability zone…"
-            emptyMessage="No availability zones"
-          />
-        </FormRow>
-      </div>
+      <SectionGap />
 
       <FormRow label="User Data" htmlFor="ci-user-data">
         <textarea

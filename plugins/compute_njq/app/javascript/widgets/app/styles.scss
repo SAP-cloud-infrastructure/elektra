@@ -209,6 +209,19 @@
     overflow-y: auto;
   }
 
+  // Flavor-Type radio toggle buttons (btn-check + label.btn): standalone
+  // buttons, so give each a small right gap instead of letting them butt
+  // together like a btn-group.
+  .btn-check + .btn {
+    margin-right: 0.5rem;
+  }
+
+  // Dezente Gruppentrennung im Create-Form: nur zusaetzlicher vertikaler
+  // Abstand zwischen den Feldbloecken, ohne Ueberschrift oder Trennlinie.
+  .create-instance-section-gap {
+    height: 1.5rem;
+  }
+
   // The option rows use Bootstrap list-group items, whose default hover/active
   // states render as a strong primary-blue bar that looks like a selection
   // rather than a hover. Tone it down to a subtle grey hover; only the

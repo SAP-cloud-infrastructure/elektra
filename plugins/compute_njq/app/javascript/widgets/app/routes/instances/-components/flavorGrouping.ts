@@ -25,16 +25,45 @@ export function groupFlavorsByAccess(flavors: Flavor[]): FlavorGroup[] {
   return result
 }
 
-// Format RAM (MB from Nova) as GB when it is a whole number of GB, else MB.
-function formatRam(ram: number | null): string {
-  if (ram == null) return "n/a"
-  return ram >= 1024 && ram % 1024 === 0 ? `${ram / 1024} GB` : `${ram} MB`
+// Auto-scaling IEC formatter mirroring the legacy Core::DataType output:
+// scales up through the unit table, strips trailing zeros (2.0 → "2"), and uses
+// IEC unit names. `startUnit` is the index of the incoming value's unit.
+const IEC_UNITS = ["Bytes", "KiB", "MiB", "GiB", "TiB"] as const
+function formatIec(value: number, startUnit: number): string {
+  // Zero collapses to the base unit ("0 Bytes"), matching the legacy
+  // Core::DataType formatter rather than staying at the incoming unit.
+  if (value === 0) return "0 Bytes"
+  let v = value
+  let u = startUnit
+  while (v >= 1024 && u < IEC_UNITS.length - 1) {
+    v /= 1024
+    u++
+  }
+  // Round to two decimals, then drop any trailing zeros (and the dot).
+  const rounded = Math.round(v * 100) / 100
+  return `${rounded} ${IEC_UNITS[u]}`
 }
 
-// "<name> (RAM: 2 GB, VCPUs: 1, Disk: 20 GB)" — Nova disk is already in GB.
+// RAM comes from Nova in MiB; format auto-scaled like the legacy
+// Core::DataType(:bytes, :mega): 2048 → "2 GiB", 1536 → "1.5 GiB", 512 → "512 MiB".
+function formatRam(ram: number | null): string {
+  if (ram == null) return "n/a"
+  return formatIec(ram, 2) // 2 = MiB
+}
+
+// Disk comes from Nova already in GiB; format auto-scaled like the legacy
+// Core::DataType(:bytes, :giga): 20 → "20 GiB", 0 → "0 Bytes".
+function formatDisk(disk: number | null): string {
+  if (disk == null) return "n/a"
+  return formatIec(disk, 3) // 3 = GiB
+}
+
+// "<name> (RAM: 2 GiB, VCPUs: 1, Disk: 20 GiB)" — mirrors the legacy
+// flavor_label_for_select size string (hypervisor word omitted; it is implied by
+// the selected type).
 export function flavorLabel(f: Flavor): string {
   const ram = formatRam(f.ram)
   const vcpus = f.vcpus ?? "n/a"
-  const disk = f.disk == null ? "n/a" : `${f.disk} GB`
+  const disk = formatDisk(f.disk)
   return `${f.name} (RAM: ${ram}, VCPUs: ${vcpus}, Disk: ${disk})`
 }

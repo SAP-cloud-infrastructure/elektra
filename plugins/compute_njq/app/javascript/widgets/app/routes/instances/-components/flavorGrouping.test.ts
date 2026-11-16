@@ -40,15 +40,21 @@ describe("groupFlavorsByAccess", () => {
 })
 
 describe("flavorLabel", () => {
-  it("formats name with RAM (GB when whole), VCPUs and disk", () => {
+  it("formats name with auto-scaled IEC RAM, VCPUs and disk", () => {
     expect(flavorLabel(flavor({ id: "m1.small", name: "m1.small", ram: 2048, vcpus: 1, disk: 20 }))).toBe(
-      "m1.small (RAM: 2 GB, VCPUs: 1, Disk: 20 GB)"
+      "m1.small (RAM: 2 GiB, VCPUs: 1, Disk: 20 GiB)"
     )
   })
 
-  it("keeps RAM in MB when not a whole number of GB", () => {
+  it("auto-scales fractional RAM (1536 MiB → 1.5 GiB)", () => {
     expect(flavorLabel(flavor({ id: "x", name: "x", ram: 1536, vcpus: 2, disk: 5 }))).toBe(
-      "x (RAM: 1536 MB, VCPUs: 2, Disk: 5 GB)"
+      "x (RAM: 1.5 GiB, VCPUs: 2, Disk: 5 GiB)"
+    )
+  })
+
+  it("keeps sub-GiB RAM in MiB", () => {
+    expect(flavorLabel(flavor({ id: "z", name: "z", ram: 512, vcpus: 1, disk: 0 }))).toBe(
+      "z (RAM: 512 MiB, VCPUs: 1, Disk: 0 Bytes)"
     )
   })
 

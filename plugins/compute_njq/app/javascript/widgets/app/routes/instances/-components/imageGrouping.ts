@@ -53,9 +53,6 @@ export function imageMatchesHypervisor(image: Image, hv: HypervisorType | null):
   return image.hypervisor_type === hv
 }
 
-// Top-level grouping order. Alphabetical like the legacy `.sort`, plus snapshot.
-const VISIBILITY_ORDER = ["public", "private", "shared", "snapshot"] as const
-
 // The group an image belongs to: image_type "snapshot" promotes it into the
 // snapshot bucket, otherwise its glance visibility (unknown → "other").
 export function imageBucket(image: Image): string {
@@ -63,13 +60,16 @@ export function imageBucket(image: Image): string {
   return image.visibility ?? "other"
 }
 
-function byName(a: Image, b: Image): number {
-  return (a.name ?? "").localeCompare(b.name ?? "")
+// Legacy sorts images within a group by [name, created_at] (instances_helper.rb).
+function byNameThenCreated(a: Image, b: Image): number {
+  return (a.name ?? "").localeCompare(b.name ?? "") || (a.created ?? "").localeCompare(b.created ?? "")
 }
 
-// Filter by flavor hypervisor, then group into public/private/shared/snapshot
-// (unknown buckets trailing), sorting each bucket by name. Empty buckets are
-// omitted. Returns the flat group list SearchableSelect consumes.
+// Filter by flavor hypervisor, then group by visibility (public/private/shared)
+// plus a promoted "snapshot" bucket. Buckets are ordered alphabetically by label
+// — matching the legacy `.sort` over the visibility keys (→ private, public,
+// shared, snapshot) — and each bucket is sorted by name then created_at. Empty
+// buckets are omitted. Returns the flat group list SearchableSelect consumes.
 export function groupImages(images: Image[], hv: HypervisorType | null): ImageGroup[] {
   const matching = images.filter((i) => imageMatchesHypervisor(i, hv))
 
@@ -81,38 +81,44 @@ export function groupImages(images: Image[], hv: HypervisorType | null): ImageGr
     buckets.set(key, list)
   }
 
-  const known = VISIBILITY_ORDER as readonly string[]
-  const order = [...VISIBILITY_ORDER, ...[...buckets.keys()].filter((k) => !known.includes(k)).sort()]
+  const order = [...buckets.keys()].sort((a, b) => a.localeCompare(b))
 
   const groups: ImageGroup[] = []
   for (const label of order) {
     const options = buckets.get(label)
-    if (options && options.length > 0) groups.push({ label, options: options.sort(byName) })
+    if (options && options.length > 0) groups.push({ label, options: options.sort(byNameThenCreated) })
   }
   return groups
 }
 
-// Human-readable byte size: B/KB/MB/GB, mirroring the legacy byte_to_human.
+// Human-readable byte size, mirroring the legacy byte_to_human: values below
+// 1 KB render as "<n>Byte"; otherwise KB/MB/GB/TB rounded to two decimals, with
+// no space between number and unit (e.g. "491.79MB", "1.5GB").
 function formatSize(size: number | null): string {
   if (size == null) return "n/a"
-  const units = ["B", "KB", "MB", "GB"]
-  let value = size
+  if (size < 1024) return `${size}Byte`
+  const units = ["KB", "MB", "GB", "TB"]
+  let value = size / 1024
   let unit = 0
   while (value >= 1024 && unit < units.length - 1) {
     value /= 1024
     unit++
   }
   const rounded = Math.round(value * 100) / 100
-  return `${rounded} ${units[unit]}`
+  return `${rounded}${units[unit]}`
 }
 
-// "<name> (Size: 1 GB, Format: qcow2[, Build: 42])" — mirrors the legacy
-// image_label_for_select, minus the private-image project suffix (deferred to a
-// later version, which needs owner/project name resolution).
+// "<name> (Size: 1GB, Format: qcow2[, Build: 42])[. Project: <owner>]" — mirrors
+// the legacy image_label_for_select, including the ". Project: <name>" suffix
+// shown for private images (the BFF resolves owner_label for those).
 export function imageLabel(image: Image): string {
   const name = image.name ?? image.id
   const parts = [`Size: ${formatSize(image.size)}`]
   if (image.disk_format != null) parts.push(`Format: ${image.disk_format}`)
   if (image.buildnumber != null && image.buildnumber !== "") parts.push(`Build: ${image.buildnumber}`)
-  return `${name} (${parts.join(", ")})`
+  const base = `${name} (${parts.join(", ")})`
+  // Private images carry an owner-project suffix so duplicate names across
+  // projects stay distinguishable.
+  if (image.visibility === "private" && image.owner_label) return `${base}. Project: ${image.owner_label}`
+  return base
 }

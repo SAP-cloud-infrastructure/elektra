@@ -20,6 +20,9 @@ function image(overrides: Partial<Image> & Pick<Image, "id">): Image {
     buildnumber: null,
     min_disk: 0,
     size: 1024,
+    created: null,
+    owner: null,
+    owner_label: null,
     ...overrides,
   }
 }
@@ -95,7 +98,7 @@ describe("imageMatchesHypervisor", () => {
 })
 
 describe("groupImages", () => {
-  it("orders groups public → private → shared → snapshot and sorts by name", () => {
+  it("orders groups alphabetically (private → public → shared → snapshot) and sorts by name", () => {
     const images = [
       image({ id: "b-pub", name: "b", visibility: "public" }),
       image({ id: "a-pub", name: "a", visibility: "public" }),
@@ -104,10 +107,24 @@ describe("groupImages", () => {
       image({ id: "snap", name: "z", visibility: "private", image_type: "snapshot" }),
     ]
     const groups = groupImages(images, null)
-    expect(groups.map((g) => g.label)).toEqual(["public", "private", "shared", "snapshot"])
-    expect(groups[0].options.map((i) => i.id)).toEqual(["a-pub", "b-pub"])
+    expect(groups.map((g) => g.label)).toEqual(["private", "public", "shared", "snapshot"])
+    // public bucket is sorted by name: a before b
+    const pub = groups.find((g) => g.label === "public")!
+    expect(pub.options.map((i) => i.id)).toEqual(["a-pub", "b-pub"])
     // snapshot override wins over the image's own visibility
-    expect(groups[3].options.map((i) => i.id)).toEqual(["snap"])
+    const snap = groups.find((g) => g.label === "snapshot")!
+    expect(snap.options.map((i) => i.id)).toEqual(["snap"])
+  })
+
+  it("tie-breaks same-named images by created", () => {
+    const groups = groupImages(
+      [
+        image({ id: "newer", name: "dup", created: "2026-02-01T00:00:00Z" }),
+        image({ id: "older", name: "dup", created: "2026-01-01T00:00:00Z" }),
+      ],
+      null
+    )
+    expect(groups[0].options.map((i) => i.id)).toEqual(["older", "newer"])
   })
 
   it("filters by flavor hypervisor before grouping and omits empty buckets", () => {
@@ -129,17 +146,31 @@ describe("groupImages", () => {
 describe("imageLabel", () => {
   it("formats name with human size and disk format", () => {
     expect(imageLabel(image({ id: "x", name: "ubuntu", size: 1073741824, disk_format: "qcow2" }))).toBe(
-      "ubuntu (Size: 1 GB, Format: qcow2)"
+      "ubuntu (Size: 1GB, Format: qcow2)"
     )
   })
 
   it("appends the build number when present", () => {
     expect(imageLabel(image({ id: "x", name: "img", size: 1048576, disk_format: "vmdk", buildnumber: "42" }))).toBe(
-      "img (Size: 1 MB, Format: vmdk, Build: 42)"
+      "img (Size: 1MB, Format: vmdk, Build: 42)"
     )
   })
 
   it("shows n/a for null size and omits an absent format", () => {
     expect(imageLabel(image({ id: "x", name: "img", size: null, disk_format: null }))).toBe("img (Size: n/a)")
+  })
+
+  it("appends the owner project suffix for private images", () => {
+    expect(
+      imageLabel(
+        image({ id: "x", name: "img", size: 1048576, visibility: "private", owner_label: "monsoon3/demo" })
+      )
+    ).toBe("img (Size: 1MB, Format: qcow2). Project: monsoon3/demo")
+  })
+
+  it("omits the project suffix for non-private images", () => {
+    expect(
+      imageLabel(image({ id: "x", name: "img", size: 1048576, visibility: "public", owner_label: "monsoon3/demo" }))
+    ).toBe("img (Size: 1MB, Format: qcow2)")
   })
 })
