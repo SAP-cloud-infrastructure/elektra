@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { groupFlavors, flavorLabel } from "./flavorGrouping"
+import { groupFlavorsByAccess, flavorLabel } from "./flavorGrouping"
 import { Flavor } from "../../../types/formOptions"
 
 function flavor(overrides: Partial<Flavor> & Pick<Flavor, "id">): Flavor {
@@ -14,44 +14,28 @@ function flavor(overrides: Partial<Flavor> & Pick<Flavor, "id">): Flavor {
   }
 }
 
-describe("groupFlavors", () => {
-  it("orders public before private and subgroups baremetal → kvm → vmware", () => {
-    const flavors = [
-      flavor({ id: "priv-kvm", is_public: false, hypervisor_type: "kvm" }),
-      flavor({ id: "pub-vmware", is_public: true, hypervisor_type: "vmware" }),
-      flavor({ id: "pub-baremetal", is_public: true, hypervisor_type: "baremetal" }),
-      flavor({ id: "pub-kvm", is_public: true, hypervisor_type: "kvm" }),
-    ]
-    const labels = groupFlavors(flavors).map((g) => g.label)
-    expect(labels).toEqual(["public", "--bare metal", "--kvm", "--vmware", "private", "--kvm"])
+describe("groupFlavorsByAccess", () => {
+  it("orders public before private", () => {
+    const flavors = [flavor({ id: "priv", is_public: false }), flavor({ id: "pub", is_public: true })]
+    const groups = groupFlavorsByAccess(flavors)
+    expect(groups.map((g) => g.label)).toEqual(["public", "private"])
+    expect(groups[0].options.map((f) => f.id)).toEqual(["pub"])
+    expect(groups[1].options.map((f) => f.id)).toEqual(["priv"])
   })
 
-  it("sorts within a subgroup ascending by [ram, vcpus]", () => {
+  it("sorts within a level ascending by [ram, vcpus]", () => {
     const flavors = [
       flavor({ id: "big", ram: 4096, vcpus: 4 }),
       flavor({ id: "small", ram: 1024, vcpus: 1 }),
       flavor({ id: "same-ram-more-cpu", ram: 1024, vcpus: 2 }),
     ]
-    const kvm = groupFlavors(flavors).find((g) => g.label === "--kvm")!
-    expect(kvm.options.map((f) => f.id)).toEqual(["small", "same-ram-more-cpu", "big"])
+    const pub = groupFlavorsByAccess(flavors).find((g) => g.label === "public")!
+    expect(pub.options.map((f) => f.id)).toEqual(["small", "same-ram-more-cpu", "big"])
   })
 
-  it("omits empty levels and subgroups", () => {
-    const flavors = [flavor({ id: "only", is_public: true, hypervisor_type: "kvm" })]
-    expect(groupFlavors(flavors).map((g) => g.label)).toEqual(["public", "--kvm"])
-  })
-
-  it("keeps flavors with unknown/absent hypervisor_type in a trailing --other group", () => {
-    const flavors = [
-      flavor({ id: "known", hypervisor_type: "kvm" }),
-      flavor({ id: "null-hv", hypervisor_type: null }),
-      flavor({ id: "weird", hypervisor_type: "xen" }),
-    ]
-    const groups = groupFlavors(flavors)
-    const other = groups.find((g) => g.label === "--other")!
-    expect(other.options.map((f) => f.id).sort()).toEqual(["null-hv", "weird"])
-    // --other comes after the known subgroups within the level
-    expect(groups.map((g) => g.label)).toEqual(["public", "--kvm", "--other"])
+  it("omits empty levels", () => {
+    const flavors = [flavor({ id: "only", is_public: true })]
+    expect(groupFlavorsByAccess(flavors).map((g) => g.label)).toEqual(["public"])
   })
 })
 

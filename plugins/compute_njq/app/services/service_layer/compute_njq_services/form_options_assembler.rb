@@ -49,26 +49,44 @@ module ServiceLayer
         neutron_security_groups.map { |sg| { id: sg["id"], name: sg["name"] } }
       end
 
-      # q → Glance name filter; marker/limit → pagination. next_marker is the last
-      # image id when a full page was returned, else nil (end of list).
-      def form_images(q: nil, marker: nil, limit: 50)
-        filter = { "limit" => limit }
-        filter["name"] = q if q.present?
-        filter["marker"] = marker if marker.present?
+      # Loads the full image catalog for the create dialog, per visibility.
+      #
+      # This mirrors the legacy compute controller exactly (SAP-specific, not
+      # vanilla OpenStack, and intentionally so): private, shared and public are
+      # each loaded and fully paged, then merged and de-duplicated by id. Loading
+      # per visibility — rather than one unfiltered call — is required because in
+      # some environments not all images are visible when no visibility filter is
+      # given. The UI filters/groups this list by the selected flavor's hypervisor.
+      def form_images
+        raw =
+          %w[private shared public]
+            .flat_map { |visibility| glance_all_images("visibility" => visibility) }
+            .uniq { |i| i["id"] }
+            # Legacy drops nameless images entirely (instances_helper.rb:98) and
+            # never falls back to the id; we additionally treat whitespace-only
+            # names as blank.
+            .reject { |i| i["name"].nil? || i["name"].to_s.strip.empty? }
 
-        raw = glance_images(filter)
         images = raw.map do |i|
           {
             id: i["id"],
             name: i["name"],
             visibility: i["visibility"],
+            # Two hypervisor fields coexist: hypervisor_type is the legacy
+            # property, img_hv_type the newer one. The UI's image<->flavor
+            # coupling decides which to honour, so we pass both through raw.
             hypervisor_type: i["hypervisor_type"],
+            img_hv_type: i["img_hv_type"],
+            # image_type == "snapshot" promotes an image into the snapshot group.
+            image_type: i["image_type"],
+            disk_format: i["disk_format"],
+            buildnumber: i["buildnumber"],
             min_disk: i["min_disk"],
             size: i["size"],
           }
         end
 
-        { images: images, next_marker: raw.length == limit ? raw.last["id"] : nil }
+        { images: images }
       end
     end
   end

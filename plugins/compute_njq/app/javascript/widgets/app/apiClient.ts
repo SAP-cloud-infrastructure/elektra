@@ -47,17 +47,6 @@ function parseOrThrow<T>(
   return parsed.data as T
 }
 
-// Drops undefined/empty values so they are not serialised as query params.
-function cleanParams(opts: Record<string, unknown>): Record<string, string> {
-  return Object.entries(opts).reduce(
-    (acc, [k, v]) => {
-      if (v !== undefined && v !== null && v !== "") acc[k] = String(v)
-      return acc
-    },
-    {} as Record<string, string>
-  )
-}
-
 // basepath already includes domain/project scope (e.g. /acme/demo/compute-njq);
 // "/api/" is where base_controller mounts the BFF endpoints.
 export function createComputeApi(basepath: string) {
@@ -89,8 +78,8 @@ export function createComputeApi(basepath: string) {
         checkForApiError(res.data)
         return parseOrThrow(FlavorsResponseSchema, res.data, "flavors").flavors
       }),
-    getImages: (opts: { q?: string; marker?: string; limit?: number } = {}) =>
-      apiClient.get<{ data: unknown }>("form_options/images", { params: cleanParams(opts) }).then((res) => {
+    getImages: () =>
+      apiClient.get<{ data: unknown }>("form_options/images").then((res) => {
         checkForApiError(res.data)
         return parseOrThrow(ImagesResponseSchema, res.data, "images")
       }),

@@ -15,6 +15,10 @@ export const ImageSchema = z.object({
   name: z.string().nullable(),
   visibility: z.string().nullable(),
   hypervisor_type: z.string().nullable(),
+  img_hv_type: z.string().nullable(),
+  image_type: z.string().nullable(),
+  disk_format: z.string().nullable(),
+  buildnumber: z.string().nullable(),
   min_disk: z.number().nullable(),
   size: z.number().nullable(),
 })
@@ -25,10 +29,7 @@ export const SecurityGroupSchema = z.object({ id: z.string(), name: z.string() }
 export const AvailabilityZoneSchema = z.object({ name: z.string() })
 
 export const FlavorsResponseSchema = z.object({ flavors: z.array(FlavorSchema) })
-export const ImagesResponseSchema = z.object({
-  images: z.array(ImageSchema),
-  next_marker: z.string().nullable(),
-})
+export const ImagesResponseSchema = z.object({ images: z.array(ImageSchema) })
 export const KeypairsResponseSchema = z.object({ keypairs: z.array(KeypairSchema) })
 export const NetworksResponseSchema = z.object({ networks: z.array(NetworkSchema) })
 export const SecurityGroupsResponseSchema = z.object({ security_groups: z.array(SecurityGroupSchema) })

@@ -29,11 +29,6 @@ export function useAvailabilityZonesQuery(api: ComputeApi, { enabled }: { enable
     ...SHARED,
   })
 }
-export function useImagesQuery(api: ComputeApi, { q, enabled }: { q: string; enabled: boolean }) {
-  return useQuery({
-    queryKey: QUERY_KEYS.images(q),
-    queryFn: () => api.formOptions.getImages({ q: q || undefined }),
-    enabled,
-    ...SHARED,
-  })
+export function useImagesQuery(api: ComputeApi, { enabled }: { enabled: boolean }) {
+  return useQuery({ queryKey: QUERY_KEYS.images, queryFn: () => api.formOptions.getImages(), enabled, ...SHARED })
 }

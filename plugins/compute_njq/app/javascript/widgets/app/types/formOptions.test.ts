@@ -16,8 +16,8 @@ describe("formOptions schemas", () => {
     expect(parsed.success).toBe(true)
   })
 
-  it("accepts an images response with next_marker null", () => {
-    const parsed = ImagesResponseSchema.safeParse({ images: [], next_marker: null })
+  it("accepts an images response", () => {
+    const parsed = ImagesResponseSchema.safeParse({ images: [] })
     expect(parsed.success).toBe(true)
   })
 })

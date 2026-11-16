@@ -74,11 +74,10 @@ describe("createComputeApi", () => {
       expect(result[0].id).toBe("f1")
     })
 
-    it("returns images with next_marker", async () => {
-      mockGet.mockResolvedValue({ data: { images: [], next_marker: null } })
-      const result = await api.formOptions.getImages({ q: "ubuntu" })
+    it("returns the image list", async () => {
+      mockGet.mockResolvedValue({ data: { images: [] } })
+      const result = await api.formOptions.getImages()
       expect(result.images).toEqual([])
-      expect(result.next_marker).toBeNull()
     })
 
     it("returns keypairs", async () => {

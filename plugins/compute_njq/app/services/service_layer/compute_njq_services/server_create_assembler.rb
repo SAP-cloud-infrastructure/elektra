@@ -45,7 +45,27 @@ module ServiceLayer
         groups = Array(attrs["security_groups"]).reject(&:blank?)
         payload["security_groups"] = groups.map { |name| { "name" => name } } if groups.any?
 
+        # Custom root disk: boot from a new volume created from the image instead
+        # of booting the image directly. Mirrors the legacy block_device_mapping_v2
+        # (instances_controller.rb). volume_type is omitted in v1 (no Cinder yet),
+        # so Nova picks the default type.
+        if truthy(attrs["custom_root_disk"])
+          payload["block_device_mapping_v2"] = [{
+            "boot_index" => 0,
+            "uuid" => attrs["image_id"],
+            "source_type" => "image",
+            "destination_type" => "volume",
+            "volume_size" => attrs["custom_root_disk_size"].to_i,
+            "delete_on_termination" => true,
+          }]
+          payload.delete("imageRef")
+        end
+
         payload.delete_if { |_k, v| v.blank? && v != 1 }
+      end
+
+      def truthy(value)
+        value == true || value == "1" || value == "true"
       end
     end
   end

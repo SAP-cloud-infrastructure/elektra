@@ -35,14 +35,13 @@ RSpec.describe ComputeNjq::Api::FormOptionsController, type: :controller do
     expect(JSON.parse(response.body)).to eq("flavors" => [{ "id" => "f1", "name" => "m1.small" }])
   end
 
-  it "returns images with search params and next_marker" do
-    allow(scoped_service).to receive(:form_images).with(q: "ubuntu", marker: nil, limit: 50)
-      .and_return({ images: [{ id: "i1" }], next_marker: nil })
-    get :images, params: default_params.merge(q: "ubuntu")
+  it "returns the full image list (loaded per visibility, no params)" do
+    allow(scoped_service).to receive(:form_images).with(no_args)
+      .and_return({ images: [{ id: "i1" }] })
+    get :images, params: default_params
     expect(response).to have_http_status(:success)
     body = JSON.parse(response.body)
     expect(body["images"]).to eq([{ "id" => "i1" }])
-    expect(body["next_marker"]).to be_nil
   end
 
   it "returns keypairs" do

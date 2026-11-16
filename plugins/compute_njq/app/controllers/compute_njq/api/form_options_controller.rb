@@ -2,8 +2,9 @@
 
 module ComputeNjq
   module Api
-    # Serves the create-form dropdown data. Small lists are returned whole (the
-    # UI searches them client-side); images support server-side search + paging.
+    # Serves the create-form dropdown data. Every list is returned whole and the
+    # UI searches/filters it client-side — images included: they are loaded fully
+    # (per visibility) so the flavor<->image coupling can filter them in React.
     class FormOptionsController < Api::BaseController
       def flavors
         handle_api_call { { flavors: compute_service.form_flavors } }
@@ -26,13 +27,7 @@ module ComputeNjq
       end
 
       def images
-        handle_api_call do
-          compute_service.form_images(
-            q: params[:q].presence,
-            marker: params[:marker].presence,
-            limit: (params[:limit] || 50).to_i,
-          )
-        end
+        handle_api_call { compute_service.form_images }
       end
     end
   end

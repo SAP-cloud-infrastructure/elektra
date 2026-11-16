@@ -86,5 +86,39 @@ RSpec.describe ServiceLayer::ComputeNjqServices::ServerCreateAssembler do
       expect { test_class.create_instance(valid_attrs.merge("name" => "web.1")) }
         .to raise_error(ComputeNjq::RequestError, /name/)
     end
+
+    it "boots from a new volume via block_device_mapping_v2 when custom_root_disk is set" do
+      captured = nil
+      allow(test_class).to receive(:nova_create_server) do |payload|
+        captured = payload
+        { "id" => "s1" }
+      end
+      allow(test_class).to receive(:find_instance).with("s1").and_return({ id: "s1" })
+
+      test_class.create_instance(valid_attrs.merge("custom_root_disk" => "1", "custom_root_disk_size" => "64"))
+
+      expect(captured).not_to have_key("imageRef")
+      expect(captured["block_device_mapping_v2"]).to eq([{
+        "boot_index" => 0,
+        "uuid" => "i1",
+        "source_type" => "image",
+        "destination_type" => "volume",
+        "volume_size" => 64,
+        "delete_on_termination" => true,
+      }])
+    end
+
+    it "keeps imageRef and omits block_device_mapping_v2 without custom_root_disk" do
+      captured = nil
+      allow(test_class).to receive(:nova_create_server) do |payload|
+        captured = payload
+        { "id" => "s1" }
+      end
+      allow(test_class).to receive(:find_instance).with("s1").and_return({ id: "s1" })
+
+      test_class.create_instance(valid_attrs)
+      expect(captured["imageRef"]).to eq("i1")
+      expect(captured).not_to have_key("block_device_mapping_v2")
+    end
   end
 end

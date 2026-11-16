@@ -34,6 +34,7 @@ module ComputeNjq
       def create_params
         params.require(:instance).permit(
           :name, :flavor_id, :image_id, :keypair, :availability_zone, :network_id, :user_data,
+          :custom_root_disk, :custom_root_disk_size,
           security_groups: [],
         ).to_h.stringify_keys
       end

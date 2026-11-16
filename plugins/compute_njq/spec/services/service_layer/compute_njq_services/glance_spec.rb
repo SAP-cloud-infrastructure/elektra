@@ -38,4 +38,29 @@ RSpec.describe ServiceLayer::ComputeNjqServices::Glance do
       )
     end
   end
+
+  describe "#glance_all_images" do
+    it "pages via marker until an empty page ends the loop and concatenates the results" do
+      allow(elektron_glance).to receive(:get).with("images", { "visibility" => "public" }).and_return(
+        double("response", body: { "images" => [{ "id" => "i1" }, { "id" => "i2" }] }),
+      )
+      allow(elektron_glance).to receive(:get)
+        .with("images", { "visibility" => "public", "marker" => "i2" }).and_return(
+          double("response", body: { "images" => [{ "id" => "i3" }] }),
+        )
+      allow(elektron_glance).to receive(:get)
+        .with("images", { "visibility" => "public", "marker" => "i3" }).and_return(
+          double("response", body: { "images" => [] }),
+        )
+
+      expect(test_class.glance_all_images("visibility" => "public").map { |i| i["id"] }).to eq(%w[i1 i2 i3])
+    end
+
+    it "returns the single page without paging when it is already empty" do
+      allow(elektron_glance).to receive(:get).with("images", { "visibility" => "private" }).and_return(
+        double("response", body: { "images" => [] }),
+      )
+      expect(test_class.glance_all_images("visibility" => "private")).to eq([])
+    end
+  end
 end

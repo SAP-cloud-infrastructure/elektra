@@ -72,23 +72,58 @@ RSpec.describe ServiceLayer::ComputeNjqServices::FormOptionsAssembler do
   end
 
   describe "#form_images" do
-    it "maps images and returns the last id as next_marker when a full page is returned" do
-      allow(test_class).to receive(:glance_images).with({ "limit" => 2 }).and_return([
-        { "id" => "i1", "name" => "ubuntu", "visibility" => "public", "os_hash_value" => nil,
-          "hypervisor_type" => "kvm", "min_disk" => 10, "size" => 1024 },
-        { "id" => "i2", "name" => "debian", "visibility" => "public",
+    it "loads images per visibility (private, shared, public), maps them, and de-dupes by id" do
+      allow(test_class).to receive(:glance_all_images).with("visibility" => "private").and_return([
+        { "id" => "i1", "name" => "ubuntu", "visibility" => "private", "os_hash_value" => nil,
+          "hypervisor_type" => "kvm", "img_hv_type" => "kvm", "image_type" => nil,
+          "disk_format" => "qcow2", "buildnumber" => "42", "min_disk" => 10, "size" => 1024 },
+      ])
+      allow(test_class).to receive(:glance_all_images).with("visibility" => "shared").and_return([
+        { "id" => "i2", "name" => "debian", "visibility" => "shared",
           "hypervisor_type" => "kvm", "min_disk" => 10, "size" => 2048 },
       ])
-      result = test_class.form_images(limit: 2)
+      # Overlaps i1 (shared with a project): the private copy wins, the dup is dropped.
+      allow(test_class).to receive(:glance_all_images).with("visibility" => "public").and_return([
+        { "id" => "i1", "name" => "ubuntu", "visibility" => "public" },
+        { "id" => "i3", "name" => "suse", "visibility" => "public", "hypervisor_type" => "vmware" },
+      ])
+
+      result = test_class.form_images
+
+      expect(result).not_to have_key(:next_marker)
+      expect(result[:images].map { |i| i[:id] }).to eq(%w[i1 i2 i3])
       expect(result[:images].first).to eq(
-        { id: "i1", name: "ubuntu", visibility: "public", hypervisor_type: "kvm", min_disk: 10, size: 1024 },
+        { id: "i1", name: "ubuntu", visibility: "private", hypervisor_type: "kvm", img_hv_type: "kvm",
+          image_type: nil, disk_format: "qcow2", buildnumber: "42", min_disk: 10, size: 1024 },
       )
-      expect(result[:next_marker]).to eq("i2")
     end
 
-    it "returns next_marker nil when fewer than limit images come back" do
-      allow(test_class).to receive(:glance_images).with({ "limit" => 50, "name" => "zzz" }).and_return([])
-      expect(test_class.form_images(q: "zzz", limit: 50)).to eq({ images: [], next_marker: nil })
+    it "passes through image_type for snapshot detection and the extra label fields" do
+      allow(test_class).to receive(:glance_all_images).and_return([])
+      allow(test_class).to receive(:glance_all_images).with("visibility" => "private").and_return([
+        { "id" => "snap", "name" => "my-snapshot", "visibility" => "private", "image_type" => "snapshot",
+          "img_hv_type" => "baremetal", "disk_format" => "vmdk", "buildnumber" => nil },
+      ])
+
+      image = test_class.form_images[:images].first
+      expect(image).to include(
+        id: "snap", image_type: "snapshot", img_hv_type: "baremetal", disk_format: "vmdk", buildnumber: nil,
+      )
+    end
+
+    it "returns an empty list when no images are visible" do
+      allow(test_class).to receive(:glance_all_images).and_return([])
+      expect(test_class.form_images).to eq({ images: [] })
+    end
+
+    it "drops images with a nil or blank name (matching the legacy helper)" do
+      allow(test_class).to receive(:glance_all_images).and_return([])
+      allow(test_class).to receive(:glance_all_images).with("visibility" => "public").and_return([
+        { "id" => "named", "name" => "ubuntu", "visibility" => "public" },
+        { "id" => "nil",   "name" => nil,      "visibility" => "public" },
+        { "id" => "blank", "name" => "   ",    "visibility" => "public" },
+      ])
+      expect(test_class.form_images[:images].map { |i| i[:id] }).to eq(%w[named])
     end
   end
 end

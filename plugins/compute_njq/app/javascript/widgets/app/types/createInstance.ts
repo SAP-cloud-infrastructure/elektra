@@ -16,6 +16,10 @@ export const CreateInstancePayloadSchema = z.object({
   network_id: z.string().min(1),
   security_groups: z.array(z.string()),
   user_data: z.string(),
+  // Optional block-device boot: when set, Nova boots from a new volume created
+  // from the image instead of booting the image directly.
+  custom_root_disk: z.boolean().optional(),
+  custom_root_disk_size: z.number().int().positive().optional(),
 })
 
 export type CreateInstancePayload = z.infer<typeof CreateInstancePayloadSchema>
