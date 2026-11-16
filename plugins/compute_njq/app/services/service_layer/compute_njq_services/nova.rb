@@ -28,6 +28,11 @@ module ServiceLayer
       def nova_availability_zones
         elektron_nova.get("os-availability-zone").body["availabilityZoneInfo"] || []
       end
+
+      # Creates a server. Nova expects the attributes wrapped under "server".
+      def nova_create_server(payload)
+        elektron_nova.post("servers") { { server: payload } }.body["server"]
+      end
     end
   end
 end

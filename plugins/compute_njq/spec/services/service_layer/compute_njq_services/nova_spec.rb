@@ -70,4 +70,13 @@ RSpec.describe ServiceLayer::ComputeNjqServices::Nova do
       expect(test_class.nova_availability_zones).to eq([{ "zoneName" => "az-1" }])
     end
   end
+
+  describe "#nova_create_server" do
+    it "posts the payload wrapped under :server and returns the created server" do
+      allow(elektron_nova).to receive(:post).with("servers").and_yield.and_return(
+        double("response", body: { "server" => { "id" => "s1" } }),
+      )
+      expect(test_class.nova_create_server({ "name" => "web-01" })).to eq({ "id" => "s1" })
+    end
+  end
 end
