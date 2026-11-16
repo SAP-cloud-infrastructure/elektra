@@ -27,4 +27,15 @@ RSpec.describe ServiceLayer::ComputeNjqServices::Glance do
       expect(test_class.glance_images).to eq([])
     end
   end
+
+  describe "#glance_images with a filter" do
+    it "forwards the filter (name, marker, limit) to Glance" do
+      allow(elektron_glance).to receive(:get).with("images", { "limit" => 50, "name" => "ubuntu" }).and_return(
+        double("response", body: { "images" => [{ "id" => "i1", "name" => "ubuntu" }] }),
+      )
+      expect(test_class.glance_images({ "limit" => 50, "name" => "ubuntu" })).to eq(
+        [{ "id" => "i1", "name" => "ubuntu" }],
+      )
+    end
+  end
 end
