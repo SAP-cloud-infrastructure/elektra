@@ -1,5 +1,14 @@
 import { createAjaxHelper } from "lib/ajax_helper"
 import { Instance, InstancesResponseSchema, InstanceResponseSchema } from "./types/instance"
+import {
+  FlavorsResponseSchema,
+  ImagesResponseSchema,
+  KeypairsResponseSchema,
+  NetworksResponseSchema,
+  SecurityGroupsResponseSchema,
+  AvailabilityZonesResponseSchema,
+} from "./types/formOptions"
+import { CreateInstancePayload } from "./types/createInstance"
 
 // The BFF can answer with HTTP 200 but an error-shaped body when an upstream
 // proxy (e.g. oauth2-proxy) rewrites the status. Detect the { error, code }
@@ -38,6 +47,17 @@ function parseOrThrow<T>(
   return parsed.data as T
 }
 
+// Drops undefined/empty values so they are not serialised as query params.
+function cleanParams(opts: Record<string, unknown>): Record<string, string> {
+  return Object.entries(opts).reduce(
+    (acc, [k, v]) => {
+      if (v !== undefined && v !== null && v !== "") acc[k] = String(v)
+      return acc
+    },
+    {} as Record<string, string>
+  )
+}
+
 // basepath already includes domain/project scope (e.g. /acme/demo/compute-njq);
 // "/api/" is where base_controller mounts the BFF endpoints.
 export function createComputeApi(basepath: string) {
@@ -55,9 +75,48 @@ export function createComputeApi(basepath: string) {
         checkForApiError(res.data)
         return parseOrThrow(InstanceResponseSchema, res.data, "instance").instance
       }),
+
+    create: (payload: CreateInstancePayload): Promise<Instance> =>
+      apiClient.post<{ data: { instance: Instance } }>("instances", { instance: payload }).then((res) => {
+        checkForApiError(res.data)
+        return parseOrThrow(InstanceResponseSchema, res.data, "instance").instance
+      }),
   }
 
-  return { instances: instanceApi }
+  const formOptionsApi = {
+    getFlavors: () =>
+      apiClient.get<{ data: unknown }>("form_options/flavors").then((res) => {
+        checkForApiError(res.data)
+        return parseOrThrow(FlavorsResponseSchema, res.data, "flavors").flavors
+      }),
+    getImages: (opts: { q?: string; marker?: string; limit?: number } = {}) =>
+      apiClient.get<{ data: unknown }>("form_options/images", { params: cleanParams(opts) }).then((res) => {
+        checkForApiError(res.data)
+        return parseOrThrow(ImagesResponseSchema, res.data, "images")
+      }),
+    getKeypairs: () =>
+      apiClient.get<{ data: unknown }>("form_options/keypairs").then((res) => {
+        checkForApiError(res.data)
+        return parseOrThrow(KeypairsResponseSchema, res.data, "keypairs").keypairs
+      }),
+    getNetworks: () =>
+      apiClient.get<{ data: unknown }>("form_options/networks").then((res) => {
+        checkForApiError(res.data)
+        return parseOrThrow(NetworksResponseSchema, res.data, "networks").networks
+      }),
+    getSecurityGroups: () =>
+      apiClient.get<{ data: unknown }>("form_options/security_groups").then((res) => {
+        checkForApiError(res.data)
+        return parseOrThrow(SecurityGroupsResponseSchema, res.data, "security_groups").security_groups
+      }),
+    getAvailabilityZones: () =>
+      apiClient.get<{ data: unknown }>("form_options/availability_zones").then((res) => {
+        checkForApiError(res.data)
+        return parseOrThrow(AvailabilityZonesResponseSchema, res.data, "availability_zones").availability_zones
+      }),
+  }
+
+  return { instances: instanceApi, formOptions: formOptionsApi }
 }
 
 export type ComputeApi = ReturnType<typeof createComputeApi>

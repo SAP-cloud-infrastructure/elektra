@@ -2,8 +2,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 
 // Mock the ajax helper so we control exactly what the BFF "returns".
 const mockGet = vi.fn()
+const mockPost = vi.fn()
 vi.mock("lib/ajax_helper", () => ({
-  createAjaxHelper: () => ({ get: mockGet }),
+  createAjaxHelper: () => ({ get: mockGet, post: mockPost }),
 }))
 
 import { createComputeApi } from "./apiClient"
@@ -21,7 +22,10 @@ const validInstance = {
 describe("createComputeApi", () => {
   const api = createComputeApi("/acme/demo/compute-njq")
 
-  beforeEach(() => mockGet.mockReset())
+  beforeEach(() => {
+    mockGet.mockReset()
+    mockPost.mockReset()
+  })
 
   describe("getInstances", () => {
     it("returns the validated instances array", async () => {
@@ -53,6 +57,55 @@ describe("createComputeApi", () => {
       mockGet.mockResolvedValue({ data: { instance: validInstance } })
       const result = await api.instances.getInstance("s1")
       expect(result.id).toBe("s1")
+    })
+  })
+
+  describe("formOptions", () => {
+    it("returns validated flavors", async () => {
+      mockGet.mockResolvedValue({
+        data: { flavors: [{ id: "f1", name: "m1.small", vcpus: 2, ram: 2048, disk: 20, hypervisor_type: "kvm" }] },
+      })
+      const result = await api.formOptions.getFlavors()
+      expect(result).toHaveLength(1)
+      expect(result[0].id).toBe("f1")
+    })
+
+    it("returns images with next_marker", async () => {
+      mockGet.mockResolvedValue({ data: { images: [], next_marker: null } })
+      const result = await api.formOptions.getImages({ q: "ubuntu" })
+      expect(result.images).toEqual([])
+      expect(result.next_marker).toBeNull()
+    })
+  })
+
+  describe("instances.create", () => {
+    it("posts the payload and returns the created instance", async () => {
+      mockPost.mockResolvedValue({ data: { instance: validInstance } })
+      const result = await api.instances.create({
+        name: "web-01",
+        flavor_id: "f1",
+        image_id: "i1",
+        keypair: "k",
+        network_id: "n1",
+        security_groups: [],
+        user_data: "",
+      })
+      expect(result.id).toBe("s1")
+    })
+
+    it("throws the error envelope on failure", async () => {
+      mockPost.mockResolvedValue({ data: { error: "API Error", code: 403, message: "Quota exceeded" } })
+      await expect(
+        api.instances.create({
+          name: "x",
+          flavor_id: "f1",
+          image_id: "i1",
+          keypair: "k",
+          network_id: "n1",
+          security_groups: [],
+          user_data: "",
+        })
+      ).rejects.toThrow(/Quota exceeded \(HTTP 403\)/)
     })
   })
 })
