@@ -18,6 +18,7 @@ module ServiceLayer
     include ComputeNjqServices::Neutron
     include ComputeNjqServices::Glance
     include ComputeNjqServices::InstanceAssembler
+    include ComputeNjqServices::FormOptionsAssembler
 
     attr_reader :scoped_project_id, :scoped_region
 
