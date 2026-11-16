@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as InstancesIndexRouteImport } from './routes/instances/index'
+import { Route as InstancesNewRouteImport } from './routes/instances/new'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,30 +23,39 @@ const InstancesIndexRoute = InstancesIndexRouteImport.update({
   path: '/instances/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InstancesNewRoute = InstancesNewRouteImport.update({
+  id: '/instances/new',
+  path: '/instances/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/instances/new': typeof InstancesNewRoute
   '/instances': typeof InstancesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/instances/new': typeof InstancesNewRoute
   '/instances': typeof InstancesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/instances/new': typeof InstancesNewRoute
   '/instances/': typeof InstancesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/instances'
+  fullPaths: '/' | '/instances/new' | '/instances'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/instances'
-  id: '__root__' | '/' | '/instances/'
+  to: '/' | '/instances/new' | '/instances'
+  id: '__root__' | '/' | '/instances/new' | '/instances/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  InstancesNewRoute: typeof InstancesNewRoute
   InstancesIndexRoute: typeof InstancesIndexRoute
 }
 
@@ -65,11 +75,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InstancesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/instances/new': {
+      id: '/instances/new'
+      path: '/instances/new'
+      fullPath: '/instances/new'
+      preLoaderRoute: typeof InstancesNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  InstancesNewRoute: InstancesNewRoute,
   InstancesIndexRoute: InstancesIndexRoute,
 }
 export const routeTree = rootRouteImport

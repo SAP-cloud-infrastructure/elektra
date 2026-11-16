@@ -1,4 +1,4 @@
-import { createFileRoute, useRouteContext } from "@tanstack/react-router"
+import { createFileRoute, useRouteContext, Link } from "@tanstack/react-router"
 import { useInstancesQuery } from "../../hooks/useInstanceQueries"
 import { InstanceTable } from "./-components/InstanceTable"
 
@@ -12,6 +12,11 @@ function Instances() {
 
   return (
     <div>
+      <div className="toolbar mb-3">
+        <Link to="/instances/new" className="btn btn-primary">
+          Create New
+        </Link>
+      </div>
       {isError && (
         <div className="alert alert-danger" role="alert">
           <strong>Failed to load instances.</strong>
