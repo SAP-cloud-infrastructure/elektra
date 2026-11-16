@@ -7,6 +7,7 @@ export const FlavorSchema = z.object({
   ram: z.number().nullable(),
   disk: z.number().nullable(),
   hypervisor_type: z.string().nullable(),
+  is_public: z.boolean(),
 })
 
 export const ImageSchema = z.object({

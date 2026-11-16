@@ -12,11 +12,31 @@ RSpec.describe ServiceLayer::ComputeNjqServices::FormOptionsAssembler do
     it "maps raw nova flavors to the structured shape" do
       allow(test_class).to receive(:nova_flavors).and_return([
         { "id" => "f1", "name" => "m1.small", "vcpus" => 2, "ram" => 2048, "disk" => 20,
+          "os-flavor-access:is_public" => true,
           "extra_specs" => { "capabilities:hypervisor_type" => "QEMU" } },
       ])
       expect(test_class.form_flavors).to eq([
-        { id: "f1", name: "m1.small", vcpus: 2, ram: 2048, disk: 20, hypervisor_type: "kvm" },
+        { id: "f1", name: "m1.small", vcpus: 2, ram: 2048, disk: 20, hypervisor_type: "kvm", is_public: true },
       ])
+    end
+
+    it "normalises is_public from os-flavor-access:is_public (false and '1')" do
+      allow(test_class).to receive(:nova_flavors).and_return([
+        { "id" => "priv", "name" => "p1", "vcpus" => 1, "ram" => 512, "disk" => 10,
+          "os-flavor-access:is_public" => false, "extra_specs" => {} },
+        { "id" => "pub", "name" => "p2", "vcpus" => 1, "ram" => 512, "disk" => 10,
+          "os-flavor-access:is_public" => "1", "extra_specs" => {} },
+      ])
+      result = test_class.form_flavors
+      expect(result.map { |f| [f[:id], f[:is_public]] }).to eq([["priv", false], ["pub", true]])
+    end
+
+    it "falls back to the is_public key when os-flavor-access:is_public is absent" do
+      allow(test_class).to receive(:nova_flavors).and_return([
+        { "id" => "f1", "name" => "m1.small", "vcpus" => 1, "ram" => 512, "disk" => 10,
+          "is_public" => true, "extra_specs" => {} },
+      ])
+      expect(test_class.form_flavors.first[:is_public]).to be(true)
     end
   end
 

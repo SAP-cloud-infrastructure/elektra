@@ -2,6 +2,7 @@ import { useState } from "react"
 import { QueryClient } from "@tanstack/react-query"
 import { ComputeApi } from "../../../apiClient"
 import { SearchableSelect } from "./SearchableSelect"
+import { groupFlavors, flavorLabel } from "./flavorGrouping"
 import { CreateInstancePayloadSchema, CreateInstancePayload } from "../../../types/createInstance"
 import { useCreateInstanceMutation } from "../../../hooks/useCreateInstanceMutation"
 import {
@@ -84,8 +85,9 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel }: Pr
           options={flavors.data ?? []}
           value={form.flavor_id || null}
           onChange={(v) => set("flavor_id", v)}
-          getLabel={(f) => f.name}
+          getLabel={flavorLabel}
           getValue={(f) => f.id}
+          getGroups={groupFlavors}
           isLoading={flavors.isLoading}
           placeholder="Select a flavor…"
           emptyMessage="No flavors available"

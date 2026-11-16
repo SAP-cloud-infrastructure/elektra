@@ -11,6 +11,7 @@ describe("formOptions schemas", () => {
       ram: 2048,
       disk: 20,
       hypervisor_type: "kvm",
+      is_public: true,
     })
     expect(parsed.success).toBe(true)
   })

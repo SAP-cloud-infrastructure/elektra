@@ -18,6 +18,7 @@ module ServiceLayer
       def form_flavors
         nova_flavors.map do |f|
           raw_hv = f.dig("extra_specs", "capabilities:hypervisor_type")
+          raw_public = f.fetch("os-flavor-access:is_public", f["is_public"])
           {
             id: f["id"],
             name: f["name"],
@@ -25,6 +26,7 @@ module ServiceLayer
             ram: f["ram"],
             disk: f["disk"],
             hypervisor_type: HYPERVISOR_MAP[raw_hv],
+            is_public: raw_public == true || raw_public == "1",
           }
         end
       end

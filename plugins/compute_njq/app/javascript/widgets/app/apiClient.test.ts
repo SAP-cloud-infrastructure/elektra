@@ -63,7 +63,11 @@ describe("createComputeApi", () => {
   describe("formOptions", () => {
     it("returns validated flavors", async () => {
       mockGet.mockResolvedValue({
-        data: { flavors: [{ id: "f1", name: "m1.small", vcpus: 2, ram: 2048, disk: 20, hypervisor_type: "kvm" }] },
+        data: {
+          flavors: [
+            { id: "f1", name: "m1.small", vcpus: 2, ram: 2048, disk: 20, hypervisor_type: "kvm", is_public: true },
+          ],
+        },
       })
       const result = await api.formOptions.getFlavors()
       expect(result).toHaveLength(1)

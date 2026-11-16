@@ -45,4 +45,22 @@ describe("SearchableSelect", () => {
     fireEvent.click(screen.getByText("debian"))
     expect(onChange).toHaveBeenCalledWith("b")
   })
+
+  it("renders non-clickable group headers above options when getGroups is provided", () => {
+    const onChange = vi.fn()
+    const getGroups = (opts: typeof options) => [{ label: "distros", options: opts }]
+    render(<SearchableSelect {...common} onChange={onChange} getGroups={getGroups} />)
+    fireEvent.click(screen.getByText("Select…"))
+
+    // The header is present but is not an option and does not fire onChange.
+    const header = screen.getByText("distros")
+    expect(header).toBeInTheDocument()
+    expect(header).not.toHaveAttribute("role", "option")
+    fireEvent.click(header)
+    expect(onChange).not.toHaveBeenCalled()
+
+    // Options under the group are still clickable.
+    fireEvent.click(screen.getByText("ubuntu"))
+    expect(onChange).toHaveBeenCalledWith("a")
+  })
 })

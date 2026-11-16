@@ -8,6 +8,8 @@ interface SearchableSelectProps<T> {
   getValue: (option: T) => string
   // When provided, the parent owns filtering (server-side search, e.g. images).
   onSearch?: (query: string) => void
+  // When provided, visible options are rendered under non-clickable group headers.
+  getGroups?: (options: T[]) => { label: string; options: T[] }[]
   isLoading?: boolean
   placeholder: string
   emptyMessage: string
@@ -20,6 +22,7 @@ export function SearchableSelect<T>({
   getLabel,
   getValue,
   onSearch,
+  getGroups,
   isLoading,
   placeholder,
   emptyMessage,
@@ -50,6 +53,24 @@ export function SearchableSelect<T>({
   const selectedLabel = value != null ? options.find((o) => getValue(o) === value) : undefined
   const buttonText = selectedLabel ? getLabel(selectedLabel) : placeholder
 
+  // Group the already-visible options; empty groups are dropped downstream.
+  const groups = getGroups ? getGroups(visible) : undefined
+
+  const renderOption = (o: T) => (
+    <li
+      key={getValue(o)}
+      className="list-group-item list-group-item-action"
+      role="option"
+      aria-selected={getValue(o) === value}
+      onClick={() => {
+        onChange(getValue(o))
+        setOpen(false)
+      }}
+    >
+      {getLabel(o)}
+    </li>
+  )
+
   return (
     <div className="dropdown" ref={ref}>
       <button
@@ -74,23 +95,17 @@ export function SearchableSelect<T>({
             </div>
           ) : visible.length === 0 ? (
             <div className="text-muted px-2 py-1">{emptyMessage}</div>
-          ) : (
+          ) : groups ? (
             <ul className="list-group list-group-flush">
-              {visible.map((o) => (
-                <li
-                  key={getValue(o)}
-                  className="list-group-item list-group-item-action"
-                  role="option"
-                  aria-selected={getValue(o) === value}
-                  onClick={() => {
-                    onChange(getValue(o))
-                    setOpen(false)
-                  }}
-                >
-                  {getLabel(o)}
-                </li>
-              ))}
+              {groups.flatMap((g) => [
+                <li key={`group-${g.label}`} className="list-group-item disabled fw-bold text-muted" aria-disabled>
+                  {g.label}
+                </li>,
+                ...g.options.map(renderOption),
+              ])}
             </ul>
+          ) : (
+            <ul className="list-group list-group-flush">{visible.map(renderOption)}</ul>
           )}
         </div>
       )}

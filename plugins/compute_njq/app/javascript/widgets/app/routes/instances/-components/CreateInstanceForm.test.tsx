@@ -4,7 +4,10 @@ import { QueryClient } from "@tanstack/react-query"
 import { CreateInstanceForm } from "./CreateInstanceForm"
 
 vi.mock("../../../hooks/useFormOptionQueries", () => ({
-  useFlavorsQuery: () => ({ data: [{ id: "f1", name: "m1.small" }], isLoading: false }),
+  useFlavorsQuery: () => ({
+    data: [{ id: "f1", name: "m1.small", vcpus: 1, ram: 2048, disk: 20, hypervisor_type: "kvm", is_public: true }],
+    isLoading: false,
+  }),
   useImagesQuery: () => ({ data: { images: [{ id: "i1", name: "ubuntu" }], next_marker: null }, isLoading: false }),
   useKeypairsQuery: () => ({ data: [{ name: "k1" }], isLoading: false }),
   useNetworksQuery: () => ({ data: [{ id: "n1", name: "private" }], isLoading: false }),
