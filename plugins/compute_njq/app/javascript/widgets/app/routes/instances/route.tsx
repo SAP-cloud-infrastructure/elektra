@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { createFileRoute, useRouteContext, Outlet, Link } from "@tanstack/react-router"
+import { createFileRoute, useRouteContext, Outlet } from "@tanstack/react-router"
 import { useInstancesQuery } from "../../hooks/useInstanceQueries"
 import { InstanceTable } from "./-components/InstanceTable"
 import { InstancesToolbar } from "./-components/InstancesToolbar"
@@ -27,11 +27,6 @@ function InstancesLayout() {
 
   return (
     <div>
-      <div className="toolbar mb-3">
-        <Link to="/instances/new" className="btn btn-primary">
-          Create New
-        </Link>
-      </div>
       {isError && (
         <div className="alert alert-danger" role="alert">
           <strong>Failed to load instances.</strong>

@@ -1,6 +1,19 @@
 import { describe, it, expect, vi } from "vitest"
+import type { ReactNode } from "react"
 import { render, screen, fireEvent } from "@testing-library/react"
 import "@testing-library/jest-dom/vitest"
+
+// Stub TanStack Router's <Link> with a plain anchor so the toolbar can be unit
+// tested without a RouterProvider (the Create New button is a Link to the
+// create-instance route).
+vi.mock("@tanstack/react-router", () => ({
+  Link: ({ children, to, className }: { children: ReactNode; to?: string; className?: string }) => (
+    <a href={to} className={className}>
+      {children}
+    </a>
+  ),
+}))
+
 import { InstancesToolbar } from "./InstancesToolbar"
 
 const baseProps = {
@@ -32,11 +45,11 @@ describe("InstancesToolbar", () => {
     expect(onSearch).toHaveBeenCalledWith("web")
   })
 
-  it("renders a disabled Create New button (placeholder, no action yet)", () => {
+  it("renders a Create New link to the create-instance route", () => {
     render(<InstancesToolbar {...baseProps} />)
-    const button = screen.getByRole("button", { name: "Create New" })
-    expect(button).toBeInTheDocument()
-    expect(button).toBeDisabled()
+    const link = screen.getByRole("link", { name: "Create New" })
+    expect(link).toBeInTheDocument()
+    expect(link).toHaveAttribute("href", "/instances/new")
   })
 
   it("offers status and AZ facet filters and reports changes", () => {

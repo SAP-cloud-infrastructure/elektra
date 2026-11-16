@@ -48,10 +48,9 @@ import { Route } from "./route"
 const Layout = (Route as unknown as { component: () => JSX.Element }).component
 
 describe("InstancesLayout", () => {
-  it("renders the Create New link, the toolbar, the instance table and an outlet for the modal", () => {
+  it("renders the toolbar, the instance table and an outlet for the modal", () => {
     queryState = { data: [{ id: "s1" }], isLoading: false, isError: false, error: null }
     render(<Layout />)
-    expect(screen.getByText(/create new/i)).toBeInTheDocument()
     expect(screen.getByTestId("toolbar")).toHaveTextContent("1 visible")
     expect(screen.getByTestId("instance-table")).toHaveTextContent("1 instances")
     expect(screen.getByTestId("outlet")).toBeInTheDocument()

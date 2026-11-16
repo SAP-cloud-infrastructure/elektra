@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router"
 import { SearchField } from "lib/components/search_field"
 import { humanize } from "./tabs/humanize"
 
@@ -16,11 +17,9 @@ interface InstancesToolbarProps {
 }
 
 // Toolbar above the instance list: free-text search, quick facet filters
-// (status, AZ) and a "Create New" button. Mirrors the legacy compute toolbar
-// layout (search left, main action right).
-//
-// NOTE: the Create button is a placeholder for now — server creation is not yet
-// wired up, so it is rendered disabled.
+// (status, AZ) and a "Create New" button that opens the create-instance modal
+// at /instances/new. Mirrors the legacy compute toolbar layout (search left,
+// main action right).
 export function InstancesToolbar({
   searchTerm,
   onSearch,
@@ -70,9 +69,9 @@ export function InstancesToolbar({
       <span className="toolbar-input-divider" />
       {visibleCount} {visibleCount === 1 ? "server" : "servers"}
       <div className="main-buttons">
-        <button type="button" className="btn btn-primary" disabled title="Coming soon">
+        <Link to="/instances/new" className="btn btn-primary">
           Create New
-        </button>
+        </Link>
       </div>
     </div>
   )

@@ -64,7 +64,12 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/instances' | '/instances/$id' | '/instances/new' | '/instances/'
+  fullPaths:
+    | '/'
+    | '/instances'
+    | '/instances/$id'
+    | '/instances/new'
+    | '/instances/'
   fileRoutesByTo: FileRoutesByTo
   to: '/' | '/instances/$id' | '/instances/new' | '/instances'
   id:
@@ -122,14 +127,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface InstancesRouteRouteChildren {
-  InstancesNewRoute: typeof InstancesNewRoute
   InstancesIdRoute: typeof InstancesIdRoute
+  InstancesNewRoute: typeof InstancesNewRoute
   InstancesIndexRoute: typeof InstancesIndexRoute
 }
 
 const InstancesRouteRouteChildren: InstancesRouteRouteChildren = {
-  InstancesNewRoute: InstancesNewRoute,
   InstancesIdRoute: InstancesIdRoute,
+  InstancesNewRoute: InstancesNewRoute,
   InstancesIndexRoute: InstancesIndexRoute,
 }
 
