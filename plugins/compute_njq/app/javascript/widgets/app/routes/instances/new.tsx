@@ -1,5 +1,6 @@
 import { createFileRoute, useRouteContext, useNavigate } from "@tanstack/react-router"
 import { useQueryClient } from "@tanstack/react-query"
+import { Modal } from "lib/components/Modal"
 import { CreateInstanceForm } from "./-components/CreateInstanceForm"
 
 export const Route = createFileRoute("/instances/new")({
@@ -10,19 +11,24 @@ function NewInstance() {
   const { apiClient } = useRouteContext({ from: Route.id })
   const queryClient = useQueryClient()
   const navigate = useNavigate()
+  const close = () => navigate({ to: "/instances" })
 
   return (
-    <div className="card">
-      <div className="card-header">
-        <h4>Create New Instance</h4>
-      </div>
-      <div className="card-body">
-        <CreateInstanceForm
-          api={apiClient}
-          queryClient={queryClient}
-          onSuccess={() => navigate({ to: "/instances" })}
-        />
-      </div>
-    </div>
+    <Modal
+      show
+      onHide={close}
+      size="lg"
+      backdrop="static"
+      keyboard={false}
+      dialogClassName="modal-dialog-centered"
+      aria-labelledby="new-instance-title"
+    >
+      <Modal.Header closeButton>
+        <Modal.Title id="new-instance-title">Create New Instance</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <CreateInstanceForm api={apiClient} queryClient={queryClient} onSuccess={close} onCancel={close} />
+      </Modal.Body>
+    </Modal>
   )
 }

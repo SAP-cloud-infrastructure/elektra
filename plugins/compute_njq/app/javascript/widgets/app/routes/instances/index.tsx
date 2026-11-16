@@ -1,35 +1,7 @@
-import { createFileRoute, useRouteContext, Link } from "@tanstack/react-router"
-import { useInstancesQuery } from "../../hooks/useInstanceQueries"
-import { InstanceTable } from "./-components/InstanceTable"
+import { createFileRoute } from "@tanstack/react-router"
 
+// The instance list lives in the layout route (route.tsx) so it stays mounted
+// behind the /instances/new modal. This index route only resolves "/instances/".
 export const Route = createFileRoute("/instances/")({
-  component: Instances,
+  component: () => null,
 })
-
-function Instances() {
-  const { apiClient } = useRouteContext({ from: Route.id })
-  const { data: instances, isLoading, isError, error } = useInstancesQuery(apiClient)
-
-  return (
-    <div>
-      <div className="toolbar mb-3">
-        <Link to="/instances/new" className="btn btn-primary">
-          Create New
-        </Link>
-      </div>
-      {isError && (
-        <div className="alert alert-danger" role="alert">
-          <strong>Failed to load instances.</strong>
-          {error?.message && <span className="ms-1">{error.message}</span>}
-        </div>
-      )}
-      {isLoading ? (
-        <div className="spinner-border spinner-border-sm" role="status">
-          <span className="visually-hidden">Loading instances…</span>
-        </div>
-      ) : (
-        <InstanceTable instances={instances ?? []} />
-      )}
-    </div>
-  )
-}

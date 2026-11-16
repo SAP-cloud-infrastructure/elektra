@@ -17,6 +17,7 @@ interface Props {
   api: ComputeApi
   queryClient: QueryClient
   onSuccess: () => void
+  onCancel?: () => void
 }
 
 const EMPTY = {
@@ -30,7 +31,7 @@ const EMPTY = {
   user_data: "",
 }
 
-export function CreateInstanceForm({ api, queryClient, onSuccess }: Props) {
+export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel }: Props) {
   const [form, setForm] = useState(EMPTY)
   // A field's query only runs once its dropdown has been opened (lazy).
   const [opened, setOpened] = useState<Record<string, boolean>>({})
@@ -179,9 +180,16 @@ export function CreateInstanceForm({ api, queryClient, onSuccess }: Props) {
         />
       </div>
 
-      <button type="submit" className="btn btn-primary" disabled={!parsed.success || mutation.isPending}>
-        {mutation.isPending ? "Creating…" : "Create"}
-      </button>
+      <div className="d-flex gap-2">
+        {onCancel && (
+          <button type="button" className="btn btn-secondary" onClick={onCancel} disabled={mutation.isPending}>
+            Cancel
+          </button>
+        )}
+        <button type="submit" className="btn btn-primary" disabled={!parsed.success || mutation.isPending}>
+          {mutation.isPending ? "Creating…" : "Create"}
+        </button>
+      </div>
     </form>
   )
 }

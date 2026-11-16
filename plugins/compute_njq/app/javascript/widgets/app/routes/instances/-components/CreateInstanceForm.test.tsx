@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest"
-import { render, screen, fireEvent, waitFor } from "@testing-library/react"
+import { render, screen, fireEvent } from "@testing-library/react"
 import { QueryClient } from "@tanstack/react-query"
 import { CreateInstanceForm } from "./CreateInstanceForm"
 
@@ -31,5 +31,19 @@ describe("CreateInstanceForm", () => {
     mutationState = { mutate, isPending: false, isError: true, error: new Error("Quota exceeded (HTTP 403)") }
     render(<CreateInstanceForm api={api} queryClient={queryClient} onSuccess={vi.fn()} />)
     expect(screen.getByText(/Quota exceeded/)).toBeInTheDocument()
+  })
+
+  it("renders a Cancel button that invokes onCancel", () => {
+    mutationState = { mutate, isPending: false, isError: false, error: null }
+    const onCancel = vi.fn()
+    render(<CreateInstanceForm api={api} queryClient={queryClient} onSuccess={vi.fn()} onCancel={onCancel} />)
+    fireEvent.click(screen.getByRole("button", { name: /cancel/i }))
+    expect(onCancel).toHaveBeenCalledTimes(1)
+  })
+
+  it("omits the Cancel button when onCancel is not provided", () => {
+    mutationState = { mutate, isPending: false, isError: false, error: null }
+    render(<CreateInstanceForm api={api} queryClient={queryClient} onSuccess={vi.fn()} />)
+    expect(screen.queryByRole("button", { name: /cancel/i })).not.toBeInTheDocument()
   })
 })
