@@ -113,7 +113,7 @@ RSpec.describe ComputeNjq::Api::InstancesController, type: :controller do
 
     it "creates the instance and returns it" do
       allow(scoped_service).to receive(:create_instance).and_return({ "id" => "s1", "name" => "web-01" })
-      post :create, params: default_params.merge(create_params)
+      post :create, params: default_params.merge(instance: create_params)
       expect(response).to have_http_status(:success)
       expect(JSON.parse(response.body)).to eq("instance" => { "id" => "s1", "name" => "web-01" })
     end
@@ -121,14 +121,22 @@ RSpec.describe ComputeNjq::Api::InstancesController, type: :controller do
     it "passes the permitted attributes to the service" do
       captured = nil
       allow(scoped_service).to receive(:create_instance) { |a| captured = a; { "id" => "s1" } }
-      post :create, params: default_params.merge(create_params)
+      post :create, params: default_params.merge(instance: create_params)
       expect(captured["name"]).to eq("web-01")
       expect(captured["security_groups"]).to eq(["default"])
     end
 
+    it "un-nests the instance key so create_params is never empty" do
+      captured = nil
+      allow(scoped_service).to receive(:create_instance) { |a| captured = a; { "id" => "s1" } }
+      post :create, params: default_params.merge(instance: create_params)
+      expect(captured).not_to be_empty
+      expect(captured["name"]).to eq("web-01")
+    end
+
     it "renders a 400 envelope when the service rejects the payload" do
       allow(scoped_service).to receive(:create_instance).and_raise(ComputeNjq::RequestError.new("flavor is required"))
-      post :create, params: default_params.merge(create_params.merge(flavor_id: ""))
+      post :create, params: default_params.merge(instance: create_params.merge(flavor_id: ""))
       expect(response).to have_http_status(:bad_request)
       expect(JSON.parse(response.body)).to include("error" => "Request Error", "code" => 400)
     end
@@ -137,7 +145,7 @@ RSpec.describe ComputeNjq::Api::InstancesController, type: :controller do
       allow(scoped_service).to receive(:create_instance).and_raise(
         Elektron::Errors::ApiResponse.new(double(code: 403, body: { "message" => "Quota exceeded" })),
       )
-      post :create, params: default_params.merge(create_params)
+      post :create, params: default_params.merge(instance: create_params)
       expect(response).to have_http_status(403)
       expect(JSON.parse(response.body)["code"]).to eq(403)
     end

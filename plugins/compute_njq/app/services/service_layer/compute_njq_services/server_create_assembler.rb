@@ -14,7 +14,8 @@ module ServiceLayer
 
       def create_instance(attrs)
         validate!(attrs)
-        nova_create_server(build_payload(attrs))
+        created = nova_create_server(build_payload(attrs))
+        find_instance(created["id"])
       end
 
       private

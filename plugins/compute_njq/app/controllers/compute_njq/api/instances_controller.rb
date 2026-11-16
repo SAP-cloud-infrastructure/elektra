@@ -32,7 +32,7 @@ module ComputeNjq
       end
 
       def create_params
-        params.permit(
+        params.require(:instance).permit(
           :name, :flavor_id, :image_id, :keypair, :availability_zone, :network_id, :user_data,
           security_groups: [],
         ).to_h.stringify_keys

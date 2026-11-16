@@ -76,36 +76,54 @@ describe("createComputeApi", () => {
       expect(result.images).toEqual([])
       expect(result.next_marker).toBeNull()
     })
+
+    it("returns keypairs", async () => {
+      mockGet.mockResolvedValue({ data: { keypairs: [{ name: "k1" }] } })
+      const result = await api.formOptions.getKeypairs()
+      expect(result).toEqual([{ name: "k1" }])
+    })
+
+    it("returns networks", async () => {
+      mockGet.mockResolvedValue({ data: { networks: [{ id: "n1", name: "default" }] } })
+      const result = await api.formOptions.getNetworks()
+      expect(result).toEqual([{ id: "n1", name: "default" }])
+    })
+
+    it("returns security_groups", async () => {
+      mockGet.mockResolvedValue({ data: { security_groups: [{ id: "sg1", name: "default" }] } })
+      const result = await api.formOptions.getSecurityGroups()
+      expect(result).toEqual([{ id: "sg1", name: "default" }])
+    })
+
+    it("returns availability_zones", async () => {
+      mockGet.mockResolvedValue({ data: { availability_zones: [{ name: "az-1" }] } })
+      const result = await api.formOptions.getAvailabilityZones()
+      expect(result).toEqual([{ name: "az-1" }])
+    })
   })
 
   describe("instances.create", () => {
-    it("posts the payload and returns the created instance", async () => {
+    const createPayload = {
+      name: "web-01",
+      flavor_id: "f1",
+      image_id: "i1",
+      keypair: "k",
+      network_id: "n1",
+      security_groups: [] as string[],
+      user_data: "",
+    }
+
+    it("posts the payload nested under instance and returns the UI-shaped instance", async () => {
       mockPost.mockResolvedValue({ data: { instance: validInstance } })
-      const result = await api.instances.create({
-        name: "web-01",
-        flavor_id: "f1",
-        image_id: "i1",
-        keypair: "k",
-        network_id: "n1",
-        security_groups: [],
-        user_data: "",
-      })
+      const result = await api.instances.create(createPayload)
+      expect(mockPost).toHaveBeenCalledWith("instances", { instance: createPayload })
       expect(result.id).toBe("s1")
+      expect(result).toEqual(validInstance)
     })
 
     it("throws the error envelope on failure", async () => {
       mockPost.mockResolvedValue({ data: { error: "API Error", code: 403, message: "Quota exceeded" } })
-      await expect(
-        api.instances.create({
-          name: "x",
-          flavor_id: "f1",
-          image_id: "i1",
-          keypair: "k",
-          network_id: "n1",
-          security_groups: [],
-          user_data: "",
-        })
-      ).rejects.toThrow(/Quota exceeded \(HTTP 403\)/)
+      await expect(api.instances.create(createPayload)).rejects.toThrow(/Quota exceeded \(HTTP 403\)/)
     })
   })
 })
