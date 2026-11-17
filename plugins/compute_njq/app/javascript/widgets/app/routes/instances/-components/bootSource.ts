@@ -1,5 +1,6 @@
 import { BootableVolume, Image } from "../../../types/formOptions"
 import { HypervisorType, groupImages, imageLabel } from "./imageGrouping"
+import type { Facet } from "./SearchableSelect"
 
 // A unified boot-source option: either a Glance image or a bootable Cinder
 // volume, shown together in the image picker. The `kind` discriminator lets the
@@ -73,3 +74,24 @@ export function groupBootSources(options: BootSource[], hv: HypervisorType | nul
 export function isVolumeId(id: string | null, volumes: BootableVolume[]): boolean {
   return id != null && volumes.some((v) => v.id === id)
 }
+
+// A quick-filter facet that keeps only boot sources that fit the available root
+// disk: an image whose min_disk exceeds the given size would fail to launch on
+// that flavor. Bootable volumes bring their own size, and images without a
+// min_disk requirement always fit. `diskGb` is the flavor's disk (or the custom
+// root-disk size when booting from a new volume); when it is null/0 (e.g. no
+// flavor or a disk-less flavor before a size is chosen) the facet is a no-op
+// that matches everything. (SearchableSelect hides the pill when every option
+// matches, so it only shows up when some image is actually too large.)
+export function fitsFlavorFacet(diskGb: number | null): Facet<BootSource> {
+  return {
+    key: "fits-flavor",
+    label: "Fits root disk",
+    matches: (o: BootSource) => {
+      if (o.kind === "volume") return true
+      if (!diskGb || diskGb <= 0) return true
+      return (o.min_disk ?? 0) <= diskGb
+    },
+  }
+}
+

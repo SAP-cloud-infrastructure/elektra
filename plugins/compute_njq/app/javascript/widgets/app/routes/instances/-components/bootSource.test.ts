@@ -6,6 +6,7 @@ import {
   bootSourceValue,
   volumeMatchesHypervisor,
   isVolumeId,
+  fitsFlavorFacet,
   type BootSource,
 } from "./bootSource"
 import type { BootableVolume, Image } from "../../../types/formOptions"
@@ -108,5 +109,29 @@ describe("isVolumeId", () => {
     expect(isVolumeId("v1", vols)).toBe(true)
     expect(isVolumeId("i1", vols)).toBe(false)
     expect(isVolumeId(null, vols)).toBe(false)
+  })
+})
+
+describe("fitsFlavorFacet", () => {
+  const img = (id: string, min_disk: number): BootSource => ({ kind: "image", ...image({ id, min_disk }) })
+
+  it("keeps images whose min_disk fits the available disk", () => {
+    const facet = fitsFlavorFacet(20)
+    expect(facet.matches(img("small", 10))).toBe(true)
+    expect(facet.matches(img("exact", 20))).toBe(true)
+    expect(facet.matches(img("too-big", 40))).toBe(false)
+  })
+
+  it("treats a missing min_disk as always fitting", () => {
+    expect(fitsFlavorFacet(20).matches({ kind: "image", ...image({ id: "x", min_disk: null }) })).toBe(true)
+  })
+
+  it("always keeps bootable volumes (they carry their own size)", () => {
+    expect(fitsFlavorFacet(20).matches({ kind: "volume", ...volume({ id: "v", size: 100 }) })).toBe(true)
+  })
+
+  it("matches everything when the disk size is unknown", () => {
+    expect(fitsFlavorFacet(0).matches(img("too-big", 40))).toBe(true)
+    expect(fitsFlavorFacet(null).matches(img("too-big", 40))).toBe(true)
   })
 })
