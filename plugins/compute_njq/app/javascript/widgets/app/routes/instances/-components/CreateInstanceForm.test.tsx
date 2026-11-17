@@ -6,6 +6,8 @@ import { CreateInstanceForm } from "./CreateInstanceForm"
 let flavorData = [
   { id: "f1", name: "m1.small", vcpus: 1, ram: 2048, disk: 20, hypervisor_type: "kvm", is_public: true },
 ]
+let keypairData: { name: string }[] = [{ name: "k1" }]
+let networkData: { id: string; name: string }[] = [{ id: "n1", name: "private" }]
 vi.mock("../../../hooks/useFormOptionQueries", () => ({
   useFlavorsQuery: () => ({ data: flavorData, isLoading: false }),
   useImagesQuery: () => ({
@@ -27,8 +29,8 @@ vi.mock("../../../hooks/useFormOptionQueries", () => ({
     },
     isLoading: false,
   }),
-  useKeypairsQuery: () => ({ data: [{ name: "k1" }], isLoading: false }),
-  useNetworksQuery: () => ({ data: [{ id: "n1", name: "private" }], isLoading: false }),
+  useKeypairsQuery: () => ({ data: keypairData, isLoading: false, isSuccess: true }),
+  useNetworksQuery: () => ({ data: networkData, isLoading: false, isSuccess: true }),
   useSecurityGroupsQuery: () => ({
     data: [{ id: "sg1", name: "default", project_id: "p1", project_label: "monsoon3/demo" }],
     isLoading: false,
@@ -56,6 +58,17 @@ describe("CreateInstanceForm", () => {
     render(<CreateInstanceForm api={api} queryClient={queryClient} onSuccess={vi.fn()} />)
     // The MultiSelect trigger summarises the current selection by name.
     expect(screen.getByRole("button", { name: /default/ })).toBeInTheDocument()
+  })
+
+  it("warns when there are no key pairs or networks", () => {
+    keypairData = []
+    networkData = []
+    render(<CreateInstanceForm api={api} queryClient={queryClient} onSuccess={vi.fn()} />)
+    expect(screen.getByText(/no key pairs for your account/i)).toBeInTheDocument()
+    expect(screen.getByText(/no networks available for this project/i)).toBeInTheDocument()
+    // Restore for the other tests.
+    keypairData = [{ name: "k1" }]
+    networkData = [{ id: "n1", name: "private" }]
   })
 
   it("keeps submit disabled until required fields are valid", () => {

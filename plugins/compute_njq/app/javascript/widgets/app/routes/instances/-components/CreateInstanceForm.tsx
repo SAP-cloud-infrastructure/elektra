@@ -51,6 +51,7 @@ function FormRow({
   htmlFor,
   required,
   hint,
+  warning,
   error,
   children,
 }: {
@@ -58,6 +59,7 @@ function FormRow({
   htmlFor?: string
   required?: boolean
   hint?: ReactNode
+  warning?: ReactNode
   error?: string
   children: ReactNode
 }) {
@@ -69,6 +71,11 @@ function FormRow({
       <div className="col-sm-8">
         <div className="input-wrapper">{children}</div>
         {error && <span className="invalid-feedback d-block">{error}</span>}
+        {warning && (
+          <div className="alert alert-warning mt-2 mb-0 py-2 px-3" role="alert">
+            {warning}
+          </div>
+        )}
         {hint && (
           <p className="form-text">
             {/* A textual hint gets the legacy info-circle marker; a node hint
@@ -215,6 +222,11 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
   useEffect(() => {
     onStatusChange?.({ canSubmit, isPending: mutation.isPending })
   }, [canSubmit, mutation.isPending, onStatusChange])
+
+  // Guidance when the (lazily loaded) list turns out empty, mirroring the legacy
+  // form's warnings. Shown only once the query has resolved with no entries.
+  const noKeypairs = keypairs.isSuccess && (keypairs.data?.length ?? 0) === 0
+  const noNetworks = networks.isSuccess && (networks.data?.length ?? 0) === 0
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -368,7 +380,15 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
       <SectionGap />
 
       <div onClick={() => open("keypair")}>
-        <FormRow label="Key Pair" required>
+        <FormRow
+          label="Key Pair"
+          required
+          warning={
+            noKeypairs
+              ? "There are no key pairs for your account. Without a key pair you cannot reach the server via SSH."
+              : undefined
+          }
+        >
           <SearchableSelect
             options={keypairs.data ?? []}
             value={form.keypair || null}
@@ -383,7 +403,11 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
       </div>
 
       <div onClick={() => open("network")}>
-        <FormRow label="Network" required>
+        <FormRow
+          label="Network"
+          required
+          warning={noNetworks ? "There are no networks available for this project." : undefined}
+        >
           <SearchableSelect
             options={networks.data ?? []}
             value={form.network_id || null}
