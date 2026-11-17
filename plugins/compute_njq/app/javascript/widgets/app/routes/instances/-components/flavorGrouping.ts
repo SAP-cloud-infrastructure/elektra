@@ -1,4 +1,5 @@
 import { Flavor } from "../../../types/formOptions"
+import type { Facet } from "./SearchableSelect"
 
 export interface FlavorGroup {
   label: string
@@ -66,4 +67,35 @@ export function flavorLabel(f: Flavor): string {
   const vcpus = f.vcpus ?? "n/a"
   const disk = formatDisk(f.disk)
   return `${f.name} (RAM: ${ram}, VCPUs: ${vcpus}, Disk: ${disk})`
+}
+
+// Coarse T-shirt size derived from RAM (Nova reports RAM in MiB). The thresholds
+// are in GiB and ascending; a flavor falls into the first bucket whose ceiling
+// it does not exceed, else the largest. Flavors with unknown RAM get no size.
+const SIZE_BUCKETS: { label: string; maxGib: number }[] = [
+  { label: "XS", maxGib: 2 },
+  { label: "S", maxGib: 8 },
+  { label: "M", maxGib: 16 },
+  { label: "L", maxGib: 32 },
+]
+const SIZE_XL = "XL"
+// All size labels in display order, for building facets in a stable order.
+const SIZE_ORDER = [...SIZE_BUCKETS.map((b) => b.label), SIZE_XL]
+
+export function flavorSize(f: Flavor): string | null {
+  if (f.ram == null) return null
+  const gib = f.ram / 1024
+  return SIZE_BUCKETS.find((b) => gib <= b.maxGib)?.label ?? SIZE_XL
+}
+
+// Quick-filter facets by T-shirt size (XS/S/M/L/XL), built from the sizes that
+// actually occur in the given flavor list, in ascending order. SearchableSelect
+// hides any facet that would not split the list.
+export function flavorSizeFacets(flavors: Flavor[]): Facet<Flavor>[] {
+  const present = new Set(flavors.map(flavorSize).filter((x): x is string => x !== null))
+  return SIZE_ORDER.filter((label) => present.has(label)).map((label) => ({
+    key: `size-${label}`,
+    label,
+    matches: (f: Flavor) => flavorSize(f) === label,
+  }))
 }

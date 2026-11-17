@@ -4,7 +4,7 @@ import { ComputeApi } from "../../../apiClient"
 import { SearchableSelect } from "./SearchableSelect"
 import { MultiSelect } from "lib/components/MultiSelect"
 import { FlavorTypeTabs } from "./FlavorTypeTabs"
-import { groupFlavorsByAccess, flavorLabel } from "./flavorGrouping"
+import { groupFlavorsByAccess, flavorLabel, flavorSizeFacets } from "./flavorGrouping"
 import { groupSecurityGroupsByProject } from "./securityGroupGrouping"
 import {
   FlavorTypeTab,
@@ -13,7 +13,8 @@ import {
   flavorInTab,
   tabHypervisor,
 } from "./imageGrouping"
-import { bootSourceOptions, groupBootSources, bootSourceLabel, bootSourceValue, isVolumeId } from "./bootSource"
+import { bootSourceOptions, groupBootSources, bootSourceLabel, bootSourceValue, isVolumeId, fitsFlavorFacet } from "./bootSource"
+import { osFamilyFacets } from "./osFamily"
 import { rootDiskMode, rootDiskSizeError, volumeTypeRequired, DEFAULT_ROOT_DISK_SIZE } from "./rootDisk"
 import { CreateInstancePayloadSchema, CreateInstancePayload } from "../../../types/createInstance"
 import { useCreateInstanceMutation } from "../../../hooks/useCreateInstanceMutation"
@@ -156,6 +157,19 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
   const mode = rootDiskMode(selectedFlavor)
   // The combined boot-source list (images + matching bootable volumes).
   const bootVolumes = images.data?.volumes ?? []
+  const bootSources = bootSourceOptions(images.data?.images ?? [], bootVolumes, hv)
+  // Root disk available to boot an image from: the custom root-disk size when
+  // one is in effect, otherwise the flavor's own disk. Drives the "Fits this
+  // flavor" facet (an image whose min_disk exceeds this would fail to launch).
+  const bootDiskGb =
+    mode === "forced" || (mode === "optional" && customRootDisk) ? Number(rootDiskSize) || 0 : (selectedFlavor?.disk ?? 0)
+  // Offer the "Fits this flavor" facet only when we know the disk size (so the
+  // pill actually does something); SearchableSelect further hides it if no image
+  // would be excluded.
+  const bootSourceFacets = [
+    ...osFamilyFacets(bootSources),
+    ...(bootDiskGb > 0 ? [fitsFlavorFacet(bootDiskGb)] : []),
+  ]
   const bootSourceSelected = isVolumeId(form.image_id || null, bootVolumes) ? "volume" : "image"
   // Subnets belonging to the selected network (client-side filter, like legacy).
   const subnetsForNetwork = (subnets.data?.subnets ?? []).filter((s) => s.network_id === form.network_id)
@@ -312,6 +326,7 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
             getLabel={flavorLabel}
             getValue={(f) => f.id}
             getGroups={groupFlavorsByAccess}
+            facets={flavorSizeFacets(flavorsInType)}
             isLoading={flavors.isLoading}
             placeholder="Select a flavor…"
             emptyMessage="No flavors available"
@@ -331,12 +346,13 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
             }
           >
             <SearchableSelect
-              options={bootSourceOptions(images.data?.images ?? [], bootVolumes, hv)}
+              options={bootSources}
               value={form.image_id || null}
               onChange={(v) => set("image_id", v)}
               getLabel={bootSourceLabel}
               getValue={bootSourceValue}
               getGroups={(opts) => groupBootSources(opts, hv)}
+              facets={bootSourceFacets}
               isLoading={images.isLoading}
               placeholder="Select an image or bootable volume…"
               emptyMessage="No images found"
