@@ -28,3 +28,11 @@ declare module "lib/widget" {
   function createWidget(options: { pluginName: string; widgetName: string }): Promise<Widget>
   export { widgetBasePath, createWidget }
 }
+
+declare module "lib/policy" {
+  interface Policy {
+    isAllowed: (permission: string, options?: Record<string, unknown>) => boolean
+  }
+  export const policy: Policy
+  export function setPolicy(newPolicy: Policy): void
+}

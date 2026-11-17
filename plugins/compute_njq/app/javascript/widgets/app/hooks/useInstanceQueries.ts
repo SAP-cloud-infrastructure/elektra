@@ -43,6 +43,7 @@ function detailPlaceholderFromList(instance: Instance): InstanceDetail {
     id: instance.id,
     name: instance.name,
     status: instance.status,
+    locked: instance.locked,
     fault_message: null,
     availability_zone: instance.availability_zone ?? null,
     created: instance.created,

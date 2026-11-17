@@ -21,6 +21,7 @@ const instance: Instance = {
   id: "s1",
   name: "web-01",
   status: { state: "active", transition: null },
+  locked: false,
   availability_zone: "qa-de-1a",
   flavor: { id: "f1", name: "m1.small" },
   image: { id: "i1", name: "ubuntu-24.04" },

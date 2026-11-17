@@ -40,6 +40,9 @@ export const InstanceSchema = z.object({
   image: InstanceRefSchema,
   ips: InstanceIpsSchema,
   created: z.string().nullable(),
+  // Native Nova locked flag (microversion 2.9+); defaults to false so Lock is
+  // offered on a server record that predates the attribute.
+  locked: z.boolean().default(false),
 })
 
 export const InstancesResponseSchema = z.object({
@@ -108,6 +111,9 @@ export const InstanceDetailSchema = z.object({
   id: z.string(),
   name: z.string().nullable(),
   status: InstanceStatusSchema,
+  // Native Nova locked flag; defaults to false so Lock is offered on a server
+  // record that predates the attribute.
+  locked: z.boolean().default(false),
   fault_message: z.string().nullable(),
   availability_zone: z.string().nullable(),
   created: z.string().nullable(),

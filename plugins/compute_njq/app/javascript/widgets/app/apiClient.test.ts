@@ -13,6 +13,7 @@ const validInstance = {
   id: "s1",
   name: "web-01",
   status: { state: "active", transition: null },
+  locked: false,
   flavor: { id: "f1", name: "m1.small" },
   image: { id: "i1", name: "ubuntu-24.04" },
   ips: [
