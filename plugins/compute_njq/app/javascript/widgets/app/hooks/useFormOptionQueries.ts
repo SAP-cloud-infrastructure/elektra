@@ -32,3 +32,11 @@ export function useAvailabilityZonesQuery(api: ComputeApi, { enabled }: { enable
 export function useImagesQuery(api: ComputeApi, { enabled }: { enabled: boolean }) {
   return useQuery({ queryKey: QUERY_KEYS.images, queryFn: () => api.formOptions.getImages(), enabled, ...SHARED })
 }
+export function useVolumeTypesQuery(api: ComputeApi, { enabled }: { enabled: boolean }) {
+  return useQuery({
+    queryKey: QUERY_KEYS.volumeTypes,
+    queryFn: () => api.formOptions.getVolumeTypes(),
+    enabled,
+    ...SHARED,
+  })
+}

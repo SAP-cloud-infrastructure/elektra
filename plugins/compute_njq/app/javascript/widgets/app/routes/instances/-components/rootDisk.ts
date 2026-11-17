@@ -29,3 +29,11 @@ export function rootDiskSizeError(size: string): string | undefined {
   }
   return undefined
 }
+
+// Whether a root-disk volume type must be chosen for the selected flavor,
+// mirroring the legacy checkKvmVolumeType gate: a KVM flavor booted from a new
+// volume (disk == 0 → forced custom root disk) requires a premium volume type.
+// Other flavors (vmware custom root disk, baremetal, non-forced) do not.
+export function volumeTypeRequired(flavor: Flavor | undefined): boolean {
+  return flavorHypervisor(flavor) === "kvm" && flavor?.disk === 0
+}

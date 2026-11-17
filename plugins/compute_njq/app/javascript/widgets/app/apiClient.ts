@@ -15,6 +15,7 @@ import {
   NetworksResponseSchema,
   SecurityGroupsResponseSchema,
   AvailabilityZonesResponseSchema,
+  VolumeTypesResponseSchema,
 } from "./types/formOptions"
 import { CreateInstancePayload } from "./types/createInstance"
 
@@ -128,6 +129,11 @@ export function createComputeApi(basepath: string) {
       apiClient.get<{ data: unknown }>("form_options/availability_zones").then((res) => {
         checkForApiError(res.data)
         return parseOrThrow(AvailabilityZonesResponseSchema, res.data, "availability_zones").availability_zones
+      }),
+    getVolumeTypes: () =>
+      apiClient.get<{ data: unknown }>("form_options/volume_types").then((res) => {
+        checkForApiError(res.data)
+        return parseOrThrow(VolumeTypesResponseSchema, res.data, "volume_types").volume_types
       }),
   }
 

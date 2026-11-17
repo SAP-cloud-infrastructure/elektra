@@ -34,6 +34,7 @@ vi.mock("../../../hooks/useFormOptionQueries", () => ({
     isLoading: false,
   }),
   useAvailabilityZonesQuery: () => ({ data: [{ name: "az-1" }], isLoading: false }),
+  useVolumeTypesQuery: () => ({ data: [{ id: "vt1", name: "premium" }], isLoading: false }),
 }))
 
 const mutate = vi.fn()
@@ -127,6 +128,34 @@ describe("CreateInstanceForm", () => {
     expect(screen.getByText(/Custom Root Disk Size/i)).toBeInTheDocument()
     expect(screen.getByDisplayValue("64")).toBeInTheDocument()
     expect(screen.queryByLabelText("Custom root disk")).not.toBeInTheDocument()
+  })
+
+  it("shows a Volume Type field defaulted to the first type for a disk-less kvm flavor", () => {
+    mutationState = { mutate, isPending: false, isError: false, error: null }
+    flavorData = [{ id: "f0", name: "no-disk", vcpus: 1, ram: 2048, disk: 0, hypervisor_type: "kvm", is_public: true }]
+    render(<CreateInstanceForm api={api} queryClient={queryClient} onSuccess={vi.fn()} />)
+
+    fireEvent.click(screen.getByRole("radio", { name: "KVM" }))
+    fireEvent.click(screen.getByText("Select a flavor…"))
+    fireEvent.click(screen.getByText(/no-disk/))
+
+    // The Volume Type field appears and is preselected with the first type.
+    expect(screen.getByText("Volume Type")).toBeInTheDocument()
+    expect(screen.getByText("premium")).toBeInTheDocument()
+  })
+
+  it("does not show a Volume Type field for a kvm flavor with a disk", () => {
+    mutationState = { mutate, isPending: false, isError: false, error: null }
+    flavorData = [
+      { id: "f1", name: "m1.small", vcpus: 1, ram: 2048, disk: 20, hypervisor_type: "kvm", is_public: true },
+    ]
+    render(<CreateInstanceForm api={api} queryClient={queryClient} onSuccess={vi.fn()} />)
+
+    fireEvent.click(screen.getByRole("radio", { name: "KVM" }))
+    fireEvent.click(screen.getByText("Select a flavor…"))
+    fireEvent.click(screen.getByText(/m1.small/))
+
+    expect(screen.queryByText("Volume Type")).not.toBeInTheDocument()
   })
 
   it("does not show a custom root disk control for a flavor with a disk", () => {

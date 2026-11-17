@@ -15,7 +15,7 @@ import {
   groupImages,
   imageLabel,
 } from "./imageGrouping"
-import { rootDiskMode, rootDiskSizeError, DEFAULT_ROOT_DISK_SIZE } from "./rootDisk"
+import { rootDiskMode, rootDiskSizeError, volumeTypeRequired, DEFAULT_ROOT_DISK_SIZE } from "./rootDisk"
 import { CreateInstancePayloadSchema, CreateInstancePayload } from "../../../types/createInstance"
 import { useCreateInstanceMutation } from "../../../hooks/useCreateInstanceMutation"
 import {
@@ -25,6 +25,7 @@ import {
   useNetworksQuery,
   useSecurityGroupsQuery,
   useAvailabilityZonesQuery,
+  useVolumeTypesQuery,
 } from "../../../hooks/useFormOptionQueries"
 
 interface Props {
@@ -107,6 +108,7 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
   const [flavorType, setFlavorType] = useState<FlavorTypeTab | null>(null)
   const [customRootDisk, setCustomRootDisk] = useState(false)
   const [rootDiskSize, setRootDiskSize] = useState("")
+  const [volumeType, setVolumeType] = useState("")
 
   // Focus the Name field when the dialog opens, so the user can start typing
   // immediately (mirrors the legacy form's autofocus).
@@ -138,6 +140,10 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
 
   const selectedFlavor = allFlavors.find((f) => f.id === form.flavor_id)
   const mode = rootDiskMode(selectedFlavor)
+  // A disk-less KVM flavor must boot from a new premium volume, so it needs a
+  // volume type; load the (small) premium list only when that applies.
+  const needsVolumeType = volumeTypeRequired(selectedFlavor)
+  const volumeTypes = useVolumeTypesQuery(api, { enabled: needsVolumeType })
 
   // Reconcile the root-disk state whenever the flavor changes: a disk-less
   // flavor forces the disk on with a prefilled size; otherwise reset it.
@@ -150,6 +156,17 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
       setRootDiskSize("")
     }
   }, [form.flavor_id, mode])
+
+  // Default the volume type to the first premium type (legacy preselected index
+  // 1) once the list loads and the field is relevant; clear it when it is not.
+  const availableVolumeTypes = volumeTypes.data ?? []
+  useEffect(() => {
+    if (!needsVolumeType) {
+      setVolumeType("")
+      return
+    }
+    setVolumeType((prev) => (prev === "" && availableVolumeTypes.length > 0 ? availableVolumeTypes[0].id : prev))
+  }, [needsVolumeType, availableVolumeTypes])
 
   // Switching type invalidates the picked flavor (and thus the image), which may
   // belong to a different type.
@@ -167,6 +184,9 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
 
   const rootDiskActive = mode === "forced" || (mode === "optional" && customRootDisk)
   const sizeError = rootDiskActive ? rootDiskSizeError(rootDiskSize) : undefined
+  // A required volume type that has not been picked blocks submit (legacy
+  // checkKvmVolumeType). Only applies to disk-less KVM flavors.
+  const volumeTypeMissing = needsVolumeType && volumeType === ""
 
   const mutation = useCreateInstanceMutation(api, queryClient)
 
@@ -176,18 +196,20 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
 
   // Report the submit-ability + pending state up so the modal footer (which
   // owns the buttons) can enable/disable the primary action and show progress.
-  const canSubmit = parsed.success && !sizeError
+  const canSubmit = parsed.success && !sizeError && !volumeTypeMissing
   useEffect(() => {
     onStatusChange?.({ canSubmit, isPending: mutation.isPending })
   }, [canSubmit, mutation.isPending, onStatusChange])
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!parsed.success || sizeError) return
+    if (!parsed.success || sizeError || volumeTypeMissing) return
     const payload: CreateInstancePayload = {
       ...parsed.data,
       custom_root_disk: rootDiskActive,
       custom_root_disk_size: rootDiskActive ? Number(rootDiskSize) : undefined,
+      // Only a disk-less KVM flavor submits a volume type (legacy behaviour).
+      volume_type: needsVolumeType ? volumeType : undefined,
     }
     mutation.mutate(payload, { onSuccess })
   }
@@ -290,6 +312,25 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
             className={`form-control ${sizeError ? "is-invalid" : ""}`}
             value={rootDiskSize}
             onChange={(e) => setRootDiskSize(e.target.value)}
+          />
+        </FormRow>
+      )}
+
+      {needsVolumeType && (
+        <FormRow
+          label="Volume Type"
+          required
+          hint="Disk-less KVM flavors boot from a new root volume; choose its volume type."
+        >
+          <SearchableSelect
+            options={availableVolumeTypes}
+            value={volumeType || null}
+            onChange={setVolumeType}
+            getLabel={(vt) => vt.name}
+            getValue={(vt) => vt.id}
+            isLoading={volumeTypes.isLoading}
+            placeholder="Select a volume type…"
+            emptyMessage="No volume types available"
           />
         </FormRow>
       )}

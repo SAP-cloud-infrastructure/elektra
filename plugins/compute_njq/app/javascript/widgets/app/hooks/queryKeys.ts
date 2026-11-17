@@ -10,6 +10,7 @@ export const QUERY_KEYS = {
   networks: ["form", "networks"] as const,
   securityGroups: ["form", "security_groups"] as const,
   availabilityZones: ["form", "availability_zones"] as const,
+  volumeTypes: ["form", "volume_types"] as const,
   images: ["form", "images"] as const,
   instanceDetail: (id: string) => ["instance", id, "detail"] as const,
   instanceMetrics: (id: string) => ["instance", id, "metrics"] as const,

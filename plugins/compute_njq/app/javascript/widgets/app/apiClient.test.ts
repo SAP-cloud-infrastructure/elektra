@@ -108,6 +108,12 @@ describe("createComputeApi", () => {
       const result = await api.formOptions.getAvailabilityZones()
       expect(result).toEqual([{ name: "az-1" }])
     })
+
+    it("returns volume_types", async () => {
+      mockGet.mockResolvedValue({ data: { volume_types: [{ id: "vt1", name: "premium" }] } })
+      const result = await api.formOptions.getVolumeTypes()
+      expect(result).toEqual([{ id: "vt1", name: "premium" }])
+    })
   })
 
   describe("instances.create", () => {

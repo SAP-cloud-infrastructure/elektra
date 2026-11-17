@@ -42,6 +42,7 @@ export const SecurityGroupSchema = z.object({
   project_label: z.string().nullable(),
 })
 export const AvailabilityZoneSchema = z.object({ name: z.string() })
+export const VolumeTypeSchema = z.object({ id: z.string(), name: z.string() })
 
 export const FlavorsResponseSchema = z.object({ flavors: z.array(FlavorSchema) })
 export const ImagesResponseSchema = z.object({ images: z.array(ImageSchema) })
@@ -51,6 +52,7 @@ export const SecurityGroupsResponseSchema = z.object({ security_groups: z.array(
 export const AvailabilityZonesResponseSchema = z.object({
   availability_zones: z.array(AvailabilityZoneSchema),
 })
+export const VolumeTypesResponseSchema = z.object({ volume_types: z.array(VolumeTypeSchema) })
 
 export type Flavor = z.infer<typeof FlavorSchema>
 export type Image = z.infer<typeof ImageSchema>
@@ -58,3 +60,4 @@ export type Keypair = z.infer<typeof KeypairSchema>
 export type Network = z.infer<typeof NetworkSchema>
 export type SecurityGroup = z.infer<typeof SecurityGroupSchema>
 export type AvailabilityZone = z.infer<typeof AvailabilityZoneSchema>
+export type VolumeType = z.infer<typeof VolumeTypeSchema>

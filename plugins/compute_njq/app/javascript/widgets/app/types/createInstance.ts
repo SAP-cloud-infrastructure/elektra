@@ -20,6 +20,9 @@ export const CreateInstancePayloadSchema = z.object({
   // from the image instead of booting the image directly.
   custom_root_disk: z.boolean().optional(),
   custom_root_disk_size: z.number().int().positive().optional(),
+  // The root-disk volume type (Cinder type id), required for a disk-less KVM
+  // flavor booted from a new volume; omitted otherwise.
+  volume_type: z.string().optional(),
 })
 
 export type CreateInstancePayload = z.infer<typeof CreateInstancePayloadSchema>
