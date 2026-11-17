@@ -11,6 +11,15 @@ module ServiceLayer
         elektron_glance.get("images", filter).body["images"] || []
       end
 
+      # A single image as a raw hash, or nil when it cannot be resolved. Used by
+      # the create path to attach image_name/buildnumber metadata on an image
+      # boot (mirrors the legacy find_image lookup).
+      def glance_image(id)
+        elektron_glance.get("images/#{id}").body
+      rescue Elektron::Errors::ApiResponse
+        nil
+      end
+
       # Pages through Glance (default page size 25) by following the last image
       # id as marker until an empty page comes back. Mirrors the legacy
       # image_services/image.rb#all_images so per-visibility loads are complete.

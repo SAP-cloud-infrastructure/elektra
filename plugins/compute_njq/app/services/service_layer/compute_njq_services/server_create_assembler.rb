@@ -111,7 +111,12 @@ module ServiceLayer
         # of booting the image directly. volume_type is set for disk-less KVM
         # flavors (the UI sends the chosen premium volume type id); otherwise Nova
         # picks the default type.
-        return unless truthy(attrs["custom_root_disk"])
+        unless truthy(attrs["custom_root_disk"])
+          # Plain image boot (no volume, no custom root disk): attach the image
+          # name + build number as metadata, mirroring the legacy controller.
+          payload["metadata"] = image_metadata(image_id)
+          return
+        end
 
         bdm = {
           "boot_index" => 0,
@@ -124,6 +129,20 @@ module ServiceLayer
         bdm["volume_type"] = attrs["volume_type"] if attrs["volume_type"].present?
         payload["block_device_mapping_v2"] = [bdm]
         payload.delete("imageRef")
+      end
+
+      # The image_name/image_buildnumber metadata Nova stores on an image-booted
+      # instance, mirroring the legacy controller. Returns {} when the image can
+      # not be resolved (the metadata is a nicety, never fatal). Values are
+      # truncated to Nova's 255-char metadata limit.
+      def image_metadata(image_id)
+        image = glance_image(image_id)
+        return {} unless image
+
+        {
+          "image_name" => image["name"].to_s[0, 255],
+          "image_buildnumber" => image["buildnumber"].to_s[0, 255],
+        }
       end
 
       def truthy(value)

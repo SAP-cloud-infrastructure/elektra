@@ -39,6 +39,22 @@ RSpec.describe ServiceLayer::ComputeNjqServices::Glance do
     end
   end
 
+  describe "#glance_image" do
+    it "returns the single image body" do
+      allow(elektron_glance).to receive(:get).with("images/i1").and_return(
+        double("response", body: { "id" => "i1", "name" => "ubuntu", "buildnumber" => "42" }),
+      )
+      expect(test_class.glance_image("i1")).to eq({ "id" => "i1", "name" => "ubuntu", "buildnumber" => "42" })
+    end
+
+    it "returns nil when the image cannot be resolved" do
+      allow(elektron_glance).to receive(:get).with("images/missing").and_raise(
+        Elektron::Errors::ApiResponse.new(double(code: 404, body: {})),
+      )
+      expect(test_class.glance_image("missing")).to be_nil
+    end
+  end
+
   describe "#glance_all_images" do
     it "pages via marker until an empty page ends the loop and concatenates the results" do
       allow(elektron_glance).to receive(:get).with("images", { "visibility" => "public" }).and_return(
