@@ -45,6 +45,17 @@ module ServiceLayer
         neutron_networks.map { |n| { id: n["id"], name: n["name"] } }
       end
 
+      # Root-disk volume types offered when booting a disk-less KVM flavor from a
+      # new volume. Mirrors the legacy render_available_volume_types(..., "premium")
+      # helper: only types whose name starts with "premium" (the bootable root
+      # volume tier), in Cinder's returned order. The UI submits the type id.
+      VOLUME_TYPE_PREFIX = "premium"
+      def form_volume_types
+        cinder_volume_types
+          .select { |vt| vt["name"].to_s.start_with?(VOLUME_TYPE_PREFIX) }
+          .map { |vt| { id: vt["id"], name: vt["name"] } }
+      end
+
       # Security groups carry their owning project so the UI can group them (the
       # list includes shared SGs from other projects — no tenant filter). The
       # project id is resolved to a "<domain>/<project>" label via Elektra's

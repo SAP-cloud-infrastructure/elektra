@@ -64,6 +64,20 @@ RSpec.describe ServiceLayer::ComputeNjqServices::FormOptionsAssembler do
     end
   end
 
+  describe "#form_volume_types" do
+    it "keeps only premium-prefixed types, mapped to id + name, in order" do
+      allow(test_class).to receive(:cinder_volume_types).and_return([
+        { "id" => "vt1", "name" => "premium_ssd" },
+        { "id" => "vt2", "name" => "standard" },
+        { "id" => "vt3", "name" => "premium_perf" },
+      ])
+      expect(test_class.form_volume_types).to eq([
+        { id: "vt1", name: "premium_ssd" },
+        { id: "vt3", name: "premium_perf" },
+      ])
+    end
+  end
+
   describe "#form_security_groups" do
     it "maps to id + name + project, resolving the project label from the cache" do
       allow(test_class).to receive(:neutron_security_groups).and_return([

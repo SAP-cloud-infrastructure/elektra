@@ -14,6 +14,17 @@ module ServiceLayer
       rescue Elektron::Errors::ApiResponse
         nil
       end
+
+      # All volume types (public and private) as raw hashes, used to offer a
+      # root-disk volume type for boot-from-volume. is_public=None asks Cinder
+      # for every type regardless of visibility (mirrors the legacy
+      # services.block_storage.volume_types call). Returns [] on error so the
+      # form degrades gracefully instead of blowing up.
+      def cinder_volume_types
+        elektron_cinder.get("types?is_public=None").body["volume_types"] || []
+      rescue Elektron::Errors::ApiResponse
+        []
+      end
     end
   end
 end

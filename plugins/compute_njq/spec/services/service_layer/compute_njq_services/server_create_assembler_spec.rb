@@ -108,6 +108,34 @@ RSpec.describe ServiceLayer::ComputeNjqServices::ServerCreateAssembler do
       }])
     end
 
+    it "includes the volume_type in the block device mapping when provided" do
+      captured = nil
+      allow(test_class).to receive(:nova_create_server) do |payload|
+        captured = payload
+        { "id" => "s1" }
+      end
+      allow(test_class).to receive(:find_instance).with("s1").and_return({ id: "s1" })
+
+      test_class.create_instance(
+        valid_attrs.merge("custom_root_disk" => "1", "custom_root_disk_size" => "64", "volume_type" => "vt1"),
+      )
+
+      expect(captured["block_device_mapping_v2"].first).to include("volume_type" => "vt1")
+    end
+
+    it "omits volume_type from the block device mapping when blank" do
+      captured = nil
+      allow(test_class).to receive(:nova_create_server) do |payload|
+        captured = payload
+        { "id" => "s1" }
+      end
+      allow(test_class).to receive(:find_instance).with("s1").and_return({ id: "s1" })
+
+      test_class.create_instance(valid_attrs.merge("custom_root_disk" => "1", "custom_root_disk_size" => "64"))
+
+      expect(captured["block_device_mapping_v2"].first).not_to have_key("volume_type")
+    end
+
     it "keeps imageRef and omits block_device_mapping_v2 without custom_root_disk" do
       captured = nil
       allow(test_class).to receive(:nova_create_server) do |payload|

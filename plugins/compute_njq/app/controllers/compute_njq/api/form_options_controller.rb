@@ -26,6 +26,10 @@ module ComputeNjq
         handle_api_call { { availability_zones: compute_service.form_availability_zones } }
       end
 
+      def volume_types
+        handle_api_call { { volume_types: compute_service.form_volume_types } }
+      end
+
       def images
         handle_api_call { compute_service.form_images }
       end

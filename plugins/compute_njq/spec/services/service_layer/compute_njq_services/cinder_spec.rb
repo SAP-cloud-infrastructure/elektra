@@ -27,4 +27,20 @@ RSpec.describe ServiceLayer::ComputeNjqServices::Cinder do
       expect(test_class.cinder_volume("missing")).to be_nil
     end
   end
+
+  describe "#cinder_volume_types" do
+    it "requests all volume types (is_public=None) and returns them" do
+      allow(elektron_cinder).to receive(:get).with("types?is_public=None").and_return(
+        double("response", body: { "volume_types" => [{ "id" => "vt1", "name" => "premium_ssd" }] }),
+      )
+      expect(test_class.cinder_volume_types).to eq([{ "id" => "vt1", "name" => "premium_ssd" }])
+    end
+
+    it "returns [] on an API error" do
+      allow(elektron_cinder).to receive(:get).with("types?is_public=None").and_raise(
+        Elektron::Errors::ApiResponse.new(double(code: 503, body: {})),
+      )
+      expect(test_class.cinder_volume_types).to eq([])
+    end
+  end
 end
