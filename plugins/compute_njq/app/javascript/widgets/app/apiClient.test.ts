@@ -3,8 +3,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 // Mock the ajax helper so we control exactly what the BFF "returns".
 const mockGet = vi.fn()
 const mockPost = vi.fn()
+const mockDelete = vi.fn()
 vi.mock("lib/ajax_helper", () => ({
-  createAjaxHelper: () => ({ get: mockGet, post: mockPost }),
+  createAjaxHelper: () => ({ get: mockGet, post: mockPost, delete: mockDelete }),
 }))
 
 import { createComputeApi } from "./apiClient"
@@ -29,6 +30,7 @@ describe("createComputeApi", () => {
   beforeEach(() => {
     mockGet.mockReset()
     mockPost.mockReset()
+    mockDelete.mockReset()
   })
 
   describe("getInstances", () => {
@@ -133,6 +135,30 @@ describe("createComputeApi", () => {
     it("throws the error envelope on failure", async () => {
       mockPost.mockResolvedValue({ data: { error: "API Error", code: 403, message: "Quota exceeded" } })
       await expect(api.instances.create(createPayload)).rejects.toThrow(/Quota exceeded \(HTTP 403\)/)
+    })
+  })
+
+  describe("instances.action / terminate", () => {
+    it("posts the action_name under instances/:id/action", async () => {
+      mockPost.mockResolvedValue({ data: { ok: true } })
+      await api.instances.action("s1", "stop")
+      expect(mockPost).toHaveBeenCalledWith("instances/s1/action", { action_name: "stop" })
+    })
+
+    it("throws the error envelope when an action fails", async () => {
+      mockPost.mockResolvedValue({ data: { error: "API Error", code: 409, message: "Conflict" } })
+      await expect(api.instances.action("s1", "stop")).rejects.toThrow(/Conflict \(HTTP 409\)/)
+    })
+
+    it("deletes instances/:id for terminate", async () => {
+      mockDelete.mockResolvedValue({ data: { ok: true } })
+      await api.instances.terminate("s1")
+      expect(mockDelete).toHaveBeenCalledWith("instances/s1")
+    })
+
+    it("throws the error envelope when terminate fails", async () => {
+      mockDelete.mockResolvedValue({ data: { error: "API Error", code: 403, message: "Forbidden" } })
+      await expect(api.instances.terminate("s1")).rejects.toThrow(/Forbidden \(HTTP 403\)/)
     })
   })
 })

@@ -96,6 +96,18 @@ export function createComputeApi(basepath: string) {
         checkForApiError(res.data)
         return parseOrThrow(InstanceMetricsResponseSchema, res.data, "instance metrics").metrics
       }),
+
+    // Generic lifecycle action (start/stop/reboot/lock/...). The BFF answers
+    // { ok: true }; we only need success/failure, so there is nothing to parse.
+    action: (id: string, actionName: string): Promise<void> =>
+      apiClient.post<{ data: { ok: true } }>(`instances/${id}/action`, { action_name: actionName }).then((res) => {
+        checkForApiError(res.data)
+      }),
+
+    terminate: (id: string): Promise<void> =>
+      apiClient.delete<{ data: { ok: true } }>(`instances/${id}`).then((res) => {
+        checkForApiError(res.data)
+      }),
   }
 
   const formOptionsApi = {
