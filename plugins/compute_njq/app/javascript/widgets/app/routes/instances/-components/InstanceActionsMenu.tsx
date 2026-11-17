@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { Fragment, useEffect, useRef, useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { Modal } from "lib/components/Modal"
 import type { ComputeApi } from "../../../apiClient"
@@ -65,17 +65,30 @@ export default function InstanceActionsMenu({ instance, scope, apiClient }: Prop
         <span className="fa fa-cog" />
       </button>
       {open && (
-        <ul className="dropdown-menu dropdown-menu-end show" role="menu">
-          {actions.map((a) => (
-            <li key={a.key}>
-              <button
-                type="button"
-                className={`dropdown-item${a.destructive ? " text-danger" : ""}`}
-                onClick={() => onClick(a)}
-              >
-                {a.label}
-              </button>
-            </li>
+        // React-controlled, so Bootstrap's Popper never runs and its
+        // [data-bs-popper] position rules don't apply. Position the panel
+        // ourselves: drop below the toggle and align its right edge to the
+        // button's right edge (end alignment) so it opens leftwards and never
+        // overflows the table's right edge. The toggle stays visible above it.
+        <ul
+          className="dropdown-menu dropdown-menu-end show"
+          role="menu"
+          style={{ position: "absolute", top: "100%", right: 0, left: "auto", marginTop: "0.125rem" }}
+        >
+          {actions.map((a, i) => (
+            <Fragment key={a.key}>
+              {/* Divider between legacy groups — never before the first item. */}
+              {i > 0 && actions[i - 1].group !== a.group && <li className="dropdown-divider" role="separator" />}
+              <li>
+                <button
+                  type="button"
+                  className={`dropdown-item${a.destructive ? " text-danger" : ""}`}
+                  onClick={() => onClick(a)}
+                >
+                  {a.label}
+                </button>
+              </li>
+            </Fragment>
           ))}
         </ul>
       )}

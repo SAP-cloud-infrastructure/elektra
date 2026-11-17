@@ -5,6 +5,10 @@ export interface InstanceAction {
   key: "start" | "stop" | "reboot" | "hard_reset" | "pause" | "suspend" | "lock" | "unlock" | "terminate"
   label: string
   policy: string
+  // Legacy _item_actions.html.haml splits the dropdown into divider-separated
+  // groups. visibleActions keeps that order and inserts a divider between groups
+  // (never before the first). Power lifecycle, then lock/unlock, then terminate.
+  group: "power" | "lock" | "terminate"
   isAvailable: (i: Instance) => boolean
   confirm?: { message: string; ok: string }
   destructive?: boolean
@@ -21,6 +25,7 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     key: "start",
     label: "Start",
     policy: "compute_njq:instance_update",
+    group: "power",
     isAvailable: isParked,
     optimisticTransition: "powering-on",
   },
@@ -28,6 +33,7 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     key: "stop",
     label: "Stop",
     policy: "compute_njq:instance_update",
+    group: "power",
     isAvailable: isRunning,
     optimisticTransition: "powering-off",
     destructive: true,
@@ -37,6 +43,7 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     key: "reboot",
     label: "Reboot",
     policy: "compute_njq:instance_update",
+    group: "power",
     isAvailable: isRunning,
     optimisticTransition: "rebooting",
     confirm: { message: "Are you sure you want to reboot this instance?", ok: "Yes, reboot it" },
@@ -45,6 +52,7 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     key: "pause",
     label: "Pause",
     policy: "compute_njq:instance_update",
+    group: "power",
     isAvailable: isRunning,
     optimisticTransition: "pausing",
     confirm: { message: "Are you sure you want to pause this instance?", ok: "Yes, pause it" },
@@ -53,6 +61,7 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     key: "suspend",
     label: "Suspend",
     policy: "compute_njq:instance_update",
+    group: "power",
     isAvailable: isRunning,
     optimisticTransition: "suspending",
     confirm: { message: "Are you sure you want to suspend this instance?", ok: "Yes, suspend it" },
@@ -61,6 +70,7 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     key: "hard_reset",
     label: "Hard Reset",
     policy: "compute_njq:instance_hard_reset",
+    group: "power",
     isAvailable: isRunning,
     optimisticTransition: "rebooting",
     destructive: true,
@@ -70,6 +80,7 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     key: "lock",
     label: "Lock",
     policy: "compute_njq:instance_lock",
+    group: "lock",
     isAvailable: (i) => !i.locked,
     confirm: { message: "Are you sure you want to lock this instance?", ok: "Yes, lock it" },
   },
@@ -77,6 +88,7 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     key: "unlock",
     label: "Unlock",
     policy: "compute_njq:instance_unlock",
+    group: "lock",
     isAvailable: (i) => i.locked,
     confirm: { message: "Are you sure you want to unlock this instance?", ok: "Yes, unlock it" },
   },
@@ -84,6 +96,7 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     key: "terminate",
     label: "Terminate",
     policy: "compute_njq:instance_delete",
+    group: "terminate",
     isAvailable: () => true,
     optimisticTransition: "deleting",
     destructive: true,

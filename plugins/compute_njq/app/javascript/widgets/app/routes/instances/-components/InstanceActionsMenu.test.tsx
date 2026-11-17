@@ -73,4 +73,27 @@ describe("InstanceActionsMenu", () => {
     })
     expect(container).toBeEmptyDOMElement()
   })
+
+  it("separates action groups with dividers like the legacy menu", () => {
+    // Running + unlocked shows three legacy groups in order:
+    //   [Stop, Reboot, Pause, Suspend, Hard Reset] | [Lock] | [Terminate]
+    // so two dividers sit between them — never before the first group.
+    renderMenu()
+    fireEvent.click(screen.getByRole("button", { name: /actions/i }))
+
+    const menu = document.querySelector(".dropdown-menu.show")!
+    const items = Array.from(menu.children)
+    // First child is an action, not a divider.
+    expect(items[0].querySelector(".dropdown-item")?.textContent).toBe("Stop")
+    expect(items[0].classList.contains("dropdown-divider")).toBe(false)
+
+    const dividers = menu.querySelectorAll(".dropdown-divider")
+    expect(dividers).toHaveLength(2)
+
+    // The divider immediately precedes the first item of the next group.
+    const labels = items.map((li) =>
+      li.classList.contains("dropdown-divider") ? "---" : li.querySelector(".dropdown-item")?.textContent
+    )
+    expect(labels).toEqual(["Stop", "Reboot", "Pause", "Suspend", "Hard Reset", "---", "Lock", "---", "Terminate"])
+  })
 })
