@@ -6,8 +6,10 @@ import { Instance } from "../types/instance"
 export interface ActionVars {
   id: string
   actionName: string
-  // Synthetic Nova task_state shown immediately; omitted for actions with no
-  // task_state (lock/unlock).
+  // Synthetic Nova task_state shown immediately for power actions. Lock/unlock
+  // have no task_state, so they omit this and instead get an optimistic `locked`
+  // flip (see onMutate) — no transition, so the status pill never spins and the
+  // actions menu is not hidden for an instantaneous operation.
   optimisticTransition?: string
 }
 
@@ -23,12 +25,20 @@ export function buildActionMutationOptions(
 ): UseMutationOptions<void, Error, ActionVars, ActionCtx> {
   return {
     mutationFn: ({ id, actionName }) => api.instances.action(id, actionName),
-    onMutate: async ({ id, optimisticTransition }) => {
-      if (!optimisticTransition) return {}
+    onMutate: async ({ id, actionName, optimisticTransition }) => {
+      // Optimistic patch: power actions show their synthetic transition; lock/
+      // unlock flip `locked` (no transition, by design). onSettled reconciles.
+      const patch = (i: Instance): Instance => {
+        if (optimisticTransition) return { ...i, status: { ...i.status, transition: optimisticTransition } }
+        if (actionName === "lock") return { ...i, locked: true }
+        if (actionName === "unlock") return { ...i, locked: false }
+        return i
+      }
+      if (!optimisticTransition && actionName !== "lock" && actionName !== "unlock") return {}
       await queryClient.cancelQueries({ queryKey: QUERY_KEYS.instances })
       const previous = queryClient.getQueryData<Instance[]>(QUERY_KEYS.instances)
       queryClient.setQueryData<Instance[]>(QUERY_KEYS.instances, (list) =>
-        (list ?? []).map((i) => (i.id === id ? { ...i, status: { ...i.status, transition: optimisticTransition } } : i))
+        (list ?? []).map((i) => (i.id === id ? patch(i) : i))
       )
       return { previous }
     },
