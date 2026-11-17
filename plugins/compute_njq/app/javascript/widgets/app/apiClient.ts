@@ -124,7 +124,7 @@ export function createComputeApi(basepath: string) {
     getSubnets: () =>
       apiClient.get<{ data: unknown }>("form_options/subnets").then((res) => {
         checkForApiError(res.data)
-        return parseOrThrow(SubnetsResponseSchema, res.data, "subnets").subnets
+        return parseOrThrow(SubnetsResponseSchema, res.data, "subnets")
       }),
     getSecurityGroups: () =>
       apiClient.get<{ data: unknown }>("form_options/security_groups").then((res) => {

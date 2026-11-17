@@ -118,12 +118,22 @@ describe("createComputeApi", () => {
       expect(result).toEqual([{ id: "n1", name: "default" }])
     })
 
-    it("returns subnets", async () => {
+    it("returns subnets and reserved fixed-IP ports", async () => {
       mockGet.mockResolvedValue({
-        data: { subnets: [{ id: "s1", name: "sub-a", cidr: "10.0.0.0/24", network_id: "n1" }] },
+        data: {
+          subnets: [{ id: "s1", name: "sub-a", cidr: "10.0.0.0/24", network_id: "n1" }],
+          fixed_ip_ports: [{ id: "p1", ip_addresses: ["10.0.0.5"], subnet_ids: ["s1"] }],
+        },
       })
       const result = await api.formOptions.getSubnets()
-      expect(result).toEqual([{ id: "s1", name: "sub-a", cidr: "10.0.0.0/24", network_id: "n1" }])
+      expect(result.subnets).toEqual([{ id: "s1", name: "sub-a", cidr: "10.0.0.0/24", network_id: "n1" }])
+      expect(result.fixed_ip_ports).toEqual([{ id: "p1", ip_addresses: ["10.0.0.5"], subnet_ids: ["s1"] }])
+    })
+
+    it("defaults fixed_ip_ports to [] when omitted", async () => {
+      mockGet.mockResolvedValue({ data: { subnets: [] } })
+      const result = await api.formOptions.getSubnets()
+      expect(result.fixed_ip_ports).toEqual([])
     })
 
     it("returns security_groups", async () => {

@@ -51,6 +51,13 @@ export const SubnetSchema = z.object({
   cidr: z.string().nullable(),
   network_id: z.string(),
 })
+// A pre-reserved fixed-IP port the instance can attach to instead of getting a
+// fresh IP. Carries its reserved IPs and their subnets for client-side filtering.
+export const FixedIpPortSchema = z.object({
+  id: z.string(),
+  ip_addresses: z.array(z.string()),
+  subnet_ids: z.array(z.string()),
+})
 export const SecurityGroupSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -71,7 +78,12 @@ export const ImagesResponseSchema = z.object({
 })
 export const KeypairsResponseSchema = z.object({ keypairs: z.array(KeypairSchema) })
 export const NetworksResponseSchema = z.object({ networks: z.array(NetworkSchema) })
-export const SubnetsResponseSchema = z.object({ subnets: z.array(SubnetSchema) })
+export const SubnetsResponseSchema = z.object({
+  subnets: z.array(SubnetSchema),
+  // Pre-reserved fixed-IP ports ride along with the subnets (same advanced
+  // network section, fetched together).
+  fixed_ip_ports: z.array(FixedIpPortSchema).default([]),
+})
 export const SecurityGroupsResponseSchema = z.object({ security_groups: z.array(SecurityGroupSchema) })
 export const AvailabilityZonesResponseSchema = z.object({
   availability_zones: z.array(AvailabilityZoneSchema),
@@ -84,6 +96,7 @@ export type BootableVolume = z.infer<typeof BootableVolumeSchema>
 export type Keypair = z.infer<typeof KeypairSchema>
 export type Network = z.infer<typeof NetworkSchema>
 export type Subnet = z.infer<typeof SubnetSchema>
+export type FixedIpPort = z.infer<typeof FixedIpPortSchema>
 export type SecurityGroup = z.infer<typeof SecurityGroupSchema>
 export type AvailabilityZone = z.infer<typeof AvailabilityZoneSchema>
 export type VolumeType = z.infer<typeof VolumeTypeSchema>

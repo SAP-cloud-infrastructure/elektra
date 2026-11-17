@@ -158,7 +158,14 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
   const bootVolumes = images.data?.volumes ?? []
   const bootSourceSelected = isVolumeId(form.image_id || null, bootVolumes) ? "volume" : "image"
   // Subnets belonging to the selected network (client-side filter, like legacy).
-  const subnetsForNetwork = (subnets.data ?? []).filter((s) => s.network_id === form.network_id)
+  const subnetsForNetwork = (subnets.data?.subnets ?? []).filter((s) => s.network_id === form.network_id)
+  // Reserved fixed-IP addresses available for the chosen subnet (or all when no
+  // subnet is picked), offered as datalist suggestions for the fixed-IP field.
+  const reservedIps = (() => {
+    const ports = subnets.data?.fixed_ip_ports ?? []
+    const matching = form.subnet_id ? ports.filter((p) => p.subnet_ids.includes(form.subnet_id)) : ports
+    return [...new Set(matching.flatMap((p) => p.ip_addresses))].sort()
+  })()
   // A disk-less KVM flavor must boot from a new premium volume, so it needs a
   // volume type; load the (small) premium list only when that applies. A
   // selected bootable volume boots from itself, so no new root volume / type.
@@ -497,15 +504,27 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
           <FormRow
             label="Server Fixed IP"
             htmlFor="ci-fixed-ip"
-            hint="Type a fixed IP, or leave empty to let DHCP assign one."
+            hint={
+              reservedIps.length > 0
+                ? "Type a fixed IP or pick a previously reserved one; leave empty to let DHCP assign one."
+                : "Type a fixed IP, or leave empty to let DHCP assign one."
+            }
           >
             <input
               id="ci-fixed-ip"
               type="text"
               className="form-control"
+              list="ci-fixed-ip-reserved"
               value={form.fixed_ip}
               onChange={(e) => set("fixed_ip", e.target.value)}
             />
+            {/* Reserved fixed-IP addresses surface as native datalist options; a
+                typed value matching one makes the server attach to that port. */}
+            <datalist id="ci-fixed-ip-reserved">
+              {reservedIps.map((ip) => (
+                <option key={ip} value={ip} />
+              ))}
+            </datalist>
           </FormRow>
         </>
       )}

@@ -37,7 +37,7 @@ vi.mock("../../../hooks/useFormOptionQueries", () => ({
   }),
   useKeypairsQuery: () => ({ data: keypairData, isLoading: false, isSuccess: true }),
   useNetworksQuery: () => ({ data: networkData, isLoading: false, isSuccess: true }),
-  useSubnetsQuery: () => ({ data: subnetData, isLoading: false }),
+  useSubnetsQuery: () => ({ data: { subnets: subnetData, fixed_ip_ports: [] }, isLoading: false }),
   useSecurityGroupsQuery: () => ({
     data: [{ id: "sg1", name: "default", project_id: "p1", project_label: "monsoon3/demo" }],
     isLoading: false,
