@@ -37,8 +37,21 @@ describe("InstanceActionsMenu", () => {
     action.mockClear()
   })
 
+  it("keeps the menu closed until the toggle is clicked", () => {
+    renderMenu()
+    const toggle = screen.getByRole("button", { name: /actions/i })
+    expect(toggle).toHaveAttribute("aria-expanded", "false")
+    expect(document.querySelector(".dropdown-menu.show")).toBeNull()
+
+    fireEvent.click(toggle)
+
+    expect(toggle).toHaveAttribute("aria-expanded", "true")
+    expect(document.querySelector(".dropdown-menu.show")).not.toBeNull()
+  })
+
   it("opens a confirm dialog for a confirm action and fires on confirm", async () => {
     renderMenu()
+    fireEvent.click(screen.getByRole("button", { name: /actions/i }))
     fireEvent.click(screen.getByText("Stop"))
     expect(screen.getByText("Yes, stop it")).toBeInTheDocument()
     fireEvent.click(screen.getByText("Yes, stop it"))
@@ -49,6 +62,7 @@ describe("InstanceActionsMenu", () => {
     // Start (parked-only, no confirm) must fire the mutation on click with no
     // confirmation dialog in between.
     renderMenu({ status: { state: "stopped", transition: null, power_state: "Shut off" } })
+    fireEvent.click(screen.getByRole("button", { name: /actions/i }))
     fireEvent.click(screen.getByText("Start"))
     await waitFor(() => expect(action).toHaveBeenCalledWith("s1", "start"))
   })

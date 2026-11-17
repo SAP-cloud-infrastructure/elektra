@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { Modal } from "lib/components/Modal"
 import type { ComputeApi } from "../../../apiClient"
@@ -20,6 +20,20 @@ export default function InstanceActionsMenu({ instance, scope, apiClient }: Prop
   const actionMutation = useInstanceActionMutation(apiClient, queryClient)
   const terminateMutation = useTerminateInstanceMutation(apiClient, queryClient)
   const [pending, setPending] = useState<InstanceAction | null>(null)
+  // Open state is controlled in React rather than Bootstrap's data-API, so the
+  // menu behaves identically in tests and in the browser without depending on a
+  // global dropdown side-effect (mirrors SearchableSelect).
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  // Close on outside click.
+  useEffect(() => {
+    function onDocClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener("mousedown", onDocClick)
+    return () => document.removeEventListener("mousedown", onDocClick)
+  }, [])
 
   const actions = visibleActions(instance, scope)
   if (actions.length === 0) return null
@@ -32,32 +46,39 @@ export default function InstanceActionsMenu({ instance, scope, apiClient }: Prop
     }
   }
 
-  const onClick = (a: InstanceAction) => (a.confirm ? setPending(a) : run(a))
+  const onClick = (a: InstanceAction) => {
+    setOpen(false)
+    if (a.confirm) setPending(a)
+    else run(a)
+  }
   const error = actionMutation.error ?? terminateMutation.error
 
   return (
-    <div className="btn-group">
+    <div className="btn-group" ref={ref}>
       <button
         type="button"
         className="btn btn-secondary btn-sm dropdown-toggle"
-        data-bs-toggle="dropdown"
-        aria-expanded="false"
+        aria-label="Actions"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
       >
         <span className="fa fa-cog" />
       </button>
-      <ul className="dropdown-menu dropdown-menu-end" role="menu">
-        {actions.map((a) => (
-          <li key={a.key}>
-            <button
-              type="button"
-              className={`dropdown-item${a.destructive ? " text-danger" : ""}`}
-              onClick={() => onClick(a)}
-            >
-              {a.label}
-            </button>
-          </li>
-        ))}
-      </ul>
+      {open && (
+        <ul className="dropdown-menu dropdown-menu-end show" role="menu">
+          {actions.map((a) => (
+            <li key={a.key}>
+              <button
+                type="button"
+                className={`dropdown-item${a.destructive ? " text-danger" : ""}`}
+                onClick={() => onClick(a)}
+              >
+                {a.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
 
       {error && <div className="text-danger small mt-1">{error.message}</div>}
 
