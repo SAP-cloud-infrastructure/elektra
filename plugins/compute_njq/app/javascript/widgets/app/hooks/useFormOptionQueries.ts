@@ -13,6 +13,9 @@ export function useKeypairsQuery(api: ComputeApi, { enabled }: { enabled: boolea
 export function useNetworksQuery(api: ComputeApi, { enabled }: { enabled: boolean }) {
   return useQuery({ queryKey: QUERY_KEYS.networks, queryFn: () => api.formOptions.getNetworks(), enabled, ...SHARED })
 }
+export function useSubnetsQuery(api: ComputeApi, { enabled }: { enabled: boolean }) {
+  return useQuery({ queryKey: QUERY_KEYS.subnets, queryFn: () => api.formOptions.getSubnets(), enabled, ...SHARED })
+}
 export function useSecurityGroupsQuery(api: ComputeApi, { enabled }: { enabled: boolean }) {
   return useQuery({
     queryKey: QUERY_KEYS.securityGroups,

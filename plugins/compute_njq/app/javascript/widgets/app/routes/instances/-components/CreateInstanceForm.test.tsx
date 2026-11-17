@@ -9,6 +9,7 @@ let flavorData = [
 let keypairData: { name: string }[] = [{ name: "k1" }]
 let networkData: { id: string; name: string }[] = [{ id: "n1", name: "private" }]
 let volumeData: unknown[] = []
+let subnetData: { id: string; name: string; cidr: string; network_id: string }[] = []
 vi.mock("../../../hooks/useFormOptionQueries", () => ({
   useFlavorsQuery: () => ({ data: flavorData, isLoading: false }),
   useImagesQuery: () => ({
@@ -36,6 +37,7 @@ vi.mock("../../../hooks/useFormOptionQueries", () => ({
   }),
   useKeypairsQuery: () => ({ data: keypairData, isLoading: false, isSuccess: true }),
   useNetworksQuery: () => ({ data: networkData, isLoading: false, isSuccess: true }),
+  useSubnetsQuery: () => ({ data: subnetData, isLoading: false }),
   useSecurityGroupsQuery: () => ({
     data: [{ id: "sg1", name: "default", project_id: "p1", project_label: "monsoon3/demo" }],
     isLoading: false,
@@ -271,5 +273,22 @@ describe("CreateInstanceForm", () => {
     expect(screen.queryByLabelText("Custom root disk")).not.toBeInTheDocument()
 
     volumeData = []
+  })
+
+  it("reveals subnet and fixed IP fields under the advanced network toggle", () => {
+    mutationState = { mutate, isPending: false, isError: false, error: null }
+    subnetData = [{ id: "sub1", name: "sub-a", cidr: "10.0.0.0/24", network_id: "n1" }]
+    render(<CreateInstanceForm api={api} queryClient={queryClient} onSuccess={vi.fn()} />)
+
+    // Advanced fields are hidden until the toggle is used.
+    expect(screen.queryByText("Subnet")).not.toBeInTheDocument()
+    expect(screen.queryByText("Server Fixed IP")).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("button", { name: /advanced network options/i }))
+
+    expect(screen.getByText("Subnet")).toBeInTheDocument()
+    expect(screen.getByText("Server Fixed IP")).toBeInTheDocument()
+
+    subnetData = []
   })
 })

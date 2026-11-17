@@ -13,6 +13,7 @@ import {
   ImagesResponseSchema,
   KeypairsResponseSchema,
   NetworksResponseSchema,
+  SubnetsResponseSchema,
   SecurityGroupsResponseSchema,
   AvailabilityZonesResponseSchema,
   VolumeTypesResponseSchema,
@@ -119,6 +120,11 @@ export function createComputeApi(basepath: string) {
       apiClient.get<{ data: unknown }>("form_options/networks").then((res) => {
         checkForApiError(res.data)
         return parseOrThrow(NetworksResponseSchema, res.data, "networks").networks
+      }),
+    getSubnets: () =>
+      apiClient.get<{ data: unknown }>("form_options/subnets").then((res) => {
+        checkForApiError(res.data)
+        return parseOrThrow(SubnetsResponseSchema, res.data, "subnets").subnets
       }),
     getSecurityGroups: () =>
       apiClient.get<{ data: unknown }>("form_options/security_groups").then((res) => {

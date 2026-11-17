@@ -118,6 +118,14 @@ describe("createComputeApi", () => {
       expect(result).toEqual([{ id: "n1", name: "default" }])
     })
 
+    it("returns subnets", async () => {
+      mockGet.mockResolvedValue({
+        data: { subnets: [{ id: "s1", name: "sub-a", cidr: "10.0.0.0/24", network_id: "n1" }] },
+      })
+      const result = await api.formOptions.getSubnets()
+      expect(result).toEqual([{ id: "s1", name: "sub-a", cidr: "10.0.0.0/24", network_id: "n1" }])
+    })
+
     it("returns security_groups", async () => {
       mockGet.mockResolvedValue({
         data: { security_groups: [{ id: "sg1", name: "default", project_id: "p1", project_label: "monsoon3/demo" }] },

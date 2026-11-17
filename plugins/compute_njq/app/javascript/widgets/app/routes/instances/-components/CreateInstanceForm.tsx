@@ -22,6 +22,7 @@ import {
   useImagesQuery,
   useKeypairsQuery,
   useNetworksQuery,
+  useSubnetsQuery,
   useSecurityGroupsQuery,
   useAvailabilityZonesQuery,
   useVolumeTypesQuery,
@@ -105,6 +106,8 @@ const EMPTY = {
   network_id: "",
   security_groups: [] as string[],
   user_data: "",
+  subnet_id: "",
+  fixed_ip: "",
 }
 
 export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, formId, onStatusChange }: Props) {
@@ -115,6 +118,7 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
   const [customRootDisk, setCustomRootDisk] = useState(false)
   const [rootDiskSize, setRootDiskSize] = useState("")
   const [volumeType, setVolumeType] = useState("")
+  const [showAdvancedNetwork, setShowAdvancedNetwork] = useState(false)
 
   // Focus the Name field when the dialog opens, so the user can start typing
   // immediately (mirrors the legacy form's autofocus).
@@ -132,6 +136,9 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
   const images = useImagesQuery(api, { enabled: !!opened.image })
   const keypairs = useKeypairsQuery(api, { enabled: !!opened.keypair })
   const networks = useNetworksQuery(api, { enabled: !!opened.network })
+  // Subnets back the advanced network options; load them only once that section
+  // is opened. The whole list is fetched and filtered client-side by network.
+  const subnets = useSubnetsQuery(api, { enabled: showAdvancedNetwork })
   // Eager: the "default" security group is preselected on open, which requires
   // the list to be present without waiting for the dropdown to be opened. The
   // list is small, so the upfront request is cheap.
@@ -150,6 +157,8 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
   // The combined boot-source list (images + matching bootable volumes).
   const bootVolumes = images.data?.volumes ?? []
   const bootSourceSelected = isVolumeId(form.image_id || null, bootVolumes) ? "volume" : "image"
+  // Subnets belonging to the selected network (client-side filter, like legacy).
+  const subnetsForNetwork = (subnets.data ?? []).filter((s) => s.network_id === form.network_id)
   // A disk-less KVM flavor must boot from a new premium volume, so it needs a
   // volume type; load the (small) premium list only when that applies. A
   // selected bootable volume boots from itself, so no new root volume / type.
@@ -207,6 +216,12 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
     set("image_id", "")
   }
 
+  // Switching network invalidates a previously picked subnet (subnets belong to
+  // a specific network) and the fixed IP.
+  const onNetworkChange = (value: string) => {
+    setForm((f) => ({ ...f, network_id: value, subnet_id: "", fixed_ip: "" }))
+  }
+
   // A bootable volume boots from itself, so the custom root disk is mutually
   // exclusive with it (legacy handleImageSelection hides it on volume select).
   const rootDiskActive =
@@ -243,6 +258,9 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
       custom_root_disk_size: rootDiskActive ? Number(rootDiskSize) : undefined,
       // Only a disk-less KVM flavor submits a volume type (legacy behaviour).
       volume_type: needsVolumeType ? volumeType : undefined,
+      // Advanced network options are only sent when non-empty.
+      subnet_id: form.subnet_id || undefined,
+      fixed_ip: form.fixed_ip || undefined,
     }
     mutation.mutate(payload, { onSuccess })
   }
@@ -417,7 +435,7 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
           <SearchableSelect
             options={networks.data ?? []}
             value={form.network_id || null}
-            onChange={(v) => set("network_id", v)}
+            onChange={onNetworkChange}
             getLabel={(n) => n.name ?? n.id}
             getValue={(n) => n.id}
             isLoading={networks.isLoading}
@@ -426,6 +444,54 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
           />
         </FormRow>
       </div>
+
+      <div className="row mb-3">
+        <div className="col-sm-4" />
+        <div className="col-sm-8">
+          <button
+            type="button"
+            className="btn btn-link p-0"
+            aria-expanded={showAdvancedNetwork}
+            onClick={() => setShowAdvancedNetwork((v) => !v)}
+          >
+            {showAdvancedNetwork ? "Hide" : "Show"} advanced network options
+          </button>
+        </div>
+      </div>
+
+      {showAdvancedNetwork && (
+        <>
+          <FormRow
+            label="Subnet"
+            hint="Pick the subnet the fixed IP is chosen from. Leave empty to let any subnet be used."
+          >
+            <SearchableSelect
+              options={subnetsForNetwork}
+              value={form.subnet_id || null}
+              onChange={(v) => set("subnet_id", v)}
+              getLabel={(s) => `${s.name ?? s.id}${s.cidr ? ` (${s.cidr})` : ""}`}
+              getValue={(s) => s.id}
+              isLoading={subnets.isLoading}
+              placeholder={form.network_id ? "Choose a subnet…" : "Choose a network first"}
+              emptyMessage="No subnets for this network"
+            />
+          </FormRow>
+
+          <FormRow
+            label="Server Fixed IP"
+            htmlFor="ci-fixed-ip"
+            hint="Type a fixed IP, or leave empty to let DHCP assign one."
+          >
+            <input
+              id="ci-fixed-ip"
+              type="text"
+              className="form-control"
+              value={form.fixed_ip}
+              onChange={(e) => set("fixed_ip", e.target.value)}
+            />
+          </FormRow>
+        </>
+      )}
 
       <FormRow label="Security Groups">
         <MultiSelect

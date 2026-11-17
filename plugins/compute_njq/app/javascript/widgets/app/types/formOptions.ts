@@ -45,6 +45,12 @@ export const BootableVolumeSchema = z.object({
 
 export const KeypairSchema = z.object({ name: z.string() })
 export const NetworkSchema = z.object({ id: z.string(), name: z.string().nullable() })
+export const SubnetSchema = z.object({
+  id: z.string(),
+  name: z.string().nullable(),
+  cidr: z.string().nullable(),
+  network_id: z.string(),
+})
 export const SecurityGroupSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -65,6 +71,7 @@ export const ImagesResponseSchema = z.object({
 })
 export const KeypairsResponseSchema = z.object({ keypairs: z.array(KeypairSchema) })
 export const NetworksResponseSchema = z.object({ networks: z.array(NetworkSchema) })
+export const SubnetsResponseSchema = z.object({ subnets: z.array(SubnetSchema) })
 export const SecurityGroupsResponseSchema = z.object({ security_groups: z.array(SecurityGroupSchema) })
 export const AvailabilityZonesResponseSchema = z.object({
   availability_zones: z.array(AvailabilityZoneSchema),
@@ -76,6 +83,7 @@ export type Image = z.infer<typeof ImageSchema>
 export type BootableVolume = z.infer<typeof BootableVolumeSchema>
 export type Keypair = z.infer<typeof KeypairSchema>
 export type Network = z.infer<typeof NetworkSchema>
+export type Subnet = z.infer<typeof SubnetSchema>
 export type SecurityGroup = z.infer<typeof SecurityGroupSchema>
 export type AvailabilityZone = z.infer<typeof AvailabilityZoneSchema>
 export type VolumeType = z.infer<typeof VolumeTypeSchema>

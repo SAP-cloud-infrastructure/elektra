@@ -8,6 +8,7 @@ export const QUERY_KEYS = {
   flavors: ["form", "flavors"] as const,
   keypairs: ["form", "keypairs"] as const,
   networks: ["form", "networks"] as const,
+  subnets: ["form", "subnets"] as const,
   securityGroups: ["form", "security_groups"] as const,
   availabilityZones: ["form", "availability_zones"] as const,
   volumeTypes: ["form", "volume_types"] as const,
