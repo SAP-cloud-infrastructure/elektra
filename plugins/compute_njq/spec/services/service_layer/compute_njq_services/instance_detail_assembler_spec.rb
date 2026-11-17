@@ -89,6 +89,15 @@ RSpec.describe ServiceLayer::ComputeNjqServices::InstanceDetailAssembler do
       expect(detail[:tags]).to eq(%w[prod web])
     end
 
+    it "exposes the locked flag, defaulting to false" do
+      expect(detail[:locked]).to eq(false)
+    end
+
+    it "passes through a true locked flag" do
+      allow(test_class).to receive(:nova_server).with("s1").and_return(server.merge("locked" => true))
+      expect(test_class.find_instance_detail("s1")[:locked]).to eq(true)
+    end
+
     it "marks the project as same-scope and resolves its name" do
       expect(detail[:project]).to eq(id: "project_1", name: "Demo Project", same_scope: true)
     end

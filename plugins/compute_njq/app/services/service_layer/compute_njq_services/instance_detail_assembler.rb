@@ -23,6 +23,10 @@ module ServiceLayer
           id: server["id"],
           name: server["name"],
           status: semantic_status(server),
+          # Native Nova attribute at microversion 2.9+ (we run 2.67). Drives the
+          # Lock/Unlock action gating in the UI; default to not-locked when a
+          # server record predates the attribute.
+          locked: server["locked"] == true,
           fault_message: fault_message(server),
           availability_zone: server["OS-EXT-AZ:availability_zone"],
           created: server["created"],

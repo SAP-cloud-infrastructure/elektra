@@ -174,4 +174,16 @@ RSpec.describe ServiceLayer::ComputeNjqServices::InstanceAssembler do
       expect(test_class.find_instance("missing")).to be_nil
     end
   end
+
+  describe "locked flag" do
+    it "passes through a true locked flag" do
+      allow(test_class).to receive(:nova_servers).and_return([server.merge("locked" => true)])
+      expect(test_class.list_instances.first[:locked]).to eq(true)
+    end
+
+    it "defaults locked to false when Nova omits it" do
+      allow(test_class).to receive(:nova_servers).and_return([server])
+      expect(test_class.list_instances.first[:locked]).to eq(false)
+    end
+  end
 end

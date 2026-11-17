@@ -44,6 +44,10 @@ module ServiceLayer
           image: { id: image_id, name: image_name(server, image_id, image_names) },
           ips: instance_ips(server),
           created: server["created"],
+          # Native Nova attribute at microversion 2.9+ (we run 2.67). Drives the
+          # Lock/Unlock action gating in the UI; default to not-locked when a
+          # server record predates the attribute.
+          locked: server["locked"] == true,
         }
       end
 
