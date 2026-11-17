@@ -183,6 +183,18 @@ describe("createComputeApi", () => {
       mockPost.mockResolvedValue({ data: { error: "API Error", code: 403, message: "Quota exceeded" } })
       await expect(api.instances.create(createPayload)).rejects.toThrow(/Quota exceeded \(HTTP 403\)/)
     })
+
+    it("surfaces the backend detail when the request rejects with a non-2xx status", async () => {
+      // The ajax helper rejects on non-2xx with a generic message ("API Error")
+      // but carries the full envelope in error.data; detailedError must lift the
+      // real message out of it.
+      const rejection = Object.assign(new Error("API Error"), {
+        status: 400,
+        data: { error: "API Error", code: 400, message: "Invalid key_name" },
+      })
+      mockPost.mockRejectedValue(rejection)
+      await expect(api.instances.create(createPayload)).rejects.toThrow(/Invalid key_name \(HTTP 400\)/)
+    })
   })
 
   describe("instances.action / terminate", () => {

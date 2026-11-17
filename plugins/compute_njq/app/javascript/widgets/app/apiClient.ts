@@ -57,6 +57,24 @@ function parseOrThrow<T>(
   return parsed.data as T
 }
 
+// On a non-2xx response the ajax helper throws an Error whose `.message` is only
+// the envelope's generic `error` field ("API Error") — the real backend detail
+// lives in `error.data.message`. Re-throw with that detail so the UI shows the
+// actual reason (e.g. the Nova quota/validation message) instead of "API Error".
+function detailedError(err: unknown): Error {
+  const e = err as { data?: { error?: string; code?: number; message?: string }; status?: number; message?: string }
+  const envelope = e?.data
+  if (envelope && (envelope.message || envelope.error)) {
+    const code = envelope.code ?? e.status
+    const text = envelope.message || envelope.error
+    const detailed = new Error(code ? `${text} (HTTP ${code})` : String(text)) as Error & { data?: unknown; status?: number }
+    detailed.data = envelope
+    detailed.status = code
+    return detailed
+  }
+  return err instanceof Error ? err : new Error(String(err))
+}
+
 // basepath already includes domain/project scope (e.g. /acme/demo/compute-njq);
 // "/api/" is where base_controller mounts the BFF endpoints.
 export function createComputeApi(basepath: string) {
@@ -76,10 +94,15 @@ export function createComputeApi(basepath: string) {
       }),
 
     create: (payload: CreateInstancePayload): Promise<Instance> =>
-      apiClient.post<{ data: { instance: Instance } }>("instances", { instance: payload }).then((res) => {
-        checkForApiError(res.data)
-        return parseOrThrow(InstanceResponseSchema, res.data, "instance").instance
-      }),
+      apiClient
+        .post<{ data: { instance: Instance } }>("instances", { instance: payload })
+        .then((res) => {
+          checkForApiError(res.data)
+          return parseOrThrow(InstanceResponseSchema, res.data, "instance").instance
+        })
+        .catch((err) => {
+          throw detailedError(err)
+        }),
 
     // Full instance detail (all legacy Show tabs). The BFF returns null when
     // the server cannot be found; surface that as a thrown error so the query
