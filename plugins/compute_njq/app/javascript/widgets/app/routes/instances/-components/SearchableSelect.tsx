@@ -1,6 +1,16 @@
 import { useEffect, useRef, useState } from "react"
 import { InlineLoading } from "./tabs/InlineLoading"
 
+// An optional quick-filter chip shown above the option list. `matches` decides
+// whether an option belongs to this facet. Multiple active facets combine with
+// OR (an option shows if it matches any active facet); facets then combine with
+// AND against the text query.
+export interface Facet<T> {
+  key: string
+  label: string
+  matches: (option: T) => boolean
+}
+
 interface SearchableSelectProps<T> {
   options: T[]
   value: string | null
@@ -11,6 +21,9 @@ interface SearchableSelectProps<T> {
   onSearch?: (query: string) => void
   // When provided, visible options are rendered under non-clickable group headers.
   getGroups?: (options: T[]) => { label: string; options: T[] }[]
+  // Optional quick-filter chips shown under the search box. Empty facets (no
+  // matching option) are dropped so only useful filters are offered.
+  facets?: Facet<T>[]
   // By default an ungrouped list is sorted alphabetically for scannability. Set
   // this to keep the caller-provided order instead (e.g. AZs sorted descending
   // by the BFF).
@@ -28,6 +41,7 @@ export function SearchableSelect<T>({
   getValue,
   onSearch,
   getGroups,
+  facets,
   preserveOrder,
   isLoading,
   placeholder,
@@ -35,6 +49,7 @@ export function SearchableSelect<T>({
 }: SearchableSelectProps<T>) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState("")
+  const [activeFacets, setActiveFacets] = useState<Set<string>>(new Set())
   const ref = useRef<HTMLDivElement>(null)
 
   // Debounce server-side search so typing does not fire a request per keystroke.
@@ -53,8 +68,29 @@ export function SearchableSelect<T>({
     return () => document.removeEventListener("mousedown", onDocClick)
   }, [])
 
+  const toggleFacet = (key: string) =>
+    setActiveFacets((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+
+  // Only offer a facet when it actually splits the list — at least one option
+  // matches AND at least one does not. A facet that matches everything (or
+  // nothing) would be a no-op pill, so it is hidden. Keep an active facet shown
+  // so toggling it off is always possible.
+  const usableFacets = (facets ?? []).filter((f) => {
+    if (activeFacets.has(f.key)) return true
+    const matched = options.filter((o) => f.matches(o)).length
+    return matched > 0 && matched < options.length
+  })
+  const active = (facets ?? []).filter((f) => activeFacets.has(f.key))
+
   // Local filtering only when the parent did not take over search.
-  const filtered = onSearch ? options : options.filter((o) => getLabel(o).toLowerCase().includes(query.toLowerCase()))
+  const byText = onSearch ? options : options.filter((o) => getLabel(o).toLowerCase().includes(query.toLowerCase()))
+  // Active facets narrow further (OR among the active facets).
+  const filtered = active.length === 0 ? byText : byText.filter((o) => active.some((f) => f.matches(o)))
 
   // Ungrouped, client-side lists without an inherent order (Key Pair, Network)
   // are sorted alphabetically by label to make long lists scannable. Grouped
@@ -104,6 +140,24 @@ export function SearchableSelect<T>({
             placeholder="Search…"
             onChange={(e) => setQuery(e.target.value)}
           />
+          {usableFacets.length > 0 && (
+            <div className="searchable-select-facets mb-2">
+              {usableFacets.map((f) => {
+                const on = activeFacets.has(f.key)
+                return (
+                  <button
+                    key={f.key}
+                    type="button"
+                    className={`badge rounded-pill searchable-select-facet${on ? " active" : ""}`}
+                    aria-pressed={on}
+                    onClick={() => toggleFacet(f.key)}
+                  >
+                    {f.label}
+                  </button>
+                )
+              })}
+            </div>
+          )}
           {/* Keep the search box fixed and let only the option list scroll, so a
               long list (e.g. 100+ networks) never overflows the viewport. */}
           <div className="searchable-select-options">
