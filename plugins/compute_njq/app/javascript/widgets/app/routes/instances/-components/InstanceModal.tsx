@@ -1,6 +1,8 @@
 import type { UseQueryResult } from "@tanstack/react-query"
 import { Modal } from "lib/components/Modal"
-import type { InstanceDetail, InstanceMetrics } from "../../../types/instance"
+import type { InstanceDetail, InstanceMetrics, Instance } from "../../../types/instance"
+import type { ComputeApi } from "../../../apiClient"
+import InstanceActionsMenu from "./InstanceActionsMenu"
 import { InformationTab } from "./tabs/InformationTab"
 import { SpecsTab } from "./tabs/SpecsTab"
 import { IpAddressesTab } from "./tabs/IpAddressesTab"
@@ -17,6 +19,9 @@ interface InstanceModalProps {
   // can deep-link into a specific tab (e.g. the IP cell opens "IP Addresses").
   activeTab: TabName
   onTabChange: (tab: TabName) => void
+  // The BFF client, threaded down so the header actions dropdown can mutate the
+  // instance — same client the list uses.
+  apiClient: ComputeApi
 }
 
 // Tab order mirrors the legacy compute _item_details nav: Information, Specs,
@@ -33,7 +38,14 @@ export const TABS = [
 
 export type TabName = (typeof TABS)[number]
 
-export function InstanceModal({ detailQuery, metricsQuery, onClose, activeTab, onTabChange }: InstanceModalProps) {
+export function InstanceModal({
+  detailQuery,
+  metricsQuery,
+  onClose,
+  activeTab,
+  onTabChange,
+  apiClient,
+}: InstanceModalProps) {
   const active = activeTab
   const { data: instance, isLoading, isError, error, isPlaceholderData } = detailQuery
 
@@ -50,9 +62,17 @@ export function InstanceModal({ detailQuery, metricsQuery, onClose, activeTab, o
       aria-labelledby="instance-detail-title"
     >
       <Modal.Header closeButton>
-        <Modal.Title id="instance-detail-title">
-          {instance ? `Server ${instance.name ?? instance.id}` : "Server"}
-        </Modal.Title>
+        <div className="d-flex align-items-center justify-content-between w-100 me-3">
+          <Modal.Title id="instance-detail-title">
+            {instance ? `Server ${instance.name ?? instance.id}` : "Server"}
+          </Modal.Title>
+          {/* Same dropdown as the list row. InstanceDetail carries the id,
+              status and locked fields visibleActions/InstanceActionsMenu use;
+              scope stays {} to match the list until targeted scoping lands. */}
+          {instance && (
+            <InstanceActionsMenu instance={instance as unknown as Instance} scope={{}} apiClient={apiClient} />
+          )}
+        </div>
       </Modal.Header>
       <Modal.Body>
         {isLoading && <span className="spinner" role="status" aria-hidden="true" />}

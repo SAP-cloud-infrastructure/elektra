@@ -41,6 +41,7 @@ function InstanceShow() {
       onClose={close}
       activeTab={tab}
       onTabChange={setTab}
+      apiClient={apiClient}
     />
   )
 }
