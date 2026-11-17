@@ -28,6 +28,8 @@ RSpec.describe ServiceLayer::ComputeNjqServices::ServerCreateAssembler do
       allow(test_class).to receive(:glance_image).and_return({ "name" => "ubuntu", "buildnumber" => "42" })
       # No pre-reserved fixed-IP ports unless a test says otherwise.
       allow(test_class).to receive(:neutron_fixed_ip_ports).and_return([])
+      # SG name→id resolution (used when a subnet triggers port creation).
+      allow(test_class).to receive(:neutron_security_groups).and_return([{ "id" => "sg-uuid-1", "name" => "default" }])
     end
 
     it "builds the Nova payload and posts it, returning the UI-shaped instance" do
@@ -274,15 +276,19 @@ RSpec.describe ServiceLayer::ComputeNjqServices::ServerCreateAssembler do
       expect(captured["networks"]).to eq([{ "uuid" => "n1", "fixed_ip" => "10.0.0.5" }])
     end
 
-    it "pre-creates a port and attaches it when a subnet is chosen" do
+    it "pre-creates a port (with SG ids) and attaches it when a subnet is chosen" do
       captured = nil
       allow(test_class).to receive(:nova_create_server) do |payload|
         captured = payload
         { "id" => "s1" }
       end
       allow(test_class).to receive(:find_instance).with("s1").and_return({ id: "s1" })
+      # The port needs SG UUIDs, so names are resolved via the SG list.
+      allow(test_class).to receive(:neutron_security_groups).and_return([
+        { "id" => "sg-uuid-1", "name" => "default" },
+      ])
       expect(test_class).to receive(:neutron_create_port).with(
-        network_id: "n1", subnet_id: "sub1", security_groups: ["default"]
+        network_id: "n1", subnet_id: "sub1", security_groups: ["sg-uuid-1"]
       ).and_return({ "id" => "port-1" })
 
       test_class.create_instance(valid_attrs.merge("subnet_id" => "sub1"))
@@ -300,6 +306,20 @@ RSpec.describe ServiceLayer::ComputeNjqServices::ServerCreateAssembler do
       expect do
         test_class.create_instance(valid_attrs.merge("subnet_id" => "sub1"))
       end.to raise_error(Elektron::Errors::ApiResponse)
+    end
+  end
+
+  describe "#security_group_ids" do
+    it "maps names to Neutron UUIDs and drops unknown names" do
+      allow(test_class).to receive(:neutron_security_groups).and_return([
+        { "id" => "id-default", "name" => "default" },
+        { "id" => "id-web", "name" => "web" },
+      ])
+      expect(test_class.send(:security_group_ids, ["default", "web", "ghost", ""])).to eq(%w[id-default id-web])
+    end
+
+    it "returns [] when nothing is selected" do
+      expect(test_class.send(:security_group_ids, [])).to eq([])
     end
   end
 end

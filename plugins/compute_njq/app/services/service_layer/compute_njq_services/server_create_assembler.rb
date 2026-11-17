@@ -30,7 +30,9 @@ module ServiceLayer
           port = neutron_create_port(
             network_id: attrs["network_id"],
             subnet_id: attrs["subnet_id"],
-            security_groups: Array(attrs["security_groups"]).reject(&:blank?),
+            # Neutron ports reference security groups by UUID, not name (the Nova
+            # server-create accepts names, but a port does not), so resolve them.
+            security_groups: security_group_ids(attrs["security_groups"]),
           )
           created_port_id = port["id"]
           payload["networks"] = [{ "port" => created_port_id }]
@@ -84,6 +86,17 @@ module ServiceLayer
         network = { "uuid" => attrs["network_id"] }
         network["fixed_ip"] = attrs["fixed_ip"] if attrs["fixed_ip"].present?
         network
+      end
+
+      # Maps the submitted security-group names to their Neutron UUIDs, which a
+      # port requires (unlike the Nova server-create, which takes names). Unknown
+      # names are dropped. Returns [] when nothing is selected.
+      def security_group_ids(names)
+        wanted = Array(names).reject(&:blank?)
+        return [] if wanted.empty?
+
+        by_name = neutron_security_groups.each_with_object({}) { |sg, map| map[sg["name"]] = sg["id"] }
+        wanted.map { |name| by_name[name] }.compact
       end
 
       # If the typed fixed IP exactly matches an already-reserved
