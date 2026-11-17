@@ -41,6 +41,26 @@ module ServiceLayer
       def nova_server_security_groups(id)
         elektron_nova.get("servers/#{id}/os-security-groups").body["security_groups"] || []
       end
+
+      # Raw Nova server-action call: POST /servers/{id}/action with the given
+      # body (e.g. { "os-start" => nil }, { "reboot" => { "type" => "HARD" } }).
+      # Callers (the aggregator) own the action->body mapping.
+      def nova_server_action(id, body)
+        elektron_nova.post("servers/#{id}/action") { body }.body
+      end
+
+      # Terminate: Nova deletes a server with DELETE /servers/{id} (NOT an
+      # /action call).
+      def nova_delete_server(id)
+        elektron_nova.delete("servers/#{id}").body
+      end
+
+      # Legacy lock-simulation compatibility: set the `locked` metadata key so
+      # list views that still read metadata stay consistent with the native
+      # locked flag.
+      def nova_set_locked_metadata(id, value)
+        elektron_nova.put("servers/#{id}/metadata/locked") { { "meta" => { "locked" => value } } }.body
+      end
     end
   end
 end

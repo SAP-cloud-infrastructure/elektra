@@ -79,4 +79,38 @@ RSpec.describe ServiceLayer::ComputeNjqServices::Nova do
       expect(test_class.nova_create_server({ "name" => "web-01" })).to eq({ "id" => "s1" })
     end
   end
+
+  describe "#nova_server_action" do
+    it "posts the given body to the server action endpoint and returns the response body" do
+      captured = nil
+      allow(elektron_nova).to receive(:post).with("servers/s1/action") do |&block|
+        captured = block.call
+        double("response", body: { "ok" => true })
+      end
+      result = test_class.nova_server_action("s1", { "os-start" => nil })
+      expect(captured).to eq({ "os-start" => nil })
+      expect(result).to eq({ "ok" => true })
+    end
+  end
+
+  describe "#nova_delete_server" do
+    it "deletes the server and returns the response body" do
+      allow(elektron_nova).to receive(:delete).with("servers/s1").and_return(
+        double("response", body: {}),
+      )
+      expect(test_class.nova_delete_server("s1")).to eq({})
+    end
+  end
+
+  describe "#nova_set_locked_metadata" do
+    it "puts the locked metadata key with the given value" do
+      captured = nil
+      allow(elektron_nova).to receive(:put).with("servers/s1/metadata/locked") do |&block|
+        captured = block.call
+        double("response", body: {})
+      end
+      test_class.nova_set_locked_metadata("s1", "true")
+      expect(captured).to eq({ "meta" => { "locked" => "true" } })
+    end
+  end
 end
