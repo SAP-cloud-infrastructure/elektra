@@ -11,7 +11,13 @@ export interface InstanceAction {
   group: "power" | "lock" | "terminate"
   isAvailable: (i: Instance) => boolean
   confirm?: { message: string; ok: string }
+  // Marks an action as dangerous: its confirm dialog uses a red (btn-danger)
+  // button. This does NOT color the dropdown entry — see dangerLabel for that.
   destructive?: boolean
+  // Colors the dropdown entry red (text-danger). Reserved for the single most
+  // destructive action (terminate); other destructive actions keep the normal
+  // item color in the menu but still get a red confirm button.
+  dangerLabel?: boolean
   optimisticTransition?: string
 }
 
@@ -100,6 +106,7 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     isAvailable: () => true,
     optimisticTransition: "deleting",
     destructive: true,
+    dangerLabel: true,
     confirm: { message: "Are you sure you want to terminate this instance?", ok: "Yes, terminate it" },
   },
 ]

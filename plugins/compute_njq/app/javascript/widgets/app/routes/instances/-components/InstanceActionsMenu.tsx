@@ -82,7 +82,7 @@ export default function InstanceActionsMenu({ instance, scope, apiClient }: Prop
               <li>
                 <button
                   type="button"
-                  className={`dropdown-item${a.destructive ? " text-danger" : ""}`}
+                  className={`dropdown-item${a.dangerLabel ? " text-danger" : ""}`}
                   onClick={() => onClick(a)}
                 >
                   {a.label}

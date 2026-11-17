@@ -96,4 +96,18 @@ describe("InstanceActionsMenu", () => {
     )
     expect(labels).toEqual(["Stop", "Reboot", "Pause", "Suspend", "Hard Reset", "---", "Lock", "---", "Terminate"])
   })
+
+  it("colors only Terminate red in the dropdown, not the other destructive actions", () => {
+    // Running + unlocked. Only Terminate carries the danger color in the menu;
+    // Stop/Hard Reset stay the normal item color (their confirm dialog still
+    // shows a red button — that is unchanged and covered elsewhere).
+    renderMenu()
+    fireEvent.click(screen.getByRole("button", { name: /actions/i }))
+
+    const danger = (label: string) =>
+      screen.getByText(label).classList.contains("text-danger")
+    expect(danger("Terminate")).toBe(true)
+    expect(danger("Stop")).toBe(false)
+    expect(danger("Hard Reset")).toBe(false)
+  })
 })
