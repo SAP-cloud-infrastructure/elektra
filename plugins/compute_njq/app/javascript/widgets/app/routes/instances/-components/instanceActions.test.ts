@@ -50,4 +50,24 @@ describe("visibleActions", () => {
     expect(visibleActions(inst(), {})).toHaveLength(0)
     ;(policy.isAllowed as ReturnType<typeof vi.fn>).mockReturnValue(true)
   })
+
+  it("treats an unevaluable rule as not allowed instead of crashing the list", () => {
+    // The real policy engine throws ("rule <name> not found.") when a rule is
+    // missing from window.policyConfig — e.g. a stale server or a typo. A single
+    // throw here would propagate up and blank the whole instances table via the
+    // router error boundary. visibleActions must degrade: hide the action, keep
+    // the rest of the list working.
+    ;(policy.isAllowed as ReturnType<typeof vi.fn>).mockImplementation((rule: string) => {
+      if (rule === "compute_njq:instance_lock") throw "Policy Engine Error: rule compute_njq:instance_lock not found."
+      return true
+    })
+
+    let keys: string[] = []
+    expect(() => {
+      keys = visibleActions(inst(), {}).map((a) => a.key)
+    }).not.toThrow()
+    expect(keys).not.toContain("lock")
+    expect(keys).toContain("stop")
+    ;(policy.isAllowed as ReturnType<typeof vi.fn>).mockReturnValue(true)
+  })
 })

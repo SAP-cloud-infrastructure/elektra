@@ -91,7 +91,19 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
   },
 ]
 
+// A rule the policy engine can't evaluate — missing from window.policyConfig
+// (stale server, typo) — makes policy.isAllowed throw rather than return false.
+// Treat that as "not allowed" so one bad rule hides a single action instead of
+// crashing the whole table through the router error boundary.
+function isAllowed(rule: string, scope: Record<string, unknown>): boolean {
+  try {
+    return policy.isAllowed(rule, { target: scope })
+  } catch {
+    return false
+  }
+}
+
 export function visibleActions(instance: Instance, scope: Record<string, unknown>): InstanceAction[] {
   if (isTransitioning(instance.status)) return []
-  return INSTANCE_ACTIONS.filter((a) => a.isAvailable(instance) && policy.isAllowed(a.policy, { target: scope }))
+  return INSTANCE_ACTIONS.filter((a) => a.isAvailable(instance) && isAllowed(a.policy, scope))
 }
