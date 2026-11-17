@@ -33,6 +33,9 @@ function InstancesLayout() {
           {error?.message && <span className="ms-1">{error.message}</span>}
         </div>
       )}
+      {/* scope is {} for now: the policy rules (create gate here, lifecycle
+          actions in the table) evaluate without a target. TODO(step-2): thread
+          scoped_domain_name/project for targeted policy checks. */}
       <InstancesToolbar
         searchTerm={searchTerm}
         onSearch={setSearchTerm}
@@ -43,10 +46,8 @@ function InstancesLayout() {
         az={az}
         onStatusChange={setStatus}
         onAzChange={setAz}
+        scope={{}}
       />
-      {/* scope is {} for now: the lifecycle policy rules evaluate without a
-          target. TODO(step-2): thread scoped_domain_name/project for targeted
-          policy checks once the modal actions need them. */}
       <InstanceTable instances={filtered} isLoading={isLoading} apiClient={apiClient} scope={{}} />
       {/* The /instances/new and /instances/$id modals render here, over the list which stays mounted. */}
       <Outlet />

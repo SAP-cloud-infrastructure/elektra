@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest"
+import { describe, it, expect, vi, beforeEach } from "vitest"
 import type { ReactNode } from "react"
 import { render, screen, fireEvent } from "@testing-library/react"
 import "@testing-library/jest-dom/vitest"
@@ -14,6 +14,13 @@ vi.mock("@tanstack/react-router", () => ({
   ),
 }))
 
+// The Create New button is gated on the compute_njq:instance_create policy rule
+// (client-side hide; the BFF enforces the same rule server-side). Mock the
+// shared policy module so each test controls isAllowed. vi.hoisted lets the
+// hoisted vi.mock factory reference the spy without a TDZ error.
+const { isAllowed } = vi.hoisted(() => ({ isAllowed: vi.fn() }))
+vi.mock("lib/policy", () => ({ policy: { isAllowed } }))
+
 import { InstancesToolbar } from "./InstancesToolbar"
 
 const baseProps = {
@@ -26,9 +33,15 @@ const baseProps = {
   az: "",
   onStatusChange: vi.fn(),
   onAzChange: vi.fn(),
+  scope: {},
 }
 
 describe("InstancesToolbar", () => {
+  beforeEach(() => {
+    // Default: the user may create. Individual tests override.
+    isAllowed.mockReset().mockReturnValue(true)
+  })
+
   it("renders the visible count with correct pluralisation", () => {
     const { rerender, container } = render(<InstancesToolbar {...baseProps} visibleCount={1} />)
     expect(container.textContent).toContain("1 server")
@@ -45,11 +58,28 @@ describe("InstancesToolbar", () => {
     expect(onSearch).toHaveBeenCalledWith("web")
   })
 
-  it("renders a Create New link to the create-instance route", () => {
+  it("renders a Create New link to the create-instance route when allowed", () => {
     render(<InstancesToolbar {...baseProps} />)
     const link = screen.getByRole("link", { name: "Create New" })
     expect(link).toBeInTheDocument()
     expect(link).toHaveAttribute("href", "/instances/new")
+    expect(isAllowed).toHaveBeenCalledWith("compute_njq:instance_create", { target: {} })
+  })
+
+  it("hides the Create New link when the user may not create", () => {
+    isAllowed.mockReturnValue(false)
+    render(<InstancesToolbar {...baseProps} />)
+    expect(screen.queryByRole("link", { name: "Create New" })).toBeNull()
+  })
+
+  it("hides the Create New link (fail-closed) when the policy rule is unevaluable", () => {
+    // A missing/typo'd rule makes policy.isAllowed throw. Treat that as "not
+    // allowed" — hide the button rather than let the throw crash the list.
+    isAllowed.mockImplementation(() => {
+      throw new Error("Policy Engine Error: rule compute_njq:instance_create not found.")
+    })
+    expect(() => render(<InstancesToolbar {...baseProps} />)).not.toThrow()
+    expect(screen.queryByRole("link", { name: "Create New" })).toBeNull()
   })
 
   it("offers status and AZ facet filters and reports changes", () => {

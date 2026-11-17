@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router"
+import { policy } from "lib/policy"
 import { SearchField } from "lib/components/search_field"
 import { humanize } from "./tabs/humanize"
 
@@ -14,6 +15,24 @@ interface InstancesToolbarProps {
   az: string
   onStatusChange: (value: string) => void
   onAzChange: (value: string) => void
+  // Policy scope (domain/project target). Threaded from the layout route like
+  // InstanceTable; currently {} until targeted scoping lands.
+  scope: Record<string, unknown>
+}
+
+// Defense-in-depth: the client hides the Create button when the user may not
+// create (so the UI never pretends an action is available), while the BFF
+// enforces the same compute_njq:instance_create rule server-side (a hand-crafted
+// request still gets a 403). An unevaluable rule — missing from the policy
+// config (stale server, typo) — makes policy.isAllowed throw; treat that as
+// "not allowed" (fail-closed) so the button hides instead of the throw crashing
+// the list through the router error boundary. Mirrors instanceActions.ts.
+function canCreate(scope: Record<string, unknown>): boolean {
+  try {
+    return policy.isAllowed("compute_njq:instance_create", { target: scope })
+  } catch {
+    return false
+  }
 }
 
 // Toolbar above the instance list: free-text search, quick facet filters
@@ -30,6 +49,7 @@ export function InstancesToolbar({
   az,
   onStatusChange,
   onAzChange,
+  scope,
 }: InstancesToolbarProps) {
   return (
     <div className="toolbar">
@@ -69,9 +89,11 @@ export function InstancesToolbar({
       <span className="toolbar-input-divider" />
       {visibleCount} {visibleCount === 1 ? "server" : "servers"}
       <div className="main-buttons">
-        <Link to="/instances/new" className="btn btn-primary">
-          Create New
-        </Link>
+        {canCreate(scope) && (
+          <Link to="/instances/new" className="btn btn-primary">
+            Create New
+          </Link>
+        )}
       </div>
     </div>
   )
