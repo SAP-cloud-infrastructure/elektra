@@ -17,7 +17,13 @@ const isParked = (i: Instance) => PARKED.includes(i.status.power_state ?? "")
 
 // Legacy wording from Compute::Server#target_state_for_action / confirm texts.
 export const INSTANCE_ACTIONS: InstanceAction[] = [
-  { key: "start", label: "Start", policy: "compute_njq:instance_update", isAvailable: isParked, optimisticTransition: "powering-on" },
+  {
+    key: "start",
+    label: "Start",
+    policy: "compute_njq:instance_update",
+    isAvailable: isParked,
+    optimisticTransition: "powering-on",
+  },
   {
     key: "stop",
     label: "Stop",

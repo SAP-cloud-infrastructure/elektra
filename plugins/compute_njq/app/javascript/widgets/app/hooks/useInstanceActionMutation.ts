@@ -28,9 +28,7 @@ export function buildActionMutationOptions(
       await queryClient.cancelQueries({ queryKey: QUERY_KEYS.instances })
       const previous = queryClient.getQueryData<Instance[]>(QUERY_KEYS.instances)
       queryClient.setQueryData<Instance[]>(QUERY_KEYS.instances, (list) =>
-        (list ?? []).map((i) =>
-          i.id === id ? { ...i, status: { ...i.status, transition: optimisticTransition } } : i
-        )
+        (list ?? []).map((i) => (i.id === id ? { ...i, status: { ...i.status, transition: optimisticTransition } } : i))
       )
       return { previous }
     },

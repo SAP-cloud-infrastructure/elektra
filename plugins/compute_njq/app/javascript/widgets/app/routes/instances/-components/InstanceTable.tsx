@@ -4,14 +4,20 @@ import { PrettyDate } from "lib/components/pretty_date"
 import { SortableHeader, type SortState } from "lib/components/SortableHeader"
 import { InfoTooltip } from "lib/components/InfoTooltip"
 import type { Instance } from "../../../types/instance"
+import type { ComputeApi } from "../../../apiClient"
 import { StatusPill } from "./StatusPill"
 import { IpList } from "./IpList"
 import { CopyableId } from "./CopyableId"
+import InstanceActionsMenu from "./InstanceActionsMenu"
 
 interface InstanceTableProps {
   instances: Instance[]
   // While true, render skeleton placeholder rows instead of data (initial load).
   isLoading?: boolean
+  // The BFF client and policy scope, threaded to the per-row actions menu. When
+  // absent (e.g. isolated table tests), the actions cell stays empty.
+  apiClient?: ComputeApi
+  scope?: Record<string, unknown>
 }
 
 // Names longer than this are truncated in the table; the full name is shown as
@@ -151,7 +157,7 @@ function sortValue(instance: Instance, column: string): string {
 }
 
 // Columns: Name (+ ID) · Status · IPs · OS / Size · AZ · Created at · (actions)
-export function InstanceTable({ instances, isLoading = false }: InstanceTableProps) {
+export function InstanceTable({ instances, isLoading = false, apiClient, scope }: InstanceTableProps) {
   const [sort, setSort] = useState<SortState>({ column: null, direction: "asc" })
 
   const onSort = (column: string) => {
@@ -236,7 +242,9 @@ export function InstanceTable({ instances, isLoading = false }: InstanceTablePro
                   <td className="instance-created">
                     {instance.created ? <PrettyDate date={instance.created} /> : "—"}
                   </td>
-                  <td className="snug" />
+                  <td className="snug">
+                    {apiClient && <InstanceActionsMenu instance={instance} scope={scope ?? {}} apiClient={apiClient} />}
+                  </td>
                 </tr>
               )
             })
