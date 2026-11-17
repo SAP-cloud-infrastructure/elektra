@@ -54,6 +54,14 @@ describe("SearchableSelect", () => {
     expect(rendered).toEqual(["debian", "ubuntu"])
   })
 
+  it("keeps the given order when preserveOrder is set", () => {
+    render(<SearchableSelect {...common} onChange={vi.fn()} preserveOrder />)
+    fireEvent.click(screen.getByText("Select…"))
+    const rendered = screen.getAllByRole("option").map((el) => el.textContent)
+    // preserveOrder keeps the input order ["ubuntu", "debian"].
+    expect(rendered).toEqual(["ubuntu", "debian"])
+  })
+
   it("keeps grouped options in the order the grouping function returns", () => {
     const getGroups = (opts: typeof options) => [{ label: "distros", options: opts }]
     render(<SearchableSelect {...common} onChange={vi.fn()} getGroups={getGroups} />)

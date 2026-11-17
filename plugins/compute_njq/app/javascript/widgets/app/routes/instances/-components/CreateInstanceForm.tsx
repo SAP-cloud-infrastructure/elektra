@@ -394,6 +394,7 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
             onChange={(v) => set("availability_zone", v)}
             getLabel={(z) => z.name}
             getValue={(z) => z.name}
+            preserveOrder
             isLoading={azs.isLoading}
             placeholder="Any availability zone…"
             emptyMessage="No availability zones"

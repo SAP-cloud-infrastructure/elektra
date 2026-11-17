@@ -11,6 +11,10 @@ interface SearchableSelectProps<T> {
   onSearch?: (query: string) => void
   // When provided, visible options are rendered under non-clickable group headers.
   getGroups?: (options: T[]) => { label: string; options: T[] }[]
+  // By default an ungrouped list is sorted alphabetically for scannability. Set
+  // this to keep the caller-provided order instead (e.g. AZs sorted descending
+  // by the BFF).
+  preserveOrder?: boolean
   isLoading?: boolean
   placeholder: string
   emptyMessage: string
@@ -24,6 +28,7 @@ export function SearchableSelect<T>({
   getValue,
   onSearch,
   getGroups,
+  preserveOrder,
   isLoading,
   placeholder,
   emptyMessage,
@@ -51,12 +56,12 @@ export function SearchableSelect<T>({
   // Local filtering only when the parent did not take over search.
   const filtered = onSearch ? options : options.filter((o) => getLabel(o).toLowerCase().includes(query.toLowerCase()))
 
-  // Ungrouped, client-side lists (Key Pair, Network, AZ) have no inherent order,
-  // so sort them alphabetically by label to make long lists scannable. Grouped
-  // lists (flavors, images) and server-side-searched lists keep their own,
-  // meaning-carrying order.
+  // Ungrouped, client-side lists without an inherent order (Key Pair, Network)
+  // are sorted alphabetically by label to make long lists scannable. Grouped
+  // lists, server-side-searched lists, and callers that opt in with
+  // `preserveOrder` (e.g. AZs sorted by the BFF) keep their given order.
   const visible =
-    getGroups || onSearch
+    getGroups || onSearch || preserveOrder
       ? filtered
       : [...filtered].sort((a, b) => getLabel(a).localeCompare(getLabel(b)))
 

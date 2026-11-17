@@ -35,10 +35,15 @@ module ServiceLayer
         nova_keypairs.map { |k| { name: k["name"] } }
       end
 
+      # Available AZs, sorted by name descending (mirrors the legacy
+      # sort_by!(&:zoneName).reverse!). No preferred-AZ heuristic and no
+      # preselection — the UI leaves the choice to the user ("Any AZ").
       def form_availability_zones
         nova_availability_zones
           .select { |az| az.dig("zoneState", "available") }
           .map { |az| { name: az["zoneName"] } }
+          .sort_by { |az| az[:name] }
+          .reverse
       end
 
       def form_networks

@@ -55,6 +55,15 @@ RSpec.describe ServiceLayer::ComputeNjqServices::FormOptionsAssembler do
       ])
       expect(test_class.form_availability_zones).to eq([{ name: "az-1" }])
     end
+
+    it "sorts the available zones by name descending (mirrors the legacy order)" do
+      allow(test_class).to receive(:nova_availability_zones).and_return([
+        { "zoneName" => "az-a", "zoneState" => { "available" => true } },
+        { "zoneName" => "az-c", "zoneState" => { "available" => true } },
+        { "zoneName" => "az-b", "zoneState" => { "available" => true } },
+      ])
+      expect(test_class.form_availability_zones).to eq([{ name: "az-c" }, { name: "az-b" }, { name: "az-a" }])
+    end
   end
 
   describe "#form_networks" do
