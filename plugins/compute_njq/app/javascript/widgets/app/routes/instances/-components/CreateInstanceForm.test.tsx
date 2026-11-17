@@ -288,6 +288,8 @@ describe("CreateInstanceForm", () => {
 
     expect(screen.getByText("Subnet")).toBeInTheDocument()
     expect(screen.getByText("Server Fixed IP")).toBeInTheDocument()
+    // The advanced section carries the legacy port-cleanup warning.
+    expect(screen.getByText(/not deleted when the server is deleted/i)).toBeInTheDocument()
 
     subnetData = []
   })

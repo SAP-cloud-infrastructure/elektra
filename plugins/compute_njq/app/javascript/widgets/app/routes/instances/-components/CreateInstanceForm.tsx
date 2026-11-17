@@ -461,6 +461,22 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
 
       {showAdvancedNetwork && (
         <>
+          <div className="row mb-3">
+            <div className="col-sm-4" />
+            <div className="col-sm-8">
+              <p className="text-muted mb-2">
+                These optional settings are for advanced use cases that need more control over the instance's network
+                configuration. To offer them we create a port first (in the selected subnet or with the selected fixed
+                IP) and attach it to the instance at creation time. Please read the warning below carefully.
+              </p>
+              <div className="alert alert-warning py-2 px-3" role="alert">
+                <strong>Warning:</strong> Ports created this way are not deleted when the server is deleted, and floating
+                IPs attached to them are not released automatically. Only use these options when necessary, and remember
+                to clean up the ports manually afterwards.
+              </div>
+            </div>
+          </div>
+
           <FormRow
             label="Subnet"
             hint="Pick the subnet the fixed IP is chosen from. Leave empty to let any subnet be used."
