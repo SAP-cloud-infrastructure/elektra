@@ -140,4 +140,66 @@ describe("SearchableSelect", () => {
       expect(screen.getByRole("option", { name: "debian" })).toBeInTheDocument()
     })
   })
+
+  describe("allowCustom", () => {
+    it("shows the current value on the trigger even when it is not an option", () => {
+      render(<SearchableSelect {...common} value="10.0.0.9" onChange={vi.fn()} allowCustom />)
+      expect(screen.getByRole("button")).toHaveTextContent("10.0.0.9")
+    })
+
+    it("offers the typed value as a 'Use …' option and commits it", () => {
+      const onChange = vi.fn()
+      render(<SearchableSelect {...common} value={null} onChange={onChange} allowCustom />)
+      fireEvent.click(screen.getByRole("button"))
+      fireEvent.change(screen.getByRole("textbox"), { target: { value: "10.0.0.5" } })
+      fireEvent.click(screen.getByText(/Use .*10\.0\.0\.5/))
+      expect(onChange).toHaveBeenCalledWith("10.0.0.5")
+    })
+
+    it("commits the typed value on Enter", () => {
+      const onChange = vi.fn()
+      render(<SearchableSelect {...common} value={null} onChange={onChange} allowCustom />)
+      fireEvent.click(screen.getByRole("button"))
+      fireEvent.change(screen.getByRole("textbox"), { target: { value: "192.168.1.1" } })
+      fireEvent.keyDown(screen.getByRole("textbox"), { key: "Enter" })
+      expect(onChange).toHaveBeenCalledWith("192.168.1.1")
+    })
+
+    it("offers a None entry that resets the value to empty", () => {
+      const onChange = vi.fn()
+      render(<SearchableSelect {...common} value="10.0.0.9" onChange={onChange} allowCustom />)
+      fireEvent.click(screen.getByRole("button"))
+      fireEvent.click(screen.getByText("None"))
+      expect(onChange).toHaveBeenCalledWith("")
+    })
+
+    it("still lets the user pick a listed option", () => {
+      const onChange = vi.fn()
+      render(<SearchableSelect {...common} value={null} onChange={onChange} allowCustom />)
+      fireEvent.click(screen.getByRole("button"))
+      fireEvent.click(screen.getByText("ubuntu"))
+      expect(onChange).toHaveBeenCalledWith("a")
+    })
+  })
+
+  describe("clearable", () => {
+    it("shows a None entry only when a value is set and clears it", () => {
+      const onChange = vi.fn()
+      const { rerender } = render(<SearchableSelect {...common} value={null} onChange={onChange} clearable />)
+      fireEvent.click(screen.getByRole("button"))
+      // No value yet → no None entry.
+      expect(screen.queryByText("None")).not.toBeInTheDocument()
+
+      // With a value selected, None appears and clears it.
+      rerender(<SearchableSelect {...common} value="a" onChange={onChange} clearable />)
+      fireEvent.click(screen.getByText("None"))
+      expect(onChange).toHaveBeenCalledWith("")
+    })
+
+    it("does not offer None without the clearable prop", () => {
+      render(<SearchableSelect {...common} value="a" onChange={vi.fn()} />)
+      fireEvent.click(screen.getByRole("button"))
+      expect(screen.queryByText("None")).not.toBeInTheDocument()
+    })
+  })
 })

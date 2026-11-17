@@ -28,6 +28,15 @@ interface SearchableSelectProps<T> {
   // this to keep the caller-provided order instead (e.g. AZs sorted descending
   // by the BFF).
   preserveOrder?: boolean
+  // When set, the user may also type a free value: the search box doubles as the
+  // input, the typed text is offered as a "Use …" option, and a value that is
+  // not among the options is still shown on the trigger. `allowCustomLabel`
+  // customises the "Use …" wording.
+  allowCustom?: boolean
+  allowCustomLabel?: (query: string) => string
+  // When set, a "None" entry at the top of the list clears the current value
+  // (only shown when a value is set). Use for optional fields.
+  clearable?: boolean
   isLoading?: boolean
   placeholder: string
   emptyMessage: string
@@ -43,6 +52,9 @@ export function SearchableSelect<T>({
   getGroups,
   facets,
   preserveOrder,
+  allowCustom,
+  allowCustomLabel,
+  clearable,
   isLoading,
   placeholder,
   emptyMessage,
@@ -102,10 +114,25 @@ export function SearchableSelect<T>({
       : [...filtered].sort((a, b) => getLabel(a).localeCompare(getLabel(b)))
 
   const selectedLabel = value != null ? options.find((o) => getValue(o) === value) : undefined
-  const buttonText = selectedLabel ? getLabel(selectedLabel) : placeholder
+  // In allowCustom mode a value that is not among the options is a free entry;
+  // show it verbatim on the trigger. Otherwise fall back to the placeholder.
+  const hasValue = selectedLabel != null || (allowCustom && !!value)
+  const buttonText = selectedLabel ? getLabel(selectedLabel) : allowCustom && value ? value : placeholder
 
   // Group the already-visible options; empty groups are dropped downstream.
   const groups = getGroups ? getGroups(visible) : undefined
+
+  // In allowCustom mode, a typed query that is not already an exact option value
+  // is offered as a "Use …" entry so it can be committed as a free value.
+  const trimmedQuery = query.trim()
+  const customOption =
+    allowCustom && trimmedQuery !== "" && !options.some((o) => getValue(o) === trimmedQuery) ? trimmedQuery : null
+
+  const commit = (v: string) => {
+    onChange(v)
+    setQuery("")
+    setOpen(false)
+  }
 
   const renderOption = (o: T) => (
     <li
@@ -113,10 +140,7 @@ export function SearchableSelect<T>({
       className="list-group-item list-group-item-action"
       role="option"
       aria-selected={getValue(o) === value}
-      onClick={() => {
-        onChange(getValue(o))
-        setOpen(false)
-      }}
+      onClick={() => commit(getValue(o))}
     >
       {getLabel(o)}
     </li>
@@ -126,7 +150,7 @@ export function SearchableSelect<T>({
     <div className="dropdown" ref={ref}>
       <button
         type="button"
-        className={`form-select w-100 text-start${selectedLabel ? "" : " text-muted"}`}
+        className={`form-select w-100 text-start${hasValue ? "" : " text-muted"}`}
         onClick={() => setOpen((o) => !o)}
       >
         {buttonText}
@@ -137,8 +161,14 @@ export function SearchableSelect<T>({
             type="text"
             className="form-control mb-2"
             value={query}
-            placeholder="Search…"
+            placeholder={allowCustom ? "Type or search…" : "Search…"}
             onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && customOption) {
+                e.preventDefault()
+                commit(customOption)
+              }
+            }}
           />
           {usableFacets.length > 0 && (
             <div className="searchable-select-facets mb-2">
@@ -161,12 +191,38 @@ export function SearchableSelect<T>({
           {/* Keep the search box fixed and let only the option list scroll, so a
               long list (e.g. 100+ networks) never overflows the viewport. */}
           <div className="searchable-select-options">
+            {/* Top entries: the typed free value (allowCustom) and a clear/none
+                entry (allowCustom or clearable) when a value is set. */}
+            {(customOption || ((allowCustom || clearable) && value)) && (
+              <ul className="list-group list-group-flush">
+                {customOption && (
+                  <li
+                    className="list-group-item list-group-item-action"
+                    role="option"
+                    aria-selected={value === customOption}
+                    onClick={() => commit(customOption)}
+                  >
+                    {allowCustomLabel ? allowCustomLabel(customOption) : `Use “${customOption}”`}
+                  </li>
+                )}
+                {(allowCustom || clearable) && value && (
+                  <li
+                    className="list-group-item list-group-item-action text-muted"
+                    role="option"
+                    aria-selected={false}
+                    onClick={() => commit("")}
+                  >
+                    None
+                  </li>
+                )}
+              </ul>
+            )}
             {isLoading ? (
               <div className="px-2 py-1">
                 <InlineLoading />
               </div>
             ) : visible.length === 0 ? (
-              <div className="text-muted px-2 py-1">{emptyMessage}</div>
+              !allowCustom || !customOption ? <div className="text-muted px-2 py-1">{emptyMessage}</div> : null
             ) : groups ? (
               <ul className="list-group list-group-flush">
                 {groups.flatMap((g) => [

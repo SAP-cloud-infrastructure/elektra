@@ -418,6 +418,7 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
             getLabel={(z) => z.name}
             getValue={(z) => z.name}
             preserveOrder
+            clearable
             isLoading={azs.isLoading}
             placeholder="Any availability zone…"
             emptyMessage="No availability zones"
@@ -511,6 +512,7 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
               onChange={(v) => set("subnet_id", v)}
               getLabel={(s) => `${s.name ?? s.id}${s.cidr ? ` (${s.cidr})` : ""}`}
               getValue={(s) => s.id}
+              clearable
               isLoading={subnets.isLoading}
               placeholder={form.network_id ? "Choose a subnet…" : "Choose a network first"}
               emptyMessage="No subnets for this network"
@@ -522,25 +524,22 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
             htmlFor="ci-fixed-ip"
             hint={
               reservedIps.length > 0
-                ? "Type a fixed IP or pick a previously reserved one; leave empty to let DHCP assign one."
+                ? "Pick a reserved IP or type a new one; leave empty to let DHCP assign one."
                 : "Type a fixed IP, or leave empty to let DHCP assign one."
             }
           >
-            <input
-              id="ci-fixed-ip"
-              type="text"
-              className="form-control"
-              list="ci-fixed-ip-reserved"
-              value={form.fixed_ip}
-              onChange={(e) => set("fixed_ip", e.target.value)}
+            <SearchableSelect
+              options={reservedIps.map((ip) => ({ ip }))}
+              value={form.fixed_ip || null}
+              onChange={(v) => set("fixed_ip", v)}
+              getLabel={(o) => o.ip}
+              getValue={(o) => o.ip}
+              allowCustom
+              allowCustomLabel={(q) => `Use “${q}”`}
+              preserveOrder
+              placeholder="Any (DHCP)…"
+              emptyMessage="No reserved IPs for this subnet"
             />
-            {/* Reserved fixed-IP addresses surface as native datalist options; a
-                typed value matching one makes the server attach to that port. */}
-            <datalist id="ci-fixed-ip-reserved">
-              {reservedIps.map((ip) => (
-                <option key={ip} value={ip} />
-              ))}
-            </datalist>
           </FormRow>
         </>
       )}
