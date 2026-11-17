@@ -188,4 +188,37 @@ RSpec.describe ComputeNjq::Api::InstancesController, type: :controller do
       expect(body["metrics"]["guest_tools"]["state"]).to eq("up_to_date")
     end
   end
+
+  describe "POST #action" do
+    it "forwards the action_name to the service and returns ok" do
+      expect(scoped_service).to receive(:instance_action).with("s1", "stop").and_return({ ok: true })
+
+      post :action, params: default_params.merge(id: "s1", action_name: "stop")
+
+      expect(response).to have_http_status(:success)
+      expect(JSON.parse(response.body)).to eq("ok" => true)
+    end
+
+    it "renders a 400 envelope when the service rejects an unknown action" do
+      allow(scoped_service).to receive(:instance_action).and_raise(
+        ComputeNjq::RequestError.new("Unknown instance action: nope"),
+      )
+
+      post :action, params: default_params.merge(id: "s1", action_name: "nope")
+
+      expect(response).to have_http_status(:bad_request)
+      expect(JSON.parse(response.body)).to include("error" => "Request Error", "code" => 400)
+    end
+  end
+
+  describe "DELETE #destroy" do
+    it "terminates the instance via the service" do
+      expect(scoped_service).to receive(:terminate_instance).with("s1").and_return({ ok: true })
+
+      delete :destroy, params: default_params.merge(id: "s1")
+
+      expect(response).to have_http_status(:success)
+      expect(JSON.parse(response.body)).to eq("ok" => true)
+    end
+  end
 end

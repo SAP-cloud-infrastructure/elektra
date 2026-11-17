@@ -24,6 +24,20 @@ module ComputeNjq
         handle_api_call { { instance: compute_service.create_instance(create_params) } }
       end
 
+      # POST /:scope/compute-njq/api/instances/:id/action
+      # Generic lifecycle action. The service whitelists action_name and maps it
+      # to the Nova server-action body.
+      def action
+        handle_api_call do
+          compute_service.instance_action(params.require(:id), params.require(:action_name))
+        end
+      end
+
+      # DELETE /:scope/compute-njq/api/instances/:id  (terminate)
+      def destroy
+        handle_api_call { compute_service.terminate_instance(params.require(:id)) }
+      end
+
       # GET /:scope/compute-njq/api/instances/:id/detail
       # The full instance detail (all legacy Show tabs), aggregated server-side.
       def detail
