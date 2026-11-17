@@ -18,6 +18,10 @@ module ComputeNjq
         handle_api_call { { networks: compute_service.form_networks } }
       end
 
+      def subnets
+        handle_api_call { { subnets: compute_service.form_subnets } }
+      end
+
       def security_groups
         handle_api_call { { security_groups: compute_service.form_security_groups } }
       end

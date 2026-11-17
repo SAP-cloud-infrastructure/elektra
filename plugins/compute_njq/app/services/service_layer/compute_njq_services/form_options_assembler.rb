@@ -45,6 +45,15 @@ module ServiceLayer
         neutron_networks.map { |n| { id: n["id"], name: n["name"] } }
       end
 
+      # Subnets for the advanced network options, shaped for the UI. The whole
+      # list is returned; the form filters it client-side by network_id. cidr is
+      # shown in the label so the user can pick the right subnet.
+      def form_subnets
+        neutron_subnets.map do |s|
+          { id: s["id"], name: s["name"], cidr: s["cidr"], network_id: s["network_id"] }
+        end
+      end
+
       # Root-disk volume types offered when booting a disk-less KVM flavor from a
       # new volume. Mirrors the legacy render_available_volume_types(..., "premium")
       # helper: only types whose name starts with "premium" (the bootable root

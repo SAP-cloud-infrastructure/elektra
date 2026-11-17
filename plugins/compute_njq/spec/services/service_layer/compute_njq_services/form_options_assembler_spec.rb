@@ -64,6 +64,17 @@ RSpec.describe ServiceLayer::ComputeNjqServices::FormOptionsAssembler do
     end
   end
 
+  describe "#form_subnets" do
+    it "maps to id, name, cidr and network_id" do
+      allow(test_class).to receive(:neutron_subnets).and_return([
+        { "id" => "s1", "name" => "sub-a", "cidr" => "10.0.0.0/24", "network_id" => "n1" },
+      ])
+      expect(test_class.form_subnets).to eq([
+        { id: "s1", name: "sub-a", cidr: "10.0.0.0/24", network_id: "n1" },
+      ])
+    end
+  end
+
   describe "#form_volume_types" do
     it "keeps only premium-prefixed types, mapped to id + name, in order" do
       allow(test_class).to receive(:cinder_volume_types).and_return([

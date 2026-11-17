@@ -190,5 +190,47 @@ RSpec.describe ServiceLayer::ComputeNjqServices::ServerCreateAssembler do
 
       expect(captured["block_device_mapping_v2"].first["source_type"]).to eq("image")
     end
+
+    it "passes a fixed_ip through on the network entry (no subnet, no port)" do
+      captured = nil
+      allow(test_class).to receive(:nova_create_server) do |payload|
+        captured = payload
+        { "id" => "s1" }
+      end
+      allow(test_class).to receive(:find_instance).with("s1").and_return({ id: "s1" })
+      expect(test_class).not_to receive(:neutron_create_port)
+
+      test_class.create_instance(valid_attrs.merge("fixed_ip" => "10.0.0.5"))
+
+      expect(captured["networks"]).to eq([{ "uuid" => "n1", "fixed_ip" => "10.0.0.5" }])
+    end
+
+    it "pre-creates a port and attaches it when a subnet is chosen" do
+      captured = nil
+      allow(test_class).to receive(:nova_create_server) do |payload|
+        captured = payload
+        { "id" => "s1" }
+      end
+      allow(test_class).to receive(:find_instance).with("s1").and_return({ id: "s1" })
+      expect(test_class).to receive(:neutron_create_port).with(
+        network_id: "n1", subnet_id: "sub1", security_groups: ["default"]
+      ).and_return({ "id" => "port-1" })
+
+      test_class.create_instance(valid_attrs.merge("subnet_id" => "sub1"))
+
+      expect(captured["networks"]).to eq([{ "port" => "port-1" }])
+    end
+
+    it "rolls back a created port when the server create fails" do
+      allow(test_class).to receive(:neutron_create_port).and_return({ "id" => "port-1" })
+      allow(test_class).to receive(:nova_create_server).and_raise(
+        Elektron::Errors::ApiResponse.new(double(code: 403, body: { "message" => "quota" })),
+      )
+      expect(test_class).to receive(:neutron_delete_port).with("port-1")
+
+      expect do
+        test_class.create_instance(valid_attrs.merge("subnet_id" => "sub1"))
+      end.to raise_error(Elektron::Errors::ApiResponse)
+    end
   end
 end

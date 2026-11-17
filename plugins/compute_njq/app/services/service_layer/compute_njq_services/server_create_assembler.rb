@@ -14,7 +14,27 @@ module ServiceLayer
 
       def create_instance(attrs)
         validate!(attrs)
-        created = nova_create_server(build_payload(attrs))
+        # A subnet choice means we must pre-create a Neutron port and attach the
+        # instance to it. Track it so we can roll it back if the server create
+        # fails (mirrors the legacy controller's port cleanup on error).
+        created_port_id = nil
+        payload = build_payload(attrs)
+        if attrs["subnet_id"].present?
+          port = neutron_create_port(
+            network_id: attrs["network_id"],
+            subnet_id: attrs["subnet_id"],
+            security_groups: Array(attrs["security_groups"]).reject(&:blank?),
+          )
+          created_port_id = port["id"]
+          payload["networks"] = [{ "port" => created_port_id }]
+        end
+
+        begin
+          created = nova_create_server(payload)
+        rescue StandardError
+          neutron_delete_port(created_port_id) if created_port_id
+          raise
+        end
         find_instance(created["id"])
       end
 
@@ -38,7 +58,7 @@ module ServiceLayer
           "availability_zone" => attrs["availability_zone"],
           "max_count" => 1, # v1: exactly one instance. Single place to lift later.
           "min_count" => 1,
-          "networks" => [{ "uuid" => attrs["network_id"] }],
+          "networks" => [build_network(attrs)],
         }
         payload["user_data"] = Base64.strict_encode64(attrs["user_data"]) if attrs["user_data"].present?
 
@@ -48,6 +68,15 @@ module ServiceLayer
         apply_boot_source!(payload, attrs)
 
         payload.delete_if { |_k, v| v.blank? && v != 1 }
+      end
+
+      # The Nova network entry, mirroring the legacy rule: a fixed IP (without a
+      # subnet) rides along with the network uuid. A subnet is handled one level
+      # up by pre-creating a port, which replaces this entry entirely.
+      def build_network(attrs)
+        network = { "uuid" => attrs["network_id"] }
+        network["fixed_ip"] = attrs["fixed_ip"] if attrs["fixed_ip"].present?
+        network
       end
 
       # Decides how the instance boots from the submitted image_id, mirroring the
