@@ -81,6 +81,29 @@ describe("createComputeApi", () => {
       mockGet.mockResolvedValue({ data: { images: [] } })
       const result = await api.formOptions.getImages()
       expect(result.images).toEqual([])
+      // volumes defaults to [] when the backend omits it.
+      expect(result.volumes).toEqual([])
+    })
+
+    it("returns bootable volumes alongside images", async () => {
+      mockGet.mockResolvedValue({
+        data: {
+          images: [],
+          volumes: [
+            {
+              id: "v1",
+              name: "root-vol",
+              size: 50,
+              availability_zone: "qa-de-1a",
+              disk_format: "raw",
+              hypervisor_type: "kvm",
+              img_hv_type: null,
+            },
+          ],
+        },
+      })
+      const result = await api.formOptions.getImages()
+      expect(result.volumes.map((v) => v.id)).toEqual(["v1"])
     })
 
     it("returns keypairs", async () => {

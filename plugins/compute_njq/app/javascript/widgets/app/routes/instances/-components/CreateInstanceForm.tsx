@@ -12,9 +12,8 @@ import {
   FLAVOR_TYPE_LABELS,
   flavorInTab,
   tabHypervisor,
-  groupImages,
-  imageLabel,
 } from "./imageGrouping"
+import { bootSourceOptions, groupBootSources, bootSourceLabel, bootSourceValue, isVolumeId } from "./bootSource"
 import { rootDiskMode, rootDiskSizeError, volumeTypeRequired, DEFAULT_ROOT_DISK_SIZE } from "./rootDisk"
 import { CreateInstancePayloadSchema, CreateInstancePayload } from "../../../types/createInstance"
 import { useCreateInstanceMutation } from "../../../hooks/useCreateInstanceMutation"
@@ -148,9 +147,13 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
 
   const selectedFlavor = allFlavors.find((f) => f.id === form.flavor_id)
   const mode = rootDiskMode(selectedFlavor)
+  // The combined boot-source list (images + matching bootable volumes).
+  const bootVolumes = images.data?.volumes ?? []
+  const bootSourceSelected = isVolumeId(form.image_id || null, bootVolumes) ? "volume" : "image"
   // A disk-less KVM flavor must boot from a new premium volume, so it needs a
-  // volume type; load the (small) premium list only when that applies.
-  const needsVolumeType = volumeTypeRequired(selectedFlavor)
+  // volume type; load the (small) premium list only when that applies. A
+  // selected bootable volume boots from itself, so no new root volume / type.
+  const needsVolumeType = volumeTypeRequired(selectedFlavor) && bootSourceSelected !== "volume"
   const volumeTypes = useVolumeTypesQuery(api, { enabled: needsVolumeType })
 
   // Reconcile the root-disk state whenever the flavor changes: a disk-less
@@ -204,7 +207,10 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
     set("image_id", "")
   }
 
-  const rootDiskActive = mode === "forced" || (mode === "optional" && customRootDisk)
+  // A bootable volume boots from itself, so the custom root disk is mutually
+  // exclusive with it (legacy handleImageSelection hides it on volume select).
+  const rootDiskActive =
+    bootSourceSelected !== "volume" && (mode === "forced" || (mode === "optional" && customRootDisk))
   const sizeError = rootDiskActive ? rootDiskSizeError(rootDiskSize) : undefined
   // A required volume type that has not been picked blocks submit (legacy
   // checkKvmVolumeType). Only applies to disk-less KVM flavors.
@@ -296,25 +302,25 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
             hint={
               flavorType === "other"
                 ? "All images are shown; this flavor type has no hypervisor restriction."
-                : `Images for ${FLAVOR_TYPE_LABELS[flavorType!]} and images without a hypervisor restriction (these run on any hypervisor).`
+                : `Images for ${FLAVOR_TYPE_LABELS[flavorType!]} and images without a hypervisor restriction (these run on any hypervisor). Bootable volumes for this type are listed first.`
             }
           >
             <SearchableSelect
-              options={images.data?.images ?? []}
+              options={bootSourceOptions(images.data?.images ?? [], bootVolumes, hv)}
               value={form.image_id || null}
               onChange={(v) => set("image_id", v)}
-              getLabel={imageLabel}
-              getValue={(i) => i.id}
-              getGroups={(imgs) => groupImages(imgs, hv)}
+              getLabel={bootSourceLabel}
+              getValue={bootSourceValue}
+              getGroups={(opts) => groupBootSources(opts, hv)}
               isLoading={images.isLoading}
-              placeholder="Select an image…"
+              placeholder="Select an image or bootable volume…"
               emptyMessage="No images found"
             />
           </FormRow>
         </div>
       )}
 
-      {mode === "optional" && (
+      {mode === "optional" && bootSourceSelected !== "volume" && (
         <FormRow label="Custom Root Disk">
           <div className="form-check">
             <input
