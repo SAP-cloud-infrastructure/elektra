@@ -39,6 +39,14 @@ describe("visibleActions", () => {
     expect(visibleActions(inst({ locked: true }), {}).map((a) => a.key)).toContain("unlock")
   })
 
+  it("shows only unlock on a locked instance, hiding power and terminate actions", () => {
+    // Legacy wraps every non-lock action in `- unless instance.locked?`, so a
+    // locked VM exposes only Unlock. A running+locked instance must therefore
+    // not offer stop/reboot/.../terminate.
+    const keys = visibleActions(inst({ locked: true }), {}).map((a) => a.key)
+    expect(keys).toEqual(["unlock"])
+  })
+
   it("hides everything while transitioning", () => {
     expect(
       visibleActions(inst({ status: { state: "active", transition: "rebooting", power_state: "Running" } }), {})

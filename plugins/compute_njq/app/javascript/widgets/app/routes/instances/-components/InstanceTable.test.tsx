@@ -96,6 +96,13 @@ describe("InstanceTable", () => {
     expect(screen.getByRole("tooltip")).toHaveTextContent(/could not be resolved/i)
   })
 
+  it("shows a lock icon next to the name only when the instance is locked", () => {
+    const { rerender } = render(<InstanceTable instances={[{ ...instance, locked: true }]} />)
+    expect(screen.getByTitle("Locked")).toBeInTheDocument()
+    rerender(<InstanceTable instances={[{ ...instance, locked: false }]} />)
+    expect(screen.queryByTitle("Locked")).toBeNull()
+  })
+
   it("shows skeleton loading rows (not data) while loading", () => {
     render(<InstanceTable instances={[]} isLoading />)
     expect(screen.getByTestId("instances-skeleton")).toBeInTheDocument()

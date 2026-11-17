@@ -226,6 +226,9 @@ export function InstanceTable({ instances, isLoading = false, apiClient, scope }
                     >
                       {truncated ? `${displayName.slice(0, NAME_MAX)}…` : displayName}
                     </Link>
+                    {instance.locked && (
+                      <span className="fa fa-lock text-muted ms-1" title="Locked" aria-label="Locked" />
+                    )}
                     <br />
                     <CopyableId id={instance.id} />
                   </td>

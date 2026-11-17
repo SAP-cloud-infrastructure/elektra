@@ -125,5 +125,9 @@ function isAllowed(rule: string, scope: Record<string, unknown>): boolean {
 
 export function visibleActions(instance: Instance, scope: Record<string, unknown>): InstanceAction[] {
   if (isTransitioning(instance.status)) return []
-  return INSTANCE_ACTIONS.filter((a) => a.isAvailable(instance) && isAllowed(a.policy, scope))
+  // Legacy wraps every non-lock action in `- unless instance.locked?`
+  // (_item_actions.html.haml), so a locked instance exposes only Unlock.
+  return INSTANCE_ACTIONS.filter(
+    (a) => a.isAvailable(instance) && (!instance.locked || a.key === "unlock") && isAllowed(a.policy, scope)
+  )
 }

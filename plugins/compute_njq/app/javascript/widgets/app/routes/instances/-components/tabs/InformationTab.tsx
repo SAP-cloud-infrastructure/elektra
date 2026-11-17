@@ -47,6 +47,10 @@ export function InformationTab({ instance, metricsQuery, loading = false }: Info
           )}
         </tr>
         <tr>
+          <th>Locked</th>
+          <td>{loading ? <InlineLoading /> : instance.locked ? "Yes" : "No"}</td>
+        </tr>
+        <tr>
           <th>Availability Zone</th>
           <td>{loading ? <InlineLoading /> : instance.availability_zone}</td>
         </tr>

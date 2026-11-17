@@ -6,6 +6,44 @@ import { VolumesTab } from "./VolumesTab"
 import { KeyPairsTab } from "./KeyPairsTab"
 import { SpecsTab } from "./SpecsTab"
 import { MetadataTab } from "./MetadataTab"
+import { InformationTab } from "./InformationTab"
+import type { InstanceDetail, InstanceMetrics } from "../../../../types/instance"
+import type { UseQueryResult } from "@tanstack/react-query"
+
+// Minimal metrics query stub — InformationTab only forwards it to GuestToolsRow
+// and SizingRows, which render their own empty states for undefined data.
+const metricsQuery = { data: undefined, isLoading: false, isError: false } as unknown as UseQueryResult<
+  InstanceMetrics,
+  Error
+>
+
+function detail(over: Partial<InstanceDetail> = {}): InstanceDetail {
+  return {
+    id: "s1",
+    name: "web-01",
+    locked: false,
+    status: { state: "active", transition: null, power_state: "Running" },
+    fault_message: null,
+    availability_zone: "qa-de-1a",
+    created: null,
+    updated: null,
+    host: null,
+    project: { id: "p1", name: "demo", same_scope: true },
+    tags: [],
+    ...over,
+  } as InstanceDetail
+}
+
+describe("InformationTab", () => {
+  it("shows the lock state as a Locked row", () => {
+    const { rerender } = render(<InformationTab instance={detail({ locked: true })} metricsQuery={metricsQuery} />)
+    const lockedRow = screen.getByText("Locked").closest("tr")!
+    expect(lockedRow).toHaveTextContent("Yes")
+
+    rerender(<InformationTab instance={detail({ locked: false })} metricsQuery={metricsQuery} />)
+    expect(screen.getByText("Locked").closest("tr")!).toHaveTextContent("No")
+  })
+})
 
 describe("SecurityGroupsTab", () => {
   it("renders the BFF-assembled rule strings", () => {
