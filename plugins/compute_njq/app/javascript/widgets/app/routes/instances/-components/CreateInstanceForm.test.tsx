@@ -52,6 +52,12 @@ describe("CreateInstanceForm", () => {
     expect(screen.getByLabelText(/name/i)).toHaveFocus()
   })
 
+  it("preselects the 'default' security group when one exists", () => {
+    render(<CreateInstanceForm api={api} queryClient={queryClient} onSuccess={vi.fn()} />)
+    // The MultiSelect trigger summarises the current selection by name.
+    expect(screen.getByRole("button", { name: /default/ })).toBeInTheDocument()
+  })
+
   it("keeps submit disabled until required fields are valid", () => {
     render(<CreateInstanceForm api={api} queryClient={queryClient} onSuccess={vi.fn()} />)
     expect(screen.getByRole("button", { name: /create/i })).toBeDisabled()

@@ -126,9 +126,10 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
   const images = useImagesQuery(api, { enabled: !!opened.image })
   const keypairs = useKeypairsQuery(api, { enabled: !!opened.keypair })
   const networks = useNetworksQuery(api, { enabled: !!opened.network })
-  // Lazy like the other dropdown fields: the MultiSelect fires onOpen on first
-  // open, which flips `opened.secgroup` and enables the query.
-  const securityGroups = useSecurityGroupsQuery(api, { enabled: !!opened.secgroup })
+  // Eager: the "default" security group is preselected on open, which requires
+  // the list to be present without waiting for the dropdown to be opened. The
+  // list is small, so the upfront request is cheap.
+  const securityGroups = useSecurityGroupsQuery(api, { enabled: true })
   const azs = useAvailabilityZonesQuery(api, { enabled: !!opened.az })
 
   // Type-first selection: a hypervisor type narrows both the flavor list and the
@@ -167,6 +168,20 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
     }
     setVolumeType((prev) => (prev === "" && availableVolumeTypes.length > 0 ? availableVolumeTypes[0].id : prev))
   }, [needsVolumeType, availableVolumeTypes])
+
+  // Preselect the "default" security group once, when the list first loads and
+  // the user has not picked any yet (mirrors the legacy controller). The guard
+  // keeps a later deselection from re-adding it.
+  const securityGroupsData = securityGroups.data
+  const defaultSgApplied = useRef(false)
+  useEffect(() => {
+    if (defaultSgApplied.current || !securityGroupsData) return
+    const hasDefault = securityGroupsData.some((sg) => sg.name === "default")
+    if (hasDefault && form.security_groups.length === 0) {
+      set("security_groups", ["default"])
+    }
+    defaultSgApplied.current = true
+  }, [securityGroupsData, form.security_groups])
 
   // Switching type invalidates the picked flavor (and thus the image), which may
   // belong to a different type.
@@ -390,7 +405,6 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
           getLabel={(sg) => sg.name}
           getValue={(sg) => sg.name}
           getGroups={groupSecurityGroupsByProject}
-          onOpen={() => open("secgroup")}
           isLoading={securityGroups.isLoading}
           placeholder="Select security groups…"
           emptyMessage="No security groups available"
