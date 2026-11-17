@@ -142,7 +142,29 @@ module ServiceLayer
           }
         end
 
-        { images: images }
+        # Bootable volumes can also serve as a boot source; they ride along in the
+        # same payload so the UI can offer them as a dedicated group in the image
+        # picker (and the create path resolves an id to a volume vs an image).
+        { images: images, volumes: form_bootable_volumes }
+      end
+
+      # Bootable volumes shaped for the image picker. The UI groups these under a
+      # "Bootable Volumes" heading and couples them to the selected flavor's
+      # hypervisor via the volume's image metadata (hypervisor_type/img_hv_type),
+      # exactly like the legacy grouped_images volume items.
+      def form_bootable_volumes
+        cinder_bootable_volumes.map do |v|
+          meta = v["volume_image_metadata"] || {}
+          {
+            id: v["id"],
+            name: v["name"].presence || v["id"],
+            size: v["size"],
+            availability_zone: v["availability_zone"],
+            disk_format: meta["disk_format"],
+            hypervisor_type: meta["hypervisor_type"],
+            img_hv_type: meta["img_hv_type"],
+          }
+        end
       end
     end
   end

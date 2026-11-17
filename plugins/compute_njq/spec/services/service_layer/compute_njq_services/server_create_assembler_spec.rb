@@ -22,6 +22,9 @@ RSpec.describe ServiceLayer::ComputeNjqServices::ServerCreateAssembler do
   end
 
   describe "#create_instance" do
+    # By default the submitted image_id is a Glance image, not a volume.
+    before { allow(test_class).to receive(:cinder_volume).and_return(nil) }
+
     it "builds the Nova payload and posts it, returning the UI-shaped instance" do
       captured = nil
       allow(test_class).to receive(:nova_create_server) do |payload|
@@ -147,6 +150,45 @@ RSpec.describe ServiceLayer::ComputeNjqServices::ServerCreateAssembler do
       test_class.create_instance(valid_attrs)
       expect(captured["imageRef"]).to eq("i1")
       expect(captured).not_to have_key("block_device_mapping_v2")
+    end
+
+    it "boots from an existing bootable volume when the image_id resolves to a volume" do
+      captured = nil
+      allow(test_class).to receive(:nova_create_server) do |payload|
+        captured = payload
+        { "id" => "s1" }
+      end
+      allow(test_class).to receive(:find_instance).with("s1").and_return({ id: "s1" })
+      allow(test_class).to receive(:cinder_volume).with("i1").and_return(
+        { "id" => "i1", "volume_image_metadata" => { "hypervisor_type" => "kvm" } },
+      )
+
+      test_class.create_instance(valid_attrs)
+
+      expect(captured).not_to have_key("imageRef")
+      expect(captured["block_device_mapping_v2"]).to eq([{
+        "boot_index" => 0,
+        "uuid" => "i1",
+        "source_type" => "volume",
+        "destination_type" => "volume",
+        "delete_on_termination" => false,
+      }])
+      expect(captured["metadata"]).to eq({ "hypervisor_type" => "kvm" })
+    end
+
+    it "does not probe for a volume when custom_root_disk is set (image boot wins)" do
+      captured = nil
+      allow(test_class).to receive(:nova_create_server) do |payload|
+        captured = payload
+        { "id" => "s1" }
+      end
+      allow(test_class).to receive(:find_instance).with("s1").and_return({ id: "s1" })
+      # Even if the id happened to be a volume, custom_root_disk gating skips the probe.
+      allow(test_class).to receive(:cinder_volume).and_raise("cinder_volume must not be called")
+
+      test_class.create_instance(valid_attrs.merge("custom_root_disk" => "1", "custom_root_disk_size" => "64"))
+
+      expect(captured["block_device_mapping_v2"].first["source_type"]).to eq("image")
     end
   end
 end

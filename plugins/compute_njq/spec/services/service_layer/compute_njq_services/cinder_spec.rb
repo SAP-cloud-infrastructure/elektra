@@ -43,4 +43,26 @@ RSpec.describe ServiceLayer::ComputeNjqServices::Cinder do
       expect(test_class.cinder_volume_types).to eq([])
     end
   end
+
+  describe "#cinder_bootable_volumes" do
+    it "requests bootable volumes and drops ones in an unusable status" do
+      allow(elektron_cinder).to receive(:get).with(
+        "volumes/detail", { "bootable" => true }, headers: { "OpenStack-API-Version" => "volume 3.34" }
+      ).and_return(
+        double("response", body: { "volumes" => [
+          { "id" => "ok", "status" => "available" },
+          { "id" => "busy", "status" => "in-use" },
+          { "id" => "broken", "status" => "error" },
+        ] }),
+      )
+      expect(test_class.cinder_bootable_volumes.map { |v| v["id"] }).to eq(%w[ok])
+    end
+
+    it "returns [] on an API error" do
+      allow(elektron_cinder).to receive(:get).with(
+        "volumes/detail", { "bootable" => true }, headers: { "OpenStack-API-Version" => "volume 3.34" }
+      ).and_raise(Elektron::Errors::ApiResponse.new(double(code: 503, body: {})))
+      expect(test_class.cinder_bootable_volumes).to eq([])
+    end
+  end
 end

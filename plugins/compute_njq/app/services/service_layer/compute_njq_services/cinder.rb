@@ -25,6 +25,24 @@ module ServiceLayer
       rescue Elektron::Errors::ApiResponse
         []
       end
+
+      # Statuses that make a bootable volume unusable as a boot source; mirrors
+      # the legacy bootable_volumes_for_instance reject list.
+      UNUSABLE_VOLUME_STATUSES = %w[
+        deleting in-use error error_deleting error_backing-up error_restoring error_extending
+      ].freeze
+
+      # Bootable volumes usable as an instance boot source: Cinder filters
+      # bootable=true server-side (microversion 3.34 like the legacy call), then
+      # we drop volumes in a transient/broken status. Returns [] on error.
+      def cinder_bootable_volumes
+        elektron_cinder
+          .get("volumes/detail", { "bootable" => true }, headers: { "OpenStack-API-Version" => "volume 3.34" })
+          .body["volumes"]
+          &.reject { |v| UNUSABLE_VOLUME_STATUSES.include?(v["status"]) } || []
+      rescue Elektron::Errors::ApiResponse
+        []
+      end
     end
   end
 end

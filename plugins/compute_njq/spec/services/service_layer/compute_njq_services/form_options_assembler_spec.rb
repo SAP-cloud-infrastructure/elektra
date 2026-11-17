@@ -103,6 +103,8 @@ RSpec.describe ServiceLayer::ComputeNjqServices::FormOptionsAssembler do
   end
 
   describe "#form_images" do
+    before { allow(test_class).to receive(:cinder_bootable_volumes).and_return([]) }
+
     it "loads images per visibility (private, shared, public), maps them, and de-dupes by id" do
       allow(test_class).to receive(:glance_all_images).with("visibility" => "private").and_return([
         { "id" => "i1", "name" => "ubuntu", "visibility" => "private", "os_hash_value" => nil,
@@ -161,7 +163,7 @@ RSpec.describe ServiceLayer::ComputeNjqServices::FormOptionsAssembler do
 
     it "returns an empty list when no images are visible" do
       allow(test_class).to receive(:glance_all_images).and_return([])
-      expect(test_class.form_images).to eq({ images: [] })
+      expect(test_class.form_images).to eq({ images: [], volumes: [] })
     end
 
     it "drops images with a nil or blank name (matching the legacy helper)" do
@@ -172,6 +174,31 @@ RSpec.describe ServiceLayer::ComputeNjqServices::FormOptionsAssembler do
         { "id" => "blank", "name" => "   ",    "visibility" => "public" },
       ])
       expect(test_class.form_images[:images].map { |i| i[:id] }).to eq(%w[named])
+    end
+  end
+
+  describe "#form_bootable_volumes" do
+    it "maps bootable volumes, lifting hypervisor info out of the image metadata" do
+      allow(test_class).to receive(:cinder_bootable_volumes).and_return([
+        { "id" => "v1", "name" => "root-vol", "size" => 50, "availability_zone" => "qa-de-1a",
+          "volume_image_metadata" => { "disk_format" => "raw", "hypervisor_type" => "kvm", "img_hv_type" => nil } },
+      ])
+
+      expect(test_class.form_bootable_volumes).to eq([
+        { id: "v1", name: "root-vol", size: 50, availability_zone: "qa-de-1a",
+          disk_format: "raw", hypervisor_type: "kvm", img_hv_type: nil },
+      ])
+    end
+
+    it "falls back to the id when the volume has no name and tolerates missing metadata" do
+      allow(test_class).to receive(:cinder_bootable_volumes).and_return([
+        { "id" => "v2", "name" => "", "size" => 20, "availability_zone" => nil },
+      ])
+
+      expect(test_class.form_bootable_volumes).to eq([
+        { id: "v2", name: "v2", size: 20, availability_zone: nil,
+          disk_format: nil, hypervisor_type: nil, img_hv_type: nil },
+      ])
     end
   end
 end

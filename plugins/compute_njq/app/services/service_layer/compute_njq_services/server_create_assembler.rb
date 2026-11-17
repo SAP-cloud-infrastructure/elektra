@@ -45,26 +45,56 @@ module ServiceLayer
         groups = Array(attrs["security_groups"]).reject(&:blank?)
         payload["security_groups"] = groups.map { |name| { "name" => name } } if groups.any?
 
-        # Custom root disk: boot from a new volume created from the image instead
-        # of booting the image directly. Mirrors the legacy block_device_mapping_v2
-        # (instances_controller.rb). volume_type is set for disk-less KVM flavors
-        # (the UI sends the chosen premium volume type id); otherwise Nova picks
-        # the default type.
-        if truthy(attrs["custom_root_disk"])
-          bdm = {
-            "boot_index" => 0,
-            "uuid" => attrs["image_id"],
-            "source_type" => "image",
-            "destination_type" => "volume",
-            "volume_size" => attrs["custom_root_disk_size"].to_i,
-            "delete_on_termination" => true,
-          }
-          bdm["volume_type"] = attrs["volume_type"] if attrs["volume_type"].present?
-          payload["block_device_mapping_v2"] = [bdm]
-          payload.delete("imageRef")
-        end
+        apply_boot_source!(payload, attrs)
 
         payload.delete_if { |_k, v| v.blank? && v != 1 }
+      end
+
+      # Decides how the instance boots from the submitted image_id, mirroring the
+      # legacy controller's three-way branch:
+      #   1. a bootable volume (the id resolves to a Cinder volume, and custom
+      #      root disk is off) → boot from that existing volume, kept on delete;
+      #   2. a custom root disk → boot from a new volume created from the image,
+      #      optionally of a chosen premium volume type, deleted on termination;
+      #   3. a plain image → leave imageRef as-is (Nova boots the image directly).
+      def apply_boot_source!(payload, attrs)
+        image_id = attrs["image_id"]
+
+        # Only probe for a volume when custom root disk is off (legacy gating):
+        # the two are mutually exclusive in the UI.
+        unless truthy(attrs["custom_root_disk"])
+          volume = cinder_volume(image_id)
+          if volume
+            payload["block_device_mapping_v2"] = [{
+              "boot_index" => 0,
+              "uuid" => volume["id"],
+              "source_type" => "volume",
+              "destination_type" => "volume",
+              "delete_on_termination" => false,
+            }]
+            payload["metadata"] = volume["volume_image_metadata"] if volume["volume_image_metadata"].present?
+            payload.delete("imageRef")
+            return
+          end
+        end
+
+        # Custom root disk: boot from a new volume created from the image instead
+        # of booting the image directly. volume_type is set for disk-less KVM
+        # flavors (the UI sends the chosen premium volume type id); otherwise Nova
+        # picks the default type.
+        return unless truthy(attrs["custom_root_disk"])
+
+        bdm = {
+          "boot_index" => 0,
+          "uuid" => image_id,
+          "source_type" => "image",
+          "destination_type" => "volume",
+          "volume_size" => attrs["custom_root_disk_size"].to_i,
+          "delete_on_termination" => true,
+        }
+        bdm["volume_type"] = attrs["volume_type"] if attrs["volume_type"].present?
+        payload["block_device_mapping_v2"] = [bdm]
+        payload.delete("imageRef")
       end
 
       def truthy(value)
