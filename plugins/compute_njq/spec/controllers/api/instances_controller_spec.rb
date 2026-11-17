@@ -190,6 +190,8 @@ RSpec.describe ComputeNjq::Api::InstancesController, type: :controller do
   end
 
   describe "POST #action" do
+    before { allow_any_instance_of(MonsoonOpenstackAuth::Authentication::AuthUser).to receive(:is_allowed?).and_return(true) }
+
     it "forwards the action_name to the service and returns ok" do
       expect(scoped_service).to receive(:instance_action).with("s1", "stop").and_return({ ok: true })
 
@@ -209,9 +211,34 @@ RSpec.describe ComputeNjq::Api::InstancesController, type: :controller do
       expect(response).to have_http_status(:bad_request)
       expect(JSON.parse(response.body)).to include("error" => "Request Error", "code" => 400)
     end
+
+    it "checks the policy rule mapped from the action_name" do
+      allow(scoped_service).to receive(:instance_action).and_return({ ok: true })
+      expect_any_instance_of(MonsoonOpenstackAuth::Authentication::AuthUser).to receive(:is_allowed?).with(
+        "compute_njq:instance_lock", anything
+      ).and_return(true)
+
+      post :action, params: default_params.merge(id: "s1", action_name: "lock")
+    end
+
+    context "when the user is not allowed to perform the action" do
+      before { allow_any_instance_of(MonsoonOpenstackAuth::Authentication::AuthUser).to receive(:is_allowed?).and_return(false) }
+
+      it "renders a 403 envelope and never calls the service" do
+        expect(scoped_service).not_to receive(:instance_action)
+
+        post :action, params: default_params.merge(id: "s1", action_name: "lock")
+
+        expect(response).to have_http_status(:forbidden)
+        body = JSON.parse(response.body)
+        expect(body).to include("error" => "Forbidden", "code" => 403)
+      end
+    end
   end
 
   describe "DELETE #destroy" do
+    before { allow_any_instance_of(MonsoonOpenstackAuth::Authentication::AuthUser).to receive(:is_allowed?).and_return(true) }
+
     it "terminates the instance via the service" do
       expect(scoped_service).to receive(:terminate_instance).with("s1").and_return({ ok: true })
 
@@ -219,6 +246,28 @@ RSpec.describe ComputeNjq::Api::InstancesController, type: :controller do
 
       expect(response).to have_http_status(:success)
       expect(JSON.parse(response.body)).to eq("ok" => true)
+    end
+
+    it "checks the instance_delete policy rule" do
+      allow(scoped_service).to receive(:terminate_instance).and_return({ ok: true })
+      expect_any_instance_of(MonsoonOpenstackAuth::Authentication::AuthUser).to receive(:is_allowed?).with(
+        "compute_njq:instance_delete", anything
+      ).and_return(true)
+
+      delete :destroy, params: default_params.merge(id: "s1")
+    end
+
+    context "when the user is not allowed to terminate" do
+      before { allow_any_instance_of(MonsoonOpenstackAuth::Authentication::AuthUser).to receive(:is_allowed?).and_return(false) }
+
+      it "renders a 403 envelope and never calls the service" do
+        expect(scoped_service).not_to receive(:terminate_instance)
+
+        delete :destroy, params: default_params.merge(id: "s1")
+
+        expect(response).to have_http_status(:forbidden)
+        expect(JSON.parse(response.body)).to include("error" => "Forbidden", "code" => 403)
+      end
     end
   end
 end

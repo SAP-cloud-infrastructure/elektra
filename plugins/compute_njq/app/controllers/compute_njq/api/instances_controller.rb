@@ -3,6 +3,21 @@
 module ComputeNjq
   module Api
     class InstancesController < Api::BaseController
+      # Maps the lifecycle action_name sent by the client to the policy rule
+      # that gates it. Mirrors the client-side registry in instanceActions.ts:
+      # the client gates the UI, this gates the request. Unknown action names
+      # fall back to instance_update (the service still whitelists the action).
+      ACTION_POLICY_RULES = {
+        "start" => "compute_njq:instance_update",
+        "stop" => "compute_njq:instance_update",
+        "reboot" => "compute_njq:instance_update",
+        "pause" => "compute_njq:instance_update",
+        "suspend" => "compute_njq:instance_update",
+        "hard_reset" => "compute_njq:instance_hard_reset",
+        "lock" => "compute_njq:instance_lock",
+        "unlock" => "compute_njq:instance_unlock",
+      }.freeze
+      DEFAULT_ACTION_POLICY_RULE = "compute_njq:instance_update"
       # GET /:scope/compute-njq/api/instances
       # Returns the aggregated instance list (Nova + Neutron + Glance), already
       # shaped for the UI by the InstanceAssembler.
@@ -28,13 +43,19 @@ module ComputeNjq
       # Generic lifecycle action. The service whitelists action_name and maps it
       # to the Nova server-action body.
       def action
+        action_name = params.require(:action_name)
+        rule = ACTION_POLICY_RULES.fetch(action_name, DEFAULT_ACTION_POLICY_RULE)
+        return unless authorize!(rule)
+
         handle_api_call do
-          compute_service.instance_action(params.require(:id), params.require(:action_name))
+          compute_service.instance_action(params.require(:id), action_name)
         end
       end
 
       # DELETE /:scope/compute-njq/api/instances/:id  (terminate)
       def destroy
+        return unless authorize!("compute_njq:instance_delete")
+
         handle_api_call { compute_service.terminate_instance(params.require(:id)) }
       end
 
@@ -63,6 +84,28 @@ module ComputeNjq
       end
 
       private
+
+      # Server-side policy gate for mutating lifecycle actions. The client-side
+      # policy engine only gates the UI; a hand-crafted request would otherwise
+      # reach the service unchecked. Returns true when allowed; otherwise renders
+      # a 403 envelope (matching handle_api_call's shape) and returns false so
+      # the caller aborts before touching the service.
+      def authorize!(rule)
+        return true if current_user.is_allowed?(rule, policy_target)
+
+        render json: {
+          error: "Forbidden",
+          code: 403,
+          message: "You are not allowed to perform this action.",
+        }, status: :forbidden
+        false
+      end
+
+      # The policy target for the scoped request: the domain/project the user is
+      # acting in. Mirrors ScopeController's @policy_default_params target.
+      def policy_target
+        { target: { scoped_domain_name: @scoped_domain_name, scoped_project_name: @scoped_project_name } }
+      end
 
       # Only the filters the UI actually offers are accepted.
       def filter_params
