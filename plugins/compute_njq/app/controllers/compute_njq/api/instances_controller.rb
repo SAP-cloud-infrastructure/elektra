@@ -36,6 +36,8 @@ module ComputeNjq
 
       # POST /:scope/compute-njq/api/instances
       def create
+        return unless authorize!("compute_njq:instance_create")
+
         handle_api_call { { instance: compute_service.create_instance(create_params) } }
       end
 

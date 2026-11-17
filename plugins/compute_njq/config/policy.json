@@ -1,7 +1,7 @@
 {
   "compute_njq:instance_list": "@",
   "compute_njq:instance_get": "@",
-  "compute_njq:instance_create": "@",
+  "compute_njq:instance_create": "rule:instance_actions",
   "compute_njq:instance_update": "rule:instance_actions",
   "compute_njq:instance_delete": "rule:instance_actions",
   "compute_njq:instance_hard_reset": "rule:context_is_compute_editor and (not rule:monsoon2_domain)",

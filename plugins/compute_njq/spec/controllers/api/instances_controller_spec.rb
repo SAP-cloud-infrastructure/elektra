@@ -106,9 +106,33 @@ RSpec.describe ComputeNjq::Api::InstancesController, type: :controller do
   end
 
   describe "POST #create" do
+    before { allow_any_instance_of(MonsoonOpenstackAuth::Authentication::AuthUser).to receive(:is_allowed?).and_return(true) }
+
     let(:create_params) do
       { name: "web-01", flavor_id: "f1", image_id: "i1", keypair: "my-key",
         availability_zone: "az-1", network_id: "n1", security_groups: ["default"], user_data: "" }
+    end
+
+    it "checks the instance_create policy rule" do
+      allow(scoped_service).to receive(:create_instance).and_return({ "id" => "s1" })
+      expect_any_instance_of(MonsoonOpenstackAuth::Authentication::AuthUser).to receive(:is_allowed?).with(
+        "compute_njq:instance_create", anything
+      ).and_return(true)
+
+      post :create, params: default_params.merge(instance: create_params)
+    end
+
+    context "when the user is not allowed to create" do
+      before { allow_any_instance_of(MonsoonOpenstackAuth::Authentication::AuthUser).to receive(:is_allowed?).and_return(false) }
+
+      it "renders a 403 envelope and never calls the service" do
+        expect(scoped_service).not_to receive(:create_instance)
+
+        post :create, params: default_params.merge(instance: create_params)
+
+        expect(response).to have_http_status(:forbidden)
+        expect(JSON.parse(response.body)).to include("error" => "Forbidden", "code" => 403)
+      end
     end
 
     it "creates the instance and returns it" do
