@@ -14,12 +14,19 @@ module ServiceLayer
 
       def create_instance(attrs)
         validate!(attrs)
-        # A subnet choice means we must pre-create a Neutron port and attach the
-        # instance to it. Track it so we can roll it back if the server create
-        # fails (mirrors the legacy controller's port cleanup on error).
-        created_port_id = nil
         payload = build_payload(attrs)
-        if attrs["subnet_id"].present?
+
+        # Network attachment, in the legacy precedence order:
+        #   1. a typed fixed IP that matches a pre-reserved port → attach to that
+        #      existing port (consumed as-is, never created here);
+        #   2. a chosen subnet → create a fresh Neutron port pinned to it;
+        #   3. otherwise build_payload already set {uuid[, fixed_ip]}.
+        # Only a port WE create (case 2) is rolled back if the server create fails.
+        created_port_id = nil
+        reserved_port_id = resolve_reserved_port_id(attrs)
+        if reserved_port_id
+          payload["networks"] = [{ "port" => reserved_port_id }]
+        elsif attrs["subnet_id"].present?
           port = neutron_create_port(
             network_id: attrs["network_id"],
             subnet_id: attrs["subnet_id"],
@@ -77,6 +84,21 @@ module ServiceLayer
         network = { "uuid" => attrs["network_id"] }
         network["fixed_ip"] = attrs["fixed_ip"] if attrs["fixed_ip"].present?
         network
+      end
+
+      # If the typed fixed IP exactly matches an already-reserved
+      # "fixed_ip_allocation" port, return that port's id so the instance is
+      # attached to the existing port instead of asking Nova for a fresh IP
+      # (mirrors the legacy fixedIpSelector → port_id resolution, but done
+      # server-side so it can't be spoofed by the client). Returns nil otherwise.
+      def resolve_reserved_port_id(attrs)
+        ip = attrs["fixed_ip"].to_s.strip
+        return nil if ip.empty?
+
+        port = neutron_fixed_ip_ports.find do |p|
+          Array(p["fixed_ips"]).any? { |f| f["ip_address"].to_s.strip == ip }
+        end
+        port && port["id"]
       end
 
       # Decides how the instance boots from the submitted image_id, mirroring the

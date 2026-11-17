@@ -60,6 +60,15 @@ RSpec.describe ServiceLayer::ComputeNjqServices::Neutron do
     end
   end
 
+  describe "#neutron_fixed_ip_ports" do
+    it "fetches ports named fixed_ip_allocation" do
+      allow(elektron_neutron).to receive(:get).with("ports", { "name" => "fixed_ip_allocation" }).and_return(
+        double("response", body: { "ports" => [{ "id" => "p1" }] }),
+      )
+      expect(test_class.neutron_fixed_ip_ports).to eq([{ "id" => "p1" }])
+    end
+  end
+
   describe "#neutron_create_port" do
     it "posts a port with network, subnet fixed_ip and security groups" do
       captured = nil

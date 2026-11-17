@@ -59,6 +59,21 @@ module ServiceLayer
         end
       end
 
+      # Pre-reserved fixed-IP ports, shaped for the advanced network options. Each
+      # carries its reserved IPs and their subnets so the UI can offer them as
+      # fixed-IP suggestions (filtered by the chosen subnet) and the create path
+      # can attach the instance to the matching port.
+      def form_fixed_ip_ports
+        neutron_fixed_ip_ports.map do |p|
+          fixed = Array(p["fixed_ips"])
+          {
+            id: p["id"],
+            ip_addresses: fixed.map { |f| f["ip_address"] }.compact,
+            subnet_ids: fixed.map { |f| f["subnet_id"] }.compact,
+          }
+        end
+      end
+
       # Root-disk volume types offered when booting a disk-less KVM flavor from a
       # new volume. Mirrors the legacy render_available_volume_types(..., "premium")
       # helper: only types whose name starts with "premium" (the bootable root

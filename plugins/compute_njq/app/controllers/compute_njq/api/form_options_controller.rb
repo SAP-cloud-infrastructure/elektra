@@ -19,7 +19,7 @@ module ComputeNjq
       end
 
       def subnets
-        handle_api_call { { subnets: compute_service.form_subnets } }
+        handle_api_call { { subnets: compute_service.form_subnets, fixed_ip_ports: compute_service.form_fixed_ip_ports } }
       end
 
       def security_groups

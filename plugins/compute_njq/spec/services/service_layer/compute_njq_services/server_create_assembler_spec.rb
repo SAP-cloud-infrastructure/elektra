@@ -26,6 +26,8 @@ RSpec.describe ServiceLayer::ComputeNjqServices::ServerCreateAssembler do
     before do
       allow(test_class).to receive(:cinder_volume).and_return(nil)
       allow(test_class).to receive(:glance_image).and_return({ "name" => "ubuntu", "buildnumber" => "42" })
+      # No pre-reserved fixed-IP ports unless a test says otherwise.
+      allow(test_class).to receive(:neutron_fixed_ip_ports).and_return([])
     end
 
     it "builds the Nova payload and posts it, returning the UI-shaped instance" do
@@ -232,6 +234,40 @@ RSpec.describe ServiceLayer::ComputeNjqServices::ServerCreateAssembler do
       end
       allow(test_class).to receive(:find_instance).with("s1").and_return({ id: "s1" })
       expect(test_class).not_to receive(:neutron_create_port)
+
+      test_class.create_instance(valid_attrs.merge("fixed_ip" => "10.0.0.5"))
+
+      expect(captured["networks"]).to eq([{ "uuid" => "n1", "fixed_ip" => "10.0.0.5" }])
+    end
+
+    it "attaches to a pre-reserved port when the typed fixed IP matches one" do
+      captured = nil
+      allow(test_class).to receive(:nova_create_server) do |payload|
+        captured = payload
+        { "id" => "s1" }
+      end
+      allow(test_class).to receive(:find_instance).with("s1").and_return({ id: "s1" })
+      allow(test_class).to receive(:neutron_fixed_ip_ports).and_return([
+        { "id" => "reserved-1", "fixed_ips" => [{ "ip_address" => "10.0.0.5", "subnet_id" => "s1" }] },
+      ])
+      # A reserved port is consumed as-is — never created, never rolled back.
+      expect(test_class).not_to receive(:neutron_create_port)
+
+      test_class.create_instance(valid_attrs.merge("fixed_ip" => "10.0.0.5"))
+
+      expect(captured["networks"]).to eq([{ "port" => "reserved-1" }])
+    end
+
+    it "falls back to a plain fixed IP when no reserved port matches" do
+      captured = nil
+      allow(test_class).to receive(:nova_create_server) do |payload|
+        captured = payload
+        { "id" => "s1" }
+      end
+      allow(test_class).to receive(:find_instance).with("s1").and_return({ id: "s1" })
+      allow(test_class).to receive(:neutron_fixed_ip_ports).and_return([
+        { "id" => "reserved-1", "fixed_ips" => [{ "ip_address" => "10.0.0.99" }] },
+      ])
 
       test_class.create_instance(valid_attrs.merge("fixed_ip" => "10.0.0.5"))
 

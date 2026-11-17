@@ -84,6 +84,25 @@ RSpec.describe ServiceLayer::ComputeNjqServices::FormOptionsAssembler do
     end
   end
 
+  describe "#form_fixed_ip_ports" do
+    it "maps each reserved port to its id, ip addresses and subnet ids" do
+      allow(test_class).to receive(:neutron_fixed_ip_ports).and_return([
+        { "id" => "p1", "fixed_ips" => [
+          { "ip_address" => "10.0.0.5", "subnet_id" => "s1" },
+          { "ip_address" => "10.0.0.6", "subnet_id" => "s2" },
+        ] },
+      ])
+      expect(test_class.form_fixed_ip_ports).to eq([
+        { id: "p1", ip_addresses: ["10.0.0.5", "10.0.0.6"], subnet_ids: ["s1", "s2"] },
+      ])
+    end
+
+    it "tolerates a port without fixed_ips" do
+      allow(test_class).to receive(:neutron_fixed_ip_ports).and_return([{ "id" => "p2" }])
+      expect(test_class.form_fixed_ip_ports).to eq([{ id: "p2", ip_addresses: [], subnet_ids: [] }])
+    end
+  end
+
   describe "#form_volume_types" do
     it "keeps only premium-prefixed types, mapped to id + name, in order" do
       allow(test_class).to receive(:cinder_volume_types).and_return([

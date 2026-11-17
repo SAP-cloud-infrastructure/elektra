@@ -40,6 +40,18 @@ module ServiceLayer
         elektron_neutron.get("subnets").body["subnets"] || []
       end
 
+      # Name under which a reserved "fixed IP allocation" port is created by the
+      # networking plugin's reserve-IP feature. The create form offers these as
+      # pre-reserved IPs to attach to (mirrors the legacy fixed_ip_ports).
+      FIXED_IP_PORT_NAME = "fixed_ip_allocation"
+
+      # Pre-reserved fixed-IP ports for the project: Neutron ports named
+      # "fixed_ip_allocation". Selecting one attaches the instance to that
+      # existing port instead of asking Nova for a fresh IP.
+      def neutron_fixed_ip_ports
+        elektron_neutron.get("ports", { "name" => FIXED_IP_PORT_NAME }).body["ports"] || []
+      end
+
       # Creates a Neutron port on the given network, optionally pinned to a
       # subnet (the instance then boots attached to this port). Returns the raw
       # port hash. Used for the "advanced network options" boot path.
