@@ -209,6 +209,33 @@
     overflow-y: auto;
   }
 
+  // Quick-filter chips under the search box: a wrapping row of toggleable pills.
+  // Inactive = subtle grey outline; active = primary tint. Kept lightweight so
+  // the dropdown does not feel busy.
+  .searchable-select-facets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+
+  .searchable-select-facet {
+    cursor: pointer;
+    border: 1px solid #ced4da;
+    background-color: transparent;
+    color: #495057;
+    font-weight: 500;
+
+    &:hover {
+      background-color: #f2f3f5;
+    }
+
+    &.active {
+      border-color: #0b5ed7;
+      background-color: #e7f1fb;
+      color: #0b5ed7;
+    }
+  }
+
   // Flavor-Type radio toggle buttons (btn-check + label.btn): standalone
   // buttons, so give each a small right gap instead of letting them butt
   // together like a btn-group.

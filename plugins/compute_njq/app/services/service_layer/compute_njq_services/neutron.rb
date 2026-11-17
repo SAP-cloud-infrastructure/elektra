@@ -32,6 +32,43 @@ module ServiceLayer
       rescue Elektron::Errors::ApiResponse
         nil
       end
+
+      # All subnets visible to the project, as raw hashes. The create form embeds
+      # the whole list and filters it client-side by network_id (like the legacy
+      # form), so this is an unfiltered fetch.
+      def neutron_subnets
+        elektron_neutron.get("subnets").body["subnets"] || []
+      end
+
+      # Name under which a reserved "fixed IP allocation" port is created by the
+      # networking plugin's reserve-IP feature. The create form offers these as
+      # pre-reserved IPs to attach to (mirrors the legacy fixed_ip_ports).
+      FIXED_IP_PORT_NAME = "fixed_ip_allocation"
+
+      # Pre-reserved fixed-IP ports for the project: Neutron ports named
+      # "fixed_ip_allocation". Selecting one attaches the instance to that
+      # existing port instead of asking Nova for a fresh IP.
+      def neutron_fixed_ip_ports
+        elektron_neutron.get("ports", { "name" => FIXED_IP_PORT_NAME }).body["ports"] || []
+      end
+
+      # Creates a Neutron port on the given network, optionally pinned to a
+      # subnet (the instance then boots attached to this port). Returns the raw
+      # port hash. Used for the "advanced network options" boot path.
+      def neutron_create_port(network_id:, subnet_id: nil, security_groups: [])
+        port = { "network_id" => network_id }
+        port["fixed_ips"] = [{ "subnet_id" => subnet_id }] if subnet_id.present?
+        port["security_groups"] = security_groups if security_groups.present?
+        elektron_neutron.post("ports") { { "port" => port } }.body["port"]
+      end
+
+      # Best-effort delete of a port we created, used to roll back when the
+      # subsequent server create fails. Never raises.
+      def neutron_delete_port(id)
+        elektron_neutron.delete("ports/#{id}")
+      rescue Elektron::Errors::ApiResponse
+        nil
+      end
     end
   end
 end

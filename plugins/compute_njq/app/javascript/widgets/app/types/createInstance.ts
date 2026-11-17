@@ -20,6 +20,14 @@ export const CreateInstancePayloadSchema = z.object({
   // from the image instead of booting the image directly.
   custom_root_disk: z.boolean().optional(),
   custom_root_disk_size: z.number().int().positive().optional(),
+  // The root-disk volume type (Cinder type id), required for a disk-less KVM
+  // flavor booted from a new volume; omitted otherwise.
+  volume_type: z.string().optional(),
+  // Advanced network options: a subnet pins the auto-created port to that subnet
+  // (server pre-creates a Neutron port); a fixed IP (without a subnet) is passed
+  // straight through to Nova. Both optional.
+  subnet_id: z.string().optional(),
+  fixed_ip: z.string().optional(),
 })
 
 export type CreateInstancePayload = z.infer<typeof CreateInstancePayloadSchema>

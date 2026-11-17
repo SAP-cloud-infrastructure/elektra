@@ -6,6 +6,10 @@ import { CreateInstanceForm } from "./CreateInstanceForm"
 let flavorData = [
   { id: "f1", name: "m1.small", vcpus: 1, ram: 2048, disk: 20, hypervisor_type: "kvm", is_public: true },
 ]
+let keypairData: { name: string }[] = [{ name: "k1" }]
+let networkData: { id: string; name: string }[] = [{ id: "n1", name: "private" }]
+let volumeData: unknown[] = []
+let subnetData: { id: string; name: string; cidr: string; network_id: string }[] = []
 vi.mock("../../../hooks/useFormOptionQueries", () => ({
   useFlavorsQuery: () => ({ data: flavorData, isLoading: false }),
   useImagesQuery: () => ({
@@ -22,18 +26,24 @@ vi.mock("../../../hooks/useFormOptionQueries", () => ({
           buildnumber: null,
           min_disk: 0,
           size: 1024,
+          created: null,
+          owner: null,
+          owner_label: null,
         },
       ],
+      volumes: volumeData,
     },
     isLoading: false,
   }),
-  useKeypairsQuery: () => ({ data: [{ name: "k1" }], isLoading: false }),
-  useNetworksQuery: () => ({ data: [{ id: "n1", name: "private" }], isLoading: false }),
+  useKeypairsQuery: () => ({ data: keypairData, isLoading: false, isSuccess: true }),
+  useNetworksQuery: () => ({ data: networkData, isLoading: false, isSuccess: true }),
+  useSubnetsQuery: () => ({ data: { subnets: subnetData, fixed_ip_ports: [] }, isLoading: false }),
   useSecurityGroupsQuery: () => ({
     data: [{ id: "sg1", name: "default", project_id: "p1", project_label: "monsoon3/demo" }],
     isLoading: false,
   }),
   useAvailabilityZonesQuery: () => ({ data: [{ name: "az-1" }], isLoading: false }),
+  useVolumeTypesQuery: () => ({ data: [{ id: "vt1", name: "premium" }], isLoading: false }),
 }))
 
 const mutate = vi.fn()
@@ -49,6 +59,23 @@ describe("CreateInstanceForm", () => {
   it("focuses the Name field on open", () => {
     render(<CreateInstanceForm api={api} queryClient={queryClient} onSuccess={vi.fn()} />)
     expect(screen.getByLabelText(/name/i)).toHaveFocus()
+  })
+
+  it("preselects the 'default' security group when one exists", () => {
+    render(<CreateInstanceForm api={api} queryClient={queryClient} onSuccess={vi.fn()} />)
+    // The MultiSelect trigger summarises the current selection by name.
+    expect(screen.getByRole("button", { name: /default/ })).toBeInTheDocument()
+  })
+
+  it("warns when there are no key pairs or networks", () => {
+    keypairData = []
+    networkData = []
+    render(<CreateInstanceForm api={api} queryClient={queryClient} onSuccess={vi.fn()} />)
+    expect(screen.getByText(/no key pairs for your account/i)).toBeInTheDocument()
+    expect(screen.getByText(/no networks available for this project/i)).toBeInTheDocument()
+    // Restore for the other tests.
+    keypairData = [{ name: "k1" }]
+    networkData = [{ id: "n1", name: "private" }]
   })
 
   it("keeps submit disabled until required fields are valid", () => {
@@ -129,6 +156,34 @@ describe("CreateInstanceForm", () => {
     expect(screen.queryByLabelText("Custom root disk")).not.toBeInTheDocument()
   })
 
+  it("shows a Volume Type field defaulted to the first type for a disk-less kvm flavor", () => {
+    mutationState = { mutate, isPending: false, isError: false, error: null }
+    flavorData = [{ id: "f0", name: "no-disk", vcpus: 1, ram: 2048, disk: 0, hypervisor_type: "kvm", is_public: true }]
+    render(<CreateInstanceForm api={api} queryClient={queryClient} onSuccess={vi.fn()} />)
+
+    fireEvent.click(screen.getByRole("radio", { name: "KVM" }))
+    fireEvent.click(screen.getByText("Select a flavor…"))
+    fireEvent.click(screen.getByText(/no-disk/))
+
+    // The Volume Type field appears and is preselected with the first type.
+    expect(screen.getByText("Volume Type")).toBeInTheDocument()
+    expect(screen.getByText("premium")).toBeInTheDocument()
+  })
+
+  it("does not show a Volume Type field for a kvm flavor with a disk", () => {
+    mutationState = { mutate, isPending: false, isError: false, error: null }
+    flavorData = [
+      { id: "f1", name: "m1.small", vcpus: 1, ram: 2048, disk: 20, hypervisor_type: "kvm", is_public: true },
+    ]
+    render(<CreateInstanceForm api={api} queryClient={queryClient} onSuccess={vi.fn()} />)
+
+    fireEvent.click(screen.getByRole("radio", { name: "KVM" }))
+    fireEvent.click(screen.getByText("Select a flavor…"))
+    fireEvent.click(screen.getByText(/m1.small/))
+
+    expect(screen.queryByText("Volume Type")).not.toBeInTheDocument()
+  })
+
   it("does not show a custom root disk control for a flavor with a disk", () => {
     mutationState = { mutate, isPending: false, isError: false, error: null }
     flavorData = [
@@ -183,5 +238,59 @@ describe("CreateInstanceForm", () => {
 
     // The hint names the type and explains the overlap with restriction-less images.
     expect(screen.getByText(/Images for KVM and images without a hypervisor restriction/i)).toBeInTheDocument()
+  })
+
+  it("offers matching bootable volumes and hides custom root disk when one is picked", () => {
+    mutationState = { mutate, isPending: false, isError: false, error: null }
+    flavorData = [
+      { id: "k1", name: "kvm-flavor", vcpus: 1, ram: 2048, disk: 20, hypervisor_type: "kvm", is_public: true },
+    ]
+    volumeData = [
+      {
+        id: "vol1",
+        name: "boot-vol",
+        size: 50,
+        availability_zone: "qa-de-1a",
+        disk_format: "raw",
+        hypervisor_type: "kvm",
+        img_hv_type: null,
+      },
+    ]
+    render(<CreateInstanceForm api={api} queryClient={queryClient} onSuccess={vi.fn()} />)
+
+    fireEvent.click(screen.getByRole("radio", { name: "KVM" }))
+    fireEvent.click(screen.getByText("Select a flavor…"))
+    fireEvent.click(screen.getByText(/kvm-flavor/))
+
+    // A KVM flavor with a disk normally offers the custom-root-disk checkbox.
+    expect(screen.getByLabelText("Custom root disk")).toBeInTheDocument()
+
+    // Open the image picker and choose the bootable volume.
+    fireEvent.click(screen.getByText("Select an image or bootable volume…"))
+    fireEvent.click(screen.getByText(/boot-vol/))
+
+    // Selecting a volume removes the custom-root-disk control (mutual exclusion).
+    expect(screen.queryByLabelText("Custom root disk")).not.toBeInTheDocument()
+
+    volumeData = []
+  })
+
+  it("reveals subnet and fixed IP fields under the advanced network toggle", () => {
+    mutationState = { mutate, isPending: false, isError: false, error: null }
+    subnetData = [{ id: "sub1", name: "sub-a", cidr: "10.0.0.0/24", network_id: "n1" }]
+    render(<CreateInstanceForm api={api} queryClient={queryClient} onSuccess={vi.fn()} />)
+
+    // Advanced fields are hidden until the toggle is used.
+    expect(screen.queryByText("Subnet")).not.toBeInTheDocument()
+    expect(screen.queryByText("Server Fixed IP")).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("button", { name: /advanced network options/i }))
+
+    expect(screen.getByText("Subnet")).toBeInTheDocument()
+    expect(screen.getByText("Server Fixed IP")).toBeInTheDocument()
+    // The advanced section carries the legacy port-cleanup warning.
+    expect(screen.getByText(/not deleted when the server is deleted/i)).toBeInTheDocument()
+
+    subnetData = []
   })
 })

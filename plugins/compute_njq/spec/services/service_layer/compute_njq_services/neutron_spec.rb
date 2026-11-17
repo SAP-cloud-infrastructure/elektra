@@ -50,4 +50,66 @@ RSpec.describe ServiceLayer::ComputeNjqServices::Neutron do
       expect(test_class.neutron_security_groups).to eq([{ "id" => "sg1", "name" => "default" }])
     end
   end
+
+  describe "#neutron_subnets" do
+    it "returns all subnets" do
+      allow(elektron_neutron).to receive(:get).with("subnets").and_return(
+        double("response", body: { "subnets" => [{ "id" => "s1", "cidr" => "10.0.0.0/24" }] }),
+      )
+      expect(test_class.neutron_subnets).to eq([{ "id" => "s1", "cidr" => "10.0.0.0/24" }])
+    end
+  end
+
+  describe "#neutron_fixed_ip_ports" do
+    it "fetches ports named fixed_ip_allocation" do
+      allow(elektron_neutron).to receive(:get).with("ports", { "name" => "fixed_ip_allocation" }).and_return(
+        double("response", body: { "ports" => [{ "id" => "p1" }] }),
+      )
+      expect(test_class.neutron_fixed_ip_ports).to eq([{ "id" => "p1" }])
+    end
+  end
+
+  describe "#neutron_create_port" do
+    it "posts a port with network, subnet fixed_ip and security groups" do
+      captured = nil
+      allow(elektron_neutron).to receive(:post).with("ports") do |&blk|
+        captured = blk.call
+        double("response", body: { "port" => { "id" => "p1" } })
+      end
+
+      result = test_class.neutron_create_port(network_id: "n1", subnet_id: "s1", security_groups: ["sg1"])
+
+      expect(result).to eq({ "id" => "p1" })
+      expect(captured).to eq({
+        "port" => {
+          "network_id" => "n1",
+          "fixed_ips" => [{ "subnet_id" => "s1" }],
+          "security_groups" => ["sg1"],
+        },
+      })
+    end
+
+    it "omits fixed_ips and security_groups when not provided" do
+      captured = nil
+      allow(elektron_neutron).to receive(:post).with("ports") do |&blk|
+        captured = blk.call
+        double("response", body: { "port" => { "id" => "p2" } })
+      end
+
+      test_class.neutron_create_port(network_id: "n1")
+      expect(captured).to eq({ "port" => { "network_id" => "n1" } })
+    end
+  end
+
+  describe "#neutron_delete_port" do
+    it "deletes the port and swallows API errors" do
+      expect(elektron_neutron).to receive(:delete).with("ports/p1")
+      test_class.neutron_delete_port("p1")
+
+      allow(elektron_neutron).to receive(:delete).with("ports/bad").and_raise(
+        Elektron::Errors::ApiResponse.new(double(code: 404, body: {})),
+      )
+      expect { test_class.neutron_delete_port("bad") }.not_to raise_error
+    end
+  end
 end

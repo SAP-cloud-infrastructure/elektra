@@ -35,14 +35,54 @@ module ServiceLayer
         nova_keypairs.map { |k| { name: k["name"] } }
       end
 
+      # Available AZs, sorted by name descending (mirrors the legacy
+      # sort_by!(&:zoneName).reverse!). No preferred-AZ heuristic and no
+      # preselection — the UI leaves the choice to the user ("Any AZ").
       def form_availability_zones
         nova_availability_zones
           .select { |az| az.dig("zoneState", "available") }
           .map { |az| { name: az["zoneName"] } }
+          .sort_by { |az| az[:name] }
+          .reverse
       end
 
       def form_networks
         neutron_networks.map { |n| { id: n["id"], name: n["name"] } }
+      end
+
+      # Subnets for the advanced network options, shaped for the UI. The whole
+      # list is returned; the form filters it client-side by network_id. cidr is
+      # shown in the label so the user can pick the right subnet.
+      def form_subnets
+        neutron_subnets.map do |s|
+          { id: s["id"], name: s["name"], cidr: s["cidr"], network_id: s["network_id"] }
+        end
+      end
+
+      # Pre-reserved fixed-IP ports, shaped for the advanced network options. Each
+      # carries its reserved IPs and their subnets so the UI can offer them as
+      # fixed-IP suggestions (filtered by the chosen subnet) and the create path
+      # can attach the instance to the matching port.
+      def form_fixed_ip_ports
+        neutron_fixed_ip_ports.map do |p|
+          fixed = Array(p["fixed_ips"])
+          {
+            id: p["id"],
+            ip_addresses: fixed.map { |f| f["ip_address"] }.compact,
+            subnet_ids: fixed.map { |f| f["subnet_id"] }.compact,
+          }
+        end
+      end
+
+      # Root-disk volume types offered when booting a disk-less KVM flavor from a
+      # new volume. Mirrors the legacy render_available_volume_types(..., "premium")
+      # helper: only types whose name starts with "premium" (the bootable root
+      # volume tier), in Cinder's returned order. The UI submits the type id.
+      VOLUME_TYPE_PREFIX = "premium"
+      def form_volume_types
+        cinder_volume_types
+          .select { |vt| vt["name"].to_s.start_with?(VOLUME_TYPE_PREFIX) }
+          .map { |vt| { id: vt["id"], name: vt["name"] } }
       end
 
       # Security groups carry their owning project so the UI can group them (the
@@ -131,7 +171,29 @@ module ServiceLayer
           }
         end
 
-        { images: images }
+        # Bootable volumes can also serve as a boot source; they ride along in the
+        # same payload so the UI can offer them as a dedicated group in the image
+        # picker (and the create path resolves an id to a volume vs an image).
+        { images: images, volumes: form_bootable_volumes }
+      end
+
+      # Bootable volumes shaped for the image picker. The UI groups these under a
+      # "Bootable Volumes" heading and couples them to the selected flavor's
+      # hypervisor via the volume's image metadata (hypervisor_type/img_hv_type),
+      # exactly like the legacy grouped_images volume items.
+      def form_bootable_volumes
+        cinder_bootable_volumes.map do |v|
+          meta = v["volume_image_metadata"] || {}
+          {
+            id: v["id"],
+            name: v["name"].presence || v["id"],
+            size: v["size"],
+            availability_zone: v["availability_zone"],
+            disk_format: meta["disk_format"],
+            hypervisor_type: meta["hypervisor_type"],
+            img_hv_type: meta["img_hv_type"],
+          }
+        end
       end
     end
   end

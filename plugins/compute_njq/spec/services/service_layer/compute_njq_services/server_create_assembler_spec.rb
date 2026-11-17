@@ -22,6 +22,14 @@ RSpec.describe ServiceLayer::ComputeNjqServices::ServerCreateAssembler do
   end
 
   describe "#create_instance" do
+    # By default the submitted image_id is a Glance image, not a volume.
+    before do
+      allow(test_class).to receive(:cinder_volume).and_return(nil)
+      allow(test_class).to receive(:glance_image).and_return({ "name" => "ubuntu", "buildnumber" => "42" })
+      # No pre-reserved fixed-IP ports unless a test says otherwise.
+      allow(test_class).to receive(:neutron_fixed_ip_ports).and_return([])
+    end
+
     it "builds the Nova payload and posts it, returning the UI-shaped instance" do
       captured = nil
       allow(test_class).to receive(:nova_create_server) do |payload|
@@ -108,6 +116,34 @@ RSpec.describe ServiceLayer::ComputeNjqServices::ServerCreateAssembler do
       }])
     end
 
+    it "includes the volume_type in the block device mapping when provided" do
+      captured = nil
+      allow(test_class).to receive(:nova_create_server) do |payload|
+        captured = payload
+        { "id" => "s1" }
+      end
+      allow(test_class).to receive(:find_instance).with("s1").and_return({ id: "s1" })
+
+      test_class.create_instance(
+        valid_attrs.merge("custom_root_disk" => "1", "custom_root_disk_size" => "64", "volume_type" => "vt1"),
+      )
+
+      expect(captured["block_device_mapping_v2"].first).to include("volume_type" => "vt1")
+    end
+
+    it "omits volume_type from the block device mapping when blank" do
+      captured = nil
+      allow(test_class).to receive(:nova_create_server) do |payload|
+        captured = payload
+        { "id" => "s1" }
+      end
+      allow(test_class).to receive(:find_instance).with("s1").and_return({ id: "s1" })
+
+      test_class.create_instance(valid_attrs.merge("custom_root_disk" => "1", "custom_root_disk_size" => "64"))
+
+      expect(captured["block_device_mapping_v2"].first).not_to have_key("volume_type")
+    end
+
     it "keeps imageRef and omits block_device_mapping_v2 without custom_root_disk" do
       captured = nil
       allow(test_class).to receive(:nova_create_server) do |payload|
@@ -119,6 +155,151 @@ RSpec.describe ServiceLayer::ComputeNjqServices::ServerCreateAssembler do
       test_class.create_instance(valid_attrs)
       expect(captured["imageRef"]).to eq("i1")
       expect(captured).not_to have_key("block_device_mapping_v2")
+    end
+
+    it "attaches image_name and build number metadata on a plain image boot" do
+      captured = nil
+      allow(test_class).to receive(:nova_create_server) do |payload|
+        captured = payload
+        { "id" => "s1" }
+      end
+      allow(test_class).to receive(:find_instance).with("s1").and_return({ id: "s1" })
+      allow(test_class).to receive(:glance_image).with("i1").and_return(
+        { "name" => "ubuntu-24.04", "buildnumber" => "7" },
+      )
+
+      test_class.create_instance(valid_attrs)
+
+      expect(captured["metadata"]).to eq({ "image_name" => "ubuntu-24.04", "image_buildnumber" => "7" })
+    end
+
+    it "omits metadata when the image cannot be resolved on a plain image boot" do
+      captured = nil
+      allow(test_class).to receive(:nova_create_server) do |payload|
+        captured = payload
+        { "id" => "s1" }
+      end
+      allow(test_class).to receive(:find_instance).with("s1").and_return({ id: "s1" })
+      allow(test_class).to receive(:glance_image).with("i1").and_return(nil)
+
+      test_class.create_instance(valid_attrs)
+
+      expect(captured).not_to have_key("metadata")
+    end
+
+    it "boots from an existing bootable volume when the image_id resolves to a volume" do
+      captured = nil
+      allow(test_class).to receive(:nova_create_server) do |payload|
+        captured = payload
+        { "id" => "s1" }
+      end
+      allow(test_class).to receive(:find_instance).with("s1").and_return({ id: "s1" })
+      allow(test_class).to receive(:cinder_volume).with("i1").and_return(
+        { "id" => "i1", "volume_image_metadata" => { "hypervisor_type" => "kvm" } },
+      )
+
+      test_class.create_instance(valid_attrs)
+
+      expect(captured).not_to have_key("imageRef")
+      expect(captured["block_device_mapping_v2"]).to eq([{
+        "boot_index" => 0,
+        "uuid" => "i1",
+        "source_type" => "volume",
+        "destination_type" => "volume",
+        "delete_on_termination" => false,
+      }])
+      expect(captured["metadata"]).to eq({ "hypervisor_type" => "kvm" })
+    end
+
+    it "does not probe for a volume when custom_root_disk is set (image boot wins)" do
+      captured = nil
+      allow(test_class).to receive(:nova_create_server) do |payload|
+        captured = payload
+        { "id" => "s1" }
+      end
+      allow(test_class).to receive(:find_instance).with("s1").and_return({ id: "s1" })
+      # Even if the id happened to be a volume, custom_root_disk gating skips the probe.
+      allow(test_class).to receive(:cinder_volume).and_raise("cinder_volume must not be called")
+
+      test_class.create_instance(valid_attrs.merge("custom_root_disk" => "1", "custom_root_disk_size" => "64"))
+
+      expect(captured["block_device_mapping_v2"].first["source_type"]).to eq("image")
+    end
+
+    it "passes a fixed_ip through on the network entry (no subnet, no port)" do
+      captured = nil
+      allow(test_class).to receive(:nova_create_server) do |payload|
+        captured = payload
+        { "id" => "s1" }
+      end
+      allow(test_class).to receive(:find_instance).with("s1").and_return({ id: "s1" })
+      expect(test_class).not_to receive(:neutron_create_port)
+
+      test_class.create_instance(valid_attrs.merge("fixed_ip" => "10.0.0.5"))
+
+      expect(captured["networks"]).to eq([{ "uuid" => "n1", "fixed_ip" => "10.0.0.5" }])
+    end
+
+    it "attaches to a pre-reserved port when the typed fixed IP matches one" do
+      captured = nil
+      allow(test_class).to receive(:nova_create_server) do |payload|
+        captured = payload
+        { "id" => "s1" }
+      end
+      allow(test_class).to receive(:find_instance).with("s1").and_return({ id: "s1" })
+      allow(test_class).to receive(:neutron_fixed_ip_ports).and_return([
+        { "id" => "reserved-1", "fixed_ips" => [{ "ip_address" => "10.0.0.5", "subnet_id" => "s1" }] },
+      ])
+      # A reserved port is consumed as-is — never created, never rolled back.
+      expect(test_class).not_to receive(:neutron_create_port)
+
+      test_class.create_instance(valid_attrs.merge("fixed_ip" => "10.0.0.5"))
+
+      expect(captured["networks"]).to eq([{ "port" => "reserved-1" }])
+    end
+
+    it "falls back to a plain fixed IP when no reserved port matches" do
+      captured = nil
+      allow(test_class).to receive(:nova_create_server) do |payload|
+        captured = payload
+        { "id" => "s1" }
+      end
+      allow(test_class).to receive(:find_instance).with("s1").and_return({ id: "s1" })
+      allow(test_class).to receive(:neutron_fixed_ip_ports).and_return([
+        { "id" => "reserved-1", "fixed_ips" => [{ "ip_address" => "10.0.0.99" }] },
+      ])
+
+      test_class.create_instance(valid_attrs.merge("fixed_ip" => "10.0.0.5"))
+
+      expect(captured["networks"]).to eq([{ "uuid" => "n1", "fixed_ip" => "10.0.0.5" }])
+    end
+
+    it "pre-creates a port and attaches it when a subnet is chosen" do
+      captured = nil
+      allow(test_class).to receive(:nova_create_server) do |payload|
+        captured = payload
+        { "id" => "s1" }
+      end
+      allow(test_class).to receive(:find_instance).with("s1").and_return({ id: "s1" })
+      expect(test_class).to receive(:neutron_create_port).with(
+        network_id: "n1", subnet_id: "sub1", security_groups: ["default"]
+      ).and_return({ "id" => "port-1" })
+
+      test_class.create_instance(valid_attrs.merge("subnet_id" => "sub1"))
+
+      expect(captured["networks"]).to eq([{ "port" => "port-1" }])
+    end
+
+    it "rolls back a created port when the server create fails" do
+      allow(test_class).to receive(:neutron_create_port).and_return({ "id" => "port-1" })
+      allow(test_class).to receive(:nova_create_server).and_raise(
+        Elektron::Errors::ApiResponse.new(double(code: 403, body: { "message" => "quota" })),
+      )
+      expect(test_class).to receive(:neutron_delete_port).with("port-1")
+
+      expect do
+        test_class.create_instance(valid_attrs.merge("subnet_id" => "sub1"))
+      end.to raise_error(Elektron::Errors::ApiResponse)
     end
   end
 end

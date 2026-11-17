@@ -4,7 +4,7 @@ import { ComputeApi } from "../../../apiClient"
 import { SearchableSelect } from "./SearchableSelect"
 import { MultiSelect } from "lib/components/MultiSelect"
 import { FlavorTypeTabs } from "./FlavorTypeTabs"
-import { groupFlavorsByAccess, flavorLabel } from "./flavorGrouping"
+import { groupFlavorsByAccess, flavorLabel, flavorSizeFacets } from "./flavorGrouping"
 import { groupSecurityGroupsByProject } from "./securityGroupGrouping"
 import {
   FlavorTypeTab,
@@ -12,10 +12,10 @@ import {
   FLAVOR_TYPE_LABELS,
   flavorInTab,
   tabHypervisor,
-  groupImages,
-  imageLabel,
 } from "./imageGrouping"
-import { rootDiskMode, rootDiskSizeError, DEFAULT_ROOT_DISK_SIZE } from "./rootDisk"
+import { bootSourceOptions, groupBootSources, bootSourceLabel, bootSourceValue, isVolumeId, fitsFlavorFacet } from "./bootSource"
+import { osFamilyFacets } from "./osFamily"
+import { rootDiskMode, rootDiskSizeError, volumeTypeRequired, DEFAULT_ROOT_DISK_SIZE } from "./rootDisk"
 import { CreateInstancePayloadSchema, CreateInstancePayload } from "../../../types/createInstance"
 import { useCreateInstanceMutation } from "../../../hooks/useCreateInstanceMutation"
 import {
@@ -23,8 +23,10 @@ import {
   useImagesQuery,
   useKeypairsQuery,
   useNetworksQuery,
+  useSubnetsQuery,
   useSecurityGroupsQuery,
   useAvailabilityZonesQuery,
+  useVolumeTypesQuery,
 } from "../../../hooks/useFormOptionQueries"
 
 interface Props {
@@ -50,6 +52,7 @@ function FormRow({
   htmlFor,
   required,
   hint,
+  warning,
   error,
   children,
 }: {
@@ -57,6 +60,7 @@ function FormRow({
   htmlFor?: string
   required?: boolean
   hint?: ReactNode
+  warning?: ReactNode
   error?: string
   children: ReactNode
 }) {
@@ -68,6 +72,11 @@ function FormRow({
       <div className="col-sm-8">
         <div className="input-wrapper">{children}</div>
         {error && <span className="invalid-feedback d-block">{error}</span>}
+        {warning && (
+          <div className="alert alert-warning mt-2 mb-0 py-2 px-3" role="alert">
+            {warning}
+          </div>
+        )}
         {hint && (
           <p className="form-text">
             {/* A textual hint gets the legacy info-circle marker; a node hint
@@ -98,6 +107,8 @@ const EMPTY = {
   network_id: "",
   security_groups: [] as string[],
   user_data: "",
+  subnet_id: "",
+  fixed_ip: "",
 }
 
 export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, formId, onStatusChange }: Props) {
@@ -107,6 +118,8 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
   const [flavorType, setFlavorType] = useState<FlavorTypeTab | null>(null)
   const [customRootDisk, setCustomRootDisk] = useState(false)
   const [rootDiskSize, setRootDiskSize] = useState("")
+  const [volumeType, setVolumeType] = useState("")
+  const [showAdvancedNetwork, setShowAdvancedNetwork] = useState(false)
 
   // Focus the Name field when the dialog opens, so the user can start typing
   // immediately (mirrors the legacy form's autofocus).
@@ -124,9 +137,13 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
   const images = useImagesQuery(api, { enabled: !!opened.image })
   const keypairs = useKeypairsQuery(api, { enabled: !!opened.keypair })
   const networks = useNetworksQuery(api, { enabled: !!opened.network })
-  // Lazy like the other dropdown fields: the MultiSelect fires onOpen on first
-  // open, which flips `opened.secgroup` and enables the query.
-  const securityGroups = useSecurityGroupsQuery(api, { enabled: !!opened.secgroup })
+  // Subnets back the advanced network options; load them only once that section
+  // is opened. The whole list is fetched and filtered client-side by network.
+  const subnets = useSubnetsQuery(api, { enabled: showAdvancedNetwork })
+  // Eager: the "default" security group is preselected on open, which requires
+  // the list to be present without waiting for the dropdown to be opened. The
+  // list is small, so the upfront request is cheap.
+  const securityGroups = useSecurityGroupsQuery(api, { enabled: true })
   const azs = useAvailabilityZonesQuery(api, { enabled: !!opened.az })
 
   // Type-first selection: a hypervisor type narrows both the flavor list and the
@@ -138,6 +155,36 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
 
   const selectedFlavor = allFlavors.find((f) => f.id === form.flavor_id)
   const mode = rootDiskMode(selectedFlavor)
+  // The combined boot-source list (images + matching bootable volumes).
+  const bootVolumes = images.data?.volumes ?? []
+  const bootSources = bootSourceOptions(images.data?.images ?? [], bootVolumes, hv)
+  // Root disk available to boot an image from: the custom root-disk size when
+  // one is in effect, otherwise the flavor's own disk. Drives the "Fits this
+  // flavor" facet (an image whose min_disk exceeds this would fail to launch).
+  const bootDiskGb =
+    mode === "forced" || (mode === "optional" && customRootDisk) ? Number(rootDiskSize) || 0 : (selectedFlavor?.disk ?? 0)
+  // Offer the "Fits this flavor" facet only when we know the disk size (so the
+  // pill actually does something); SearchableSelect further hides it if no image
+  // would be excluded.
+  const bootSourceFacets = [
+    ...osFamilyFacets(bootSources),
+    ...(bootDiskGb > 0 ? [fitsFlavorFacet(bootDiskGb)] : []),
+  ]
+  const bootSourceSelected = isVolumeId(form.image_id || null, bootVolumes) ? "volume" : "image"
+  // Subnets belonging to the selected network (client-side filter, like legacy).
+  const subnetsForNetwork = (subnets.data?.subnets ?? []).filter((s) => s.network_id === form.network_id)
+  // Reserved fixed-IP addresses available for the chosen subnet (or all when no
+  // subnet is picked), offered as datalist suggestions for the fixed-IP field.
+  const reservedIps = (() => {
+    const ports = subnets.data?.fixed_ip_ports ?? []
+    const matching = form.subnet_id ? ports.filter((p) => p.subnet_ids.includes(form.subnet_id)) : ports
+    return [...new Set(matching.flatMap((p) => p.ip_addresses))].sort()
+  })()
+  // A disk-less KVM flavor must boot from a new premium volume, so it needs a
+  // volume type; load the (small) premium list only when that applies. A
+  // selected bootable volume boots from itself, so no new root volume / type.
+  const needsVolumeType = volumeTypeRequired(selectedFlavor) && bootSourceSelected !== "volume"
+  const volumeTypes = useVolumeTypesQuery(api, { enabled: needsVolumeType })
 
   // Reconcile the root-disk state whenever the flavor changes: a disk-less
   // flavor forces the disk on with a prefilled size; otherwise reset it.
@@ -150,6 +197,31 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
       setRootDiskSize("")
     }
   }, [form.flavor_id, mode])
+
+  // Default the volume type to the first premium type (legacy preselected index
+  // 1) once the list loads and the field is relevant; clear it when it is not.
+  const availableVolumeTypes = volumeTypes.data ?? []
+  useEffect(() => {
+    if (!needsVolumeType) {
+      setVolumeType("")
+      return
+    }
+    setVolumeType((prev) => (prev === "" && availableVolumeTypes.length > 0 ? availableVolumeTypes[0].id : prev))
+  }, [needsVolumeType, availableVolumeTypes])
+
+  // Preselect the "default" security group once, when the list first loads and
+  // the user has not picked any yet (mirrors the legacy controller). The guard
+  // keeps a later deselection from re-adding it.
+  const securityGroupsData = securityGroups.data
+  const defaultSgApplied = useRef(false)
+  useEffect(() => {
+    if (defaultSgApplied.current || !securityGroupsData) return
+    const hasDefault = securityGroupsData.some((sg) => sg.name === "default")
+    if (hasDefault && form.security_groups.length === 0) {
+      set("security_groups", ["default"])
+    }
+    defaultSgApplied.current = true
+  }, [securityGroupsData, form.security_groups])
 
   // Switching type invalidates the picked flavor (and thus the image), which may
   // belong to a different type.
@@ -165,8 +237,20 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
     set("image_id", "")
   }
 
-  const rootDiskActive = mode === "forced" || (mode === "optional" && customRootDisk)
+  // Switching network invalidates a previously picked subnet (subnets belong to
+  // a specific network) and the fixed IP.
+  const onNetworkChange = (value: string) => {
+    setForm((f) => ({ ...f, network_id: value, subnet_id: "", fixed_ip: "" }))
+  }
+
+  // A bootable volume boots from itself, so the custom root disk is mutually
+  // exclusive with it (legacy handleImageSelection hides it on volume select).
+  const rootDiskActive =
+    bootSourceSelected !== "volume" && (mode === "forced" || (mode === "optional" && customRootDisk))
   const sizeError = rootDiskActive ? rootDiskSizeError(rootDiskSize) : undefined
+  // A required volume type that has not been picked blocks submit (legacy
+  // checkKvmVolumeType). Only applies to disk-less KVM flavors.
+  const volumeTypeMissing = needsVolumeType && volumeType === ""
 
   const mutation = useCreateInstanceMutation(api, queryClient)
 
@@ -176,18 +260,28 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
 
   // Report the submit-ability + pending state up so the modal footer (which
   // owns the buttons) can enable/disable the primary action and show progress.
-  const canSubmit = parsed.success && !sizeError
+  const canSubmit = parsed.success && !sizeError && !volumeTypeMissing
   useEffect(() => {
     onStatusChange?.({ canSubmit, isPending: mutation.isPending })
   }, [canSubmit, mutation.isPending, onStatusChange])
 
+  // Guidance when the (lazily loaded) list turns out empty, mirroring the legacy
+  // form's warnings. Shown only once the query has resolved with no entries.
+  const noKeypairs = keypairs.isSuccess && (keypairs.data?.length ?? 0) === 0
+  const noNetworks = networks.isSuccess && (networks.data?.length ?? 0) === 0
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!parsed.success || sizeError) return
+    if (!parsed.success || sizeError || volumeTypeMissing) return
     const payload: CreateInstancePayload = {
       ...parsed.data,
       custom_root_disk: rootDiskActive,
       custom_root_disk_size: rootDiskActive ? Number(rootDiskSize) : undefined,
+      // Only a disk-less KVM flavor submits a volume type (legacy behaviour).
+      volume_type: needsVolumeType ? volumeType : undefined,
+      // Advanced network options are only sent when non-empty.
+      subnet_id: form.subnet_id || undefined,
+      fixed_ip: form.fixed_ip || undefined,
     }
     mutation.mutate(payload, { onSuccess })
   }
@@ -232,6 +326,7 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
             getLabel={flavorLabel}
             getValue={(f) => f.id}
             getGroups={groupFlavorsByAccess}
+            facets={flavorSizeFacets(flavorsInType)}
             isLoading={flavors.isLoading}
             placeholder="Select a flavor…"
             emptyMessage="No flavors available"
@@ -247,25 +342,26 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
             hint={
               flavorType === "other"
                 ? "All images are shown; this flavor type has no hypervisor restriction."
-                : `Images for ${FLAVOR_TYPE_LABELS[flavorType!]} and images without a hypervisor restriction (these run on any hypervisor).`
+                : `Images for ${FLAVOR_TYPE_LABELS[flavorType!]} and images without a hypervisor restriction (these run on any hypervisor). Bootable volumes for this type are listed first.`
             }
           >
             <SearchableSelect
-              options={images.data?.images ?? []}
+              options={bootSources}
               value={form.image_id || null}
               onChange={(v) => set("image_id", v)}
-              getLabel={imageLabel}
-              getValue={(i) => i.id}
-              getGroups={(imgs) => groupImages(imgs, hv)}
+              getLabel={bootSourceLabel}
+              getValue={bootSourceValue}
+              getGroups={(opts) => groupBootSources(opts, hv)}
+              facets={bootSourceFacets}
               isLoading={images.isLoading}
-              placeholder="Select an image…"
+              placeholder="Select an image or bootable volume…"
               emptyMessage="No images found"
             />
           </FormRow>
         </div>
       )}
 
-      {mode === "optional" && (
+      {mode === "optional" && bootSourceSelected !== "volume" && (
         <FormRow label="Custom Root Disk">
           <div className="form-check">
             <input
@@ -294,6 +390,25 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
         </FormRow>
       )}
 
+      {needsVolumeType && (
+        <FormRow
+          label="Volume Type"
+          required
+          hint="Disk-less KVM flavors boot from a new root volume; choose its volume type."
+        >
+          <SearchableSelect
+            options={availableVolumeTypes}
+            value={volumeType || null}
+            onChange={setVolumeType}
+            getLabel={(vt) => vt.name}
+            getValue={(vt) => vt.id}
+            isLoading={volumeTypes.isLoading}
+            placeholder="Select a volume type…"
+            emptyMessage="No volume types available"
+          />
+        </FormRow>
+      )}
+
       <div onClick={() => open("az")}>
         <FormRow label="Availability Zone">
           <SearchableSelect
@@ -302,6 +417,7 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
             onChange={(v) => set("availability_zone", v)}
             getLabel={(z) => z.name}
             getValue={(z) => z.name}
+            preserveOrder
             isLoading={azs.isLoading}
             placeholder="Any availability zone…"
             emptyMessage="No availability zones"
@@ -312,7 +428,15 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
       <SectionGap />
 
       <div onClick={() => open("keypair")}>
-        <FormRow label="Key Pair" required>
+        <FormRow
+          label="Key Pair"
+          required
+          warning={
+            noKeypairs
+              ? "There are no key pairs for your account. Without a key pair you cannot reach the server via SSH."
+              : undefined
+          }
+        >
           <SearchableSelect
             options={keypairs.data ?? []}
             value={form.keypair || null}
@@ -327,11 +451,15 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
       </div>
 
       <div onClick={() => open("network")}>
-        <FormRow label="Network" required>
+        <FormRow
+          label="Network"
+          required
+          warning={noNetworks ? "There are no networks available for this project." : undefined}
+        >
           <SearchableSelect
             options={networks.data ?? []}
             value={form.network_id || null}
-            onChange={(v) => set("network_id", v)}
+            onChange={onNetworkChange}
             getLabel={(n) => n.name ?? n.id}
             getValue={(n) => n.id}
             isLoading={networks.isLoading}
@@ -341,6 +469,82 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
         </FormRow>
       </div>
 
+      <div className="row mb-3">
+        <div className="col-sm-4" />
+        <div className="col-sm-8">
+          <button
+            type="button"
+            className="btn btn-link p-0"
+            aria-expanded={showAdvancedNetwork}
+            onClick={() => setShowAdvancedNetwork((v) => !v)}
+          >
+            {showAdvancedNetwork ? "Hide" : "Show"} advanced network options
+          </button>
+        </div>
+      </div>
+
+      {showAdvancedNetwork && (
+        <>
+          <div className="row mb-3">
+            <div className="col-sm-4" />
+            <div className="col-sm-8">
+              <p className="text-muted mb-2">
+                These optional settings are for advanced use cases that need more control over the instance's network
+                configuration. To offer them we create a port first (in the selected subnet or with the selected fixed
+                IP) and attach it to the instance at creation time. Please read the warning below carefully.
+              </p>
+              <div className="alert alert-warning py-2 px-3" role="alert">
+                <strong>Warning:</strong> Ports created this way are not deleted when the server is deleted, and floating
+                IPs attached to them are not released automatically. Only use these options when necessary, and remember
+                to clean up the ports manually afterwards.
+              </div>
+            </div>
+          </div>
+
+          <FormRow
+            label="Subnet"
+            hint="Pick the subnet the fixed IP is chosen from. Leave empty to let any subnet be used."
+          >
+            <SearchableSelect
+              options={subnetsForNetwork}
+              value={form.subnet_id || null}
+              onChange={(v) => set("subnet_id", v)}
+              getLabel={(s) => `${s.name ?? s.id}${s.cidr ? ` (${s.cidr})` : ""}`}
+              getValue={(s) => s.id}
+              isLoading={subnets.isLoading}
+              placeholder={form.network_id ? "Choose a subnet…" : "Choose a network first"}
+              emptyMessage="No subnets for this network"
+            />
+          </FormRow>
+
+          <FormRow
+            label="Server Fixed IP"
+            htmlFor="ci-fixed-ip"
+            hint={
+              reservedIps.length > 0
+                ? "Type a fixed IP or pick a previously reserved one; leave empty to let DHCP assign one."
+                : "Type a fixed IP, or leave empty to let DHCP assign one."
+            }
+          >
+            <input
+              id="ci-fixed-ip"
+              type="text"
+              className="form-control"
+              list="ci-fixed-ip-reserved"
+              value={form.fixed_ip}
+              onChange={(e) => set("fixed_ip", e.target.value)}
+            />
+            {/* Reserved fixed-IP addresses surface as native datalist options; a
+                typed value matching one makes the server attach to that port. */}
+            <datalist id="ci-fixed-ip-reserved">
+              {reservedIps.map((ip) => (
+                <option key={ip} value={ip} />
+              ))}
+            </datalist>
+          </FormRow>
+        </>
+      )}
+
       <FormRow label="Security Groups">
         <MultiSelect
           options={securityGroups.data ?? []}
@@ -349,7 +553,6 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
           getLabel={(sg) => sg.name}
           getValue={(sg) => sg.name}
           getGroups={groupSecurityGroupsByProject}
-          onOpen={() => open("secgroup")}
           isLoading={securityGroups.isLoading}
           placeholder="Select security groups…"
           emptyMessage="No security groups available"

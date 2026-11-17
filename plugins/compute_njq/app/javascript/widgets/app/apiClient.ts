@@ -13,8 +13,10 @@ import {
   ImagesResponseSchema,
   KeypairsResponseSchema,
   NetworksResponseSchema,
+  SubnetsResponseSchema,
   SecurityGroupsResponseSchema,
   AvailabilityZonesResponseSchema,
+  VolumeTypesResponseSchema,
 } from "./types/formOptions"
 import { CreateInstancePayload } from "./types/createInstance"
 
@@ -131,6 +133,11 @@ export function createComputeApi(basepath: string) {
         checkForApiError(res.data)
         return parseOrThrow(NetworksResponseSchema, res.data, "networks").networks
       }),
+    getSubnets: () =>
+      apiClient.get<{ data: unknown }>("form_options/subnets").then((res) => {
+        checkForApiError(res.data)
+        return parseOrThrow(SubnetsResponseSchema, res.data, "subnets")
+      }),
     getSecurityGroups: () =>
       apiClient.get<{ data: unknown }>("form_options/security_groups").then((res) => {
         checkForApiError(res.data)
@@ -140,6 +147,11 @@ export function createComputeApi(basepath: string) {
       apiClient.get<{ data: unknown }>("form_options/availability_zones").then((res) => {
         checkForApiError(res.data)
         return parseOrThrow(AvailabilityZonesResponseSchema, res.data, "availability_zones").availability_zones
+      }),
+    getVolumeTypes: () =>
+      apiClient.get<{ data: unknown }>("form_options/volume_types").then((res) => {
+        checkForApiError(res.data)
+        return parseOrThrow(VolumeTypesResponseSchema, res.data, "volume_types").volume_types
       }),
   }
 

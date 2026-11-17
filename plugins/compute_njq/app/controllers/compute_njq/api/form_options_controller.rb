@@ -18,12 +18,20 @@ module ComputeNjq
         handle_api_call { { networks: compute_service.form_networks } }
       end
 
+      def subnets
+        handle_api_call { { subnets: compute_service.form_subnets, fixed_ip_ports: compute_service.form_fixed_ip_ports } }
+      end
+
       def security_groups
         handle_api_call { { security_groups: compute_service.form_security_groups } }
       end
 
       def availability_zones
         handle_api_call { { availability_zones: compute_service.form_availability_zones } }
+      end
+
+      def volume_types
+        handle_api_call { { volume_types: compute_service.form_volume_types } }
       end
 
       def images

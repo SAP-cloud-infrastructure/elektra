@@ -54,6 +54,14 @@ describe("SearchableSelect", () => {
     expect(rendered).toEqual(["debian", "ubuntu"])
   })
 
+  it("keeps the given order when preserveOrder is set", () => {
+    render(<SearchableSelect {...common} onChange={vi.fn()} preserveOrder />)
+    fireEvent.click(screen.getByText("Select…"))
+    const rendered = screen.getAllByRole("option").map((el) => el.textContent)
+    // preserveOrder keeps the input order ["ubuntu", "debian"].
+    expect(rendered).toEqual(["ubuntu", "debian"])
+  })
+
   it("keeps grouped options in the order the grouping function returns", () => {
     const getGroups = (opts: typeof options) => [{ label: "distros", options: opts }]
     render(<SearchableSelect {...common} onChange={vi.fn()} getGroups={getGroups} />)
@@ -79,5 +87,57 @@ describe("SearchableSelect", () => {
     // Options under the group are still clickable.
     fireEvent.click(screen.getByText("ubuntu"))
     expect(onChange).toHaveBeenCalledWith("a")
+  })
+
+  describe("facets", () => {
+    const facets = [
+      { key: "u", label: "Ubuntu", matches: (o: { name: string }) => o.name.includes("ubuntu") },
+      { key: "d", label: "Debian", matches: (o: { name: string }) => o.name.includes("debian") },
+      // A facet that matches nothing should not be offered.
+      { key: "w", label: "Windows", matches: (o: { name: string }) => o.name.includes("windows") },
+    ]
+
+    it("renders only facets that match at least one option", () => {
+      render(<SearchableSelect {...common} onChange={vi.fn()} facets={facets} />)
+      fireEvent.click(screen.getByText("Select…"))
+      expect(screen.getByRole("button", { name: "Ubuntu" })).toBeInTheDocument()
+      expect(screen.getByRole("button", { name: "Debian" })).toBeInTheDocument()
+      expect(screen.queryByRole("button", { name: "Windows" })).not.toBeInTheDocument()
+    })
+
+    it("hides a facet that matches every option (a no-op filter)", () => {
+      const all = [{ key: "all", label: "All", matches: () => true }]
+      render(<SearchableSelect {...common} onChange={vi.fn()} facets={all} />)
+      fireEvent.click(screen.getByText("Select…"))
+      expect(screen.queryByRole("button", { name: "All" })).not.toBeInTheDocument()
+    })
+
+    it("narrows the list to the active facet and toggles off again", () => {
+      render(<SearchableSelect {...common} onChange={vi.fn()} facets={facets} />)
+      fireEvent.click(screen.getByText("Select…"))
+
+      // Both visible initially.
+      expect(screen.getByRole("option", { name: "ubuntu" })).toBeInTheDocument()
+      expect(screen.getByRole("option", { name: "debian" })).toBeInTheDocument()
+
+      // Activate Ubuntu → only ubuntu remains.
+      fireEvent.click(screen.getByRole("button", { name: "Ubuntu" }))
+      expect(screen.getByRole("option", { name: "ubuntu" })).toBeInTheDocument()
+      expect(screen.queryByRole("option", { name: "debian" })).not.toBeInTheDocument()
+
+      // Toggle Ubuntu off → both back.
+      fireEvent.click(screen.getByRole("button", { name: "Ubuntu" }))
+      expect(screen.getByRole("option", { name: "debian" })).toBeInTheDocument()
+    })
+
+    it("combines two active facets with OR", () => {
+      render(<SearchableSelect {...common} onChange={vi.fn()} facets={facets} />)
+      fireEvent.click(screen.getByText("Select…"))
+      fireEvent.click(screen.getByRole("button", { name: "Ubuntu" }))
+      fireEvent.click(screen.getByRole("button", { name: "Debian" }))
+      // Both match one of the active facets → both shown.
+      expect(screen.getByRole("option", { name: "ubuntu" })).toBeInTheDocument()
+      expect(screen.getByRole("option", { name: "debian" })).toBeInTheDocument()
+    })
   })
 })

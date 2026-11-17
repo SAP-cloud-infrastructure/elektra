@@ -17,8 +17,10 @@ ComputeNjq::Engine.routes.draw do
     get "form_options/images", to: "form_options#images"
     get "form_options/keypairs", to: "form_options#keypairs"
     get "form_options/networks", to: "form_options#networks"
+    get "form_options/subnets", to: "form_options#subnets"
     get "form_options/security_groups", to: "form_options#security_groups"
     get "form_options/availability_zones", to: "form_options#availability_zones"
+    get "form_options/volume_types", to: "form_options#volume_types"
   end
 
   # Catch-all: every non-API path renders the single React mount point so that

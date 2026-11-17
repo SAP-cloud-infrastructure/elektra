@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { groupFlavorsByAccess, flavorLabel } from "./flavorGrouping"
+import { groupFlavorsByAccess, flavorLabel, flavorSize, flavorSizeFacets } from "./flavorGrouping"
 import { Flavor } from "../../../types/formOptions"
 
 function flavor(overrides: Partial<Flavor> & Pick<Flavor, "id">): Flavor {
@@ -62,5 +62,37 @@ describe("flavorLabel", () => {
     expect(flavorLabel(flavor({ id: "y", name: "y", ram: null, vcpus: null, disk: null }))).toBe(
       "y (RAM: n/a, VCPUs: n/a, Disk: n/a)"
     )
+  })
+})
+
+describe("flavorSize", () => {
+  it("buckets by RAM (MiB) into XS/S/M/L/XL", () => {
+    expect(flavorSize(flavor({ id: "a", ram: 2048 }))).toBe("XS") // 2 GiB
+    expect(flavorSize(flavor({ id: "b", ram: 4096 }))).toBe("S") // 4 GiB
+    expect(flavorSize(flavor({ id: "c", ram: 16384 }))).toBe("M") // 16 GiB
+    expect(flavorSize(flavor({ id: "d", ram: 32768 }))).toBe("L") // 32 GiB
+    expect(flavorSize(flavor({ id: "e", ram: 65536 }))).toBe("XL") // 64 GiB
+  })
+
+  it("returns null when RAM is unknown", () => {
+    expect(flavorSize(flavor({ id: "x", ram: null }))).toBeNull()
+  })
+})
+
+describe("flavorSizeFacets", () => {
+  it("offers only sizes present, in ascending order", () => {
+    const facets = flavorSizeFacets([
+      flavor({ id: "big", ram: 65536 }), // XL
+      flavor({ id: "tiny", ram: 2048 }), // XS
+      flavor({ id: "med", ram: 16384 }), // M
+    ])
+    expect(facets.map((f) => f.label)).toEqual(["XS", "M", "XL"])
+  })
+
+  it("builds matchers that filter by size", () => {
+    const facets = flavorSizeFacets([flavor({ id: "tiny", ram: 2048 }), flavor({ id: "big", ram: 65536 })])
+    const xs = facets.find((f) => f.label === "XS")!
+    expect(xs.matches(flavor({ id: "y", ram: 1024 }))).toBe(true)
+    expect(xs.matches(flavor({ id: "z", ram: 65536 }))).toBe(false)
   })
 })

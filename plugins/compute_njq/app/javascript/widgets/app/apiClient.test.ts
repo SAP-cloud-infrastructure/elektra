@@ -84,6 +84,29 @@ describe("createComputeApi", () => {
       mockGet.mockResolvedValue({ data: { images: [] } })
       const result = await api.formOptions.getImages()
       expect(result.images).toEqual([])
+      // volumes defaults to [] when the backend omits it.
+      expect(result.volumes).toEqual([])
+    })
+
+    it("returns bootable volumes alongside images", async () => {
+      mockGet.mockResolvedValue({
+        data: {
+          images: [],
+          volumes: [
+            {
+              id: "v1",
+              name: "root-vol",
+              size: 50,
+              availability_zone: "qa-de-1a",
+              disk_format: "raw",
+              hypervisor_type: "kvm",
+              img_hv_type: null,
+            },
+          ],
+        },
+      })
+      const result = await api.formOptions.getImages()
+      expect(result.volumes.map((v) => v.id)).toEqual(["v1"])
     })
 
     it("returns keypairs", async () => {
@@ -98,6 +121,24 @@ describe("createComputeApi", () => {
       expect(result).toEqual([{ id: "n1", name: "default" }])
     })
 
+    it("returns subnets and reserved fixed-IP ports", async () => {
+      mockGet.mockResolvedValue({
+        data: {
+          subnets: [{ id: "s1", name: "sub-a", cidr: "10.0.0.0/24", network_id: "n1" }],
+          fixed_ip_ports: [{ id: "p1", ip_addresses: ["10.0.0.5"], subnet_ids: ["s1"] }],
+        },
+      })
+      const result = await api.formOptions.getSubnets()
+      expect(result.subnets).toEqual([{ id: "s1", name: "sub-a", cidr: "10.0.0.0/24", network_id: "n1" }])
+      expect(result.fixed_ip_ports).toEqual([{ id: "p1", ip_addresses: ["10.0.0.5"], subnet_ids: ["s1"] }])
+    })
+
+    it("defaults fixed_ip_ports to [] when omitted", async () => {
+      mockGet.mockResolvedValue({ data: { subnets: [] } })
+      const result = await api.formOptions.getSubnets()
+      expect(result.fixed_ip_ports).toEqual([])
+    })
+
     it("returns security_groups", async () => {
       mockGet.mockResolvedValue({
         data: { security_groups: [{ id: "sg1", name: "default", project_id: "p1", project_label: "monsoon3/demo" }] },
@@ -110,6 +151,12 @@ describe("createComputeApi", () => {
       mockGet.mockResolvedValue({ data: { availability_zones: [{ name: "az-1" }] } })
       const result = await api.formOptions.getAvailabilityZones()
       expect(result).toEqual([{ name: "az-1" }])
+    })
+
+    it("returns volume_types", async () => {
+      mockGet.mockResolvedValue({ data: { volume_types: [{ id: "vt1", name: "premium" }] } })
+      const result = await api.formOptions.getVolumeTypes()
+      expect(result).toEqual([{ id: "vt1", name: "premium" }])
     })
   })
 
