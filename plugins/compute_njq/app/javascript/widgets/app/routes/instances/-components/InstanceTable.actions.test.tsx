@@ -40,12 +40,14 @@ describe("InstanceTable actions column", () => {
     expect(container.querySelector("td .btn-group .fa-cog")).toBeInTheDocument()
   })
 
-  it("renders no actions menu while an instance is transitioning", () => {
+  it("shows a disabled actions toggle while an instance is transitioning", () => {
     const transitioning = {
       ...running,
       status: { state: "active", transition: "rebooting", power_state: "Running" },
     } as Instance
     const { container } = renderTable([transitioning])
-    expect(container.querySelector(".btn-group .dropdown-toggle")).not.toBeInTheDocument()
+    const toggle = container.querySelector(".btn-group .dropdown-toggle")
+    expect(toggle).toBeInTheDocument()
+    expect(toggle).toBeDisabled()
   })
 })

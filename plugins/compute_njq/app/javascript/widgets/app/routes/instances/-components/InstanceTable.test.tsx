@@ -98,9 +98,9 @@ describe("InstanceTable", () => {
 
   it("shows a lock icon next to the name only when the instance is locked", () => {
     const { rerender } = render(<InstanceTable instances={[{ ...instance, locked: true }]} />)
-    expect(screen.getByTitle("Locked")).toBeInTheDocument()
+    expect(screen.getByLabelText("Locked")).toBeInTheDocument()
     rerender(<InstanceTable instances={[{ ...instance, locked: false }]} />)
-    expect(screen.queryByTitle("Locked")).toBeNull()
+    expect(screen.queryByLabelText("Locked")).toBeNull()
   })
 
   it("shows skeleton loading rows (not data) while loading", () => {

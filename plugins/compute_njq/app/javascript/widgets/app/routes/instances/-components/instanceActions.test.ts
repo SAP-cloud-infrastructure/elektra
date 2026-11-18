@@ -47,10 +47,16 @@ describe("visibleActions", () => {
     expect(keys).toEqual(["unlock"])
   })
 
-  it("hides everything while transitioning", () => {
-    expect(
-      visibleActions(inst({ status: { state: "active", transition: "rebooting", power_state: "Running" } }), {})
-    ).toHaveLength(0)
+  it("ignores transition state (the menu decides how to present a transition)", () => {
+    // visibleActions reports the actions a user may perform regardless of a
+    // running transition; InstanceActionsMenu shows the toggle disabled during
+    // one rather than hiding it. So a rebooting (running) instance still yields
+    // its normal running actions here.
+    const actions = visibleActions(
+      inst({ status: { state: "active", transition: "rebooting", power_state: "Running" } }),
+      {}
+    )
+    expect(actions.map((a) => a.key)).toContain("stop")
   })
 
   it("respects the policy gate", () => {

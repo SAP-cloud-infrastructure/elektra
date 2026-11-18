@@ -1,7 +1,9 @@
 import { Fragment, useEffect, useRef, useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
+import { confirm } from "lib/dialogs"
+import { InfoTooltip } from "lib/components/InfoTooltip"
 import type { ComputeApi } from "../../../apiClient"
-import type { Instance } from "../../../types/instance"
+import { isTransitioning, type Instance } from "../../../types/instance"
 import { visibleActions, type InstanceAction } from "./instanceActions"
 import { useInstanceActionMutation } from "../../../hooks/useInstanceActionMutation"
 import { useTerminateInstanceMutation } from "../../../hooks/useTerminateInstanceMutation"
@@ -18,7 +20,6 @@ export default function InstanceActionsMenu({ instance, scope, apiClient }: Prop
   const queryClient = useQueryClient()
   const actionMutation = useInstanceActionMutation(apiClient, queryClient)
   const terminateMutation = useTerminateInstanceMutation(apiClient, queryClient)
-  const [pending, setPending] = useState<InstanceAction | null>(null)
   // Open state is controlled in React rather than Bootstrap's data-API, so the
   // menu behaves identically in tests and in the browser without depending on a
   // global dropdown side-effect (mirrors SearchableSelect).
@@ -34,14 +35,13 @@ export default function InstanceActionsMenu({ instance, scope, apiClient }: Prop
     return () => document.removeEventListener("mousedown", onDocClick)
   }, [])
 
-  // Closing the panel discards any half-finished confirm, so a reopened menu
-  // always starts on the action list rather than mid-confirm.
-  useEffect(() => {
-    if (!open) setPending(null)
-  }, [open])
-
   const actions = visibleActions(instance, scope)
-  if (actions.length === 0) return null
+  const transitioning = isTransitioning(instance.status)
+  // Hide the menu entirely only when the user can do nothing at all AND nothing
+  // is in progress (e.g. no policy permission) — a permanently dead control is
+  // just noise. While transitioning we keep the toggle (disabled) so the row
+  // layout stays stable and the user sees actions are only temporarily blocked.
+  if (actions.length === 0 && !transitioning) return null
 
   const run = (a: InstanceAction) => {
     if (a.key === "terminate") {
@@ -52,12 +52,18 @@ export default function InstanceActionsMenu({ instance, scope, apiClient }: Prop
   }
 
   const onClick = (a: InstanceAction) => {
-    // Confirm actions step to an inline confirm in the still-open panel; others
-    // fire immediately and close. Keeping the panel open avoids a nested Modal
-    // (whose backdrop breaks when this menu lives inside the detail modal).
-    if (a.confirm) setPending(a)
-    else {
-      setOpen(false)
+    // Close the panel first; confirm actions open the shared Elektra confirm
+    // dialog (lib/dialogs) — a portal modal that layers above the detail modal
+    // when the menu lives there, so there is no nested-backdrop problem. Others
+    // fire immediately.
+    setOpen(false)
+    if (a.confirm) {
+      confirm(a.confirm.message, { title: a.confirm.title, confirmLabel: a.confirm.ok, abortLabel: "Cancel" })
+        .then(() => run(a))
+        .catch(() => {
+          /* cancelled */
+        })
+    } else {
       run(a)
     }
   }
@@ -68,6 +74,22 @@ export default function InstanceActionsMenu({ instance, scope, apiClient }: Prop
   // window would race the backend and be rejected. Disabling the toggle keeps
   // the panel closed and un-reopenable until the real state is back.
   const busy = actionMutation.isPending || terminateMutation.isPending
+
+  // Transitioning (and not driven by our own in-flight mutation): show the
+  // toggle disabled with an explaining tooltip instead of opening the menu, so
+  // the user sees actions are temporarily blocked and the row doesn't reflow.
+  if (transitioning && !busy) {
+    const what = instance.status.transition || instance.status.state
+    return (
+      <div className="btn-group">
+        <InfoTooltip content={`Actions are unavailable while the instance is ${what}.`}>
+          <button type="button" className="btn btn-secondary btn-sm dropdown-toggle" aria-label="Actions" disabled>
+            <span className="fa fa-cog" />
+          </button>
+        </InfoTooltip>
+      </div>
+    )
+  }
 
   return (
     <div className="btn-group" ref={ref}>
@@ -92,46 +114,21 @@ export default function InstanceActionsMenu({ instance, scope, apiClient }: Prop
           role="menu"
           style={{ position: "absolute", top: "100%", right: 0, left: "auto", marginTop: "0.125rem" }}
         >
-          {pending ? (
-            // Inline confirm — rendered in place of the action list so it works
-            // in the table and inside the detail modal without a second
-            // backdrop (no nested lib/components/Modal).
-            <li className="px-3 py-2" style={{ minWidth: "16rem" }}>
-              <p className="mb-2">{pending.confirm?.message}</p>
-              <div className="d-flex justify-content-end gap-2">
-                <button type="button" className="btn btn-sm btn-default" onClick={() => setPending(null)}>
-                  Cancel
-                </button>
+          {actions.map((a, i) => (
+            <Fragment key={a.key}>
+              {/* Divider between legacy groups — never before the first item. */}
+              {i > 0 && actions[i - 1].group !== a.group && <li className="dropdown-divider" role="separator" />}
+              <li>
                 <button
                   type="button"
-                  className={`btn btn-sm ${pending.destructive ? "btn-danger" : "btn-primary"}`}
-                  onClick={() => {
-                    run(pending)
-                    setPending(null)
-                    setOpen(false)
-                  }}
+                  className={`dropdown-item${a.dangerLabel ? " text-danger" : ""}`}
+                  onClick={() => onClick(a)}
                 >
-                  {pending.confirm?.ok}
+                  {a.label}
                 </button>
-              </div>
-            </li>
-          ) : (
-            actions.map((a, i) => (
-              <Fragment key={a.key}>
-                {/* Divider between legacy groups — never before the first item. */}
-                {i > 0 && actions[i - 1].group !== a.group && <li className="dropdown-divider" role="separator" />}
-                <li>
-                  <button
-                    type="button"
-                    className={`dropdown-item${a.dangerLabel ? " text-danger" : ""}`}
-                    onClick={() => onClick(a)}
-                  >
-                    {a.label}
-                  </button>
-                </li>
-              </Fragment>
-            ))
-          )}
+              </li>
+            </Fragment>
+          ))}
         </ul>
       )}
 

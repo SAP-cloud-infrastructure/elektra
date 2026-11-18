@@ -1,5 +1,5 @@
 import { policy } from "lib/policy"
-import { Instance, isTransitioning } from "../../../types/instance"
+import { Instance } from "../../../types/instance"
 
 export interface InstanceAction {
   key: "start" | "stop" | "reboot" | "hard_reset" | "pause" | "suspend" | "lock" | "unlock" | "terminate"
@@ -10,7 +10,11 @@ export interface InstanceAction {
   // (never before the first). Power lifecycle, then lock/unlock, then terminate.
   group: "power" | "lock" | "terminate"
   isAvailable: (i: Instance) => boolean
-  confirm?: { message: string; ok: string }
+  // Confirmation shown before the action runs: a short title (the action as a
+  // question), a consequence statement as the body, and the verb for the OK
+  // button. This follows the "state the consequence + verb button" pattern
+  // rather than a rhetorical "Are you sure?".
+  confirm?: { title: string; message: string; ok: string }
   // Marks an action as dangerous: its confirm dialog uses a red (btn-danger)
   // button. This does NOT color the dropdown entry — see dangerLabel for that.
   destructive?: boolean
@@ -43,7 +47,11 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     isAvailable: isRunning,
     optimisticTransition: "powering-off",
     destructive: true,
-    confirm: { message: "Are you sure you want to stop this instance?", ok: "Yes, stop it" },
+    confirm: {
+      title: "Stop instance?",
+      message: "This shuts down the guest OS and powers off the instance. Running processes will be stopped.",
+      ok: "Stop instance",
+    },
   },
   {
     key: "reboot",
@@ -52,7 +60,11 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     group: "power",
     isAvailable: isRunning,
     optimisticTransition: "rebooting",
-    confirm: { message: "Are you sure you want to reboot this instance?", ok: "Yes, reboot it" },
+    confirm: {
+      title: "Reboot instance?",
+      message: "This gracefully restarts the guest OS. The instance will be briefly unavailable.",
+      ok: "Reboot instance",
+    },
   },
   {
     key: "pause",
@@ -61,7 +73,11 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     group: "power",
     isAvailable: isRunning,
     optimisticTransition: "pausing",
-    confirm: { message: "Are you sure you want to pause this instance?", ok: "Yes, pause it" },
+    confirm: {
+      title: "Pause instance?",
+      message: "This freezes the instance in memory. It stays on the hypervisor and can be resumed later.",
+      ok: "Pause instance",
+    },
   },
   {
     key: "suspend",
@@ -70,7 +86,11 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     group: "power",
     isAvailable: isRunning,
     optimisticTransition: "suspending",
-    confirm: { message: "Are you sure you want to suspend this instance?", ok: "Yes, suspend it" },
+    confirm: {
+      title: "Suspend instance?",
+      message: "This writes the instance's memory to disk and powers it off. It can be resumed later.",
+      ok: "Suspend instance",
+    },
   },
   {
     key: "hard_reset",
@@ -80,7 +100,11 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     isAvailable: isRunning,
     optimisticTransition: "rebooting",
     destructive: true,
-    confirm: { message: "Are you sure you want to hard reset this instance?", ok: "Yes, hard reset it" },
+    confirm: {
+      title: "Hard reset instance?",
+      message: "This forcibly power-cycles the instance without a clean shutdown. Unsaved data may be lost.",
+      ok: "Hard reset instance",
+    },
   },
   {
     key: "lock",
@@ -88,7 +112,11 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     policy: "compute_njq:instance_lock",
     group: "lock",
     isAvailable: (i) => !i.locked,
-    confirm: { message: "Are you sure you want to lock this instance?", ok: "Yes, lock it" },
+    confirm: {
+      title: "Lock instance?",
+      message: "This prevents lifecycle actions (stop, reboot, terminate, …) until the instance is unlocked.",
+      ok: "Lock instance",
+    },
   },
   {
     key: "unlock",
@@ -96,7 +124,11 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     policy: "compute_njq:instance_unlock",
     group: "lock",
     isAvailable: (i) => i.locked,
-    confirm: { message: "Are you sure you want to unlock this instance?", ok: "Yes, unlock it" },
+    confirm: {
+      title: "Unlock instance?",
+      message: "This re-enables lifecycle actions on the instance.",
+      ok: "Unlock instance",
+    },
   },
   {
     key: "terminate",
@@ -107,7 +139,11 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     optimisticTransition: "deleting",
     destructive: true,
     dangerLabel: true,
-    confirm: { message: "Are you sure you want to terminate this instance?", ok: "Yes, terminate it" },
+    confirm: {
+      title: "Terminate instance?",
+      message: "This permanently deletes the instance. Attached non-persistent disks are destroyed. This cannot be undone.",
+      ok: "Terminate instance",
+    },
   },
 ]
 
@@ -123,8 +159,12 @@ function isAllowed(rule: string, scope: Record<string, unknown>): boolean {
   }
 }
 
+// The actions a user may perform on an instance, independent of whether it is
+// currently transitioning. Filters by availability for the current power state,
+// the lock rule (a locked instance exposes only Unlock), and policy. The caller
+// decides how to present a transitioning instance (the menu shows the toggle
+// disabled rather than hiding it, so the row layout stays stable).
 export function visibleActions(instance: Instance, scope: Record<string, unknown>): InstanceAction[] {
-  if (isTransitioning(instance.status)) return []
   // Legacy wraps every non-lock action in `- unless instance.locked?`
   // (_item_actions.html.haml), so a locked instance exposes only Unlock.
   return INSTANCE_ACTIONS.filter(

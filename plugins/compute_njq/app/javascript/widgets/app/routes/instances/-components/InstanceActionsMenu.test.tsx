@@ -2,7 +2,18 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import "@testing-library/jest-dom/vitest"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-vi.mock("lib/policy", () => ({ policy: { isAllowed: () => true } }))
+const policyState = vi.hoisted(() => ({ allowed: true }))
+vi.mock("lib/policy", () => ({ policy: { isAllowed: () => policyState.allowed } }))
+
+// Mock the shared Elektra confirm dialog: capture its message/options and let a
+// test resolve (user confirms) or reject (user cancels) the returned promise.
+let confirmDeferred: { resolve: () => void; reject: () => void }
+const confirmMock = vi.fn((_message: unknown, _options?: unknown) => {
+  return new Promise<void>((resolve, reject) => {
+    confirmDeferred = { resolve, reject }
+  })
+})
+vi.mock("lib/dialogs", () => ({ confirm: (m: unknown, o?: unknown) => confirmMock(m, o) }))
 
 const action = vi.fn().mockResolvedValue(undefined)
 import InstanceActionsMenu from "./InstanceActionsMenu"
@@ -35,6 +46,7 @@ function renderMenu(over: Partial<Instance> = {}) {
 describe("InstanceActionsMenu", () => {
   beforeEach(() => {
     action.mockClear()
+    confirmMock.mockClear()
   })
 
   it("keeps the menu closed until the toggle is clicked", () => {
@@ -49,38 +61,35 @@ describe("InstanceActionsMenu", () => {
     expect(document.querySelector(".dropdown-menu.show")).not.toBeNull()
   })
 
-  it("shows an inline confirm for a confirm action and fires on confirm", async () => {
+  it("opens the shared confirm dialog for a confirm action and fires on confirm", async () => {
     renderMenu()
     fireEvent.click(screen.getByRole("button", { name: /actions/i }))
     fireEvent.click(screen.getByText("Stop"))
-    // The confirm is inline in the still-open panel, not a separate modal.
-    expect(document.querySelector(".dropdown-menu.show")).not.toBeNull()
-    expect(screen.getByText("Yes, stop it")).toBeInTheDocument()
-    fireEvent.click(screen.getByText("Yes, stop it"))
+    // Delegates to the shared lib/dialogs confirm with the action's consequence
+    // message, a short title, and a verb button label.
+    expect(confirmMock).toHaveBeenCalledWith(expect.stringContaining("shuts down the guest OS"), {
+      title: "Stop instance?",
+      confirmLabel: "Stop instance",
+      abortLabel: "Cancel",
+    })
+    // Menu closes immediately; the dialog (portal) drives the rest.
+    expect(document.querySelector(".dropdown-menu.show")).toBeNull()
+    expect(action).not.toHaveBeenCalled()
+
+    confirmDeferred.resolve()
     await waitFor(() => expect(action).toHaveBeenCalledWith("s1", "stop"))
   })
 
-  it("does not fire a confirm action until confirmed and can be cancelled", () => {
+  it("does not fire a confirm action when the dialog is cancelled", async () => {
     renderMenu()
     fireEvent.click(screen.getByRole("button", { name: /actions/i }))
     fireEvent.click(screen.getByText("Stop"))
     expect(action).not.toHaveBeenCalled()
-    fireEvent.click(screen.getByText("Cancel"))
-    // Back to the action list, nothing fired.
-    expect(action).not.toHaveBeenCalled()
-    expect(screen.getByText("Stop")).toBeInTheDocument()
-  })
 
-  it("renders the confirm inline without a second modal backdrop", () => {
-    // Regression guard for the detail-view case: the menu lives inside a modal
-    // there, so the confirm must not open its own portal Modal (which paints a
-    // second .modal-backdrop and makes the confirm unusable).
-    renderMenu()
-    const before = document.querySelectorAll(".modal-backdrop").length
-    fireEvent.click(screen.getByRole("button", { name: /actions/i }))
-    fireEvent.click(screen.getByText("Stop"))
-    expect(screen.getByText("Yes, stop it")).toBeInTheDocument()
-    expect(document.querySelectorAll(".modal-backdrop").length).toBe(before)
+    confirmDeferred.reject()
+    // Give the rejected promise a tick to settle; nothing should fire.
+    await Promise.resolve()
+    expect(action).not.toHaveBeenCalled()
   })
 
   it("fires a non-confirm action immediately without a dialog", async () => {
@@ -92,11 +101,24 @@ describe("InstanceActionsMenu", () => {
     await waitFor(() => expect(action).toHaveBeenCalledWith("s1", "start"))
   })
 
-  it("renders nothing when there are no visible actions (transitioning)", () => {
-    const { container } = renderMenu({
-      status: { state: "active", transition: "rebooting", power_state: "Running" },
-    })
+  it("shows a disabled toggle with a tooltip while transitioning (not hidden)", () => {
+    renderMenu({ status: { state: "active", transition: "rebooting", power_state: "Running" } })
+    const toggle = screen.getByRole("button", { name: /actions/i })
+    expect(toggle).toBeDisabled()
+    // Clicking cannot open a menu.
+    fireEvent.click(toggle)
+    expect(document.querySelector(".dropdown-menu.show")).toBeNull()
+    // The tooltip explains why on hover.
+    fireEvent.mouseEnter(toggle.closest("span")!)
+    expect(screen.getByRole("tooltip")).toHaveTextContent(/unavailable while the instance is rebooting/i)
+  })
+
+  it("renders nothing when the user has no available actions and nothing is in progress", () => {
+    // No policy permission for any action → the menu is hidden entirely.
+    policyState.allowed = false
+    const { container } = renderMenu()
     expect(container).toBeEmptyDOMElement()
+    policyState.allowed = true
   })
 
   it("separates action groups with dividers like the legacy menu", () => {
