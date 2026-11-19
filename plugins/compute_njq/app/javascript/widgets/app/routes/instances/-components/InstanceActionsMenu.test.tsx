@@ -15,6 +15,16 @@ const confirmMock = vi.fn((_message: unknown, _options?: unknown) => {
 })
 vi.mock("lib/dialogs", () => ({ confirm: (m: unknown, o?: unknown) => confirmMock(m, o) }))
 
+// The menu mounts ResizeModal on the "resize" action, which queries the flavor
+// catalog and the instance detail on open. Stub both so the shared apiClient mock
+// needs no extra methods.
+vi.mock("../../../hooks/useFormOptionQueries", () => ({
+  useFlavorsQuery: () => ({ data: [], isLoading: false }),
+}))
+vi.mock("../../../hooks/useInstanceQueries", () => ({
+  useInstanceDetailQuery: () => ({ data: { flavor: { id: "f1", name: "m1.small" } }, isLoading: false }),
+}))
+
 const action = vi.fn().mockResolvedValue(undefined)
 import InstanceActionsMenu from "./InstanceActionsMenu"
 import type { InstanceAction } from "./instanceActions"
@@ -125,7 +135,7 @@ describe("InstanceActionsMenu", () => {
 
   it("separates action groups with dividers like the legacy menu", () => {
     // Running + unlocked shows four groups in order:
-    //   [Edit Name, Edit Tags] | [Stop, Reboot, Pause, Suspend, Hard Reset]
+    //   [Edit Name, Edit Tags] | [Stop, Reboot, Pause, Suspend, Hard Reset, Resize]
     //   | [Lock] | [Reset Status, Terminate]
     // so three dividers sit between them — never before the first group.
     renderMenu()
@@ -153,6 +163,7 @@ describe("InstanceActionsMenu", () => {
       "Pause",
       "Suspend",
       "Hard Reset",
+      "Resize",
       "---",
       "Lock",
       "---",
@@ -208,6 +219,17 @@ describe("InstanceActionsMenu", () => {
     expect(confirmMock).not.toHaveBeenCalled()
     expect(action).not.toHaveBeenCalled()
     expect(screen.getByText("Edit Name", { selector: ".modal-title" })).toBeInTheDocument()
+  })
+
+  it("opens the Resize modal from the menu instead of firing a mutation", () => {
+    renderMenu()
+    fireEvent.click(screen.getByRole("button", { name: /actions/i }))
+    fireEvent.click(screen.getByText("Resize"))
+
+    expect(document.querySelector(".dropdown-menu.show")).toBeNull()
+    expect(confirmMock).not.toHaveBeenCalled()
+    expect(action).not.toHaveBeenCalled()
+    expect(screen.getByText("Resize Instance", { selector: ".modal-title" })).toBeInTheDocument()
   })
 
   it("colors only Terminate red in the dropdown, not the other destructive actions", () => {

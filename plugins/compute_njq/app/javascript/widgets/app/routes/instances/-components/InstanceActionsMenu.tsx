@@ -10,6 +10,7 @@ import { useTerminateInstanceMutation } from "../../../hooks/useTerminateInstanc
 import { EditNameModal } from "./EditNameModal"
 import { EditTagsModal } from "./EditTagsModal"
 import { ResetStatusModal } from "./ResetStatusModal"
+import { ResizeModal } from "./ResizeModal"
 
 interface Props {
   instance: Instance
@@ -168,6 +169,9 @@ export default function InstanceActionsMenu({ instance, scope, apiClient, onConf
       )}
       {activeModal === "resetStatus" && (
         <ResetStatusModal instance={instance} apiClient={apiClient} onClose={() => setActiveModal(null)} />
+      )}
+      {activeModal === "resize" && (
+        <ResizeModal instance={instance} apiClient={apiClient} onClose={() => setActiveModal(null)} />
       )}
     </div>
   )
