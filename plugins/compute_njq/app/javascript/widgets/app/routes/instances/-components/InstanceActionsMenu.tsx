@@ -7,6 +7,9 @@ import { isTransitioning, type Instance } from "../../../types/instance"
 import { visibleActions, type InstanceAction } from "./instanceActions"
 import { useInstanceActionMutation } from "../../../hooks/useInstanceActionMutation"
 import { useTerminateInstanceMutation } from "../../../hooks/useTerminateInstanceMutation"
+import { EditNameModal } from "./EditNameModal"
+import { EditTagsModal } from "./EditTagsModal"
+import { ResetStatusModal } from "./ResetStatusModal"
 
 interface Props {
   instance: Instance
@@ -29,6 +32,10 @@ export default function InstanceActionsMenu({ instance, scope, apiClient, onConf
   // menu behaves identically in tests and in the browser without depending on a
   // global dropdown side-effect (mirrors SearchableSelect).
   const [open, setOpen] = useState(false)
+  // Form-based actions (Edit Name/Tags, Reset Status) open a modal instead of
+  // firing immediately. The dropdown item sets this discriminator; the matching
+  // modal renders below the menu and clears it on close.
+  const [activeModal, setActiveModal] = useState<InstanceAction["modal"] | null>(null)
   const ref = useRef<HTMLDivElement>(null)
 
   // Close on outside click.
@@ -57,8 +64,13 @@ export default function InstanceActionsMenu({ instance, scope, apiClient, onConf
   }
 
   const onClick = (a: InstanceAction) => {
-    // Close the panel first. Non-confirm actions fire immediately.
+    // Close the panel first. Modal actions open their form; non-confirm actions
+    // fire immediately.
     setOpen(false)
+    if (a.modal) {
+      setActiveModal(a.modal)
+      return
+    }
     if (!a.confirm) {
       run(a)
       return
@@ -144,6 +156,19 @@ export default function InstanceActionsMenu({ instance, scope, apiClient, onConf
       )}
 
       {error && <div className="text-danger small mt-1">{error.message}</div>}
+
+      {activeModal === "editName" && (
+        <EditNameModal instance={instance} apiClient={apiClient} onClose={() => setActiveModal(null)} />
+      )}
+      {activeModal === "editTags" && (
+        // The modal reads the instance's live tags from the detail query itself
+        // (warm here when opened from the detail modal, fetched on open from the
+        // list row) and persists each add/remove immediately.
+        <EditTagsModal instance={instance} apiClient={apiClient} onClose={() => setActiveModal(null)} />
+      )}
+      {activeModal === "resetStatus" && (
+        <ResetStatusModal instance={instance} apiClient={apiClient} onClose={() => setActiveModal(null)} />
+      )}
     </div>
   )
 }

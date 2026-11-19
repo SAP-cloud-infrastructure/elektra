@@ -124,26 +124,41 @@ describe("InstanceActionsMenu", () => {
   })
 
   it("separates action groups with dividers like the legacy menu", () => {
-    // Running + unlocked shows three legacy groups in order:
-    //   [Stop, Reboot, Pause, Suspend, Hard Reset] | [Lock] | [Terminate]
-    // so two dividers sit between them — never before the first group.
+    // Running + unlocked shows four groups in order:
+    //   [Edit Name, Edit Tags] | [Stop, Reboot, Pause, Suspend, Hard Reset]
+    //   | [Lock] | [Reset Status, Terminate]
+    // so three dividers sit between them — never before the first group.
     renderMenu()
     fireEvent.click(screen.getByRole("button", { name: /actions/i }))
 
     const menu = document.querySelector(".dropdown-menu.show")!
     const items = Array.from(menu.children)
     // First child is an action, not a divider.
-    expect(items[0].querySelector(".dropdown-item")?.textContent).toBe("Stop")
+    expect(items[0].querySelector(".dropdown-item")?.textContent).toBe("Edit Name")
     expect(items[0].classList.contains("dropdown-divider")).toBe(false)
 
     const dividers = menu.querySelectorAll(".dropdown-divider")
-    expect(dividers).toHaveLength(2)
+    expect(dividers).toHaveLength(3)
 
     // The divider immediately precedes the first item of the next group.
     const labels = items.map((li) =>
       li.classList.contains("dropdown-divider") ? "---" : li.querySelector(".dropdown-item")?.textContent
     )
-    expect(labels).toEqual(["Stop", "Reboot", "Pause", "Suspend", "Hard Reset", "---", "Lock", "---", "Terminate"])
+    expect(labels).toEqual([
+      "Edit Name",
+      "Edit Tags",
+      "---",
+      "Stop",
+      "Reboot",
+      "Pause",
+      "Suspend",
+      "Hard Reset",
+      "---",
+      "Lock",
+      "---",
+      "Reset Status",
+      "Terminate",
+    ])
   })
 
   it("disables the toggle and shows a spinner while an action is in flight", async () => {
@@ -179,6 +194,20 @@ describe("InstanceActionsMenu", () => {
     expect(action).toHaveBeenCalledTimes(1)
 
     release()
+  })
+
+  it("opens the Edit Name modal from the menu instead of firing a mutation", () => {
+    // Modal actions (Edit Name/Tags, Reset Status) don't fire the action
+    // mutation; they open their form. Clicking Edit Name closes the menu and
+    // renders the modal dialog; no confirm dialog, no action call.
+    renderMenu()
+    fireEvent.click(screen.getByRole("button", { name: /actions/i }))
+    fireEvent.click(screen.getByText("Edit Name"))
+
+    expect(document.querySelector(".dropdown-menu.show")).toBeNull()
+    expect(confirmMock).not.toHaveBeenCalled()
+    expect(action).not.toHaveBeenCalled()
+    expect(screen.getByText("Edit Name", { selector: ".modal-title" })).toBeInTheDocument()
   })
 
   it("colors only Terminate red in the dropdown, not the other destructive actions", () => {

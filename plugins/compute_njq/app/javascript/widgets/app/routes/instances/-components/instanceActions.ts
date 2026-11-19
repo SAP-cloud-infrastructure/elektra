@@ -2,13 +2,26 @@ import { policy } from "lib/policy"
 import { Instance } from "../../../types/instance"
 
 export interface InstanceAction {
-  key: "start" | "stop" | "reboot" | "hard_reset" | "pause" | "suspend" | "lock" | "unlock" | "terminate"
+  key:
+    | "edit_name"
+    | "edit_tags"
+    | "start"
+    | "stop"
+    | "reboot"
+    | "hard_reset"
+    | "pause"
+    | "suspend"
+    | "lock"
+    | "unlock"
+    | "reset_status"
+    | "terminate"
   label: string
   policy: string
   // Legacy _item_actions.html.haml splits the dropdown into divider-separated
   // groups. visibleActions keeps that order and inserts a divider between groups
-  // (never before the first). Power lifecycle, then lock/unlock, then terminate.
-  group: "power" | "lock" | "terminate"
+  // (never before the first). Edit (name/tags), power lifecycle, lock/unlock,
+  // then terminate (with reset_status alongside it).
+  group: "edit" | "power" | "lock" | "terminate"
   isAvailable: (i: Instance) => boolean
   // Confirmation shown before the action runs: a short title (the action as a
   // question), a consequence statement as the body, and the verb for the OK
@@ -23,6 +36,10 @@ export interface InstanceAction {
   // item color in the menu but still get a red confirm button.
   dangerLabel?: boolean
   optimisticTransition?: string
+  // Form-based actions open a modal instead of firing immediately. The menu maps
+  // this discriminator to the matching modal component (Edit Name/Tags, Reset
+  // Status); actions without it run (optionally after a confirm) directly.
+  modal?: "editName" | "editTags" | "resetStatus"
 }
 
 const PARKED = ["Paused", "Suspended", "Shut off", "Shut down"]
@@ -31,6 +48,22 @@ const isParked = (i: Instance) => PARKED.includes(i.status.power_state ?? "")
 
 // Legacy wording from Compute::Server#target_state_for_action / confirm texts.
 export const INSTANCE_ACTIONS: InstanceAction[] = [
+  {
+    key: "edit_name",
+    label: "Edit Name",
+    policy: "compute_njq:instance_update",
+    group: "edit",
+    isAvailable: () => true,
+    modal: "editName",
+  },
+  {
+    key: "edit_tags",
+    label: "Edit Tags",
+    policy: "compute_njq:instance_tags",
+    group: "edit",
+    isAvailable: () => true,
+    modal: "editTags",
+  },
   {
     key: "start",
     label: "Start",
@@ -129,6 +162,14 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
       message: "This re-enables lifecycle actions on the instance.",
       ok: "Unlock instance",
     },
+  },
+  {
+    key: "reset_status",
+    label: "Reset Status",
+    policy: "compute_njq:instance_reset_status",
+    group: "terminate",
+    isAvailable: () => true,
+    modal: "resetStatus",
   },
   {
     key: "terminate",

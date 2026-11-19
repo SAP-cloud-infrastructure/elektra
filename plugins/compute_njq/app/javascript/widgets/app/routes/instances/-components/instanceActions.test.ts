@@ -65,6 +65,24 @@ describe("visibleActions", () => {
     ;(policy.isAllowed as ReturnType<typeof vi.fn>).mockReturnValue(true)
   })
 
+  it("exposes edit-name, edit-tags and reset-status actions with modals", () => {
+    const actions = visibleActions(inst(), {})
+    const byKey = Object.fromEntries(actions.map((a) => [a.key, a]))
+    expect(byKey.edit_name?.modal).toBe("editName")
+    expect(byKey.edit_tags?.modal).toBe("editTags")
+    expect(byKey.reset_status?.modal).toBe("resetStatus")
+  })
+
+  it("hides reset_status when only its policy denies", () => {
+    ;(policy.isAllowed as ReturnType<typeof vi.fn>).mockImplementation(
+      (rule: string) => rule !== "compute_njq:instance_reset_status"
+    )
+    const keys = visibleActions(inst(), {}).map((a) => a.key)
+    expect(keys).toContain("edit_name")
+    expect(keys).not.toContain("reset_status")
+    ;(policy.isAllowed as ReturnType<typeof vi.fn>).mockReturnValue(true)
+  })
+
   it("treats an unevaluable rule as not allowed instead of crashing the list", () => {
     // The real policy engine throws ("rule <name> not found.") when a rule is
     // missing from window.policyConfig — e.g. a stale server or a typo. A single
