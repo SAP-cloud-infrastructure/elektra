@@ -15,4 +15,5 @@ export const QUERY_KEYS = {
   images: ["form", "images"] as const,
   instanceDetail: (id: string) => ["instance", id, "detail"] as const,
   instanceMetrics: (id: string) => ["instance", id, "metrics"] as const,
+  imageStatus: (id: string) => ["image", id, "status"] as const,
 } as const
