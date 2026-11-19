@@ -248,6 +248,12 @@ describe("createComputeApi", () => {
       expect(mockPost).toHaveBeenCalledWith("instances/s1/reset_status", { state: "active" })
     })
 
+    it("resizeInstance PUTs the flavor_id to instances/:id/resize", async () => {
+      mockPut.mockResolvedValue({ data: { ok: true } })
+      await api.instances.resizeInstance("s1", "f2")
+      expect(mockPut).toHaveBeenCalledWith("instances/s1/resize", { flavor_id: "f2" })
+    })
+
     it("throws the error envelope when an edit fails", async () => {
       mockPut.mockResolvedValue({ data: { error: "API Error", code: 403, message: "Forbidden" } })
       await expect(api.instances.updateName("s1", "web-02")).rejects.toThrow(/Forbidden \(HTTP 403\)/)

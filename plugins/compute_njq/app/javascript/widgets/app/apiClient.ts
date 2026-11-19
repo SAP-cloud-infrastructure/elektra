@@ -152,6 +152,12 @@ export function createComputeApi(basepath: string) {
       apiClient.post<{ data: { ok: true } }>(`instances/${id}/reset_status`, { state }).then((res) => {
         checkForApiError(res.data)
       }),
+
+    // Resize: change the server's flavor via the BFF. The BFF answers { ok: true }.
+    resizeInstance: (id: string, flavorId: string): Promise<void> =>
+      apiClient.put<{ data: { ok: true } }>(`instances/${id}/resize`, { flavor_id: flavorId }).then((res) => {
+        checkForApiError(res.data)
+      }),
   }
 
   const formOptionsApi = {
