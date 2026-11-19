@@ -1,8 +1,11 @@
+import { useState } from "react"
 import type { UseQueryResult } from "@tanstack/react-query"
 import { Modal } from "lib/components/Modal"
 import type { InstanceDetail, InstanceMetrics, Instance } from "../../../types/instance"
 import type { ComputeApi } from "../../../apiClient"
 import InstanceActionsMenu from "./InstanceActionsMenu"
+import type { InstanceAction } from "./instanceActions"
+import { StatusPill } from "./StatusPill"
 import { InformationTab } from "./tabs/InformationTab"
 import { SpecsTab } from "./tabs/SpecsTab"
 import { IpAddressesTab } from "./tabs/IpAddressesTab"
@@ -48,6 +51,10 @@ export function InstanceModal({
 }: InstanceModalProps) {
   const active = activeTab
   const { data: instance, isLoading, isError, error, isPlaceholderData } = detailQuery
+  // Inline confirmation for destructive/confirm actions triggered from the
+  // header menu. Rendered as a banner at the top of the modal body rather than
+  // a second modal, so there is no nested backdrop over the detail modal.
+  const [pendingConfirm, setPendingConfirm] = useState<{ action: InstanceAction; run: () => void } | null>(null)
 
   return (
     // Shares the host dashboard's modal chrome via lib/components/Modal. Size
@@ -68,9 +75,21 @@ export function InstanceModal({
           </Modal.Title>
           {/* Same dropdown as the list row. InstanceDetail carries the id,
               status and locked fields visibleActions/InstanceActionsMenu use;
-              scope stays {} to match the list until targeted scoping lands. */}
+              scope stays {} to match the list until targeted scoping lands.
+              The status pill sits to the left of the cog (as in the list) so
+              the current state is visible alongside the actions. Confirm
+              actions are delegated to the inline banner below instead of a
+              nested modal. */}
           {instance && (
-            <InstanceActionsMenu instance={instance as unknown as Instance} scope={{}} apiClient={apiClient} />
+            <div className="d-flex align-items-center gap-2">
+              <StatusPill status={instance.status} />
+              <InstanceActionsMenu
+                instance={instance as unknown as Instance}
+                scope={{}}
+                apiClient={apiClient}
+                onConfirmRequest={(action, run) => setPendingConfirm({ action, run })}
+              />
+            </div>
           )}
         </div>
       </Modal.Header>
@@ -83,6 +102,29 @@ export function InstanceModal({
         )}
         {instance && (
           <>
+            {pendingConfirm && (
+              <div className="alert alert-warning" role="alert">
+                <div>
+                  <strong>{pendingConfirm.action.confirm?.title}</strong>
+                  <div>{pendingConfirm.action.confirm?.message}</div>
+                </div>
+                <div className="d-flex justify-content-end gap-2 mt-2">
+                  <button type="button" className="btn btn-secondary" onClick={() => setPendingConfirm(null)}>
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn ${pendingConfirm.action.destructive ? "btn-danger" : "btn-primary"}`}
+                    onClick={() => {
+                      pendingConfirm.run()
+                      setPendingConfirm(null)
+                    }}
+                  >
+                    {pendingConfirm.action.confirm?.ok}
+                  </button>
+                </div>
+              </div>
+            )}
             <ul className="nav nav-tabs" role="tablist">
               {TABS.map((tab) => (
                 <li className="nav-item" role="presentation" key={tab}>

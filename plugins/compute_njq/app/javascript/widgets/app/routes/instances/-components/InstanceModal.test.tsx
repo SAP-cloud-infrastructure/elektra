@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest"
-import { render, screen } from "@testing-library/react"
+import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import "@testing-library/jest-dom/vitest"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import type { UseQueryResult } from "@tanstack/react-query"
@@ -41,9 +41,9 @@ const metricsQuery = {
   error: null,
 } as unknown as UseQueryResult<InstanceMetrics, Error>
 
-function renderModal(dq: UseQueryResult<InstanceDetail, Error>) {
+function renderModal(dq: UseQueryResult<InstanceDetail, Error>, action = vi.fn().mockResolvedValue(undefined)) {
   const qc = new QueryClient()
-  return render(
+  const result = render(
     <QueryClientProvider client={qc}>
       <InstanceModal
         detailQuery={dq}
@@ -51,10 +51,18 @@ function renderModal(dq: UseQueryResult<InstanceDetail, Error>) {
         onClose={() => {}}
         activeTab="Information"
         onTabChange={() => {}}
-        apiClient={{ instances: { action: vi.fn(), terminate: vi.fn() } } as never}
+        apiClient={{ instances: { action, terminate: vi.fn() } } as never}
       />
     </QueryClientProvider>
   )
+  return { ...result, action }
+}
+
+// A running instance exposes confirm actions (Stop/Reboot/…) in the header menu.
+function runningDetail() {
+  return detailQuery({
+    data: { ...detail, status: { state: "active", transition: null, power_state: "Running" } } as InstanceDetail,
+  })
 }
 
 describe("InstanceModal lifecycle actions", () => {
@@ -66,5 +74,47 @@ describe("InstanceModal lifecycle actions", () => {
   it("does not render the actions dropdown while the detail is loading", () => {
     renderModal(detailQuery({ data: undefined, isLoading: true }))
     expect(screen.queryByRole("button", { name: /actions/i })).toBeNull()
+  })
+
+  it("shows the status pill to the left of the actions cog in the header", () => {
+    renderModal(runningDetail())
+    const toggle = screen.getByRole("button", { name: /actions/i })
+    const pill = document.querySelector(".status-pill")
+    expect(pill).not.toBeNull()
+    // Pill and cog share a flex row; the pill precedes the cog in DOM order.
+    const row = toggle.closest(".d-flex")!
+    expect(row.contains(pill)).toBe(true)
+    expect(pill!.compareDocumentPosition(toggle) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it("confirms a destructive action with an inline banner, not a second modal", async () => {
+    const { action } = renderModal(runningDetail())
+    const backdropsBefore = document.querySelectorAll(".modal-backdrop").length
+
+    fireEvent.click(screen.getByRole("button", { name: /actions/i }))
+    fireEvent.click(screen.getByText("Stop"))
+
+    // The consequence text appears inline in a banner; no new backdrop is added.
+    const banner = screen.getByRole("alert")
+    expect(banner).toHaveTextContent("Stop instance?")
+    expect(banner).toHaveTextContent(/shuts down the guest OS/)
+    expect(document.querySelectorAll(".modal-backdrop").length).toBe(backdropsBefore)
+    expect(action).not.toHaveBeenCalled()
+
+    // Confirming fires the mutation and clears the banner.
+    fireEvent.click(screen.getByRole("button", { name: "Stop instance" }))
+    await waitFor(() => expect(action).toHaveBeenCalledWith("s1", "stop"))
+    expect(screen.queryByRole("alert")).toBeNull()
+  })
+
+  it("cancels an inline confirmation without firing the action", () => {
+    const { action } = renderModal(runningDetail())
+    fireEvent.click(screen.getByRole("button", { name: /actions/i }))
+    fireEvent.click(screen.getByText("Stop"))
+    expect(screen.getByRole("alert")).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }))
+    expect(screen.queryByRole("alert")).toBeNull()
+    expect(action).not.toHaveBeenCalled()
   })
 })

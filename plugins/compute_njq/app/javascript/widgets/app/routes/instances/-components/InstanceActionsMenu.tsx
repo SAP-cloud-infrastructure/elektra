@@ -14,9 +14,14 @@ interface Props {
   // The BFF client, sourced from the route context by the caller (the instances
   // layout route) and threaded down — mirrors how CreateInstanceForm receives it.
   apiClient: ComputeApi
+  // Optional confirmation delegate. When provided, confirm actions are delegated
+  // to the caller instead of opening the shared lib/dialogs modal — the detail
+  // modal passes this to render an inline banner rather than a modal-in-modal.
+  // The caller receives the action and a `run` callback to fire once confirmed.
+  onConfirmRequest?: (action: InstanceAction, run: () => void) => void
 }
 
-export default function InstanceActionsMenu({ instance, scope, apiClient }: Props) {
+export default function InstanceActionsMenu({ instance, scope, apiClient, onConfirmRequest }: Props) {
   const queryClient = useQueryClient()
   const actionMutation = useInstanceActionMutation(apiClient, queryClient)
   const terminateMutation = useTerminateInstanceMutation(apiClient, queryClient)
@@ -52,20 +57,26 @@ export default function InstanceActionsMenu({ instance, scope, apiClient }: Prop
   }
 
   const onClick = (a: InstanceAction) => {
-    // Close the panel first; confirm actions open the shared Elektra confirm
-    // dialog (lib/dialogs) — a portal modal that layers above the detail modal
-    // when the menu lives there, so there is no nested-backdrop problem. Others
-    // fire immediately.
+    // Close the panel first. Non-confirm actions fire immediately.
     setOpen(false)
-    if (a.confirm) {
-      confirm(a.confirm.message, { title: a.confirm.title, confirmLabel: a.confirm.ok, abortLabel: "Cancel" })
-        .then(() => run(a))
-        .catch(() => {
-          /* cancelled */
-        })
-    } else {
+    if (!a.confirm) {
       run(a)
+      return
     }
+    // Confirm actions: when a delegate is provided (detail modal), hand off the
+    // confirmation so the caller can render it inline — avoids a nested modal
+    // backdrop over the detail modal. Otherwise (table row) use the shared
+    // Elektra confirm dialog (lib/dialogs), a portal modal that layers fine
+    // when the menu lives in the table.
+    if (onConfirmRequest) {
+      onConfirmRequest(a, () => run(a))
+      return
+    }
+    confirm(a.confirm.message, { title: a.confirm.title, confirmLabel: a.confirm.ok, abortLabel: "Cancel" })
+      .then(() => run(a))
+      .catch(() => {
+        /* cancelled */
+      })
   }
   const error = actionMutation.error ?? terminateMutation.error
   // While a mutation is in flight (until onSettled's reconciling refetch lands)

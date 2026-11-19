@@ -17,6 +17,7 @@ vi.mock("lib/dialogs", () => ({ confirm: (m: unknown, o?: unknown) => confirmMoc
 
 const action = vi.fn().mockResolvedValue(undefined)
 import InstanceActionsMenu from "./InstanceActionsMenu"
+import type { InstanceAction } from "./instanceActions"
 import type { Instance } from "../../../types/instance"
 
 const instance: Instance = {
@@ -30,7 +31,7 @@ const instance: Instance = {
   created: null,
 } as Instance
 
-function renderMenu(over: Partial<Instance> = {}) {
+function renderMenu(over: Partial<Instance> = {}, onConfirmRequest?: (a: InstanceAction, run: () => void) => void) {
   const qc = new QueryClient()
   return render(
     <QueryClientProvider client={qc}>
@@ -38,6 +39,7 @@ function renderMenu(over: Partial<Instance> = {}) {
         instance={{ ...instance, ...over } as Instance}
         scope={{}}
         apiClient={{ instances: { action, terminate: vi.fn() } } as never}
+        onConfirmRequest={onConfirmRequest}
       />
     </QueryClientProvider>
   )
@@ -191,5 +193,37 @@ describe("InstanceActionsMenu", () => {
     expect(danger("Terminate")).toBe(true)
     expect(danger("Stop")).toBe(false)
     expect(danger("Hard Reset")).toBe(false)
+  })
+
+  it("delegates a confirm action to onConfirmRequest instead of lib/dialogs when provided", async () => {
+    // In the detail modal the caller passes onConfirmRequest to render an inline
+    // banner. The shared confirm dialog must NOT be opened; the delegate gets the
+    // action and a run callback that fires the mutation only when invoked.
+    const onConfirmRequest = vi.fn()
+    renderMenu({}, onConfirmRequest)
+    fireEvent.click(screen.getByRole("button", { name: /actions/i }))
+    fireEvent.click(screen.getByText("Stop"))
+
+    expect(confirmMock).not.toHaveBeenCalled()
+    expect(onConfirmRequest).toHaveBeenCalledTimes(1)
+    const [passedAction, run] = onConfirmRequest.mock.calls[0]
+    expect(passedAction.key).toBe("stop")
+    // Menu closed; nothing fires until the delegate invokes run.
+    expect(document.querySelector(".dropdown-menu.show")).toBeNull()
+    expect(action).not.toHaveBeenCalled()
+
+    run()
+    await waitFor(() => expect(action).toHaveBeenCalledWith("s1", "stop"))
+  })
+
+  it("fires a non-confirm action immediately even when onConfirmRequest is provided", async () => {
+    // The delegate only governs confirm actions; Start (no confirm) still fires
+    // directly without involving the delegate.
+    const onConfirmRequest = vi.fn()
+    renderMenu({ status: { state: "stopped", transition: null, power_state: "Shut off" } }, onConfirmRequest)
+    fireEvent.click(screen.getByRole("button", { name: /actions/i }))
+    fireEvent.click(screen.getByText("Start"))
+    await waitFor(() => expect(action).toHaveBeenCalledWith("s1", "start"))
+    expect(onConfirmRequest).not.toHaveBeenCalled()
   })
 })
