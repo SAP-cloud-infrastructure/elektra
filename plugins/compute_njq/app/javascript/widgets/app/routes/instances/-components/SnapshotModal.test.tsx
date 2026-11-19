@@ -49,6 +49,13 @@ describe("SnapshotModal", () => {
     expect(screen.getByRole("button", { name: /create snapshot/i })).toBeDisabled()
   })
 
+  it("explains what a snapshot is on the form", () => {
+    renderModal()
+    expect(
+      screen.getByText("A snapshot is an image which preserves the disk state of a running instance.")
+    ).toBeInTheDocument()
+  })
+
   it("moves to a progress state after submit and does NOT close", async () => {
     const { createSnapshot, onClose } = renderModal()
     fireEvent.change(screen.getByLabelText(/name/i), { target: { value: "snap-1" } })

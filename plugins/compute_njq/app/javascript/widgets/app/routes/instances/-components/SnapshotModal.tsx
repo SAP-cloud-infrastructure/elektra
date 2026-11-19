@@ -73,6 +73,9 @@ export function SnapshotModal({ instance, apiClient, onClose }: SnapshotModalPro
                 {mutation.error.message}
               </div>
             )}
+            <p className="text-muted">
+              A snapshot is an image which preserves the disk state of a running instance.
+            </p>
             <div className="form-group">
               <label className="form-label" htmlFor="snapshot-name">
                 Name
