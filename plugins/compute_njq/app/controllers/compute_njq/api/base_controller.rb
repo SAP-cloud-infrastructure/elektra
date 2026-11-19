@@ -12,6 +12,28 @@ module ComputeNjq
         @compute_service ||= services.compute_njq.scoped(@scoped_project_id, current_region)
       end
 
+      # Server-side policy gate for mutating actions. The client-side policy
+      # engine only gates the UI; a hand-crafted request would otherwise reach
+      # the service unchecked. Returns true when allowed; otherwise renders a 403
+      # envelope (matching handle_api_call's shape) and returns false so the
+      # caller aborts before touching the service.
+      def authorize!(rule)
+        return true if current_user.is_allowed?(rule, policy_target)
+
+        render json: {
+          error: "Forbidden",
+          code: 403,
+          message: "You are not allowed to perform this action.",
+        }, status: :forbidden
+        false
+      end
+
+      # The policy target for the scoped request: the domain/project the user is
+      # acting in. Mirrors ScopeController's @policy_default_params target.
+      def policy_target
+        { target: { scoped_domain_name: @scoped_domain_name, scoped_project_name: @scoped_project_name } }
+      end
+
       # Wraps a BFF action: renders the block's return value as JSON and maps
       # every known error class to a consistent { error, code, message } body
       # with a matching HTTP status. Upstream (OpenStack) status codes are

@@ -17,6 +17,8 @@ ComputeNjq::Engine.routes.draw do
         post :reset_status
         # Resize: change the server's flavor, body { flavor_id: "..." }.
         put :resize
+        # Snapshot: create a Glance image of the server, body { snapshot: { name } }.
+        post :snapshot
       end
     end
     get "form_options/flavors", to: "form_options#flavors"
@@ -27,6 +29,8 @@ ComputeNjq::Engine.routes.draw do
     get "form_options/security_groups", to: "form_options#security_groups"
     get "form_options/availability_zones", to: "form_options#availability_zones"
     get "form_options/volume_types", to: "form_options#volume_types"
+    # Image status reads (snapshot polling), kept generic/reusable.
+    resources :images, only: %i[show]
   end
 
   # Catch-all: every non-API path renders the single React mount point so that

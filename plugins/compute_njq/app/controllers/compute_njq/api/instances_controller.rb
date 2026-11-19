@@ -69,6 +69,15 @@ module ComputeNjq
         handle_api_call { compute_service.resize_instance(params.require(:id), params.require(:flavor_id)) }
       end
 
+      # POST /:scope/compute-njq/api/instances/:id/snapshot  body { snapshot: { name } }
+      # Creates a Glance image (snapshot) of the server. Returns the new image id
+      # so the client can poll its status until it becomes active.
+      def snapshot
+        return unless authorize!("compute_njq:instance_snapshot")
+
+        handle_api_call { compute_service.create_instance_snapshot(params.require(:id), snapshot_params[:name]) }
+      end
+
       # POST /:scope/compute-njq/api/instances/:id/action
       # Generic lifecycle action. The service whitelists action_name and maps it
       # to the Nova server-action body.
@@ -115,28 +124,6 @@ module ComputeNjq
 
       private
 
-      # Server-side policy gate for mutating lifecycle actions. The client-side
-      # policy engine only gates the UI; a hand-crafted request would otherwise
-      # reach the service unchecked. Returns true when allowed; otherwise renders
-      # a 403 envelope (matching handle_api_call's shape) and returns false so
-      # the caller aborts before touching the service.
-      def authorize!(rule)
-        return true if current_user.is_allowed?(rule, policy_target)
-
-        render json: {
-          error: "Forbidden",
-          code: 403,
-          message: "You are not allowed to perform this action.",
-        }, status: :forbidden
-        false
-      end
-
-      # The policy target for the scoped request: the domain/project the user is
-      # acting in. Mirrors ScopeController's @policy_default_params target.
-      def policy_target
-        { target: { scoped_domain_name: @scoped_domain_name, scoped_project_name: @scoped_project_name } }
-      end
-
       # Only the filters the UI actually offers are accepted. The scope params
       # (domain_id/project_id) ride along on every routed request and are handled
       # by the scope controller, not here — drop them before permit so they are
@@ -156,6 +143,12 @@ module ComputeNjq
       # Edit Name: only the name is mutable here.
       def update_params
         params.require(:instance).permit(:name).to_h.symbolize_keys
+      end
+
+      # Snapshot: only the image name is accepted; metadata is always {} (legacy
+      # parity with the name-only new_snapshot form).
+      def snapshot_params
+        params.require(:snapshot).permit(:name).to_h.symbolize_keys
       end
 
       # Edit Tags: the full replacement tag list. Defaults to [] so an omitted

@@ -310,6 +310,41 @@ RSpec.describe ComputeNjq::Api::InstancesController, type: :controller do
     end
   end
 
+  describe "POST #snapshot" do
+    before { allow_any_instance_of(MonsoonOpenstackAuth::Authentication::AuthUser).to receive(:is_allowed?).and_return(true) }
+
+    it "forwards the name to the service and returns the image id" do
+      expect(scoped_service).to receive(:create_instance_snapshot).with("s1", "snap-1").and_return(image_id: "img-7")
+
+      post :snapshot, params: default_params.merge(id: "s1", snapshot: { name: "snap-1" })
+
+      expect(response).to have_http_status(:success)
+      expect(JSON.parse(response.body)).to eq("image_id" => "img-7")
+    end
+
+    it "checks the instance_snapshot policy rule" do
+      allow(scoped_service).to receive(:create_instance_snapshot).and_return(image_id: "img-7")
+      expect_any_instance_of(MonsoonOpenstackAuth::Authentication::AuthUser).to receive(:is_allowed?).with(
+        "compute_njq:instance_snapshot", anything
+      ).and_return(true)
+
+      post :snapshot, params: default_params.merge(id: "s1", snapshot: { name: "snap-1" })
+    end
+
+    context "when the user is not allowed to snapshot" do
+      before { allow_any_instance_of(MonsoonOpenstackAuth::Authentication::AuthUser).to receive(:is_allowed?).and_return(false) }
+
+      it "renders a 403 envelope and never calls the service" do
+        expect(scoped_service).not_to receive(:create_instance_snapshot)
+
+        post :snapshot, params: default_params.merge(id: "s1", snapshot: { name: "snap-1" })
+
+        expect(response).to have_http_status(:forbidden)
+        expect(JSON.parse(response.body)).to include("error" => "Forbidden", "code" => 403)
+      end
+    end
+  end
+
   describe "DELETE #destroy" do
     before { allow_any_instance_of(MonsoonOpenstackAuth::Authentication::AuthUser).to receive(:is_allowed?).and_return(true) }
 
