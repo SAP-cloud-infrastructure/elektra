@@ -14,6 +14,8 @@ module ServiceLayer
         "hard_reset" => { "reboot" => { "type" => "HARD" } },
         "pause" => { "pause" => nil },
         "suspend" => { "suspend" => nil },
+        "confirm_resize" => { "confirmResize" => nil },
+        "revert_resize" => { "revertResize" => nil },
       }.freeze
 
       # The only vm_states an admin may force via os-resetState. Any other value
@@ -59,6 +61,16 @@ module ServiceLayer
       def set_instance_tags(id, tags)
         clean = Array(tags).map { |t| t.to_s.strip }.reject(&:empty?).uniq
         nova_set_server_tags(id, clean)
+        { ok: true }
+      end
+
+      # Resize a server to a new flavor. Nova's os-resize takes a flavorRef; we
+      # reject a blank flavor here rather than making a pointless backend call.
+      def resize_instance(id, flavor_id)
+        flavor_id = flavor_id.to_s.strip
+        raise ComputeNjq::RequestError, "Flavor must not be blank" if flavor_id.empty?
+
+        nova_server_action(id, { "resize" => { "flavorRef" => flavor_id } })
         { ok: true }
       end
 

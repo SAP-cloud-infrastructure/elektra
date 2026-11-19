@@ -132,4 +132,34 @@ RSpec.describe ServiceLayer::ComputeNjqServices::InstanceActions do
       expect { test_class.reset_instance_status("s1", "deleted") }.to raise_error(ComputeNjq::RequestError)
     end
   end
+
+  describe "#resize_instance" do
+    it "posts an os-resize with the flavorRef and returns ok" do
+      expect(test_class).to receive(:nova_server_action).with("s1", { "resize" => { "flavorRef" => "f2" } })
+      expect(test_class.resize_instance("s1", "f2")).to eq({ ok: true })
+    end
+
+    it "trims the flavor id" do
+      expect(test_class).to receive(:nova_server_action).with("s1", { "resize" => { "flavorRef" => "f2" } })
+      test_class.resize_instance("s1", "  f2  ")
+    end
+
+    it "rejects a blank flavor without calling Nova" do
+      expect(test_class).not_to receive(:nova_server_action)
+      expect { test_class.resize_instance("s1", "  ") }.to raise_error(ComputeNjq::RequestError)
+      expect { test_class.resize_instance("s1", nil) }.to raise_error(ComputeNjq::RequestError)
+    end
+  end
+
+  describe "#instance_action resize follow-ups" do
+    it "maps confirm_resize to confirmResize" do
+      expect(test_class).to receive(:nova_server_action).with("s1", { "confirmResize" => nil })
+      expect(test_class.instance_action("s1", "confirm_resize")).to eq({ ok: true })
+    end
+
+    it "maps revert_resize to revertResize" do
+      expect(test_class).to receive(:nova_server_action).with("s1", { "revertResize" => nil })
+      expect(test_class.instance_action("s1", "revert_resize")).to eq({ ok: true })
+    end
+  end
 end
