@@ -123,12 +123,25 @@ RSpec.describe ServiceLayer::ComputeNjqServices::InstanceDetailAssembler do
     it "uses the root volume size over the flavor disk when a root device matches" do
       expect(detail[:specs]).to eq(
         flavor: "m1.small", ram: 2048, vcpus: 2, root_disk_size: 50, root_disk_device: "/dev/vda",
+        hypervisor_type: nil,
       )
     end
 
     it "is nil for boot-from-volume servers where Nova returns flavor as a string" do
       allow(test_class).to receive(:nova_server).with("s1").and_return(server.merge("flavor" => ""))
       expect(detail[:specs]).to be_nil
+    end
+
+    it "maps the flavor's extra_specs hypervisor type to the normalised vocabulary" do
+      flavor = server["flavor"].merge("extra_specs" => { "capabilities:hypervisor_type" => "QEMU" })
+      allow(test_class).to receive(:nova_server).with("s1").and_return(server.merge("flavor" => flavor))
+      expect(detail[:specs][:hypervisor_type]).to eq("kvm")
+    end
+
+    it "yields a nil hypervisor type for an unmapped extra_specs value" do
+      flavor = server["flavor"].merge("extra_specs" => { "capabilities:hypervisor_type" => "weird-hv" })
+      allow(test_class).to receive(:nova_server).with("s1").and_return(server.merge("flavor" => flavor))
+      expect(detail[:specs][:hypervisor_type]).to be_nil
     end
   end
 

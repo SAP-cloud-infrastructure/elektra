@@ -38,6 +38,10 @@ interface SearchableSelectProps<T> {
   // (only shown when a value is set). Use for optional fields.
   clearable?: boolean
   isLoading?: boolean
+  // When set, the trigger is disabled (greyed out) and the list cannot open.
+  // Used while a prerequisite is still unknown (e.g. the instance's hypervisor
+  // type the resize targets are filtered by).
+  disabled?: boolean
   placeholder: string
   emptyMessage: string
 }
@@ -56,6 +60,7 @@ export function SearchableSelect<T>({
   allowCustomLabel,
   clearable,
   isLoading,
+  disabled,
   placeholder,
   emptyMessage,
 }: SearchableSelectProps<T>) {
@@ -151,6 +156,7 @@ export function SearchableSelect<T>({
       <button
         type="button"
         className={`form-select w-100 text-start${hasValue ? "" : " text-muted"}`}
+        disabled={disabled}
         onClick={() => setOpen((o) => !o)}
       >
         {buttonText}

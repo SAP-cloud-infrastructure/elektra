@@ -53,7 +53,16 @@ function detailPlaceholderFromList(instance: Instance): InstanceDetail {
     tags: [],
     specs:
       instance.flavor.id || instance.flavor.name
-        ? { flavor: instance.flavor.name, ram: null, vcpus: null, root_disk_size: null, root_disk_device: null }
+        ? {
+            flavor: instance.flavor.name,
+            ram: null,
+            vcpus: null,
+            root_disk_size: null,
+            root_disk_device: null,
+            // Unknown until the aggregated detail arrives; the list row carries no
+            // hypervisor info. Rendered as "unknown" in the meantime.
+            hypervisor_type: null,
+          }
         : null,
     ip_addresses: [],
     security_groups: [],

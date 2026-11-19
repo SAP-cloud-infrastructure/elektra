@@ -30,6 +30,16 @@ describe("SearchableSelect", () => {
     expect(screen.getByText("Nothing here")).toBeInTheDocument()
   })
 
+  it("disables the trigger and does not open when disabled", () => {
+    render(<SearchableSelect {...common} onChange={vi.fn()} disabled />)
+    const trigger = screen.getByText("Select…")
+    expect(trigger).toBeDisabled()
+    fireEvent.click(trigger)
+    // The list never opens, so no search box and no options appear.
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument()
+    expect(screen.queryByRole("option")).not.toBeInTheDocument()
+  })
+
   it("calls onSearch instead of filtering locally when provided", async () => {
     const onSearch = vi.fn()
     render(<SearchableSelect {...common} onChange={vi.fn()} onSearch={onSearch} />)

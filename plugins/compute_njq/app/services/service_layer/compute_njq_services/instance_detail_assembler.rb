@@ -78,6 +78,10 @@ module ServiceLayer
           vcpus: flavor["vcpus"],
           root_disk_size: root_disk_size,
           root_disk_device: root_device,
+          # Hypervisor family (kvm/vmware/baremetal), normalised from the flavor's
+          # extra_specs exactly like FormOptionsAssembler#form_flavors. nil when the
+          # flavor carries no mappable value; the UI shows that as "unknown".
+          hypervisor_type: FormOptionsAssembler::HYPERVISOR_MAP[flavor.dig("extra_specs", "capabilities:hypervisor_type")],
         }
       end
 

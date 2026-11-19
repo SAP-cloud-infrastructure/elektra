@@ -5,8 +5,10 @@ import type { Instance } from "../../../types/instance"
 import type { Flavor } from "../../../types/formOptions"
 import type { ComputeApi } from "../../../apiClient"
 import { useFlavorsQuery } from "../../../hooks/useFormOptionQueries"
+import { useInstanceDetailQuery } from "../../../hooks/useInstanceQueries"
 import { useResizeInstanceMutation } from "../../../hooks/useResizeInstanceMutation"
 import { SearchableSelect } from "./SearchableSelect"
+import { InlineLoading } from "./tabs/InlineLoading"
 import { flavorLabel } from "./flavorGrouping"
 
 interface ResizeModalProps {
@@ -30,7 +32,28 @@ export function ResizeModal({ instance, apiClient, onClose }: ResizeModalProps) 
   // EditNameModal seeds the current name from the passed-in instance.
   const currentId = instance.flavor?.id ?? null
   const currentName = instance.flavor?.name ?? "unknown"
-  const choices = (flavors.data ?? []).filter((f) => f.id !== currentId)
+  // Display the current hypervisor type from the instance DETAIL (the server's
+  // embedded flavor extra_specs), which carries it reliably. The flavor catalog
+  // may omit extra_specs by policy, so a catalog lookup can read "unknown" even
+  // when the server clearly runs on a known hypervisor.
+  const detail = useInstanceDetailQuery(apiClient, instance.id)
+  const currentType = detail.data?.specs?.hypervisor_type ?? null
+  // The detail query serves placeholder data (from the list row) until the real
+  // aggregated detail arrives; the placeholder has no hypervisor type, so show a
+  // loading indicator rather than "unknown" while isPlaceholderData is true —
+  // mirrors the detail Specs tab.
+  const typeLoading = detail.isPlaceholderData && currentType === null
+  // Filter resize targets by the hypervisor type: a resize cannot move a server
+  // across hypervisor types, so only same-type flavors are valid targets. Use
+  // the DETAIL's type (currentType) — the reliable source — not a catalog lookup
+  // of the current flavor, which can fail to resolve and silently fall back to
+  // "show all". Until the type is known (loading, or genuinely absent) we cannot
+  // safely offer any target, so the list is empty and the dropdown is disabled
+  // (see typeKnown below) rather than showing an unfiltered, cross-hypervisor
+  // list.
+  const all = flavors.data ?? []
+  const typeKnown = currentType !== null
+  const choices = typeKnown ? all.filter((f) => f.id !== currentId && f.hypervisor_type === currentType) : []
   const disabled = !flavorId || flavorId === currentId || mutation.isPending
 
   const submit = () => {
@@ -58,7 +81,7 @@ export function ResizeModal({ instance, apiClient, onClose }: ResizeModalProps) 
             Current Flavor
           </label>
           <p id="resize-current-flavor" className="form-control-static">
-            {currentName}
+            {currentName} ({typeLoading ? <InlineLoading /> : (currentType ?? "unknown")})
           </p>
         </div>
         <div className="form-group">
@@ -73,6 +96,7 @@ export function ResizeModal({ instance, apiClient, onClose }: ResizeModalProps) 
             getLabel={(f) => flavorLabel(f)}
             placeholder="Choose flavor"
             isLoading={flavors.isLoading}
+            disabled={!typeKnown}
             emptyMessage="No flavors available"
           />
         </div>

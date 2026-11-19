@@ -70,6 +70,9 @@ export const DetailSpecsSchema = z.object({
   vcpus: z.number().nullable(),
   root_disk_size: z.number().nullable(),
   root_disk_device: z.string().nullable(),
+  // Hypervisor family (kvm/vmware/baremetal), normalised by the BFF; null when
+  // the flavor carries no mappable value — the Specs tab renders that "unknown".
+  hypervisor_type: z.string().nullable(),
 })
 
 export const DetailIpSchema = z.object({

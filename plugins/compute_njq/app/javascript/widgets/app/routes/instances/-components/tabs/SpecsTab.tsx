@@ -18,6 +18,12 @@ export function SpecsTab({ specs, loading = false }: SpecsTabProps) {
           <td>{specs.flavor}</td>
         </tr>
         <tr>
+          <th>Hypervisor</th>
+          <td>
+            {specs.hypervisor_type === null && loading ? <InlineLoading /> : (specs.hypervisor_type ?? "unknown")}
+          </td>
+        </tr>
+        <tr>
           <th>RAM</th>
           <td>{specs.ram === null && loading ? <InlineLoading /> : `${specs.ram}MB`}</td>
         </tr>

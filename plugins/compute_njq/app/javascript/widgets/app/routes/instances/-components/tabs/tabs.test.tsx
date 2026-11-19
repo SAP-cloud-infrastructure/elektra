@@ -112,11 +112,59 @@ describe("SpecsTab", () => {
 
   it("renders flavor, ram, vcpus and root disk", () => {
     render(
-      <SpecsTab specs={{ flavor: "m1.small", ram: 2048, vcpus: 2, root_disk_size: 50, root_disk_device: "/dev/vda" }} />
+      <SpecsTab
+        specs={{
+          flavor: "m1.small",
+          ram: 2048,
+          vcpus: 2,
+          root_disk_size: 50,
+          root_disk_device: "/dev/vda",
+          hypervisor_type: "kvm",
+        }}
+      />
     )
     expect(screen.getByText("m1.small")).toBeInTheDocument()
     expect(screen.getByText("2048MB")).toBeInTheDocument()
     expect(screen.getByText("2 VCPU")).toBeInTheDocument()
+    expect(screen.getByText("kvm")).toBeInTheDocument()
+  })
+
+  it("shows 'unknown' when the hypervisor type is not known", () => {
+    render(
+      <SpecsTab
+        specs={{
+          flavor: "m1.small",
+          ram: 2048,
+          vcpus: 2,
+          root_disk_size: 50,
+          root_disk_device: "/dev/vda",
+          hypervisor_type: null,
+        }}
+      />
+    )
+    expect(screen.getByText("unknown")).toBeInTheDocument()
+  })
+
+  it("shows a loading spinner (not 'unknown') while the detail is still loading", () => {
+    // Placeholder detail (from the list row) has no hypervisor type yet; showing
+    // "unknown" would be misleading — it must read as loading until the real
+    // value arrives, like RAM/VCPUs/Root Disk.
+    const { container } = render(
+      <SpecsTab
+        specs={{
+          flavor: "m1.small",
+          ram: null,
+          vcpus: null,
+          root_disk_size: null,
+          root_disk_device: null,
+          hypervisor_type: null,
+        }}
+        loading
+      />
+    )
+    expect(screen.queryByText("unknown")).not.toBeInTheDocument()
+    // The Hypervisor row shows the shared loading indicator instead.
+    expect(container.querySelectorAll(".spinner").length).toBeGreaterThan(0)
   })
 })
 
