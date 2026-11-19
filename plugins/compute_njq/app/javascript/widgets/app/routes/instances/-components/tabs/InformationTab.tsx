@@ -46,6 +46,14 @@ export function InformationTab({ instance, metricsQuery, loading = false }: Info
             </td>
           )}
         </tr>
+        {/* Hypervisor power state (e.g. Running / Shut off) as its own row,
+            directly under the vm_state status. Omitted when Nova reports none. */}
+        {status.power_state && (
+          <tr>
+            <th>Power State</th>
+            <td>{status.power_state}</td>
+          </tr>
+        )}
         <tr>
           <th>Locked</th>
           <td>{loading ? <InlineLoading /> : instance.locked ? "Yes" : "No"}</td>

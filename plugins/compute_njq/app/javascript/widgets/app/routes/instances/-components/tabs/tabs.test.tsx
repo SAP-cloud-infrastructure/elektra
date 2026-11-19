@@ -43,6 +43,25 @@ describe("InformationTab", () => {
     rerender(<InformationTab instance={detail({ locked: false })} metricsQuery={metricsQuery} />)
     expect(screen.getByText("Locked").closest("tr")!).toHaveTextContent("No")
   })
+
+  it("shows the power state in its own row under the status", () => {
+    render(<InformationTab instance={detail()} metricsQuery={metricsQuery} />)
+    const powerRow = screen.getByText("Power State").closest("tr")!
+    expect(powerRow).toHaveTextContent("Running")
+    // The Power State row sits directly after the Status row.
+    const statusRow = screen.getByText("Status").closest("tr")!
+    expect(statusRow.nextElementSibling).toBe(powerRow)
+  })
+
+  it("omits the power state row when Nova reports none", () => {
+    render(
+      <InformationTab
+        instance={detail({ status: { state: "active", transition: null, power_state: null } })}
+        metricsQuery={metricsQuery}
+      />
+    )
+    expect(screen.queryByText("Power State")).toBeNull()
+  })
 })
 
 describe("SecurityGroupsTab", () => {
