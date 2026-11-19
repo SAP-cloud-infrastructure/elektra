@@ -124,4 +124,11 @@ describe("visibleActions", () => {
     const resize = INSTANCE_ACTIONS.find((a) => a.key === "resize")
     expect(resize?.modal).toBe("resize")
   })
+
+  it("registers a create snapshot action gated by the snapshot policy", () => {
+    const action = INSTANCE_ACTIONS.find((a) => a.key === "create_image")
+    expect(action).toBeDefined()
+    expect(action?.policy).toBe("compute_njq:instance_snapshot")
+    expect(action?.modal).toBe("snapshot")
+  })
 })

@@ -8,6 +8,7 @@ export interface InstanceAction {
     | "resize"
     | "confirm_resize"
     | "revert_resize"
+    | "create_image"
     | "start"
     | "stop"
     | "reboot"
@@ -42,7 +43,7 @@ export interface InstanceAction {
   // Form-based actions open a modal instead of firing immediately. The menu maps
   // this discriminator to the matching modal component (Edit Name/Tags, Reset
   // Status); actions without it run (optionally after a confirm) directly.
-  modal?: "editName" | "editTags" | "resetStatus" | "resize"
+  modal?: "editName" | "editTags" | "resetStatus" | "resize" | "snapshot"
 }
 
 const PARKED = ["Paused", "Suspended", "Shut off", "Shut down"]
@@ -149,6 +150,14 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     group: "power",
     isAvailable: (i) => ["active", "stopped"].includes(i.status.state),
     modal: "resize",
+  },
+  {
+    key: "create_image",
+    label: "Create Snapshot",
+    policy: "compute_njq:instance_snapshot",
+    group: "power",
+    isAvailable: () => true,
+    modal: "snapshot",
   },
   {
     key: "confirm_resize",

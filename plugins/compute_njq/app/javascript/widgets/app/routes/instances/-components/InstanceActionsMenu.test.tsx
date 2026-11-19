@@ -135,7 +135,7 @@ describe("InstanceActionsMenu", () => {
 
   it("separates action groups with dividers like the legacy menu", () => {
     // Running + unlocked shows four groups in order:
-    //   [Edit Name, Edit Tags] | [Stop, Reboot, Pause, Suspend, Hard Reset, Resize]
+    //   [Edit Name, Edit Tags] | [Stop, Reboot, Pause, Suspend, Hard Reset, Resize, Create Snapshot]
     //   | [Lock] | [Reset Status, Terminate]
     // so three dividers sit between them — never before the first group.
     renderMenu()
@@ -164,6 +164,7 @@ describe("InstanceActionsMenu", () => {
       "Suspend",
       "Hard Reset",
       "Resize",
+      "Create Snapshot",
       "---",
       "Lock",
       "---",
