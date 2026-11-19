@@ -4,14 +4,13 @@ import { Modal } from "lib/components/Modal"
 import type { Instance } from "../../../types/instance"
 import type { Flavor } from "../../../types/formOptions"
 import type { ComputeApi } from "../../../apiClient"
-import { useInstanceDetailQuery } from "../../../hooks/useInstanceQueries"
 import { useFlavorsQuery } from "../../../hooks/useFormOptionQueries"
 import { useResizeInstanceMutation } from "../../../hooks/useResizeInstanceMutation"
 import { SearchableSelect } from "./SearchableSelect"
 import { flavorLabel } from "./flavorGrouping"
 
 interface ResizeModalProps {
-  instance: Pick<Instance, "id" | "name">
+  instance: Pick<Instance, "id" | "name" | "flavor">
   apiClient: ComputeApi
   onClose: () => void
 }
@@ -21,13 +20,16 @@ interface ResizeModalProps {
 // chosen. Mirrors the legacy new_size.html.haml (info callout + "New Flavor").
 export function ResizeModal({ instance, apiClient, onClose }: ResizeModalProps) {
   const queryClient = useQueryClient()
-  const detail = useInstanceDetailQuery(apiClient, instance.id)
   const flavors = useFlavorsQuery(apiClient, { enabled: true })
   const mutation = useResizeInstanceMutation(apiClient, queryClient)
   const [flavorId, setFlavorId] = useState<string | null>(null)
 
-  const currentId = detail.data?.flavor?.id ?? null
-  const currentName = detail.data?.flavor?.name ?? "unknown"
+  // Seed the current flavor from the list row the menu passes (Instance.flavor is
+  // a { id, name } ref with a real catalog id); the server detail view has no
+  // top-level flavor, so relying on it would read undefined. Mirrors how
+  // EditNameModal seeds the current name from the passed-in instance.
+  const currentId = instance.flavor?.id ?? null
+  const currentName = instance.flavor?.name ?? "unknown"
   const choices = (flavors.data ?? []).filter((f) => f.id !== currentId)
   const disabled = !flavorId || flavorId === currentId || mutation.isPending
 

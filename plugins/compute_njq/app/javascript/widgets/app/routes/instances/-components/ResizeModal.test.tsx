@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import "@testing-library/jest-dom/vitest"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import type { ComputeApi } from "../../../apiClient"
+import type { Instance } from "../../../types/instance"
 import { ResizeModal } from "./ResizeModal"
 
 const flavorData = [
@@ -12,12 +13,14 @@ const flavorData = [
 vi.mock("../../../hooks/useFormOptionQueries", () => ({
   useFlavorsQuery: () => ({ data: flavorData, isLoading: false }),
 }))
-vi.mock("../../../hooks/useInstanceQueries", () => ({
-  useInstanceDetailQuery: () => ({
-    data: { id: "s1", name: "web-01", flavor: { id: "f1", name: "m1.small" } },
-    isLoading: false,
-  }),
-}))
+
+// The instance the menu passes carries the current flavor as a { id, name } ref
+// (list Instance shape); the modal seeds the current flavor from it.
+const instance = {
+  id: "s1",
+  name: "web-01",
+  flavor: { id: "f1", name: "m1.small" },
+} as Instance
 
 function renderModal(resizeInstance = vi.fn().mockResolvedValue(undefined)) {
   const onClose = vi.fn()
@@ -25,7 +28,7 @@ function renderModal(resizeInstance = vi.fn().mockResolvedValue(undefined)) {
   render(
     <QueryClientProvider client={qc}>
       <ResizeModal
-        instance={{ id: "s1", name: "web-01" } as never}
+        instance={instance}
         apiClient={{ instances: { resizeInstance } } as unknown as ComputeApi}
         onClose={onClose}
       />
@@ -35,9 +38,9 @@ function renderModal(resizeInstance = vi.fn().mockResolvedValue(undefined)) {
 }
 
 describe("ResizeModal", () => {
-  it("shows the current flavor read-only", () => {
+  it("shows the current flavor name read-only", () => {
     renderModal()
-    expect(screen.getByText(/m1\.small/)).toBeInTheDocument()
+    expect(screen.getByText("m1.small")).toBeInTheDocument()
   })
 
   it("keeps Resize disabled until a different flavor is chosen", () => {
