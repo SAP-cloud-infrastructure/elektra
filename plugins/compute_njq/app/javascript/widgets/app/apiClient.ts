@@ -133,6 +133,25 @@ export function createComputeApi(basepath: string) {
       apiClient.delete<{ data: { ok: true } }>(`instances/${id}`).then((res) => {
         checkForApiError(res.data)
       }),
+
+    // Edit Name: PUT /servers/{id} via the BFF; body mirrors create ({ instance }).
+    // The BFF answers { ok: true } — nothing to parse, just surface failures.
+    updateName: (id: string, name: string): Promise<void> =>
+      apiClient.put<{ data: { ok: true } }>(`instances/${id}`, { instance: { name } }).then((res) => {
+        checkForApiError(res.data)
+      }),
+
+    // Edit Tags: replace the full tag set. An empty list clears all tags.
+    setTags: (id: string, tags: string[]): Promise<void> =>
+      apiClient.put<{ data: { ok: true } }>(`instances/${id}/tags`, { tags }).then((res) => {
+        checkForApiError(res.data)
+      }),
+
+    // Reset Status: admin-only vm_state recovery (active|error).
+    resetStatus: (id: string, state: string): Promise<void> =>
+      apiClient.post<{ data: { ok: true } }>(`instances/${id}/reset_status`, { state }).then((res) => {
+        checkForApiError(res.data)
+      }),
   }
 
   const formOptionsApi = {

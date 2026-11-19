@@ -3,9 +3,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 // Mock the ajax helper so we control exactly what the BFF "returns".
 const mockGet = vi.fn()
 const mockPost = vi.fn()
+const mockPut = vi.fn()
 const mockDelete = vi.fn()
 vi.mock("lib/ajax_helper", () => ({
-  createAjaxHelper: () => ({ get: mockGet, post: mockPost, delete: mockDelete }),
+  createAjaxHelper: () => ({ get: mockGet, post: mockPost, put: mockPut, delete: mockDelete }),
 }))
 
 import { createComputeApi } from "./apiClient"
@@ -30,6 +31,7 @@ describe("createComputeApi", () => {
   beforeEach(() => {
     mockGet.mockReset()
     mockPost.mockReset()
+    mockPut.mockReset()
     mockDelete.mockReset()
   })
 
@@ -218,6 +220,37 @@ describe("createComputeApi", () => {
     it("throws the error envelope when terminate fails", async () => {
       mockDelete.mockResolvedValue({ data: { error: "API Error", code: 403, message: "Forbidden" } })
       await expect(api.instances.terminate("s1")).rejects.toThrow(/Forbidden \(HTTP 403\)/)
+    })
+  })
+
+  describe("instances.updateName / setTags / resetStatus", () => {
+    it("updateName PUTs the new name nested under instance", async () => {
+      mockPut.mockResolvedValue({ data: { ok: true } })
+      await api.instances.updateName("s1", "web-02")
+      expect(mockPut).toHaveBeenCalledWith("instances/s1", { instance: { name: "web-02" } })
+    })
+
+    it("setTags PUTs the full tag list to instances/:id/tags", async () => {
+      mockPut.mockResolvedValue({ data: { ok: true } })
+      await api.instances.setTags("s1", ["web", "prod"])
+      expect(mockPut).toHaveBeenCalledWith("instances/s1/tags", { tags: ["web", "prod"] })
+    })
+
+    it("setTags accepts an empty list to clear all tags", async () => {
+      mockPut.mockResolvedValue({ data: { ok: true } })
+      await api.instances.setTags("s1", [])
+      expect(mockPut).toHaveBeenCalledWith("instances/s1/tags", { tags: [] })
+    })
+
+    it("resetStatus POSTs the chosen state to instances/:id/reset_status", async () => {
+      mockPost.mockResolvedValue({ data: { ok: true } })
+      await api.instances.resetStatus("s1", "active")
+      expect(mockPost).toHaveBeenCalledWith("instances/s1/reset_status", { state: "active" })
+    })
+
+    it("throws the error envelope when an edit fails", async () => {
+      mockPut.mockResolvedValue({ data: { error: "API Error", code: 403, message: "Forbidden" } })
+      await expect(api.instances.updateName("s1", "web-02")).rejects.toThrow(/Forbidden \(HTTP 403\)/)
     })
   })
 })
