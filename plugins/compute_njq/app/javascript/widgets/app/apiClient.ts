@@ -19,6 +19,7 @@ import {
   VolumeTypesResponseSchema,
 } from "./types/formOptions"
 import { CreateInstancePayload } from "./types/createInstance"
+import { ImageStatus, ImageStatusResponseSchema, SnapshotResponse, SnapshotResponseSchema } from "./types/image"
 
 // The BFF can answer with HTTP 200 but an error-shaped body when an upstream
 // proxy (e.g. oauth2-proxy) rewrites the status. Detect the { error, code }
@@ -158,6 +159,30 @@ export function createComputeApi(basepath: string) {
       apiClient.put<{ data: { ok: true } }>(`instances/${id}/resize`, { flavor_id: flavorId }).then((res) => {
         checkForApiError(res.data)
       }),
+
+    // Snapshot: create a Glance image of the server. createImage only acknowledges;
+    // the BFF returns the new image id so the client can poll its status. image_id
+    // may be null when neither the Location header nor the name fallback resolved it.
+    createSnapshot: (id: string, name: string): Promise<SnapshotResponse> =>
+      apiClient
+        .post<{ data: SnapshotResponse }>(`instances/${id}/snapshot`, { snapshot: { name } })
+        .then((res) => {
+          checkForApiError(res.data)
+          return parseOrThrow(SnapshotResponseSchema, res.data, "snapshot")
+        })
+        .catch((err) => {
+          throw detailedError(err)
+        }),
+  }
+
+  // Generic image reads (snapshot status polling), kept reusable rather than
+  // coupled to the snapshot flow.
+  const imagesApi = {
+    getStatus: (id: string): Promise<ImageStatus> =>
+      apiClient.get<{ data: { image: ImageStatus } }>(`images/${id}`).then((res) => {
+        checkForApiError(res.data)
+        return parseOrThrow(ImageStatusResponseSchema, res.data, "image status").image
+      }),
   }
 
   const formOptionsApi = {
@@ -203,7 +228,7 @@ export function createComputeApi(basepath: string) {
       }),
   }
 
-  return { instances: instanceApi, formOptions: formOptionsApi }
+  return { instances: instanceApi, formOptions: formOptionsApi, images: imagesApi }
 }
 
 export type ComputeApi = ReturnType<typeof createComputeApi>
