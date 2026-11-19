@@ -260,6 +260,41 @@ RSpec.describe ComputeNjq::Api::InstancesController, type: :controller do
     end
   end
 
+  describe "PUT #resize" do
+    before { allow_any_instance_of(MonsoonOpenstackAuth::Authentication::AuthUser).to receive(:is_allowed?).and_return(true) }
+
+    it "forwards the id and flavor_id to the service and returns ok" do
+      expect(scoped_service).to receive(:resize_instance).with("s1", "f2").and_return({ ok: true })
+
+      put :resize, params: default_params.merge(id: "s1", flavor_id: "f2")
+
+      expect(response).to have_http_status(:success)
+      expect(JSON.parse(response.body)).to eq("ok" => true)
+    end
+
+    it "checks the instance_update policy rule" do
+      allow(scoped_service).to receive(:resize_instance).and_return({ ok: true })
+      expect_any_instance_of(MonsoonOpenstackAuth::Authentication::AuthUser).to receive(:is_allowed?).with(
+        "compute_njq:instance_update", anything
+      ).and_return(true)
+
+      put :resize, params: default_params.merge(id: "s1", flavor_id: "f2")
+    end
+
+    context "when the user is not allowed to resize" do
+      before { allow_any_instance_of(MonsoonOpenstackAuth::Authentication::AuthUser).to receive(:is_allowed?).and_return(false) }
+
+      it "renders a 403 envelope and never calls the service" do
+        expect(scoped_service).not_to receive(:resize_instance)
+
+        put :resize, params: default_params.merge(id: "s1", flavor_id: "f2")
+
+        expect(response).to have_http_status(:forbidden)
+        expect(JSON.parse(response.body)).to include("error" => "Forbidden", "code" => 403)
+      end
+    end
+  end
+
   describe "DELETE #destroy" do
     before { allow_any_instance_of(MonsoonOpenstackAuth::Authentication::AuthUser).to receive(:is_allowed?).and_return(true) }
 

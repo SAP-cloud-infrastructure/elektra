@@ -15,6 +15,8 @@ ComputeNjq::Engine.routes.draw do
         put :tags, action: :set_tags
         # Admin recovery: force vm_state, body { state: "active"|"error" }.
         post :reset_status
+        # Resize: change the server's flavor, body { flavor_id: "..." }.
+        put :resize
       end
     end
     get "form_options/flavors", to: "form_options#flavors"

@@ -62,6 +62,13 @@ module ComputeNjq
         handle_api_call { compute_service.reset_instance_status(params.require(:id), params.require(:state)) }
       end
 
+      # PUT /:scope/compute-njq/api/instances/:id/resize  (change flavor)
+      def resize
+        return unless authorize!("compute_njq:instance_update")
+
+        handle_api_call { compute_service.resize_instance(params.require(:id), params.require(:flavor_id)) }
+      end
+
       # POST /:scope/compute-njq/api/instances/:id/action
       # Generic lifecycle action. The service whitelists action_name and maps it
       # to the Nova server-action body.
