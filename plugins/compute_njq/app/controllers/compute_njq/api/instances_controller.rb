@@ -137,9 +137,12 @@ module ComputeNjq
         { target: { scoped_domain_name: @scoped_domain_name, scoped_project_name: @scoped_project_name } }
       end
 
-      # Only the filters the UI actually offers are accepted.
+      # Only the filters the UI actually offers are accepted. The scope params
+      # (domain_id/project_id) ride along on every routed request and are handled
+      # by the scope controller, not here — drop them before permit so they are
+      # not logged as unpermitted.
       def filter_params
-        params.permit(:name, :status).to_h.symbolize_keys.reject { |_, v| v.blank? }
+        scoped_params.permit(:name, :status).to_h.symbolize_keys.reject { |_, v| v.blank? }
       end
 
       def create_params
@@ -158,7 +161,15 @@ module ComputeNjq
       # Edit Tags: the full replacement tag list. Defaults to [] so an omitted
       # list clears all tags (matched by the service's empty-list handling).
       def tags_params
-        params.permit(tags: []).to_h.fetch(:tags, [])
+        scoped_params.permit(tags: []).to_h.fetch(:tags, [])
+      end
+
+      # params with the ever-present scope keys (domain_id/project_id) removed.
+      # These are routing/scope concerns handled by the scope controller; top-
+      # level permit calls would otherwise log them as unpermitted on every
+      # request.
+      def scoped_params
+        params.except(:domain_id, :project_id)
       end
     end
   end

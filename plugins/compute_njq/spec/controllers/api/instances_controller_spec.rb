@@ -52,6 +52,21 @@ RSpec.describe ComputeNjq::Api::InstancesController, type: :controller do
       expect(scoped_service).to have_received(:list_instances).with({ name: "web" })
     end
 
+    it "does not flag the scope params (domain_id/project_id) as unpermitted" do
+      allow(scoped_service).to receive(:list_instances).and_return([])
+
+      unpermitted = []
+      subscriber =
+        ActiveSupport::Notifications.subscribe("unpermitted_parameters.action_controller") do |*, payload|
+          unpermitted.concat(payload[:keys])
+        end
+
+      get :index, params: default_params.merge(name: "web")
+
+      ActiveSupport::Notifications.unsubscribe(subscriber)
+      expect(unpermitted).to be_empty
+    end
+
     context "when the backend raises an Elektron API error" do
       it "renders the error envelope with the upstream status" do
         allow(scoped_service).to receive(:list_instances).and_raise(
