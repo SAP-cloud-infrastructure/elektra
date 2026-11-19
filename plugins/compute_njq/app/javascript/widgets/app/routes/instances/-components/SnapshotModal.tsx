@@ -90,7 +90,11 @@ export function SnapshotModal({ instance, apiClient, onClose }: SnapshotModalPro
 
         {phase === "creating" && (
           <div role="status">
-            <InlineLoading /> Creating snapshot… ({status ?? "starting"})
+            <InlineLoading /> Creating snapshot “{name.trim()}”… ({status ?? "starting"})
+            <p className="text-muted mt-2 mb-0">
+              You can close this dialog — the snapshot continues in the background and will appear in the
+              Snapshots plugin once it is finished.
+            </p>
           </div>
         )}
 
@@ -108,7 +112,7 @@ export function SnapshotModal({ instance, apiClient, onClose }: SnapshotModalPro
       </Modal.Body>
       <Modal.Footer>
         <button type="button" className="btn btn-secondary" onClick={onClose}>
-          {phase === "success" ? "Close" : "Cancel"}
+          {phase === "creating" || phase === "success" ? "Close" : "Cancel"}
         </button>
         {phase === "form" && (
           <button

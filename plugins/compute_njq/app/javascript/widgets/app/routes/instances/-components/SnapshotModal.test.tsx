@@ -59,6 +59,37 @@ describe("SnapshotModal", () => {
     expect(onClose).not.toHaveBeenCalled()
   })
 
+  it("tells the user they may close the dialog while the snapshot finishes in the background", async () => {
+    const { createSnapshot } = renderModal()
+    fireEvent.change(screen.getByLabelText(/name/i), { target: { value: "snap-1" } })
+    fireEvent.click(screen.getByRole("button", { name: /create snapshot/i }))
+    await waitFor(() => expect(createSnapshot).toHaveBeenCalled())
+    expect(await screen.findByText(/close this dialog/i)).toBeInTheDocument()
+    expect(screen.getByText(/in the background/i)).toBeInTheDocument()
+    expect(screen.getByText(/snapshots/i)).toBeInTheDocument()
+  })
+
+  it("names the snapshot in the progress message", async () => {
+    const { createSnapshot } = renderModal()
+    fireEvent.change(screen.getByLabelText(/name/i), { target: { value: "snap-1" } })
+    fireEvent.click(screen.getByRole("button", { name: /create snapshot/i }))
+    await waitFor(() => expect(createSnapshot).toHaveBeenCalled())
+    const progress = await screen.findByRole("status")
+    expect(progress).toHaveTextContent("snap-1")
+  })
+
+  it("shows only a Close button (no Cancel) once the snapshot is running in the background", async () => {
+    const { createSnapshot } = renderModal()
+    fireEvent.change(screen.getByLabelText(/name/i), { target: { value: "snap-1" } })
+    fireEvent.click(screen.getByRole("button", { name: /create snapshot/i }))
+    await waitFor(() => expect(createSnapshot).toHaveBeenCalled())
+    // The footer button reads "Close" (not "Cancel") while the snapshot runs.
+    // (The modal header's X carries aria-label="Close" too, so scope to the footer btn.)
+    const footerButtons = Array.from(document.querySelectorAll("button.btn-secondary"))
+    expect(footerButtons.map((b) => b.textContent)).toContain("Close")
+    expect(screen.queryByRole("button", { name: /cancel/i })).not.toBeInTheDocument()
+  })
+
   it("shows a success state when the image becomes active", async () => {
     polledStatus = "active"
     const { onClose } = renderModal()
