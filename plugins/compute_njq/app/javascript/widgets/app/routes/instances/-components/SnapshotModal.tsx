@@ -27,11 +27,18 @@ export function SnapshotModal({ instance, apiClient, onClose }: SnapshotModalPro
   const statusQuery = useImageStatusQuery(apiClient, imageId, { enabled: phase === "creating" })
   const status = statusQuery.data?.status
 
-  // Drive the state machine from the polled status while creating.
+  // Drive the state machine from the polled status while creating. A terminal
+  // status settles success/failure; a failed poll (transient 404 while the image
+  // is not yet GET-able, network, BFF error) also ends in error rather than
+  // spinning forever — the modal must never hang in "creating".
   useEffect(() => {
-    if (phase !== "creating" || !isTerminalStatus(status)) return
-    setPhase(status === "active" ? "success" : "error")
-  }, [phase, status])
+    if (phase !== "creating") return
+    if (statusQuery.isError) {
+      setPhase("error")
+      return
+    }
+    if (isTerminalStatus(status)) setPhase(status === "active" ? "success" : "error")
+  }, [phase, status, statusQuery.isError])
 
   const submit = () => {
     const trimmed = name.trim()
@@ -95,7 +102,7 @@ export function SnapshotModal({ instance, apiClient, onClose }: SnapshotModalPro
 
         {phase === "error" && (
           <div className="alert alert-danger" role="alert">
-            {mutation.error?.message ?? "The snapshot could not be created."}
+            {mutation.error?.message ?? statusQuery.error?.message ?? "The snapshot could not be created."}
           </div>
         )}
       </Modal.Body>

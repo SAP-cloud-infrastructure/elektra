@@ -8,12 +8,15 @@ import { SnapshotModal } from "./SnapshotModal"
 
 // Control the polled status per test.
 let polledStatus = "saving"
+let polledError: Error | null = null
 vi.mock("../../../hooks/useImageStatusQuery", async (orig) => {
   const actual = (await orig()) as object
   return {
     ...actual,
     useImageStatusQuery: (_api: unknown, imageId: string | null, opts: { enabled: boolean }) => ({
-      data: opts.enabled && imageId ? { id: imageId, name: "snap-1", status: polledStatus } : undefined,
+      data: opts.enabled && imageId && !polledError ? { id: imageId, name: "snap-1", status: polledStatus } : undefined,
+      isError: opts.enabled && imageId ? !!polledError : false,
+      error: polledError,
     }),
   }
 })
@@ -38,6 +41,7 @@ function renderModal(createSnapshot = vi.fn().mockResolvedValue({ image_id: "img
 describe("SnapshotModal", () => {
   beforeEach(() => {
     polledStatus = "saving"
+    polledError = null
   })
 
   it("keeps Create disabled until a name is entered", () => {
@@ -79,5 +83,24 @@ describe("SnapshotModal", () => {
     fireEvent.click(screen.getByRole("button", { name: /create snapshot/i }))
     expect(await screen.findByRole("alert")).toHaveTextContent("quota exceeded")
     expect(screen.getByLabelText(/name/i)).toBeInTheDocument()
+  })
+
+  it("lands in the error state (never creating) when no image id comes back", async () => {
+    const createSnapshot = vi.fn().mockResolvedValue({ image_id: null })
+    renderModal(createSnapshot)
+    fireEvent.change(screen.getByLabelText(/name/i), { target: { value: "snap-1" } })
+    fireEvent.click(screen.getByRole("button", { name: /create snapshot/i }))
+    expect(await screen.findByRole("alert")).toBeInTheDocument()
+    // Must not be stuck showing progress.
+    expect(document.querySelectorAll(".spinner").length).toBe(0)
+  })
+
+  it("lands in the error state when the status poll itself fails (no infinite progress)", async () => {
+    polledError = new Error("image status unavailable")
+    renderModal()
+    fireEvent.change(screen.getByLabelText(/name/i), { target: { value: "snap-1" } })
+    fireEvent.click(screen.getByRole("button", { name: /create snapshot/i }))
+    expect(await screen.findByRole("alert")).toBeInTheDocument()
+    expect(document.querySelectorAll(".spinner").length).toBe(0)
   })
 })
