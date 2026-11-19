@@ -3,6 +3,7 @@ import { createFileRoute, useRouteContext, useNavigate } from "@tanstack/react-r
 import { useQueryClient } from "@tanstack/react-query"
 import { Modal } from "lib/components/Modal"
 import { CreateInstanceForm } from "./-components/CreateInstanceForm"
+import { scopePrefix } from "./-components/scopeLinks"
 
 export const Route = createFileRoute("/instances/new")({
   component: NewInstance,
@@ -11,7 +12,7 @@ export const Route = createFileRoute("/instances/new")({
 const FORM_ID = "create-instance-form"
 
 function NewInstance() {
-  const { apiClient } = useRouteContext({ from: Route.id })
+  const { apiClient, basepath } = useRouteContext({ from: Route.id })
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const close = () => navigate({ to: "/instances" })
@@ -41,6 +42,7 @@ function NewInstance() {
           onCancel={close}
           formId={FORM_ID}
           onStatusChange={setStatus}
+          scopePrefix={scopePrefix(basepath)}
         />
       </Modal.Body>
       <Modal.Footer>

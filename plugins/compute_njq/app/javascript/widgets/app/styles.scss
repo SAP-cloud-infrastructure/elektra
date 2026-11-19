@@ -25,17 +25,19 @@
     white-space: nowrap;
   }
 
-  // Width balance: let the IPs column (4th) take a comfortable share and the
-  // OS / Size column (5th) absorb the remaining free width, so the leading
-  // columns stay snug and there is no large empty gap between AZ and OS / Size.
+  // Width balance: the IPs column (4th) absorbs the row's free width so the
+  // trailing columns (OS / Size, Created at) stay snug together instead of
+  // being pushed apart by a large empty gap. OS / Size only takes the width its
+  // content needs.
   .table.instances th:nth-child(4),
   .table.instances td:nth-child(4) {
+    width: 100%;
     min-width: 14rem;
   }
 
   .table.instances th:nth-child(5),
   .table.instances td:nth-child(5) {
-    width: 100%;
+    white-space: nowrap;
   }
 
   // The AZ column (3rd) is narrow; keep its value on a single line so short
@@ -51,7 +53,9 @@
     display: inline-block;
     height: 0.75rem;
     border-radius: 3px;
-    background: #e9e9e9;
+    // BS5 tertiary background so the placeholder tint tracks the active theme
+    // (incl. dark mode) instead of a fixed light grey.
+    background: var(--bs-tertiary-bg, #e9e9e9);
     animation: instance-skeleton-pulse 1.2s ease-in-out infinite;
   }
 
@@ -87,17 +91,15 @@
     gap: 0.1rem;
   }
 
-  // Two consistent typography tiers across all columns: the primary value of a
-  // cell is 1rem (default), secondary/supporting values are 0.8125rem.
-  //
-  // Floating IP — the primary IP line (1rem). Highlighted via colour + weight
-  // (and the globe marker), not size.
+  // Two consistent typography tiers across all columns, mirroring the OS / Size
+  // cell: the primary value is body-coloured 1rem (no bold), the secondary value
+  // is muted beneath it. The globe marker alone flags the floating IP, so no
+  // weight or colour competes with the name link in the row.
   .instance-ip-floating {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    color: #3a7bd5;
-    font-weight: 600;
+    color: var(--bs-body-color, #333);
     text-decoration: none;
     white-space: nowrap;
 
@@ -108,14 +110,15 @@
 
   // Fixed IP as the PRIMARY line (no floating IP present): default size.
   .instance-ip-addr {
-    color: #333;
+    color: var(--bs-body-color, #333);
     white-space: nowrap;
   }
 
-  // Fixed IP as a SECONDARY line (shown beneath a floating IP): smaller/muted.
+  // Fixed IP as a SECONDARY line (shown beneath a floating IP): same size as the
+  // rest of the row (1rem), only muted in colour so it still reads as the
+  // secondary address without shrinking.
   .instance-ip-secondary {
-    color: #777;
-    font-size: 0.8125rem;
+    color: var(--bs-secondary-color, #777);
     white-space: nowrap;
   }
 
@@ -137,7 +140,7 @@
   .instance-image-id {
     font-family: var(--bs-font-monospace, monospace);
     font-size: 0.8125rem;
-    color: #8a8a8a;
+    color: var(--bs-secondary-color, #8a8a8a);
   }
 
   // Relative "created at" time stays on a single line.
@@ -159,28 +162,21 @@
     font-size: 0.9em;
   }
 
-  // OS / Size cell: two labelled rows (OS over Size). A small muted label makes
-  // the two values unmistakable even when the image is a bare id or missing.
-  .os-size-row {
-    display: flex;
-    align-items: baseline;
-    gap: 0.4rem;
+  // OS / Size cell: image name (primary) stacked over the flavor (secondary).
+  // No per-row labels — the column header names the two values — so the cell
+  // reads as one calm two-line block.
+  .os-size {
     line-height: 1.35;
   }
 
-  .os-size-label {
-    flex: 0 0 auto;
-    min-width: 2.2rem;
-    font-size: 0.625rem;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: #9a9a9a;
+  .os-size-image {
+    color: var(--bs-body-color);
   }
 
-  // The flavor (size) value: a neutral, readable dark grey — distinct from the
-  // black image name above, but not the link-blue it used to be.
+  // The flavor (size) value: a neutral, readable secondary tone — distinct from
+  // the body-coloured image name above, but not the link-blue it used to be.
   .instance-flavor {
-    color: #555;
+    color: var(--bs-secondary-color, #555);
     font-size: 0.8125rem;
   }
 
@@ -220,19 +216,19 @@
 
   .searchable-select-facet {
     cursor: pointer;
-    border: 1px solid #ced4da;
+    border: 1px solid var(--bs-border-color, #ced4da);
     background-color: transparent;
-    color: #495057;
+    color: var(--bs-body-color, #495057);
     font-weight: 500;
 
     &:hover {
-      background-color: #f2f3f5;
+      background-color: var(--bs-tertiary-bg, #f2f3f5);
     }
 
     &.active {
-      border-color: #0b5ed7;
-      background-color: #e7f1fb;
-      color: #0b5ed7;
+      border-color: var(--bs-primary, #0b5ed7);
+      background-color: var(--bs-primary-bg-subtle, #e7f1fb);
+      color: var(--bs-primary, #0b5ed7);
     }
   }
 
@@ -258,17 +254,17 @@
 
     &:hover,
     &:focus {
-      background-color: #f2f3f5;
+      background-color: var(--bs-tertiary-bg, #f2f3f5);
       color: inherit;
     }
 
     &:active {
-      background-color: #e9ecef;
+      background-color: var(--bs-secondary-bg, #e9ecef);
       color: inherit;
     }
 
     &[aria-selected="true"] {
-      background-color: #e7f1fb;
+      background-color: var(--bs-primary-bg-subtle, #e7f1fb);
       color: inherit;
     }
   }

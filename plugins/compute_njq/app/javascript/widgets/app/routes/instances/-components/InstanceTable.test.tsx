@@ -33,9 +33,20 @@ const instance: Instance = {
 }
 
 describe("InstanceTable", () => {
-  it("renders an empty-state message when there are no instances", () => {
+  it("renders the empty-project message when there are no instances and no filters", () => {
     render(<InstanceTable instances={[]} />)
-    expect(screen.getByText("No instances found.")).toBeInTheDocument()
+    expect(screen.getByText("No servers in this project yet.")).toBeInTheDocument()
+    // No "Clear filters" affordance when the project is simply empty.
+    expect(screen.queryByRole("button", { name: "Clear filters" })).toBeNull()
+  })
+
+  it("renders a filtered-empty message with a working Clear filters button", () => {
+    const onResetFilters = vi.fn()
+    render(<InstanceTable instances={[]} filtersActive onResetFilters={onResetFilters} />)
+    expect(screen.getByText(/No servers match your filters/i)).toBeInTheDocument()
+    const clear = screen.getByRole("button", { name: "Clear filters" })
+    fireEvent.click(clear)
+    expect(onResetFilters).toHaveBeenCalledTimes(1)
   })
 
   it("renders instance name, resolved flavor and image, and status", () => {
@@ -107,7 +118,7 @@ describe("InstanceTable", () => {
     render(<InstanceTable instances={[]} isLoading />)
     expect(screen.getByTestId("instances-skeleton")).toBeInTheDocument()
     // The empty-state message must not show while loading.
-    expect(screen.queryByText("No instances found.")).not.toBeInTheDocument()
+    expect(screen.queryByText("No servers in this project yet.")).not.toBeInTheDocument()
   })
 
   it("does not show skeleton rows once loaded", () => {

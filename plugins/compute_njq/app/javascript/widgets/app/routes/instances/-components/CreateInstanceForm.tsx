@@ -38,6 +38,10 @@ interface Props {
   // so the form reports its state up and the footer drives it via `form=`.
   formId?: string
   onStatusChange?: (status: { canSubmit: boolean; isPending: boolean }) => void
+  // The domain/project URL prefix (e.g. "/monsoon3/cc-demo"), used to build
+  // cross-plugin call-to-action links when a required list (networks, key pairs)
+  // is empty. Optional so the form still works without it (links are omitted).
+  scopePrefix?: string
 }
 
 // Horizontal form row mirroring the legacy compute create form (SimpleForm
@@ -111,7 +115,15 @@ const EMPTY = {
   fixed_ip: "",
 }
 
-export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, formId, onStatusChange }: Props) {
+export function CreateInstanceForm({
+  api,
+  queryClient,
+  onSuccess,
+  onCancel,
+  formId,
+  onStatusChange,
+  scopePrefix,
+}: Props) {
   const [form, setForm] = useState(EMPTY)
   // A field's query only runs once its dropdown has been opened (lazy).
   const [opened, setOpened] = useState<Record<string, boolean>>({})
@@ -135,8 +147,10 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
   // opens (not lazily on dropdown open like the other fields).
   const flavors = useFlavorsQuery(api, { enabled: true })
   const images = useImagesQuery(api, { enabled: !!opened.image })
-  const keypairs = useKeypairsQuery(api, { enabled: !!opened.keypair })
-  const networks = useNetworksQuery(api, { enabled: !!opened.network })
+  // Eager: an empty key pair / network list drives the prerequisite info banner
+  // at the top of the form, which must appear without first opening the dropdown.
+  const keypairs = useKeypairsQuery(api, { enabled: true })
+  const networks = useNetworksQuery(api, { enabled: true })
   // Subnets back the advanced network options; load them only once that section
   // is opened. The whole list is fetched and filtered client-side by network.
   const subnets = useSubnetsQuery(api, { enabled: showAdvancedNetwork })
@@ -265,8 +279,17 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
     onStatusChange?.({ canSubmit, isPending: mutation.isPending })
   }, [canSubmit, mutation.isPending, onStatusChange])
 
-  // Guidance when the (lazily loaded) list turns out empty, mirroring the legacy
-  // form's warnings. Shown only once the query has resolved with no entries.
+  // Plain empty-state text shown inside each select's open panel. Actionable
+  // guidance (how to create the missing resource) lives in the info banner at
+  // the top of the form instead, so it is never hidden behind an open dropdown.
+  const keypairEmpty = "No key pairs available."
+  const networkEmpty = "No networks available."
+  const imageEmpty = "No images available for this flavor type. Try a different flavor type."
+
+  // Once the lazily-loaded lists resolve empty we surface an info banner at the
+  // top of the form telling the user to create the prerequisite first, with a
+  // link to the sibling plugin (full-page navigation). Links need the shared
+  // domain/project prefix; without it we still show the guidance text.
   const noKeypairs = keypairs.isSuccess && (keypairs.data?.length ?? 0) === 0
   const noNetworks = networks.isSuccess && (networks.data?.length ?? 0) === 0
 
@@ -291,6 +314,37 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
       {mutation.isError && (
         <div className="alert alert-danger" role="alert">
           {mutation.error?.message ?? "Failed to create the instance."}
+        </div>
+      )}
+
+      {noNetworks && (
+        <div className="alert alert-info" role="alert">
+          There are no private networks in this project yet. A server needs a network to connect to, so please create a
+          private network first.
+          {scopePrefix && (
+            <>
+              {" "}
+              <a className="alert-link" href={`${scopePrefix}/networking/networks/private`}>
+                Create a private network
+              </a>
+              .
+            </>
+          )}
+        </div>
+      )}
+
+      {noKeypairs && (
+        <div className="alert alert-info" role="alert">
+          There are no SSH key pairs for your account. Without a key pair you will not be able to log into the server.
+          {scopePrefix && (
+            <>
+              {" "}
+              <a className="alert-link" href={`${scopePrefix}/compute/keypairs/new`}>
+                Create an SSH key pair
+              </a>
+              .
+            </>
+          )}
         </div>
       )}
 
@@ -355,7 +409,7 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
               facets={bootSourceFacets}
               isLoading={images.isLoading}
               placeholder="Select an image or bootable volume…"
-              emptyMessage="No images found"
+              emptyMessage={imageEmpty}
             />
           </FormRow>
         </div>
@@ -429,15 +483,7 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
       <SectionGap />
 
       <div onClick={() => open("keypair")}>
-        <FormRow
-          label="Key Pair"
-          required
-          warning={
-            noKeypairs
-              ? "There are no key pairs for your account. Without a key pair you cannot reach the server via SSH."
-              : undefined
-          }
-        >
+        <FormRow label="Key Pair" required>
           <SearchableSelect
             options={keypairs.data ?? []}
             value={form.keypair || null}
@@ -446,17 +492,13 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
             getValue={(k) => k.name}
             isLoading={keypairs.isLoading}
             placeholder="Select a key pair…"
-            emptyMessage="No key pairs available"
+            emptyMessage={keypairEmpty}
           />
         </FormRow>
       </div>
 
       <div onClick={() => open("network")}>
-        <FormRow
-          label="Network"
-          required
-          warning={noNetworks ? "There are no networks available for this project." : undefined}
-        >
+        <FormRow label="Network" required>
           <SearchableSelect
             options={networks.data ?? []}
             value={form.network_id || null}
@@ -465,7 +507,7 @@ export function CreateInstanceForm({ api, queryClient, onSuccess, onCancel, form
             getValue={(n) => n.id}
             isLoading={networks.isLoading}
             placeholder="Select a network…"
-            emptyMessage="No networks available"
+            emptyMessage={networkEmpty}
           />
         </FormRow>
       </div>

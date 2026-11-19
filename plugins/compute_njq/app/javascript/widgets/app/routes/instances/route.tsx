@@ -25,6 +25,16 @@ function InstancesLayout() {
   const { statuses, azs } = facetValues(all)
   const filtered = filterInstances(all, { term: searchTerm, status, az })
 
+  // Any active search text or facet selection means the (possibly empty) list is
+  // the result of filtering, not of an empty project — the empty state and the
+  // "Clear filters" affordance distinguish the two cases.
+  const filtersActive = searchTerm !== "" || status !== "" || az !== ""
+  const resetFilters = () => {
+    setSearchTerm("")
+    setStatus("")
+    setAz("")
+  }
+
   return (
     <div>
       {isError && (
@@ -48,7 +58,14 @@ function InstancesLayout() {
         onAzChange={setAz}
         scope={{}}
       />
-      <InstanceTable instances={filtered} isLoading={isLoading} apiClient={apiClient} scope={{}} />
+      <InstanceTable
+        instances={filtered}
+        isLoading={isLoading}
+        apiClient={apiClient}
+        scope={{}}
+        filtersActive={filtersActive}
+        onResetFilters={resetFilters}
+      />
       {/* The /instances/new and /instances/$id modals render here, over the list which stays mounted. */}
       <Outlet />
     </div>

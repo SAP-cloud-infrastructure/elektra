@@ -8,6 +8,7 @@ const options = [
   { id: "b", name: "debian" },
   { id: "c", name: "alpine" },
 ]
+type Option = (typeof options)[number]
 const common = {
   options,
   getLabel: (o: { name: string }) => o.name,
@@ -67,7 +68,7 @@ describe("MultiSelect", () => {
   })
 
   it("shows the empty message when there are no options", () => {
-    render(<MultiSelect {...common} options={[]} value={[]} onChange={vi.fn()} />)
+    render(<MultiSelect {...common} options={[] as Option[]} value={[]} onChange={vi.fn()} />)
     fireEvent.click(screen.getByRole("button"))
     expect(screen.getByText("Nothing here")).toBeInTheDocument()
   })

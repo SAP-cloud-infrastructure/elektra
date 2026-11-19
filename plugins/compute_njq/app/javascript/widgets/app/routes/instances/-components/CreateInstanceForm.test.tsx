@@ -9,31 +9,33 @@ let flavorData = [
 let keypairData: { name: string }[] = [{ name: "k1" }]
 let networkData: { id: string; name: string }[] = [{ id: "n1", name: "private" }]
 let volumeData: unknown[] = []
+let imageData: unknown[] = [
+  {
+    id: "i1",
+    name: "ubuntu",
+    visibility: "public",
+    hypervisor_type: "kvm",
+    img_hv_type: null,
+    image_type: null,
+    disk_format: "qcow2",
+    buildnumber: null,
+    min_disk: 0,
+    size: 1024,
+    created: null,
+    owner: null,
+    owner_label: null,
+  },
+]
 let subnetData: { id: string; name: string; cidr: string; network_id: string }[] = []
 vi.mock("../../../hooks/useFormOptionQueries", () => ({
   useFlavorsQuery: () => ({ data: flavorData, isLoading: false }),
   useImagesQuery: () => ({
     data: {
-      images: [
-        {
-          id: "i1",
-          name: "ubuntu",
-          visibility: "public",
-          hypervisor_type: "kvm",
-          img_hv_type: null,
-          image_type: null,
-          disk_format: "qcow2",
-          buildnumber: null,
-          min_disk: 0,
-          size: 1024,
-          created: null,
-          owner: null,
-          owner_label: null,
-        },
-      ],
+      images: imageData,
       volumes: volumeData,
     },
     isLoading: false,
+    isSuccess: true,
   }),
   useKeypairsQuery: () => ({ data: keypairData, isLoading: false, isSuccess: true }),
   useNetworksQuery: () => ({ data: networkData, isLoading: false, isSuccess: true }),
@@ -67,15 +69,72 @@ describe("CreateInstanceForm", () => {
     expect(screen.getByRole("button", { name: /default/ })).toBeInTheDocument()
   })
 
-  it("warns when there are no key pairs or networks", () => {
+  it("shows a prerequisite info banner with a call-to-action link when there are no key pairs or networks", () => {
     keypairData = []
     networkData = []
-    render(<CreateInstanceForm api={api} queryClient={queryClient} onSuccess={vi.fn()} />)
-    expect(screen.getByText(/no key pairs for your account/i)).toBeInTheDocument()
-    expect(screen.getByText(/no networks available for this project/i)).toBeInTheDocument()
+    render(
+      <CreateInstanceForm api={api} queryClient={queryClient} onSuccess={vi.fn()} scopePrefix="/monsoon3/cc-demo" />
+    )
+    // The banners sit at the top of the form and appear without opening any
+    // dropdown (the lists are fetched eagerly).
+    expect(screen.getByText(/no private networks in this project/i)).toBeInTheDocument()
+    expect(screen.getByText(/no ssh key pairs for your account/i)).toBeInTheDocument()
+    // The CTAs link to the sibling plugins under the shared scope prefix and
+    // navigate full-page (no data-modal).
+    const keypairLink = screen.getByRole("link", { name: /create an ssh key pair/i })
+    expect(keypairLink).toHaveAttribute("href", "/monsoon3/cc-demo/compute/keypairs/new")
+    expect(keypairLink).not.toHaveAttribute("data-modal")
+    const networkLink = screen.getByRole("link", { name: /create a private network/i })
+    expect(networkLink).toHaveAttribute("href", "/monsoon3/cc-demo/networking/networks/private")
+    expect(networkLink).not.toHaveAttribute("data-modal")
     // Restore for the other tests.
     keypairData = [{ name: "k1" }]
     networkData = [{ id: "n1", name: "private" }]
+  })
+
+  it("omits the call-to-action links when no scope prefix is provided", () => {
+    keypairData = []
+    networkData = []
+    render(<CreateInstanceForm api={api} queryClient={queryClient} onSuccess={vi.fn()} />)
+    expect(screen.getByText(/no private networks in this project/i)).toBeInTheDocument()
+    expect(screen.getByText(/no ssh key pairs for your account/i)).toBeInTheDocument()
+    expect(screen.queryByRole("link", { name: /create an ssh key pair/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole("link", { name: /create a private network/i })).not.toBeInTheDocument()
+    keypairData = [{ name: "k1" }]
+    networkData = [{ id: "n1", name: "private" }]
+  })
+
+  it("warns (without a link) when no images match the chosen flavor type", () => {
+    imageData = []
+    render(<CreateInstanceForm api={api} queryClient={queryClient} onSuccess={vi.fn()} />)
+    // Pick a KVM flavor so the coupled image field appears and resolves empty.
+    fireEvent.click(screen.getByRole("radio", { name: "KVM" }))
+    fireEvent.click(screen.getByText("Select a flavor…"))
+    fireEvent.click(screen.getByText(/m1.small/))
+
+    // Open the image field to reveal its empty-state guidance.
+    fireEvent.click(screen.getByText("Select an image or bootable volume…"))
+    expect(screen.getByText(/no images available for this flavor type/i)).toBeInTheDocument()
+    // Image upload is admin-only, so there is deliberately no create link.
+    expect(screen.queryByRole("link", { name: /image/i })).not.toBeInTheDocument()
+
+    imageData = [
+      {
+        id: "i1",
+        name: "ubuntu",
+        visibility: "public",
+        hypervisor_type: "kvm",
+        img_hv_type: null,
+        image_type: null,
+        disk_format: "qcow2",
+        buildnumber: null,
+        min_disk: 0,
+        size: 1024,
+        created: null,
+        owner: null,
+        owner_label: null,
+      },
+    ]
   })
 
   it("keeps submit disabled until required fields are valid", () => {

@@ -16,6 +16,7 @@ export function createAppRouter(basepath: string, region: string, projectid: str
     routeTree,
     context: {
       apiClient,
+      basepath,
       region,
       projectid,
     },

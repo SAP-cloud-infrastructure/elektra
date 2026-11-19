@@ -51,6 +51,13 @@ describe("InstancesToolbar", () => {
     expect(container.textContent).toContain("3 servers")
   })
 
+  it("announces the visible count via an aria-live region", () => {
+    const { container } = render(<InstancesToolbar {...baseProps} visibleCount={2} />)
+    const live = container.querySelector('[aria-live="polite"]')
+    expect(live).not.toBeNull()
+    expect(live).toHaveTextContent("2 servers")
+  })
+
   it("calls onSearch when the user types in the search field", () => {
     const onSearch = vi.fn()
     render(<InstancesToolbar {...baseProps} onSearch={onSearch} />)

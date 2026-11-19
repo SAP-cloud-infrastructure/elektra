@@ -2513,12 +2513,16 @@ tr.updating {
   }
 
   &.status-pill-error {
-    color: darken($alarm-red, 8%);
+    // darken 12% (was 8%) so the red text reaches WCAG AA (>=4.5:1 ~ 5.1:1) on
+    // the translucent-red pill background; the tint itself is unchanged.
+    color: darken($alarm-red, 12%);
     background-color: rgba($alarm-red, 0.12);
   }
 
   &.status-pill-busy {
-    color: darken($bright-orange, 12%);
+    // darken 18% (was 12%) so the orange text reaches WCAG AA (>=4.5:1 ~ 4.8:1)
+    // on the translucent-orange pill background; the tint itself is unchanged.
+    color: darken($bright-orange, 18%);
     background-color: rgba($bright-orange, 0.15);
   }
 

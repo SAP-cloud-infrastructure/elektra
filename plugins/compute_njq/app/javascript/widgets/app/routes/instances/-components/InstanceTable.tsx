@@ -18,6 +18,12 @@ interface InstanceTableProps {
   // absent (e.g. isolated table tests), the actions cell stays empty.
   apiClient?: ComputeApi
   scope?: Record<string, unknown>
+  // Whether a search/facet filter is currently applied. Drives which empty state
+  // is shown (an empty project vs. a filter with no matches).
+  filtersActive?: boolean
+  // Clears all active filters — wired to the "Clear filters" button shown in the
+  // filtered-but-empty state.
+  onResetFilters?: () => void
 }
 
 // Names longer than this are truncated in the table; the full name is shown as
@@ -45,9 +51,10 @@ function Truncated({ value, max }: { value: string; max: number }) {
   return <span title={truncated ? value : undefined}>{truncated ? `${value.slice(0, max)}…` : value}</span>
 }
 
-// The OS / Size cell: two labelled rows — "OS" (the image) over "Size" (the
-// flavor) — so the two values are clearly distinguished even when the image is
-// a bare id or missing. Image resolution:
+// The OS / Size cell: the image name (primary line) stacked over the flavor
+// (secondary/muted line). The column header "OS / Size" already names the two
+// values, so no per-row labels are needed — dropping them keeps the cell calm
+// and avoids the little "staircase" of faint mini-labels. Image resolution:
 //  - resolved name  -> show it (truncated with tooltip)
 //  - id but no name -> muted + monospace id; tooltip explains it is unresolved
 //  - no id at all   -> muted "No image"; tooltip explains boot-from-volume
@@ -60,14 +67,10 @@ function OsSizeCell({
 }) {
   return (
     <div className="os-size">
-      <div className="os-size-row">
-        <span className="os-size-label">OS</span>
+      <div className="os-size-image">
         <ImageValue name={image.name} id={image.id} />
       </div>
-      <div className="os-size-row">
-        <span className="os-size-label">Size</span>
-        <span className="instance-flavor">{flavor.name ?? flavor.id ?? "—"}</span>
-      </div>
+      <div className="instance-flavor">{flavor.name ?? flavor.id ?? "—"}</div>
     </div>
   )
 }
@@ -156,8 +159,15 @@ function sortValue(instance: Instance, column: string): string {
   }
 }
 
-// Columns: Name (+ ID) · Status · IPs · OS / Size · AZ · Created at · (actions)
-export function InstanceTable({ instances, isLoading = false, apiClient, scope }: InstanceTableProps) {
+// Columns: Name (+ ID) · Status · AZ · IPs · OS / Size · Created at · (actions)
+export function InstanceTable({
+  instances,
+  isLoading = false,
+  apiClient,
+  scope,
+  filtersActive,
+  onResetFilters,
+}: InstanceTableProps) {
   const [sort, setSort] = useState<SortState>({ column: null, direction: "asc" })
 
   const onSort = (column: string) => {
@@ -208,7 +218,22 @@ export function InstanceTable({ instances, isLoading = false, apiClient, scope }
           {rows.length === 0 ? (
             <tr data-empty="true">
               <td colSpan={7} role="status">
-                No instances found.
+                {filtersActive ? (
+                  <>
+                    No servers match your filters.
+                    {onResetFilters && (
+                      <button
+                        type="button"
+                        className="btn btn-link btn-sm p-0 ms-1 align-baseline"
+                        onClick={onResetFilters}
+                      >
+                        Clear filters
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  "No servers in this project yet."
+                )}
               </td>
             </tr>
           ) : (

@@ -87,7 +87,11 @@ export function InstancesToolbar({
         ))}
       </select>
       <span className="toolbar-input-divider" />
-      {visibleCount} {visibleCount === 1 ? "server" : "servers"}
+      {/* aria-live so screen readers announce the updated match count as the user
+          types/filters, without them having to navigate back to this label. */}
+      <span aria-live="polite">
+        {visibleCount} {visibleCount === 1 ? "server" : "servers"}
+      </span>
       <div className="main-buttons">
         {canCreate(scope) && (
           <Link to="/instances/new" className="btn btn-primary">
