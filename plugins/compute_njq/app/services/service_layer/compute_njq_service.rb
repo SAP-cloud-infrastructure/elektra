@@ -25,6 +25,7 @@ module ServiceLayer
     include ComputeNjqServices::ServerCreateAssembler
     include ComputeNjqServices::InstanceDetailAssembler
     include ComputeNjqServices::InstanceActions
+    include ComputeNjqServices::Snapshot
 
     attr_reader :scoped_project_id, :scoped_region
 
