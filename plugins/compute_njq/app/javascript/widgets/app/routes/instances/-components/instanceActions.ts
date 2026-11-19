@@ -5,6 +5,9 @@ export interface InstanceAction {
   key:
     | "edit_name"
     | "edit_tags"
+    | "resize"
+    | "confirm_resize"
+    | "revert_resize"
     | "start"
     | "stop"
     | "reboot"
@@ -39,7 +42,7 @@ export interface InstanceAction {
   // Form-based actions open a modal instead of firing immediately. The menu maps
   // this discriminator to the matching modal component (Edit Name/Tags, Reset
   // Status); actions without it run (optionally after a confirm) directly.
-  modal?: "editName" | "editTags" | "resetStatus"
+  modal?: "editName" | "editTags" | "resetStatus" | "resize"
 }
 
 const PARKED = ["Paused", "Suspended", "Shut off", "Shut down"]
@@ -137,6 +140,40 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
       title: "Hard reset instance?",
       message: "This forcibly power-cycles the instance without a clean shutdown. Unsaved data may be lost.",
       ok: "Hard reset instance",
+    },
+  },
+  {
+    key: "resize",
+    label: "Resize",
+    policy: "compute_njq:instance_update",
+    group: "power",
+    isAvailable: (i) => ["active", "stopped"].includes(i.status.state),
+    modal: "resize",
+  },
+  {
+    key: "confirm_resize",
+    label: "Confirm Resize",
+    policy: "compute_njq:instance_update",
+    group: "power",
+    isAvailable: (i) => i.status.state === "verify_resize",
+    optimisticTransition: "resize_confirming",
+    confirm: {
+      title: "Confirm resize?",
+      message: "This keeps the new size and finalizes the resize. The instance stays on the new flavor.",
+      ok: "Confirm resize",
+    },
+  },
+  {
+    key: "revert_resize",
+    label: "Revert Resize",
+    policy: "compute_njq:instance_update",
+    group: "power",
+    isAvailable: (i) => i.status.state === "verify_resize",
+    optimisticTransition: "resize_reverting",
+    confirm: {
+      title: "Revert resize?",
+      message: "This discards the new size and restores the instance to its previous flavor.",
+      ok: "Revert resize",
     },
   },
   {

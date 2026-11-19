@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest"
 vi.mock("lib/policy", () => ({ policy: { isAllowed: vi.fn(() => true) } }))
 import { policy } from "lib/policy"
 import { visibleActions } from "./instanceActions"
+import { INSTANCE_ACTIONS } from "./instanceActions"
 import type { Instance } from "../../../types/instance"
 
 function inst(over: Partial<Instance> = {}): Instance {
@@ -101,5 +102,26 @@ describe("visibleActions", () => {
     expect(keys).not.toContain("lock")
     expect(keys).toContain("stop")
     ;(policy.isAllowed as ReturnType<typeof vi.fn>).mockReturnValue(true)
+  })
+
+  it("offers Resize for active or stopped, not while verify_resize", () => {
+    const keys = (state: string) =>
+      visibleActions(inst({ status: { state, transition: null, power_state: "Running" } }), {}).map((a) => a.key)
+    expect(keys("active")).toContain("resize")
+    expect(keys("stopped")).toContain("resize")
+    expect(keys("verify_resize")).not.toContain("resize")
+  })
+
+  it("offers Confirm/Revert Resize only while verify_resize", () => {
+    const keys = (state: string) =>
+      visibleActions(inst({ status: { state, transition: null, power_state: "Running" } }), {}).map((a) => a.key)
+    expect(keys("verify_resize")).toEqual(expect.arrayContaining(["confirm_resize", "revert_resize"]))
+    expect(keys("active")).not.toContain("confirm_resize")
+    expect(keys("active")).not.toContain("revert_resize")
+  })
+
+  it("exposes the resize modal discriminator", () => {
+    const resize = INSTANCE_ACTIONS.find((a) => a.key === "resize")
+    expect(resize?.modal).toBe("resize")
   })
 })
