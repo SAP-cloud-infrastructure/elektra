@@ -41,6 +41,27 @@ module ComputeNjq
         handle_api_call { { instance: compute_service.create_instance(create_params) } }
       end
 
+      # PATCH/PUT /:scope/compute-njq/api/instances/:id  (edit name)
+      def update
+        return unless authorize!("compute_njq:instance_update")
+
+        handle_api_call { compute_service.update_instance(params.require(:id), update_params[:name]) }
+      end
+
+      # PUT /:scope/compute-njq/api/instances/:id/tags  (replace the tag set)
+      def set_tags
+        return unless authorize!("compute_njq:instance_tags")
+
+        handle_api_call { compute_service.set_instance_tags(params.require(:id), tags_params) }
+      end
+
+      # POST /:scope/compute-njq/api/instances/:id/reset_status  (admin recovery)
+      def reset_status
+        return unless authorize!("compute_njq:instance_reset_status")
+
+        handle_api_call { compute_service.reset_instance_status(params.require(:id), params.require(:state)) }
+      end
+
       # POST /:scope/compute-njq/api/instances/:id/action
       # Generic lifecycle action. The service whitelists action_name and maps it
       # to the Nova server-action body.
@@ -120,6 +141,17 @@ module ComputeNjq
           :custom_root_disk, :custom_root_disk_size, :volume_type, :subnet_id, :fixed_ip,
           security_groups: [],
         ).to_h.stringify_keys
+      end
+
+      # Edit Name: only the name is mutable here.
+      def update_params
+        params.require(:instance).permit(:name).to_h.symbolize_keys
+      end
+
+      # Edit Tags: the full replacement tag list. Defaults to [] so an omitted
+      # list clears all tags (matched by the service's empty-list handling).
+      def tags_params
+        params.permit(tags: []).to_h.fetch(:tags, [])
       end
     end
   end

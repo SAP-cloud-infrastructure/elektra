@@ -61,6 +61,18 @@ module ServiceLayer
       def nova_set_locked_metadata(id, value)
         elektron_nova.put("servers/#{id}/metadata/locked") { { "meta" => { "locked" => value } } }.body
       end
+
+      # Updates mutable server attributes (currently just name) via Nova's
+      # PUT /servers/{id}, which expects the attrs wrapped under "server".
+      def nova_update_server(id, attrs)
+        elektron_nova.put("servers/#{id}") { { server: attrs } }.body["server"]
+      end
+
+      # Replaces the complete tag set (Nova PUT /servers/{id}/tags, microversion
+      # 2.26+). Nova echoes the resulting {"tags":[...]}.
+      def nova_set_server_tags(id, tags)
+        elektron_nova.put("servers/#{id}/tags") { { "tags" => tags } }.body
+      end
     end
   end
 end

@@ -82,4 +82,54 @@ RSpec.describe ServiceLayer::ComputeNjqServices::InstanceActions do
       expect(test_class.terminate_instance("s1")).to eq({ ok: true })
     end
   end
+
+  describe "#update_instance" do
+    it "renames the server via nova_update_server" do
+      expect(test_class).to receive(:nova_update_server).with("s1", { "name" => "web-02" })
+      expect(test_class.update_instance("s1", "web-02")).to eq({ ok: true })
+    end
+
+    it "strips surrounding whitespace before renaming" do
+      expect(test_class).to receive(:nova_update_server).with("s1", { "name" => "web-02" })
+      test_class.update_instance("s1", "  web-02  ")
+    end
+
+    it "raises when the name is blank" do
+      expect { test_class.update_instance("s1", "  ") }.to raise_error(ComputeNjq::RequestError)
+    end
+  end
+
+  describe "#set_instance_tags" do
+    it "replaces the whole tag set via nova_set_server_tags" do
+      expect(test_class).to receive(:nova_set_server_tags).with("s1", %w[web prod])
+      expect(test_class.set_instance_tags("s1", %w[web prod])).to eq({ ok: true })
+    end
+
+    it "trims, drops blanks, and dedupes" do
+      expect(test_class).to receive(:nova_set_server_tags).with("s1", %w[web prod])
+      test_class.set_instance_tags("s1", [" web ", "web", "", "prod"])
+    end
+
+    it "allows clearing all tags with an empty list" do
+      expect(test_class).to receive(:nova_set_server_tags).with("s1", [])
+      test_class.set_instance_tags("s1", [])
+    end
+  end
+
+  describe "#reset_instance_status" do
+    it "resets to active via os-resetState" do
+      expect(test_class).to receive(:nova_server_action).with("s1", { "os-resetState" => { "state" => "active" } })
+      expect(test_class.reset_instance_status("s1", "active")).to eq({ ok: true })
+    end
+
+    it "resets to error via os-resetState" do
+      expect(test_class).to receive(:nova_server_action).with("s1", { "os-resetState" => { "state" => "error" } })
+      test_class.reset_instance_status("s1", "error")
+    end
+
+    it "rejects any state other than active/error" do
+      expect(test_class).not_to receive(:nova_server_action)
+      expect { test_class.reset_instance_status("s1", "deleted") }.to raise_error(ComputeNjq::RequestError)
+    end
+  end
 end

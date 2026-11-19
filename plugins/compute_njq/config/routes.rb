@@ -3,7 +3,7 @@ ComputeNjq::Engine.routes.draw do
 
   # JSON BFF endpoints consumed by the React widget.
   namespace :api do
-    resources :instances, only: %i[index show create destroy] do
+    resources :instances, only: %i[index show create update destroy] do
       member do
         # Full instance detail (all legacy Show tabs), aggregated server-side.
         get :detail
@@ -11,6 +11,10 @@ ComputeNjq::Engine.routes.draw do
         get :metrics
         # Generic lifecycle action: body { action_name: "start"|"stop"|... }.
         post :action
+        # Edit Tags: replace the full tag set, body { tags: [...] }.
+        put :tags, action: :set_tags
+        # Admin recovery: force vm_state, body { state: "active"|"error" }.
+        post :reset_status
       end
     end
     get "form_options/flavors", to: "form_options#flavors"

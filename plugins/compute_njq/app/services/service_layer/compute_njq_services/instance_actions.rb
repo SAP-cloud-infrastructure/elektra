@@ -16,6 +16,10 @@ module ServiceLayer
         "suspend" => { "suspend" => nil },
       }.freeze
 
+      # The only vm_states an admin may force via os-resetState. Any other value
+      # is rejected before reaching Nova — we never forward an arbitrary state.
+      RESET_STATES = %w[active error].freeze
+
       def instance_action(id, action_name)
         if ACTION_BODIES.key?(action_name)
           nova_server_action(id, ACTION_BODIES[action_name])
@@ -35,6 +39,35 @@ module ServiceLayer
 
       def terminate_instance(id)
         nova_delete_server(id)
+        { ok: true }
+      end
+
+      # Rename a server. Nova's PUT /servers/{id} accepts a "name" attribute;
+      # we reject a blank name client-side and here rather than making a pointless
+      # backend call.
+      def update_instance(id, name)
+        name = name.to_s.strip
+        raise ComputeNjq::RequestError, "Name must not be blank" if name.empty?
+
+        nova_update_server(id, { "name" => name })
+        { ok: true }
+      end
+
+      # Replace the full tag set. Trims, drops blanks and dedupes so the UI's
+      # free-text chips can't send junk; an empty list is allowed and clears all
+      # tags.
+      def set_instance_tags(id, tags)
+        clean = Array(tags).map { |t| t.to_s.strip }.reject(&:empty?).uniq
+        nova_set_server_tags(id, clean)
+        { ok: true }
+      end
+
+      # Admin-only recovery: force the server's vm_state via os-resetState. Only
+      # active/error are permitted; anything else is rejected before Nova.
+      def reset_instance_status(id, state)
+        raise ComputeNjq::RequestError, "Invalid reset state: #{state}" unless RESET_STATES.include?(state)
+
+        nova_server_action(id, { "os-resetState" => { "state" => state } })
         { ok: true }
       end
 

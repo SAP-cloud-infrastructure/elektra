@@ -113,4 +113,30 @@ RSpec.describe ServiceLayer::ComputeNjqServices::Nova do
       expect(captured).to eq({ "meta" => { "locked" => "true" } })
     end
   end
+
+  describe "#nova_update_server" do
+    it "puts the attrs wrapped under :server and returns the server body" do
+      captured = nil
+      allow(elektron_nova).to receive(:put).with("servers/s1") do |&block|
+        captured = block.call
+        double("response", body: { "server" => { "id" => "s1", "name" => "web-02" } })
+      end
+      result = test_class.nova_update_server("s1", { "name" => "web-02" })
+      expect(captured).to eq({ server: { "name" => "web-02" } })
+      expect(result).to eq({ "id" => "s1", "name" => "web-02" })
+    end
+  end
+
+  describe "#nova_set_server_tags" do
+    it "puts the tag set to the tags endpoint and returns the response body" do
+      captured = nil
+      allow(elektron_nova).to receive(:put).with("servers/s1/tags") do |&block|
+        captured = block.call
+        double("response", body: { "tags" => %w[web prod] })
+      end
+      result = test_class.nova_set_server_tags("s1", %w[web prod])
+      expect(captured).to eq({ "tags" => %w[web prod] })
+      expect(result).to eq({ "tags" => %w[web prod] })
+    end
+  end
 end
