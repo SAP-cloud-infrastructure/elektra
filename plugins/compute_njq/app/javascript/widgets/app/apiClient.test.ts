@@ -223,6 +223,28 @@ describe("createComputeApi", () => {
     })
   })
 
+  describe("instances.attachInterface / detachInterface / getAttachedInterfaces", () => {
+    it("posts attach_interface and resolves on ok", async () => {
+      mockPost.mockResolvedValue({ data: { ok: true } })
+      await api.instances.attachInterface("s1", { network_id: "n1" })
+      expect(mockPost).toHaveBeenCalledWith("instances/s1/attach_interface", { network_id: "n1" })
+    })
+
+    it("gets attached_interfaces and parses them", async () => {
+      mockGet.mockResolvedValue({
+        data: { attached_interfaces: [{ port_id: "p1", fixed_ip_address: "10.0.0.9", mac_addr: null }] },
+      })
+      const res = await api.instances.getAttachedInterfaces("s1")
+      expect(res.attached_interfaces[0].port_id).toBe("p1")
+    })
+
+    it("gets interface_options and parses them", async () => {
+      mockGet.mockResolvedValue({ data: { networks: [], subnets: [], security_groups: [] } })
+      const res = await api.formOptions.getInterfaceOptions()
+      expect(res.networks).toEqual([])
+    })
+  })
+
   describe("instances.updateName / setTags / resetStatus", () => {
     it("updateName PUTs the new name nested under instance", async () => {
       mockPut.mockResolvedValue({ data: { ok: true } })

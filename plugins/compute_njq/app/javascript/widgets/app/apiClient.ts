@@ -21,6 +21,8 @@ import {
 import { CreateInstancePayload } from "./types/createInstance"
 import { ImageStatus, ImageStatusResponseSchema, SnapshotResponse, SnapshotResponseSchema } from "./types/image"
 import { FloatingIpOptions, FloatingIpOptionsSchema } from "./types/floatingIp"
+import { InterfaceOptionsSchema, AttachedInterfacesSchema } from "./types/interface"
+import type { InterfaceOptions, AttachedInterfaces } from "./types/interface"
 
 // The BFF can answer with HTTP 200 but an error-shaped body when an upstream
 // proxy (e.g. oauth2-proxy) rewrites the status. Detect the { error, code }
@@ -188,6 +190,39 @@ export function createComputeApi(basepath: string) {
           throw detailedError(err)
         }),
 
+    // Attach a network interface to an instance. Optionally specify a subnet,
+    // fixed IP address, or security groups. The BFF answers { ok: true }.
+    attachInterface: (
+      id: string,
+      body: { network_id: string; subnet_id?: string; ip_address?: string; security_groups?: string[] }
+    ): Promise<void> =>
+      apiClient
+        .post<{ data: { ok: true } }>(`instances/${id}/attach_interface`, body)
+        .then((res) => {
+          checkForApiError(res.data)
+        })
+        .catch((err) => {
+          throw detailedError(err)
+        }),
+
+    // Detach a network interface identified by its fixed IP address.
+    detachInterface: (id: string, body: { fixed_ip_address: string }): Promise<void> =>
+      apiClient
+        .post<{ data: { ok: true } }>(`instances/${id}/detach_interface`, body)
+        .then((res) => {
+          checkForApiError(res.data)
+        })
+        .catch((err) => {
+          throw detailedError(err)
+        }),
+
+    // Returns all network interfaces currently attached to the instance.
+    getAttachedInterfaces: (id: string): Promise<AttachedInterfaces> =>
+      apiClient.get<{ data: unknown }>(`instances/${id}/attached_interfaces`).then((res) => {
+        checkForApiError(res.data)
+        return parseOrThrow(AttachedInterfacesSchema, res.data, "attached_interfaces")
+      }),
+
     // Snapshot: create a Glance image of the server. createImage only acknowledges;
     // the BFF returns the new image id so the client can poll its status. image_id
     // may be null when neither the Location header nor the name fallback resolved it.
@@ -258,6 +293,12 @@ export function createComputeApi(basepath: string) {
       apiClient.get<{ data: unknown }>("form_options/floating_ip_options").then((res) => {
         checkForApiError(res.data)
         return parseOrThrow(FloatingIpOptionsSchema, res.data, "floating_ip_options")
+      }),
+
+    getInterfaceOptions: (): Promise<InterfaceOptions> =>
+      apiClient.get<{ data: unknown }>("form_options/interface_options").then((res) => {
+        checkForApiError(res.data)
+        return parseOrThrow(InterfaceOptionsSchema, res.data, "interface_options")
       }),
   }
 
