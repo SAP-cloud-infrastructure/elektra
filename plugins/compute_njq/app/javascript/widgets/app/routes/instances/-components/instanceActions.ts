@@ -44,6 +44,11 @@ export interface InstanceAction {
   // this discriminator to the matching modal component (Edit Name/Tags, Reset
   // Status); actions without it run (optionally after a confirm) directly.
   modal?: "editName" | "editTags" | "resetStatus" | "resize" | "snapshot"
+  // Actions that only make sense from the list row, not the detail modal, which
+  // shows only VM lifecycle operations. Resize, Create Snapshot and the edit
+  // (name/tags) actions are configuration/form actions, so they are hidden in
+  // the detail surface.
+  listOnly?: boolean
 }
 
 const PARKED = ["Paused", "Suspended", "Shut off", "Shut down"]
@@ -59,6 +64,7 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     group: "edit",
     isAvailable: () => true,
     modal: "editName",
+    listOnly: true,
   },
   {
     key: "edit_tags",
@@ -67,6 +73,7 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     group: "edit",
     isAvailable: () => true,
     modal: "editTags",
+    listOnly: true,
   },
   {
     key: "start",
@@ -150,6 +157,7 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     group: "power",
     isAvailable: (i) => ["active", "stopped"].includes(i.status.state),
     modal: "resize",
+    listOnly: true,
   },
   {
     key: "create_image",
@@ -158,6 +166,7 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     group: "power",
     isAvailable: () => true,
     modal: "snapshot",
+    listOnly: true,
   },
   {
     key: "confirm_resize",
@@ -250,11 +259,21 @@ function isAllowed(rule: string, scope: Record<string, unknown>): boolean {
 // currently transitioning. Filters by availability for the current power state,
 // the lock rule (a locked instance exposes only Unlock), and policy. The caller
 // decides how to present a transitioning instance (the menu shows the toggle
-// disabled rather than hiding it, so the row layout stays stable).
-export function visibleActions(instance: Instance, scope: Record<string, unknown>): InstanceAction[] {
+// disabled rather than hiding it, so the row layout stays stable). The `surface`
+// drops list-only actions (Resize, Create Snapshot, Edit Name/Tags) from the
+// detail modal, which shows only VM lifecycle operations.
+export function visibleActions(
+  instance: Instance,
+  scope: Record<string, unknown>,
+  surface: "list" | "detail" = "list"
+): InstanceAction[] {
   // Legacy wraps every non-lock action in `- unless instance.locked?`
   // (_item_actions.html.haml), so a locked instance exposes only Unlock.
   return INSTANCE_ACTIONS.filter(
-    (a) => a.isAvailable(instance) && (!instance.locked || a.key === "unlock") && isAllowed(a.policy, scope)
+    (a) =>
+      a.isAvailable(instance) &&
+      (!instance.locked || a.key === "unlock") &&
+      isAllowed(a.policy, scope) &&
+      !(surface === "detail" && a.listOnly)
   )
 }

@@ -71,6 +71,19 @@ describe("InstanceModal lifecycle actions", () => {
     expect(screen.getByRole("button", { name: /actions/i })).toBeInTheDocument()
   })
 
+  it("omits list-only actions (Resize, Create Snapshot, Edit Name/Tags) from the detail header menu", () => {
+    // The detail modal mounts the shared menu with surface="detail", so it
+    // shows only VM lifecycle operations. Resize, Create Snapshot and the edit
+    // actions are list-only and must not appear here; Stop still does.
+    renderModal(runningDetail())
+    fireEvent.click(screen.getByRole("button", { name: /actions/i }))
+    expect(screen.queryByText("Resize")).not.toBeInTheDocument()
+    expect(screen.queryByText("Create Snapshot")).not.toBeInTheDocument()
+    expect(screen.queryByText("Edit Name")).not.toBeInTheDocument()
+    expect(screen.queryByText("Edit Tags")).not.toBeInTheDocument()
+    expect(screen.getByText("Stop")).toBeInTheDocument()
+  })
+
   it("does not render the actions dropdown while the detail is loading", () => {
     renderModal(detailQuery({ data: undefined, isLoading: true }))
     expect(screen.queryByRole("button", { name: /actions/i })).toBeNull()

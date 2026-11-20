@@ -24,9 +24,13 @@ interface Props {
   // modal passes this to render an inline banner rather than a modal-in-modal.
   // The caller receives the action and a `run` callback to fire once confirmed.
   onConfirmRequest?: (action: InstanceAction, run: () => void) => void
+  // Which surface the menu is mounted on. The detail modal shows only VM
+  // lifecycle operations, so list-only actions (Resize, Create Snapshot, Edit
+  // Name/Tags) are hidden there; the list row (default) shows everything.
+  surface?: "list" | "detail"
 }
 
-export default function InstanceActionsMenu({ instance, scope, apiClient, onConfirmRequest }: Props) {
+export default function InstanceActionsMenu({ instance, scope, apiClient, onConfirmRequest, surface = "list" }: Props) {
   const queryClient = useQueryClient()
   const actionMutation = useInstanceActionMutation(apiClient, queryClient)
   const terminateMutation = useTerminateInstanceMutation(apiClient, queryClient)
@@ -49,7 +53,7 @@ export default function InstanceActionsMenu({ instance, scope, apiClient, onConf
     return () => document.removeEventListener("mousedown", onDocClick)
   }, [])
 
-  const actions = visibleActions(instance, scope)
+  const actions = visibleActions(instance, scope, surface)
   const transitioning = isTransitioning(instance.status)
   // Hide the menu entirely only when the user can do nothing at all AND nothing
   // is in progress (e.g. no policy permission) — a permanently dead control is

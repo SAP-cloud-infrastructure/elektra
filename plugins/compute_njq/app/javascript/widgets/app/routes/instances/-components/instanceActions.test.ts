@@ -131,4 +131,26 @@ describe("visibleActions", () => {
     expect(action?.policy).toBe("compute_njq:instance_snapshot")
     expect(action?.modal).toBe("snapshot")
   })
+
+  it("hides resize, create snapshot and the edit actions in the detail surface", () => {
+    // The detail modal shows only VM lifecycle operations; resize, snapshot and
+    // the edit (name/tags) actions are configuration/form actions and belong to
+    // the list row only.
+    const keys = visibleActions(inst(), {}, "detail").map((a) => a.key)
+    expect(keys).not.toContain("resize")
+    expect(keys).not.toContain("create_image")
+    expect(keys).not.toContain("edit_name")
+    expect(keys).not.toContain("edit_tags")
+    // Lifecycle actions still show in detail.
+    expect(keys).toContain("stop")
+  })
+
+  it("keeps resize, create snapshot and the edit actions in the list surface (and by default)", () => {
+    expect(visibleActions(inst(), {}, "list").map((a) => a.key)).toEqual(
+      expect.arrayContaining(["resize", "create_image", "edit_name", "edit_tags"])
+    )
+    expect(visibleActions(inst(), {}).map((a) => a.key)).toEqual(
+      expect.arrayContaining(["resize", "create_image", "edit_name", "edit_tags"])
+    )
+  })
 })

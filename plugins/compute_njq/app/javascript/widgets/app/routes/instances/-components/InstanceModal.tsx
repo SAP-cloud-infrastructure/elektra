@@ -87,6 +87,7 @@ export function InstanceModal({
                 instance={instance as unknown as Instance}
                 scope={{}}
                 apiClient={apiClient}
+                surface="detail"
                 onConfirmRequest={(action, run) => setPendingConfirm({ action, run })}
               />
             </div>

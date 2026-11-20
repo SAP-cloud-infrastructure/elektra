@@ -55,6 +55,20 @@ function renderMenu(over: Partial<Instance> = {}, onConfirmRequest?: (a: Instanc
   )
 }
 
+function renderDetailMenu(over: Partial<Instance> = {}) {
+  const qc = new QueryClient()
+  return render(
+    <QueryClientProvider client={qc}>
+      <InstanceActionsMenu
+        instance={{ ...instance, ...over } as Instance}
+        scope={{}}
+        apiClient={{ instances: { action, terminate: vi.fn() } } as never}
+        surface="detail"
+      />
+    </QueryClientProvider>
+  )
+}
+
 describe("InstanceActionsMenu", () => {
   beforeEach(() => {
     action.mockClear()
@@ -171,6 +185,18 @@ describe("InstanceActionsMenu", () => {
       "Reset Status",
       "Terminate",
     ])
+  })
+
+  it("omits list-only actions (Resize, Create Snapshot, Edit Name/Tags) when surface is detail", () => {
+    // The detail modal shows only VM lifecycle operations; resize, snapshot and
+    // the edit actions are list-only. Stop still shows in the detail surface.
+    renderDetailMenu()
+    fireEvent.click(screen.getByRole("button", { name: /actions/i }))
+    expect(screen.queryByText("Resize")).not.toBeInTheDocument()
+    expect(screen.queryByText("Create Snapshot")).not.toBeInTheDocument()
+    expect(screen.queryByText("Edit Name")).not.toBeInTheDocument()
+    expect(screen.queryByText("Edit Tags")).not.toBeInTheDocument()
+    expect(screen.getByText("Stop")).toBeInTheDocument()
   })
 
   it("disables the toggle and shows a spinner while an action is in flight", async () => {
