@@ -153,4 +153,34 @@ describe("visibleActions", () => {
       expect.arrayContaining(["resize", "create_image", "edit_name", "edit_tags"])
     )
   })
+
+  it("offers Attach Floating IP for active or stopped, not for error/building", () => {
+    const keys = (state: string) =>
+      visibleActions(inst({ status: { state, transition: null, power_state: "Running" } }), {}).map((a) => a.key)
+    expect(keys("active")).toContain("attach_floating_ip")
+    expect(keys("stopped")).toContain("attach_floating_ip")
+    expect(keys("error")).not.toContain("attach_floating_ip")
+    expect(keys("build")).not.toContain("attach_floating_ip")
+  })
+
+  it("offers Detach Floating IP only when the instance has a floating IP", () => {
+    const withFip = inst({ ips: [{ addr: "1.1.1.1", type: "floating" }] })
+    const without = inst({ ips: [{ addr: "10.0.0.5", type: "fixed" }] })
+    expect(visibleActions(withFip, {}).map((a) => a.key)).toContain("detach_floating_ip")
+    expect(visibleActions(without, {}).map((a) => a.key)).not.toContain("detach_floating_ip")
+  })
+
+  it("keeps both floating-ip actions out of the detail surface (list-only)", () => {
+    const withFip = inst({ ips: [{ addr: "1.1.1.1", type: "floating" }] })
+    const keys = visibleActions(withFip, {}, "detail").map((a) => a.key)
+    expect(keys).not.toContain("attach_floating_ip")
+    expect(keys).not.toContain("detach_floating_ip")
+  })
+
+  it("exposes the floating-ip modal discriminators", () => {
+    const attach = INSTANCE_ACTIONS.find((a) => a.key === "attach_floating_ip")
+    const detach = INSTANCE_ACTIONS.find((a) => a.key === "detach_floating_ip")
+    expect(attach?.modal).toBe("attachFloatingIp")
+    expect(detach?.modal).toBe("detachFloatingIp")
+  })
 })

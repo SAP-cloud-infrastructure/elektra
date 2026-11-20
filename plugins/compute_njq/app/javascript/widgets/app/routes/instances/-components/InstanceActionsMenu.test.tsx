@@ -149,9 +149,10 @@ describe("InstanceActionsMenu", () => {
 
   it("separates action groups with dividers like the legacy menu", () => {
     // Running + unlocked shows four groups in order:
-    //   [Edit Name, Edit Tags] | [Stop, Reboot, Pause, Suspend, Hard Reset, Resize, Create Snapshot]
+    //   [Edit Name, Edit Tags] | [Stop, Reboot, Pause, Suspend, Hard Reset, Resize, Create Snapshot, Attach Floating IP]
     //   | [Lock] | [Reset Status, Terminate]
     // so three dividers sit between them — never before the first group.
+    // (Detach Floating IP only appears when the instance has a floating IP.)
     renderMenu()
     fireEvent.click(screen.getByRole("button", { name: /actions/i }))
 
@@ -179,6 +180,7 @@ describe("InstanceActionsMenu", () => {
       "Hard Reset",
       "Resize",
       "Create Snapshot",
+      "Attach Floating IP",
       "---",
       "Lock",
       "---",

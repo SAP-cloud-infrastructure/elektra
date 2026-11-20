@@ -19,6 +19,8 @@ export interface InstanceAction {
     | "unlock"
     | "reset_status"
     | "terminate"
+    | "attach_floating_ip"
+    | "detach_floating_ip"
   label: string
   policy: string
   // Legacy _item_actions.html.haml splits the dropdown into divider-separated
@@ -43,17 +45,18 @@ export interface InstanceAction {
   // Form-based actions open a modal instead of firing immediately. The menu maps
   // this discriminator to the matching modal component (Edit Name/Tags, Reset
   // Status); actions without it run (optionally after a confirm) directly.
-  modal?: "editName" | "editTags" | "resetStatus" | "resize" | "snapshot"
+  modal?: "editName" | "editTags" | "resetStatus" | "resize" | "snapshot" | "attachFloatingIp" | "detachFloatingIp"
   // Actions that only make sense from the list row, not the detail modal, which
-  // shows only VM lifecycle operations. Resize, Create Snapshot and the edit
-  // (name/tags) actions are configuration/form actions, so they are hidden in
-  // the detail surface.
+  // shows only VM lifecycle operations. Resize, Create Snapshot, the edit
+  // (name/tags) actions and the floating-IP actions are configuration/form
+  // actions, so they are hidden in the detail surface.
   listOnly?: boolean
 }
 
 const PARKED = ["Paused", "Suspended", "Shut off", "Shut down"]
 const isRunning = (i: Instance) => i.status.power_state === "Running"
 const isParked = (i: Instance) => PARKED.includes(i.status.power_state ?? "")
+const hasFloatingIp = (i: Instance) => (i.ips ?? []).some((ip) => ip.type === "floating")
 
 // Legacy wording from Compute::Server#target_state_for_action / confirm texts.
 export const INSTANCE_ACTIONS: InstanceAction[] = [
@@ -166,6 +169,24 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     group: "power",
     isAvailable: () => true,
     modal: "snapshot",
+    listOnly: true,
+  },
+  {
+    key: "attach_floating_ip",
+    label: "Attach Floating IP",
+    policy: "compute_njq:instance_attach_floating_ip",
+    group: "power",
+    isAvailable: (i) => ["active", "stopped"].includes(i.status.state),
+    modal: "attachFloatingIp",
+    listOnly: true,
+  },
+  {
+    key: "detach_floating_ip",
+    label: "Detach Floating IP",
+    policy: "compute_njq:instance_detach_floating_ip",
+    group: "power",
+    isAvailable: hasFloatingIp,
+    modal: "detachFloatingIp",
     listOnly: true,
   },
   {
