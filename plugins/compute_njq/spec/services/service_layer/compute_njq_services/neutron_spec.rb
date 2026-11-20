@@ -112,4 +112,83 @@ RSpec.describe ServiceLayer::ComputeNjqServices::Neutron do
       expect { test_class.neutron_delete_port("bad") }.not_to raise_error
     end
   end
+
+  describe "#neutron_available_floating_ips" do
+    it "returns only project FIPs with no port_id" do
+      allow(elektron_neutron).to receive(:get).with("floatingips", { tenant_id: "p1" }).and_return(
+        double("response", body: { "floatingips" => [
+          { "id" => "f1", "port_id" => nil, "floating_ip_address" => "1.1.1.1" },
+          { "id" => "f2", "port_id" => "", "floating_ip_address" => "1.1.1.2" },
+          { "id" => "f3", "port_id" => "port-x", "floating_ip_address" => "1.1.1.3" },
+        ] }),
+      )
+      expect(test_class.neutron_available_floating_ips.map { |f| f["id"] }).to eq(%w[f1 f2])
+    end
+  end
+
+  describe "#neutron_external_networks" do
+    it "fetches router:external networks" do
+      allow(elektron_neutron).to receive(:get).with("networks", { "router:external" => true }).and_return(
+        double("response", body: { "networks" => [{ "id" => "n1" }] }),
+      )
+      expect(test_class.neutron_external_networks.map { |n| n["id"] }).to eq(%w[n1])
+    end
+  end
+
+  describe "#neutron_ports_for_device" do
+    it "filters ports by device_id" do
+      allow(elektron_neutron).to receive(:get).with("ports", { "device_id" => "s1" }).and_return(
+        double("response", body: { "ports" => [{ "id" => "port-1" }] }),
+      )
+      expect(test_class.neutron_ports_for_device("s1").map { |p| p["id"] }).to eq(%w[port-1])
+    end
+  end
+
+  describe "#neutron_create_floating_ip" do
+    it "POSTs floating_network_id and returns the floatingip hash" do
+      captured = nil
+      allow(elektron_neutron).to receive(:post).with("floatingips") do |&blk|
+        captured = blk.call
+        double("response", body: { "floatingip" => { "id" => "new" } })
+      end
+      expect(test_class.neutron_create_floating_ip("n1")["id"]).to eq("new")
+      expect(captured).to eq({ "floatingip" => { "floating_network_id" => "n1" } })
+    end
+  end
+
+  describe "#neutron_associate_floating_ip" do
+    it "PUTs port_id and fixed_ip_address" do
+      captured = nil
+      allow(elektron_neutron).to receive(:put).with("floatingips/f1") do |&blk|
+        captured = blk.call
+        double("response", body: { "floatingip" => {} })
+      end
+      test_class.neutron_associate_floating_ip("f1", port_id: "port-1", fixed_ip_address: "10.0.0.5")
+      expect(captured).to eq({ "floatingip" => { "port_id" => "port-1", "fixed_ip_address" => "10.0.0.5" } })
+    end
+  end
+
+  describe "#neutron_disassociate_floating_ip" do
+    it "PUTs nulls for port_id and fixed_ip_address" do
+      captured = nil
+      allow(elektron_neutron).to receive(:put).with("floatingips/f1") do |&blk|
+        captured = blk.call
+        double("response", body: { "floatingip" => {} })
+      end
+      test_class.neutron_disassociate_floating_ip("f1")
+      expect(captured).to eq({ "floatingip" => { "port_id" => nil, "fixed_ip_address" => nil } })
+    end
+  end
+
+  describe "#neutron_floating_ip_by_address" do
+    it "finds the FIP whose address matches, else nil" do
+      allow(elektron_neutron).to receive(:get).with("floatingips", { tenant_id: "p1" }).and_return(
+        double("response", body: { "floatingips" => [
+          { "id" => "f1", "floating_ip_address" => "1.1.1.1", "port_id" => "p" },
+        ] }),
+      )
+      expect(test_class.neutron_floating_ip_by_address("1.1.1.1")["id"]).to eq("f1")
+      expect(test_class.neutron_floating_ip_by_address("9.9.9.9")).to be_nil
+    end
+  end
 end

@@ -69,6 +69,49 @@ module ServiceLayer
       rescue Elektron::Errors::ApiResponse
         nil
       end
+
+      # Project FIPs that are not currently associated (no port_id) — the attach
+      # modal offers these as free to attach.
+      def neutron_available_floating_ips
+        neutron_floating_ips.select { |fip| fip["port_id"].to_s.empty? }
+      end
+
+      # External networks a floating IP may be allocated from.
+      def neutron_external_networks
+        elektron_neutron.get("networks", { "router:external" => true }).body["networks"] || []
+      end
+
+      # The scoped project's Neutron ports for a server (device_id == server id),
+      # used to find the port that carries a chosen fixed IP when associating.
+      def neutron_ports_for_device(device_id)
+        elektron_neutron.get("ports", { "device_id" => device_id }).body["ports"] || []
+      end
+
+      # Allocate a new floating IP on an external network. Returns the raw hash.
+      def neutron_create_floating_ip(floating_network_id)
+        elektron_neutron
+          .post("floatingips") { { "floatingip" => { "floating_network_id" => floating_network_id } } }
+          .body["floatingip"]
+      end
+
+      # Associate a FIP with a port + fixed IP (PUT floatingips/{id}).
+      def neutron_associate_floating_ip(id, port_id:, fixed_ip_address:)
+        elektron_neutron
+          .put("floatingips/#{id}") { { "floatingip" => { "port_id" => port_id, "fixed_ip_address" => fixed_ip_address } } }
+          .body["floatingip"]
+      end
+
+      # Disassociate a FIP (PUT floatingips/{id} nulling both fields).
+      def neutron_disassociate_floating_ip(id)
+        elektron_neutron
+          .put("floatingips/#{id}") { { "floatingip" => { "port_id" => nil, "fixed_ip_address" => nil } } }
+          .body["floatingip"]
+      end
+
+      # Resolve a project FIP hash by its address, or nil.
+      def neutron_floating_ip_by_address(address)
+        neutron_floating_ips.find { |fip| fip["floating_ip_address"] == address }
+      end
     end
   end
 end
