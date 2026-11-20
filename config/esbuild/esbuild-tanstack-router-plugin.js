@@ -14,5 +14,9 @@ export function createTanstackRouterPlugin({ routesDirectory, generatedRouteTree
     generatedRouteTree,
     target: "react",
     autoCodeSplitting,
+    // Co-located test files (e.g. route.test.tsx) live inside routesDirectory
+    // but are not routes. Without this, the generator treats them as route
+    // files and warns "does not export any route piece" on every build.
+    routeFileIgnorePattern: "\\.(test|spec)\\.",
   })
 }
