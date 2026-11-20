@@ -6,7 +6,6 @@ import type { ComputeApi } from "../../../apiClient"
 import { isTransitioning, type Instance } from "../../../types/instance"
 import { visibleActions, type InstanceAction } from "./instanceActions"
 import { useInstanceActionMutation } from "../../../hooks/useInstanceActionMutation"
-import { useTerminateInstanceMutation } from "../../../hooks/useTerminateInstanceMutation"
 import { EditNameModal } from "./EditNameModal"
 import { EditTagsModal } from "./EditTagsModal"
 import { ResetStatusModal } from "./ResetStatusModal"
@@ -16,6 +15,7 @@ import { DetachFloatingIpModal } from "./DetachFloatingIpModal"
 import { AttachFloatingIpModal } from "./AttachFloatingIpModal"
 import { AttachInterfaceModal } from "./AttachInterfaceModal"
 import { DetachInterfaceModal } from "./DetachInterfaceModal"
+import { TerminateModal } from "./TerminateModal"
 
 interface Props {
   instance: Instance
@@ -37,7 +37,6 @@ interface Props {
 export default function InstanceActionsMenu({ instance, scope, apiClient, onConfirmRequest, surface = "list" }: Props) {
   const queryClient = useQueryClient()
   const actionMutation = useInstanceActionMutation(apiClient, queryClient)
-  const terminateMutation = useTerminateInstanceMutation(apiClient, queryClient)
   // Open state is controlled in React rather than Bootstrap's data-API, so the
   // menu behaves identically in tests and in the browser without depending on a
   // global dropdown side-effect (mirrors SearchableSelect).
@@ -66,11 +65,10 @@ export default function InstanceActionsMenu({ instance, scope, apiClient, onConf
   if (actions.length === 0 && !transitioning) return null
 
   const run = (a: InstanceAction) => {
-    if (a.key === "terminate") {
-      terminateMutation.mutate({ id: instance.id })
-    } else {
-      actionMutation.mutate({ id: instance.id, actionName: a.key, optimisticTransition: a.optimisticTransition })
-    }
+    // Terminate no longer flows through here — it is a modal action
+    // (TerminateModal) that fires the terminate mutation itself. Every other
+    // action runs the generic action mutation.
+    actionMutation.mutate({ id: instance.id, actionName: a.key, optimisticTransition: a.optimisticTransition })
   }
 
   const onClick = (a: InstanceAction) => {
@@ -85,6 +83,9 @@ export default function InstanceActionsMenu({ instance, scope, apiClient, onConf
       run(a)
       return
     }
+    // Name the instance in the confirmation so the user can verify they picked
+    // the right row before a destructive/stateful action runs.
+    const name = instance.name ?? instance.id
     // Confirm actions: when a delegate is provided (detail modal), hand off the
     // confirmation so the caller can render it inline — avoids a nested modal
     // backdrop over the detail modal. Otherwise (table row) use the shared
@@ -94,19 +95,19 @@ export default function InstanceActionsMenu({ instance, scope, apiClient, onConf
       onConfirmRequest(a, () => run(a))
       return
     }
-    confirm(a.confirm.message, { title: a.confirm.title, confirmLabel: a.confirm.ok, abortLabel: "Cancel" })
+    confirm(a.confirm.message(name), { title: a.confirm.title, confirmLabel: a.confirm.ok, abortLabel: "Cancel" })
       .then(() => run(a))
       .catch(() => {
         /* cancelled */
       })
   }
-  const error = actionMutation.error ?? terminateMutation.error
+  const error = actionMutation.error
   // While a mutation is in flight (until onSettled's reconciling refetch lands)
   // the whole menu is locked: the optimistic patch (esp. unlock widening the
   // menu) already reflects the new state, so a second action fired in this
   // window would race the backend and be rejected. Disabling the toggle keeps
   // the panel closed and un-reopenable until the real state is back.
-  const busy = actionMutation.isPending || terminateMutation.isPending
+  const busy = actionMutation.isPending
 
   // The active modal mount. Kept as a value (not inlined in the main return)
   // because an open modal must survive the transitioning early-return below: the
@@ -146,6 +147,9 @@ export default function InstanceActionsMenu({ instance, scope, apiClient, onConf
       )}
       {activeModal === "detachInterface" && (
         <DetachInterfaceModal instance={instance} apiClient={apiClient} onClose={() => setActiveModal(null)} />
+      )}
+      {activeModal === "terminate" && (
+        <TerminateModal instance={instance} apiClient={apiClient} onClose={() => setActiveModal(null)} />
       )}
     </>
   )

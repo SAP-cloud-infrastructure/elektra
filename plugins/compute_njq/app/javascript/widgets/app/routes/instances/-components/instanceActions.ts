@@ -36,8 +36,11 @@ export interface InstanceAction {
   // Confirmation shown before the action runs: a short title (the action as a
   // question), a consequence statement as the body, and the verb for the OK
   // button. This follows the "state the consequence + verb button" pattern
-  // rather than a rhetorical "Are you sure?".
-  confirm?: { title: string; message: string; ok: string }
+  // rather than a rhetorical "Are you sure?". The message is a function of the
+  // instance name so the dialog names the exact VM — a guard against acting on
+  // the wrong row. Terminate has no confirm here: it uses a dedicated
+  // type-to-confirm modal (see modal: "terminate").
+  confirm?: { title: string; message: (name: string) => string; ok: string }
   // Marks an action as dangerous: its confirm dialog uses a red (btn-danger)
   // button. This does NOT color the dropdown entry — see dangerLabel for that.
   destructive?: boolean
@@ -48,7 +51,8 @@ export interface InstanceAction {
   optimisticTransition?: string
   // Form-based actions open a modal instead of firing immediately. The menu maps
   // this discriminator to the matching modal component (Edit Name/Tags, Reset
-  // Status); actions without it run (optionally after a confirm) directly.
+  // Status, Terminate); actions without it run (optionally after a confirm)
+  // directly.
   modal?:
     | "editName"
     | "editTags"
@@ -59,10 +63,12 @@ export interface InstanceAction {
     | "detachFloatingIp"
     | "attachInterface"
     | "detachInterface"
+    | "terminate"
   // Actions that only make sense from the list row, not the detail modal, which
   // shows only VM lifecycle operations. Resize, Create Snapshot, the edit
-  // (name/tags) actions and the floating-IP actions are configuration/form
-  // actions, so they are hidden in the detail surface.
+  // (name/tags) actions, the floating-IP actions and Terminate are
+  // configuration/form actions (and Terminate would close the detail modal it
+  // lives in), so they are hidden in the detail surface.
   listOnly?: boolean
 }
 
@@ -110,7 +116,7 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     destructive: true,
     confirm: {
       title: "Stop instance?",
-      message: "This shuts down the guest OS and powers off the instance. Running processes will be stopped.",
+      message: (name) => `This shuts down the guest OS and powers off “${name}”. Running processes will be stopped.`,
       ok: "Stop instance",
     },
   },
@@ -123,7 +129,8 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     optimisticTransition: "rebooting",
     confirm: {
       title: "Reboot instance?",
-      message: "This gracefully restarts the guest OS. The instance will be briefly unavailable.",
+      message: (name) =>
+        `This gracefully restarts the guest OS of “${name}”. The instance will be briefly unavailable.`,
       ok: "Reboot instance",
     },
   },
@@ -136,7 +143,7 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     optimisticTransition: "pausing",
     confirm: {
       title: "Pause instance?",
-      message: "This freezes the instance in memory. It stays on the hypervisor and can be resumed later.",
+      message: (name) => `This freezes “${name}” in memory. It stays on the hypervisor and can be resumed later.`,
       ok: "Pause instance",
     },
   },
@@ -149,7 +156,7 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     optimisticTransition: "suspending",
     confirm: {
       title: "Suspend instance?",
-      message: "This writes the instance's memory to disk and powers it off. It can be resumed later.",
+      message: (name) => `This writes the memory of “${name}” to disk and powers it off. It can be resumed later.`,
       ok: "Suspend instance",
     },
   },
@@ -163,7 +170,7 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     destructive: true,
     confirm: {
       title: "Hard reset instance?",
-      message: "This forcibly power-cycles the instance without a clean shutdown. Unsaved data may be lost.",
+      message: (name) => `This forcibly power-cycles “${name}” without a clean shutdown. Unsaved data may be lost.`,
       ok: "Hard reset instance",
     },
   },
@@ -230,7 +237,8 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     optimisticTransition: "resize_confirming",
     confirm: {
       title: "Confirm resize?",
-      message: "This keeps the new size and finalizes the resize. The instance stays on the new flavor.",
+      message: (name) =>
+        `This keeps the new size and finalizes the resize of “${name}”. The instance stays on the new flavor.`,
       ok: "Confirm resize",
     },
   },
@@ -243,7 +251,7 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     optimisticTransition: "resize_reverting",
     confirm: {
       title: "Revert resize?",
-      message: "This discards the new size and restores the instance to its previous flavor.",
+      message: (name) => `This discards the new size and restores “${name}” to its previous flavor.`,
       ok: "Revert resize",
     },
   },
@@ -255,7 +263,8 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     isAvailable: (i) => !i.locked,
     confirm: {
       title: "Lock instance?",
-      message: "This prevents lifecycle actions (stop, reboot, terminate, …) until the instance is unlocked.",
+      message: (name) =>
+        `This prevents lifecycle actions (stop, reboot, terminate, …) on “${name}” until it is unlocked.`,
       ok: "Lock instance",
     },
   },
@@ -267,7 +276,7 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     isAvailable: (i) => i.locked,
     confirm: {
       title: "Unlock instance?",
-      message: "This re-enables lifecycle actions on the instance.",
+      message: (name) => `This re-enables lifecycle actions on “${name}”.`,
       ok: "Unlock instance",
     },
   },
@@ -288,12 +297,13 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     optimisticTransition: "deleting",
     destructive: true,
     dangerLabel: true,
-    confirm: {
-      title: "Terminate instance?",
-      message:
-        "This permanently deletes the instance. Attached non-persistent disks are destroyed. This cannot be undone.",
-      ok: "Terminate instance",
-    },
+    // Terminate is irreversible, so instead of a plain confirm it opens a
+    // type-to-confirm modal: the user must type the instance name to enable the
+    // button. See TerminateModal. list-only: the detail modal shows only VM
+    // lifecycle operations, and terminating would close the very modal you are
+    // in, so it lives on the list row only.
+    modal: "terminate",
+    listOnly: true,
   },
 ]
 

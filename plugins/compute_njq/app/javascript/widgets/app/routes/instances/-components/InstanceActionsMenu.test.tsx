@@ -107,12 +107,14 @@ describe("InstanceActionsMenu", () => {
     fireEvent.click(screen.getByRole("button", { name: /actions/i }))
     fireEvent.click(screen.getByText("Stop"))
     // Delegates to the shared lib/dialogs confirm with the action's consequence
-    // message, a short title, and a verb button label.
+    // message, a short title, and a verb button label. The message names the
+    // instance ("x") so the user can confirm they picked the right VM.
     expect(confirmMock).toHaveBeenCalledWith(expect.stringContaining("shuts down the guest OS"), {
       title: "Stop instance?",
       confirmLabel: "Stop instance",
       abortLabel: "Cancel",
     })
+    expect(confirmMock).toHaveBeenCalledWith(expect.stringContaining("“x”"), expect.anything())
     // Menu closes immediately; the dialog (portal) drives the rest.
     expect(document.querySelector(".dropdown-menu.show")).toBeNull()
     expect(action).not.toHaveBeenCalled()
@@ -294,15 +296,16 @@ describe("InstanceActionsMenu", () => {
     ])
   })
 
-  it("omits list-only actions (Resize, Create Snapshot, Edit Name/Tags) when surface is detail", () => {
-    // The detail modal shows only VM lifecycle operations; resize, snapshot and
-    // the edit actions are list-only. Stop still shows in the detail surface.
+  it("omits list-only actions (Resize, Create Snapshot, Edit Name/Tags, Terminate) when surface is detail", () => {
+    // The detail modal shows only VM lifecycle operations; resize, snapshot, the
+    // edit actions and terminate are list-only. Stop still shows in the detail surface.
     renderDetailMenu()
     fireEvent.click(screen.getByRole("button", { name: /actions/i }))
     expect(screen.queryByText("Resize")).not.toBeInTheDocument()
     expect(screen.queryByText("Create Snapshot")).not.toBeInTheDocument()
     expect(screen.queryByText("Edit Name")).not.toBeInTheDocument()
     expect(screen.queryByText("Edit Tags")).not.toBeInTheDocument()
+    expect(screen.queryByText("Terminate")).not.toBeInTheDocument()
     expect(screen.getByText("Stop")).toBeInTheDocument()
   })
 
@@ -423,5 +426,43 @@ describe("InstanceActionsMenu", () => {
     fireEvent.click(screen.getByRole("button", { name: /actions/i }))
     fireEvent.click(screen.getByText("Detach Interface"))
     expect(screen.getByText("Detach Interface", { selector: ".modal-title" })).toBeInTheDocument()
+  })
+
+  it("opens the Terminate modal instead of firing immediately", () => {
+    // Terminate is the one irreversible action: clicking it must open the
+    // type-to-confirm modal, not fire the mutation or the shared confirm dialog.
+    renderMenu()
+    fireEvent.click(screen.getByRole("button", { name: /actions/i }))
+    fireEvent.click(screen.getByText("Terminate"))
+    expect(screen.getByText("Terminate Instance", { selector: ".modal-title" })).toBeInTheDocument()
+    expect(confirmMock).not.toHaveBeenCalled()
+  })
+
+  it("terminates only after the exact instance name is typed", async () => {
+    // The Terminate button stays disabled until the typed name matches the
+    // instance name exactly (the menu instance is named "x").
+    const terminate = vi.fn().mockResolvedValue(undefined)
+    const qc = new QueryClient()
+    render(
+      <QueryClientProvider client={qc}>
+        <InstanceActionsMenu instance={instance} scope={{}} apiClient={{ instances: { action, terminate } } as never} />
+      </QueryClientProvider>
+    )
+    fireEvent.click(screen.getByRole("button", { name: /actions/i }))
+    fireEvent.click(screen.getByText("Terminate"))
+
+    const confirmButton = screen.getByRole("button", { name: /terminate instance/i })
+    expect(confirmButton).toBeDisabled()
+
+    // A wrong name keeps it disabled.
+    fireEvent.change(screen.getByLabelText(/instance name/i), { target: { value: "wrong" } })
+    expect(confirmButton).toBeDisabled()
+    expect(terminate).not.toHaveBeenCalled()
+
+    // The exact name enables it; clicking fires the terminate mutation.
+    fireEvent.change(screen.getByLabelText(/instance name/i), { target: { value: "x" } })
+    expect(confirmButton).not.toBeDisabled()
+    fireEvent.click(confirmButton)
+    await waitFor(() => expect(terminate).toHaveBeenCalledWith("s1"))
   })
 })

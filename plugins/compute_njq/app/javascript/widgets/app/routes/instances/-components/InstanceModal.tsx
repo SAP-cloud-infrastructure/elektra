@@ -107,7 +107,7 @@ export function InstanceModal({
               <div className="alert alert-warning" role="alert">
                 <div>
                   <strong>{pendingConfirm.action.confirm?.title}</strong>
-                  <div>{pendingConfirm.action.confirm?.message}</div>
+                  <div>{pendingConfirm.action.confirm?.message(instance.name ?? instance.id)}</div>
                 </div>
                 <div className="d-flex justify-content-end gap-2 mt-2">
                   <button type="button" className="btn btn-secondary" onClick={() => setPendingConfirm(null)}>
