@@ -98,6 +98,10 @@ export function AttachInterfaceModal({ instance, apiClient, onClose }: AttachInt
             placeholder={networkId ? "Choose a subnet…" : "Choose a network first"}
             emptyMessage="No subnets for this network"
           />
+          <p className="form-text">
+            <i className="fa fa-info-circle" />
+            You can specify a subnet from which the fixed IP is chosen. Leave empty to let any subnet be used.
+          </p>
         </div>
 
         <div className="form-group mb-3">
@@ -113,6 +117,10 @@ export function AttachInterfaceModal({ instance, apiClient, onClose }: AttachInt
             placeholder="optional, within the subnet"
             onChange={(e) => setIpAddress(e.target.value)}
           />
+          <p className="form-text">
+            <i className="fa fa-info-circle" />
+            Type a fixed IP within the subnet, or leave empty to let DHCP assign one for you.
+          </p>
         </div>
 
         <div className="form-group">
@@ -132,6 +140,11 @@ export function AttachInterfaceModal({ instance, apiClient, onClose }: AttachInt
             placeholder="Select security groups…"
             emptyMessage="No security groups available"
           />
+          <p className="form-text">
+            <i className="fa fa-info-circle" />
+            By default no security groups are selected. You can create the interface without one — then no security
+            rules are enforced for this interface.
+          </p>
         </div>
       </Modal.Body>
       <Modal.Footer>
