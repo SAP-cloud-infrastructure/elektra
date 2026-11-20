@@ -68,6 +68,12 @@ describe("AttachInterfaceModal", () => {
     fireEvent.click(screen.getByRole("button", { name: /^attach$/i }))
     await waitFor(() => expect(mutate).toHaveBeenCalled())
     const [vars] = mutate.mock.calls[0]
-    expect(vars).toMatchObject({ id: "s1", network_id: "n1", subnet_id: "sub1", ip_address: "10.0.0.9", security_groups: ["sg1"] })
+    expect(vars).toMatchObject({
+      id: "s1",
+      network_id: "n1",
+      subnet_id: "sub1",
+      ip_address: "10.0.0.9",
+      security_groups: ["sg1"],
+    })
   })
 })

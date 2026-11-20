@@ -19,6 +19,8 @@ describe("interface schemas", () => {
   })
 
   it("rejects a missing network id", () => {
-    expect(() => InterfaceOptionsSchema.parse({ networks: [{ name: "x" }], subnets: [], security_groups: [] })).toThrow()
+    expect(() =>
+      InterfaceOptionsSchema.parse({ networks: [{ name: "x" }], subnets: [], security_groups: [] })
+    ).toThrow()
   })
 })
