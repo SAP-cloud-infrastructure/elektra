@@ -7,6 +7,21 @@
     margin-top: 0.5rem;
   }
 
+  // Align the table's outer edges with the toolbar above it. The toolbar insets
+  // its content by 8px (padding: … 8px); Bootstrap's default cell padding-x is
+  // also 0.5rem (8px), but we pin the first/last cells explicitly so the left
+  // text edge (Name) and the right edge (actions) line up flush with the
+  // toolbar's content — the table never looks wider than the toolbar.
+  .table.instances > thead > tr > th:first-child,
+  .table.instances > tbody > tr > td:first-child {
+    padding-left: 8px;
+  }
+
+  .table.instances > thead > tr > th:last-child,
+  .table.instances > tbody > tr > td:last-child {
+    padding-right: 8px;
+  }
+
   // Compact row density: tighter vertical padding so more servers are visible
   // at a glance (state-of-the-art dashboards favour density), and a fixed
   // vertical rhythm so transition rows don't grow taller than idle ones.
