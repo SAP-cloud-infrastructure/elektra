@@ -34,7 +34,7 @@ export function DetachInterfaceModal({ instance, apiClient, onClose }: DetachInt
   }
 
   return (
-    <Modal show onHide={onClose} bsClass="compute-njq modal">
+    <Modal show onHide={onClose} dialogClassName="modal-lg" bsClass="compute-njq modal">
       <Modal.Header closeButton>
         <Modal.Title>Detach Interface</Modal.Title>
       </Modal.Header>

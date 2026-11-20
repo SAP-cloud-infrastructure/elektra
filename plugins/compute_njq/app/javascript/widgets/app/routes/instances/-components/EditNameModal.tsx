@@ -27,7 +27,13 @@ export function EditNameModal({ instance, apiClient, onClose }: EditNameModalPro
   }
 
   return (
-    <Modal show onHide={onClose} bsClass="compute-njq modal" aria-labelledby="edit-name-title">
+    <Modal
+      show
+      onHide={onClose}
+      dialogClassName="modal-lg"
+      bsClass="compute-njq modal"
+      aria-labelledby="edit-name-title"
+    >
       <Modal.Header closeButton>
         <Modal.Title id="edit-name-title">Edit Name</Modal.Title>
       </Modal.Header>

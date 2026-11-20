@@ -62,14 +62,14 @@ export function ResizeModal({ instance, apiClient, onClose }: ResizeModalProps) 
   }
 
   return (
-    <Modal show onHide={onClose} bsClass="compute-njq modal" aria-labelledby="resize-title">
+    <Modal show onHide={onClose} dialogClassName="modal-lg" bsClass="compute-njq modal" aria-labelledby="resize-title">
       <Modal.Header closeButton>
         <Modal.Title id="resize-title">Resize Instance</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <div className="alert alert-info" role="note">
-          Resizing a server is a technically complex operation and might fail for a variety of reasons. In many cases
-          a better course of action is to create a new server in the new size and delete the old.
+          Resizing a server is a technically complex operation and might fail for a variety of reasons. In many cases a
+          better course of action is to create a new server in the new size and delete the old.
         </div>
         {mutation.error && (
           <div className="alert alert-danger" role="alert">

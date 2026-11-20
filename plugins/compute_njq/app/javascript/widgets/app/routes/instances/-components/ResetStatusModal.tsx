@@ -28,7 +28,13 @@ export function ResetStatusModal({ instance, apiClient, onClose }: ResetStatusMo
   }
 
   return (
-    <Modal show onHide={onClose} bsClass="compute-njq modal" aria-labelledby="reset-status-title">
+    <Modal
+      show
+      onHide={onClose}
+      dialogClassName="modal-lg"
+      bsClass="compute-njq modal"
+      aria-labelledby="reset-status-title"
+    >
       <Modal.Header closeButton>
         <Modal.Title id="reset-status-title">Reset Status</Modal.Title>
       </Modal.Header>

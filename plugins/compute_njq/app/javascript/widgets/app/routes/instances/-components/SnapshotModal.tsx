@@ -29,7 +29,13 @@ export function SnapshotModal({ instance, apiClient, onClose }: SnapshotModalPro
   }
 
   return (
-    <Modal show onHide={onClose} bsClass="compute-njq modal" aria-labelledby="snapshot-title">
+    <Modal
+      show
+      onHide={onClose}
+      dialogClassName="modal-lg"
+      bsClass="compute-njq modal"
+      aria-labelledby="snapshot-title"
+    >
       <Modal.Header closeButton>
         <Modal.Title id="snapshot-title">Create Snapshot</Modal.Title>
       </Modal.Header>
@@ -39,9 +45,7 @@ export function SnapshotModal({ instance, apiClient, onClose }: SnapshotModalPro
             {mutation.error.message}
           </div>
         )}
-        <p className="text-muted">
-          A snapshot is an image which preserves the disk state of a running instance.
-        </p>
+        <p className="text-muted">A snapshot is an image which preserves the disk state of a running instance.</p>
         <div className="form-group">
           <label className="form-label" htmlFor="snapshot-name">
             Name

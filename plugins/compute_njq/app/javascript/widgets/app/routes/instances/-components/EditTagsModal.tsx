@@ -179,7 +179,13 @@ export function EditTagsModal({ instance, apiClient, onClose }: EditTagsModalPro
   }
 
   return (
-    <Modal show onHide={onClose} bsClass="compute-njq modal" aria-labelledby="edit-tags-title">
+    <Modal
+      show
+      onHide={onClose}
+      dialogClassName="modal-lg"
+      bsClass="compute-njq modal"
+      aria-labelledby="edit-tags-title"
+    >
       <Modal.Header closeButton>
         <Modal.Title id="edit-tags-title">Edit Tags</Modal.Title>
       </Modal.Header>

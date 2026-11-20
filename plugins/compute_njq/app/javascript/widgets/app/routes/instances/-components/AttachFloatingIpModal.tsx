@@ -52,7 +52,7 @@ export function AttachFloatingIpModal({ instance, apiClient, onClose }: AttachFl
   }
 
   return (
-    <Modal show onHide={onClose} bsClass="compute-njq modal">
+    <Modal show onHide={onClose} dialogClassName="modal-lg" bsClass="compute-njq modal">
       <Modal.Header closeButton>
         <Modal.Title>Attach Floating IP</Modal.Title>
       </Modal.Header>

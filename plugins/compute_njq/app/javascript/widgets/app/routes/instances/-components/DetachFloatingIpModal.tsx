@@ -29,7 +29,13 @@ export function DetachFloatingIpModal({ instance, apiClient, onClose }: DetachFl
   }
 
   return (
-    <Modal show onHide={onClose} bsClass="compute-njq modal" aria-labelledby="detach-floating-ip-title">
+    <Modal
+      show
+      onHide={onClose}
+      dialogClassName="modal-lg"
+      bsClass="compute-njq modal"
+      aria-labelledby="detach-floating-ip-title"
+    >
       <Modal.Header closeButton>
         <Modal.Title id="detach-floating-ip-title">Detach Floating IP</Modal.Title>
       </Modal.Header>
@@ -40,8 +46,8 @@ export function DetachFloatingIpModal({ instance, apiClient, onClose }: DetachFl
           </div>
         )}
         <p className="text-muted">
-          Detaching a floating IP disassociates it from this instance. The IP stays allocated to your project
-          and can be attached again later.
+          Detaching a floating IP disassociates it from this instance. The IP stays allocated to your project and can be
+          attached again later.
         </p>
         <div className="form-group">
           {floatingIps.map((ip) => (
@@ -66,12 +72,7 @@ export function DetachFloatingIpModal({ instance, apiClient, onClose }: DetachFl
         <button type="button" className="btn btn-secondary" onClick={onClose}>
           Cancel
         </button>
-        <button
-          type="button"
-          className="btn btn-primary"
-          disabled={!selected || mutation.isPending}
-          onClick={submit}
-        >
+        <button type="button" className="btn btn-primary" disabled={!selected || mutation.isPending} onClick={submit}>
           {mutation.isPending ? "Detaching…" : "Detach"}
         </button>
       </Modal.Footer>
