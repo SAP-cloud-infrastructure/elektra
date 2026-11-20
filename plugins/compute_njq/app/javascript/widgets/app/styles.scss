@@ -5,21 +5,25 @@
 .compute-njq {
   .table.instances {
     margin-top: 0.5rem;
+    // Keep the table within its container (the same box the toolbar lives in).
+    width: 100%;
+    max-width: 100%;
   }
 
-  // Align the table's outer edges with the toolbar above it. The toolbar insets
-  // its content by 8px (padding: … 8px); Bootstrap's default cell padding-x is
-  // also 0.5rem (8px), but we pin the first/last cells explicitly so the left
-  // text edge (Name) and the right edge (actions) line up flush with the
-  // toolbar's content — the table never looks wider than the toolbar.
+  // Bootstrap 5 gives every cell 0.5rem (8px) of horizontal padding via
+  // `.table > :not(caption) > * > *`. On the outer cells this inset makes the
+  // table's content start/end 8px inside the row border — while the toolbar's
+  // grey box runs edge to edge — so the table looks wider/misaligned. Drop the
+  // padding on the very first/last cell so the Name text and the actions button
+  // sit flush with the toolbar's left/right edges.
   .table.instances > thead > tr > th:first-child,
   .table.instances > tbody > tr > td:first-child {
-    padding-left: 8px;
+    padding-left: 0;
   }
 
   .table.instances > thead > tr > th:last-child,
   .table.instances > tbody > tr > td:last-child {
-    padding-right: 8px;
+    padding-right: 0;
   }
 
   // Compact row density: tighter vertical padding so more servers are visible
@@ -47,7 +51,6 @@
   .table.instances th:nth-child(4),
   .table.instances td:nth-child(4) {
     width: 100%;
-    min-width: 14rem;
   }
 
   .table.instances th:nth-child(5),
