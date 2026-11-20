@@ -50,6 +50,16 @@ module ServiceLayer
         neutron_networks.map { |n| { id: n["id"], name: n["name"] } }
       end
 
+      # Free (unassociated) floating IPs offered by the attach modal.
+      def form_available_floating_ips
+        neutron_available_floating_ips.map { |f| { id: f["id"], floating_ip_address: f["floating_ip_address"] } }
+      end
+
+      # External networks a new floating IP can be allocated from.
+      def form_external_networks
+        neutron_external_networks.map { |n| { id: n["id"], name: n["name"] } }
+      end
+
       # Subnets for the advanced network options, shaped for the UI. The whole
       # list is returned; the form filters it client-side by network_id. cidr is
       # shown in the label so the user can pick the right subnet.

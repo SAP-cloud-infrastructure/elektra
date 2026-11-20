@@ -19,6 +19,10 @@ ComputeNjq::Engine.routes.draw do
         put :resize
         # Snapshot: create a Glance image of the server, body { snapshot: { name } }.
         post :snapshot
+        # Floating IP: associate an existing/new FIP, body { floating_ip_id | floating_network_id, fixed_ip_address }.
+        post :attach_floating_ip
+        # Floating IP: disassociate, body { floating_ip_address }.
+        post :detach_floating_ip
       end
     end
     get "form_options/flavors", to: "form_options#flavors"
@@ -29,6 +33,7 @@ ComputeNjq::Engine.routes.draw do
     get "form_options/security_groups", to: "form_options#security_groups"
     get "form_options/availability_zones", to: "form_options#availability_zones"
     get "form_options/volume_types", to: "form_options#volume_types"
+    get "form_options/floating_ip_options", to: "form_options#floating_ip_options"
     # Image status reads (snapshot polling), kept generic/reusable.
     resources :images, only: %i[show]
   end

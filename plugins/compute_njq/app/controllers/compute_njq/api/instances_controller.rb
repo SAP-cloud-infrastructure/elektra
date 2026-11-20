@@ -91,6 +91,36 @@ module ComputeNjq
         end
       end
 
+      # POST /:scope/compute-njq/api/instances/:id/attach_floating_ip
+      # Associate an existing FIP (floating_ip_id) or allocate a new one on an
+      # external network (floating_network_id), then bind it to the port carrying
+      # fixed_ip_address.
+      def attach_floating_ip
+        return unless authorize!("compute_njq:instance_attach_floating_ip")
+
+        handle_api_call do
+          compute_service.attach_floating_ip(
+            params.require(:id),
+            floating_ip_id: attach_floating_ip_params[:floating_ip_id],
+            floating_network_id: attach_floating_ip_params[:floating_network_id],
+            fixed_ip_address: attach_floating_ip_params[:fixed_ip_address],
+          )
+        end
+      end
+
+      # POST /:scope/compute-njq/api/instances/:id/detach_floating_ip
+      # Disassociate the FIP identified by its address from the server.
+      def detach_floating_ip
+        return unless authorize!("compute_njq:instance_detach_floating_ip")
+
+        handle_api_call do
+          compute_service.detach_floating_ip(
+            params.require(:id),
+            floating_ip_address: detach_floating_ip_params[:floating_ip_address],
+          )
+        end
+      end
+
       # DELETE /:scope/compute-njq/api/instances/:id  (terminate)
       def destroy
         return unless authorize!("compute_njq:instance_delete")
@@ -149,6 +179,17 @@ module ComputeNjq
       # parity with the name-only new_snapshot form).
       def snapshot_params
         params.require(:snapshot).permit(:name).to_h.symbolize_keys
+      end
+
+      # Attach FIP: either an existing FIP id or an external network id to
+      # allocate from, plus the fixed IP the FIP binds to.
+      def attach_floating_ip_params
+        scoped_params.permit(:floating_ip_id, :floating_network_id, :fixed_ip_address)
+      end
+
+      # Detach FIP: the floating IP address to disassociate.
+      def detach_floating_ip_params
+        scoped_params.permit(:floating_ip_address)
       end
 
       # Edit Tags: the full replacement tag list. Defaults to [] so an omitted

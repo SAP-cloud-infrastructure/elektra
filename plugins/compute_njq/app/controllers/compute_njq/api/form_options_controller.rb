@@ -34,6 +34,17 @@ module ComputeNjq
         handle_api_call { { volume_types: compute_service.form_volume_types } }
       end
 
+      # Attach-FIP modal data: free FIPs to pick from, plus external networks to
+      # allocate a new FIP from.
+      def floating_ip_options
+        handle_api_call do
+          {
+            available_floating_ips: compute_service.form_available_floating_ips,
+            external_networks: compute_service.form_external_networks,
+          }
+        end
+      end
+
       def images
         handle_api_call { compute_service.form_images }
       end
