@@ -139,7 +139,7 @@ describe("SpecsTab", () => {
     expect(screen.getByText("No instance specifications")).toBeInTheDocument()
   })
 
-  it("renders flavor, ram, vcpus and root disk", () => {
+  it("renders flavor with hypervisor type, ram, vcpus and root disk", () => {
     render(
       <SpecsTab
         specs={{
@@ -152,13 +152,14 @@ describe("SpecsTab", () => {
         }}
       />
     )
-    expect(screen.getByText("m1.small")).toBeInTheDocument()
+    // Hypervisor type is appended to the flavor in parentheses, not its own row.
+    expect(screen.getByText("m1.small (kvm)")).toBeInTheDocument()
+    expect(screen.queryByText("Hypervisor")).not.toBeInTheDocument()
     expect(screen.getByText("2048MB")).toBeInTheDocument()
     expect(screen.getByText("2 VCPU")).toBeInTheDocument()
-    expect(screen.getByText("kvm")).toBeInTheDocument()
   })
 
-  it("shows 'unknown' when the hypervisor type is not known", () => {
+  it("shows the flavor without a hypervisor suffix when the type is not known", () => {
     render(
       <SpecsTab
         specs={{
@@ -171,17 +172,18 @@ describe("SpecsTab", () => {
         }}
       />
     )
-    expect(screen.getByText("unknown")).toBeInTheDocument()
+    expect(screen.getByText("m1.small")).toBeInTheDocument()
+    expect(screen.queryByText(/\(/)).not.toBeInTheDocument()
   })
 
-  it("shows a loading spinner (not 'unknown') while the detail is still loading", () => {
-    // Placeholder detail (from the list row) has no hypervisor type yet; showing
-    // "unknown" would be misleading — it must read as loading until the real
-    // value arrives, like RAM/VCPUs/Root Disk.
+  it("shows a loading spinner for the flavor while the detail is still loading", () => {
+    // Placeholder detail (from the list row) has no hypervisor type yet; the
+    // flavor row must read as loading until the real value arrives rather than
+    // showing a bare flavor name that will gain a suffix a moment later.
     const { container } = render(
       <SpecsTab
         specs={{
-          flavor: "m1.small",
+          flavor: null,
           ram: null,
           vcpus: null,
           root_disk_size: null,
@@ -191,8 +193,6 @@ describe("SpecsTab", () => {
         loading
       />
     )
-    expect(screen.queryByText("unknown")).not.toBeInTheDocument()
-    // The Hypervisor row shows the shared loading indicator instead.
     expect(container.querySelectorAll(".spinner").length).toBeGreaterThan(0)
   })
 })

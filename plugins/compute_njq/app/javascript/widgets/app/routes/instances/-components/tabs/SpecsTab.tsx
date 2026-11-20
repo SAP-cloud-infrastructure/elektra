@@ -15,12 +15,17 @@ export function SpecsTab({ specs, loading = false }: SpecsTabProps) {
       <tbody>
         <tr>
           <th>Flavor</th>
-          <td>{specs.flavor}</td>
-        </tr>
-        <tr>
-          <th>Hypervisor</th>
           <td>
-            {specs.hypervisor_type === null && loading ? <InlineLoading /> : (specs.hypervisor_type ?? "unknown")}
+            {specs.flavor === null && loading ? (
+              <InlineLoading />
+            ) : (
+              <>
+                {specs.flavor}
+                {/* Hypervisor family appended in parentheses rather than its own
+                    row; omitted when unknown (null) so there is no empty "()". */}
+                {specs.hypervisor_type && ` (${specs.hypervisor_type})`}
+              </>
+            )}
           </td>
         </tr>
         <tr>
