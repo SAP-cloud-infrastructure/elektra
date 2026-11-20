@@ -24,6 +24,13 @@ vi.mock("../../../hooks/useFormOptionQueries", () => ({
 vi.mock("../../../hooks/useInstanceQueries", () => ({
   useInstanceDetailQuery: () => ({ data: { flavor: { id: "f1", name: "m1.small" } }, isLoading: false }),
 }))
+// Attach Floating IP modal fetches free FIPs + external networks on open.
+vi.mock("../../../hooks/useFloatingIpOptionsQuery", () => ({
+  useFloatingIpOptionsQuery: () => ({
+    data: { available_floating_ips: [{ id: "f1", floating_ip_address: "1.1.1.1" }], external_networks: [] },
+    isLoading: false,
+  }),
+}))
 
 const action = vi.fn().mockResolvedValue(undefined)
 import InstanceActionsMenu from "./InstanceActionsMenu"
@@ -137,6 +144,41 @@ describe("InstanceActionsMenu", () => {
     // The tooltip explains why on hover.
     fireEvent.mouseEnter(toggle.closest("span")!)
     expect(screen.getByRole("tooltip")).toHaveTextContent(/unavailable while the instance is rebooting/i)
+  })
+
+  it("keeps an open modal mounted when the row starts transitioning", () => {
+    // Regression: attaching/detaching a floating IP (and snapshot) optimistically
+    // sets status.transition on the same row whose menu hosts the modal. The
+    // "transitioning" early-return must NOT unmount the open modal — doing so
+    // cancels the modal's own mutation (so it never closes on success) and then
+    // remounts a fresh, empty modal when the transition settles ("reappears
+    // ungefragt"). The modal stays mounted regardless of the row's transition.
+    const qc = new QueryClient()
+    const api = { instances: { action, terminate: vi.fn(), attachFloatingIp: vi.fn() } } as never
+    const { rerender } = render(
+      <QueryClientProvider client={qc}>
+        <InstanceActionsMenu instance={instance} scope={{}} apiClient={api} />
+      </QueryClientProvider>
+    )
+    // Open the Attach Floating IP modal.
+    fireEvent.click(screen.getByRole("button", { name: /actions/i }))
+    fireEvent.click(screen.getByText("Attach Floating IP"))
+    expect(screen.getByText("Attach Floating IP", { selector: ".modal-title" })).toBeInTheDocument()
+
+    // The optimistic patch arrives via props: the row is now transitioning.
+    rerender(
+      <QueryClientProvider client={qc}>
+        <InstanceActionsMenu
+          instance={{ ...instance, status: { ...instance.status, transition: "associating_floating_ip" } } as Instance}
+          scope={{}}
+          apiClient={api}
+        />
+      </QueryClientProvider>
+    )
+
+    // The modal must still be on screen — not unmounted by the transitioning
+    // early-return.
+    expect(screen.getByText("Attach Floating IP", { selector: ".modal-title" })).toBeInTheDocument()
   })
 
   it("renders nothing when the user has no available actions and nothing is in progress", () => {

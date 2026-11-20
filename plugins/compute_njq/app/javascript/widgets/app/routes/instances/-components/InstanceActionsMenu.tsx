@@ -106,9 +106,47 @@ export default function InstanceActionsMenu({ instance, scope, apiClient, onConf
   // the panel closed and un-reopenable until the real state is back.
   const busy = actionMutation.isPending || terminateMutation.isPending
 
+  // The active modal mount. Kept as a value (not inlined in the main return)
+  // because an open modal must survive the transitioning early-return below: the
+  // FIP/snapshot modals optimistically set this row's status.transition, which
+  // would otherwise unmount the open modal — cancelling its own mutation (so it
+  // never closes on success) and remounting a fresh, empty modal when the
+  // transition settles. The modal owns the action that caused the transition, so
+  // it stays mounted independent of the row's transition state.
+  const modals = (
+    <>
+      {activeModal === "editName" && (
+        <EditNameModal instance={instance} apiClient={apiClient} onClose={() => setActiveModal(null)} />
+      )}
+      {activeModal === "editTags" && (
+        // The modal reads the instance's live tags from the detail query itself
+        // (warm here when opened from the detail modal, fetched on open from the
+        // list row) and persists each add/remove immediately.
+        <EditTagsModal instance={instance} apiClient={apiClient} onClose={() => setActiveModal(null)} />
+      )}
+      {activeModal === "resetStatus" && (
+        <ResetStatusModal instance={instance} apiClient={apiClient} onClose={() => setActiveModal(null)} />
+      )}
+      {activeModal === "resize" && (
+        <ResizeModal instance={instance} apiClient={apiClient} onClose={() => setActiveModal(null)} />
+      )}
+      {activeModal === "snapshot" && (
+        <SnapshotModal instance={instance} apiClient={apiClient} onClose={() => setActiveModal(null)} />
+      )}
+      {activeModal === "detachFloatingIp" && (
+        <DetachFloatingIpModal instance={instance} apiClient={apiClient} onClose={() => setActiveModal(null)} />
+      )}
+      {activeModal === "attachFloatingIp" && (
+        <AttachFloatingIpModal instance={instance} apiClient={apiClient} onClose={() => setActiveModal(null)} />
+      )}
+    </>
+  )
+
   // Transitioning (and not driven by our own in-flight mutation): show the
   // toggle disabled with an explaining tooltip instead of opening the menu, so
   // the user sees actions are temporarily blocked and the row doesn't reflow.
+  // The active modal is still rendered so an in-progress modal action (which set
+  // this transition) keeps its lifecycle.
   if (transitioning && !busy) {
     const what = instance.status.transition || instance.status.state
     return (
@@ -118,6 +156,7 @@ export default function InstanceActionsMenu({ instance, scope, apiClient, onConf
             <span className="fa fa-cog" />
           </button>
         </InfoTooltip>
+        {modals}
       </div>
     )
   }
@@ -165,30 +204,7 @@ export default function InstanceActionsMenu({ instance, scope, apiClient, onConf
 
       {error && <div className="text-danger small mt-1">{error.message}</div>}
 
-      {activeModal === "editName" && (
-        <EditNameModal instance={instance} apiClient={apiClient} onClose={() => setActiveModal(null)} />
-      )}
-      {activeModal === "editTags" && (
-        // The modal reads the instance's live tags from the detail query itself
-        // (warm here when opened from the detail modal, fetched on open from the
-        // list row) and persists each add/remove immediately.
-        <EditTagsModal instance={instance} apiClient={apiClient} onClose={() => setActiveModal(null)} />
-      )}
-      {activeModal === "resetStatus" && (
-        <ResetStatusModal instance={instance} apiClient={apiClient} onClose={() => setActiveModal(null)} />
-      )}
-      {activeModal === "resize" && (
-        <ResizeModal instance={instance} apiClient={apiClient} onClose={() => setActiveModal(null)} />
-      )}
-      {activeModal === "snapshot" && (
-        <SnapshotModal instance={instance} apiClient={apiClient} onClose={() => setActiveModal(null)} />
-      )}
-      {activeModal === "detachFloatingIp" && (
-        <DetachFloatingIpModal instance={instance} apiClient={apiClient} onClose={() => setActiveModal(null)} />
-      )}
-      {activeModal === "attachFloatingIp" && (
-        <AttachFloatingIpModal instance={instance} apiClient={apiClient} onClose={() => setActiveModal(null)} />
-      )}
+      {modals}
     </div>
   )
 }
