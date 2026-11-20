@@ -199,7 +199,13 @@ export function InstanceTable({
           <SortableHeader label="Name" column="name" sort={sort} onSort={onSort} />
           <SortableHeader label="Status" column="status" sort={sort} onSort={onSort} />
           <SortableHeader label="AZ" column="az" sort={sort} onSort={onSort} tooltip="Availability Zone" />
-          <th>IPs</th>
+          {/* Not sortable (IPs have no meaningful order). The tooltip explains
+              the two address types shown in the cell. */}
+          <th>
+            <InfoTooltip content="Floating IP (external, assignable) and fixed IP (project network).">
+              <span style={{ whiteSpace: "nowrap" }}>IPs</span>
+            </InfoTooltip>
+          </th>
           <SortableHeader
             label="OS / Size"
             column="os"

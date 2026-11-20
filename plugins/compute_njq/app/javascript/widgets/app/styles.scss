@@ -75,16 +75,10 @@
     visibility: visible;
   }
 
-  // IP cell: a single primary IP plus an optional clickable "Floating" badge,
-  // with a "+N more" link opening the detail view. Kept compact so rows stay calm.
-  .instance-ips {
-    display: flex;
-    flex-direction: column;
-    gap: 0.1rem;
-  }
-
   // IP cell: one address per line. When present, the floating (externally
   // reachable) IP is the primary line; the fixed IP sits muted beneath it.
+  // Mirrors the OS / Size cell exactly (primary 1rem body colour, secondary
+  // 0.8125rem muted).
   .instance-ips {
     display: flex;
     flex-direction: column;
@@ -114,11 +108,12 @@
     white-space: nowrap;
   }
 
-  // Fixed IP as a SECONDARY line (shown beneath a floating IP): same size as the
-  // rest of the row (1rem), only muted in colour so it still reads as the
-  // secondary address without shrinking.
+  // Fixed IP as a SECONDARY line (shown beneath a floating IP): muted colour and
+  // the smaller 0.8125rem size — exactly like the flavor beneath the OS name in
+  // the OS / Size cell.
   .instance-ip-secondary {
     color: var(--bs-secondary-color, #777);
+    font-size: 0.8125rem;
     white-space: nowrap;
   }
 
@@ -133,6 +128,16 @@
 
   .instance-ip-more {
     font-size: 0.8125rem;
+  }
+
+  // Type marker preceding each address (globe = floating, sitemap = fixed). A
+  // fixed width aligns the addresses across both lines, and the muted colour
+  // keeps the marker subordinate to the address text.
+  .instance-ip-marker {
+    display: inline-block;
+    width: 1em;
+    text-align: center;
+    color: var(--bs-secondary-color, #777);
   }
 
   // Unresolved image id: muted + monospace so this least-useful value never
@@ -180,21 +185,59 @@
     font-size: 0.8125rem;
   }
 
-  // Detail modal → IP Addresses tab: keep fixed IP, arrow and floating IP on a
-  // single line (mirrors the legacy compute `.details-ips` layout, whose CSS
-  // lives in the compute plugin and is not available here).
+  // Detail modal → IP Addresses tab: keep the fixed IP, arrow and floating IP on
+  // a single line. Each address is prefixed by a type chip (icon + "Fixed" /
+  // "Floating") that mirrors the overview list's IP markers, and carries a
+  // copy-to-clipboard button revealed on hover.
   .details-ips {
     display: flex;
     align-items: baseline;
+    padding: 0.15rem 0;
 
     .ip-container {
       display: flex;
       align-items: baseline;
+      gap: 0.4rem;
     }
 
     .delimiter {
       margin: 0 10px;
+      color: var(--bs-secondary-color, #777);
     }
+  }
+
+  // Type chip ("Fixed" / "Floating") with its leading icon, kept muted and on a
+  // fixed-width icon so the addresses line up.
+  .details-ip-type {
+    color: var(--bs-secondary-color, #777);
+    white-space: nowrap;
+  }
+
+  .details-ip-icon {
+    color: var(--bs-secondary-color, #777);
+  }
+
+  .details-ip-value {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.6rem;
+  }
+
+  // MAC address shown after the fixed IP: muted, with a small "MAC" label.
+  .details-ip-mac {
+    font-size: 0.8125rem;
+  }
+
+  // Copy button on detail IP/MAC values: hidden until the row is hovered or the
+  // button is focused, so the layout stays calm (mirrors the list's id copy).
+  .copyable-value-copy {
+    visibility: hidden;
+    text-decoration: none;
+  }
+
+  .details-ips:hover .copyable-value-copy,
+  .copyable-value-copy:focus-visible {
+    visibility: visible;
   }
 
   // SearchableSelect dropdown: keep the search box fixed and let only the option

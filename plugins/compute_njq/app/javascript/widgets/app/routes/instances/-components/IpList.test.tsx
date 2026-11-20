@@ -7,7 +7,15 @@ import { IpList } from "./IpList"
 // Stub the router Link with a plain anchor so the cell can be unit tested
 // without a RouterProvider.
 vi.mock("@tanstack/react-router", () => ({
-  Link: ({ children, className, "aria-label": ariaLabel }: { children: ReactNode; className?: string; "aria-label"?: string }) => (
+  Link: ({
+    children,
+    className,
+    "aria-label": ariaLabel,
+  }: {
+    children: ReactNode
+    className?: string
+    "aria-label"?: string
+  }) => (
     <a href="#" className={className} aria-label={ariaLabel}>
       {children}
     </a>
@@ -72,5 +80,27 @@ describe("IpList", () => {
   it("shows no '+N more' when there is only one IP", () => {
     render(<IpList ips={[{ addr: "10.0.0.1", type: "fixed" }]} instanceId="s1" />)
     expect(screen.queryByText(/more/)).not.toBeInTheDocument()
+  })
+
+  it("marks the floating IP with a globe and the fixed IP with a sitemap icon", () => {
+    const { container } = render(
+      <IpList
+        ips={[
+          { addr: "10.0.0.1", type: "fixed" },
+          { addr: "1.2.3.4", type: "floating" },
+        ]}
+        instanceId="s1"
+      />
+    )
+    // Each line carries a type marker so the address type is unambiguous even
+    // when only one line is shown.
+    expect(container.querySelector("i.fa.fa-globe.instance-ip-marker")).toBeInTheDocument()
+    expect(container.querySelector("i.fa.fa-sitemap.instance-ip-marker")).toBeInTheDocument()
+  })
+
+  it("marks a fixed-only server's primary address with the sitemap icon", () => {
+    const { container } = render(<IpList ips={[{ addr: "10.0.0.1", type: "fixed" }]} instanceId="s1" />)
+    expect(container.querySelector("i.fa.fa-sitemap.instance-ip-marker")).toBeInTheDocument()
+    expect(container.querySelector("i.fa.fa-globe")).not.toBeInTheDocument()
   })
 })

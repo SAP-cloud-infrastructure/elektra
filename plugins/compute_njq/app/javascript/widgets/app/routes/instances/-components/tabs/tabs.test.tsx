@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest"
-import { render, screen } from "@testing-library/react"
+import { describe, it, expect, vi, beforeEach } from "vitest"
+import { render, screen, fireEvent } from "@testing-library/react"
 import "@testing-library/jest-dom/vitest"
 import { SecurityGroupsTab } from "./SecurityGroupsTab"
 import { VolumesTab } from "./VolumesTab"
@@ -7,6 +7,7 @@ import { KeyPairsTab } from "./KeyPairsTab"
 import { SpecsTab } from "./SpecsTab"
 import { MetadataTab } from "./MetadataTab"
 import { InformationTab } from "./InformationTab"
+import { IpAddressesTab } from "./IpAddressesTab"
 import type { InstanceDetail, InstanceMetrics } from "../../../../types/instance"
 import type { UseQueryResult } from "@tanstack/react-query"
 
@@ -176,5 +177,51 @@ describe("MetadataTab", () => {
     expect(screen.getByText("-")).toBeInTheDocument()
     expect(screen.getByText("Owner team")).toBeInTheDocument()
     expect(screen.getByText("team-a")).toBeInTheDocument()
+  })
+})
+
+describe("IpAddressesTab", () => {
+  beforeEach(() => {
+    Object.assign(navigator, { clipboard: { writeText: vi.fn().mockResolvedValue(undefined) } })
+  })
+
+  it("labels the fixed IP, its MAC and the paired floating IP", () => {
+    render(
+      <IpAddressesTab
+        networks={[
+          {
+            network_name: "private",
+            ips: [{ fixed: { addr: "10.0.0.1", mac: "fa:16:3e:aa:bb:cc" }, floating: { addr: "1.2.3.4" } }],
+          },
+        ]}
+      />
+    )
+    expect(screen.getByText("private")).toBeInTheDocument()
+    expect(screen.getByText("Fixed")).toBeInTheDocument()
+    expect(screen.getByText("Floating")).toBeInTheDocument()
+    expect(screen.getByText("10.0.0.1")).toBeInTheDocument()
+    expect(screen.getByText("1.2.3.4")).toBeInTheDocument()
+    expect(screen.getByText("fa:16:3e:aa:bb:cc")).toBeInTheDocument()
+  })
+
+  it("omits the floating line and MAC when absent", () => {
+    render(
+      <IpAddressesTab
+        networks={[{ network_name: "private", ips: [{ fixed: { addr: "10.0.0.2", mac: null }, floating: null }] }]}
+      />
+    )
+    expect(screen.getByText("Fixed")).toBeInTheDocument()
+    expect(screen.queryByText("Floating")).not.toBeInTheDocument()
+    expect(screen.queryByText(/MAC/)).not.toBeInTheDocument()
+  })
+
+  it("copies an IP address to the clipboard", () => {
+    render(
+      <IpAddressesTab
+        networks={[{ network_name: "private", ips: [{ fixed: { addr: "10.0.0.3", mac: null }, floating: null }] }]}
+      />
+    )
+    fireEvent.click(screen.getByRole("button", { name: "Copy IP address" }))
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith("10.0.0.3")
   })
 })
