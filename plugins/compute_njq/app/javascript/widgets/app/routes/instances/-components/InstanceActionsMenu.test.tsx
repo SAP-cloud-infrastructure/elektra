@@ -181,6 +181,55 @@ describe("InstanceActionsMenu", () => {
     expect(screen.getByText("Attach Floating IP", { selector: ".modal-title" })).toBeInTheDocument()
   })
 
+  it("closes the attach modal on success even after the row starts transitioning", async () => {
+    // Stronger regression for the reported bug: a successful attach must close
+    // the modal. The optimistic mutation sets status.transition on this very
+    // row, which re-renders the menu into its transitioning shape. If that
+    // re-render unmounts/remounts the modal, the modal's own useMutation (whose
+    // per-call onSuccess calls onClose) is destroyed before it can resolve — so
+    // the modal never closes. The modal must survive the transition at a stable
+    // tree position so onSuccess → onClose still fires.
+    const qc = new QueryClient()
+    let resolveAttach!: () => void
+    const attachFloatingIp = vi.fn(() => new Promise<void>((res) => (resolveAttach = () => res())))
+    const api = { instances: { action, terminate: vi.fn(), attachFloatingIp } } as never
+    // One fixed IP so the modal auto-selects the target and the Attach button
+    // is enabled once a floating IP is chosen.
+    const withFixed = { ...instance, ips: [{ addr: "10.0.0.5", type: "fixed" }] } as Instance
+
+    const { rerender } = render(
+      <QueryClientProvider client={qc}>
+        <InstanceActionsMenu instance={withFixed} scope={{}} apiClient={api} />
+      </QueryClientProvider>
+    )
+
+    // Open the modal and pick an existing floating IP (mocked option "f1").
+    fireEvent.click(screen.getByRole("button", { name: /actions/i }))
+    fireEvent.click(screen.getByText("Attach Floating IP"))
+    fireEvent.change(screen.getByLabelText(/floating ip/i), { target: { value: "f1" } })
+    // Submit — fires the mutation (onMutate patches the instances cache).
+    fireEvent.click(screen.getByRole("button", { name: /^attach$/i }))
+    await waitFor(() => expect(attachFloatingIp).toHaveBeenCalled())
+
+    // Simulate the optimistic transition arriving via props (the real cache
+    // patch would re-render the list with this status).
+    rerender(
+      <QueryClientProvider client={qc}>
+        <InstanceActionsMenu
+          instance={{ ...withFixed, status: { ...withFixed.status, transition: "associating_floating_ip" } } as Instance}
+          scope={{}}
+          apiClient={api}
+        />
+      </QueryClientProvider>
+    )
+
+    // The mutation resolves — onSuccess must run onClose, unmounting the modal.
+    resolveAttach()
+    await waitFor(() =>
+      expect(screen.queryByText("Attach Floating IP", { selector: ".modal-title" })).not.toBeInTheDocument()
+    )
+  })
+
   it("renders nothing when the user has no available actions and nothing is in progress", () => {
     // No policy permission for any action → the menu is hidden entirely.
     policyState.allowed = false

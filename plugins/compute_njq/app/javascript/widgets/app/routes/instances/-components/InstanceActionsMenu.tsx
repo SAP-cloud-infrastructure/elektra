@@ -145,64 +145,70 @@ export default function InstanceActionsMenu({ instance, scope, apiClient, onConf
   // Transitioning (and not driven by our own in-flight mutation): show the
   // toggle disabled with an explaining tooltip instead of opening the menu, so
   // the user sees actions are temporarily blocked and the row doesn't reflow.
-  // The active modal is still rendered so an in-progress modal action (which set
-  // this transition) keeps its lifecycle.
-  if (transitioning && !busy) {
-    const what = instance.status.transition || instance.status.state
-    return (
-      <div className="btn-group">
+  // Both states render inside ONE <div className="btn-group"> with {modals} at a
+  // fixed final position: an open modal (FIP/snapshot) optimistically sets this
+  // row's status.transition, and if the transitioning state lived in a separate
+  // return branch React would reconcile {modals} at a different child index and
+  // unmount it — cancelling the modal's own mutation so it never closes on
+  // success. Keeping one return keeps the modal mounted across the transition.
+  const what = instance.status.transition || instance.status.state
+
+  return (
+    <div className="btn-group" ref={ref}>
+      {transitioning && !busy ? (
         <InfoTooltip content={`Actions are unavailable while the instance is ${what}.`}>
           <button type="button" className="btn btn-secondary btn-sm dropdown-toggle" aria-label="Actions" disabled>
             <span className="fa fa-cog" />
           </button>
         </InfoTooltip>
-        {modals}
-      </div>
-    )
-  }
+      ) : (
+        <>
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm dropdown-toggle"
+            aria-label="Actions"
+            aria-expanded={open}
+            disabled={busy}
+            onClick={() => setOpen((o) => !o)}
+          >
+            {busy ? (
+              <span className="spinner" role="status" aria-label="in progress" />
+            ) : (
+              <span className="fa fa-cog" />
+            )}
+          </button>
+          {open && (
+            // React-controlled, so Bootstrap's Popper never runs and its
+            // [data-bs-popper] position rules don't apply. Position the panel
+            // ourselves: drop below the toggle and align its right edge to the
+            // button's right edge (end alignment) so it opens leftwards and never
+            // overflows the table's right edge. The toggle stays visible above it.
+            <ul
+              className="dropdown-menu dropdown-menu-end show"
+              role="menu"
+              style={{ position: "absolute", top: "100%", right: 0, left: "auto", marginTop: "0.125rem" }}
+            >
+              {actions.map((a, i) => (
+                <Fragment key={a.key}>
+                  {/* Divider between legacy groups — never before the first item. */}
+                  {i > 0 && actions[i - 1].group !== a.group && <li className="dropdown-divider" role="separator" />}
+                  <li>
+                    <button
+                      type="button"
+                      className={`dropdown-item${a.dangerLabel ? " text-danger" : ""}`}
+                      onClick={() => onClick(a)}
+                    >
+                      {a.label}
+                    </button>
+                  </li>
+                </Fragment>
+              ))}
+            </ul>
+          )}
 
-  return (
-    <div className="btn-group" ref={ref}>
-      <button
-        type="button"
-        className="btn btn-secondary btn-sm dropdown-toggle"
-        aria-label="Actions"
-        aria-expanded={open}
-        disabled={busy}
-        onClick={() => setOpen((o) => !o)}
-      >
-        {busy ? <span className="spinner" role="status" aria-label="in progress" /> : <span className="fa fa-cog" />}
-      </button>
-      {open && (
-        // React-controlled, so Bootstrap's Popper never runs and its
-        // [data-bs-popper] position rules don't apply. Position the panel
-        // ourselves: drop below the toggle and align its right edge to the
-        // button's right edge (end alignment) so it opens leftwards and never
-        // overflows the table's right edge. The toggle stays visible above it.
-        <ul
-          className="dropdown-menu dropdown-menu-end show"
-          role="menu"
-          style={{ position: "absolute", top: "100%", right: 0, left: "auto", marginTop: "0.125rem" }}
-        >
-          {actions.map((a, i) => (
-            <Fragment key={a.key}>
-              {/* Divider between legacy groups — never before the first item. */}
-              {i > 0 && actions[i - 1].group !== a.group && <li className="dropdown-divider" role="separator" />}
-              <li>
-                <button
-                  type="button"
-                  className={`dropdown-item${a.dangerLabel ? " text-danger" : ""}`}
-                  onClick={() => onClick(a)}
-                >
-                  {a.label}
-                </button>
-              </li>
-            </Fragment>
-          ))}
-        </ul>
+          {error && <div className="text-danger small mt-1">{error.message}</div>}
+        </>
       )}
-
-      {error && <div className="text-danger small mt-1">{error.message}</div>}
 
       {modals}
     </div>
