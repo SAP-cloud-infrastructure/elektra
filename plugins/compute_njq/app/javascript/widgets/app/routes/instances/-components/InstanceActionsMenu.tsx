@@ -14,6 +14,8 @@ import { ResizeModal } from "./ResizeModal"
 import { SnapshotModal } from "./SnapshotModal"
 import { DetachFloatingIpModal } from "./DetachFloatingIpModal"
 import { AttachFloatingIpModal } from "./AttachFloatingIpModal"
+import { AttachInterfaceModal } from "./AttachInterfaceModal"
+import { DetachInterfaceModal } from "./DetachInterfaceModal"
 
 interface Props {
   instance: Instance
@@ -138,6 +140,12 @@ export default function InstanceActionsMenu({ instance, scope, apiClient, onConf
       )}
       {activeModal === "attachFloatingIp" && (
         <AttachFloatingIpModal instance={instance} apiClient={apiClient} onClose={() => setActiveModal(null)} />
+      )}
+      {activeModal === "attachInterface" && (
+        <AttachInterfaceModal instance={instance} apiClient={apiClient} onClose={() => setActiveModal(null)} />
+      )}
+      {activeModal === "detachInterface" && (
+        <DetachInterfaceModal instance={instance} apiClient={apiClient} onClose={() => setActiveModal(null)} />
       )}
     </>
   )

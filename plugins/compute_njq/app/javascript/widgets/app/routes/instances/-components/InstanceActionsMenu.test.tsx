@@ -31,6 +31,14 @@ vi.mock("../../../hooks/useFloatingIpOptionsQuery", () => ({
     isLoading: false,
   }),
 }))
+// Attach Interface modal fetches available networks, subnets, and security groups on open.
+vi.mock("../../../hooks/useInterfaceOptionsQuery", () => ({
+  useInterfaceOptionsQuery: () => ({ data: { networks: [], subnets: [], security_groups: [] }, isLoading: false }),
+}))
+// Detach Interface modal fetches already-attached interfaces on open.
+vi.mock("../../../hooks/useAttachedInterfacesQuery", () => ({
+  useAttachedInterfacesQuery: () => ({ data: { attached_interfaces: [] }, isLoading: false }),
+}))
 
 const action = vi.fn().mockResolvedValue(undefined)
 import InstanceActionsMenu from "./InstanceActionsMenu"
@@ -240,10 +248,10 @@ describe("InstanceActionsMenu", () => {
 
   it("separates action groups with dividers like the legacy menu", () => {
     // Running + unlocked shows four groups in order:
-    //   [Edit Name, Edit Tags] | [Stop, Reboot, Pause, Suspend, Hard Reset, Resize, Create Snapshot, Attach Floating IP]
+    //   [Edit Name, Edit Tags] | [Stop, Reboot, Pause, Suspend, Hard Reset, Resize, Create Snapshot, Attach Floating IP, Attach Interface]
     //   | [Lock] | [Reset Status, Terminate]
     // so three dividers sit between them — never before the first group.
-    // (Detach Floating IP only appears when the instance has a floating IP.)
+    // (Detach Floating IP and Detach Interface only appear when the instance has a floating IP or fixed IP.)
     renderMenu()
     fireEvent.click(screen.getByRole("button", { name: /actions/i }))
 
@@ -272,6 +280,7 @@ describe("InstanceActionsMenu", () => {
       "Resize",
       "Create Snapshot",
       "Attach Floating IP",
+      "Attach Interface",
       "---",
       "Lock",
       "---",
@@ -396,5 +405,19 @@ describe("InstanceActionsMenu", () => {
     fireEvent.click(screen.getByText("Start"))
     await waitFor(() => expect(action).toHaveBeenCalledWith("s1", "start"))
     expect(onConfirmRequest).not.toHaveBeenCalled()
+  })
+
+  it("opens the Attach Interface modal from the menu", () => {
+    renderMenu()
+    fireEvent.click(screen.getByRole("button", { name: /actions/i }))
+    fireEvent.click(screen.getByText("Attach Interface"))
+    expect(screen.getByText("Attach Interface", { selector: ".modal-title" })).toBeInTheDocument()
+  })
+
+  it("opens the Detach Interface modal when the instance has a fixed IP", () => {
+    renderMenu({ ips: [{ addr: "10.0.0.9", type: "fixed" }] })
+    fireEvent.click(screen.getByRole("button", { name: /actions/i }))
+    fireEvent.click(screen.getByText("Detach Interface"))
+    expect(screen.getByText("Detach Interface", { selector: ".modal-title" })).toBeInTheDocument()
   })
 })
