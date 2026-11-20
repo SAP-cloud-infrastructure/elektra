@@ -20,6 +20,7 @@ import {
 } from "./types/formOptions"
 import { CreateInstancePayload } from "./types/createInstance"
 import { ImageStatus, ImageStatusResponseSchema, SnapshotResponse, SnapshotResponseSchema } from "./types/image"
+import { FloatingIpOptions, FloatingIpOptionsSchema } from "./types/floatingIp"
 
 // The BFF can answer with HTTP 200 but an error-shaped body when an upstream
 // proxy (e.g. oauth2-proxy) rewrites the status. Detect the { error, code }
@@ -160,6 +161,33 @@ export function createComputeApi(basepath: string) {
         checkForApiError(res.data)
       }),
 
+    // Attach a floating IP: either an existing free FIP (floating_ip_id) or a new
+    // one allocated on an external network (floating_network_id). The BFF answers
+    // { ok: true }; nothing to parse, just surface failures.
+    attachFloatingIp: (
+      id: string,
+      body: { floating_ip_id?: string; floating_network_id?: string; fixed_ip_address: string }
+    ): Promise<void> =>
+      apiClient
+        .post<{ data: { ok: true } }>(`instances/${id}/attach_floating_ip`, body)
+        .then((res) => {
+          checkForApiError(res.data)
+        })
+        .catch((err) => {
+          throw detailedError(err)
+        }),
+
+    // Detach a floating IP by address; the BFF resolves the FIP id server-side.
+    detachFloatingIp: (id: string, body: { floating_ip_address: string }): Promise<void> =>
+      apiClient
+        .post<{ data: { ok: true } }>(`instances/${id}/detach_floating_ip`, body)
+        .then((res) => {
+          checkForApiError(res.data)
+        })
+        .catch((err) => {
+          throw detailedError(err)
+        }),
+
     // Snapshot: create a Glance image of the server. createImage only acknowledges;
     // the BFF returns the new image id so the client can poll its status. image_id
     // may be null when neither the Location header nor the name fallback resolved it.
@@ -225,6 +253,11 @@ export function createComputeApi(basepath: string) {
       apiClient.get<{ data: unknown }>("form_options/volume_types").then((res) => {
         checkForApiError(res.data)
         return parseOrThrow(VolumeTypesResponseSchema, res.data, "volume_types").volume_types
+      }),
+    getFloatingIpOptions: (): Promise<FloatingIpOptions> =>
+      apiClient.get<{ data: unknown }>("form_options/floating_ip_options").then((res) => {
+        checkForApiError(res.data)
+        return parseOrThrow(FloatingIpOptionsSchema, res.data, "floating_ip_options")
       }),
   }
 
