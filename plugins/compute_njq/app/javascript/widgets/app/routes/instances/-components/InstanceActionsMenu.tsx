@@ -12,6 +12,7 @@ import { EditTagsModal } from "./EditTagsModal"
 import { ResetStatusModal } from "./ResetStatusModal"
 import { ResizeModal } from "./ResizeModal"
 import { SnapshotModal } from "./SnapshotModal"
+import { DetachFloatingIpModal } from "./DetachFloatingIpModal"
 
 interface Props {
   instance: Instance
@@ -180,6 +181,9 @@ export default function InstanceActionsMenu({ instance, scope, apiClient, onConf
       )}
       {activeModal === "snapshot" && (
         <SnapshotModal instance={instance} apiClient={apiClient} onClose={() => setActiveModal(null)} />
+      )}
+      {activeModal === "detachFloatingIp" && (
+        <DetachFloatingIpModal instance={instance} apiClient={apiClient} onClose={() => setActiveModal(null)} />
       )}
     </div>
   )
