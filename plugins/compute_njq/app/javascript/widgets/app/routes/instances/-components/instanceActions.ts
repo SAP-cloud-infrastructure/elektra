@@ -27,9 +27,11 @@ export interface InstanceAction {
   policy: string
   // Legacy _item_actions.html.haml splits the dropdown into divider-separated
   // groups. visibleActions keeps that order and inserts a divider between groups
-  // (never before the first). Edit (name/tags), power lifecycle, lock/unlock,
-  // then terminate (with reset_status alongside it).
-  group: "edit" | "power" | "lock" | "terminate"
+  // (never before the first). Edit (name/tags), power lifecycle, the floating-IP
+  // operations, the interface operations, lock/unlock, then terminate (with
+  // reset_status alongside it). Floating-IP and interface each get their own
+  // section so they read as distinct network operations, not power lifecycle.
+  group: "edit" | "power" | "floating_ip" | "interface" | "lock" | "terminate"
   isAvailable: (i: Instance) => boolean
   // Confirmation shown before the action runs: a short title (the action as a
   // question), a consequence statement as the body, and the verb for the OK
@@ -47,7 +49,16 @@ export interface InstanceAction {
   // Form-based actions open a modal instead of firing immediately. The menu maps
   // this discriminator to the matching modal component (Edit Name/Tags, Reset
   // Status); actions without it run (optionally after a confirm) directly.
-  modal?: "editName" | "editTags" | "resetStatus" | "resize" | "snapshot" | "attachFloatingIp" | "detachFloatingIp" | "attachInterface" | "detachInterface"
+  modal?:
+    | "editName"
+    | "editTags"
+    | "resetStatus"
+    | "resize"
+    | "snapshot"
+    | "attachFloatingIp"
+    | "detachFloatingIp"
+    | "attachInterface"
+    | "detachInterface"
   // Actions that only make sense from the list row, not the detail modal, which
   // shows only VM lifecycle operations. Resize, Create Snapshot, the edit
   // (name/tags) actions and the floating-IP actions are configuration/form
@@ -178,7 +189,7 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     key: "attach_floating_ip",
     label: "Attach Floating IP",
     policy: "compute_njq:instance_attach_floating_ip",
-    group: "power",
+    group: "floating_ip",
     isAvailable: (i) => ["active", "stopped"].includes(i.status.state),
     modal: "attachFloatingIp",
     listOnly: true,
@@ -187,7 +198,7 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     key: "detach_floating_ip",
     label: "Detach Floating IP",
     policy: "compute_njq:instance_detach_floating_ip",
-    group: "power",
+    group: "floating_ip",
     isAvailable: hasFloatingIp,
     modal: "detachFloatingIp",
     listOnly: true,
@@ -196,7 +207,7 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     key: "attach_interface",
     label: "Attach Interface",
     policy: "compute_njq:instance_attach_interface",
-    group: "power",
+    group: "interface",
     isAvailable: (i) => ["active", "stopped"].includes(i.status.state),
     modal: "attachInterface",
     listOnly: true,
@@ -205,7 +216,7 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     key: "detach_interface",
     label: "Detach Interface",
     policy: "compute_njq:instance_detach_interface",
-    group: "power",
+    group: "interface",
     isAvailable: (i) => ["active", "stopped"].includes(i.status.state) && hasFixedIp(i),
     modal: "detachInterface",
     listOnly: true,
@@ -279,7 +290,8 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     dangerLabel: true,
     confirm: {
       title: "Terminate instance?",
-      message: "This permanently deletes the instance. Attached non-persistent disks are destroyed. This cannot be undone.",
+      message:
+        "This permanently deletes the instance. Attached non-persistent disks are destroyed. This cannot be undone.",
       ok: "Terminate instance",
     },
   },

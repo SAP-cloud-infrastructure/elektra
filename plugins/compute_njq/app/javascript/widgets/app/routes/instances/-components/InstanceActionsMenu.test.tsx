@@ -224,7 +224,9 @@ describe("InstanceActionsMenu", () => {
     rerender(
       <QueryClientProvider client={qc}>
         <InstanceActionsMenu
-          instance={{ ...withFixed, status: { ...withFixed.status, transition: "associating_floating_ip" } } as Instance}
+          instance={
+            { ...withFixed, status: { ...withFixed.status, transition: "associating_floating_ip" } } as Instance
+          }
           scope={{}}
           apiClient={api}
         />
@@ -247,10 +249,11 @@ describe("InstanceActionsMenu", () => {
   })
 
   it("separates action groups with dividers like the legacy menu", () => {
-    // Running + unlocked shows four groups in order:
-    //   [Edit Name, Edit Tags] | [Stop, Reboot, Pause, Suspend, Hard Reset, Resize, Create Snapshot, Attach Floating IP, Attach Interface]
-    //   | [Lock] | [Reset Status, Terminate]
-    // so three dividers sit between them — never before the first group.
+    // Running + unlocked shows six groups in order:
+    //   [Edit Name, Edit Tags] | [Stop, Reboot, Pause, Suspend, Hard Reset, Resize, Create Snapshot]
+    //   | [Attach Floating IP] | [Attach Interface] | [Lock] | [Reset Status, Terminate]
+    // so five dividers sit between them — never before the first group. The
+    // floating-IP and interface operations each get their own section.
     // (Detach Floating IP and Detach Interface only appear when the instance has a floating IP or fixed IP.)
     renderMenu()
     fireEvent.click(screen.getByRole("button", { name: /actions/i }))
@@ -262,7 +265,7 @@ describe("InstanceActionsMenu", () => {
     expect(items[0].classList.contains("dropdown-divider")).toBe(false)
 
     const dividers = menu.querySelectorAll(".dropdown-divider")
-    expect(dividers).toHaveLength(3)
+    expect(dividers).toHaveLength(5)
 
     // The divider immediately precedes the first item of the next group.
     const labels = items.map((li) =>
@@ -279,7 +282,9 @@ describe("InstanceActionsMenu", () => {
       "Hard Reset",
       "Resize",
       "Create Snapshot",
+      "---",
       "Attach Floating IP",
+      "---",
       "Attach Interface",
       "---",
       "Lock",
@@ -368,8 +373,7 @@ describe("InstanceActionsMenu", () => {
     renderMenu()
     fireEvent.click(screen.getByRole("button", { name: /actions/i }))
 
-    const danger = (label: string) =>
-      screen.getByText(label).classList.contains("text-danger")
+    const danger = (label: string) => screen.getByText(label).classList.contains("text-danger")
     expect(danger("Terminate")).toBe(true)
     expect(danger("Stop")).toBe(false)
     expect(danger("Hard Reset")).toBe(false)
