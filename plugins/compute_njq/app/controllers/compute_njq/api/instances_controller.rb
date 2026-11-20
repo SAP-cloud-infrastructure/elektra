@@ -121,6 +121,43 @@ module ComputeNjq
         end
       end
 
+      # POST /:scope/compute-njq/api/instances/:id/attach_interface
+      # Attach a new port: body { network_id, subnet_id?, ip_address?, security_groups? }.
+      def attach_interface
+        return unless authorize!("compute_njq:instance_attach_interface")
+
+        handle_api_call do
+          compute_service.attach_interface(
+            params.require(:id),
+            network_id: attach_interface_params[:network_id],
+            subnet_id: attach_interface_params[:subnet_id],
+            ip_address: attach_interface_params[:ip_address],
+            security_groups: Array(attach_interface_params[:security_groups]),
+          )
+        end
+      end
+
+      # POST /:scope/compute-njq/api/instances/:id/detach_interface
+      # Detach a port identified by its fixed IP: body { fixed_ip_address }.
+      def detach_interface
+        return unless authorize!("compute_njq:instance_detach_interface")
+
+        handle_api_call do
+          compute_service.detach_interface(
+            params.require(:id),
+            fixed_ip_address: detach_interface_params[:fixed_ip_address],
+          )
+        end
+      end
+
+      # GET /:scope/compute-njq/api/instances/:id/attached_interfaces
+      # List the server's live, detachable interfaces.
+      def attached_interfaces
+        handle_api_call do
+          { attached_interfaces: compute_service.form_attached_interfaces(params.require(:id)) }
+        end
+      end
+
       # DELETE /:scope/compute-njq/api/instances/:id  (terminate)
       def destroy
         return unless authorize!("compute_njq:instance_delete")
@@ -190,6 +227,16 @@ module ComputeNjq
       # Detach FIP: the floating IP address to disassociate.
       def detach_floating_ip_params
         scoped_params.permit(:floating_ip_address)
+      end
+
+      # Attach interface: network is required; subnet, ip, security_groups are optional.
+      def attach_interface_params
+        scoped_params.permit(:network_id, :subnet_id, :ip_address, security_groups: [])
+      end
+
+      # Detach interface: the fixed IP address identifying the port to remove.
+      def detach_interface_params
+        scoped_params.permit(:fixed_ip_address)
       end
 
       # Edit Tags: the full replacement tag list. Defaults to [] so an omitted

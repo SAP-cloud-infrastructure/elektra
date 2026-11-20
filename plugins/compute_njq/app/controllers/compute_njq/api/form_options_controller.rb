@@ -45,6 +45,17 @@ module ComputeNjq
         end
       end
 
+      # Attach-interface modal data: networks, subnets, and security groups.
+      def interface_options
+        handle_api_call do
+          {
+            networks: compute_service.form_networks,
+            subnets: compute_service.form_subnets,
+            security_groups: compute_service.form_security_groups,
+          }
+        end
+      end
+
       def images
         handle_api_call { compute_service.form_images }
       end

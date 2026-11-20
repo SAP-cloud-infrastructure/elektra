@@ -23,6 +23,12 @@ ComputeNjq::Engine.routes.draw do
         post :attach_floating_ip
         # Floating IP: disassociate, body { floating_ip_address }.
         post :detach_floating_ip
+        # Interface: attach a new port, body { network_id, subnet_id?, ip_address?, security_groups? }.
+        post :attach_interface
+        # Interface: detach by fixed ip, body { fixed_ip_address }.
+        post :detach_interface
+        # Interface: list the server's live, detachable interfaces.
+        get :attached_interfaces
       end
     end
     get "form_options/flavors", to: "form_options#flavors"
@@ -34,6 +40,7 @@ ComputeNjq::Engine.routes.draw do
     get "form_options/availability_zones", to: "form_options#availability_zones"
     get "form_options/volume_types", to: "form_options#volume_types"
     get "form_options/floating_ip_options", to: "form_options#floating_ip_options"
+    get "form_options/interface_options", to: "form_options#interface_options"
     # Image status reads (snapshot polling), kept generic/reusable.
     resources :images, only: %i[show]
   end

@@ -12,5 +12,7 @@
   "compute_njq:instance_snapshot": "role:image_admin and (role:admin or role:objectstore_admin)",
   "compute_njq:instance_attach_floating_ip": "rule:instance_actions",
   "compute_njq:instance_detach_floating_ip": "rule:instance_actions",
+  "compute_njq:instance_attach_interface": "rule:instance_actions",
+  "compute_njq:instance_detach_interface": "rule:instance_actions",
   "compute_njq:image_get": "@"
 }
