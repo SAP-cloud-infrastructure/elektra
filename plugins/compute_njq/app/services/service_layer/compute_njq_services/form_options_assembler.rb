@@ -205,6 +205,19 @@ module ServiceLayer
           }
         end
       end
+
+      # Attached interfaces for a server, shaped for the detach modal. One entry per
+      # fixed IP, with port_id and mac_addr. Entries with a blank ip_address are dropped.
+      def form_attached_interfaces(server_id)
+        nova_server_os_interfaces(server_id).flat_map do |iface|
+          Array(iface["fixed_ips"]).filter_map do |f|
+            addr = f["ip_address"]
+            next if addr.to_s == ""
+
+            { port_id: iface["port_id"], fixed_ip_address: addr, mac_addr: iface["mac_addr"] }
+          end
+        end
+      end
     end
   end
 end

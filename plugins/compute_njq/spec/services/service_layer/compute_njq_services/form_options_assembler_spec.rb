@@ -240,4 +240,23 @@ RSpec.describe ServiceLayer::ComputeNjqServices::FormOptionsAssembler do
       ])
     end
   end
+
+  describe "#form_attached_interfaces" do
+    it "returns one entry per fixed ip with port_id and mac" do
+      allow(test_class).to receive(:nova_server_os_interfaces).with("s1").and_return(
+        [{ "port_id" => "p1", "mac_addr" => "aa:bb", "fixed_ips" => [{ "ip_address" => "10.0.0.9" }] }],
+      )
+      expect(test_class.form_attached_interfaces("s1")).to eq(
+        [{ port_id: "p1", fixed_ip_address: "10.0.0.9", mac_addr: "aa:bb" }],
+      )
+    end
+
+    it "drops fixed_ips with a blank ip_address" do
+      allow(test_class).to receive(:nova_server_os_interfaces).and_return(
+        [{ "port_id" => "p1", "mac_addr" => "aa:bb", "fixed_ips" => [{ "ip_address" => "" }, { "ip_address" => "10.0.0.9" }] }],
+      )
+      result = test_class.form_attached_interfaces("s1")
+      expect(result.map { |r| r[:fixed_ip_address] }).to eq(["10.0.0.9"])
+    end
+  end
 end
