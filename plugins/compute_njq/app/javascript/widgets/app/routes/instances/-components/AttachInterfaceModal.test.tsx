@@ -33,39 +33,59 @@ function renderModal() {
   )
 }
 
+// The pickers are button-triggered dropdowns (SearchableSelect / MultiSelect),
+// not native <select>s: open the trigger, then click the option by its label.
+function pick(triggerText: RegExp, optionText: string | RegExp) {
+  fireEvent.click(screen.getByRole("button", { name: triggerText }))
+  fireEvent.click(screen.getByRole("option", { name: optionText }))
+}
+
 describe("AttachInterfaceModal", () => {
   beforeEach(() => mutate.mockClear())
 
   it("disables Attach until a network is chosen", () => {
     renderModal()
     expect(screen.getByRole("button", { name: /^attach$/i })).toBeDisabled()
-    fireEvent.change(screen.getByLabelText(/network/i), { target: { value: "n1" } })
+    pick(/select a network/i, "net-a")
     expect(screen.getByRole("button", { name: /^attach$/i })).toBeEnabled()
   })
 
   it("only lists subnets of the chosen network", () => {
     renderModal()
-    fireEvent.change(screen.getByLabelText(/network/i), { target: { value: "n1" } })
-    const subnetSelect = screen.getByLabelText(/subnet/i)
-    const values = Array.from(subnetSelect.querySelectorAll("option")).map((o) => (o as HTMLOptionElement).value)
-    expect(values).toContain("sub1")
-    expect(values).not.toContain("sub2")
+    pick(/select a network/i, "net-a")
+    // Open the subnet picker and read its option labels.
+    fireEvent.click(screen.getByRole("button", { name: /choose a subnet/i }))
+    const options = screen.getAllByRole("option").map((o) => o.textContent)
+    expect(options.some((t) => t?.includes("sub-a"))).toBe(true)
+    expect(options.some((t) => t?.includes("other"))).toBe(false)
   })
 
   it("keeps the fixed-ip input disabled until a subnet is chosen", () => {
     renderModal()
-    fireEvent.change(screen.getByLabelText(/network/i), { target: { value: "n1" } })
+    pick(/select a network/i, "net-a")
     expect(screen.getByLabelText(/fixed ip/i)).toBeDisabled()
-    fireEvent.change(screen.getByLabelText(/subnet/i), { target: { value: "sub1" } })
+    pick(/choose a subnet/i, /sub-a/)
     expect(screen.getByLabelText(/fixed ip/i)).toBeEnabled()
+  })
+
+  it("renders security groups as a searchable, project-grouped multi-select", () => {
+    renderModal()
+    // The SG field is the shared MultiSelect: a trigger button, not a flat
+    // checkbox list. Opening it reveals a search box and a project group header.
+    fireEvent.click(screen.getByLabelText(/security groups/i))
+    expect(screen.getByPlaceholderText(/search/i)).toBeInTheDocument()
+    // Project grouping: the SG appears under its "<domain>/<project>" header.
+    expect(screen.getByText("d/p")).toBeInTheDocument()
+    expect(screen.getByRole("option", { name: "default" })).toBeInTheDocument()
   })
 
   it("submits the selected network, subnet, ip and security groups", async () => {
     renderModal()
-    fireEvent.change(screen.getByLabelText(/network/i), { target: { value: "n1" } })
-    fireEvent.change(screen.getByLabelText(/subnet/i), { target: { value: "sub1" } })
+    pick(/select a network/i, "net-a")
+    pick(/choose a subnet/i, /sub-a/)
     fireEvent.change(screen.getByLabelText(/fixed ip/i), { target: { value: "10.0.0.9" } })
-    fireEvent.click(screen.getByLabelText("default"))
+    fireEvent.click(screen.getByLabelText(/security groups/i))
+    fireEvent.click(screen.getByRole("option", { name: "default" }))
     fireEvent.click(screen.getByRole("button", { name: /^attach$/i }))
     await waitFor(() => expect(mutate).toHaveBeenCalled())
     const [vars] = mutate.mock.calls[0]
@@ -74,17 +94,18 @@ describe("AttachInterfaceModal", () => {
       network_id: "n1",
       subnet_id: "sub1",
       ip_address: "10.0.0.9",
+      // Neutron ports reference security groups by UUID: submit the id, not the name.
       security_groups: ["sg1"],
     })
   })
 
   it("clears a stale fixed ip when switching from one subnet to another", async () => {
     renderModal()
-    fireEvent.change(screen.getByLabelText(/network/i), { target: { value: "n1" } })
-    fireEvent.change(screen.getByLabelText(/subnet/i), { target: { value: "sub1" } })
+    pick(/select a network/i, "net-a")
+    pick(/choose a subnet/i, /sub-a/)
     fireEvent.change(screen.getByLabelText(/fixed ip/i), { target: { value: "10.0.0.9" } })
     // Switch to another subnet in the same network: the IP from sub1's CIDR must not carry over.
-    fireEvent.change(screen.getByLabelText(/subnet/i), { target: { value: "sub3" } })
+    pick(/sub-a/, /sub-b/)
     expect(screen.getByLabelText(/fixed ip/i)).toHaveValue("")
     fireEvent.click(screen.getByRole("button", { name: /^attach$/i }))
     await waitFor(() => expect(mutate).toHaveBeenCalled())

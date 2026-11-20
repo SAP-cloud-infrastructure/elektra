@@ -9,7 +9,9 @@ export const InterfaceSubnetSchema = z.object({
 })
 export const InterfaceSecurityGroupSchema = z.object({
   id: z.string(),
-  name: z.string().nullable(),
+  // Neutron security groups always have a name (the BFF's form_security_groups
+  // maps sg["name"] straight through), so grouping by name is safe.
+  name: z.string(),
   project_id: z.string().nullable(),
   project_label: z.string().nullable(),
 })

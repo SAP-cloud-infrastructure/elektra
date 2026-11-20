@@ -1,11 +1,14 @@
 import { useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { Modal } from "lib/components/Modal"
+import { MultiSelect } from "lib/components/MultiSelect"
 import type { Instance } from "../../../types/instance"
-import type { InterfaceSubnet, InterfaceSecurityGroup } from "../../../types/interface"
+import type { InterfaceSubnet } from "../../../types/interface"
 import type { ComputeApi } from "../../../apiClient"
 import { useInterfaceOptionsQuery } from "../../../hooks/useInterfaceOptionsQuery"
 import { useAttachInterfaceMutation } from "../../../hooks/useAttachInterfaceMutation"
+import { SearchableSelect } from "./SearchableSelect"
+import { groupSecurityGroupsByProject } from "./securityGroupGrouping"
 
 interface AttachInterfaceModalProps {
   instance: Pick<Instance, "id">
@@ -33,9 +36,6 @@ export function AttachInterfaceModal({ instance, apiClient, onClose }: AttachInt
 
   const disabled = !networkId || mutation.isPending
 
-  const toggleGroup = (id: string) =>
-    setSecurityGroups((prev) => (prev.includes(id) ? prev.filter((g) => g !== id) : [...prev, id]))
-
   const submit = () => {
     if (disabled) return
     mutation.mutate(
@@ -62,52 +62,42 @@ export function AttachInterfaceModal({ instance, apiClient, onClose }: AttachInt
           </div>
         )}
         <div className="form-group mb-3">
-          <label className="form-label" htmlFor="attach-iface-network">
-            Network
-          </label>
-          <select
-            id="attach-iface-network"
-            className="form-select"
-            value={networkId}
-            disabled={options.isLoading}
-            onChange={(e) => {
-              setNetworkId(e.target.value)
+          <label className="form-label">Network</label>
+          <SearchableSelect
+            options={networks}
+            value={networkId || null}
+            onChange={(value) => {
+              setNetworkId(value)
+              // Switching networks invalidates the chosen subnet (and any IP in it).
               setSubnetId("")
               setIpAddress("")
             }}
-          >
-            <option value="">Choose a network</option>
-            {networks.map((net) => (
-              <option key={net.id} value={net.id}>
-                {net.name ?? net.id}
-              </option>
-            ))}
-          </select>
+            getLabel={(n) => n.name ?? n.id}
+            getValue={(n) => n.id}
+            isLoading={options.isLoading}
+            placeholder="Select a network…"
+            emptyMessage="No networks available"
+          />
         </div>
 
         <div className="form-group mb-3">
-          <label className="form-label" htmlFor="attach-iface-subnet">
-            Subnet
-          </label>
-          <select
-            id="attach-iface-subnet"
-            className="form-select"
-            value={subnetId}
-            disabled={!networkId}
-            onChange={(e) => {
-              setSubnetId(e.target.value)
+          <label className="form-label">Subnet</label>
+          <SearchableSelect
+            options={subnets}
+            value={subnetId || null}
+            onChange={(value) => {
+              setSubnetId(value)
               // A fixed IP is only valid within its subnet's CIDR, so drop any
               // typed IP whenever the subnet changes — not only when cleared.
               setIpAddress("")
             }}
-          >
-            <option value="">Auto</option>
-            {subnets.map((sub) => (
-              <option key={sub.id} value={sub.id}>
-                {(sub.name ?? sub.id) + (sub.cidr ? ` (${sub.cidr})` : "")}
-              </option>
-            ))}
-          </select>
+            getLabel={(s) => `${s.name ?? s.id}${s.cidr ? ` (${s.cidr})` : ""}`}
+            getValue={(s) => s.id}
+            clearable
+            disabled={!networkId}
+            placeholder={networkId ? "Choose a subnet…" : "Choose a network first"}
+            emptyMessage="No subnets for this network"
+          />
         </div>
 
         <div className="form-group mb-3">
@@ -126,21 +116,22 @@ export function AttachInterfaceModal({ instance, apiClient, onClose }: AttachInt
         </div>
 
         <div className="form-group">
-          <span className="form-label">Security groups</span>
-          {groups.map((sg: InterfaceSecurityGroup) => (
-            <div className="form-check" key={sg.id}>
-              <input
-                id={`attach-iface-sg-${sg.id}`}
-                type="checkbox"
-                className="form-check-input"
-                checked={securityGroups.includes(sg.id)}
-                onChange={() => toggleGroup(sg.id)}
-              />
-              <label className="form-check-label" htmlFor={`attach-iface-sg-${sg.id}`}>
-                {sg.name ?? sg.id}
-              </label>
-            </div>
-          ))}
+          <label className="form-label" htmlFor="attach-iface-sg">
+            Security groups
+          </label>
+          <MultiSelect
+            id="attach-iface-sg"
+            options={groups}
+            value={securityGroups}
+            onChange={setSecurityGroups}
+            getLabel={(sg) => sg.name}
+            // Neutron ports reference security groups by UUID, so submit the id.
+            getValue={(sg) => sg.id}
+            getGroups={groupSecurityGroupsByProject}
+            isLoading={options.isLoading}
+            placeholder="Select security groups…"
+            emptyMessage="No security groups available"
+          />
         </div>
       </Modal.Body>
       <Modal.Footer>
