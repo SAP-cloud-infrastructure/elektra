@@ -183,4 +183,20 @@ describe("visibleActions", () => {
     expect(attach?.modal).toBe("attachFloatingIp")
     expect(detach?.modal).toBe("detachFloatingIp")
   })
+
+  it("offers Attach Interface for an active instance", () => {
+    const actions = visibleActions(
+      inst({ status: { state: "active", transition: null, power_state: "Running" }, ips: [] }),
+      {}
+    )
+    expect(actions.find((a) => a.key === "attach_interface")).toBeTruthy()
+  })
+
+  it("offers Detach Interface only when the instance has a fixed IP", () => {
+    const base = { status: { state: "active", transition: null, power_state: "Running" } }
+    const without = visibleActions(inst({ ...base, ips: [] }), {})
+    const withFixed = visibleActions(inst({ ...base, ips: [{ addr: "10.0.0.9", type: "fixed" }] }), {})
+    expect(without.find((a) => a.key === "detach_interface")).toBeFalsy()
+    expect(withFixed.find((a) => a.key === "detach_interface")).toBeTruthy()
+  })
 })

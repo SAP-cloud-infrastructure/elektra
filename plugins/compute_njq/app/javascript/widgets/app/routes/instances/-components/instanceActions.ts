@@ -21,6 +21,8 @@ export interface InstanceAction {
     | "terminate"
     | "attach_floating_ip"
     | "detach_floating_ip"
+    | "attach_interface"
+    | "detach_interface"
   label: string
   policy: string
   // Legacy _item_actions.html.haml splits the dropdown into divider-separated
@@ -45,7 +47,7 @@ export interface InstanceAction {
   // Form-based actions open a modal instead of firing immediately. The menu maps
   // this discriminator to the matching modal component (Edit Name/Tags, Reset
   // Status); actions without it run (optionally after a confirm) directly.
-  modal?: "editName" | "editTags" | "resetStatus" | "resize" | "snapshot" | "attachFloatingIp" | "detachFloatingIp"
+  modal?: "editName" | "editTags" | "resetStatus" | "resize" | "snapshot" | "attachFloatingIp" | "detachFloatingIp" | "attachInterface" | "detachInterface"
   // Actions that only make sense from the list row, not the detail modal, which
   // shows only VM lifecycle operations. Resize, Create Snapshot, the edit
   // (name/tags) actions and the floating-IP actions are configuration/form
@@ -57,6 +59,7 @@ const PARKED = ["Paused", "Suspended", "Shut off", "Shut down"]
 const isRunning = (i: Instance) => i.status.power_state === "Running"
 const isParked = (i: Instance) => PARKED.includes(i.status.power_state ?? "")
 const hasFloatingIp = (i: Instance) => (i.ips ?? []).some((ip) => ip.type === "floating")
+const hasFixedIp = (i: Instance) => (i.ips ?? []).some((ip) => ip.type === "fixed")
 
 // Legacy wording from Compute::Server#target_state_for_action / confirm texts.
 export const INSTANCE_ACTIONS: InstanceAction[] = [
@@ -187,6 +190,24 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     group: "power",
     isAvailable: hasFloatingIp,
     modal: "detachFloatingIp",
+    listOnly: true,
+  },
+  {
+    key: "attach_interface",
+    label: "Attach Interface",
+    policy: "compute_njq:instance_attach_interface",
+    group: "power",
+    isAvailable: (i) => ["active", "stopped"].includes(i.status.state),
+    modal: "attachInterface",
+    listOnly: true,
+  },
+  {
+    key: "detach_interface",
+    label: "Detach Interface",
+    policy: "compute_njq:instance_detach_interface",
+    group: "power",
+    isAvailable: (i) => ["active", "stopped"].includes(i.status.state) && hasFixedIp(i),
+    modal: "detachInterface",
     listOnly: true,
   },
   {
