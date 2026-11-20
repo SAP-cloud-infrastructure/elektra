@@ -73,6 +73,22 @@ module ServiceLayer
       def nova_set_server_tags(id, tags)
         elektron_nova.put("servers/#{id}/tags") { { "tags" => tags } }.body
       end
+
+      # Lists the server's attached network interfaces. Nova microversion 2.67+.
+      def nova_server_os_interfaces(id)
+        elektron_nova.get("servers/#{id}/os-interface").body["interfaceAttachments"] || []
+      end
+
+      # Attaches a network interface to a server. Nova expects the port specification
+      # wrapped under "interfaceAttachment". Returns the attached interface.
+      def nova_attach_interface(id, attributes)
+        elektron_nova.post("servers/#{id}/os-interface") { { "interfaceAttachment" => attributes } }.body["interfaceAttachment"]
+      end
+
+      # Detaches a network interface from a server by port_id.
+      def nova_detach_interface(id, port_id)
+        elektron_nova.delete("servers/#{id}/os-interface/#{port_id}").body
+      end
     end
   end
 end

@@ -139,4 +139,33 @@ RSpec.describe ServiceLayer::ComputeNjqServices::Nova do
       expect(result).to eq({ "tags" => %w[web prod] })
     end
   end
+
+  describe "os-interface" do
+    it "lists the server's interface attachments" do
+      expect(elektron_nova).to receive(:get).with("servers/s1/os-interface").and_return(
+        double(body: { "interfaceAttachments" => [{ "port_id" => "p1" }] }),
+      )
+      expect(test_class.nova_server_os_interfaces("s1")).to eq([{ "port_id" => "p1" }])
+    end
+
+    it "returns [] when Nova reports no interfaceAttachments key" do
+      expect(elektron_nova).to receive(:get).with("servers/s1/os-interface").and_return(
+        double(body: {}),
+      )
+      expect(test_class.nova_server_os_interfaces("s1")).to eq([])
+    end
+
+    it "attaches an interface and returns the interfaceAttachment" do
+      response = double(body: { "interfaceAttachment" => { "port_id" => "p1" } })
+      expect(elektron_nova).to receive(:post).with("servers/s1/os-interface").and_yield.and_return(response)
+      expect(test_class.nova_attach_interface("s1", { "port_id" => "p1" })).to eq({ "port_id" => "p1" })
+    end
+
+    it "detaches an interface by port_id" do
+      expect(elektron_nova).to receive(:delete).with("servers/s1/os-interface/p1").and_return(
+        double(body: {}),
+      )
+      expect(test_class.nova_detach_interface("s1", "p1")).to eq({})
+    end
+  end
 end
