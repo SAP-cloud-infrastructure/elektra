@@ -14,20 +14,23 @@ module ServiceLayer
 
         flavor_names = flavor_names_by_id
         image_names = image_names_by_id
+        # Built fresh (not via the 10-minute cached map) so a just-associated FIP
+        # shows in the list immediately, before Nova's addresses catch up.
+        floating_by_fixed = floating_ips_by_server_fixed_ip_fresh
 
-        servers.map { |server| assemble_instance(server, flavor_names, image_names) }
+        servers.map { |server| assemble_instance(server, flavor_names, image_names, floating_by_fixed) }
       end
 
       def find_instance(id)
         server = nova_server(id)
         return nil unless server
 
-        assemble_instance(server, flavor_names_by_id, image_names_by_id)
+        assemble_instance(server, flavor_names_by_id, image_names_by_id, floating_ips_by_server_fixed_ip_fresh)
       end
 
       private
 
-      def assemble_instance(server, flavor_names, image_names)
+      def assemble_instance(server, flavor_names, image_names, floating_by_fixed = {})
         # Nova reports "flavor"/"image" as a Hash when present, but as an empty
         # string for boot-from-volume instances — guard before digging.
         flavor = server["flavor"]
@@ -42,7 +45,7 @@ module ServiceLayer
           availability_zone: server["OS-EXT-AZ:availability_zone"],
           flavor: { id: flavor_id, name: flavor_name(flavor, flavor_id, flavor_names) },
           image: { id: image_id, name: image_name(server, image_id, image_names) },
-          ips: instance_ips(server),
+          ips: instance_ips(server, floating_by_fixed),
           created: server["created"],
           # Native Nova attribute at microversion 2.9+ (we run 2.67). Drives the
           # Lock/Unlock action gating in the UI; default to not-locked when a
@@ -130,19 +133,30 @@ module ServiceLayer
       end
 
       # Flattens a server's addresses into a simple list of { addr:, type: }
-      # entries, taken straight from the Nova response. Nova tags each address
-      # with OS-EXT-IPS:type ("fixed" / "floating"), so the overview can show
-      # the IPs and flag floating ones WITHOUT a Neutron call — the precise
-      # fixed<->floating association is a detail-view concern.
-      def instance_ips(server)
+      # entries. Fixed IPs come from Nova's addresses; floating IPs come solely
+      # from the Neutron fixed->floating map (mirrors the detail view, which also
+      # ignores Nova's floating entries). Neutron is the source of truth for FIP
+      # association, and Nova's network_info lags both associate and disassociate
+      # — so reading FIPs from Neutron makes a just-attached FIP appear and a
+      # just-detached FIP disappear immediately, instead of trailing Nova.
+      def instance_ips(server, floating_by_fixed = {})
         ips = []
+        seen_floating = []
         (server["addresses"] || {}).each_value do |entries|
           Array(entries).each do |entry|
+            # Skip Nova's floating entries entirely — Neutron drives those below.
+            next if entry["OS-EXT-IPS:type"] == "floating"
+
             addr = entry["addr"]
             next unless addr
 
-            type = entry["OS-EXT-IPS:type"] == "floating" ? "floating" : "fixed"
-            ips << { addr: addr, type: type }
+            ips << { addr: addr, type: "fixed" }
+
+            floating = floating_by_fixed[addr]
+            next if floating.nil? || seen_floating.include?(floating)
+
+            ips << { addr: floating, type: "floating" }
+            seen_floating << floating
           end
         end
         ips
@@ -165,13 +179,25 @@ module ServiceLayer
       end
 
       # Maps a fixed IP address to its associated floating IP, so the assembler
-      # can attach floating IPs that Nova does not report inline.
+      # can attach floating IPs that Nova does not report inline. Cached variant
+      # for the detail view (opened on demand, tolerates the 10-minute TTL).
       def floating_ips_by_server_fixed_ip
         cached_lookup("floating_ip_map") do
-          neutron_floating_ips.each_with_object({}) do |fip, acc|
-            fixed = fip["fixed_ip_address"]
-            acc[fixed] = fip["floating_ip_address"] if fixed
-          end
+          build_floating_ips_by_server_fixed_ip(neutron_floating_ips)
+        end
+      end
+
+      # Uncached variant for the list: a just-associated FIP must appear on the
+      # next refetch, so the list reads Neutron directly instead of the cached
+      # map (which could be up to 10 minutes stale).
+      def floating_ips_by_server_fixed_ip_fresh
+        build_floating_ips_by_server_fixed_ip(neutron_floating_ips)
+      end
+
+      def build_floating_ips_by_server_fixed_ip(floating_ips)
+        floating_ips.each_with_object({}) do |fip, acc|
+          fixed = fip["fixed_ip_address"]
+          acc[fixed] = fip["floating_ip_address"] if fixed
         end
       end
     end

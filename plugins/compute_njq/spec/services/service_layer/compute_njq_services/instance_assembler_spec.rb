@@ -34,6 +34,9 @@ RSpec.describe ServiceLayer::ComputeNjqServices::InstanceAssembler do
   before do
     allow(test_class).to receive(:nova_flavors).and_return([{ "id" => "f1", "name" => "m1.small" }])
     allow(test_class).to receive(:glance_images).and_return([{ "id" => "i1", "name" => "ubuntu-24.04" }])
+    # Default: no Neutron floating IPs, so the fixed->floating merge is a no-op
+    # and the address-derived cases below are unaffected.
+    allow(test_class).to receive(:neutron_floating_ips).and_return([])
   end
 
   describe "#list_instances" do
@@ -87,7 +90,13 @@ RSpec.describe ServiceLayer::ComputeNjqServices::InstanceAssembler do
       expect(test_class.list_instances.first[:status][:power_state]).to eq("No State")
     end
 
-    it "lists each IP from the server addresses, tagged with its Nova type" do
+    it "lists fixed IPs from Nova and floating IPs from Neutron" do
+      # Fixed IPs come from Nova's addresses; the floating IP is derived from the
+      # Neutron fixed->floating map (Neutron is the source of truth for FIPs, so
+      # a stale Nova floating entry never drives the list). Here both agree.
+      allow(test_class).to receive(:neutron_floating_ips).and_return(
+        [{ "fixed_ip_address" => "10.0.0.5", "floating_ip_address" => "203.0.113.9" }],
+      )
       instance = test_class.list_instances.first
       expect(instance[:ips]).to eq(
         [
@@ -95,6 +104,51 @@ RSpec.describe ServiceLayer::ComputeNjqServices::InstanceAssembler do
           { addr: "203.0.113.9", type: "floating" },
         ],
       )
+    end
+
+    it "drops a floating IP that Nova still reports but Neutron no longer associates" do
+      # After a detach, Neutron nulls the FIP's fixed_ip_address immediately but
+      # Nova's addresses lag and still list the FIP as floating. Neutron is the
+      # source of truth, so the list must NOT show the detached FIP.
+      allow(test_class).to receive(:neutron_floating_ips).and_return([]) # nothing associated
+      ips = test_class.list_instances.first[:ips]
+      expect(ips).to eq([{ addr: "10.0.0.5", type: "fixed" }])
+      expect(ips).not_to include({ addr: "203.0.113.9", type: "floating" })
+    end
+
+    it "surfaces a floating IP from Neutron that Nova's addresses do not yet report" do
+      # A freshly-associated FIP: Neutron knows it (fixed_ip_address matches the
+      # server's fixed 10.0.0.5), but Nova's cached addresses have not caught up,
+      # so only the fixed IP is in server["addresses"].
+      nova_only_fixed = server.merge(
+        "addresses" => { "private" => [{ "addr" => "10.0.0.5", "OS-EXT-IPS:type" => "fixed" }] },
+      )
+      allow(test_class).to receive(:nova_servers).and_return([nova_only_fixed])
+      allow(test_class).to receive(:neutron_floating_ips).and_return(
+        [{ "fixed_ip_address" => "10.0.0.5", "floating_ip_address" => "198.51.100.7" }],
+      )
+
+      ips = test_class.list_instances.first[:ips]
+      expect(ips).to include({ addr: "198.51.100.7", type: "floating" })
+      expect(ips).to include({ addr: "10.0.0.5", type: "fixed" })
+    end
+
+    it "lists a floating IP from Neutron exactly once" do
+      # Neutron associates a FIP with 10.0.0.5; it must appear once (and Nova's
+      # own floating entry for the same addr must not produce a duplicate).
+      allow(test_class).to receive(:neutron_floating_ips).and_return(
+        [{ "fixed_ip_address" => "10.0.0.5", "floating_ip_address" => "203.0.113.9" }],
+      )
+      ips = test_class.list_instances.first[:ips]
+      expect(ips.count { |ip| ip == { addr: "203.0.113.9", type: "floating" } }).to eq(1)
+    end
+
+    it "derives the list floating-IP map fresh (not from the 10-minute cache)" do
+      # A just-attached FIP must show immediately, so the list reads Neutron
+      # directly rather than through cached_lookup. If the map were cached, the
+      # raw neutron_floating_ips would not be hit on this list load.
+      expect(test_class).to receive(:neutron_floating_ips).and_return([])
+      test_class.list_instances
     end
 
     it "handles boot-from-volume servers where Nova returns image as an empty string" do
