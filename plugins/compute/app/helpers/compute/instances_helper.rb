@@ -2,12 +2,13 @@
 
 module Compute
   module InstancesHelper
-    # Renders the instance's POWER STATE as a status pill (using the shared
-    # `status_pill` core helper). The LABEL is the human power state
-    # (Running / Shut off / ...), but the COLOUR is driven by the OpenStack
-    # vm/task state and error/lock condition, so an ERROR instance still lights
-    # up red even if its power state looks harmless. Full details (status,
-    # task_state, error message) live in the tooltip.
+    # Renders the instance's STATUS (OpenStack vm_state) as a status pill (using
+    # the shared `status_pill` core helper). The LABEL is the human status
+    # (Active / Shutoff / Error / ...) — the administrative state operators
+    # reason about and that `openstack server list` shows — and the COLOUR is
+    # driven by the same vm/task state plus the error/lock condition, so an
+    # ERROR instance lights up red. The hypervisor power state, together with
+    # task_state and any error message, lives in the tooltip.
     INSTANCE_STATUS_CATEGORY = {
       "active" => "ok",
       "shutoff" => "idle",
@@ -30,8 +31,9 @@ module Compute
           INSTANCE_STATUS_CATEGORY[status] || "idle"
         end
 
-      # Tooltip: full detail on hover (errors / lock take precedence).
-      effective = instance.task_state.presence || instance.status.to_s
+      # Tooltip: full detail on hover (errors / lock take precedence), otherwise
+      # surface the hypervisor power state — the value that is no longer the
+      # pill's main text.
       tooltip =
         if !instance.errors.blank?
           instance.errors.full_messages.to_sentence
@@ -39,16 +41,21 @@ module Compute
           "This instance is locked. Please note that this status is only " \
             "displayed correctly if you use the lock/unlock functions via " \
             "Elektra exclusively!"
+        elsif status == "error"
+          "Power state: #{instance.power_state_string} " \
+            "(for more information see server details)"
         else
-          text = "Status: #{effective.humanize}"
-          text += " (for more information see server details)" if status == "error"
-          text
+          "Power state: #{instance.power_state_string}"
         end
+
+      # Label: the humanized status. While a task is in flight, show the
+      # task_state instead so the pill reflects what is happening right now.
+      label = (instance.task_state.presence || instance.status.to_s).humanize
 
       status_pill(
         status,
         category: category,
-        label: instance.power_state_string,
+        label: label,
         tooltip: tooltip,
       )
     end
