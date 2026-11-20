@@ -18,6 +18,17 @@ const metricsQuery = { data: undefined, isLoading: false, isError: false } as un
   Error
 >
 
+function specs(hypervisor_type: string | null): InstanceDetail["specs"] {
+  return {
+    flavor: "m1.small",
+    ram: 2048,
+    vcpus: 2,
+    root_disk_size: 50,
+    root_disk_device: "/dev/vda",
+    hypervisor_type,
+  }
+}
+
 function detail(over: Partial<InstanceDetail> = {}): InstanceDetail {
   return {
     id: "s1",
@@ -62,6 +73,23 @@ describe("InformationTab", () => {
       />
     )
     expect(screen.queryByText("Power State")).toBeNull()
+  })
+
+  it("shows the VMware Guest Tools row only on a VMware instance", () => {
+    render(<InformationTab instance={detail({ specs: specs("vmware") })} metricsQuery={metricsQuery} />)
+    expect(screen.getByText("VMware Guest Tools")).toBeInTheDocument()
+  })
+
+  it("hides the VMware Guest Tools row on a non-VMware flavor", () => {
+    render(<InformationTab instance={detail({ specs: specs("kvm") })} metricsQuery={metricsQuery} />)
+    expect(screen.queryByText("VMware Guest Tools")).not.toBeInTheDocument()
+  })
+
+  it("hides the VMware Guest Tools row when the hypervisor type is unknown", () => {
+    // Unknown (null) covers both an unmappable flavor and placeholder detail
+    // still loading — neither is known to be VMware, so the row stays hidden.
+    render(<InformationTab instance={detail({ specs: specs(null) })} metricsQuery={metricsQuery} />)
+    expect(screen.queryByText("VMware Guest Tools")).not.toBeInTheDocument()
   })
 })
 

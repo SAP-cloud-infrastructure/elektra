@@ -5,12 +5,21 @@ const VM_TOOLS_DOC = "https://documentation.global.cloud.sap/docs/customer/compu
 
 interface RowProps {
   metricsQuery: UseQueryResult<InstanceMetrics, Error>
+  // Normalised hypervisor family from the instance specs. Guest Tools is a
+  // VMware-only concept, so the row renders only when this is "vmware"; any
+  // other value — including null (unknown or still-loading placeholder detail)
+  // — hides it.
+  hypervisorType: string | null | undefined
 }
 
 // VMware Guest Tools row — mirrors the legacy async states: loading spinner,
-// not found, outdated (with versions), up to date, and error.
-export function GuestToolsRow({ metricsQuery }: RowProps) {
+// not found, outdated (with versions), up to date, and error. Rendered only for
+// VMware instances; returns null otherwise so non-VMware flavors don't show a
+// guest-tools row that can never apply to them.
+export function GuestToolsRow({ metricsQuery, hypervisorType }: RowProps) {
   const { data, isLoading, isError, error } = metricsQuery
+
+  if (hypervisorType !== "vmware") return null
 
   return (
     <tr>

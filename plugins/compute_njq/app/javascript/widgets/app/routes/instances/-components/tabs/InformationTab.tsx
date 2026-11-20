@@ -121,7 +121,7 @@ export function InformationTab({ instance, metricsQuery, loading = false }: Info
             )}
           </td>
         </tr>
-        <GuestToolsRow metricsQuery={metricsQuery} />
+        <GuestToolsRow metricsQuery={metricsQuery} hypervisorType={instance.specs?.hypervisor_type} />
         <SizingRows metricsQuery={metricsQuery} />
       </tbody>
     </table>
