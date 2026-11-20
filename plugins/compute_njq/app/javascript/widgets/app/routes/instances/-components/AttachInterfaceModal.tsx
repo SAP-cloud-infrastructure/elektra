@@ -96,7 +96,9 @@ export function AttachInterfaceModal({ instance, apiClient, onClose }: AttachInt
             disabled={!networkId}
             onChange={(e) => {
               setSubnetId(e.target.value)
-              if (!e.target.value) setIpAddress("")
+              // A fixed IP is only valid within its subnet's CIDR, so drop any
+              // typed IP whenever the subnet changes — not only when cleared.
+              setIpAddress("")
             }}
           >
             <option value="">Auto</option>

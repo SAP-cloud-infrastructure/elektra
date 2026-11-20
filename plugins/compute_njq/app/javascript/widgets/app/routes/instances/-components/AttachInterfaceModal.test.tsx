@@ -13,6 +13,7 @@ vi.mock("../../../hooks/useInterfaceOptionsQuery", () => ({
       networks: [{ id: "n1", name: "net-a" }],
       subnets: [
         { id: "sub1", name: "sub-a", cidr: "10.0.0.0/24", network_id: "n1" },
+        { id: "sub3", name: "sub-b", cidr: "10.1.0.0/24", network_id: "n1" },
         { id: "sub2", name: "other", cidr: "10.9.0.0/24", network_id: "n9" },
       ],
       security_groups: [{ id: "sg1", name: "default", project_id: "p", project_label: "d/p" }],
@@ -75,5 +76,19 @@ describe("AttachInterfaceModal", () => {
       ip_address: "10.0.0.9",
       security_groups: ["sg1"],
     })
+  })
+
+  it("clears a stale fixed ip when switching from one subnet to another", async () => {
+    renderModal()
+    fireEvent.change(screen.getByLabelText(/network/i), { target: { value: "n1" } })
+    fireEvent.change(screen.getByLabelText(/subnet/i), { target: { value: "sub1" } })
+    fireEvent.change(screen.getByLabelText(/fixed ip/i), { target: { value: "10.0.0.9" } })
+    // Switch to another subnet in the same network: the IP from sub1's CIDR must not carry over.
+    fireEvent.change(screen.getByLabelText(/subnet/i), { target: { value: "sub3" } })
+    expect(screen.getByLabelText(/fixed ip/i)).toHaveValue("")
+    fireEvent.click(screen.getByRole("button", { name: /^attach$/i }))
+    await waitFor(() => expect(mutate).toHaveBeenCalled())
+    const [vars] = mutate.mock.calls[0]
+    expect(vars).toMatchObject({ id: "s1", network_id: "n1", subnet_id: "sub3", ip_address: undefined })
   })
 })
