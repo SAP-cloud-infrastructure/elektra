@@ -99,6 +99,28 @@ RSpec.describe ServiceLayer::ComputeNjqServices::Neutron do
       test_class.neutron_create_port(network_id: "n1")
       expect(captured).to eq({ "port" => { "network_id" => "n1" } })
     end
+
+    it "includes a fixed ip_address in the port body when given a subnet and ip" do
+      captured = nil
+      allow(elektron_neutron).to receive(:post).with("ports") do |&blk|
+        captured = blk.call
+        double("response", body: { "port" => { "id" => "p1" } })
+      end
+      test_class.neutron_create_port(network_id: "n1", subnet_id: "sub1", ip_address: "10.0.0.9")
+      expect(captured).to eq(
+        { "port" => { "network_id" => "n1", "fixed_ips" => [{ "subnet_id" => "sub1", "ip_address" => "10.0.0.9" }] } },
+      )
+    end
+
+    it "omits ip_address when only a subnet is given" do
+      captured = nil
+      allow(elektron_neutron).to receive(:post).with("ports") do |&blk|
+        captured = blk.call
+        double("response", body: { "port" => { "id" => "p1" } })
+      end
+      test_class.neutron_create_port(network_id: "n1", subnet_id: "sub1")
+      expect(captured["port"]["fixed_ips"]).to eq([{ "subnet_id" => "sub1" }])
+    end
   end
 
   describe "#neutron_delete_port" do

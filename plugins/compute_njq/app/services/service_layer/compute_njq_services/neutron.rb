@@ -55,9 +55,13 @@ module ServiceLayer
       # Creates a Neutron port on the given network, optionally pinned to a
       # subnet (the instance then boots attached to this port). Returns the raw
       # port hash. Used for the "advanced network options" boot path.
-      def neutron_create_port(network_id:, subnet_id: nil, security_groups: [])
+      def neutron_create_port(network_id:, subnet_id: nil, ip_address: nil, security_groups: [])
         port = { "network_id" => network_id }
-        port["fixed_ips"] = [{ "subnet_id" => subnet_id }] if subnet_id.present?
+        if subnet_id.present?
+          fixed = { "subnet_id" => subnet_id }
+          fixed["ip_address"] = ip_address if ip_address
+          port["fixed_ips"] = [fixed]
+        end
         port["security_groups"] = security_groups if security_groups.present?
         elektron_neutron.post("ports") { { "port" => port } }.body["port"]
       end
