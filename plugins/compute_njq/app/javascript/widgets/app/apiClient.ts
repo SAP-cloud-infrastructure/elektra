@@ -71,7 +71,10 @@ function detailedError(err: unknown): Error {
   if (envelope && (envelope.message || envelope.error)) {
     const code = envelope.code ?? e.status
     const text = envelope.message || envelope.error
-    const detailed = new Error(code ? `${text} (HTTP ${code})` : String(text)) as Error & { data?: unknown; status?: number }
+    const detailed = new Error(code ? `${text} (HTTP ${code})` : String(text)) as Error & {
+      data?: unknown
+      status?: number
+    }
     detailed.data = envelope
     detailed.status = code
     return detailed
@@ -209,6 +212,17 @@ export function createComputeApi(basepath: string) {
     detachInterface: (id: string, body: { fixed_ip_address: string }): Promise<void> =>
       apiClient
         .post<{ data: { ok: true } }>(`instances/${id}/detach_interface`, body)
+        .then((res) => {
+          checkForApiError(res.data)
+        })
+        .catch((err) => {
+          throw detailedError(err)
+        }),
+
+    // Replace the instance's security-group set (written to its Neutron ports).
+    setSecurityGroups: (id: string, body: { security_groups: string[] }): Promise<void> =>
+      apiClient
+        .put<{ data: { ok: true } }>(`instances/${id}/security_groups`, body)
         .then((res) => {
           checkForApiError(res.data)
         })
