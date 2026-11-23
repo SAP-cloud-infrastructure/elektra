@@ -29,6 +29,8 @@ ComputeNjq::Engine.routes.draw do
         post :detach_interface
         # Interface: list the server's live, detachable interfaces.
         get :attached_interfaces
+        # Security groups: replace the instance's SG set, body { security_groups: [...] }.
+        put :security_groups, action: :set_security_groups
       end
     end
     get "form_options/flavors", to: "form_options#flavors"

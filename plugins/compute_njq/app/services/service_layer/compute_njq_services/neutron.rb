@@ -91,6 +91,15 @@ module ServiceLayer
         elektron_neutron.get("ports", { "device_id" => device_id }).body["ports"] || []
       end
 
+      # Replace the security-group set on a port (PUT ports/{id}). Editing an
+      # instance's security groups writes the full desired set to each of its
+      # ports — SG membership lives on the Neutron port in this plugin.
+      def neutron_update_port(port_id, security_groups:)
+        elektron_neutron
+          .put("ports/#{port_id}") { { "port" => { "security_groups" => Array(security_groups) } } }
+          .body["port"]
+      end
+
       # Allocate a new floating IP on an external network. Returns the raw hash.
       def neutron_create_floating_ip(floating_network_id)
         elektron_neutron

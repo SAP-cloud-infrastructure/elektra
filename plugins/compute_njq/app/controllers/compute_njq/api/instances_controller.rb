@@ -150,6 +150,19 @@ module ComputeNjq
         end
       end
 
+      # PUT /:scope/compute-njq/api/instances/:id/security_groups
+      # Replace the instance's security-group set, body { security_groups: [...] }.
+      def set_security_groups
+        return unless authorize!("compute_njq:instance_edit_securitygroups")
+
+        handle_api_call do
+          compute_service.set_instance_security_groups(
+            params.require(:id),
+            security_groups: Array(set_security_groups_params[:security_groups]),
+          )
+        end
+      end
+
       # GET /:scope/compute-njq/api/instances/:id/attached_interfaces
       # List the server's live, detachable interfaces.
       def attached_interfaces
@@ -237,6 +250,10 @@ module ComputeNjq
       # Detach interface: the fixed IP address identifying the port to remove.
       def detach_interface_params
         scoped_params.permit(:fixed_ip_address)
+      end
+
+      def set_security_groups_params
+        scoped_params.permit(security_groups: [])
       end
 
       # Edit Tags: the full replacement tag list. Defaults to [] so an omitted

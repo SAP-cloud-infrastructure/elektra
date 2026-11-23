@@ -28,6 +28,7 @@ module ServiceLayer
     include ComputeNjqServices::Snapshot
     include ComputeNjqServices::FloatingIpActions
     include ComputeNjqServices::InterfaceActions
+    include ComputeNjqServices::SecurityGroupActions
 
     attr_reader :scoped_project_id, :scoped_region
 
