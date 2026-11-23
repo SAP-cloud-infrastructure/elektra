@@ -155,11 +155,18 @@ export function SearchableSelect<T>({
     <div className="dropdown" ref={ref}>
       <button
         type="button"
-        className={`form-select w-100 text-start${hasValue ? "" : " text-muted"}`}
+        className={`form-select w-100 text-start${hasValue && !isLoading ? "" : " text-muted"}`}
         disabled={disabled}
         onClick={() => setOpen((o) => !o)}
       >
-        {buttonText}
+        {isLoading ? (
+          <span>
+            <span className="spinner spinner-sm me-2" aria-hidden="true" />
+            Loading…
+          </span>
+        ) : (
+          buttonText
+        )}
       </button>
       {open && (
         <div className="dropdown-menu show w-100 p-2">
@@ -228,7 +235,9 @@ export function SearchableSelect<T>({
                 <InlineLoading />
               </div>
             ) : visible.length === 0 ? (
-              !allowCustom || !customOption ? <div className="text-muted px-2 py-1">{emptyMessage}</div> : null
+              !allowCustom || !customOption ? (
+                <div className="text-muted px-2 py-1">{emptyMessage}</div>
+              ) : null
             ) : groups ? (
               <ul className="list-group list-group-flush">
                 {groups.flatMap((g) => [

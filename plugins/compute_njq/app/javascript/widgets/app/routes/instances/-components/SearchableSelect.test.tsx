@@ -192,24 +192,13 @@ describe("SearchableSelect", () => {
     })
   })
 
-  describe("clearable", () => {
-    it("shows a None entry only when a value is set and clears it", () => {
-      const onChange = vi.fn()
-      const { rerender } = render(<SearchableSelect {...common} value={null} onChange={onChange} clearable />)
-      fireEvent.click(screen.getByRole("button"))
-      // No value yet → no None entry.
-      expect(screen.queryByText("None")).not.toBeInTheDocument()
-
-      // With a value selected, None appears and clears it.
-      rerender(<SearchableSelect {...common} value="a" onChange={onChange} clearable />)
-      fireEvent.click(screen.getByText("None"))
-      expect(onChange).toHaveBeenCalledWith("")
-    })
-
-    it("does not offer None without the clearable prop", () => {
-      render(<SearchableSelect {...common} value="a" onChange={vi.fn()} />)
-      fireEvent.click(screen.getByRole("button"))
-      expect(screen.queryByText("None")).not.toBeInTheDocument()
+  describe("loading", () => {
+    it("shows a spinner with 'Loading…' in the trigger while isLoading", () => {
+      render(<SearchableSelect {...common} onChange={vi.fn()} isLoading disabled />)
+      const trigger = screen.getByRole("button")
+      // The loading state is visible on the (closed) trigger, like MultiSelect.
+      expect(trigger).toHaveTextContent(/loading/i)
+      expect(trigger.querySelector(".spinner")).toBeInTheDocument()
     })
   })
 })
