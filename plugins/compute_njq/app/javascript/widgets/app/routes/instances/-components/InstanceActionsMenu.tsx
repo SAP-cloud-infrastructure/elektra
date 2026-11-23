@@ -15,6 +15,7 @@ import { DetachFloatingIpModal } from "./DetachFloatingIpModal"
 import { AttachFloatingIpModal } from "./AttachFloatingIpModal"
 import { AttachInterfaceModal } from "./AttachInterfaceModal"
 import { DetachInterfaceModal } from "./DetachInterfaceModal"
+import { EditSecurityGroupsModal } from "./EditSecurityGroupsModal"
 import { TerminateModal } from "./TerminateModal"
 
 interface Props {
@@ -147,6 +148,9 @@ export default function InstanceActionsMenu({ instance, scope, apiClient, onConf
       )}
       {activeModal === "detachInterface" && (
         <DetachInterfaceModal instance={instance} apiClient={apiClient} onClose={() => setActiveModal(null)} />
+      )}
+      {activeModal === "editSecurityGroups" && (
+        <EditSecurityGroupsModal instance={instance} apiClient={apiClient} onClose={() => setActiveModal(null)} />
       )}
       {activeModal === "terminate" && (
         <TerminateModal instance={instance} apiClient={apiClient} onClose={() => setActiveModal(null)} />

@@ -35,6 +35,10 @@ vi.mock("../../../hooks/useFloatingIpOptionsQuery", () => ({
 vi.mock("../../../hooks/useInterfaceOptionsQuery", () => ({
   useInterfaceOptionsQuery: () => ({ data: { networks: [], subnets: [], security_groups: [] }, isLoading: false }),
 }))
+// Edit Security Groups modal fetches the project's security groups on open.
+vi.mock("../../../hooks/useSecurityGroupOptionsQuery", () => ({
+  useSecurityGroupOptionsQuery: () => ({ data: [], isLoading: false }),
+}))
 // Detach Interface modal fetches already-attached interfaces on open.
 vi.mock("../../../hooks/useAttachedInterfacesQuery", () => ({
   useAttachedInterfacesQuery: () => ({ data: { attached_interfaces: [] }, isLoading: false }),
@@ -267,7 +271,7 @@ describe("InstanceActionsMenu", () => {
     expect(items[0].classList.contains("dropdown-divider")).toBe(false)
 
     const dividers = menu.querySelectorAll(".dropdown-divider")
-    expect(dividers).toHaveLength(5)
+    expect(dividers).toHaveLength(6)
 
     // The divider immediately precedes the first item of the next group.
     const labels = items.map((li) =>
@@ -288,6 +292,8 @@ describe("InstanceActionsMenu", () => {
       "Attach Floating IP",
       "---",
       "Attach Interface",
+      "---",
+      "Edit Security Groups",
       "---",
       "Lock",
       "---",
@@ -426,6 +432,13 @@ describe("InstanceActionsMenu", () => {
     fireEvent.click(screen.getByRole("button", { name: /actions/i }))
     fireEvent.click(screen.getByText("Detach Interface"))
     expect(screen.getByText("Detach Interface", { selector: ".modal-title" })).toBeInTheDocument()
+  })
+
+  it("opens the Edit Security Groups modal from the menu", () => {
+    renderMenu()
+    fireEvent.click(screen.getByRole("button", { name: /actions/i }))
+    fireEvent.click(screen.getByText("Edit Security Groups"))
+    expect(screen.getByText("Edit Security Groups", { selector: ".modal-title" })).toBeInTheDocument()
   })
 
   it("opens the Terminate modal instead of firing immediately", () => {

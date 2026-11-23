@@ -23,15 +23,17 @@ export interface InstanceAction {
     | "detach_floating_ip"
     | "attach_interface"
     | "detach_interface"
+    | "edit_security_groups"
   label: string
   policy: string
   // Legacy _item_actions.html.haml splits the dropdown into divider-separated
   // groups. visibleActions keeps that order and inserts a divider between groups
   // (never before the first). Edit (name/tags), power lifecycle, the floating-IP
-  // operations, the interface operations, lock/unlock, then terminate (with
-  // reset_status alongside it). Floating-IP and interface each get their own
-  // section so they read as distinct network operations, not power lifecycle.
-  group: "edit" | "power" | "floating_ip" | "interface" | "lock" | "terminate"
+  // operations, the interface operations, edit security groups, lock/unlock,
+  // then terminate (with reset_status alongside it). Floating-IP, interface and
+  // security groups each get their own section so they read as distinct network
+  // operations, not power lifecycle.
+  group: "edit" | "power" | "floating_ip" | "interface" | "security_group" | "lock" | "terminate"
   isAvailable: (i: Instance) => boolean
   // Confirmation shown before the action runs: a short title (the action as a
   // question), a consequence statement as the body, and the verb for the OK
@@ -63,6 +65,7 @@ export interface InstanceAction {
     | "detachFloatingIp"
     | "attachInterface"
     | "detachInterface"
+    | "editSecurityGroups"
     | "terminate"
   // Actions that only make sense from the list row, not the detail modal, which
   // shows only VM lifecycle operations. Resize, Create Snapshot, the edit
@@ -226,6 +229,15 @@ export const INSTANCE_ACTIONS: InstanceAction[] = [
     group: "interface",
     isAvailable: (i) => ["active", "stopped"].includes(i.status.state) && hasFixedIp(i),
     modal: "detachInterface",
+    listOnly: true,
+  },
+  {
+    key: "edit_security_groups",
+    label: "Edit Security Groups",
+    policy: "compute_njq:instance_edit_securitygroups",
+    group: "security_group",
+    isAvailable: () => true,
+    modal: "editSecurityGroups",
     listOnly: true,
   },
   {
