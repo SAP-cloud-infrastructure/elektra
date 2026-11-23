@@ -8,6 +8,7 @@ import { useInstanceDetailQuery } from "../../../hooks/useInstanceQueries"
 import { useSecurityGroupOptionsQuery } from "../../../hooks/useSecurityGroupOptionsQuery"
 import { useEditSecurityGroupsMutation } from "../../../hooks/useEditSecurityGroupsMutation"
 import { groupSecurityGroupsByProject } from "./securityGroupGrouping"
+import { FormHorizontal, FormRow } from "./FormRow"
 
 interface EditSecurityGroupsModalProps {
   instance: Pick<Instance, "id">
@@ -57,7 +58,7 @@ export function EditSecurityGroupsModal({ instance, apiClient, onClose }: EditSe
   }
 
   return (
-    <Modal show onHide={onClose} dialogClassName="modal-lg" bsClass="compute-njq modal" aria-labelledby="edit-sg-title">
+    <Modal show onHide={onClose} dialogClassName="modal-xl" bsClass="compute-njq modal" aria-labelledby="edit-sg-title">
       <Modal.Header closeButton>
         <Modal.Title id="edit-sg-title">Edit Security Groups</Modal.Title>
       </Modal.Header>
@@ -72,32 +73,31 @@ export function EditSecurityGroupsModal({ instance, apiClient, onClose }: EditSe
           the security groups of each attached port are adapted accordingly. If you have individual port security group
           settings we recommend making security group changes only via the ports UI in the networking section.
         </div>
-        <div className="form-group">
-          <label className="form-label" htmlFor="edit-sg-select">
-            Security groups
-          </label>
-          <MultiSelect
-            id="edit-sg-select"
-            options={groups}
-            value={selected}
-            onChange={setSelected}
-            getLabel={(sg) => sg.name}
-            // Neutron ports reference security groups by UUID, so submit the id.
-            getValue={(sg) => sg.id}
-            getGroups={groupSecurityGroupsByProject}
-            // Show the in-picker spinner and lock the control until BOTH the
-            // options and the real detail have loaded, so nothing can be changed
-            // before the current set is known.
-            isLoading={!ready}
-            disabled={!ready}
-            placeholder="Select security groups…"
-            emptyMessage="No security groups available"
-          />
-          <p className="form-text">
-            <i className="fa fa-info-circle" />
-            At least one security group must remain assigned.
-          </p>
-        </div>
+        <FormHorizontal>
+          <FormRow
+            label="Security groups"
+            htmlFor="edit-sg-select"
+            hint="At least one security group must remain assigned."
+          >
+            <MultiSelect
+              id="edit-sg-select"
+              options={groups}
+              value={selected}
+              onChange={setSelected}
+              getLabel={(sg) => sg.name}
+              // Neutron ports reference security groups by UUID, so submit the id.
+              getValue={(sg) => sg.id}
+              getGroups={groupSecurityGroupsByProject}
+              // Show the in-picker spinner and lock the control until BOTH the
+              // options and the real detail have loaded, so nothing can be changed
+              // before the current set is known.
+              isLoading={!ready}
+              disabled={!ready}
+              placeholder="Select security groups…"
+              emptyMessage="No security groups available"
+            />
+          </FormRow>
+        </FormHorizontal>
       </Modal.Body>
       <Modal.Footer>
         <button type="button" className="btn btn-secondary" onClick={onClose}>

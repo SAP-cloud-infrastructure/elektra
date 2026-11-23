@@ -27,11 +27,26 @@ function renderModal() {
 }
 
 describe("DetachInterfaceModal", () => {
-  beforeEach(() => mutate.mockClear())
+  beforeEach(() => {
+    mutate.mockClear()
+    queryState.isLoading = false
+    queryState.data = { attached_interfaces: [{ port_id: "p1", fixed_ip_address: "10.0.0.9", mac_addr: "aa:bb" }] }
+  })
 
   it("lists interfaces from the live query and auto-selects the only one", () => {
     renderModal()
     expect(screen.getByText(/10\.0\.0\.9/)).toBeInTheDocument()
+  })
+
+  it("shows the dropdown with a loading spinner while interfaces load", () => {
+    queryState.isLoading = true
+    queryState.data = { attached_interfaces: [] }
+    renderModal()
+    // The field is rendered (not a bare "Loading…" line) and shows the shared
+    // disabled+spinner loading pattern on its trigger.
+    const trigger = screen.getByRole("button", { name: /loading/i })
+    expect(trigger).toBeDisabled()
+    expect(trigger.querySelector(".spinner")).toBeInTheDocument()
   })
 
   it("submits the selected fixed ip", async () => {

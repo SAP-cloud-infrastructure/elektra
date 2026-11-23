@@ -41,18 +41,18 @@ describe("DetachFloatingIpModal", () => {
       { addr: "2.2.2.2", type: "floating" },
       { addr: "10.0.0.5", type: "fixed" },
     ])
-    expect(screen.getByText("1.1.1.1")).toBeInTheDocument()
-    expect(screen.getByText("2.2.2.2")).toBeInTheDocument()
+    // Open the dropdown and read its options.
+    fireEvent.click(screen.getByRole("button", { name: /choose a floating ip/i }))
+    const options = screen.getAllByRole("option").map((o) => o.textContent)
+    expect(options).toEqual(expect.arrayContaining(["1.1.1.1", "2.2.2.2"]))
     // The fixed IP is not offered for detachment.
-    expect(screen.queryByText("10.0.0.5")).not.toBeInTheDocument()
+    expect(options).not.toContain("10.0.0.5")
   })
 
   it("preselects the only floating IP and detaches it on submit", async () => {
     const { detachFloatingIp, onClose } = renderModal([{ addr: "1.1.1.1", type: "floating" }])
     fireEvent.click(screen.getByRole("button", { name: /detach/i }))
-    await waitFor(() =>
-      expect(detachFloatingIp).toHaveBeenCalledWith("s1", { floating_ip_address: "1.1.1.1" })
-    )
+    await waitFor(() => expect(detachFloatingIp).toHaveBeenCalledWith("s1", { floating_ip_address: "1.1.1.1" }))
     await waitFor(() => expect(onClose).toHaveBeenCalled())
   })
 
@@ -62,13 +62,13 @@ describe("DetachFloatingIpModal", () => {
       { addr: "2.2.2.2", type: "floating" },
     ])
     expect(screen.getByRole("button", { name: /detach/i })).toBeDisabled()
-    fireEvent.click(screen.getByLabelText("2.2.2.2"))
+    // Pick the second IP from the dropdown.
+    fireEvent.click(screen.getByRole("button", { name: /choose a floating ip/i }))
+    fireEvent.click(screen.getByRole("option", { name: "2.2.2.2" }))
     const submit = screen.getByRole("button", { name: /detach/i })
     expect(submit).not.toBeDisabled()
     fireEvent.click(submit)
-    await waitFor(() =>
-      expect(detachFloatingIp).toHaveBeenCalledWith("s1", { floating_ip_address: "2.2.2.2" })
-    )
+    await waitFor(() => expect(detachFloatingIp).toHaveBeenCalledWith("s1", { floating_ip_address: "2.2.2.2" }))
   })
 
   it("keeps the modal open and shows the error on a failed submit", async () => {

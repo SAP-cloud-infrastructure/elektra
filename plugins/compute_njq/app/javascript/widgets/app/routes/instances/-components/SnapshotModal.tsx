@@ -4,6 +4,7 @@ import { Modal } from "lib/components/Modal"
 import type { Instance } from "../../../types/instance"
 import type { ComputeApi } from "../../../apiClient"
 import { useCreateSnapshotMutation } from "../../../hooks/useCreateSnapshotMutation"
+import { FormHorizontal, FormRow } from "./FormRow"
 
 interface SnapshotModalProps {
   instance: Pick<Instance, "id" | "name">
@@ -32,7 +33,7 @@ export function SnapshotModal({ instance, apiClient, onClose }: SnapshotModalPro
     <Modal
       show
       onHide={onClose}
-      dialogClassName="modal-lg"
+      dialogClassName="modal-xl"
       bsClass="compute-njq modal"
       aria-labelledby="snapshot-title"
     >
@@ -46,18 +47,17 @@ export function SnapshotModal({ instance, apiClient, onClose }: SnapshotModalPro
           </div>
         )}
         <p className="text-muted">A snapshot is an image which preserves the disk state of a running instance.</p>
-        <div className="form-group">
-          <label className="form-label" htmlFor="snapshot-name">
-            Name
-          </label>
-          <input
-            id="snapshot-name"
-            type="text"
-            className="form-control"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </div>
+        <FormHorizontal>
+          <FormRow label="Name" htmlFor="snapshot-name">
+            <input
+              id="snapshot-name"
+              type="text"
+              className="form-control"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </FormRow>
+        </FormHorizontal>
       </Modal.Body>
       <Modal.Footer>
         <button type="button" className="btn btn-secondary" onClick={onClose}>

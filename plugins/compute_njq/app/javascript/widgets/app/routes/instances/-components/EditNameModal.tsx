@@ -4,6 +4,7 @@ import { Modal } from "lib/components/Modal"
 import type { Instance } from "../../../types/instance"
 import type { ComputeApi } from "../../../apiClient"
 import { useUpdateInstanceNameMutation } from "../../../hooks/useUpdateInstanceNameMutation"
+import { FormHorizontal, FormRow } from "./FormRow"
 
 interface EditNameModalProps {
   instance: Pick<Instance, "id" | "name">
@@ -30,7 +31,7 @@ export function EditNameModal({ instance, apiClient, onClose }: EditNameModalPro
     <Modal
       show
       onHide={onClose}
-      dialogClassName="modal-lg"
+      dialogClassName="modal-xl"
       bsClass="compute-njq modal"
       aria-labelledby="edit-name-title"
     >
@@ -43,20 +44,21 @@ export function EditNameModal({ instance, apiClient, onClose }: EditNameModalPro
             {mutation.error.message}
           </div>
         )}
-        <div className="form-group">
-          <label htmlFor="edit-name-input">Name</label>
-          <input
-            id="edit-name-input"
-            type="text"
-            className="form-control"
-            value={value}
-            autoFocus
-            onChange={(e) => setValue(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") save()
-            }}
-          />
-        </div>
+        <FormHorizontal>
+          <FormRow label="Name" htmlFor="edit-name-input">
+            <input
+              id="edit-name-input"
+              type="text"
+              className="form-control"
+              value={value}
+              autoFocus
+              onChange={(e) => setValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") save()
+              }}
+            />
+          </FormRow>
+        </FormHorizontal>
       </Modal.Body>
       <Modal.Footer>
         <button type="button" className="btn btn-secondary" onClick={onClose}>

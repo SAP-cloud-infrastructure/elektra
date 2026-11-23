@@ -9,6 +9,7 @@ import { useInterfaceOptionsQuery } from "../../../hooks/useInterfaceOptionsQuer
 import { useAttachInterfaceMutation } from "../../../hooks/useAttachInterfaceMutation"
 import { SearchableSelect } from "./SearchableSelect"
 import { groupSecurityGroupsByProject } from "./securityGroupGrouping"
+import { FormHorizontal, FormRow } from "./FormRow"
 
 interface AttachInterfaceModalProps {
   instance: Pick<Instance, "id">
@@ -51,7 +52,7 @@ export function AttachInterfaceModal({ instance, apiClient, onClose }: AttachInt
   }
 
   return (
-    <Modal show onHide={onClose} dialogClassName="modal-lg" bsClass="compute-njq modal">
+    <Modal show onHide={onClose} dialogClassName="modal-xl" bsClass="compute-njq modal">
       <Modal.Header closeButton>
         <Modal.Title>Attach Interface</Modal.Title>
       </Modal.Header>
@@ -61,91 +62,83 @@ export function AttachInterfaceModal({ instance, apiClient, onClose }: AttachInt
             {mutation.error.message}
           </div>
         )}
-        <div className="form-group mb-3">
-          <label className="form-label">Network</label>
-          <SearchableSelect
-            options={networks}
-            value={networkId || null}
-            onChange={(value) => {
-              setNetworkId(value)
-              // Switching networks invalidates the chosen subnet (and any IP in it).
-              setSubnetId("")
-              setIpAddress("")
-            }}
-            getLabel={(n) => n.name ?? n.id}
-            getValue={(n) => n.id}
-            isLoading={options.isLoading}
-            placeholder="Select a network…"
-            emptyMessage="No networks available"
-          />
-        </div>
+        <FormHorizontal>
+          <FormRow label="Network">
+            <SearchableSelect
+              options={networks}
+              value={networkId || null}
+              onChange={(value) => {
+                setNetworkId(value)
+                // Switching networks invalidates the chosen subnet (and any IP in it).
+                setSubnetId("")
+                setIpAddress("")
+              }}
+              getLabel={(n) => n.name ?? n.id}
+              getValue={(n) => n.id}
+              isLoading={options.isLoading}
+              placeholder="Select a network…"
+              emptyMessage="No networks available"
+            />
+          </FormRow>
 
-        <div className="form-group mb-3">
-          <label className="form-label">Subnet</label>
-          <SearchableSelect
-            options={subnets}
-            value={subnetId || null}
-            onChange={(value) => {
-              setSubnetId(value)
-              // A fixed IP is only valid within its subnet's CIDR, so drop any
-              // typed IP whenever the subnet changes — not only when cleared.
-              setIpAddress("")
-            }}
-            getLabel={(s) => `${s.name ?? s.id}${s.cidr ? ` (${s.cidr})` : ""}`}
-            getValue={(s) => s.id}
-            clearable
-            disabled={!networkId}
-            placeholder={networkId ? "Choose a subnet…" : "Choose a network first"}
-            emptyMessage="No subnets for this network"
-          />
-          <p className="form-text">
-            <i className="fa fa-info-circle" />
-            You can specify a subnet from which the fixed IP is chosen. Leave empty to let any subnet be used.
-          </p>
-        </div>
+          <FormRow
+            label="Subnet"
+            hint="You can specify a subnet from which the fixed IP is chosen. Leave empty to let any subnet be used."
+          >
+            <SearchableSelect
+              options={subnets}
+              value={subnetId || null}
+              onChange={(value) => {
+                setSubnetId(value)
+                // A fixed IP is only valid within its subnet's CIDR, so drop any
+                // typed IP whenever the subnet changes — not only when cleared.
+                setIpAddress("")
+              }}
+              getLabel={(s) => `${s.name ?? s.id}${s.cidr ? ` (${s.cidr})` : ""}`}
+              getValue={(s) => s.id}
+              clearable
+              disabled={!networkId}
+              placeholder={networkId ? "Choose a subnet…" : "Choose a network first"}
+              emptyMessage="No subnets for this network"
+            />
+          </FormRow>
 
-        <div className="form-group mb-3">
-          <label className="form-label" htmlFor="attach-iface-ip">
-            Fixed IP
-          </label>
-          <input
-            id="attach-iface-ip"
-            type="text"
-            className="form-control"
-            value={ipAddress}
-            disabled={!subnetId}
-            placeholder="optional, within the subnet"
-            onChange={(e) => setIpAddress(e.target.value)}
-          />
-          <p className="form-text">
-            <i className="fa fa-info-circle" />
-            Type a fixed IP within the subnet, or leave empty to let DHCP assign one for you.
-          </p>
-        </div>
+          <FormRow
+            label="Fixed IP"
+            htmlFor="attach-iface-ip"
+            hint="Type a fixed IP within the subnet, or leave empty to let DHCP assign one for you."
+          >
+            <input
+              id="attach-iface-ip"
+              type="text"
+              className="form-control"
+              value={ipAddress}
+              disabled={!subnetId}
+              placeholder="optional, within the subnet"
+              onChange={(e) => setIpAddress(e.target.value)}
+            />
+          </FormRow>
 
-        <div className="form-group">
-          <label className="form-label" htmlFor="attach-iface-sg">
-            Security groups
-          </label>
-          <MultiSelect
-            id="attach-iface-sg"
-            options={groups}
-            value={securityGroups}
-            onChange={setSecurityGroups}
-            getLabel={(sg) => sg.name}
-            // Neutron ports reference security groups by UUID, so submit the id.
-            getValue={(sg) => sg.id}
-            getGroups={groupSecurityGroupsByProject}
-            isLoading={options.isLoading}
-            placeholder="Select security groups…"
-            emptyMessage="No security groups available"
-          />
-          <p className="form-text">
-            <i className="fa fa-info-circle" />
-            By default no security groups are selected. You can create the interface without one — then no security
-            rules are enforced for this interface.
-          </p>
-        </div>
+          <FormRow
+            label="Security groups"
+            htmlFor="attach-iface-sg"
+            hint="By default no security groups are selected. You can create the interface without one — then no security rules are enforced for this interface."
+          >
+            <MultiSelect
+              id="attach-iface-sg"
+              options={groups}
+              value={securityGroups}
+              onChange={setSecurityGroups}
+              getLabel={(sg) => sg.name}
+              // Neutron ports reference security groups by UUID, so submit the id.
+              getValue={(sg) => sg.id}
+              getGroups={groupSecurityGroupsByProject}
+              isLoading={options.isLoading}
+              placeholder="Select security groups…"
+              emptyMessage="No security groups available"
+            />
+          </FormRow>
+        </FormHorizontal>
       </Modal.Body>
       <Modal.Footer>
         <button type="button" className="btn btn-secondary" onClick={onClose}>

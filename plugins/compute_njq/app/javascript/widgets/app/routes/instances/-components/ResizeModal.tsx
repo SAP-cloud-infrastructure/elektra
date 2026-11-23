@@ -10,6 +10,7 @@ import { useResizeInstanceMutation } from "../../../hooks/useResizeInstanceMutat
 import { SearchableSelect } from "./SearchableSelect"
 import { InlineLoading } from "./tabs/InlineLoading"
 import { flavorLabel } from "./flavorGrouping"
+import { FormHorizontal, FormRow } from "./FormRow"
 
 interface ResizeModalProps {
   instance: Pick<Instance, "id" | "name" | "flavor">
@@ -62,7 +63,7 @@ export function ResizeModal({ instance, apiClient, onClose }: ResizeModalProps) 
   }
 
   return (
-    <Modal show onHide={onClose} dialogClassName="modal-lg" bsClass="compute-njq modal" aria-labelledby="resize-title">
+    <Modal show onHide={onClose} dialogClassName="modal-xl" bsClass="compute-njq modal" aria-labelledby="resize-title">
       <Modal.Header closeButton>
         <Modal.Title id="resize-title">Resize Instance</Modal.Title>
       </Modal.Header>
@@ -76,30 +77,26 @@ export function ResizeModal({ instance, apiClient, onClose }: ResizeModalProps) 
             {mutation.error.message}
           </div>
         )}
-        <div className="form-group mb-3">
-          <label className="form-label" htmlFor="resize-current-flavor">
-            Current Flavor
-          </label>
-          <p id="resize-current-flavor" className="form-control-static">
-            {currentName} ({typeLoading ? <InlineLoading /> : (currentType ?? "unknown")})
-          </p>
-        </div>
-        <div className="form-group">
-          <label className="form-label" htmlFor="resize-flavor">
-            New Flavor
-          </label>
-          <SearchableSelect<Flavor>
-            options={choices}
-            value={flavorId}
-            onChange={(v) => setFlavorId(v)}
-            getValue={(f) => f.id}
-            getLabel={(f) => flavorLabel(f)}
-            placeholder="Choose flavor"
-            isLoading={flavors.isLoading}
-            disabled={!typeKnown}
-            emptyMessage="No flavors available"
-          />
-        </div>
+        <FormHorizontal>
+          <FormRow label="Current Flavor" htmlFor="resize-current-flavor">
+            <p id="resize-current-flavor" className="form-control-static">
+              {currentName} ({typeLoading ? <InlineLoading /> : (currentType ?? "unknown")})
+            </p>
+          </FormRow>
+          <FormRow label="New Flavor" htmlFor="resize-flavor">
+            <SearchableSelect<Flavor>
+              options={choices}
+              value={flavorId}
+              onChange={(v) => setFlavorId(v)}
+              getValue={(f) => f.id}
+              getLabel={(f) => flavorLabel(f)}
+              placeholder="Choose flavor"
+              isLoading={flavors.isLoading}
+              disabled={!typeKnown}
+              emptyMessage="No flavors available"
+            />
+          </FormRow>
+        </FormHorizontal>
       </Modal.Body>
       <Modal.Footer>
         <button type="button" className="btn btn-secondary" onClick={onClose}>

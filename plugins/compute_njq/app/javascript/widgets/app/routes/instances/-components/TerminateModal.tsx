@@ -34,7 +34,7 @@ export function TerminateModal({ instance, apiClient, onClose }: TerminateModalP
     <Modal
       show
       onHide={onClose}
-      dialogClassName="modal-lg"
+      dialogClassName="modal-xl"
       bsClass="compute-njq modal"
       aria-labelledby="terminate-title"
     >

@@ -4,6 +4,8 @@ import { Modal } from "lib/components/Modal"
 import type { Instance } from "../../../types/instance"
 import type { ComputeApi } from "../../../apiClient"
 import { useDetachFloatingIpMutation } from "../../../hooks/useDetachFloatingIpMutation"
+import { SearchableSelect } from "./SearchableSelect"
+import { FormHorizontal, FormRow } from "./FormRow"
 
 interface DetachFloatingIpModalProps {
   instance: Pick<Instance, "id" | "ips">
@@ -32,7 +34,7 @@ export function DetachFloatingIpModal({ instance, apiClient, onClose }: DetachFl
     <Modal
       show
       onHide={onClose}
-      dialogClassName="modal-lg"
+      dialogClassName="modal-xl"
       bsClass="compute-njq modal"
       aria-labelledby="detach-floating-ip-title"
     >
@@ -45,28 +47,23 @@ export function DetachFloatingIpModal({ instance, apiClient, onClose }: DetachFl
             {mutation.error.message}
           </div>
         )}
-        <p className="text-muted">
+        <div className="alert alert-info" role="note">
           Detaching a floating IP disassociates it from this instance. The IP stays allocated to your project and can be
           attached again later.
-        </p>
-        <div className="form-group">
-          {floatingIps.map((ip) => (
-            <div className="form-check" key={ip.addr}>
-              <input
-                id={`detach-fip-${ip.addr}`}
-                type="radio"
-                className="form-check-input"
-                name="detach-floating-ip"
-                value={ip.addr}
-                checked={selected === ip.addr}
-                onChange={() => setSelected(ip.addr)}
-              />
-              <label className="form-check-label" htmlFor={`detach-fip-${ip.addr}`}>
-                {ip.addr}
-              </label>
-            </div>
-          ))}
         </div>
+        <FormHorizontal>
+          <FormRow label="Floating IP" htmlFor="detach-fip-select">
+            <SearchableSelect
+              options={floatingIps}
+              value={selected || null}
+              onChange={setSelected}
+              getLabel={(ip) => ip.addr}
+              getValue={(ip) => ip.addr}
+              placeholder="Choose a floating IP"
+              emptyMessage="No floating IPs attached"
+            />
+          </FormRow>
+        </FormHorizontal>
       </Modal.Body>
       <Modal.Footer>
         <button type="button" className="btn btn-secondary" onClick={onClose}>

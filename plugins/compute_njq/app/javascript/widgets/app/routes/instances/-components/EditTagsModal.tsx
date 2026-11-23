@@ -5,6 +5,7 @@ import type { Instance } from "../../../types/instance"
 import type { ComputeApi } from "../../../apiClient"
 import { useInstanceDetailQuery } from "../../../hooks/useInstanceQueries"
 import { useSetInstanceTagsMutation } from "../../../hooks/useSetInstanceTagsMutation"
+import { FormHorizontal, FormRow } from "./FormRow"
 
 interface EditTagsModalProps {
   instance: Pick<Instance, "id" | "name">
@@ -182,7 +183,7 @@ export function EditTagsModal({ instance, apiClient, onClose }: EditTagsModalPro
     <Modal
       show
       onHide={onClose}
-      dialogClassName="modal-lg"
+      dialogClassName="modal-xl"
       bsClass="compute-njq modal"
       aria-labelledby="edit-tags-title"
     >
@@ -195,33 +196,37 @@ export function EditTagsModal({ instance, apiClient, onClose }: EditTagsModalPro
             {mutation.error.message}
           </div>
         )}
-        <div className="input-group mb-3">
-          <input
-            id="edit-tags-input"
-            type="text"
-            className="form-control"
-            placeholder="Add a tag"
-            aria-label="Add tag"
-            value={input}
-            autoFocus
-            disabled={busy || loading}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === ",") {
-                e.preventDefault()
-                addTag()
-              }
-            }}
-          />
-          <button
-            type="button"
-            className="btn btn-primary"
-            disabled={busy || loading || !input.trim()}
-            onClick={addTag}
-          >
-            <i className="fa fa-plus fa-fw" /> Add
-          </button>
-        </div>
+        <FormHorizontal>
+          <FormRow label="Add tag" htmlFor="edit-tags-input">
+            <div className="input-group">
+              <input
+                id="edit-tags-input"
+                type="text"
+                className="form-control"
+                placeholder="Add a tag"
+                aria-label="Add tag"
+                value={input}
+                autoFocus
+                disabled={busy || loading}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === ",") {
+                    e.preventDefault()
+                    addTag()
+                  }
+                }}
+              />
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={busy || loading || !input.trim()}
+                onClick={addTag}
+              >
+                <i className="fa fa-plus fa-fw" /> Add
+              </button>
+            </div>
+          </FormRow>
+        </FormHorizontal>
         {loading ? (
           <span className="spinner" role="status" aria-label="loading tags" />
         ) : tags.length === 0 ? (

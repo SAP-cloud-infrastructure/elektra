@@ -6,6 +6,7 @@ import type { ComputeApi } from "../../../apiClient"
 import { useFloatingIpOptionsQuery } from "../../../hooks/useFloatingIpOptionsQuery"
 import { useAttachFloatingIpMutation } from "../../../hooks/useAttachFloatingIpMutation"
 import { SearchableSelect } from "./SearchableSelect"
+import { FormHorizontal, FormRow } from "./FormRow"
 
 interface AttachFloatingIpModalProps {
   instance: Pick<Instance, "id" | "ips">
@@ -52,7 +53,7 @@ export function AttachFloatingIpModal({ instance, apiClient, onClose }: AttachFl
   }
 
   return (
-    <Modal show onHide={onClose} dialogClassName="modal-lg" bsClass="compute-njq modal">
+    <Modal show onHide={onClose} dialogClassName="modal-xl" bsClass="compute-njq modal">
       <Modal.Header closeButton>
         <Modal.Title>Attach Floating IP</Modal.Title>
       </Modal.Header>
@@ -62,91 +63,84 @@ export function AttachFloatingIpModal({ instance, apiClient, onClose }: AttachFl
             {mutation.error.message}
           </div>
         )}
-        <div className="form-group mb-3">
-          <div className="form-check">
-            <input
-              id="attach-fip-mode-existing"
-              type="radio"
-              className="form-check-input"
-              name="attach-fip-mode"
-              checked={mode === "existing"}
-              onChange={() => setMode("existing")}
-            />
-            <label className="form-check-label" htmlFor="attach-fip-mode-existing">
-              Use an existing address
-            </label>
-          </div>
-          <div className="form-check">
-            <input
-              id="attach-fip-mode-allocate"
-              type="radio"
-              className="form-check-input"
-              name="attach-fip-mode"
-              checked={mode === "allocate"}
-              onChange={() => setMode("allocate")}
-            />
-            <label className="form-check-label" htmlFor="attach-fip-mode-allocate">
-              Allocate a new address
-            </label>
-          </div>
-        </div>
+        <FormHorizontal>
+          <FormRow label="Source">
+            <div className="form-check">
+              <input
+                id="attach-fip-mode-existing"
+                type="radio"
+                className="form-check-input"
+                name="attach-fip-mode"
+                checked={mode === "existing"}
+                onChange={() => setMode("existing")}
+              />
+              <label className="form-check-label" htmlFor="attach-fip-mode-existing">
+                Use an existing address
+              </label>
+            </div>
+            <div className="form-check">
+              <input
+                id="attach-fip-mode-allocate"
+                type="radio"
+                className="form-check-input"
+                name="attach-fip-mode"
+                checked={mode === "allocate"}
+                onChange={() => setMode("allocate")}
+              />
+              <label className="form-check-label" htmlFor="attach-fip-mode-allocate">
+                Allocate a new address
+              </label>
+            </div>
+          </FormRow>
 
-        {mode === "existing" ? (
-          <div className="form-group mb-3">
-            <label className="form-label" htmlFor="attach-fip-existing">
-              Floating IP
-            </label>
-            <SearchableSelect
-              options={availableFips}
-              value={floatingIpId || null}
-              onChange={setFloatingIpId}
-              getLabel={(fip) => fip.floating_ip_address}
-              getValue={(fip) => fip.id}
-              isLoading={options.isLoading}
-              disabled={options.isLoading}
-              placeholder="Choose a floating IP"
-              emptyMessage="No free floating IPs available"
-            />
-          </div>
-        ) : (
-          <div className="form-group mb-3">
-            <label className="form-label" htmlFor="attach-fip-network">
-              External network
-            </label>
-            <SearchableSelect
-              options={externalNetworks}
-              value={floatingNetworkId || null}
-              onChange={setFloatingNetworkId}
-              getLabel={(net) => net.name ?? net.id}
-              getValue={(net) => net.id}
-              isLoading={options.isLoading}
-              disabled={options.isLoading}
-              placeholder="Choose an external network"
-              emptyMessage="No external networks available"
-            />
-          </div>
-        )}
+          {mode === "existing" ? (
+            <FormRow label="Floating IP" htmlFor="attach-fip-existing">
+              <SearchableSelect
+                options={availableFips}
+                value={floatingIpId || null}
+                onChange={setFloatingIpId}
+                getLabel={(fip) => fip.floating_ip_address}
+                getValue={(fip) => fip.id}
+                isLoading={options.isLoading}
+                disabled={options.isLoading}
+                placeholder="Choose a floating IP"
+                emptyMessage="No free floating IPs available"
+              />
+            </FormRow>
+          ) : (
+            <FormRow label="External network" htmlFor="attach-fip-network">
+              <SearchableSelect
+                options={externalNetworks}
+                value={floatingNetworkId || null}
+                onChange={setFloatingNetworkId}
+                getLabel={(net) => net.name ?? net.id}
+                getValue={(net) => net.id}
+                isLoading={options.isLoading}
+                disabled={options.isLoading}
+                placeholder="Choose an external network"
+                emptyMessage="No external networks available"
+              />
+            </FormRow>
+          )}
 
-        {fixedIps.length > 1 && (
-          <div className="form-group">
-            <label className="form-label" htmlFor="attach-fip-fixed">
-              Fixed IP
-            </label>
-            <select
-              id="attach-fip-fixed"
-              className="form-select"
-              value={fixedIp}
-              onChange={(e) => setFixedIp(e.target.value)}
-            >
-              <option value="">Choose a fixed IP</option>
-              {fixedIps.map((ip) => (
-                <option key={ip.addr} value={ip.addr}>
-                  {ip.addr}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
+          {fixedIps.length > 1 && (
+            <FormRow label="Fixed IP" htmlFor="attach-fip-fixed">
+              <select
+                id="attach-fip-fixed"
+                className="form-select"
+                value={fixedIp}
+                onChange={(e) => setFixedIp(e.target.value)}
+              >
+                <option value="">Choose a fixed IP</option>
+                {fixedIps.map((ip) => (
+                  <option key={ip.addr} value={ip.addr}>
+                    {ip.addr}
+                  </option>
+                ))}
+              </select>
+            </FormRow>
+          )}
+        </FormHorizontal>
       </Modal.Body>
       <Modal.Footer>
         <button type="button" className="btn btn-secondary" onClick={onClose}>

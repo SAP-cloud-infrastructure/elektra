@@ -6,6 +6,8 @@ import type { AttachedInterface } from "../../../types/interface"
 import type { ComputeApi } from "../../../apiClient"
 import { useAttachedInterfacesQuery } from "../../../hooks/useAttachedInterfacesQuery"
 import { useDetachInterfaceMutation } from "../../../hooks/useDetachInterfaceMutation"
+import { SearchableSelect } from "./SearchableSelect"
+import { FormHorizontal, FormRow } from "./FormRow"
 
 interface DetachInterfaceModalProps {
   instance: Pick<Instance, "id">
@@ -34,7 +36,7 @@ export function DetachInterfaceModal({ instance, apiClient, onClose }: DetachInt
   }
 
   return (
-    <Modal show onHide={onClose} dialogClassName="modal-lg" bsClass="compute-njq modal">
+    <Modal show onHide={onClose} dialogClassName="modal-xl" bsClass="compute-njq modal">
       <Modal.Header closeButton>
         <Modal.Title>Detach Interface</Modal.Title>
       </Modal.Header>
@@ -44,31 +46,24 @@ export function DetachInterfaceModal({ instance, apiClient, onClose }: DetachInt
             {mutation.error.message}
           </div>
         )}
-        {query.isLoading ? (
-          <div className="text-muted">Loading interfaces…</div>
-        ) : interfaces.length === 0 ? (
-          <div className="text-muted">No detachable interfaces.</div>
-        ) : (
-          <div className="form-group">
-            {interfaces.map((iface: AttachedInterface) => (
-              <div className="form-check" key={iface.port_id}>
-                <input
-                  id={`detach-iface-${iface.port_id}`}
-                  type="radio"
-                  className="form-check-input"
-                  name="detach-iface"
-                  value={iface.fixed_ip_address}
-                  checked={effectiveSelected === iface.fixed_ip_address}
-                  onChange={() => setSelected(iface.fixed_ip_address)}
-                />
-                <label className="form-check-label" htmlFor={`detach-iface-${iface.port_id}`}>
-                  {iface.fixed_ip_address}
-                  {iface.mac_addr ? ` (${iface.mac_addr})` : ""}
-                </label>
-              </div>
-            ))}
-          </div>
-        )}
+        <FormHorizontal>
+          <FormRow label="Interface" htmlFor="detach-iface-select">
+            <SearchableSelect<AttachedInterface>
+              options={interfaces}
+              value={effectiveSelected || null}
+              onChange={setSelected}
+              getLabel={(iface) => `${iface.fixed_ip_address}${iface.mac_addr ? ` (${iface.mac_addr})` : ""}`}
+              getValue={(iface) => iface.fixed_ip_address}
+              // While the live interface list loads, show the dropdown with the
+              // shared spinner/disabled pattern (like every other picker) instead
+              // of a bare "Loading…" line on an otherwise empty modal.
+              isLoading={query.isLoading}
+              disabled={query.isLoading}
+              placeholder="Choose an interface"
+              emptyMessage="No detachable interfaces"
+            />
+          </FormRow>
+        </FormHorizontal>
       </Modal.Body>
       <Modal.Footer>
         <button type="button" className="btn btn-secondary" onClick={onClose}>
