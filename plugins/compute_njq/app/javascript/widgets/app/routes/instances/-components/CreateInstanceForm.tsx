@@ -1,19 +1,21 @@
-import { useEffect, useRef, useState, type ReactNode } from "react"
+import { useEffect, useRef, useState } from "react"
 import { QueryClient } from "@tanstack/react-query"
 import { ComputeApi } from "../../../apiClient"
 import { SearchableSelect } from "./SearchableSelect"
 import { MultiSelect } from "lib/components/MultiSelect"
+import { FormRow, SectionGap } from "./FormRow"
 import { FlavorTypeTabs } from "./FlavorTypeTabs"
 import { groupFlavorsByAccess, flavorLabel, flavorSizeFacets } from "./flavorGrouping"
 import { groupSecurityGroupsByProject } from "./securityGroupGrouping"
+import { FlavorTypeTab, FLAVOR_TYPE_TABS, FLAVOR_TYPE_LABELS, flavorInTab, tabHypervisor } from "./imageGrouping"
 import {
-  FlavorTypeTab,
-  FLAVOR_TYPE_TABS,
-  FLAVOR_TYPE_LABELS,
-  flavorInTab,
-  tabHypervisor,
-} from "./imageGrouping"
-import { bootSourceOptions, groupBootSources, bootSourceLabel, bootSourceValue, isVolumeId, fitsFlavorFacet } from "./bootSource"
+  bootSourceOptions,
+  groupBootSources,
+  bootSourceLabel,
+  bootSourceValue,
+  isVolumeId,
+  fitsFlavorFacet,
+} from "./bootSource"
 import { osFamilyFacets } from "./osFamily"
 import { rootDiskMode, rootDiskSizeError, volumeTypeRequired, DEFAULT_ROOT_DISK_SIZE } from "./rootDisk"
 import { CreateInstancePayloadSchema, CreateInstancePayload } from "../../../types/createInstance"
@@ -42,64 +44,6 @@ interface Props {
   // cross-plugin call-to-action links when a required list (networks, key pairs)
   // is empty. Optional so the form still works without it (links are omitted).
   scopePrefix?: string
-}
-
-// Horizontal form row mirroring the legacy compute create form (SimpleForm
-// :horizontal_form wrapper): a right-aligned label in a col-sm-4 column and the
-// field in a col-sm-8 column. Required fields get the same
-// `<abbr title="required">*</abbr>` marker (native tooltip) the legacy form
-// renders. The right-alignment comes from the global
-// `.form-horizontal .col-form-label` rule, so the <form> must carry the
-// `form-horizontal` class.
-function FormRow({
-  label,
-  htmlFor,
-  required,
-  hint,
-  warning,
-  error,
-  children,
-}: {
-  label: string
-  htmlFor?: string
-  required?: boolean
-  hint?: ReactNode
-  warning?: ReactNode
-  error?: string
-  children: ReactNode
-}) {
-  return (
-    <div className="row mb-3">
-      <label className="col-sm-4 col-form-label" htmlFor={htmlFor}>
-        {required && <abbr title="required">*</abbr>} {label}
-      </label>
-      <div className="col-sm-8">
-        <div className="input-wrapper">{children}</div>
-        {error && <span className="invalid-feedback d-block">{error}</span>}
-        {warning && (
-          <div className="alert alert-warning mt-2 mb-0 py-2 px-3" role="alert">
-            {warning}
-          </div>
-        )}
-        {hint && (
-          <p className="form-text">
-            {/* A textual hint gets the legacy info-circle marker; a node hint
-                (e.g. an inline loader) is rendered as-is. */}
-            {typeof hint === "string" && <i className="fa fa-info-circle" />}
-            {hint}
-          </p>
-        )}
-      </div>
-    </div>
-  )
-}
-
-// A subtle group separator: extra vertical space between field blocks, with no
-// heading or divider line — just enough breathing room to make the three
-// logical groups (compute/placement, access/networking, advanced) scannable
-// without the weight of section headers or rules.
-function SectionGap() {
-  return <div className="create-instance-section-gap" aria-hidden="true" />
 }
 
 const EMPTY = {
@@ -176,14 +120,13 @@ export function CreateInstanceForm({
   // one is in effect, otherwise the flavor's own disk. Drives the "Fits this
   // flavor" facet (an image whose min_disk exceeds this would fail to launch).
   const bootDiskGb =
-    mode === "forced" || (mode === "optional" && customRootDisk) ? Number(rootDiskSize) || 0 : (selectedFlavor?.disk ?? 0)
+    mode === "forced" || (mode === "optional" && customRootDisk)
+      ? Number(rootDiskSize) || 0
+      : (selectedFlavor?.disk ?? 0)
   // Offer the "Fits this flavor" facet only when we know the disk size (so the
   // pill actually does something); SearchableSelect further hides it if no image
   // would be excluded.
-  const bootSourceFacets = [
-    ...osFamilyFacets(bootSources),
-    ...(bootDiskGb > 0 ? [fitsFlavorFacet(bootDiskGb)] : []),
-  ]
+  const bootSourceFacets = [...osFamilyFacets(bootSources), ...(bootDiskGb > 0 ? [fitsFlavorFacet(bootDiskGb)] : [])]
   const bootSourceSelected = isVolumeId(form.image_id || null, bootVolumes) ? "volume" : "image"
   // Subnets belonging to the selected network (client-side filter, like legacy).
   const subnetsForNetwork = (subnets.data?.subnets ?? []).filter((s) => s.network_id === form.network_id)
@@ -537,9 +480,9 @@ export function CreateInstanceForm({
                 IP) and attach it to the instance at creation time. Please read the warning below carefully.
               </p>
               <div className="alert alert-warning py-2 px-3" role="alert">
-                <strong>Warning:</strong> Ports created this way are not deleted when the server is deleted, and floating
-                IPs attached to them are not released automatically. Only use these options when necessary, and remember
-                to clean up the ports manually afterwards.
+                <strong>Warning:</strong> Ports created this way are not deleted when the server is deleted, and
+                floating IPs attached to them are not released automatically. Only use these options when necessary, and
+                remember to clean up the ports manually afterwards.
               </div>
             </div>
           </div>
