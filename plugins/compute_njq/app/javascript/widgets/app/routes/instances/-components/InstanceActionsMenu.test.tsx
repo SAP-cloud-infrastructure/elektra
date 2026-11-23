@@ -217,10 +217,11 @@ describe("InstanceActionsMenu", () => {
       </QueryClientProvider>
     )
 
-    // Open the modal and pick an existing floating IP (mocked option "f1").
+    // Open the modal and pick an existing floating IP (mocked option "1.1.1.1").
     fireEvent.click(screen.getByRole("button", { name: /actions/i }))
     fireEvent.click(screen.getByText("Attach Floating IP"))
-    fireEvent.change(screen.getByLabelText(/floating ip/i), { target: { value: "f1" } })
+    fireEvent.click(screen.getByRole("button", { name: /choose a floating ip/i }))
+    fireEvent.click(screen.getByRole("option", { name: "1.1.1.1" }))
     // Submit — fires the mutation (onMutate patches the instances cache).
     fireEvent.click(screen.getByRole("button", { name: /^attach$/i }))
     await waitFor(() => expect(attachFloatingIp).toHaveBeenCalled())

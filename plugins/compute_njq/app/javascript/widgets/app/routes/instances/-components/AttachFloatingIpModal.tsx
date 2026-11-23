@@ -2,10 +2,10 @@ import { useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { Modal } from "lib/components/Modal"
 import type { Instance } from "../../../types/instance"
-import type { AvailableFloatingIp, ExternalNetwork } from "../../../types/floatingIp"
 import type { ComputeApi } from "../../../apiClient"
 import { useFloatingIpOptionsQuery } from "../../../hooks/useFloatingIpOptionsQuery"
 import { useAttachFloatingIpMutation } from "../../../hooks/useAttachFloatingIpMutation"
+import { SearchableSelect } from "./SearchableSelect"
 
 interface AttachFloatingIpModalProps {
   instance: Pick<Instance, "id" | "ips">
@@ -96,40 +96,34 @@ export function AttachFloatingIpModal({ instance, apiClient, onClose }: AttachFl
             <label className="form-label" htmlFor="attach-fip-existing">
               Floating IP
             </label>
-            <select
-              id="attach-fip-existing"
-              className="form-select"
-              value={floatingIpId}
-              onChange={(e) => setFloatingIpId(e.target.value)}
+            <SearchableSelect
+              options={availableFips}
+              value={floatingIpId || null}
+              onChange={setFloatingIpId}
+              getLabel={(fip) => fip.floating_ip_address}
+              getValue={(fip) => fip.id}
+              isLoading={options.isLoading}
               disabled={options.isLoading}
-            >
-              <option value="">Choose a floating IP</option>
-              {availableFips.map((fip: AvailableFloatingIp) => (
-                <option key={fip.id} value={fip.id}>
-                  {fip.floating_ip_address}
-                </option>
-              ))}
-            </select>
+              placeholder="Choose a floating IP"
+              emptyMessage="No free floating IPs available"
+            />
           </div>
         ) : (
           <div className="form-group mb-3">
             <label className="form-label" htmlFor="attach-fip-network">
               External network
             </label>
-            <select
-              id="attach-fip-network"
-              className="form-select"
-              value={floatingNetworkId}
-              onChange={(e) => setFloatingNetworkId(e.target.value)}
+            <SearchableSelect
+              options={externalNetworks}
+              value={floatingNetworkId || null}
+              onChange={setFloatingNetworkId}
+              getLabel={(net) => net.name ?? net.id}
+              getValue={(net) => net.id}
+              isLoading={options.isLoading}
               disabled={options.isLoading}
-            >
-              <option value="">Choose an external network</option>
-              {externalNetworks.map((net: ExternalNetwork) => (
-                <option key={net.id} value={net.id}>
-                  {net.name ?? net.id}
-                </option>
-              ))}
-            </select>
+              placeholder="Choose an external network"
+              emptyMessage="No external networks available"
+            />
           </div>
         )}
 

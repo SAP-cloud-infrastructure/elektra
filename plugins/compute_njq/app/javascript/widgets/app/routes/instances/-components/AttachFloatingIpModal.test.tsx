@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest"
+import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import "@testing-library/jest-dom/vitest"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
@@ -13,8 +13,9 @@ const optionsData = {
   ],
   external_networks: [{ id: "n1", name: "ext-net" }],
 }
+let optionsLoading = false
 vi.mock("../../../hooks/useFloatingIpOptionsQuery", () => ({
-  useFloatingIpOptionsQuery: () => ({ data: optionsData, isLoading: false }),
+  useFloatingIpOptionsQuery: () => ({ data: optionsLoading ? undefined : optionsData, isLoading: optionsLoading }),
 }))
 
 function makeInstance(ips: Instance["ips"]): Instance {
@@ -47,11 +48,22 @@ function renderModal(ips: Instance["ips"], attachFloatingIp = vi.fn().mockResolv
 
 const singleFixed: Instance["ips"] = [{ addr: "10.0.0.5", type: "fixed" }]
 
+// The FIP source is a SearchableSelect: a trigger button opens the list, then
+// the option is clicked by its label.
+function pick(triggerText: RegExp, optionText: string | RegExp) {
+  fireEvent.click(screen.getByRole("button", { name: triggerText }))
+  fireEvent.click(screen.getByRole("option", { name: optionText }))
+}
+
 describe("AttachFloatingIpModal", () => {
+  beforeEach(() => {
+    optionsLoading = false
+  })
+
   it("offers existing free floating IPs and an allocate-new option", () => {
     renderModal(singleFixed)
-    const select = screen.getByLabelText(/floating ip/i) as HTMLSelectElement
-    const optionText = Array.from(select.options).map((o) => o.textContent)
+    fireEvent.click(screen.getByRole("button", { name: /choose a floating ip/i }))
+    const optionText = screen.getAllByRole("option").map((o) => o.textContent)
     expect(optionText).toEqual(expect.arrayContaining(["1.1.1.1", "2.2.2.2"]))
     // The allocate-new mode is offered.
     expect(screen.getByLabelText(/allocate a new/i)).toBeInTheDocument()
@@ -59,7 +71,7 @@ describe("AttachFloatingIpModal", () => {
 
   it("attaches an existing FIP to the sole fixed IP", async () => {
     const { attachFloatingIp, onClose } = renderModal(singleFixed)
-    fireEvent.change(screen.getByLabelText(/floating ip/i), { target: { value: "f1" } })
+    pick(/choose a floating ip/i, "1.1.1.1")
     fireEvent.click(screen.getByRole("button", { name: /attach/i }))
     await waitFor(() =>
       expect(attachFloatingIp).toHaveBeenCalledWith("s1", {
@@ -76,7 +88,7 @@ describe("AttachFloatingIpModal", () => {
       { addr: "10.0.0.5", type: "fixed" },
       { addr: "10.0.0.9", type: "fixed" },
     ])
-    fireEvent.change(screen.getByLabelText(/floating ip/i), { target: { value: "f1" } })
+    pick(/choose a floating ip/i, "1.1.1.1")
     fireEvent.change(screen.getByLabelText(/fixed ip/i), { target: { value: "10.0.0.9" } })
     fireEvent.click(screen.getByRole("button", { name: /attach/i }))
     await waitFor(() =>
@@ -91,7 +103,7 @@ describe("AttachFloatingIpModal", () => {
   it("allocates a new FIP when the allocate-new option is chosen", async () => {
     const { attachFloatingIp } = renderModal(singleFixed)
     fireEvent.click(screen.getByLabelText(/allocate a new/i))
-    fireEvent.change(screen.getByLabelText(/external network/i), { target: { value: "n1" } })
+    pick(/choose an external network/i, "ext-net")
     fireEvent.click(screen.getByRole("button", { name: /attach/i }))
     await waitFor(() =>
       expect(attachFloatingIp).toHaveBeenCalledWith("s1", {
@@ -105,9 +117,19 @@ describe("AttachFloatingIpModal", () => {
   it("keeps the modal open and shows the error on a failed submit", async () => {
     const attachFloatingIp = vi.fn().mockRejectedValue(new Error("No free IPs"))
     const { onClose } = renderModal(singleFixed, attachFloatingIp)
-    fireEvent.change(screen.getByLabelText(/floating ip/i), { target: { value: "f1" } })
+    pick(/choose a floating ip/i, "1.1.1.1")
     fireEvent.click(screen.getByRole("button", { name: /attach/i }))
     await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("No free IPs"))
     expect(onClose).not.toHaveBeenCalled()
+  })
+
+  it("shows a loading indicator in the source field while options load", () => {
+    optionsLoading = true
+    renderModal(singleFixed)
+    // The SearchableSelect trigger shows a spinner with "Loading…" and is
+    // disabled until the floating-ip options arrive.
+    const trigger = screen.getByRole("button", { name: /loading/i })
+    expect(trigger).toBeDisabled()
+    expect(trigger.querySelector(".spinner")).toBeInTheDocument()
   })
 })
