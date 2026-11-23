@@ -14,6 +14,9 @@ interface MultiSelectProps<T> {
   // options on demand (mirrors the single SearchableSelect open-to-load pattern).
   onOpen?: () => void
   isLoading?: boolean
+  // When true the trigger is disabled and the panel cannot be opened (e.g. while
+  // the parent is still loading the options or the current selection).
+  disabled?: boolean
   placeholder?: string
   emptyMessage?: string
   // How many selected names to list in the trigger before collapsing to a
@@ -36,6 +39,7 @@ export function MultiSelect<T>({
   getGroups,
   onOpen,
   isLoading,
+  disabled,
   placeholder = "Select…",
   emptyMessage = "No options",
   selectedLabelLength = 3,
@@ -57,6 +61,7 @@ export function MultiSelect<T>({
 
   // Toggle the panel; fire onOpen only on the first open (lazy-load trigger).
   const toggleOpen = () => {
+    if (disabled) return
     setOpen((o) => {
       const next = !o
       if (next && !openedOnce.current) {
@@ -132,10 +137,18 @@ export function MultiSelect<T>({
       <button
         id={id}
         type="button"
-        className={`form-select w-100 text-start${selectedNames.length === 0 ? " text-muted" : ""}`}
+        className={`form-select w-100 text-start${selectedNames.length === 0 && !isLoading ? " text-muted" : ""}`}
         onClick={toggleOpen}
+        disabled={disabled}
       >
-        {triggerText}
+        {isLoading ? (
+          <span className="text-muted">
+            <span className="spinner spinner-sm me-2" aria-hidden="true" />
+            Loading…
+          </span>
+        ) : (
+          triggerText
+        )}
       </button>
       {open && (
         <div className="dropdown-menu show w-100 p-2">

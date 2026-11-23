@@ -103,4 +103,23 @@ describe("MultiSelect", () => {
     fireEvent.click(screen.getByText("alpine"))
     expect(onChange).toHaveBeenCalledWith(["c"])
   })
+
+  it("disables the trigger and does not open when disabled", () => {
+    const onOpen = vi.fn()
+    render(<MultiSelect {...common} value={[]} onChange={vi.fn()} disabled onOpen={onOpen} />)
+    const trigger = screen.getByRole("button")
+    expect(trigger).toBeDisabled()
+    fireEvent.click(trigger)
+    // The panel never opens: no search box, no onOpen.
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument()
+    expect(onOpen).not.toHaveBeenCalled()
+  })
+
+  it("shows a loading indicator in the trigger while isLoading", () => {
+    render(<MultiSelect {...common} value={[]} onChange={vi.fn()} isLoading disabled />)
+    // A visible spinner lives in the trigger (the closed control), so the loading
+    // state is seen even when the panel can't be opened.
+    const trigger = screen.getByRole("button")
+    expect(trigger.querySelector(".spinner")).toBeInTheDocument()
+  })
 })
