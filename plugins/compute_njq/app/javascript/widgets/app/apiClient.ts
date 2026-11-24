@@ -23,6 +23,7 @@ import { ImageStatus, ImageStatusResponseSchema, SnapshotResponse, SnapshotRespo
 import { FloatingIpOptions, FloatingIpOptionsSchema } from "./types/floatingIp"
 import { InterfaceOptionsSchema, AttachedInterfacesSchema } from "./types/interface"
 import type { InterfaceOptions, AttachedInterfaces } from "./types/interface"
+import { Console, ConsoleResponseSchema } from "./types/console"
 
 // The BFF can answer with HTTP 200 but an error-shaped body when an upstream
 // proxy (e.g. oauth2-proxy) rewrites the status. Detect the { error, code }
@@ -127,6 +128,14 @@ export function createComputeApi(basepath: string) {
       apiClient.get<{ data: { metrics: InstanceMetrics } }>(`instances/${id}/metrics`).then((res) => {
         checkForApiError(res.data)
         return parseOrThrow(InstanceMetricsResponseSchema, res.data, "instance metrics").metrics
+      }),
+
+    // Fresh Nova remote-console URL. The token is short-lived, so this is
+    // fetched on every open and never cached (the hook sets staleTime 0).
+    getConsole: (id: string): Promise<Console> =>
+      apiClient.get<{ data: { console: unknown } }>(`instances/${id}/console`).then((res) => {
+        checkForApiError(res.data)
+        return parseOrThrow(ConsoleResponseSchema, res.data, "console").console
       }),
 
     // Generic lifecycle action (start/stop/reboot/lock/...). The BFF answers
