@@ -3362,3 +3362,10 @@ label {
   max-height: 200px;
   overflow: auto;
 }
+
+// BS5 text-bg-* badge utilities use color-contrast() and pick dark text on
+// warning/info colors. BS3 had white text on these badges; restore it.
+.text-bg-warning,
+.text-bg-info {
+  color: #fff !important;
+}
