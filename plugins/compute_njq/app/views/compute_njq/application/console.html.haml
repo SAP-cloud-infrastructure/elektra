@@ -1,0 +1,8 @@
+- if @console_error
+  .compute-njq-console-state
+    .alert.alert-danger{ role: "alert" }= @console_error
+- elsif @console.nil? || @console[:url].blank?
+  .compute-njq-console-state
+    .alert.alert-warning{ role: "alert" } The console is not available.
+- else
+  %iframe.compute-njq-console-frame{ src: @console[:url], title: "Web console" }

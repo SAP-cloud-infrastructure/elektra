@@ -5,6 +5,30 @@ module ComputeNjq
     # Renders the single HAML mount point; React owns everything below it.
     def show; end
 
+    # GET /:scope/compute-njq/instances/:id/console
+    # Standalone, chrome-less web-console page (its own slim layout — no Elektra
+    # header/sidebar), opened in a new tab from the React console panel. The Nova
+    # console URL is embedded in an iframe on this *dashboard-origin* page so the
+    # console's wss:// handshake carries the dashboard Origin the proxy expects
+    # (opening the raw Nova URL as a top-level tab fails the handshake). The URL
+    # carries a short-lived token, so the page is never cached — "Reload Console"
+    # reloads it to mint a fresh URL.
+    def console
+      response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+      response.headers["Pragma"] = "no-cache"
+      response.headers["Expires"] = "0"
+
+      compute_service = services.compute_njq.scoped(@scoped_project_id, current_region)
+      @instance = compute_service.find_instance(params[:id])
+      begin
+        @console = compute_service.instance_console(params[:id])
+      rescue StandardError => e
+        @console_error = "Failed to get remote console: #{e.message}"
+        @console = nil
+      end
+      render layout: "compute_njq/console"
+    end
+
     # compute_njq is a rewrite of the compute plugin and shares its Limes quota
     # category. plugin_name stays "compute_njq" (JS/CSS/policy), but the quota
     # usage widget in the main toolbar must query the "compute" category.
