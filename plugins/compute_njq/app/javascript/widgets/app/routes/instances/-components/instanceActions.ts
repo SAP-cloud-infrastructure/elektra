@@ -24,6 +24,7 @@ export interface InstanceAction {
     | "attach_interface"
     | "detach_interface"
     | "edit_security_groups"
+    | "web_console"
   label: string
   policy: string
   // Legacy _item_actions.html.haml splits the dropdown into divider-separated
@@ -33,7 +34,7 @@ export interface InstanceAction {
   // then terminate (with reset_status alongside it). Floating-IP, interface and
   // security groups each get their own section so they read as distinct network
   // operations, not power lifecycle.
-  group: "edit" | "power" | "floating_ip" | "interface" | "security_group" | "lock" | "terminate"
+  group: "console" | "edit" | "power" | "floating_ip" | "interface" | "security_group" | "lock" | "terminate"
   isAvailable: (i: Instance) => boolean
   // Confirmation shown before the action runs: a short title (the action as a
   // question), a consequence statement as the body, and the verb for the OK
@@ -73,6 +74,10 @@ export interface InstanceAction {
   // configuration/form actions (and Terminate would close the detail modal it
   // lives in), so they are hidden in the detail surface.
   listOnly?: boolean
+  // Opens the standalone full-page web console (a dashboard-origin HAML page) in
+  // a new tab instead of running a mutation or modal. The menu renders it as a
+  // link; the href is built by the caller (it needs the plugin basepath).
+  externalConsole?: boolean
 }
 
 const PARKED = ["Paused", "Suspended", "Shut off", "Shut down"]
@@ -83,6 +88,15 @@ const hasFixedIp = (i: Instance) => (i.ips ?? []).some((ip) => ip.type === "fixe
 
 // Legacy wording from Compute::Server#target_state_for_action / confirm texts.
 export const INSTANCE_ACTIONS: InstanceAction[] = [
+  {
+    key: "web_console",
+    label: "Web Console",
+    policy: "compute_njq:instance_console",
+    group: "console",
+    // Only meaningful for a running guest; the full-page console opens in a tab.
+    isAvailable: isRunning,
+    externalConsole: true,
+  },
   {
     key: "edit_name",
     label: "Edit Name",

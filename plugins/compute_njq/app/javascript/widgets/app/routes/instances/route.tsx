@@ -1,8 +1,10 @@
 import { useState } from "react"
 import { createFileRoute, useRouteContext, Outlet } from "@tanstack/react-router"
+import type { Instance } from "../../types/instance"
 import { useInstancesQuery } from "../../hooks/useInstanceQueries"
 import { InstanceTable } from "./-components/InstanceTable"
 import { InstancesToolbar } from "./-components/InstancesToolbar"
+import { WebConsolePanel } from "./-components/WebConsolePanel"
 import { filterInstances, facetValues } from "./-components/filterInstances"
 
 export const Route = createFileRoute("/instances")({
@@ -15,11 +17,15 @@ export const Route = createFileRoute("/instances")({
 // keeps the list's scroll position and the search/filter/sort state intact when
 // opening/closing a modal — no background jump.
 function InstancesLayout() {
-  const { apiClient } = useRouteContext({ from: Route.id })
+  const { apiClient, basepath } = useRouteContext({ from: Route.id })
   const { data: instances, isLoading, isError, error } = useInstancesQuery(apiClient)
   const [searchTerm, setSearchTerm] = useState("")
   const [status, setStatus] = useState("")
   const [az, setAz] = useState("")
+  // The instance whose web console is open (null = panel closed). Lifted here
+  // so the slide-up panel is mounted once, above the table, and survives row
+  // re-renders.
+  const [consoleInstance, setConsoleInstance] = useState<Pick<Instance, "id" | "name"> | null>(null)
 
   const all = instances ?? []
   const { statuses, azs } = facetValues(all)
@@ -65,9 +71,17 @@ function InstancesLayout() {
         scope={{}}
         filtersActive={filtersActive}
         onResetFilters={resetFilters}
+        onOpenConsole={setConsoleInstance}
+        consoleHref={(id) => `${basepath}/instances/${id}/console`}
       />
       {/* The /instances/new and /instances/$id modals render here, over the list which stays mounted. */}
       <Outlet />
+      <WebConsolePanel
+        instance={consoleInstance}
+        apiClient={apiClient}
+        onClose={() => setConsoleInstance(null)}
+        consoleHref={(id) => `${basepath}/instances/${id}/console`}
+      />
     </div>
   )
 }

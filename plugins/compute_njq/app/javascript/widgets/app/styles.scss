@@ -331,6 +331,87 @@
   }
 }
 
+// Web-console panel: a "web shell" style drawer that slides in from the left,
+// holding the Nova console iframe. Top-level (not nested under .compute-njq)
+// because it is fixed to the viewport, not the plugin container. No backdrop —
+// the list behind stays interactive so the user can switch between instance
+// consoles by clicking another row.
+.compute-njq-console-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 50vw;
+  z-index: 1050;
+  display: flex;
+  flex-direction: column;
+  background: #222;
+  color: #fff;
+  box-shadow: rgba(0, 0, 0, 0.25) 2px 0 10px;
+  // Leave the whole panel — toolbar and console iframe included — slightly
+  // translucent so the page behind shows through even once the console loads.
+  opacity: 0.9;
+  // Slide in from the left: start fully off-screen to the left and transition
+  // to its resting position (covering the left half of the screen) once
+  // `.is-open` is applied. Removing `.is-open` slides it back out before the
+  // component unmounts.
+  transform: translateX(-100%);
+  transition: transform 0.3s ease-out;
+
+  &.is-open {
+    transform: translateX(0);
+  }
+
+  .compute-njq-console-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.4rem 0.75rem;
+    background: #1a1a1a;
+    border-bottom: 1px solid #000;
+  }
+
+  .compute-njq-console-title {
+    font-weight: 600;
+  }
+
+  .compute-njq-console-hint {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.8rem;
+    opacity: 0.7;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .compute-njq-console-buttons {
+    white-space: nowrap;
+  }
+
+  .compute-njq-console-body {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .compute-njq-console-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 1rem;
+  }
+
+  .compute-njq-console-frame {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: #000;
+  }
+}
+
 @keyframes instance-skeleton-pulse {
   0% {
     opacity: 1;

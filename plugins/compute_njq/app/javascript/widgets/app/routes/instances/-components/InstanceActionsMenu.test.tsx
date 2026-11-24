@@ -479,4 +479,46 @@ describe("InstanceActionsMenu", () => {
     fireEvent.click(confirmButton)
     await waitFor(() => expect(terminate).toHaveBeenCalledWith("s1"))
   })
+
+  it("renders Web Console as a new-tab link to the full-page console when consoleHref is given", () => {
+    const qc = new QueryClient()
+    render(
+      <QueryClientProvider client={qc}>
+        <InstanceActionsMenu
+          instance={instance}
+          scope={{}}
+          apiClient={{ instances: { action, terminate: vi.fn() } } as never}
+          consoleHref={(id) => `/base/instances/${id}/console`}
+        />
+      </QueryClientProvider>
+    )
+    fireEvent.click(screen.getByRole("button", { name: /actions/i }))
+    const link = screen.getByRole("link", { name: "Web Console" })
+    expect(link).toHaveAttribute("href", "/base/instances/s1/console")
+    expect(link).toHaveAttribute("target", "_blank")
+  })
+
+  it("omits Web Console when no consoleHref is provided", () => {
+    renderMenu()
+    fireEvent.click(screen.getByRole("button", { name: /actions/i }))
+    expect(screen.queryByText("Web Console")).not.toBeInTheDocument()
+  })
+
+  it("omits Web Console for a non-running instance", () => {
+    const qc = new QueryClient()
+    render(
+      <QueryClientProvider client={qc}>
+        <InstanceActionsMenu
+          instance={
+            { ...instance, status: { state: "stopped", transition: null, power_state: "Shut off" } } as Instance
+          }
+          scope={{}}
+          apiClient={{ instances: { action, terminate: vi.fn() } } as never}
+          consoleHref={(id) => `/base/instances/${id}/console`}
+        />
+      </QueryClientProvider>
+    )
+    fireEvent.click(screen.getByRole("button", { name: /actions/i }))
+    expect(screen.queryByText("Web Console")).not.toBeInTheDocument()
+  })
 })

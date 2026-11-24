@@ -33,9 +33,19 @@ interface Props {
   // lifecycle operations, so list-only actions (Resize, Create Snapshot, Edit
   // Name/Tags) are hidden there; the list row (default) shows everything.
   surface?: "list" | "detail"
+  // Builds the href for external-console actions (the full-page web console tab).
+  // When absent, such actions are hidden (the menu can't link without it).
+  consoleHref?: (id: string) => string
 }
 
-export default function InstanceActionsMenu({ instance, scope, apiClient, onConfirmRequest, surface = "list" }: Props) {
+export default function InstanceActionsMenu({
+  instance,
+  scope,
+  apiClient,
+  onConfirmRequest,
+  surface = "list",
+  consoleHref,
+}: Props) {
   const queryClient = useQueryClient()
   const actionMutation = useInstanceActionMutation(apiClient, queryClient)
   // Open state is controlled in React rather than Bootstrap's data-API, so the
@@ -57,7 +67,9 @@ export default function InstanceActionsMenu({ instance, scope, apiClient, onConf
     return () => document.removeEventListener("mousedown", onDocClick)
   }, [])
 
-  const actions = visibleActions(instance, scope, surface)
+  // An external-console action needs a consoleHref to link to; drop it when the
+  // caller did not provide one (e.g. the detail modal, which has no basepath).
+  const actions = visibleActions(instance, scope, surface).filter((a) => !a.externalConsole || !!consoleHref)
   const transitioning = isTransitioning(instance.status)
   // Hide the menu entirely only when the user can do nothing at all AND nothing
   // is in progress (e.g. no policy permission) — a permanently dead control is
@@ -209,13 +221,25 @@ export default function InstanceActionsMenu({ instance, scope, apiClient, onConf
                   {/* Divider between legacy groups — never before the first item. */}
                   {i > 0 && actions[i - 1].group !== a.group && <li className="dropdown-divider" role="separator" />}
                   <li>
-                    <button
-                      type="button"
-                      className={`dropdown-item${a.dangerLabel ? " text-danger" : ""}`}
-                      onClick={() => onClick(a)}
-                    >
-                      {a.label}
-                    </button>
+                    {a.externalConsole && consoleHref ? (
+                      <a
+                        className="dropdown-item"
+                        href={consoleHref(instance.id)}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={() => setOpen(false)}
+                      >
+                        {a.label}
+                      </a>
+                    ) : (
+                      <button
+                        type="button"
+                        className={`dropdown-item${a.dangerLabel ? " text-danger" : ""}`}
+                        onClick={() => onClick(a)}
+                      >
+                        {a.label}
+                      </button>
+                    )}
                   </li>
                 </Fragment>
               ))}

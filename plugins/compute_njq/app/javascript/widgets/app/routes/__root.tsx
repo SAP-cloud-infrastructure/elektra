@@ -3,6 +3,7 @@ import { ComputeApi } from "../apiClient"
 
 export interface RouterContext {
   apiClient: ComputeApi
+  basepath: string
   region: string
   projectid: string
 }

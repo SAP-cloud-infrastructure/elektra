@@ -9,6 +9,7 @@ import { StatusPill } from "./StatusPill"
 import { IpList } from "./IpList"
 import { CopyableId } from "./CopyableId"
 import InstanceActionsMenu from "./InstanceActionsMenu"
+import { policy } from "lib/policy"
 
 interface InstanceTableProps {
   instances: Instance[]
@@ -24,6 +25,10 @@ interface InstanceTableProps {
   // Clears all active filters — wired to the "Clear filters" button shown in the
   // filtered-but-empty state.
   onResetFilters?: () => void
+  // Opens the web-console panel for an instance (terminal icon in the row).
+  onOpenConsole?: (instance: Pick<Instance, "id" | "name">) => void
+  // Builds the full-page web console href for the actions menu's Web Console item.
+  consoleHref?: (id: string) => string
 }
 
 // Names longer than this are truncated in the table; the full name is shown as
@@ -40,6 +45,17 @@ const OS_MAX = 40
 const IMAGE_ID_HELP =
   "The image name could not be resolved. The image may have been deleted, or it " +
   "may not be visible to you (e.g. owned by another project or not shared)."
+
+// Whether the web-console action is permitted. A missing/typo'd rule makes
+// policy.isAllowed throw; treat that as "not allowed" (same guard as the
+// actions menu) so one bad rule just hides the icon.
+function consoleAllowed(scope: Record<string, unknown>): boolean {
+  try {
+    return policy.isAllowed("compute_njq:instance_console", { target: scope })
+  } catch {
+    return false
+  }
+}
 
 // Explains the dash: the server was not booted from an image at all.
 const IMAGE_NONE_HELP = "This server has no image — it was booted directly from a volume (boot-from-volume)."
@@ -167,6 +183,8 @@ export function InstanceTable({
   scope,
   filtersActive,
   onResetFilters,
+  onOpenConsole,
+  consoleHref,
 }: InstanceTableProps) {
   const [sort, setSort] = useState<SortState>({ column: null, direction: "asc" })
 
@@ -279,7 +297,27 @@ export function InstanceTable({
                     {instance.created ? <PrettyDate date={instance.created} /> : "—"}
                   </td>
                   <td className="snug">
-                    {apiClient && <InstanceActionsMenu instance={instance} scope={scope ?? {}} apiClient={apiClient} />}
+                    <div className="d-flex align-items-center justify-content-end gap-1">
+                      {onOpenConsole && consoleAllowed(scope ?? {}) && instance.status.power_state === "Running" && (
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-sm"
+                          aria-label="Web console"
+                          title="Web console"
+                          onClick={() => onOpenConsole({ id: instance.id, name: instance.name })}
+                        >
+                          <i className="fa fa-terminal" />
+                        </button>
+                      )}
+                      {apiClient && (
+                        <InstanceActionsMenu
+                          instance={instance}
+                          scope={scope ?? {}}
+                          apiClient={apiClient}
+                          consoleHref={consoleHref}
+                        />
+                      )}
+                    </div>
                   </td>
                 </tr>
               )
