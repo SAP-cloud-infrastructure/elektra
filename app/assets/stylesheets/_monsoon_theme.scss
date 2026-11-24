@@ -2060,7 +2060,7 @@ footer,
       color: $brand-primary;
     }
 
-    a {
+    a:not(.btn) {
       color: darken($brand-primary, 10);
     }
   }
@@ -2142,7 +2142,7 @@ footer,
       color: $brand-success;
     }
 
-    a {
+    a:not(.btn) {
       color: darken($brand-success, 10);
     }
   }
@@ -2154,19 +2154,31 @@ footer,
       background: lighten($alert-warning-bg, 2);
     }
 
+    // No @extend here — @extend merges all selectors into one block which makes
+    // it impossible to override individual properties afterwards. Set the BS5
+    // button custom properties directly instead.
     .btn {
-      @extend .btn-warning;
-
-      // &.btn-secondary {
-      //   @extend .btn-secondary;
-      // }
+      --bs-btn-bg: #{$warning};
+      --bs-btn-border-color: #{$warning};
+      --bs-btn-hover-bg: #{darken($warning, 7.5%)};
+      --bs-btn-hover-border-color: #{darken($warning, 10%)};
+      --bs-btn-active-bg: #{darken($warning, 10%)};
+      --bs-btn-active-border-color: #{darken($warning, 12.5%)};
+      --bs-btn-disabled-bg: #{$warning};
+      --bs-btn-disabled-border-color: #{$warning};
+      // Force white text — BS5 color-contrast() picks dark on this orange
+      --bs-btn-color: #fff;
+      --bs-btn-hover-color: #fff;
+      --bs-btn-active-color: #fff;
+      --bs-btn-disabled-color: #fff;
+      color: #fff;
     }
 
     .fa {
       color: $brand-warning;
     }
 
-    a {
+    a:not(.btn) {
       color: darken($brand-warning, 10);
     }
   }
