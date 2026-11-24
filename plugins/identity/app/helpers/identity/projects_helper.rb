@@ -104,13 +104,13 @@ module Identity
                     "wizard-step bs-callout bs-callout-emphasize bs-callout-#{css_class}" do
         content_tag :div, class: "row" do
           concat(
-            content_tag(:div, class: "col-md-10") do
+            content_tag(:div, class: "col-md-9") do
               concat content_tag(:h4, title)
               block.call
             end,
           )
           concat(
-            content_tag(:div, class: "col-md-2") do
+            content_tag(:div, class: "col-md-3") do
               if status == ProjectProfile::STATUS_SKIPPED
                 concat(content_tag :span, "skipped", class: "float-end")
                 concat(action_button)
