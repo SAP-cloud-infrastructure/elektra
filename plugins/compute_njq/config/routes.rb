@@ -31,6 +31,8 @@ ComputeNjq::Engine.routes.draw do
         get :attached_interfaces
         # Security groups: replace the instance's SG set, body { security_groups: [...] }.
         put :security_groups, action: :set_security_groups
+        # Web console: fetch a fresh Nova remote-console URL for the instance.
+        get :console
       end
     end
     get "form_options/flavors", to: "form_options#flavors"
@@ -46,6 +48,11 @@ ComputeNjq::Engine.routes.draw do
     # Image status reads (snapshot polling), kept generic/reusable.
     resources :images, only: %i[show]
   end
+
+  # Standalone, chrome-less web-console page (own slim layout), opened in a new
+  # tab from the React console panel. Defined before the React catch-all so it
+  # renders the HAML console page, not the widget mount point.
+  get "instances/:id/console", to: "application#console", as: :instance_console
 
   # Catch-all: every non-API path renders the single React mount point so that
   # TanStack Router owns client-side routing.

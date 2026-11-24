@@ -171,6 +171,16 @@ module ComputeNjq
         end
       end
 
+      # GET /:scope/compute-njq/api/instances/:id/console
+      # Fetch a fresh Nova remote-console URL. The URL carries a short-lived
+      # token, so it must never be cached — a new one is fetched on every open.
+      def console
+        return unless authorize!("compute_njq:instance_console")
+
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        handle_api_call { { console: compute_service.instance_console(params.require(:id)) } }
+      end
+
       # DELETE /:scope/compute-njq/api/instances/:id  (terminate)
       def destroy
         return unless authorize!("compute_njq:instance_delete")

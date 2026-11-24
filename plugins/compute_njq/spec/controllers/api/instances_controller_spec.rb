@@ -416,4 +416,44 @@ RSpec.describe ComputeNjq::Api::InstancesController, type: :controller do
       end
     end
   end
+
+  describe "GET #console" do
+    before { allow_any_instance_of(MonsoonOpenstackAuth::Authentication::AuthUser).to receive(:is_allowed?).and_return(true) }
+
+    it "returns the console url/type/protocol and sets a no-cache header" do
+      expect(scoped_service).to receive(:instance_console).with("s1").and_return(
+        url: "https://c.cloud.sap/vnc?token=x", type: "novnc", protocol: "vnc"
+      )
+
+      get :console, params: default_params.merge(id: "s1")
+
+      expect(response).to have_http_status(:success)
+      expect(JSON.parse(response.body)).to eq(
+        "console" => { "url" => "https://c.cloud.sap/vnc?token=x", "type" => "novnc", "protocol" => "vnc" }
+      )
+      expect(response.headers["Cache-Control"]).to include("no-store")
+    end
+
+    it "checks the instance_console policy rule" do
+      allow(scoped_service).to receive(:instance_console).and_return(url: "u", type: "novnc", protocol: "vnc")
+      expect_any_instance_of(MonsoonOpenstackAuth::Authentication::AuthUser).to receive(:is_allowed?).with(
+        "compute_njq:instance_console", anything
+      ).and_return(true)
+
+      get :console, params: default_params.merge(id: "s1")
+    end
+
+    context "when the user is not allowed to open the console" do
+      before { allow_any_instance_of(MonsoonOpenstackAuth::Authentication::AuthUser).to receive(:is_allowed?).and_return(false) }
+
+      it "renders a 403 envelope and never calls the service" do
+        expect(scoped_service).not_to receive(:instance_console)
+
+        get :console, params: default_params.merge(id: "s1")
+
+        expect(response).to have_http_status(:forbidden)
+        expect(JSON.parse(response.body)).to include("error" => "Forbidden", "code" => 403)
+      end
+    end
+  end
 end

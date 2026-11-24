@@ -15,5 +15,6 @@
   "compute_njq:instance_attach_interface": "rule:instance_actions",
   "compute_njq:instance_detach_interface": "rule:instance_actions",
   "compute_njq:instance_edit_securitygroups": "rule:instance_actions",
+  "compute_njq:instance_console": "rule:instance_actions",
   "compute_njq:image_get": "@"
 }

@@ -49,6 +49,15 @@ module ServiceLayer
         elektron_nova.post("servers/#{id}/action") { body }.body
       end
 
+      # Modern remote-console API (microversion >= 2.6). Returns the raw
+      # remote_console hash { "protocol", "type", "url" } for the requested
+      # console protocol/type.
+      def nova_remote_console(server_id, protocol:, type:)
+        elektron_nova
+          .post("servers/#{server_id}/remote-consoles") { { "remote_console" => { "protocol" => protocol, "type" => type } } }
+          .body["remote_console"]
+      end
+
       # Terminate: Nova deletes a server with DELETE /servers/{id} (NOT an
       # /action call).
       def nova_delete_server(id)
