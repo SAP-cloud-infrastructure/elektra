@@ -145,7 +145,7 @@ $form-select-focus-box-shadow: $input-focus-box-shadow;
 $primary: $medium-blue;
 $secondary: $medium-gray;
 $success: $medium-green;
-$info: lighten($bright-blue, 10%);
+$info: $bright-blue;
 $warning: lighten($bright-orange, 5%);
 $danger: #e22;
 

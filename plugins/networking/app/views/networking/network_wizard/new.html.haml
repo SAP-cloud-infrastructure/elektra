@@ -23,13 +23,13 @@
       = f.input :setup_option, as: :hidden
     .tab-content
       - if @network_wizard.setup_options.include?('advanced')
-        .tab-pane.fade#advanced{class: ('in active' if @network_wizard.setup_option=='advanced')}
+        .tab-pane.fade#advanced{class: ('show active' if @network_wizard.setup_option=='advanced')}
           %p
             Wizard is going to assign the FloatingIP-Network
             <b>#{@network_wizard.floatingip_network_name}</b>
 
       - if @network_wizard.setup_options.include?('simple')
-        .tab-pane.fade#simple{class: ('in active' if @network_wizard.setup_option=='simple')}
+        .tab-pane.fade#simple{class: ('show active' if @network_wizard.setup_option=='simple')}
           %p
             Wizard is going to assign the FloatingIP-Network
             <b>#{@network_wizard.floatingip_network_name}</b>, create a Private
