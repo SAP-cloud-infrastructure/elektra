@@ -3,6 +3,19 @@
 // overrides minimal and scoped under `.compute-njq` to avoid leaking into the
 // rest of the dashboard.
 .compute-njq {
+  // The shared `.toolbar` (defined globally) is a single-line flex row whose
+  // children all `flex-shrink: 0`, so on a narrow viewport the search field,
+  // filters, count and "Create New" button overflow the container and get
+  // clipped. Scoped to this plugin, let the toolbar wrap onto multiple lines
+  // (instead of growing/clipping) and add a little row gap so the wrapped
+  // controls stay legible.
+  .toolbar {
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
+    // Keep controls vertically aligned once rows wrap at different heights.
+    align-items: center;
+  }
+
   .table.instances {
     margin-top: 0.5rem;
     // Keep the table within its container (the same box the toolbar lives in).

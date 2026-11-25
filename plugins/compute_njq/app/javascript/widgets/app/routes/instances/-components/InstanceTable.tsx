@@ -211,120 +211,125 @@ export function InstanceTable({
   }
 
   return (
-    <table className="table instances">
-      <thead>
-        <tr>
-          <SortableHeader label="Name" column="name" sort={sort} onSort={onSort} />
-          <SortableHeader label="Status" column="status" sort={sort} onSort={onSort} />
-          <SortableHeader label="AZ" column="az" sort={sort} onSort={onSort} tooltip="Availability Zone" />
-          {/* Not sortable (IPs have no meaningful order). The tooltip explains
+    // `.table-responsive` adds horizontal scroll on narrow viewports so the
+    // trailing columns (OS / Size, Created at, actions) stay reachable instead
+    // of being clipped by the container's right edge.
+    <div className="table-responsive">
+      <table className="table instances">
+        <thead>
+          <tr>
+            <SortableHeader label="Name" column="name" sort={sort} onSort={onSort} />
+            <SortableHeader label="Status" column="status" sort={sort} onSort={onSort} />
+            <SortableHeader label="AZ" column="az" sort={sort} onSort={onSort} tooltip="Availability Zone" />
+            {/* Not sortable (IPs have no meaningful order). The tooltip explains
               the two address types shown in the cell. */}
-          <th>
-            <InfoTooltip content="Floating IP (external, assignable) and fixed IP (project network).">
-              <span style={{ whiteSpace: "nowrap" }}>IPs</span>
-            </InfoTooltip>
-          </th>
-          <SortableHeader
-            label="OS / Size"
-            column="os"
-            sort={sort}
-            onSort={onSort}
-            tooltip="Operating system image and flavor (size) of the server"
-          />
-          <SortableHeader label="Created at" column="created" sort={sort} onSort={onSort} />
-          <th className="snug" />
-        </tr>
-      </thead>
-      {isLoading ? (
-        <SkeletonRows />
-      ) : (
-        <tbody>
-          {rows.length === 0 ? (
-            <tr data-empty="true">
-              <td colSpan={7} role="status">
-                {filtersActive ? (
-                  <>
-                    No servers match your filters.
-                    {onResetFilters && (
-                      <button
-                        type="button"
-                        className="btn btn-link btn-sm p-0 ms-1 align-baseline"
-                        onClick={onResetFilters}
-                      >
-                        Clear filters
-                      </button>
-                    )}
-                  </>
-                ) : (
-                  "No servers in this project yet."
-                )}
-              </td>
-            </tr>
-          ) : (
-            rows.map((instance) => {
-              const displayName = instance.name ?? instance.id
-              const truncated = displayName.length > NAME_MAX
-              return (
-                <tr key={instance.id}>
-                  <td>
-                    <Link
-                      to="/instances/$id"
-                      params={{ id: instance.id }}
-                      search={{ tab: "Information" }}
-                      title={truncated ? displayName : undefined}
-                    >
-                      {truncated ? `${displayName.slice(0, NAME_MAX)}…` : displayName}
-                    </Link>
-                    {instance.locked && (
-                      <InfoTooltip content="This instance is locked. Unlock it to allow lifecycle actions.">
-                        <span className="fa fa-lock text-muted ms-1" aria-label="Locked" />
-                      </InfoTooltip>
-                    )}
-                    <br />
-                    <CopyableId id={instance.id} />
-                  </td>
-                  <td>
-                    <StatusPill status={instance.status} />
-                  </td>
-                  <td>{instance.availability_zone ?? "—"}</td>
-                  <td className="snug-nowrap">
-                    <IpList ips={instance.ips} instanceId={instance.id} />
-                  </td>
-                  <td>
-                    <OsSizeCell image={instance.image} flavor={instance.flavor} />
-                  </td>
-                  <td className="instance-created">
-                    {instance.created ? <PrettyDate date={instance.created} /> : "—"}
-                  </td>
-                  <td className="snug">
-                    <div className="d-flex align-items-center justify-content-end gap-1">
-                      {onOpenConsole && consoleAllowed(scope ?? {}) && instance.status.power_state === "Running" && (
+            <th>
+              <InfoTooltip content="Floating IP (external, assignable) and fixed IP (project network).">
+                <span style={{ whiteSpace: "nowrap" }}>IPs</span>
+              </InfoTooltip>
+            </th>
+            <SortableHeader
+              label="OS / Size"
+              column="os"
+              sort={sort}
+              onSort={onSort}
+              tooltip="Operating system image and flavor (size) of the server"
+            />
+            <SortableHeader label="Created at" column="created" sort={sort} onSort={onSort} />
+            <th className="snug" />
+          </tr>
+        </thead>
+        {isLoading ? (
+          <SkeletonRows />
+        ) : (
+          <tbody>
+            {rows.length === 0 ? (
+              <tr data-empty="true">
+                <td colSpan={7} role="status">
+                  {filtersActive ? (
+                    <>
+                      No servers match your filters.
+                      {onResetFilters && (
                         <button
                           type="button"
-                          className="btn btn-secondary btn-sm"
-                          aria-label="Web console"
-                          title="Web console"
-                          onClick={() => onOpenConsole({ id: instance.id, name: instance.name })}
+                          className="btn btn-link btn-sm p-0 ms-1 align-baseline"
+                          onClick={onResetFilters}
                         >
-                          <i className="fa fa-terminal" />
+                          Clear filters
                         </button>
                       )}
-                      {apiClient && (
-                        <InstanceActionsMenu
-                          instance={instance}
-                          scope={scope ?? {}}
-                          apiClient={apiClient}
-                          consoleHref={consoleHref}
-                        />
+                    </>
+                  ) : (
+                    "No servers in this project yet."
+                  )}
+                </td>
+              </tr>
+            ) : (
+              rows.map((instance) => {
+                const displayName = instance.name ?? instance.id
+                const truncated = displayName.length > NAME_MAX
+                return (
+                  <tr key={instance.id}>
+                    <td>
+                      <Link
+                        to="/instances/$id"
+                        params={{ id: instance.id }}
+                        search={{ tab: "Information" }}
+                        title={truncated ? displayName : undefined}
+                      >
+                        {truncated ? `${displayName.slice(0, NAME_MAX)}…` : displayName}
+                      </Link>
+                      {instance.locked && (
+                        <InfoTooltip content="This instance is locked. Unlock it to allow lifecycle actions.">
+                          <span className="fa fa-lock text-muted ms-1" aria-label="Locked" />
+                        </InfoTooltip>
                       )}
-                    </div>
-                  </td>
-                </tr>
-              )
-            })
-          )}
-        </tbody>
-      )}
-    </table>
+                      <br />
+                      <CopyableId id={instance.id} />
+                    </td>
+                    <td>
+                      <StatusPill status={instance.status} />
+                    </td>
+                    <td>{instance.availability_zone ?? "—"}</td>
+                    <td className="snug-nowrap">
+                      <IpList ips={instance.ips} instanceId={instance.id} />
+                    </td>
+                    <td>
+                      <OsSizeCell image={instance.image} flavor={instance.flavor} />
+                    </td>
+                    <td className="instance-created">
+                      {instance.created ? <PrettyDate date={instance.created} /> : "—"}
+                    </td>
+                    <td className="snug">
+                      <div className="d-flex align-items-center justify-content-end gap-1">
+                        {onOpenConsole && consoleAllowed(scope ?? {}) && instance.status.power_state === "Running" && (
+                          <button
+                            type="button"
+                            className="btn btn-secondary btn-sm"
+                            aria-label="Web console"
+                            title="Web console"
+                            onClick={() => onOpenConsole({ id: instance.id, name: instance.name })}
+                          >
+                            <i className="fa fa-terminal" />
+                          </button>
+                        )}
+                        {apiClient && (
+                          <InstanceActionsMenu
+                            instance={instance}
+                            scope={scope ?? {}}
+                            apiClient={apiClient}
+                            consoleHref={consoleHref}
+                          />
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })
+            )}
+          </tbody>
+        )}
+      </table>
+    </div>
   )
 }
