@@ -2347,6 +2347,14 @@ th {
 }
 
 .table.no-borders {
+  // BS5 gives every `.table` an opaque white cell background via
+  // `--bs-table-bg: #fff` (BS3's table was transparent). Inside a tinted
+  // container (e.g. the green `bs-callout-success` of the project setup wizard,
+  // or the various plugin `show` panels) that paints an out-of-place white
+  // block over the container's colour. A borderless table is meant to blend
+  // into its surroundings, so keep its cells transparent.
+  --bs-table-bg: transparent;
+
   td,
   th {
     border: none;
