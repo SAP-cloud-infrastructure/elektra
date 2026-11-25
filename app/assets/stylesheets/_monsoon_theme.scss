@@ -2241,6 +2241,23 @@ blockquote,
   .btn {
     white-space: nowrap;
   }
+
+  // The action column stacks its children (the action button, and optionally a
+  // "skipped" label above it, or an action + skip button) as a right-aligned
+  // vertical column. Previously these relied on `float-end` which made the
+  // "skipped" label sit *beside* the button instead of above it; a flex column
+  // gives a reliable top-to-bottom order regardless of the floats the buttons
+  // still carry.
+  .wizard-step-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+  }
+
+  .wizard-step-skipped {
+    color: var(--bs-secondary-color, #777);
+  }
 }
 
 // ---------------------------------------------------------------------------------
