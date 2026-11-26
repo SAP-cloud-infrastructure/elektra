@@ -187,35 +187,50 @@ div.policy-matching-rule-line {
   // used to flow inline via Bootstrap's `.form-inline` on the parent <td>, but
   // BS5 removed that class, and BS5's `.form-control`/`.form-select` default to
   // `display: block; width: 100%`, so every control dropped onto its own line.
-  // Restore the old inline flow (NOT flexbox — flex squeezes the literal labels
-  // and the security-scan "Assessment" textarea) by making the form controls
-  // inline-block with a natural width again. The whitespace between controls
-  // provides the spacing, exactly like the pre-migration `.form-inline`.
+  //
+  // Lay the line out as a flex row and let the regex text inputs grow to share
+  // the leftover width, so the rule stretches to the full width of the column
+  // and lines up with the full-width Assessment textarea below it. Fixed parts
+  // (the leading select, the "regex"/"but not regex" labels) keep their size;
+  // only the text inputs flex.
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+
   & > select,
   & > input[type="text"],
-  & > input[type="number"],
-  & > textarea {
+  & > input[type="number"] {
     display: inline-block;
-    width: auto;
     vertical-align: middle;
-    margin-right: 0.25rem;
   }
 
-  // Keep the controls compact so the whole rule — including the second
-  // "but not regex" input and the security-scan Assessment field — fits on one
-  // line inside the (col-md-8) Matching rules column. The regex inputs only
-  // hold short patterns (e.g. ".*"), so a narrow field that scrolls its content
-  // is fine; the first select needs more room for its long option labels
-  // (e.g. "for vulnerability IDs matching...").
+  // The leading filter select needs room for its long option labels
+  // (e.g. "for vulnerability IDs matching..."); keep it a fixed width.
   & > select:first-child {
+    flex: 0 0 15em;
     width: 15em;
   }
+
+  // Regex inputs: grow to fill the row (so it ends flush with the textarea),
+  // but keep a small min so they never collapse to nothing.
   & > input[type="text"] {
-    width: 7em;
+    flex: 1 1 6em;
+    width: auto;
+    min-width: 5em;
   }
+
   & > input[type="number"] {
+    flex: 0 0 5em;
     width: 5em;
   }
+
+  // The security-scan "Assessment" field is wrapped in a block <div> that is
+  // 100% wide; force it onto its own full-width line beneath the regex row.
+  & > div {
+    flex: 0 0 100%;
+  }
+
   &:not(:last-child) {
     padding-bottom: 4px;
   }
