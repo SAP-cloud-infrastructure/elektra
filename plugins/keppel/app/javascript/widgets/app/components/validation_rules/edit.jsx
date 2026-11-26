@@ -60,6 +60,7 @@ export default class RBACPoliciesEditModal extends React.Component {
 
     return (
       <Modal
+        className="keppel"
         backdrop="static"
         show={this.state.show}
         onHide={this.close}
