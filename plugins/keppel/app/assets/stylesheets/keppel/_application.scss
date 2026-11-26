@@ -139,9 +139,7 @@ pre.sublease-token > code {
   // inside the cell instead of widening the table past the modal.
   overflow-wrap: anywhere;
   word-break: break-word;
-}
-
-.modal-body .vuln-desc-folded {
+}.modal-body .vuln-desc-folded {
   //truncate text contents to 2 lines
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -243,5 +241,33 @@ div.policy-matching-rule-line {
 
   &:not(:last-child) {
     padding-bottom: 4px;
+  }
+}
+
+// Validation-rules dialog help text. The copy mixes paragraphs, an "Examples"
+// heading and CEL code blocks. After the BS5 migration the ad-hoc `tw-mt-*`
+// utility classes no longer resolved and bare <div>s carried no margin, so the
+// spacing between blocks was uneven. Give the help text a consistent vertical
+// rhythm and restore the familiar grey rounded code box.
+.validation-help {
+  p {
+    margin-bottom: 0.75rem;
+  }
+
+  h4 {
+    margin-top: 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+
+  pre {
+    margin: 0.75rem 0;
+    padding: 0.75rem 1rem;
+    background-color: var(--bs-tertiary-bg, #f5f5f5);
+    border-radius: var(--bs-border-radius, 0.375rem);
+  }
+
+  // The last block should not add trailing space inside the modal body.
+  > :last-child {
+    margin-bottom: 0;
   }
 }

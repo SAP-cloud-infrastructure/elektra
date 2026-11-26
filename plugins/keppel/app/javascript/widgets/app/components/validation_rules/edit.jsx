@@ -86,11 +86,14 @@ export default class RBACPoliciesEditModal extends React.Component {
             )}
             <Form.ElementHorizontal label="Rule" labelWidth={1} name="rule_for_manifest">
               <Form.Input elementType="input" type="text" name="rule_for_manifest" readOnly={!isAdmin} />
-              <div className="form-control-plaintext tw-mt-2">
-                Setting a validation rule for manifests will restrict image pushes to only allow images that match the
-                provided rule. Validation rules for Keppel are written in{" "}
-                {getDocumentationLink("https://cel.dev/", "Common Expression Language (CEL)")}.<h4>Examples</h4>
-                <div>
+              <div className="form-control-plaintext validation-help">
+                <p>
+                  Setting a validation rule for manifests will restrict image pushes to only allow images that match the
+                  provided rule. Validation rules for Keppel are written in{" "}
+                  {getDocumentationLink("https://cel.dev/", "Common Expression Language (CEL)")}.
+                </p>
+                <h4>Examples</h4>
+                <p>
                   Manifest validation rules can access <code>labels</code> in the manifest that were set using e.g. in
                   the image&apos;s Dockerfile. The example rule below will only allow images that link to their source
                   code using the respective{" "}
@@ -99,16 +102,16 @@ export default class RBACPoliciesEditModal extends React.Component {
                     "well known label"
                   )}
                   :
-                </div>
-                <pre className="tw-mt-1">
+                </p>
+                <pre>
                   <code>&quot;org.opencontainers.image.source&quot; in labels</code>
                 </pre>
-                <div>
+                <p>
                   Manifest validation rules can access the <code>repo_name</code> where the manifest is being pushed to.
                   The example rule below requires that manifests pushed to a repo starting with <code>official/</code>{" "}
                   refer to a source repository below a certain GitHub organization:
-                </div>
-                <pre className="tw-mt-1">
+                </p>
+                <pre>
                   <code>
                     repo_name.startsWith(&quot;official/&quot;)
                     <br />
@@ -117,7 +120,7 @@ export default class RBACPoliciesEditModal extends React.Component {
                     <br />: true
                   </code>
                 </pre>
-                <div>
+                <p>
                   The{" "}
                   {getDocumentationLink(
                     "https://github.com/sapcc/keppel/blob/master/docs/api-spec.md#put-keppelv1accountsname",
@@ -125,7 +128,7 @@ export default class RBACPoliciesEditModal extends React.Component {
                   )}{" "}
                   contains the complete and most up-to-date list of attributes that are available inside the validation
                   rule expression.
-                </div>
+                </p>
               </div>
             </Form.ElementHorizontal>
           </Modal.Body>
