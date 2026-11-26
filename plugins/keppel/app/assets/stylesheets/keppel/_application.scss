@@ -187,18 +187,20 @@ div.policy-matching-rule-line {
   // These used to flow inline via Bootstrap's `.form-inline` on the parent
   // <td>, but BS5 removed that class, and BS5's `.form-control`/`.form-select`
   // default to `display: block; width: 100%`, so every control dropped onto its
-  // own line. Lay the line out as a wrapping flex row so the phrase reads as one
-  // sentence again, and stop the controls from stretching to full width.
+  // own line. Lay the line out as a single-line flex row (no wrapping — the
+  // whole rule must read as one sentence, like it did before the migration) and
+  // stop the controls from stretching to full width.
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
-  gap: 0.25rem 0.4rem;
+  gap: 0.4rem;
 
   & > select,
   & > input[type="text"],
   & > input[type="number"] {
     display: inline-block;
     width: auto;
+    flex: none;
   }
 
   & > select:first-child {
