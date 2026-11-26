@@ -104,7 +104,7 @@ export default class RBACPoliciesEditModal extends React.Component {
                   :
                 </p>
                 <pre>
-                  <code>&quot;org.opencontainers.image.source&quot; in labels</code>
+                  <code>{`"org.opencontainers.image.source" in labels`}</code>
                 </pre>
                 <p>
                   Manifest validation rules can access the <code>repo_name</code> where the manifest is being pushed to.
@@ -112,13 +112,9 @@ export default class RBACPoliciesEditModal extends React.Component {
                   refer to a source repository below a certain GitHub organization:
                 </p>
                 <pre>
-                  <code>
-                    repo_name.startsWith(&quot;official/&quot;)
-                    <br />
-                    ?
-                    labels[&quot;org.opencontainers.image.source&quot;].startsWith(&quot;https://github.com/example-official/&quot;)
-                    <br />: true
-                  </code>
+                  <code>{`repo_name.startsWith("official/")
+ ? labels["org.opencontainers.image.source"].startsWith("https://github.com/example-official/")
+ : true`}</code>
                 </pre>
                 <p>
                   The{" "}
