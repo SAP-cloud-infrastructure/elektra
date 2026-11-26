@@ -822,6 +822,18 @@ button.multiselect {
   --bs-btn-disabled-color: #fff;
 }
 
+// Info button. Same story as `.btn-danger`: BS5's `color-contrast()` against the
+// light cyan `$info` (lighten($bright-blue, 10%)) does not reach the 4.5
+// min-contrast ratio for white, so BS5 falls back to DARK text — low-contrast
+// dark-on-cyan (e.g. the project setup wizard action buttons). BS3's btn-info
+// had white text; force white to match the old look.
+.btn-info {
+  --bs-btn-color: #fff;
+  --bs-btn-hover-color: #fff;
+  --bs-btn-active-color: #fff;
+  --bs-btn-disabled-color: #fff;
+}
+
 //----------------------------------------------------------------------------------
 // Profile
 //----------------------------------------------------------------------------------
@@ -2048,7 +2060,7 @@ footer,
       color: $brand-primary;
     }
 
-    a {
+    a:not(.btn) {
       color: darken($brand-primary, 10);
     }
   }
@@ -2130,7 +2142,7 @@ footer,
       color: $brand-success;
     }
 
-    a {
+    a:not(.btn) {
       color: darken($brand-success, 10);
     }
   }
@@ -2142,19 +2154,31 @@ footer,
       background: lighten($alert-warning-bg, 2);
     }
 
+    // No @extend here — @extend merges all selectors into one block which makes
+    // it impossible to override individual properties afterwards. Set the BS5
+    // button custom properties directly instead.
     .btn {
-      @extend .btn-warning;
-
-      // &.btn-secondary {
-      //   @extend .btn-secondary;
-      // }
+      --bs-btn-bg: #{$warning};
+      --bs-btn-border-color: #{$warning};
+      --bs-btn-hover-bg: #{darken($warning, 7.5%)};
+      --bs-btn-hover-border-color: #{darken($warning, 10%)};
+      --bs-btn-active-bg: #{darken($warning, 10%)};
+      --bs-btn-active-border-color: #{darken($warning, 12.5%)};
+      --bs-btn-disabled-bg: #{$warning};
+      --bs-btn-disabled-border-color: #{$warning};
+      // Force white text — BS5 color-contrast() picks dark on this orange
+      --bs-btn-color: #fff;
+      --bs-btn-hover-color: #fff;
+      --bs-btn-active-color: #fff;
+      --bs-btn-disabled-color: #fff;
+      color: #fff;
     }
 
     .fa {
       color: $brand-warning;
     }
 
-    a {
+    a:not(.btn) {
       color: darken($brand-warning, 10);
     }
   }
@@ -2203,6 +2227,36 @@ blockquote,
   h5,
   h6 {
     margin-top: 0;
+  }
+}
+
+// Project setup wizard steps. The action/skip buttons live in a narrow grid
+// column next to the step description. BS3's `.btn` carried
+// `white-space: nowrap`, so long labels (e.g. "Enable resource pooling") stayed
+// on one line and the button simply took its natural width; BS5 dropped that
+// rule (default `white-space: normal`), which made the labels wrap and the
+// buttons look cramped. Restore nowrap and let the buttons fill the (now wider)
+// column so the labels render on a single line again.
+.wizard-step {
+  .btn {
+    white-space: nowrap;
+  }
+
+  // The action column stacks its children (the action button, and optionally a
+  // "skipped" label above it, or an action + skip button) as a right-aligned
+  // vertical column. Previously these relied on `float-end` which made the
+  // "skipped" label sit *beside* the button instead of above it; a flex column
+  // gives a reliable top-to-bottom order regardless of the floats the buttons
+  // still carry.
+  .wizard-step-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+  }
+
+  .wizard-step-skipped {
+    color: var(--bs-secondary-color, #777);
   }
 }
 
@@ -2293,6 +2347,14 @@ th {
 }
 
 .table.no-borders {
+  // BS5 gives every `.table` an opaque white cell background via
+  // `--bs-table-bg: #fff` (BS3's table was transparent). Inside a tinted
+  // container (e.g. the green `bs-callout-success` of the project setup wizard,
+  // or the various plugin `show` panels) that paints an out-of-place white
+  // block over the container's colour. A borderless table is meant to blend
+  // into its surroundings, so keep its cells transparent.
+  --bs-table-bg: transparent;
+
   td,
   th {
     border: none;
@@ -3324,4 +3386,11 @@ label {
 .horizontal_radio_and_checkboxes_4x8_scrollable {
   max-height: 200px;
   overflow: auto;
+}
+
+// BS5 text-bg-* badge utilities use color-contrast() and pick dark text on
+// warning/info colors. BS3 had white text on these badges; restore it.
+.text-bg-warning,
+.text-bg-info {
+  color: #fff !important;
 }

@@ -104,21 +104,25 @@ module Identity
                     "wizard-step bs-callout bs-callout-emphasize bs-callout-#{css_class}" do
         content_tag :div, class: "row" do
           concat(
-            content_tag(:div, class: "col-md-10") do
+            content_tag(:div, class: "col-md-9") do
               concat content_tag(:h4, title)
               block.call
             end,
           )
           concat(
-            content_tag(:div, class: "col-md-2") do
+            content_tag(:div, class: "col-md-3 wizard-step-actions") do
               if status == ProjectProfile::STATUS_SKIPPED
-                concat(content_tag :span, "skipped", class: "float-end")
+                # "skipped" label stacked above the action button. The
+                # `.wizard-step-actions` column lays its children out as a
+                # right-aligned vertical stack (see _monsoon_theme.scss), so no
+                # floats are needed for the ordering.
+                concat(content_tag(:span, "skipped", class: "wizard-step-skipped"))
                 concat(action_button)
               elsif status == ProjectProfile::STATUS_DONE
                 content_tag :i, "", class: "fa fa-check fa-3x float-end"
               else
-                concat(content_tag :p, action_button)
-                concat(content_tag :p, skip_button)
+                concat(action_button)
+                concat(skip_button)
               end
             end,
           )
