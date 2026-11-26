@@ -182,13 +182,32 @@ td.policy-order-buttons > button {
   width: 100%;
 }
 div.policy-matching-rule-line {
+  // The line holds inline controls (selects, text/number inputs) interleaved
+  // with literal text like "regex" / "is older than" / "in this repository".
+  // These used to flow inline via Bootstrap's `.form-inline` on the parent
+  // <td>, but BS5 removed that class, and BS5's `.form-control`/`.form-select`
+  // default to `display: block; width: 100%`, so every control dropped onto its
+  // own line. Lay the line out as a wrapping flex row so the phrase reads as one
+  // sentence again, and stop the controls from stretching to full width.
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.4rem;
+
+  & > select,
+  & > input[type="text"],
+  & > input[type="number"] {
+    display: inline-block;
+    width: auto;
+  }
+
   & > select:first-child {
     width: 18em;
   }
-  & > input[type=text] {
+  & > input[type="text"] {
     width: 12em;
   }
-  & > input[type=number] {
+  & > input[type="number"] {
     width: 6em;
   }
   &:not(:last-child) {
