@@ -177,9 +177,9 @@ export default class TagPoliciesEditModal extends React.Component {
                 <th className="col-md-8">Matching rules</th>
                 <th className="col-md-1">
                   {isAdmin && (
-                    <button className="btn btn-sm btn-secondary" onClick={this.addPolicy}>
+                    <Button variant="secondary" size="sm" className="text-nowrap" onClick={this.addPolicy}>
                       Add policy
-                    </button>
+                    </Button>
                   )}
                 </th>
               </tr>
