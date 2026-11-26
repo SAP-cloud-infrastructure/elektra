@@ -201,14 +201,20 @@ div.policy-matching-rule-line {
     margin-right: 0.25rem;
   }
 
+  // Keep the controls compact so the whole rule — including the second
+  // "but not regex" input and the security-scan Assessment field — fits on one
+  // line inside the (col-md-8) Matching rules column. The regex inputs only
+  // hold short patterns (e.g. ".*"), so a narrow field that scrolls its content
+  // is fine; the first select needs more room for its long option labels
+  // (e.g. "for vulnerability IDs matching...").
   & > select:first-child {
-    width: 18em;
+    width: 15em;
   }
   & > input[type="text"] {
-    width: 12em;
+    width: 7em;
   }
   & > input[type="number"] {
-    width: 6em;
+    width: 5em;
   }
   &:not(:last-child) {
     padding-bottom: 4px;
