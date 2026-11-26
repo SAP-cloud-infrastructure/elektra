@@ -134,6 +134,13 @@ pre.sublease-token > code {
 }
 
 //vulnerability report tab on image details screen
+.modal-body .vuln-desc {
+  // Long descriptions (and long unbroken tokens like URLs/paths) must wrap
+  // inside the cell instead of widening the table past the modal.
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .modal-body .vuln-desc-folded {
   //truncate text contents to 2 lines
   display: -webkit-box;
@@ -141,6 +148,20 @@ pre.sublease-token > code {
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+// The "Show more" raw-JSON block: keep it inside the cell. Without this the
+// <pre> (white-space: pre) renders on one long line and stretches the table
+// wider than the modal. Wrap long lines and allow vertical scrolling if the
+// dump is large.
+.modal-body tr.explains-previous-line {
+  pre {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    max-height: 20rem;
+    overflow: auto;
+  }
 }
 
 //label list on images in image list
