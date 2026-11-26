@@ -259,11 +259,28 @@ div.policy-matching-rule-line {
     margin-bottom: 0.75rem;
   }
 
+  // Inline <code> chips inside the prose (e.g. `labels`, `repo_name`,
+  // `official/`). BS5 renders <code> as bare pink text; restore the small
+  // rounded tinted chip the dialog had before the migration.
+  p code {
+    padding: 0.1em 0.35em;
+    background-color: var(--bs-tertiary-bg, #f3f3f3);
+    border-radius: var(--bs-border-radius-sm, 0.25rem);
+  }
+
   pre {
     margin: 0.75rem 0;
     padding: 0.75rem 1rem;
     background-color: var(--bs-tertiary-bg, #f5f5f5);
+    border: 1px solid var(--bs-border-color, #dcdcdc);
     border-radius: var(--bs-border-radius, 0.375rem);
+
+    // BS5 colours all <code> pink ($code-color). Inside the example box the
+    // code should read as plain dark text (like the pre-migration look), so
+    // reset the colour for <code> nested in the block.
+    code {
+      color: var(--bs-body-color, #333);
+    }
   }
 
   // The last block should not add trailing space inside the modal body.
