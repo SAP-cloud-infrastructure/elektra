@@ -183,24 +183,22 @@ td.policy-order-buttons > button {
 }
 div.policy-matching-rule-line {
   // The line holds inline controls (selects, text/number inputs) interleaved
-  // with literal text like "regex" / "is older than" / "in this repository".
-  // These used to flow inline via Bootstrap's `.form-inline` on the parent
-  // <td>, but BS5 removed that class, and BS5's `.form-control`/`.form-select`
-  // default to `display: block; width: 100%`, so every control dropped onto its
-  // own line. Lay the line out as a single-line flex row (no wrapping — the
-  // whole rule must read as one sentence, like it did before the migration) and
-  // stop the controls from stretching to full width.
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: center;
-  gap: 0.4rem;
-
+  // with literal text like "regex" / "but not regex" / "is older than". These
+  // used to flow inline via Bootstrap's `.form-inline` on the parent <td>, but
+  // BS5 removed that class, and BS5's `.form-control`/`.form-select` default to
+  // `display: block; width: 100%`, so every control dropped onto its own line.
+  // Restore the old inline flow (NOT flexbox — flex squeezes the literal labels
+  // and the security-scan "Assessment" textarea) by making the form controls
+  // inline-block with a natural width again. The whitespace between controls
+  // provides the spacing, exactly like the pre-migration `.form-inline`.
   & > select,
   & > input[type="text"],
-  & > input[type="number"] {
+  & > input[type="number"],
+  & > textarea {
     display: inline-block;
     width: auto;
-    flex: none;
+    vertical-align: middle;
+    margin-right: 0.25rem;
   }
 
   & > select:first-child {
