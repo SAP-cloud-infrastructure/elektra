@@ -205,8 +205,18 @@ div.policy-matching-rule-line {
     vertical-align: middle;
   }
 
+  // Selects size to their content and never stretch to fill the row (BS5's
+  // default `width: 100%` made the GC "is older than..." / "weeks" selects grow
+  // full-width and wrap). The GC line has several selects, so this applies to
+  // all of them, not just the first.
+  & > select {
+    flex: 0 0 auto;
+    width: auto;
+    max-width: 100%;
+  }
+
   // The leading filter select needs room for its long option labels
-  // (e.g. "for vulnerability IDs matching..."); keep it a fixed width.
+  // (e.g. "for vulnerability IDs matching..."); give it a comfortable width.
   & > select:first-child {
     flex: 0 0 15em;
     width: 15em;
