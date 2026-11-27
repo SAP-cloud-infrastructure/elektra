@@ -242,7 +242,7 @@ export function JobDetails({ job, domainName, projectName, apiClient }: JobDetai
                     helptext={`Please be aware that the time is shown in your local time zone (UTC${new Date().getTimezoneOffset() <= 0 ? "+" : "-"}${Math.abs(Math.floor(new Date().getTimezoneOffset() / 60))}${new Date().getTimezoneOffset() % 60 !== 0 ? ":" + String(Math.abs(new Date().getTimezoneOffset() % 60)).padStart(2, "0") : ""}h), but the job will be stored and executed in UTC.`}
                     value={scheduleDate}
                     maxDate={new Date(job.due_date)}
-                    minDate={job.schedule_date ? new Date(job.schedule_date) : new Date()}
+                    minDate={new Date()}
                     enableTime={true}
                     onChange={handleScheduleDateChange}
                   />
