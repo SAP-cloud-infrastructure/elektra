@@ -9,7 +9,7 @@
 #sso-only-content{ class: ("login-hidden" if sso_precheck_enabled) }
   .form-signin
     %h2.form-signin-heading
-      Single Sign-On required
+      Sign-in required
 
     .flashes
       - flash.each do |name, msg|
@@ -18,7 +18,7 @@
     %section
       .bs-callout.bs-callout-info.bs-callout-emphasize
         %p
-          Password login is disabled. Please sign in via Single Sign-On.
+          Your session has expired or you are not signed in. This region requires Single Sign-On — please sign in via SSO.
 
     = link_to 'Return to dashboard', '/', class: 'btn btn-lg btn-primary d-block w-100'
 
