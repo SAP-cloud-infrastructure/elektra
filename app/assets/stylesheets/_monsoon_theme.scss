@@ -489,6 +489,54 @@ section {
     cursor: pointer;
     padding-left: 0;
   }
+
+  // BS5 only styles `.page-item`/`.page-link`; our React pagination components
+  // (datatable.jsx, pagination.jsx) still emit the BS3 `.pagination > li > a`
+  // markup, so after the BS5 migration the links lost all chrome and collapsed
+  // into one another ("« First‹ Prev12Next ›Last »"). Re-create the BS5 page
+  // link look here, using Bootstrap's CSS variables so it tracks the theme.
+  li > a {
+    position: relative;
+    display: block;
+    padding: $pagination-padding-y $pagination-padding-x;
+    margin-left: -1px;
+    color: var(--bs-link-color);
+    text-decoration: none;
+    background-color: var(--bs-body-bg);
+    border: var(--bs-border-width) solid var(--bs-border-color);
+
+    &:hover {
+      z-index: 2;
+      color: var(--bs-link-hover-color);
+      background-color: var(--bs-tertiary-bg);
+      border-color: var(--bs-border-color);
+    }
+  }
+
+  li:first-child > a {
+    margin-left: 0;
+    border-top-left-radius: var(--bs-border-radius);
+    border-bottom-left-radius: var(--bs-border-radius);
+  }
+
+  li:last-child > a {
+    border-top-right-radius: var(--bs-border-radius);
+    border-bottom-right-radius: var(--bs-border-radius);
+  }
+
+  li.active > a {
+    z-index: 3;
+    color: var(--bs-pagination-active-color, #fff);
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+  }
+
+  li.disabled > a {
+    color: var(--bs-secondary-color);
+    pointer-events: none;
+    background-color: var(--bs-body-bg);
+    border-color: var(--bs-border-color);
+  }
 }
 
 // Simple inline pager used by the React searchComponents (page window +

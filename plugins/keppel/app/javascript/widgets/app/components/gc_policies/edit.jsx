@@ -268,12 +268,14 @@ export default class GCPoliciesEditModal extends React.Component {
                 <th className="col-md-8">Matching rule</th>
                 <th className="col-md-1">
                   {isAdmin && (
-                    <button
-                      className="btn btn-sm btn-secondary"
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="text-nowrap"
                       onClick={this.addPolicy}
                     >
                       Add policy
-                    </button>
+                    </Button>
                   )}
                 </th>
               </tr>
