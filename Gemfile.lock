@@ -264,7 +264,7 @@ GEM
       dry-validation (~> 1.0, >= 1.0.0)
     connection_pool (3.0.2)
     crass (1.0.8)
-    csv (3.3.5)
+    csv (3.3.7)
     database_cleaner (2.1.0)
       database_cleaner-active_record (>= 2, < 3)
     database_cleaner-active_record (2.2.1)
